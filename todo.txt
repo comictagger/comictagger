@@ -1,0 +1,75 @@
+Add more CIX tags:
+
+
+ComicArchive support for folders
+ComicArchive support for reading RARs
+ 
+API Key config
+
+Toolbar icons
+
+Consolidate Credit Roles for english variants : Penciler vs Penciller
+
+TaggerWindow entry fields
+	General layout
+	Special Dialogs needed for:   
+		Credits
+		Pages Info
+
+	Some entry fields should/could be combobox:
+		Format
+		Language
+		Country
+		Manga?? CIX: "Yes", "No", "YesAndRightToLeft"
+		
+-----------		
+
+Form type validation Ints vs strings for month, year. etc
+
+
+Check all HTTP responses for errors
+
+Clear form button
+Remove metadata from archive
+
+Lots of error checking
+
+Archive function to  detect tag blocks out of sync
+
+Use external RAR tools to generate rar with CIX!
+
+
+Hourglass popup, or whatever, for when busy
+
+Idea:  Support only CBI or CIX for any given file, and not both 
+	   Determine style when opening file, and set that as current save style
+	   If user selects different one, warn about potential loss/re-arranging of data
+
+Longer term:
+	Think about mass tagging and (semi) automatic volume selection
+	
+Maybe:  keep a history of tagged volumes IDs from CV, and present those first
+
+Remember preferred style (and other stuff) (prolly kept in ~/.comictagger.conf, or some such)
+
+
+App option to covert RAR to ZIP
+
+
+
+"Select Issues" dialog request cover URLs in background
+"Select Issues" dialog cache cover images
+
+
+
+Missing from XML as enterable in ComicRack:
+	Main Character or Team
+	Review
+	User Rating
+	
+Some that seem library only:
+	"Series Complete"
+	Tags
+	Proposed Values
+
+	Community Rating
