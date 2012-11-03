@@ -97,6 +97,10 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.actionQuery_Online.setStatusTip( 'Search online for tags' )
 		self.actionQuery_Online.triggered.connect( self.queryOnline )
 		
+		self.actionClearEntryForm.setShortcut( 'Ctrl+C' )
+		self.actionClearEntryForm.setStatusTip( 'Clear all the data on the screen' )
+		self.actionClearEntryForm.triggered.connect( self.clearForm )
+
 		# Help Menu
 		self.actionAbout.setShortcut( 'Ctrl+A' )
 		self.actionAbout.setStatusTip( 'Show the ' + self.appName + ' info' )
@@ -108,8 +112,8 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.toolBar.addAction( self.actionWrite_Tags )
 		self.toolBar.addAction( self.actionParse_Filename )
 		self.toolBar.addAction( self.actionQuery_Online )
+		self.toolBar.addAction( self.actionClearEntryForm )
         
-	
 	def repackageArchive( self ):
 		QtGui.QMessageBox.information(self, self.tr("Repackage Comic Archive"), self.tr("TBD"))
 
@@ -174,6 +178,28 @@ class TaggerWindow( QtGui.QMainWindow):
 			
 		self.lblArchiveInfo.setText( info_text )
 	
+	def clearForm( self ):		
+		# recursivly clear the tab form
+		self.clearChildren( self.tabWidget )
+		
+	def clearChildren (self, widget ):
+
+		if ( isinstance(widget, QtGui.QLineEdit) or   
+				isinstance(widget, QtGui.QTextEdit)):
+			widget.setText("")
+		if ( isinstance(widget, QtGui.QComboBox) ):
+			widget.setCurrentIndex( 0 )
+		if ( isinstance(widget, QtGui.QCheckBox) ):
+			widget.setChecked( False )
+		if ( isinstance(widget, QtGui.QTableWidget) ):
+			while widget.rowCount() > 0:
+				widget.removeRow(0)
+
+		# recursive call on chillun
+		for child in widget.children():
+			self.clearChildren( child )
+
+		
 	def metadataToForm( self ):
 		# copy the the metadata object into to the form
 		

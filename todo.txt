@@ -1,4 +1,4 @@
-
+Remove metadata from archive
 
 ComicArchive support for folders
 ComicArchive support for reading RARs
@@ -20,18 +20,13 @@ TaggerWindow entry fields
 
 Form type validation Ints vs strings for month, year. etc
 
-
 Check all HTTP responses for errors
-
-Clear form button
-Remove metadata from archive
 
 Lots of error checking
 
 Archive function to  detect tag blocks out of sync
 
 Use external RAR tools to generate rar with CIX!
-
 
 Hourglass popup, or whatever, for when busy
 

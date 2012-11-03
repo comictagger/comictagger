@@ -685,6 +685,8 @@
     <addaction name="actionLoad"/>
     <addaction name="actionWrite_Tags"/>
     <addaction name="actionRepackage"/>
+    <addaction name="actionRemoveCRTags"/>
+    <addaction name="actionRemoveCBLTags"/>
     <addaction name="actionExit"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
@@ -699,6 +701,7 @@
     </property>
     <addaction name="actionParse_Filename"/>
     <addaction name="actionQuery_Online"/>
+    <addaction name="actionClearEntryForm"/>
    </widget>
    <addaction name="menuComicTagger"/>
    <addaction name="menuTags"/>
@@ -755,6 +758,21 @@
   <action name="actionQuery_Online">
    <property name="text">
     <string>Query Online</string>
+   </property>
+  </action>
+  <action name="actionClearEntryForm">
+   <property name="text">
+    <string>Clear Entry Form</string>
+   </property>
+  </action>
+  <action name="actionRemoveCRTags">
+   <property name="text">
+    <string>Remove CR Tags</string>
+   </property>
+  </action>
+  <action name="actionRemoveCBLTags">
+   <property name="text">
+    <string>Remove CBL Tags</string>
    </property>
   </action>
  </widget>
