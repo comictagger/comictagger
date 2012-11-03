@@ -7,7 +7,7 @@ import zipfile
 from pprint import pprint 
 import xml.etree.ElementTree as ET
 from genericmetadata import GenericMetadata
-
+import utils
 
 class ComicInfoXml:
 
@@ -83,71 +83,67 @@ class ComicInfoXml:
 			ET.SubElement(root, 'BlackAndWhite').text = "Yes"
 
 		# need to specially process the credits, since they are structured differently than CIX	
-		credit_writer    = None
-		credit_penciller = None
-		credit_inker     = None
-		credit_colorist  = None
-		credit_letterer  = None
-		credit_cover     = None
-		credit_editor    = None
-				
+		credit_writer_list    = list()
+		credit_penciller_list = list()
+		credit_inker_list     = list()
+		credit_colorist_list  = list()
+		credit_letterer_list  = list()
+		credit_cover_list     = list()
+		credit_editor_list    = list()
+		
+		# first, loop thru credits, and build a list for each role that CIX supports
 		for credit in metadata.credits:
-			if credit['role'].title() in set( ['Writer', 'Plotter'] ):
-				if credit_writer == None:
-					credit_writer  = ET.SubElement(root, 'Writer')
-					credit_writer.text  = ""
-				if len(credit_writer.text) > 0:
-					credit_writer.text += ", "
-				credit_writer.text += credit['person']
+
+			if credit['role'].lower() in set( ['writer', 'plotter', 'scripter'] ):
+				credit_writer_list.append(credit['person'])
+
+			if credit['role'].lower() in set( [ 'artist', 'penciller', 'penciler', 'breakdowns' ] ):
+				credit_penciller_list.append(credit['person'])
 				
-			if credit['role'].title() in set( [ 'Inker', 'Artist', 'Finishes' ] ):
-				if credit_inker == None:
-					credit_inker  = ET.SubElement(root, 'Inker')
-					credit_inker.text  = ""
-				if len(credit_inker.text) > 0:
-					credit_inker.text += ", "
-				credit_inker.text += credit['person']
-
-			if credit['role'].title() in set( [ 'Artist', 'Penciller', 'Penciler', 'Breakdowns' ] ):
-				if credit_penciller == None:
-					credit_penciller  = ET.SubElement(root, 'Penciller')
-					credit_penciller.text  = ""
-				if len(credit_penciller.text) > 0:
-					credit_penciller.text += ", "
-				credit_penciller.text += credit['person']
-
-			if credit['role'].title() in set( [ 'Colorist', 'Colourist' ]):
-				if credit_colorist == None:
-					credit_colorist  = ET.SubElement(root, 'Colorist')
-					credit_colorist.text  = ""
-				if len(credit_colorist.text) > 0:
-					credit_colorist.text += ", "
-				credit_colorist.text += credit['person']
-
-			if credit['role'].title() == 'Letterer':
-				if credit_letterer == None:
-					credit_letterer  = ET.SubElement(root, 'Letterer')
-					credit_letterer.text  = ""
-				if len(credit_letterer.text) > 0:
-					credit_letterer.text += ", "
-				credit_letterer.text += credit['person']
-
-			if credit['role'].title() in set( [ 'Cover', 'Covers', 'CoverArtist', 'Cover Artist' ] ):
-				if credit_cover == None:
-					credit_cover  = ET.SubElement(root, 'CoverArtist')
-					credit_cover.text  = ""
-				if len(credit_cover.text) > 0:
-					credit_cover.text += ", "
-				credit_cover.text += credit['person']
-
-			if credit['role'].title() in set( [ 'Editor'] ):
-				if credit_editor == None:
-					credit_editor  = ET.SubElement(root, 'Editor')
-					credit_editor.text  = ""
-				if len(credit_editor.text) > 0:
-					credit_editor.text += ", "
-				credit_editor.text += credit['person']
+			if credit['role'].lower() in set( [ 'inker', 'artist', 'finishes' ] ):
+				credit_inker_list.append(credit['person'])
 				
+			if credit['role'].lower() in set( [ 'colorist', 'colourist', 'colorer', 'colourer' ]):
+				credit_colorist_list.append(credit['person'])
+
+			if credit['role'].lower() in set( [ 'letterer'] ):
+				credit_letterer_list.append(credit['person'])
+
+			if credit['role'].lower() in set( [ 'cover', 'covers', 'coverartist', 'cover artist' ] ):
+				credit_cover_list.append(credit['person'])
+
+			if credit['role'].lower() in set( [ 'editor'] ):
+				credit_editor_list.append(credit['person'])
+				
+		# second, convert each list to string, and add to XML struct
+		if len( credit_writer_list ) > 0:
+			node = ET.SubElement(root, 'Writer')
+			node.text = utils.listToString( credit_writer_list )
+
+		if len( credit_penciller_list ) > 0:
+			node = ET.SubElement(root, 'Penciller')
+			node.text = utils.listToString( credit_penciller_list )
+
+		if len( credit_inker_list ) > 0:
+			node = ET.SubElement(root, 'Inker')
+			node.text = utils.listToString( credit_inker_list )
+
+		if len( credit_colorist_list ) > 0:
+			node = ET.SubElement(root, 'Colorist')
+			node.text = utils.listToString( credit_colorist_list )
+
+		if len( credit_letterer_list ) > 0:
+			node = ET.SubElement(root, 'Letterer')
+			node.text = utils.listToString( credit_letterer_list )
+
+		if len( credit_cover_list ) > 0:
+			node = ET.SubElement(root, 'CoverArtist')
+			node.text = utils.listToString( credit_cover_list )
+		
+		if len( credit_editor_list ) > 0:
+			node = ET.SubElement(root, 'Editor')
+			node.text = utils.listToString( credit_editor_list )
+		
 		# !!!ATB todo: loop and add the page entries under pages node
 		#pages = ET.SubElement(root, 'Pages')
 

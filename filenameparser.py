@@ -1,6 +1,9 @@
 #!/usr/bin/python
 
-# This is horrible, and needs to be re-written, but, well, it mostly works!
+# This should probably be re-written, but, well, it mostly works!
+
+# Some portions of this code were modified from pyComicMetaThis project
+# http://code.google.com/p/pycomicmetathis/
 
 import re
 import os

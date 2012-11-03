@@ -1,13 +1,15 @@
 
 from PyQt4 import QtCore, QtGui, uic
+import locale
 
 from volumeselectionwindow import VolumeSelectionWindow
 from options import Options, MetaDataStyle
 from genericmetadata import GenericMetadata
 from comicvinetalker import ComicVineTalker
 from comicarchive import ComicArchive
+from crediteditorwindow import CreditEditorWindow
 import utils
-import locale
+
 # this reads the environment and inits the right locale
 locale.setlocale(locale.LC_ALL, "")
 
@@ -43,7 +45,11 @@ class TaggerWindow( QtGui.QMainWindow):
 
 		# hook up the callbacks		
 		self.cbDataStyle.currentIndexChanged.connect(self.setDataStyle)
-		
+		self.btnEditCredit.clicked.connect(self.editCredit)	
+		self.btnAddCredit.clicked.connect(self.addCredit)	
+		self.btnRemoveCredit.clicked.connect(self.removeCredit)	
+		self.twCredits.cellDoubleClicked.connect(self.editCredit)
+
 		self.updateStyleTweaks()
 
 
@@ -232,36 +238,40 @@ class TaggerWindow( QtGui.QMainWindow):
 	
 			row = 0
 			for credit in md.credits: 
-			
-				# before we add the credit, see if the role-person pair already exists:
-				r = 0
-				while r < self.twCredits.rowCount():
-					if ( self.twCredits.item(r, 0).text() == credit['role'].title() and
-					     self.twCredits.item(r, 1).text() == credit['person'] ):
-						break
-					r = r + 1
-					
-				# if we didn't make it through the table, it's there alread, so continue without adding
-				if ( r != self.twCredits.rowCount() ):
+				# if the role-person pair already exists, just skip adding it to the list
+				if self.isDupeCredit( credit['role'].title(), credit['person']):
 					continue
 				
-				self.twCredits.insertRow(row)
-				
-				item_text = credit['role'].title()
-				item = QtGui.QTableWidgetItem(item_text)			
-				#item.setData( QtCore.Qt.UserRole ,record['id'])
-				item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
-				self.twCredits.setItem(row, 0, item)
-				
-				item_text = credit['person']
-				item = QtGui.QTableWidgetItem(item_text)			
-				item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
-				self.twCredits.setItem(row, 1, item)
-				
+				self.addNewCreditEntry( row, credit['role'].title(), credit['person'] )
+
 				row += 1
 				
 		self.twCredits.setSortingEnabled( True )
+
+	def addNewCreditEntry( self, row, role, name ):
+		self.twCredits.insertRow(row)
 		
+		item_text = role
+		item = QtGui.QTableWidgetItem(item_text)			
+		item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
+		self.twCredits.setItem(row, 0, item)
+		
+		item_text = name
+		item = QtGui.QTableWidgetItem(item_text)			
+		item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
+		self.twCredits.setItem(row, 1, item)
+		
+		
+	def isDupeCredit( self, role, name ):
+		r = 0
+		while r < self.twCredits.rowCount():
+			if ( self.twCredits.item(r, 0).text() == role and
+					self.twCredits.item(r, 1).text() == name ):
+				return True
+			r = r + 1
+			
+		return False
+
 
 	def formToMetadata( self ):
 		
@@ -325,6 +335,16 @@ class TaggerWindow( QtGui.QMainWindow):
 			md.blackAndWhite = True
 		else:
 			md.blackAndWhite = False
+
+		# get the credits from the table
+		md.credits = list()
+		row = 0
+		while row < self.twCredits.rowCount():
+			role = str(self.twCredits.item(row, 0).text())
+			name = str(self.twCredits.item(row, 1).text())
+			md.addCredit( name, role, False )
+			print name, role, row
+			row += 1
 
 		
 	def useFilename( self ):
@@ -443,6 +463,69 @@ class TaggerWindow( QtGui.QMainWindow):
 			for item in cix_only:
 				enableWidget(item, False )
 		
+	def cellDoubleClicked( self, r, c ):
+		self.editCredit()
+
+	def addCredit( self ):
+		self.modifyCredits( "add" )
+		
+	def editCredit( self ):
+		if ( self.twCredits.currentRow() > -1 ):
+			self.modifyCredits( "edit" )
+		
+	def modifyCredits( self , action ):
+		
+		if action == "edit":
+			row = self.twCredits.currentRow()
+			role = self.twCredits.item( row, 0 ).text()
+			name = self.twCredits.item( row, 1 ).text()
+		else:
+			role = ""
+			name = ""
+		
+		editor = CreditEditorWindow( self, CreditEditorWindow.ModeEdit, role, name )
+		editor.setModal(True)
+		editor.exec_()
+		if editor.result():
+			new_role, new_name =  editor.getCredits()
+			
+			if new_name == name and new_role == role:
+				#nothing has changed, just quit
+				return
+			
+			# check for dupes
+			ok_to_mod = True
+			if self.isDupeCredit( new_role, new_name):
+				# delete the dupe credit from list
+				#TODO warn user!!
+				reply = QtGui.QMessageBox.question(self, 
+												self.tr("Duplicate Credit!"), 
+												self.tr("This will create a duplicate credit entry. Would you like to merge the entries, or create a duplicate?"),
+												self.tr("Merge"), self.tr("Duplicate" ))
+
+				if reply == 0: 
+					# merge
+					if action == "edit":
+						# just remove the row that would be same
+						self.twCredits.removeRow( row )
+						
+					ok_to_mod = False
+
+		
+			if ok_to_mod:
+				#modify it
+				if action == "edit":
+					self.twCredits.item(row, 0).setText( new_role )
+					self.twCredits.item(row, 1).setText( new_name )
+				else:
+					# add new entry
+					row = self.twCredits.rowCount()
+					self.addNewCreditEntry( row, new_role, new_name)
+
+	def removeCredit( self ):
+		row = self.twCredits.currentRow()
+		if row != -1 :
+			self.twCredits.removeRow( row )
 
 
 	def center(self):

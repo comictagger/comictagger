@@ -1,4 +1,3 @@
-Add more CIX tags:
 
 
 ComicArchive support for folders
@@ -8,20 +7,15 @@ API Key config
 
 Toolbar icons
 
-Consolidate Credit Roles for english variants : Penciler vs Penciller
+Consolidate Credit Roles for english variants? : Penciler vs Penciller
 
 TaggerWindow entry fields
 	General layout
 	Special Dialogs needed for:   
-		Credits
 		Pages Info
 
-	Some entry fields should/could be combobox:
-		Format
-		Language
-		Country
-		Manga?? CIX: "Yes", "No", "YesAndRightToLeft"
 		
+	CR has editable dropdowns/comboboxes for Format, Publisher, Imprint
 -----------		
 
 Form type validation Ints vs strings for month, year. etc
