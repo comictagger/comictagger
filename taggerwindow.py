@@ -84,6 +84,22 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.actionWrite_Tags.setStatusTip( 'Save tags to comic archive' )
 		self.actionWrite_Tags.triggered.connect( self.commitMetadata )
 
+		self.actionRemoveCBLTags.setStatusTip( 'Remove ComicBookLover tags from comic archive' )
+		self.actionRemoveCBLTags.triggered.connect( self.removeCBLTags )
+
+		self.actionRemoveCRTags.setStatusTip( 'Remove ComicRack tags from comic archive' )
+		self.actionRemoveCRTags.triggered.connect( self.removeCRTags )
+
+		self.actionReloadAuto.setShortcut( 'Ctrl+R' )
+		self.actionReloadAuto.setStatusTip( 'Reload selected style tags from archive' )
+		self.actionReloadAuto.triggered.connect( self.reloadAuto )
+
+		self.actionReloadCBLTags.setStatusTip( 'Reload ComicBookLover tags' )
+		self.actionReloadCBLTags.triggered.connect( self.reloadCBLTags )
+
+		self.actionReloadCRTags.setStatusTip( 'Reload ComicRack tags' )
+		self.actionReloadCRTags.triggered.connect( self.reloadCRTags )
+	
 		#self.actionRepackage.setShortcut(  )
 		self.actionRepackage.setStatusTip( 'Re-create archive as CBZ' )
 		self.actionRepackage.triggered.connect( self.repackageArchive )
@@ -97,7 +113,7 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.actionQuery_Online.setStatusTip( 'Search online for tags' )
 		self.actionQuery_Online.triggered.connect( self.queryOnline )
 		
-		self.actionClearEntryForm.setShortcut( 'Ctrl+C' )
+		#self.actionClearEntryForm.setShortcut( 'Ctrl+C' )
 		self.actionClearEntryForm.setStatusTip( 'Clear all the data on the screen' )
 		self.actionClearEntryForm.triggered.connect( self.clearForm )
 
@@ -113,6 +129,8 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.toolBar.addAction( self.actionParse_Filename )
 		self.toolBar.addAction( self.actionQuery_Online )
 		self.toolBar.addAction( self.actionClearEntryForm )
+		#self.toolBar.addAction( self.actionRemoveCBLTags )
+		#self.toolBar.addAction( self.actionRemoveCRTags )
         
 	def repackageArchive( self ):
 		QtGui.QMessageBox.information(self, self.tr("Repackage Comic Archive"), self.tr("TBD"))
@@ -134,7 +152,7 @@ class TaggerWindow( QtGui.QMainWindow):
 		#print self.droppedFile # displays the file name
 		self.openArchive( str(self.droppedFile) ) 
         
-	def openArchive( self, path ):
+	def openArchive( self, path, explicit_style=None, clear_form=True ):
 		
 		if path is None or path == "":
 			return
@@ -143,10 +161,46 @@ class TaggerWindow( QtGui.QMainWindow):
 		
 		if ca is not None and ca.seemsToBeAComicArchive():
 
+			# clear form and current metadata, we're all in!
+			if clear_form:
+				self.clearForm()
+			
 			self.comic_archive = ca
+			
+			if explicit_style is None:
+				hasCBI = ca.hasCBI()
+				hasCIX = ca.hasCIX()			
+				hasNeither = not hasCIX and not hasCBI
 
-			self.metadata = self.comic_archive.readMetadata( self.data_style )
+				# no style indicated, so try to choose
+				if hasNeither:
+					self.metadata = self.comic_archive.metadataFromFilename( )
+				else:	
+					if hasCBI and not hasCIX:
+						self.data_style = MetaDataStyle.CBI
+					elif hasCIX and not hasCBI:
+						self.data_style = MetaDataStyle.CIX
+					else:  #both
+						reply = QtGui.QMessageBox.question(self, 
+														self.tr("Multiple Tag Types!"), 
+														self.tr("This archive has both ComicBookLover and ComicRack type tags.  Which do you want to load?"),
+														self.tr("ComicBookLover"), self.tr("ComicRack" ))
 
+						if reply == 0: 
+							# ComicBookLover
+							self.data_style = MetaDataStyle.CBI
+						else:
+							self.data_style = MetaDataStyle.CIX
+					self.adjustStyleCombo()
+					self.metadata = self.comic_archive.readMetadata( self.data_style )
+			else:
+				if ca.hasMetadata( explicit_style ):
+					self.data_style = explicit_style
+					self.adjustStyleCombo()
+					self.metadata = self.comic_archive.readMetadata( self.data_style )
+				else:
+					return
+					
 			if self.metadata.isEmpty:
 				self.metadata = self.comic_archive.metadataFromFilename( )
 				
@@ -157,7 +211,6 @@ class TaggerWindow( QtGui.QMainWindow):
 				self.lblCover.setPixmap(QtGui.QPixmap(img))
 				self.lblCover.setScaledContents(True)
 
-			#!!!ATB should I clear the form???
 			self.metadataToForm()
 			self.updateAppTitle()
 			self.updateInfoBox()
@@ -179,6 +232,10 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.lblArchiveInfo.setText( info_text )
 	
 	def clearForm( self ):		
+	
+		# get a minty fresh metadata object
+		self.metadata = GenericMetadata()
+		
 		# recursivly clear the tab form
 		self.clearChildren( self.tabWidget )
 		
@@ -369,18 +426,30 @@ class TaggerWindow( QtGui.QMainWindow):
 			role = str(self.twCredits.item(row, 0).text())
 			name = str(self.twCredits.item(row, 1).text())
 			md.addCredit( name, role, False )
-			print name, role, row
 			row += 1
 
-		
+
 	def useFilename( self ):
 		self.metadata = self.comic_archive.metadataFromFilename( )
 		self.metadataToForm()
 
 
 	def selectFile( self ):
-		path = str(QtGui.QFileDialog.getOpenFileName())
-		self.openArchive( path ) 
+		
+		dialog = QtGui.QFileDialog(self)
+		dialog.setFileMode(QtGui.QFileDialog.ExistingFile)
+		#dialog.setFileMode(QtGui.QFileDialog.Directory )
+		filters  = [ 
+		             "Comic archive files (*.cbz *.zip *.cbr *.rar)",
+		             "Any files (*)"
+		             ]
+		
+		dialog.setNameFilters(filters)
+		#dialog.setFilter (self, QString filter)
+		
+		if (dialog.exec_()):
+			fileList = dialog.selectedFiles()
+			self.openArchive( str(fileList[0]) )  
 
 	def queryOnline(self):
 	
@@ -423,7 +492,6 @@ class TaggerWindow( QtGui.QMainWindow):
 	def setDataStyle(self, s):
 		self.data_style, b = self.cbDataStyle.itemData(s).toInt()
 		self.updateStyleTweaks()
-		
 
 	def updateStyleTweaks( self ):
 
@@ -558,18 +626,22 @@ class TaggerWindow( QtGui.QMainWindow):
 		screen = QtGui.QDesktopWidget().screenGeometry()
 		size =  self.geometry()
 		self.move((screen.width()-size.width())/2, (screen.height()-size.height())/2)
+		
+	def adjustStyleCombo( self ):
+		# select the current style
+		if ( self.data_style == MetaDataStyle.CBI ):
+			self.cbDataStyle.setCurrentIndex ( 0 )
+		elif ( self.data_style == MetaDataStyle.CIX ):
+			self.cbDataStyle.setCurrentIndex ( 1 )
+		self.updateStyleTweaks()
+		
 
 	def populateComboBoxes( self ):
 		    
 		# Add the entries to the tag style combobox
 		self.cbDataStyle.addItem( "ComicBookLover", MetaDataStyle.CBI )
 		self.cbDataStyle.addItem( "ComicRack", MetaDataStyle.CIX )
-		
-		# select the current style
-		if ( self.data_style == MetaDataStyle.CBI ):
-			self.cbDataStyle.setCurrentIndex ( 0 )
-		elif ( self.data_style == MetaDataStyle.CIX ):
-			self.cbDataStyle.setCurrentIndex ( 1 )
+		self.adjustStyleCombo()
 			
 		# Add the entries to the country combobox
 		self.cbCountry.addItem( "", "" )
@@ -587,3 +659,37 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.cbManga.addItem( "Yes", "Yes" )
 		self.cbManga.addItem( "Yes (Right to Left)", "YesAndRightToLeft" )
 		self.cbManga.addItem( "No", "No" )
+
+	def removeCBLTags( self ):
+		self.removeTags(  MetaDataStyle.CBI )
+			
+	def removeCRTags( self ):
+		self.removeTags(  MetaDataStyle.CIX )
+			
+	def removeTags( self, style):
+		# remove the indicated tags from the archive
+		# ( keep the form and the current metadata object intact. )
+		if self.comic_archive is not None and self.comic_archive.hasMetadata( style ):
+			reply = QtGui.QMessageBox.question(self, 
+			     self.tr("Remove Tags"), 
+			     self.tr("Are you sure you with to remove the " +  MetaDataStyle.name[style] + " tags from this archive?"),
+			     QtGui.QMessageBox.Yes, QtGui.QMessageBox.No )
+			     
+			if reply == QtGui.QMessageBox.Yes:
+				path = self.comic_archive.path
+				self.comic_archive.removeMetadata( style )
+				self.updateInfoBox()
+				
+
+	def reloadAuto( self ):
+		if self.comic_archive is not None and self.comic_archive.hasMetadata( self.data_style ):
+			self.openArchive( self.comic_archive.path, explicit_style=self.data_style )
+
+	def reloadCBLTags( self ):
+		if self.comic_archive is not None and self.comic_archive.hasCBI():
+			self.openArchive( self.comic_archive.path, explicit_style=MetaDataStyle.CBI )
+
+	def reloadCRTags( self ):
+		if self.comic_archive is not None and self.comic_archive.hasCIX():
+			self.openArchive( self.comic_archive.path, explicit_style=MetaDataStyle.CIX )
+

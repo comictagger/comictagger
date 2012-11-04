@@ -121,7 +121,7 @@ class ComicArchive:
 		elif style == MetaDataStyle.CBI:
 			self.writeCBI( metadata )
 
-	def hasMetadata( self, syle ):
+	def hasMetadata( self, style ):
 		
 		if style == MetaDataStyle.CIX:
 			return self.hasCIX()
@@ -130,8 +130,11 @@ class ComicArchive:
 		else:
 			return False
 	
-	def clearMetadata( self, style ):
-		return 
+	def removeMetadata( self, style ):
+		if style == MetaDataStyle.CIX:
+			self.removeCIX()
+		elif style == MetaDataStyle.CBI:
+			self.removeCBI()
 
 	def getCoverPage(self):
 		
@@ -185,6 +188,10 @@ class ComicArchive:
 		cbi_string = ComicBookInfo().stringFromMetadata( metadata )
 		writeZipComment( self.path, cbi_string )
 		
+	def removeCBI( self ):
+		print "ATB --->removing CBI"
+		writeZipComment( self.path, "" )
+		
 	def readCIX( self ):
 
 		# !!!ATB TODO add support for folders
@@ -202,15 +209,22 @@ class ComicArchive:
 
 	def writeCIX(self, metadata):
 
+		# Passing in None for metadata will remove the CIX file from the archive
+		
 		# !!!ATB TODO add support for folders
 		if (not self.isZip()): 
 			print self.path, "isn't a zip archive!"
 			return
 		
-		cix_string = ComicInfoXml().stringFromMetadata( metadata )
+		if metadata == None:
+			cix_string = ""
+			copy_cix = False
+		else:	
+			cix_string = ComicInfoXml().stringFromMetadata( metadata )
+			copy_cix = True
 		
 		# check if an XML file already exists in archive
-		if not self.hasCIX():
+		if not self.hasCIX() and copy_cix:
 
 			#simple case: just add the new archive file
 			zf = zipfile.ZipFile(self.path, mode='a', compression=zipfile.ZIP_DEFLATED ) 
@@ -230,8 +244,9 @@ class ComicArchive:
 				if ( item.filename != self.ci_xml_filename ):
 					zout.writestr(item, buffer)
 					
-			# now write out the new xml file
-			zout.writestr( self.ci_xml_filename, cix_string )
+			# now write out the new xml file, if there is one
+			if copy_cix:
+				zout.writestr( self.ci_xml_filename, cix_string )
 			
 			#preserve the old comment
 			zout.comment = zin.comment
@@ -242,7 +257,12 @@ class ComicArchive:
 			# replace with the new file 
 			os.remove( self.path )
 			os.rename( 'tmpnew.zip', self.path )
-	
+
+	def removeCIX( self ):
+
+		self.writeCIX( None )
+		
+
 	def hasCIX(self):
 
 		has = False

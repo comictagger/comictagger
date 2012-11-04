@@ -1,4 +1,11 @@
-Remove metadata from archive
+
+
+Need to keep a "dirty flag" for form
+
+Reload metadata from archive
+	- verification prompt is form is dirty
+	
+Add License/Copyright headers
 
 ComicArchive support for folders
 ComicArchive support for reading RARs
@@ -8,6 +15,8 @@ API Key config
 Toolbar icons
 
 Consolidate Credit Roles for english variants? : Penciler vs Penciller
+
+Stand-alone CLI
 
 TaggerWindow entry fields
 	General layout

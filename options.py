@@ -11,6 +11,7 @@ class Enum(set):
 class MetaDataStyle:
 	CBI = 0
 	CIX = 1
+	name = [ 'ComicBookLover', 'ComicRack' ]
 
 
 class Options:

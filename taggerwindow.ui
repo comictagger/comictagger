@@ -682,11 +682,26 @@
     <property name="title">
      <string>File</string>
     </property>
+    <widget class="QMenu" name="menuRemove">
+     <property name="title">
+      <string>Remove</string>
+     </property>
+     <addaction name="actionRemoveCBLTags"/>
+     <addaction name="actionRemoveCRTags"/>
+    </widget>
+    <widget class="QMenu" name="menuReload">
+     <property name="title">
+      <string>Reload</string>
+     </property>
+     <addaction name="actionReloadAuto"/>
+     <addaction name="actionReloadCBLTags"/>
+     <addaction name="actionReloadCRTags"/>
+    </widget>
     <addaction name="actionLoad"/>
     <addaction name="actionWrite_Tags"/>
     <addaction name="actionRepackage"/>
-    <addaction name="actionRemoveCRTags"/>
-    <addaction name="actionRemoveCBLTags"/>
+    <addaction name="menuReload"/>
+    <addaction name="menuRemove"/>
     <addaction name="actionExit"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
@@ -767,12 +782,27 @@
   </action>
   <action name="actionRemoveCRTags">
    <property name="text">
-    <string>Remove CR Tags</string>
+    <string>Remove ComicRack Tags</string>
    </property>
   </action>
   <action name="actionRemoveCBLTags">
    <property name="text">
-    <string>Remove CBL Tags</string>
+    <string>Remove ComicBookLover Tags</string>
+   </property>
+  </action>
+  <action name="actionReloadCBLTags">
+   <property name="text">
+    <string>Reload ComicBookLover Tags</string>
+   </property>
+  </action>
+  <action name="actionReloadCRTags">
+   <property name="text">
+    <string>Reload ComicRack Tags</string>
+   </property>
+  </action>
+  <action name="actionReloadAuto">
+   <property name="text">
+    <string>Reload Selected Tag Style</string>
    </property>
   </action>
  </widget>
