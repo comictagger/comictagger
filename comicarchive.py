@@ -20,7 +20,7 @@ from genericmetadata import GenericMetadata
 from filenameparser import FileNameParser
 
 
-class ZipArchiver():
+class ZipArchiver:
 	
 	def __init__( self, path ):
 		self.path = path
@@ -146,7 +146,7 @@ class ZipArchiver():
 #------------------------------------------
 # RAR implementation
 	
-class RarArchiver():
+class RarArchiver:
 	
 	def __init__( self, path ):
 		self.path = path
@@ -193,7 +193,7 @@ class RarArchiver():
 			f.write( data )		
 			f.close()
 
-			# use external program to write comment to Rar archive
+			# use external program to write file to Rar archive
 			call([self.rar_exe_path, 'a', '-ep', self.path, tmp_file])
 			
 			os.remove( tmp_file)
@@ -213,27 +213,65 @@ class RarArchiver():
 
 #------------------------------------------
 # Folder implementation
-class FolderArchiver():
+class FolderArchiver:
 	
 	def __init__( self, path ):
 		self.path = path
+		self.comment_file_name = "ComicTaggerFolderComment.txt" 
 
 	def getArchiveComment( self ):
-		pass
+		return self.readArchiveFile( self.comment_file_name )
+	
 	def setArchiveComment( self, comment ):
-		pass	
-	def readArchiveFiler( self ):
-		pass
+		self.writeArchiveFile( self.comment_file_name, comment )
+		
+	def readArchiveFile( self, archive_file ):
+		
+		fname = os.path.join( self.path, archive_file )
+		try:
+			with open( fname, 'rb' ) as f: 
+				data = f.read()
+				f.close()			
+		except IOError as e:
+			pass
+		
+		return data
+
 	def writeArchiveFile( self, archive_file, data ):
-		pass
+
+		fname = os.path.join( self.path, archive_file )
+		try:
+			with open(fname, 'w+') as f: 
+				f.write( data )
+				f.close()
+		except IOError as e:
+			pass
+		
 	def removeArchiveFile( self, archive_file ):
-		pass
+
+		fname = os.path.join( self.path, archive_file )
+		try:
+			os.remove( fname )
+		except:
+			pass
+		
 	def getArchiveFilenameList( self ):
-		pass	
+		return self.listFiles( self.path )
+		
+	def listFiles( self, folder ):
+		
+		itemlist = list()
+
+		for item in os.listdir( folder ):
+			itemlist.append( item )
+			if os.path.isdir( item ):
+				itemlist.extend( self.listFiles( os.path.join( folder, item ) ))
+
+		return itemlist
 
 #------------------------------------------
 # Unknown implementation
-class UnknownArchiver():
+class UnknownArchiver:
 	
 	def __init__( self, path ):
 		self.path = path
@@ -286,7 +324,7 @@ class ComicArchive:
 	def rarTest( self ):
 		try:
 			rarc = UnRAR2.RarFile( self.path )
-		except InvalidRARArchive:
+		except: # InvalidRARArchive:
 			return False
 		else:
 			return True
@@ -410,7 +448,7 @@ class ComicArchive:
 		self.archiver.setArchiveComment( cbi_string )
 		
 	def removeCBI( self ):
-		self.setArchiveComment( "" )
+		self.archiver.setArchiveComment( "" )
 		
 	def readCIX( self ):
 		
@@ -443,7 +481,8 @@ class ComicArchive:
 
 	def hasCBI(self):
 
-		if ( not ( self.isZip() or self.isRar()) or not self.seemsToBeAComicArchive() ): 
+		#if ( not ( self.isZip() or self.isRar()) or not self.seemsToBeAComicArchive() ): 
+		if not self.seemsToBeAComicArchive(): 
 			return False
 
 		comment = self.archiver.getArchiveComment()
