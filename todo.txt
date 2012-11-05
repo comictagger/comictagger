@@ -1,10 +1,8 @@
 
 
-Need to keep a "dirty flag" for form
 
-Reload metadata from archive
-	- verification prompt is form is dirty
-	
+Verification prompt for removing tags
+
 Add License/Copyright headers
 
 ComicArchive support for folders
@@ -69,5 +67,20 @@ Some that seem library only:
 	"Series Complete"
 	Tags
 	Proposed Values
-
 	Community Rating
+	
+	
+Age Rating:
+	Adults Only 18+
+	Early Childhood
+	Everyone
+	Everyone 10+
+	G
+	Kids to Adults
+	MA15+
+	Mature 17+
+	PG
+	r18+
+	Rating Pending
+	Teen
+	X18+

@@ -27,6 +27,7 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.center()
 		self.raise_()
 		
+		self.dirtyFlag = False
 		self.opts = opts
 		self.data_style = opts.data_style
 		
@@ -49,7 +50,8 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.btnAddCredit.clicked.connect(self.addCredit)	
 		self.btnRemoveCredit.clicked.connect(self.removeCredit)	
 		self.twCredits.cellDoubleClicked.connect(self.editCredit)
-
+		self.connectDirtyFlagSignals()
+		
 		self.updateStyleTweaks()
 
 
@@ -64,17 +66,22 @@ class TaggerWindow( QtGui.QMainWindow):
 
 
 	def updateAppTitle( self ):
+		if self.dirtyFlag:
+			dirty_str = " [modified]"
+		else:
+			dirty_str = ""
+			
 		if self.comic_archive is None:
 			self.setWindowTitle( self.appName )
 		else:
-			self.setWindowTitle( self.appName + " - " + self.comic_archive.path)
+			self.setWindowTitle( self.appName + " - " + self.comic_archive.path + dirty_str)
 
 	def configMenus( self):
 		
 		# File Menu
 		self.actionExit.setShortcut( 'Ctrl+Q' )
 		self.actionExit.setStatusTip( 'Exit application' )
-		self.actionExit.triggered.connect( QtGui.qApp.quit )
+		self.actionExit.triggered.connect( self.close )
 
 		self.actionLoad.setShortcut( 'Ctrl+O' )
 		self.actionLoad.setStatusTip( 'Load comic archive' )
@@ -149,9 +156,10 @@ class TaggerWindow( QtGui.QMainWindow):
 					event.accept()
  
 	def dropEvent(self, event):
-		#print self.droppedFile # displays the file name
-		self.openArchive( str(self.droppedFile) ) 
-        
+		if self.dirtyFlagVerification( "Open Archive",
+									"If you open a new archive now, data in the form will be lost.  Are you sure?"):
+			self.openArchive( str(self.droppedFile) ) 
+					
 	def openArchive( self, path, explicit_style=None, clear_form=True ):
 		
 		if path is None or path == "":
@@ -171,7 +179,7 @@ class TaggerWindow( QtGui.QMainWindow):
 				hasCBI = ca.hasCBI()
 				hasCIX = ca.hasCIX()			
 				hasNeither = not hasCIX and not hasCBI
-
+				
 				# no style indicated, so try to choose
 				if hasNeither:
 					self.metadata = self.comic_archive.metadataFromFilename( )
@@ -212,9 +220,8 @@ class TaggerWindow( QtGui.QMainWindow):
 				self.lblCover.setScaledContents(True)
 
 			self.metadataToForm()
-			self.updateAppTitle()
-			self.updateInfoBox()
-			
+			self.clearDirtyFlag()  # also updates the app title
+			self.updateInfoBox()			
 			
 		else:
 			QtGui.QMessageBox.information(self, self.tr("Whoops!"), self.tr("That file doesn't appear to be a comic archive!"))
@@ -230,6 +237,37 @@ class TaggerWindow( QtGui.QMainWindow):
 			info_text += "* ComicBookLover tags\n"
 			
 		self.lblArchiveInfo.setText( info_text )
+
+
+	def setDirtyFlag( self, param1=None, param2=None, param3=None  ):
+		if not self.dirtyFlag:
+			self.dirtyFlag = True
+			self.updateAppTitle()
+
+	def clearDirtyFlag( self ):
+		if self.dirtyFlag:
+			self.dirtyFlag = False
+			self.updateAppTitle()
+		
+	def connectDirtyFlagSignals( self ):		
+		# recursivly connect the tab form child slots
+		self.connectChildDirtyFlagSignals( self.tabWidget )
+		
+	def connectChildDirtyFlagSignals (self, widget ):
+
+		if ( isinstance(widget, QtGui.QLineEdit)):
+			widget.textEdited.connect(self.setDirtyFlag)
+		if ( isinstance(widget, QtGui.QTextEdit)):
+			widget.textChanged.connect(self.setDirtyFlag)
+		if ( isinstance(widget, QtGui.QComboBox) ):
+			widget.currentIndexChanged.connect(self.setDirtyFlag)
+		if ( isinstance(widget, QtGui.QCheckBox) ):
+			widget.stateChanged.connect(self.setDirtyFlag)
+
+		# recursive call on chillun
+		for child in widget.children():
+			self.connectChildDirtyFlagSignals( child )
+
 	
 	def clearForm( self ):		
 	
@@ -238,6 +276,10 @@ class TaggerWindow( QtGui.QMainWindow):
 		
 		# recursivly clear the tab form
 		self.clearChildren( self.tabWidget )
+		
+		# clear the dirty flag, since there is nothing in there now to lose
+		self.clearDirtyFlag()  
+		
 		
 	def clearChildren (self, widget ):
 
@@ -449,7 +491,11 @@ class TaggerWindow( QtGui.QMainWindow):
 		
 		if (dialog.exec_()):
 			fileList = dialog.selectedFiles()
-			self.openArchive( str(fileList[0]) )  
+			if self.dirtyFlagVerification( "Open Archive",
+										"If you open a new archive now, data in the form will be lost.  Are you sure?"):
+				self.openArchive( str(fileList[0]) )  
+
+			
 
 	def queryOnline(self):
 	
@@ -477,11 +523,12 @@ class TaggerWindow( QtGui.QMainWindow):
 
 	def commitMetadata(self):
 
-		if (not self.metadata is None and not self.comic_archive is None):	
+		if ( self.metadata is not None and self.comic_archive is not None):	
 			self.formToMetadata()
 			self.comic_archive.writeMetadata( self.metadata, self.data_style )
+			self.clearDirtyFlag()
 			self.updateInfoBox()
-
+			
 			QtGui.QMessageBox.information(self, self.tr("Yeah!"), self.tr("File written."))
 
 
@@ -593,9 +640,9 @@ class TaggerWindow( QtGui.QMainWindow):
 				# delete the dupe credit from list
 				#TODO warn user!!
 				reply = QtGui.QMessageBox.question(self, 
-												self.tr("Duplicate Credit!"), 
-												self.tr("This will create a duplicate credit entry. Would you like to merge the entries, or create a duplicate?"),
-												self.tr("Merge"), self.tr("Duplicate" ))
+								self.tr("Duplicate Credit!"), 
+								self.tr("This will create a duplicate credit entry. Would you like to merge the entries, or create a duplicate?"),
+								self.tr("Merge"), self.tr("Duplicate" ))
 
 				if reply == 0: 
 					# merge
@@ -615,11 +662,14 @@ class TaggerWindow( QtGui.QMainWindow):
 					# add new entry
 					row = self.twCredits.rowCount()
 					self.addNewCreditEntry( row, new_role, new_name)
+					
+			self.setDirtyFlag()
 
 	def removeCredit( self ):
 		row = self.twCredits.currentRow()
 		if row != -1 :
 			self.twCredits.removeRow( row )
+		self.setDirtyFlag()
 
 
 	def center(self):
@@ -672,7 +722,7 @@ class TaggerWindow( QtGui.QMainWindow):
 		if self.comic_archive is not None and self.comic_archive.hasMetadata( style ):
 			reply = QtGui.QMessageBox.question(self, 
 			     self.tr("Remove Tags"), 
-			     self.tr("Are you sure you with to remove the " +  MetaDataStyle.name[style] + " tags from this archive?"),
+			     self.tr("Are you sure you wish to remove the " +  MetaDataStyle.name[style] + " tags from this archive?"),
 			     QtGui.QMessageBox.Yes, QtGui.QMessageBox.No )
 			     
 			if reply == QtGui.QMessageBox.Yes:
@@ -682,14 +732,37 @@ class TaggerWindow( QtGui.QMainWindow):
 				
 
 	def reloadAuto( self ):
-		if self.comic_archive is not None and self.comic_archive.hasMetadata( self.data_style ):
-			self.openArchive( self.comic_archive.path, explicit_style=self.data_style )
+		self.actualReload( self.data_style )
 
 	def reloadCBLTags( self ):
-		if self.comic_archive is not None and self.comic_archive.hasCBI():
-			self.openArchive( self.comic_archive.path, explicit_style=MetaDataStyle.CBI )
+		self.actualReload( MetaDataStyle.CBI )
 
 	def reloadCRTags( self ):
-		if self.comic_archive is not None and self.comic_archive.hasCIX():
-			self.openArchive( self.comic_archive.path, explicit_style=MetaDataStyle.CIX )
+		self.actualReload( MetaDataStyle.CIX )
+
+	def actualReload( self, style ):
+		if self.comic_archive is not None and self.comic_archive.hasMetadata( style ):
+			if self.dirtyFlagVerification( "Load Tags",
+										"If you load tags now, data in the form will be lost.  Are you sure?"):
+				self.openArchive( self.comic_archive.path, explicit_style=style )
+	                       
+	
+	def dirtyFlagVerification( self, title, desc):
+		if self.dirtyFlag:
+			reply = QtGui.QMessageBox.question(self, 
+			     self.tr(title), 
+			     self.tr(desc),
+			     QtGui.QMessageBox.Yes, QtGui.QMessageBox.No )
+			     
+			if reply != QtGui.QMessageBox.Yes:
+				return False
+		return True
+			
+	def closeEvent(self, event):
+
+		if self.dirtyFlagVerification( "Exit " + self.appName,
+		                             "If you quit now, data in the form will be lost.  Are you sure?"):
+			event.accept()
+		else:
+			event.ignore()
 
