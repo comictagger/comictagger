@@ -66,15 +66,20 @@ class TaggerWindow( QtGui.QMainWindow):
 
 
 	def updateAppTitle( self ):
-		if self.dirtyFlag:
-			dirty_str = " [modified]"
-		else:
-			dirty_str = ""
 			
 		if self.comic_archive is None:
 			self.setWindowTitle( self.appName )
 		else:
-			self.setWindowTitle( self.appName + " - " + self.comic_archive.path + dirty_str)
+			mod_str = ""
+			ro_str = ""
+			
+			if self.dirtyFlag:
+				mod_str = " [modified]"
+			
+			if not self.comic_archive.isWritable():
+				ro_str = " [read only ]"
+				
+			self.setWindowTitle( self.appName + " - " + self.comic_archive.path + mod_str + ro_str)
 
 	def configMenus( self):
 		
@@ -166,6 +171,7 @@ class TaggerWindow( QtGui.QMainWindow):
 			return
 		
 		ca = ComicArchive( path )
+		ca.setExternalRarProgram( "/usr/bin/rar" )
 		
 		if ca is not None and ca.seemsToBeAComicArchive():
 

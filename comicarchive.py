@@ -5,6 +5,13 @@ A python class to represent a single comic, be it file or folder of images
 import zipfile
 import os
 import struct
+import sys
+import tempfile
+from subprocess import call
+
+sys.path.insert(0, os.path.abspath(".") )
+import UnRAR2
+from UnRAR2.rar_exceptions import *
 
 from options import Options, MetaDataStyle
 from comicinfoxml import ComicInfoXml
@@ -76,20 +83,86 @@ def writeZipComment( filename, comment ):
 
 class ComicArchive:
 	
+	class ArchiveType:
+		Zip, Rar, Folder, Unknown = range(4)
+    
 	def __init__( self, path ):
 		self.path = path
 		self.ci_xml_filename = 'ComicInfo.xml'
-		
-	def isZip( self ):
-		return zipfile.is_zipfile( self.path )
-		
-	def isFolder( self ):
-		return False
+		self.rar_exe_path = None
 
-	def isNonWritableArchive( self ):
-		# TODO check for rar, maybe others
-		# also check permissions
-		return False
+		if self.zipTest():
+			self.archive_type =  self.ArchiveType.Zip
+			self.getArchiveComment = self.getArchiveComment_zip
+			self.setArchiveComment = self.setArchiveComment_zip
+			self.readArchiveFile = self.readArchiveFile_zip
+			self.writeArchiveFile = self.writeArchiveFile_zip
+			self.removeArchiveFile = self.removeArchiveFile_zip
+			self.getArchiveFilenameList = self.getArchiveFilenameList_zip
+			
+		elif self.rarTest(): 
+			self.archive_type =  self.ArchiveType.Rar
+			self.getArchiveComment = self.getArchiveComment_rar
+			self.setArchiveComment = self.setArchiveComment_rar
+			self.readArchiveFile = self.readArchiveFile_rar
+			self.writeArchiveFile = self.writeArchiveFile_rar
+			self.removeArchiveFile = self.removeArchiveFile_rar
+			self.getArchiveFilenameList = self.getArchiveFilenameList_rar
+
+		elif os.path.isdir( self.path ):
+			self.archive_type =  self.ArchiveType.Folder
+			self.getArchiveComment = self.getArchiveComment_folder
+			self.setArchiveComment = self.setArchiveComment_folder
+			self.readArchiveFile = self.readArchiveFile_folder
+			self.writeArchiveFile = self.writeArchiveFile_folder
+			self.removeArchiveFile = self.removeArchiveFile_folder
+			self.getArchiveFilenameList = self.getArchiveFilenameList_folder
+			
+		else:
+			self.archive_type =  self.ArchiveType.Unknown
+			self.getArchiveComment = self.getArchiveComment_unknown
+			self.setArchiveComment = self.setArchiveComment_unknown
+			self.readArchiveFile = self.readArchiveFile_unknown
+			self.writeArchiveFile = self.writeArchiveFile_unknown
+			self.removeArchiveFile = self.removeArchiveFile_unknown
+			self.getArchiveFilenameList = self.getArchiveFilenameList_unknown
+
+
+	def setExternalRarProgram( self, rar_exe_path ):
+		self.rar_exe_path = rar_exe_path
+
+	def zipTest( self ):
+		return zipfile.is_zipfile( self.path )
+
+	def rarTest( self ):
+		try:
+			rarc = UnRAR2.RarFile( self.path )
+		except InvalidRARArchive:
+			return False
+		else:
+			return True
+
+			
+	def isZip( self ):
+		return self.archive_type ==  self.ArchiveType.Zip
+		
+	def isRar( self ):
+		return self.archive_type ==  self.ArchiveType.Rar
+	
+	def isFolder( self ):
+		return self.archive_type ==  self.ArchiveType.Folder
+
+	def isWritable( self ):
+		if self.archive_type == self.ArchiveType.Unknown :
+			return False
+		
+		elif self.isRar() and self.rar_exe_path is None:
+			return False
+			
+		elif not os.access(self.path, os.W_OK):
+			return False
+
+		return True
 
 	def seemsToBeAComicArchive( self ):
 		# TODO this will need to be fleshed out to support RAR and Folder
@@ -97,9 +170,17 @@ class ComicArchive:
 		ext = os.path.splitext(self.path)[1].lower()
 		
 		if (  
-		      ( self.isZip() ) and 
-		      ( ext in [ '.zip', '.cbz' ] ) and 
-		      ( self.getNumberOfPages() > 3) 
+		      ( ( ( self.isZip() ) and 
+		      ( ext in [ '.zip', '.cbz' ] ))  
+		        or
+		      (( self.isRar() ) and 
+		      ( ext in [ '.rar', '.cbr' ] ))  
+		        or
+		      ( self.isFolder()   ) )  
+
+		      and
+		      ( self.getNumberOfPages() > 3)
+
 			):
 			return True
 		else:	
@@ -141,10 +222,8 @@ class ComicArchive:
 		if self.getNumberOfPages() == 0:
 			return None
 			
-		zf = zipfile.ZipFile (self.path, 'r')
-		
 		# get the list file names in the archive, and sort
-		files = zf.namelist()
+		files = self.getArchiveFilenameList()
 		files.sort()
 		
 		# find the first image file, assume it's the cover
@@ -152,8 +231,7 @@ class ComicArchive:
 			if ( name[-4:].lower() in [ ".jpg", "jpeg", ".png" ] ):
 				break
 
-		image_data = zf.read( name )
-		zf.close()
+		image_data = self.readArchiveFile( name )
 	
 		return image_data
 
@@ -161,24 +239,18 @@ class ComicArchive:
 
 		count = 0
 		
-		if self.isZip():
-			zf = zipfile.ZipFile (self.path, 'r')
-			for item in zf.infolist():
-				if ( item.filename[-4:].lower() in [ ".jpg", "jpeg", ".png" ] ):
-					count += 1
-			zf.close()
+		for item in self.getArchiveFilenameList():
+			if ( item[-4:].lower() in [ ".jpg", "jpeg", ".png" ] ):
+				count += 1
 
 		return count
 
 	def readCBI( self ):
 
 		if ( not self.hasCBI() ):
-			print self.path, " isn't a zip or doesn't has CBI data!"
 			return GenericMetadata()
 
-		zf = zipfile.ZipFile( self.path, "r" )
-		cbi_string = zf.comment
-		zf.close()
+		cbi_string = self.getArchiveComment()
 		
 		metadata = ComicBookInfo().metadataFromString( cbi_string )
 		return metadata
@@ -186,101 +258,46 @@ class ComicArchive:
 	def writeCBI( self, metadata ):
 
 		cbi_string = ComicBookInfo().stringFromMetadata( metadata )
-		writeZipComment( self.path, cbi_string )
+		self.setArchiveComment( cbi_string )
 		
 	def removeCBI( self ):
-		print "ATB --->removing CBI"
-		writeZipComment( self.path, "" )
+		self.setArchiveComment( "" )
 		
 	def readCIX( self ):
-
-		# !!!ATB TODO add support for folders
 		
-		if (not self.isZip()) or ( not self.hasCIX()):
-			print self.path, " isn't a zip or doesn't has ComicInfo.xml data!"
+		if not self.hasCIX():
+			print self.path, "doesn't has ComicInfo.xml data!"
 			return GenericMetadata()
-			
-		zf = zipfile.ZipFile( self.path, 'r' )
-		cix_string = zf.read( self.ci_xml_filename )
-		zf.close()
+
+		cix_string = self.readArchiveFile( self.ci_xml_filename )
 		
 		metadata = ComicInfoXml().metadataFromString( cix_string )		
 		return metadata
 
 	def writeCIX(self, metadata):
 
-		# Passing in None for metadata will remove the CIX file from the archive
-		
-		# !!!ATB TODO add support for folders
-		if (not self.isZip()): 
-			print self.path, "isn't a zip archive!"
-			return
-		
-		if metadata == None:
-			cix_string = ""
-			copy_cix = False
-		else:	
+		if metadata is not None:
 			cix_string = ComicInfoXml().stringFromMetadata( metadata )
-			copy_cix = True
-		
-		# check if an XML file already exists in archive
-		if not self.hasCIX() and copy_cix:
-
-			#simple case: just add the new archive file
-			zf = zipfile.ZipFile(self.path, mode='a', compression=zipfile.ZIP_DEFLATED ) 
-			zf.writestr( self.ci_xml_filename, cix_string )
-			zf.close()
-				
-		else:
-			# If we need to replace it, well, at the moment, no other option
-			# but to rebuild the whole zip again.
-			# very sucky, but maybe another solution can be found
-			
-			print "{0} already exists in {1}.  Rebuilding it...".format( self.ci_xml_filename, self.path)			
-			zin = zipfile.ZipFile (self.path, 'r')
-			zout = zipfile.ZipFile ('tmpnew.zip', 'w')
-			for item in zin.infolist():
-				buffer = zin.read(item.filename)
-				if ( item.filename != self.ci_xml_filename ):
-					zout.writestr(item, buffer)
-					
-			# now write out the new xml file, if there is one
-			if copy_cix:
-				zout.writestr( self.ci_xml_filename, cix_string )
-			
-			#preserve the old comment
-			zout.comment = zin.comment
-			
-			zout.close()
-			zin.close()
-			
-			# replace with the new file 
-			os.remove( self.path )
-			os.rename( 'tmpnew.zip', self.path )
+			self.writeArchiveFile( self.ci_xml_filename, cix_string )
 
 	def removeCIX( self ):
 
-		self.writeCIX( None )
+		self.removeArchiveFile( self.ci_xml_filename )
 		
-
 	def hasCIX(self):
-
-		has = False
-		
-		zf = zipfile.ZipFile( self.path, 'r' )
-		if self.ci_xml_filename in zf.namelist():
-			has = True
-		zf.close()
-		
-		return has
+		if not self.seemsToBeAComicArchive():
+			return False
+		elif self.ci_xml_filename in self.getArchiveFilenameList():
+			return True
+		else:
+			return False
 
 	def hasCBI(self):
-		if (not self.isZip() ): 
+
+		if ( not ( self.isZip() or self.isRar()) or not self.seemsToBeAComicArchive() ): 
 			return False
-		zf = zipfile.ZipFile( self.path, 'r' )
-		comment = zf.comment
-		zf.close()
-		
+
+		comment = self.getArchiveComment()
 		return ComicBookInfo().validateString( comment )	
 
 	def metadataFromFilename( self ):
@@ -302,3 +319,167 @@ class ComicArchive:
 		metadata.isEmpty = False
 		
 		return metadata
+	
+	#---------------
+	# Zip implementation
+	#---------------
+	
+	def getArchiveComment_zip( self ):
+		zf = zipfile.ZipFile( self.path, 'r' )
+		comment = zf.comment
+		zf.close()
+		return comment
+
+	def setArchiveComment_zip( self, comment ):
+		writeZipComment( self.path, comment )
+
+	def readArchiveFile_zip( self, archive_file ):
+		zf = zipfile.ZipFile( self.path, 'r' )
+		data = zf.read( archive_file )
+		zf.close()
+		return data
+
+	def removeArchiveFile_zip( self, archive_file ):
+		self.rebuildZipFile(  [ archive_file ] )
+
+	def writeArchiveFile_zip( self, archive_file, data ):
+		#  At the moment, no other option but to rebuild the whole 
+		#  zip archive w/o the indicated file. Very sucky, but maybe 
+		# another solution can be found
+		self.rebuildZipFile(  [ archive_file ] )
+		
+		#now just add the archive file as a new one
+		zf = zipfile.ZipFile(self.path, mode='a', compression=zipfile.ZIP_DEFLATED ) 
+		zf.writestr( archive_file, data )
+		zf.close()
+
+	def getArchiveFilenameList_zip( self ):		
+		zf = zipfile.ZipFile( self.path, 'r' )
+		namelist = zf.namelist()
+		zf.close()
+		return namelist
+	
+	# zip helper func
+	def rebuildZipFile( self, exclude_list ):
+		
+		# TODO: use tempfile.mkstemp
+		# this recompresses the zip archive, without the files in the exclude_list
+		print "Rebuilding zip {0} without {1}".format( self.path, exclude_list )
+		zin = zipfile.ZipFile (self.path, 'r')
+		zout = zipfile.ZipFile ('tmpnew.zip', 'w')
+		for item in zin.infolist():
+			buffer = zin.read(item.filename)
+			if ( item.filename not in exclude_list ):
+				zout.writestr(item, buffer)
+		
+		#preserve the old comment
+		zout.comment = zin.comment
+		
+		zout.close()
+		zin.close()
+		
+		# replace with the new file 
+		os.remove( self.path )
+		os.rename( 'tmpnew.zip', self.path )		
+	
+	#---------------
+	# RAR implementation
+	#---------------
+	
+	def getArchiveComment_rar( self ):
+		
+		rarc = UnRAR2.RarFile( self.path )
+		return rarc.comment		
+
+	def setArchiveComment_rar( self, comment ):
+
+		if self.rar_exe_path is not None:
+			# write comment to temp file
+			tmp_fd, tmp_name = tempfile.mkstemp()
+			f = os.fdopen(tmp_fd, 'w+b')
+			f.write( comment )		
+			f.close()
+
+			# use external program to write comment to Rar archive
+			call([self.rar_exe_path, 'c', '-z' + tmp_name, self.path])
+
+			os.remove( tmp_name)
+
+	def readArchiveFile_rar( self, archive_file ):
+
+		entries = UnRAR2.RarFile( self.path ).read_files( archive_file )
+
+		#entries is a list of of tuples:  ( rarinfo, filedata)
+		if (len(entries) == 1):
+			return entries[0][1]
+		else:
+			return ""
+
+	def writeArchiveFile_rar( self, archive_file, data ):
+
+		if self.rar_exe_path is not None:
+			
+			tmp_folder = tempfile.mkdtemp()
+
+			tmp_file = os.path.join( tmp_folder, archive_file )
+
+			f = open(tmp_file, 'w')
+			f.write( data )		
+			f.close()
+
+			# use external program to write comment to Rar archive
+			call([self.rar_exe_path, 'a', '-ep', self.path, tmp_file])
+			
+			os.remove( tmp_file)
+			os.rmdir( tmp_folder)
+
+
+	
+	def removeArchiveFile_rar( self, archive_file ):
+		if self.rar_exe_path is not None:
+
+			# use external program to remove file from Rar archive
+			call([self.rar_exe_path, 'd', self.path, archive_file])
+
+	
+	def getArchiveFilenameList_rar( self ):
+
+		rarc = UnRAR2.RarFile( self.path )
+
+		return [ item.filename for item in rarc.infolist() ]
+
+	
+	#---------------
+	# Folder implementation
+	#---------------
+	
+	def getArchiveComment_folder( self ):
+		pass
+	def setArchiveComment_folder( self, comment ):
+		pass	
+	def readArchiveFile_folder( self ):
+		pass
+	def writeArchiveFile_folder( self, archive_file, data ):
+		pass
+	def removeArchiveFile_folder( self, archive_file ):
+		pass
+	def getArchiveFilenameList_folder( self ):
+		pass	
+
+	#---------------
+	# Unknown implementation
+	#---------------
+	
+	def getArchiveComment_unknown( self ):
+		return ""
+	def setArchiveComment_unknown( self, comment ):
+		return
+	def readArchiveFile_unknown( self ):
+		return ""
+	def writeArchiveFile_unknown( self, archive_file, data ):
+		return
+	def removeArchiveFile_unknown( self, archive_file ):
+		return
+	def getArchiveFilenameList_unknown( self ):
+		return []
+	
