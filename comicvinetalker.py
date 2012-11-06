@@ -10,7 +10,21 @@ from genericmetadata import GenericMetadata
 
 class ComicVineTalker:
 
-	api_key = '67ac5baeba16a2f56acf7ff136a1d591324c2253'
+	def __init__(self, api_key):
+		self.api_key = api_key
+
+
+	def testKey( self ):
+	
+		test_url = "http://api.comicvine.com/issue/1/?api_key=" + self.api_key + "&format=json&field_list=name"
+		resp = urllib2.urlopen( test_url ) 
+		content = resp.read()
+	
+		cv_response = json.loads( content )
+
+		# Bogus request, but if the key is wrong, you get error 100: "Invalid API Key"
+		return cv_response[ 'status_code' ] != 100
+
 
 	def searchForSeries( self, series_name ):
 	

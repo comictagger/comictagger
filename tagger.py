@@ -11,6 +11,10 @@ import xml
 from pprint import pprint 
 from PyQt4 import QtCore, QtGui
 import signal
+import os
+
+
+from settings import ComicTaggerSettings
 
 from taggerwindow import TaggerWindow
 from options import Options, MetaDataStyle
@@ -19,6 +23,7 @@ from comicarchive import ComicArchive
 from comicvinetalker import ComicVineTalker
 from comicinfoxml import ComicInfoXml
 from comicbookinfo import ComicBookInfo
+import utils
 
 #-----------------------------
 def cliProcedure( opts ):
@@ -52,21 +57,12 @@ def cliProcedure( opts ):
 def main():
 	opts = Options()
 	opts.parseCmdLineArgs()
-
+	settings = ComicTaggerSettings()
+	
+	# make sure unrar program is in the path for the UnRAR class
+	utils.addtopath(os.path.dirname(settings.unrar_exe_path))
+	
 	signal.signal(signal.SIGINT, signal.SIG_DFL)
-	
-	#ca = ComicArchive( opts.filename )
-	
-	#metadata = ca.readMetadata( MetaDataStyle.CBI )
-	#ca.writeMetadata( metadata, MetaDataStyle.CIX )
-	
-	#ComicInfoXml().writeToExternalFile(  "test.xml", metadata )
-	#ComicBookInfo().writeToExternalFile("test.json", metadata)
-
-	#quit()
-
-
-
 	
 	if opts.no_gui:
 
@@ -75,7 +71,7 @@ def main():
 	else:
 
 		app = QtGui.QApplication(sys.argv)
-		tagger_window = TaggerWindow( opts )
+		tagger_window = TaggerWindow( opts, settings )
 		tagger_window.show()
 		sys.exit(app.exec_())
 

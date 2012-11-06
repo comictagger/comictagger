@@ -1,6 +1,7 @@
 
 from PyQt4 import QtCore, QtGui, uic
 import locale
+import platform
 
 from volumeselectionwindow import VolumeSelectionWindow
 from options import Options, MetaDataStyle
@@ -8,6 +9,8 @@ from genericmetadata import GenericMetadata
 from comicvinetalker import ComicVineTalker
 from comicarchive import ComicArchive
 from crediteditorwindow import CreditEditorWindow
+from settingswindow import SettingsWindow
+from settings import ComicTaggerSettings
 import utils
 
 # this reads the environment and inits the right locale
@@ -19,7 +22,7 @@ class TaggerWindow( QtGui.QMainWindow):
 	
 	appName = "ComicTagger"
 	
-	def __init__(self, opts , parent = None):
+	def __init__(self, opts, settings, parent = None):
 		super(TaggerWindow, self).__init__(parent)
 
 		uic.loadUi('taggerwindow.ui', self)
@@ -27,8 +30,10 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.center()
 		self.raise_()
 		
+		print platform.system(), platform.release()
 		self.dirtyFlag = False
 		self.opts = opts
+		self.settings = settings
 		self.data_style = opts.data_style
 		
 		#set up a default metadata object
@@ -116,6 +121,10 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.actionRepackage.setStatusTip( 'Re-create archive as CBZ' )
 		self.actionRepackage.triggered.connect( self.repackageArchive )
 		
+		#self.actionRepackage.setShortcut(  )
+		self.actionSettings.setStatusTip( 'Configure ComicTagger' )
+		self.actionSettings.triggered.connect( self.showSettings )
+		
 		# Tag Menu
 		self.actionParse_Filename.setShortcut( 'Ctrl+F' )
 		self.actionParse_Filename.setStatusTip( 'Try to extract tags from filename' )
@@ -171,8 +180,9 @@ class TaggerWindow( QtGui.QMainWindow):
 			return
 		
 		ca = ComicArchive( path )
-		ca.setExternalRarProgram( "/usr/bin/rar" )
-		
+		if self.settings.rar_exe_path != "":
+			ca.setExternalRarProgram( self.settings.rar_exe_path )	
+				
 		if ca is not None and ca.seemsToBeAComicArchive():
 
 			# clear form and current metadata, we're all in!
@@ -329,7 +339,6 @@ class TaggerWindow( QtGui.QMainWindow):
 		assignText( self.teComments,     md.comments )
 		assignText( self.teNotes,        md.notes )
 		assignText( self.leCriticalRating, md.criticalRating )
-		assignText( self.leMaturityRating, md.maturityRating )
 		assignText( self.leStoryArc,      md.storyArc )
 		assignText( self.leScanInfo,      md.scanInfo )
 		assignText( self.leSeriesGroup,   md.seriesGroup )
@@ -341,7 +350,14 @@ class TaggerWindow( QtGui.QMainWindow):
 		assignText( self.teTeams,         md.teams )
 		assignText( self.teLocations,     md.locations )
 		assignText( self.leFormat,        md.format )
-		
+
+		if md.maturityRating is not None and md.maturityRating != "":
+			i = self.cbMaturityRating.findText( md.maturityRating )
+			if i == -1:
+				self.cbMaturityRating.setEditText( md.maturityRating  )
+			else:	
+				self.cbMaturityRating.setCurrentIndex( i )
+			
 		if md.language is not None:
 			i = self.cbLanguage.findData( md.language )
 			self.cbLanguage.setCurrentIndex( i )
@@ -432,7 +448,7 @@ class TaggerWindow( QtGui.QMainWindow):
 		md.comments =           xlate( self.teComments.toPlainText(), "str" )
 		md.notes =              xlate( self.teNotes.toPlainText(), "str" )
 		md.criticalRating =     xlate( self.leCriticalRating.text(), "int" )
-		md.maturityRating =     xlate( self.leMaturityRating.text(), "str" )
+		md.maturityRating =     xlate( self.cbMaturityRating.currentText(), "str" )
 
 		md.storyArc =           xlate( self.leStoryArc.text(), "str" )
 		md.scanInfo =           xlate( self.leScanInfo.text(), "str" )
@@ -504,6 +520,13 @@ class TaggerWindow( QtGui.QMainWindow):
 			
 
 	def queryOnline(self):
+		
+		if self.settings.cv_api_key == "":
+			QtGui.QMessageBox.warning(self, self.tr("Online Query"), 
+			       self.tr("You need an API key from ComicVine to search online. " + 
+			                "Go to settings and enter it."))
+			return
+		
 	
 		if str(self.leSeries.text()).strip() != "":
 			series_name = str(self.leSeries.text()).strip()
@@ -513,14 +536,14 @@ class TaggerWindow( QtGui.QMainWindow):
 			
 		issue_number = str(self.leIssueNum.text()).strip()
 		
-		selector = VolumeSelectionWindow( self, series_name, issue_number )
+		selector = VolumeSelectionWindow( self, self.settings.cv_api_key, series_name, issue_number )
 		selector.setModal(True)
 		selector.exec_()
 		
 		if selector.result():
 			#we should now have a volume ID
 
-			comicVine = ComicVineTalker()
+			comicVine = ComicVineTalker( self.settings.cv_api_key )
 			self.metadata = comicVine.fetchIssueData( selector.volume_id, selector.issue_number )
 
 			# Now push the right data into the edit controls
@@ -595,7 +618,7 @@ class TaggerWindow( QtGui.QMainWindow):
 						self.leStoryArc, self.leScanInfo, self.leSeriesGroup, 
 						self.leAltSeries, self.leAltIssueNum, self.leAltIssueCount,
 						self.leWebLink, self.teCharacters, self.teTeams,
-						self.teLocations, self.leMaturityRating, self.leFormat
+						self.teLocations, self.cbMaturityRating, self.leFormat
 					]
 					
 		if self.data_style == MetaDataStyle.CIX:
@@ -677,6 +700,13 @@ class TaggerWindow( QtGui.QMainWindow):
 			self.twCredits.removeRow( row )
 		self.setDirtyFlag()
 
+	def showSettings( self ):
+
+		settingswin = SettingsWindow( self, self.settings )
+		settingswin.setModal(True)
+		settingswin.exec_()
+		if settingswin.result():
+			pass
 
 	def center(self):
 		screen = QtGui.QDesktopWidget().screenGeometry()
@@ -715,6 +745,22 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.cbManga.addItem( "Yes", "Yes" )
 		self.cbManga.addItem( "Yes (Right to Left)", "YesAndRightToLeft" )
 		self.cbManga.addItem( "No", "No" )
+
+		# Add the entries to the maturity combobox
+		self.cbMaturityRating.addItem( "", "" )
+		self.cbMaturityRating.addItem( "Everyone", "" )
+		self.cbMaturityRating.addItem( "G", "" )
+		self.cbMaturityRating.addItem( "Early Childhood", "" )
+		self.cbMaturityRating.addItem( "Everyone 10+", "" )
+		self.cbMaturityRating.addItem( "PG", "" )
+		self.cbMaturityRating.addItem( "Kids to Adults", "" )
+		self.cbMaturityRating.addItem( "Teen", "" )
+		self.cbMaturityRating.addItem( "MA15+", "" )
+		self.cbMaturityRating.addItem( "Mature 17+", "" )
+		self.cbMaturityRating.addItem( "R18+", "" )
+		self.cbMaturityRating.addItem( "X18+", "" )
+		self.cbMaturityRating.addItem( "Adults Only 18+", "" )
+		self.cbMaturityRating.addItem( "Rating Pending", "" )
 
 	def removeCBLTags( self ):
 		self.removeTags(  MetaDataStyle.CBI )

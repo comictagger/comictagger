@@ -7,7 +7,9 @@ import os
 import struct
 import sys
 import tempfile
-from subprocess import call
+import subprocess
+import platform
+import time
 
 sys.path.insert(0, os.path.abspath(".") )
 import UnRAR2
@@ -151,7 +153,18 @@ class RarArchiver:
 	def __init__( self, path ):
 		self.path = path
 		self.rar_exe_path = None
+		self.devnull = open(os.devnull, "w")
 
+		# windows only, keeps the cmd.exe from popping up
+		if platform.system() == "Windows":
+			self.startupinfo = subprocess.STARTUPINFO()
+			self.startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+		else:
+			self.startupinfo = None
+
+	def __del__(self):
+		self.devnull.close()
+		
 	def getArchiveComment( self ):
 		
 		rarc = UnRAR2.RarFile( self.path )
@@ -167,8 +180,13 @@ class RarArchiver:
 			f.close()
 
 			# use external program to write comment to Rar archive
-			call([self.rar_exe_path, 'c', '-z' + tmp_name, self.path])
-
+			subprocess.call([self.rar_exe_path, 'c', '-c-', '-z' + tmp_name, self.path], 
+                   startupinfo=self.startupinfo, 
+				   stdout=self.devnull)
+			
+			if platform.system() == "Darwin":
+				time.sleep(1)
+				
 			os.remove( tmp_name)
 
 	def readArchiveFile( self, archive_file ):
@@ -194,8 +212,12 @@ class RarArchiver:
 			f.close()
 
 			# use external program to write file to Rar archive
-			call([self.rar_exe_path, 'a', '-ep', self.path, tmp_file])
-			
+			subprocess.call([self.rar_exe_path, 'a', '-c-', '-ep', self.path, tmp_file], 
+                   startupinfo=self.startupinfo,
+				   stdout=self.devnull)
+
+			if platform.system() == "Darwin":
+				time.sleep(1)
 			os.remove( tmp_file)
 			os.rmdir( tmp_folder)
 
@@ -203,7 +225,12 @@ class RarArchiver:
 		if self.rar_exe_path is not None:
 
 			# use external program to remove file from Rar archive
-			call([self.rar_exe_path, 'd', self.path, archive_file])
+			subprocess.call([self.rar_exe_path, 'd','-c-', self.path, archive_file], 
+                   startupinfo=self.startupinfo, 				   
+                   stdout=self.devnull)
+
+			if platform.system() == "Darwin":
+				time.sleep(1)
 
 	def getArchiveFilenameList( self ):
 
@@ -227,6 +254,7 @@ class FolderArchiver:
 		
 	def readArchiveFile( self, archive_file ):
 		
+		data = ""
 		fname = os.path.join( self.path, archive_file )
 		try:
 			with open( fname, 'rb' ) as f: 

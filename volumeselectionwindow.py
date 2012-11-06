@@ -11,13 +11,14 @@ class VolumeSelectionWindow(QtGui.QDialog):
 	
 	volume_id = 0
 	
-	def __init__(self, parent, series_name, issue_number):
+	def __init__(self, parent, cv_api_key, series_name, issue_number):
 		super(VolumeSelectionWindow, self).__init__(parent)
 		
 		uic.loadUi('volumeselectionwindow.ui', self)
 		
 		self.series_name = series_name
 		self.issue_number = issue_number
+		self.cv_api_key = cv_api_key
 
 		self.performQuery()
 		
@@ -34,7 +35,7 @@ class VolumeSelectionWindow(QtGui.QDialog):
 		self.twList.selectRow(0)
 
 	def showIssues( self ):
-		selector = IssueSelectionWindow( self, self.volume_id, self.issue_number )
+		selector = IssueSelectionWindow( self, self.cv_api_key, self.volume_id, self.issue_number )
 		selector.setModal(True)
 		selector.exec_()
 		if selector.result():
@@ -48,7 +49,7 @@ class VolumeSelectionWindow(QtGui.QDialog):
 		while self.twList.rowCount() > 0:
 			self.twList.removeRow(0)
 		
-		comicVine = ComicVineTalker()
+		comicVine = ComicVineTalker( self.cv_api_key )
 		self.cv_search_results = comicVine.searchForSeries( self.series_name )
 
 		self.twList.setSortingEnabled(False)

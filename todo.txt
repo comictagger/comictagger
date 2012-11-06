@@ -1,14 +1,5 @@
 
-
-
-Verification prompt for removing tags
-
 Add License/Copyright headers
-
-ComicArchive support for folders
-ComicArchive support for reading RARs
- 
-API Key config
 
 Toolbar icons
 
@@ -20,7 +11,8 @@ TaggerWindow entry fields
 	General layout
 	Special Dialogs needed for:   
 		Pages Info
-
+	Color changing stuff need more work
+		- Indicate credits for CR style 
 		
 	CR has editable dropdowns/comboboxes for Format, Publisher, Imprint
 -----------		
@@ -33,12 +25,9 @@ Lots of error checking
 
 Archive function to  detect tag blocks out of sync
 
-Use external RAR tools to generate rar with CIX!
-
 Hourglass popup, or whatever, for when busy
 
 Idea:  Support only CBI or CIX for any given file, and not both 
-	   Determine style when opening file, and set that as current save style
 	   If user selects different one, warn about potential loss/re-arranging of data
 
 Longer term:
@@ -46,17 +35,23 @@ Longer term:
 	
 Maybe:  keep a history of tagged volumes IDs from CV, and present those first
 
-Remember preferred style (and other stuff) (prolly kept in ~/.comictagger.conf, or some such)
+Other settings possibilities:
+	Last tag style
+	Last "Open" folder (include dragged)
+	Keep a history of queries somewhere??
+	
+Content Hashes!!
 
 
 App option to covert RAR to ZIP
 
-
+If no unrar in path, then filter out CBR/RAR from open dialog
 
 "Select Issues" dialog request cover URLs in background
 "Select Issues" dialog cache cover images
 
-
+----------------------------------------------
+COMIC RACK Questions
 
 Missing from XML as enterable in ComicRack:
 	Main Character or Team
@@ -69,18 +64,3 @@ Some that seem library only:
 	Proposed Values
 	Community Rating
 	
-	
-Age Rating:
-	Adults Only 18+
-	Early Childhood
-	Everyone
-	Everyone 10+
-	G
-	Kids to Adults
-	MA15+
-	Mature 17+
-	PG
-	r18+
-	Rating Pending
-	Teen
-	X18+

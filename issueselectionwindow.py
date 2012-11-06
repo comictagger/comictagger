@@ -4,18 +4,19 @@ from PyQt4 import QtCore, QtGui, uic
 from PyQt4.QtCore import QUrl
 from PyQt4.QtNetwork import QNetworkAccessManager, QNetworkRequest
 
-from comicvinetalker import *
+from comicvinetalker import ComicVineTalker
 
 class IssueSelectionWindow(QtGui.QDialog):
 	
 	volume_id = 0
 	
-	def __init__(self, parent, series_id, issue_number):
+	def __init__(self, parent, cv_api_key, series_id, issue_number):
 		super(IssueSelectionWindow, self).__init__(parent)
 		
 		uic.loadUi('issueselectionwindow.ui', self)
 		
 		self.series_id  = series_id
+		self.cv_api_key = cv_api_key
 
 		if issue_number is None or issue_number == "":
 			self.issue_number = 1
@@ -45,7 +46,7 @@ class IssueSelectionWindow(QtGui.QDialog):
 		while self.twList.rowCount() > 0:
 			self.twList.removeRow(0)
 		
-		comicVine = ComicVineTalker()
+		comicVine = ComicVineTalker( self.cv_api_key )
 		volume_data = comicVine.fetchVolumeData( self.series_id )
 		self.issue_list = volume_data['issues']
 
@@ -101,7 +102,7 @@ class IssueSelectionWindow(QtGui.QDialog):
 				# We don't yet have an image URL for this issue.  Make a request for URL, and hold onto it
 				# TODO: this should be reworked...  too much UI latency, maybe chain the NAMs??
 				if record['url'] == None:
-					record['url'] = ComicVineTalker().fetchIssueCoverURL( self.issue_id )				
+					record['url'] = ComicVineTalker( self.cv_api_key ).fetchIssueCoverURL( self.issue_id )				
 				
 				self.labelThumbnail.setText("loading...")
 				self.nam = QNetworkAccessManager()
