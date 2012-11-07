@@ -1,9 +1,7 @@
 
-Add License/Copyright headers
-
 Toolbar icons
 
-Consolidate Credit Roles for english variants? : Penciler vs Penciller
+Page Browser
 
 Stand-alone CLI
 
@@ -49,6 +47,17 @@ If no unrar in path, then filter out CBR/RAR from open dialog
 
 "Select Issues" dialog request cover URLs in background
 "Select Issues" dialog cache cover images
+
+Wizard for converting between tag styles
+
+Auto search:
+	1st search local SQL tables that are built on the fly in the next step
+		search certain table: series:  CV info
+			then search table issues:  Id, title, number + URL, image hash, series ID
+			cache hash and URL as needed
+	if not found search CV directly caching results in tables
+
+
 
 ----------------------------------------------
 COMIC RACK Questions

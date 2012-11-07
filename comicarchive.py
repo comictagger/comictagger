@@ -396,10 +396,8 @@ class ComicArchive:
 		return True
 
 	def seemsToBeAComicArchive( self ):
-		# TODO this will need to be fleshed out to support RAR and Folder
 
-		ext = os.path.splitext(self.path)[1].lower()
-		
+		ext = os.path.splitext(self.path)[1].lower()		
 		if (  
 		      ( ( ( self.isZip() ) and 
 		      ( ext.lower() in [ '.zip', '.cbz' ] ))  

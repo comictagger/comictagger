@@ -28,7 +28,8 @@ from pprint import pprint
 from PyQt4 import QtCore, QtGui
 import signal
 import os
-
+import math
+import urllib2, urllib 
 
 from settings import ComicTaggerSettings
 
@@ -39,17 +40,125 @@ from comicarchive import ComicArchive
 from comicvinetalker import ComicVineTalker
 from comicinfoxml import ComicInfoXml
 from comicbookinfo import ComicBookInfo
+from imagehasher import ImageHasher
 import utils
 
 #-----------------------------
-def cliProcedure( opts ):
+def cliProcedure( opts, settings ):
 
-	pass
+	ca = ComicArchive(opts.filename)
+	if not ca.seemsToBeAComicArchive():
+		print "Sorry, but "+ opts.filename + "  is not a comic archive!"
+		return
+	
+	cover_image_data = ca.getCoverPage()
+	cover_hash = ImageHasher( data=cover_image_data ).average_hash() 
+	print "Cover hash = ",cover_hash
+	
+	# see if the archive has any useful meta data for searching with
+	if ca.hasCIX():
+		internal_metadata = ca.readCIX()
+	elif ca.hasCBI():
+		internal_metadata = ca.readCBI()
+	else:
+		internal_metadata = ca.readCBI()
+
+	# try to get some metadata from filename
+	md_from_filename = ca.metadataFromFilename()
+	
+	# now figure out what we have to search with
+	search_series = internal_metadata.series
+	search_issue_number = internal_metadata.issueNumber
+	search_year = internal_metadata.publicationYear
+	search_month = internal_metadata.publicationMonth
+	
+	if search_series is None:
+		search_series = md_from_filename.series
+	
+	if search_issue_number is None:
+		search_issue_number = md_from_filename.issueNumber
+		
+	if search_year is None:
+		search_year = md_from_filename.publicationYear
+		
+	# we need, at minimum, a series and issue number
+	if search_series is None or search_issue_number is None:
+		print "Not enough info for a search!"
+		return
+
+	print ( "Going to search for:" )
+	print ( "Series: ", search_series )
+	print ( "Issue : ", search_issue_number ) 
+	if search_year is not None:
+		print ( "Year :  ", search_year ) 
+	if search_month is not None:
+		print ( "Month : ", search_month )
+	
+	
+	comicVine = ComicVineTalker( settings.cv_api_key )
+
+	print ( "Searching for " + search_series + "...")
+
+	cv_search_results = comicVine.searchForSeries( search_series )
+
+	print "Found " + str(len(cv_search_results)) + " initial results"
+	
+	series_shortlist = []
+	
+	print "Removing results with too long names"
+	for item in cv_search_results:
+		#assume that our search name is close to the actual name, say within 8 characters
+		if len( item['name']) < len( search_series ) + 8:
+			series_shortlist.append(item)
+	
+	# if we don't think it's an issue number 1, remove any series' that are one-shots
+	if search_issue_number != '1':
+		print "Removing one-shots"
+		series_shortlist[:] = [x for x in series_shortlist if not x['count_of_issues'] == 1]	
+
+	print "Finally, searching in " + str(len(series_shortlist)) +" series" 
+	
+	# now sort the list by name length
+	series_shortlist.sort(key=lambda x: len(x['name']), reverse=False)
+	
+	# Now we've got a list of series that we can dig into, 
+	# and look for matching issue number, date, and cover image
+	
+	
+	for series in series_shortlist:
+		#print series['id'], series['name'], series['start_year'], series['count_of_issues']
+		print "Fetching info for  ID: {0} {1} ({2}) ...".format(
+		               series['id'], 
+		               series['name'], 
+		               series['start_year'])
+		
+		cv_series_results = comicVine.fetchVolumeData( series['id'] )
+		issue_list = cv_series_results['issues']
+		for issue in issue_list:
+			
+			# format the issue number string nicely, since it's usually something like "2.00"
+			num_f = float(issue['issue_number'])
+			num_s = str( int(math.floor(num_f)) )
+			if math.floor(num_f) != num_f:
+				num_s = str( num_f )			
+
+			# look for a matching issue number
+			if num_s == search_issue_number:
+				# found a matching issue number!  now get the issue data 
+				img_url = comicVine.fetchIssueCoverURL( issue['id'] )
+				#TODO get the URL, and calc hash!!
+				url_image_data = urllib.urlopen(img_url).read()
+				url_image_hash = ImageHasher( data=url_image_data ).average_hash() 
+				print "-----> ID: {0}  #{1} ({2}) Hash: {3}  Distance: {4}\n-------> url:{5}".format(
+				                             issue['id'], num_s, issue['name'],
+				                             url_image_hash, 
+				                             ImageHasher.hamming_distance(cover_hash, url_image_hash),
+				                             img_url)
+				
+				
+				break
+	
 	"""
-	comicVine = ComicVineTalker()
-
-	cv_search_results = comicVine.searchForSeries( opts.series_name )
-
 	#error checking here:  did we get any results?
 
 	# we will eventualy  want user interaction to choose the appropriate result, but for now, assume the first one
@@ -84,7 +193,7 @@ def main():
 	
 	if opts.no_gui:
 
-		cliProcedure( opts )
+		cliProcedure( opts, settings )
 		
 	else:
 
