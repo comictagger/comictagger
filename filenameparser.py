@@ -100,9 +100,10 @@ class FileNameParser:
 		series = series.rstrip("#")
 			
 		# search for volume number	
-		match = re.search('(?<=v)(\d+)\s*$', series)
+		match = re.search('(?<= [vV])(\d+)\s*$', series)
 		if match:
 			volume = match.group()
+			series = series.replace(" V"+ volume, " v"+ volume)
 			series = series.split("v"+volume)[0]
 			volume = volume.lstrip("0")
 		
