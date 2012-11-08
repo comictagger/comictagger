@@ -453,7 +453,9 @@ class ComicArchive:
 			
 		# get the list file names in the archive, and sort
 		files = self.archiver.getArchiveFilenameList()
-		files.sort()
+		
+		# seems like the scanners are on Windows, and don't know about case-sensitivity!
+		files.sort(key=lambda x: x.lower())
 		
 		# find the first image file, assume it's the cover
 		for name in files:
