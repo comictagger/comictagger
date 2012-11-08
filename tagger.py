@@ -52,9 +52,14 @@ def cliProcedure( opts, settings ):
 		return
 	
 	cover_image_data = ca.getCoverPage()
-	cover_hash = ImageHasher( data=cover_image_data ).average_hash() 
-	print "Cover hash = ",cover_hash
-	
+	#cover_hash = ImageHasher( data=cover_image_data ).average_hash() 
+	#print "Cover hash = ",cover_hash
+
+	cover_hash = ImageHasher( data=cover_image_data ).average_hash2() 
+	#print "Cover hash = ",cover_hash
+
+	#cover_hash = ImageHasher( data=cover_image_data , width=32, height=32 ).perceptual_hash() 
+
 	# see if the archive has any useful meta data for searching with
 	if ca.hasCIX():
 		internal_metadata = ca.readCIX()
@@ -148,8 +153,10 @@ def cliProcedure( opts, settings ):
 				img_url = comicVine.fetchIssueCoverURL( issue['id'] )
 				#TODO get the URL, and calc hash!!
 				url_image_data = urllib.urlopen(img_url).read()
-				url_image_hash = ImageHasher( data=url_image_data ).average_hash() 
-				print "-----> ID: {0}  #{1} ({2}) Hash: {3}  Distance: {4}\n-------> url:{5}".format(
+				#url_image_hash = ImageHasher( data=url_image_data ).average_hash() 
+				url_image_hash = ImageHasher( data=url_image_data,   ).average_hash2() 
+				#url_image_hash = ImageHasher( data=url_image_data, width=32, height=32  ).perceptual_hash() 
+				print u"-----> ID: {0}  #{1} ({2}) Hash: {3}  Distance: {4}\n-------> url:{5}".format(
 				                             issue['id'], num_s, issue['name'],
 				                             url_image_hash, 
 				                             ImageHasher.hamming_distance(cover_hash, url_image_hash),

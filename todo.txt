@@ -40,6 +40,16 @@ Other settings possibilities:
 	
 Content Hashes!!
 
+Image Hashes:
+	Failures of average hash:
+		Thor 600 Wrap-around w/ different aspect ratio
+		Bone 3 - Variant Cover, 
+		Old Avengers -- Best match, but high difference
+		
+Filename parsing:
+	Concatenation of Name and Issue??
+	"1602"
+
 
 App option to covert RAR to ZIP
 
