@@ -127,16 +127,26 @@ class FileNameParser:
 
 
 	def parseFilename( self, filename ):
+ 
 		
 		# remove the path
 		filename = os.path.basename(filename)
 
 		# remove the extension
 		filename = os.path.splitext(filename)[0]
-		
-		#url decvocde, just in case
+
+		#url decode, just in case
 		filename = unquote(filename)
-			
+
+		# ----HACK  
+		# remove the first word that word is a 3 digit number.
+		# some story arcs collection packs do this, but it's ugly
+		# this will probably break something, i.e. "100 bullets"
+		word = filename.split(' ')[0]
+		if len(word) == 3 and word[0] =='0' and word.isdigit():
+			filename = filename[4:]
+		# ----HACK  -
+					
 		self.issue = self.getIssueNumber(filename)
 		self.series, self.volume = self.getSeriesName(filename, self.issue)
 		self.year = self.getYear(filename)
