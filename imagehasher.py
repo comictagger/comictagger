@@ -98,41 +98,30 @@ class ImageHasher(object):
 		"""
 		import numpy
 		import scipy.fftpack
+		numpy.set_printoptions(threshold=10000, linewidth=200, precision=2, suppress=True)
+
 		# Step 1,2
 		im = self.image.resize((32, 32), Image.ANTIALIAS).convert("L")
-		in_data = numpy.array(im.getdata(), dtype=numpy.dtype('float')).reshape(32, 32)
-		#print len(im.getdata())
-		#print in_data
+		in_data = numpy.asarray(im)
 		
 		# Step 3
-		dct = scipy.fftpack.dct( in_data )
-		
+		dct = scipy.fftpack.dct( in_data.astype(float) )
+	
 		# Step 4
-		# NO! -- lofreq_dct = dct[:8,:8].flatten()
-		# NO? -- lofreq_dct = dct[24:32, 24:32].flatten()
-		#lofreq_dct = dct[:8, 24:32].flatten()
-		#print dct[24:32, :8]
-		# NO! -- lofreq_dct = dct[24:32, :8 ].flatten()
-		#lofreq_dct = dct[1:9, 1:9].flatten()
-		lofreq_dct = dct[:8, 24:32].flatten()
-		
-		#omit = 0
-		#omit = 7
-		#omit = 56
-		#omit = 63
+		# Just skip the top and left rows when slicing, as suggested somewhere else...
+		lofreq_dct = dct[1:9, 1:9].flatten()
 		
 		# Step 5
-		#avg = ( lofreq_dct.sum() - lofreq_dct[omit] ) / ( lofreq_dct.size - 1 )
 		avg = ( lofreq_dct.sum() ) / ( lofreq_dct.size  )
-		#print  lofreq_dct.sum()
-		#print lofreq_dct[0]
-		#print avg, lofreq_dct.size
+		median = numpy.median( lofreq_dct )
+
+		thresh = avg
 
 		# Step 6
-		def compare_value_to_avg(i):
-			return ( 1 if i > avg else 0 )
+		def compare_value_to_thresh(i):
+			return ( 1 if i > thresh else 0 )
 				
-		bitlist = map(compare_value_to_avg, lofreq_dct)
+		bitlist = map(compare_value_to_thresh, lofreq_dct)
 		
 		#Step 7
 		def set_bit( x, (idx, val) ):
