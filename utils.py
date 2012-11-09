@@ -52,7 +52,23 @@ def addtopath( dir ):
 	# TODO only add if not there already
 	if dir is not None and dir != "": 
 		os.environ['PATH'] = dir + os.pathsep + os.environ['PATH']
+
+def removearticles( text ):
+	articles = ['and', 'the', 'a', '&' ]
+	newText = ''
+	for word in text.split(' '):
+		if word not in articles:
+			newText += word+' '
 	
+	newText = newText[:-1]
+	
+	# now get rid of some other junk
+	newText = newText.replace(":", "")
+	newText = newText.replace(".", "")
+	newText = newText.replace(",", "")
+	
+	return newText
+
 
 # -o- coding: utf-8 -o-
 # ISO639 python dict 

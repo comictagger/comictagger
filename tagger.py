@@ -53,13 +53,15 @@ def cliProcedure( opts, settings ):
 		return
 	
 	cover_image_data = ca.getCoverPage()
-	#cover_hash = ImageHasher( data=cover_image_data ).average_hash() 
-	#print "Cover hash = ",cover_hash
 
-	cover_hash = ImageHasher( data=cover_image_data ).average_hash2() 
-	#print "Cover hash = ",cover_hash
+	if opts.image_hasher == '3':
+		cover_hash = ImageHasher( data=cover_image_data ).dct_average_hash() 
+	elif opts.image_hasher == '2':
+		cover_hash = ImageHasher( data=cover_image_data ).average_hash2() 
+	else:
+		cover_hash = ImageHasher( data=cover_image_data ).average_hash() 
 
-	#cover_hash = ImageHasher( data=cover_image_data , width=32, height=32 ).perceptual_hash() 
+	#print "Cover hash = {0:016x}".format(cover_hash)
 
 	# see if the archive has any useful meta data for searching with
 	if ca.hasCIX():
@@ -91,48 +93,41 @@ def cliProcedure( opts, settings ):
 	if search_series is None or search_issue_number is None:
 		print "Not enough info for a search!"
 		return
-
-	print ( "Going to search for:" )
-	print ( "Series: ", search_series )
-	print ( "Issue : ", search_issue_number ) 
+	
+	"""
+	print "Going to search for:" 
+	print "Series: ", search_series
+	print "Issue : ", search_issue_number  
 	if search_year is not None:
-		print ( "Year :  ", search_year ) 
+		print "Year :  ", search_year 
 	if search_month is not None:
-		print ( "Month : ", search_month )
-	
-	
+		print "Month : ", search_month
+	"""
 	comicVine = ComicVineTalker( settings.cv_api_key )
 
-	print ( "Searching for " + search_series + "...")
+	#print ( "Searching for " + search_series + "...")
+	print "Searching for  {0} #{1} ...".format( search_series, search_issue_number)
 
+	search_series = utils.removearticles( search_series )
+	
 	cv_search_results = comicVine.searchForSeries( search_series )
 	
-	#----------    TEST
-	#cvc = ComicVineCacher( settings.folder )
-	#cvc.add_search_results( search_series, cv_search_results )
-	#cached_search_results = cvc.get_search_results( search_series)
-	#for r in cached_search_results:
-	#	print "{0}: {1} ({2})".format(  r['id'],  r['name'],  r['start_year'])
-	#quit()
-	#----------    TEST
-	
-
-	print "Found " + str(len(cv_search_results)) + " initial results"
+	#print "Found " + str(len(cv_search_results)) + " initial results"
 	
 	series_shortlist = []
 	
-	print "Removing results with too long names"
+	#print "Removing results with too long names"
 	for item in cv_search_results:
-		#assume that our search name is close to the actual name, say within 8 characters
-		if len( item['name']) < len( search_series ) + 8:
+		#assume that our search name is close to the actual name, say within 5 characters
+		if len( utils.removearticles(item['name'])) < len( search_series ) + 5:
 			series_shortlist.append(item)
 	
 	# if we don't think it's an issue number 1, remove any series' that are one-shots
 	if search_issue_number != '1':
-		print "Removing one-shots"
+		#print "Removing one-shots"
 		series_shortlist[:] = [x for x in series_shortlist if not x['count_of_issues'] == 1]	
 
-	print "Finally, searching in " + str(len(series_shortlist)) +" series" 
+	print "Searching in " + str(len(series_shortlist)) +" series" 
 	
 	# now sort the list by name length
 	series_shortlist.sort(key=lambda x: len(x['name']), reverse=False)
@@ -142,12 +137,15 @@ def cliProcedure( opts, settings ):
 	
 	match_list = []
 
+	print "Fetching issue data",
+
 	for series in series_shortlist:
-		#print series['id'], series['name'], series['start_year'], series['count_of_issues']
-		print "Fetching info for  ID: {0} {1} ({2}) ...".format(
-		               series['id'], 
-		               series['name'], 
-		               series['start_year'])
+		#print "Fetching info for  ID: {0} {1} ({2}) ...".format(
+		#               series['id'], 
+		#               series['name'], 
+		#               series['start_year'])
+		print ".",
+		sys.stdout.flush()
 		
 		cv_series_results = comicVine.fetchVolumeData( series['id'] )
 		issue_list = cv_series_results['issues']
@@ -165,26 +163,36 @@ def cliProcedure( opts, settings ):
 				img_url = comicVine.fetchIssueCoverURL( issue['id'] )
 				#TODO get the URL, and calc hash!!
 				url_image_data = urllib.urlopen(img_url).read()
-				#url_image_hash = ImageHasher( data=url_image_data ).average_hash() 
-				url_image_hash = ImageHasher( data=url_image_data,   ).average_hash2() 
-				#url_image_hash = ImageHasher( data=url_image_data, width=32, height=32  ).perceptual_hash() 
+				
+				if opts.image_hasher == '3':
+					url_image_hash = ImageHasher( data=url_image_data ).dct_average_hash() 
+				elif opts.image_hasher == '2':
+					url_image_hash = ImageHasher( data=url_image_data ).average_hash2() 
+				else:
+					url_image_hash = ImageHasher( data=url_image_data ).average_hash() 
 				
 				match = dict()
 				match['series'] = "{0} ({1})".format(series['name'], series['start_year'])
 				match['distance'] = ImageHasher.hamming_distance(cover_hash, url_image_hash)
 				match['issue_number'] = num_s
+				match['url_image_hash'] = url_image_hash
 				match['issue_title'] = issue['name']
 				match['img_url'] = img_url
 				match_list.append(match)
 				
 				break
-	
-	print "Compared covers for {0} issues".format(len(match_list))
+	print "done!"
 	
 	# sort list by image match scores
 	match_list.sort(key=lambda k: k['distance'])
+	
+	print "Compared {0} covers".format(len(match_list)),
+	
+	l = []
+	for i in match_list:
+		l.append( i['distance'] )
+	print l
 
-	#helper
 	def print_match(item):
 		print u"-----> {0} #{1} {2} -- score: {3}\n-------> url:{4}".format(
 								item['series'], 
@@ -203,7 +211,7 @@ def cliProcedure( opts, settings ):
 		print_match(match_list[0])
 		return
 
-	elif best_score > 20 and len(match_list) > 1:
+	elif best_score > 25 and len(match_list) > 1:
 		print "No good image matches!  Need to use other info..."
 		return
 	
@@ -236,6 +244,7 @@ def cliProcedure( opts, settings ):
 def main():
 	opts = Options()
 	opts.parseCmdLineArgs()
+
 	settings = ComicTaggerSettings()
 	# make sure unrar program is in the path for the UnRAR class
 	utils.addtopath(os.path.dirname(settings.unrar_exe_path))

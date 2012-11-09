@@ -13,6 +13,8 @@ TaggerWindow entry fields
 		- Indicate credits for CR style 
 		
 	CR has editable dropdowns/comboboxes for Format, Publisher, Imprint
+	
+GUI to handle mutliple files or folders
 -----------		
 
 Form type validation Ints vs strings for month, year. etc
@@ -44,7 +46,8 @@ Image Hashes:
 	Failures of average hash:
 		Thor 600 Wrap-around w/ different aspect ratio
 		Bone 3 - Variant Cover, 
-		Old Avengers -- Best match, but high difference
+		Avengers #1, #13, #81
+		
 		
 Filename parsing:
 	Concatenation of Name and Issue??
@@ -60,15 +63,19 @@ If no unrar in path, then filter out CBR/RAR from open dialog
 
 Wizard for converting between tag styles
 
+
+Remove stale data from cache DB 
+SQLite chokes on "Batman\ Li'l Gotham 001.cbr" name
+
+
 Auto search:
-	1st search local SQL tables that are built on the fly in the next step
-		search certain table: series:  CV info
-			then search table issues:  Id, title, number + URL, image hash, series ID
-			cache hash and URL as needed
-	if not found search CV directly caching results in tables
-
-
-
+	Logging class
+	Choosing with pub year
+	Lexical analysis 
+	Maybe remove "the" and leading "A" before searching and matching for closer
+	Searching w/o issue #?
+	
+	
 ----------------------------------------------
 COMIC RACK Questions
 
