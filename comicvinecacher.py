@@ -157,10 +157,15 @@ class ComicVineCacher:
 			cur = con.cursor()    
 			
 			timestamp = datetime.datetime.now()
+			
+			if cv_volume_record['publisher'] is None:
+				pub_name = ""
+			else:
+				pub_name = cv_volume_record['publisher']['name']
 
 			data = { 
 						"name":            cv_volume_record['name'], 
-						"publisher":       cv_volume_record['publisher']['name'], 
+						"publisher":       pub_name, 
 						"count_of_issues": cv_volume_record['count_of_issues'],
 						"timestamp":       timestamp 
 					}
