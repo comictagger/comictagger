@@ -183,6 +183,10 @@ def cliProcedure( opts, settings ):
 				break
 	print "done!"
 	
+	if len(match_list) == 0:
+		print ":-(  no matches!"
+		return
+	
 	# sort list by image match scores
 	match_list.sort(key=lambda k: k['distance'])
 	
@@ -203,11 +207,9 @@ def cliProcedure( opts, settings ):
 	
 	best_score = match_list[0]['distance']
 
-	if len(match_list) == 0:
-		print "No matches found :("
-		return
-
 	if len(match_list) == 1:
+		if best_score > 25:
+			print "!!!! Very weak score for the cover.  Maybe it's not the cover?"
 		print_match(match_list[0])
 		return
 
@@ -223,7 +225,10 @@ def cliProcedure( opts, settings ):
 	if len(match_list) == 1:
 		print_match(match_list[0])
 		return
-			
+	elif len(match_list) == 0:
+		print "No matches found :("
+		return
+		
 	else:
 		print "More than one likley candiate.  Maybe a lexical comparison??"
 		for item in match_list:
