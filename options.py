@@ -39,16 +39,16 @@ class Options:
 		self.data_style = MetaDataStyle.CBI
 		self.no_gui = False
 		
-		# Some defaults for testing
-		self.series_name = '' #'Watchmen'
-		self.issue_number = '' #'1'
-		self.filename = ''     # "Watchmen #01.cbz"
+		self.series_name = '' 
+		self.issue_number = '' 
+		self.filename = ''  
+		self.image_hasher = 1     
 
 	def parseCmdLineArgs(self):	
 
 		# parse command line options
 		try:
-			opts, args = getopt.getopt(sys.argv[1:], "cht:s:i:vf:", ["cli", "help", "type=", "series=", "issue=", "verbose", "file" ])
+			opts, args = getopt.getopt(sys.argv[1:], "cht:s:i:vf:m:", ["cli", "help", "type=", "series=", "issue=", "verbose", "file", "imagehasher=" ])
 		except (getopt.error, msg):
 			print( msg )
 			print( "for help use --help" )
@@ -62,6 +62,8 @@ class Options:
 				print( "Verbose output!" )
 			if o in ("-c", "--cli"):
 				self.no_gui = True
+			if o in ("-m", "--imagehasher"):
+				self.image_hasher = a
 			if o in ("-s", "--series"):
 				self.series_name = a
 			if o in ("-i", "--issue"):
