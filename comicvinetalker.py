@@ -26,7 +26,8 @@ import math
 import re
 
 import utils
-
+from settings import ComicTaggerSettings
+from comicvinecacher import ComicVineCacher
 from genericmetadata import GenericMetadata
 
 class ComicVineTalker:
@@ -48,6 +49,16 @@ class ComicVineTalker:
 
 
 	def searchForSeries( self, series_name ):
+		
+		# before we search online, look in our cache, since we might have
+		# done this same search recently
+		cvc = ComicVineCacher( ComicTaggerSettings.getSettingsFolder() )
+		cached_search_results = cvc.get_search_results( series_name )
+		
+		if len (cached_search_results) > 0:
+			return cached_search_results
+		
+		original_series_name = series_name
 	
 		series_name = urllib.quote_plus(str(series_name))
 		search_url = "http://api.comicvine.com/search/?api_key=" + self.api_key + "&format=json&resources=volume&query=" + series_name + "&field_list=name,id,start_year,publisher,image,description,count_of_issues&sort=start_year"
@@ -95,9 +106,21 @@ class ComicVineTalker:
 		
 		#print "{0}: {1} ({2})".format(search_results['results'][0]['id'], smart_str(search_results['results'][0]['name']) , search_results['results'][0]['start_year'] ) 
 	
+		# cache these search results
+		cvc.add_search_results( original_series_name, search_results )
+
 		return search_results
 
 	def fetchVolumeData( self, series_id ):
+		
+		# before we search online, look in our cache, since we might already
+		# have this info
+		cvc = ComicVineCacher( ComicTaggerSettings.getSettingsFolder() )
+		cached_volume_result = cvc.get_volume_info( series_id )
+		
+		if cached_volume_result is not None:
+			return cached_volume_result
+
 	
 		volume_url = "http://api.comicvine.com/volume/" + str(series_id) + "/?api_key=" + self.api_key + "&format=json"
 		#print "search_url = : ", volume_url 
@@ -113,6 +136,8 @@ class ComicVineTalker:
 
 		volume_results = cv_response['results']
 	
+		cvc.add_volume_info( volume_results )
+
 		return volume_results
 				
 
@@ -208,6 +233,14 @@ class ComicVineTalker:
 
 	def fetchIssueCoverURL( self, issue_id ):
 
+		# before we search online, look in our cache, since we might already
+		# have this info
+		cvc = ComicVineCacher( ComicTaggerSettings.getSettingsFolder() )
+		cached_image_url = cvc.get_issue_image_url( issue_id )
+		
+		if cached_image_url is not None:
+			return cached_image_url
+
 		issue_url = "http://api.comicvine.com/issue/" + str(issue_id) + "/?api_key=" + self.api_key + "&format=json&field_list=image"
 		resp = urllib2.urlopen(issue_url) 
 		content = resp.read()
@@ -216,6 +249,7 @@ class ComicVineTalker:
 			print ( "Comic Vine query failed with error:  [{0}]. ".format( cv_response[ 'error' ] ))
 			return None
 
+		cvc.add_issue_image_url( issue_id, cv_response['results']['image']['super_url'] )
 		return cv_response['results']['image']['super_url']
 
 		

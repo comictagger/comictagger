@@ -38,6 +38,7 @@ from options import Options, MetaDataStyle
 from comicarchive import ComicArchive
 
 from comicvinetalker import ComicVineTalker
+from comicvinecacher import ComicVineCacher
 from comicinfoxml import ComicInfoXml
 from comicbookinfo import ComicBookInfo
 from imagehasher import ImageHasher
@@ -105,6 +106,16 @@ def cliProcedure( opts, settings ):
 	print ( "Searching for " + search_series + "...")
 
 	cv_search_results = comicVine.searchForSeries( search_series )
+	
+	#----------    TEST
+	#cvc = ComicVineCacher( settings.folder )
+	#cvc.add_search_results( search_series, cv_search_results )
+	#cached_search_results = cvc.get_search_results( search_series)
+	#for r in cached_search_results:
+	#	print "{0}: {1} ({2})".format(  r['id'],  r['name'],  r['start_year'])
+	#quit()
+	#----------    TEST
+	
 
 	print "Found " + str(len(cv_search_results)) + " initial results"
 	
@@ -129,7 +140,8 @@ def cliProcedure( opts, settings ):
 	# Now we've got a list of series that we can dig into, 
 	# and look for matching issue number, date, and cover image
 	
-	
+	match_list = []
+
 	for series in series_shortlist:
 		#print series['id'], series['name'], series['start_year'], series['count_of_issues']
 		print "Fetching info for  ID: {0} {1} ({2}) ...".format(
@@ -156,24 +168,60 @@ def cliProcedure( opts, settings ):
 				#url_image_hash = ImageHasher( data=url_image_data ).average_hash() 
 				url_image_hash = ImageHasher( data=url_image_data,   ).average_hash2() 
 				#url_image_hash = ImageHasher( data=url_image_data, width=32, height=32  ).perceptual_hash() 
-				print u"-----> ID: {0}  #{1} ({2}) Hash: {3}  Distance: {4}\n-------> url:{5}".format(
-				                             issue['id'], num_s, issue['name'],
-				                             url_image_hash, 
-				                             ImageHasher.hamming_distance(cover_hash, url_image_hash),
-				                             img_url)
 				
+				match = dict()
+				match['series'] = "{0} ({1})".format(series['name'], series['start_year'])
+				match['distance'] = ImageHasher.hamming_distance(cover_hash, url_image_hash)
+				match['issue_number'] = num_s
+				match['issue_title'] = issue['name']
+				match['img_url'] = img_url
+				match_list.append(match)
 				
 				break
 	
+	print "Compared covers for {0} issues".format(len(match_list))
+	
+	# sort list by image match scores
+	match_list.sort(key=lambda k: k['distance'])
+
+	#helper
+	def print_match(item):
+		print u"-----> {0} #{1} {2} -- score: {3}\n-------> url:{4}".format(
+								item['series'], 
+								item['issue_number'], 
+								item['issue_title'],
+								item['distance'],
+								item['img_url'])
+	
+	best_score = match_list[0]['distance']
+
+	if len(match_list) == 0:
+		print "No matches found :("
+		return
+
+	if len(match_list) == 1:
+		print_match(match_list[0])
+		return
+
+	elif best_score > 20 and len(match_list) > 1:
+		print "No good image matches!  Need to use other info..."
+		return
+	
+	#now pare down list, remove any item more than 2 distant from the top scores
+	for item in reversed(match_list):
+		if item['distance'] > best_score + 2:
+			match_list.remove(item)
+
+	if len(match_list) == 1:
+		print_match(match_list[0])
+		return
+			
+	else:
+		print "More than one likley candiate.  Maybe a lexical comparison??"
+		for item in match_list:
+			print_match(item)
+			
 	"""
-	#error checking here:  did we get any results?
-
-	# we will eventualy  want user interaction to choose the appropriate result, but for now, assume the first one
-	series_id = cv_search_results[0]['id'] 
-
-	print( "-->Auto-selecting volume ID:", cv_search_results[0]['id'] )
-	print(" ") 
-
 	# now get the particular issue data
 	metadata = comicVine.fetchIssueData( series_id, opts.issue_number )
 
@@ -182,9 +230,6 @@ def cliProcedure( opts, settings ):
 	ca = ComicArchive(opts.filename)
 	ca.writeMetadata( metadata, opts.data_style )
 
-	#debugging
-	ComicBookInfo().writeToExternalFile( "test.json" )
-	ComicBookInfo().writeToExternalFile( "test.xml" )
 	"""
 #-----------------------------
 
@@ -192,7 +237,6 @@ def main():
 	opts = Options()
 	opts.parseCmdLineArgs()
 	settings = ComicTaggerSettings()
-	
 	# make sure unrar program is in the path for the UnRAR class
 	utils.addtopath(os.path.dirname(settings.unrar_exe_path))
 	
