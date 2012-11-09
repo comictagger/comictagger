@@ -2,11 +2,8 @@
 import Image
 import StringIO
 
-import numpy
-import scipy.signal 
 
 
-#from bitarray import bitarray
 
 class ImageHasher(object):
 	def __init__(self, path=None, data=None, width=8, height=8):
@@ -21,46 +18,46 @@ class ImageHasher(object):
 		else:
 			self.image = Image.open(StringIO.StringIO(data))
 			
+
 	def average_hash(self):
-		#image = self.image.resize((self.hash_size, self.hash_size), Image.ANTIALIAS).convert("L")
 		image = self.image.resize((self.width, self.height), Image.ANTIALIAS).convert("L")
 		pixels = list(image.getdata())
 		avg = sum(pixels) / len(pixels)
-
-		diff = []
-		for pixel in pixels:
-			value = 1 if pixel > avg else 0
-			diff.append(str(value))
-
-		#ba = bitarray("".join(diff), endian='little')
-		#h = ba.tobytes().encode('hex')
 		
-		# This isn't super pretty, but we avoid the bitarray inclusion.
-		# (Build up a hex string from the binary list of bits)
-		hash = ""
-		binary_string = "".join(diff)
-		for i in range(0, self.width*self.height, 8):
-			# 8 bits at time, reverse, for little-endian
-			s = binary_string[i:i+8][::-1]
-			hash = hash + "{0:02x}".format( int(s,2))
+		def compare_value_to_avg(i):
+			return ( 1 if i > avg else 0 )
+				
+		bitlist = map(compare_value_to_avg, pixels)
+		
+		# build up an int value from the bit list, one bit at a time
+		def set_bit( x, (idx, val) ):
+			return (x | (val << idx))
 			
-		return hash
-
+		result = reduce(set_bit, enumerate(bitlist), 0)
+		
+		#print "{0:016x}".format(result)
+		return result
 
 	def average_hash2( self ):
+		# Got this one from somewhere on the net.  Not a clue how the 'convolve2d'
+		# works! 
+
+		from numpy import array 
+		from scipy.signal import convolve2d
+				
 		im = self.image.resize((self.width, self.height), Image.ANTIALIAS).convert('L')
 
-		in_data = numpy.array((im.getdata())).reshape(self.width, self.height)
-		filt = numpy.array([[0,1,0],[1,-4,1],[0,1,0]])
-		filt_data = scipy.signal.convolve2d(in_data,filt,mode='same',boundary='symm').flatten()
-
+		in_data = array((im.getdata())).reshape(self.width, self.height)
+		filt = array([[0,1,0],[1,-4,1],[0,1,0]])
+		filt_data = convolve2d(in_data,filt,mode='same',boundary='symm').flatten()
+		
 		result = reduce(lambda x, (y, z): x | (z << y),
 		                 enumerate(map(lambda i: 0 if i < 0 else 1, filt_data)),
 		                 0)
+		#print "{0:016x}".format(result)
 		return result
 
-	
-	def perceptual_hash(self):
+	def dct_average_hash(self):
 		"""
 		# Algorithm source: http://syntaxcandy.blogspot.com/2012/08/perceptual-hash.html
 		
@@ -99,10 +96,11 @@ class ImageHasher(object):
 		7. Construct the hash. Set the 64 bits into a 64-bit integer. The order does not 
 		matter, just as long as you are consistent. 
 		"""
-
+		import numpy
+		import scipy.fftpack
 		# Step 1,2
 		im = self.image.resize((32, 32), Image.ANTIALIAS).convert("L")
-		in_data = numpy.array(im.getdata(), dtype=numpy.dtype('float')).reshape(self.width, self.height)
+		in_data = numpy.array(im.getdata(), dtype=numpy.dtype('float')).reshape(32, 32)
 		#print len(im.getdata())
 		#print in_data
 		
@@ -112,9 +110,11 @@ class ImageHasher(object):
 		# Step 4
 		# NO! -- lofreq_dct = dct[:8,:8].flatten()
 		# NO? -- lofreq_dct = dct[24:32, 24:32].flatten()
-		lofreq_dct = dct[:8, 24:32].flatten()
-		#print dct[:8, 24:32]
+		#lofreq_dct = dct[:8, 24:32].flatten()
+		#print dct[24:32, :8]
 		# NO! -- lofreq_dct = dct[24:32, :8 ].flatten()
+		#lofreq_dct = dct[1:9, 1:9].flatten()
+		lofreq_dct = dct[:8, 24:32].flatten()
 		
 		#omit = 0
 		#omit = 7
@@ -130,35 +130,23 @@ class ImageHasher(object):
 
 		# Step 6
 		def compare_value_to_avg(i):
-			if i > avg:
-				return (1)
-			else:
-				return (0)
+			return ( 1 if i > avg else 0 )
 				
 		bitlist = map(compare_value_to_avg, lofreq_dct)
 		
 		#Step 7
-		def accumulate( accumulator, (idx, val) ):
-			return (accumulator | (val << idx))
+		def set_bit( x, (idx, val) ):
+			return (x | (val << idx))
 			
-		result = reduce(accumulate, enumerate(bitlist), long(0))
+		result = reduce(set_bit, enumerate(bitlist), long(0))
 
 
-		print "{0:016x}".format(result)
+		#print "{0:016x}".format(result)
 		return result
 
 
-	@staticmethod
-	def count_bits(number):
-		bit = 1
-		count = 0
-		while number >= bit:
-			if number & bit:
-				count += 1
-			bit <<= 1
-		return count   
 	
-	#accepts 2 hashes (long or hex strings) and returns the hamming distance
+	#accepts 2 hashes (longs or hex strings) and returns the hamming distance
 	
 	@staticmethod
 	def hamming_distance(h1, h2):
@@ -167,14 +155,16 @@ class ImageHasher(object):
 			n1 = h1
 			n2 = h2
 		else:
-			# conver hex strings to ints
+			# convert hex strings to ints
 			n1 = long( h1, 16)
 			n2 = long( h2, 16)
+			
 		# xor the two numbers
 		n = n1 ^ n2
-		
-		# now count the ones
-		return ImageHasher.count_bits( n )
+
+		#count up the 1's in the binary string 
+		return sum( b == '1' for b in bin(n)[2:] )
+
 
 
 
