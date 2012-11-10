@@ -160,9 +160,9 @@ def cliProcedure( opts, settings ):
 			# look for a matching issue number
 			if num_s == search_issue_number:
 				# found a matching issue number!  now get the issue data 
-				img_url = comicVine.fetchIssueCoverURL( issue['id'] )
-				#TODO get the URL, and calc hash!!
-				url_image_data = urllib.urlopen(img_url).read()
+				img_url, thumb_url = comicVine.fetchIssueCoverURLs( issue['id'] )
+				#TODO get the image from URL, and calc hash!!
+				url_image_data = urllib.urlopen(thumb_url).read()
 				
 				if opts.image_hasher == '3':
 					url_image_hash = ImageHasher( data=url_image_data ).dct_average_hash() 
@@ -177,7 +177,7 @@ def cliProcedure( opts, settings ):
 				match['issue_number'] = num_s
 				match['url_image_hash'] = url_image_hash
 				match['issue_title'] = issue['name']
-				match['img_url'] = img_url
+				match['img_url'] = thumb_url
 				match_list.append(match)
 				
 				break

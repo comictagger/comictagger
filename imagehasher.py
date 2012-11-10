@@ -2,9 +2,6 @@
 import Image
 import StringIO
 
-
-
-
 class ImageHasher(object):
 	def __init__(self, path=None, data=None, width=8, height=8):
 		#self.hash_size = size
@@ -39,6 +36,8 @@ class ImageHasher(object):
 		return result
 
 	def average_hash2( self ):
+		pass
+		"""
 		# Got this one from somewhere on the net.  Not a clue how the 'convolve2d'
 		# works! 
 
@@ -56,8 +55,10 @@ class ImageHasher(object):
 		                 0)
 		#print "{0:016x}".format(result)
 		return result
-
+		"""
+		
 	def dct_average_hash(self):
+		pass
 		"""
 		# Algorithm source: http://syntaxcandy.blogspot.com/2012/08/perceptual-hash.html
 		
@@ -96,6 +97,7 @@ class ImageHasher(object):
 		7. Construct the hash. Set the 64 bits into a 64-bit integer. The order does not 
 		matter, just as long as you are consistent. 
 		"""
+		"""
 		import numpy
 		import scipy.fftpack
 		numpy.set_printoptions(threshold=10000, linewidth=200, precision=2, suppress=True)
@@ -132,9 +134,8 @@ class ImageHasher(object):
 
 		#print "{0:016x}".format(result)
 		return result
+		"""
 
-
-	
 	#accepts 2 hashes (longs or hex strings) and returns the hamming distance
 	
 	@staticmethod

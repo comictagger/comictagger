@@ -231,15 +231,15 @@ class ComicVineTalker:
 			
 			return newstring
 
-	def fetchIssueCoverURL( self, issue_id ):
+	def fetchIssueCoverURLs( self, issue_id ):
 
 		# before we search online, look in our cache, since we might already
 		# have this info
 		cvc = ComicVineCacher( ComicTaggerSettings.getSettingsFolder() )
-		cached_image_url = cvc.get_issue_image_url( issue_id )
+		cached_image_url,cached_thumb_url = cvc.get_issue_image_url( issue_id )
 		
 		if cached_image_url is not None:
-			return cached_image_url
+			return cached_image_url,cached_thumb_url
 
 		issue_url = "http://api.comicvine.com/issue/" + str(issue_id) + "/?api_key=" + self.api_key + "&format=json&field_list=image"
 		resp = urllib2.urlopen(issue_url) 
@@ -249,7 +249,7 @@ class ComicVineTalker:
 			print ( "Comic Vine query failed with error:  [{0}]. ".format( cv_response[ 'error' ] ))
 			return None
 
-		cvc.add_issue_image_url( issue_id, cv_response['results']['image']['super_url'] )
-		return cv_response['results']['image']['super_url']
+		cvc.add_issue_image_url( issue_id, cv_response['results']['image']['super_url'], cv_response['results']['image']['thumb_url'] )
+		return cv_response['results']['image']['super_url'], cv_response['results']['image']['thumb_url']
 
 		

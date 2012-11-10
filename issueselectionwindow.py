@@ -122,7 +122,7 @@ class IssueSelectionWindow(QtGui.QDialog):
 				# We don't yet have an image URL for this issue.  Make a request for URL, and hold onto it
 				# TODO: this should be reworked...  too much UI latency, maybe chain the NAMs??
 				if record['url'] == None:
-					record['url'] = ComicVineTalker( self.cv_api_key ).fetchIssueCoverURL( self.issue_id )				
+					record['url'], dummy = ComicVineTalker( self.cv_api_key ).fetchIssueCoverURLs( self.issue_id )				
 				
 				self.labelThumbnail.setText("loading...")
 				self.nam = QNetworkAccessManager()

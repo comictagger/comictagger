@@ -229,7 +229,7 @@ class ComicVineCacher:
 		return result
 
 
-	def add_issue_image_url( self, issue_id, image_url ):
+	def add_issue_image_url( self, issue_id, image_url, thumb_image_url ):
 		
 		con = lite.connect( self.db_file )
 
@@ -239,6 +239,7 @@ class ComicVineCacher:
 			
 			data = { 
 			          "image_url": image_url, 
+			          "thumb_image_url": thumb_image_url, 
 			          "timestamp": timestamp 
 			       }
 			self.upsert( cur, "issues" , "id", issue_id, data)
@@ -251,13 +252,13 @@ class ComicVineCacher:
 		with con:
 			cur = con.cursor() 
 			
-			cur.execute("SELECT image_url FROM Issues WHERE id=?", [ issue_id ])
+			cur.execute("SELECT image_url,thumb_image_url FROM Issues WHERE id=?", [ issue_id ])
 			row = cur.fetchone()
 
 			if row[0] is None :
-				return None
+				return None, None
 			else:
-				return row[0]
+				return row[0],row[1]
 			
 			
 	def upsert( self, cur, tablename, pkname, pkval, data):

@@ -17,6 +17,8 @@ TaggerWindow entry fields
 GUI to handle mutliple files or folders
 -----------		
 
+Be more tolerant of mis-labled extensions i.e. cbr when it's a cbz
+
 Form type validation Ints vs strings for month, year. etc
 
 Check all HTTP responses for errors
