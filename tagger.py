@@ -35,7 +35,7 @@ from issueidentifier import IssueIdentifier
 import utils
 
 #-----------------------------
-def cliProcedure( opts, settings ):
+def cli_mode( opts, settings ):
 
 	ca = ComicArchive(opts.filename)
 	if not ca.seemsToBeAComicArchive():
@@ -43,17 +43,23 @@ def cliProcedure( opts, settings ):
 		return
 	
 	ii = IssueIdentifier( ca, settings.cv_api_key )
-	ii.search()
+	matches = ii.search()
 	
 	"""
-	# now get the particular issue data
-	metadata = comicVine.fetchIssueData( series_id, opts.issue_number )
+	if len(matches) == 1:
+		
+		# now get the particular issue data
+		metadata = comicVine.fetchIssueData( match[0]['series'],  match[0]['issue_number'] )
+		
+		# write out the new data
+		ca.writeMetadata( metadata, opts.data_style )
+		
+	elif len(matches) == 0:
+		pass
 
-	#pprint( cv_volume_data, indent=4 )
-
-	ca = ComicArchive(opts.filename)
-	ca.writeMetadata( metadata, opts.data_style )
-
+	elif len(matches) == 0:
+		# print match options, with CV issue ID's
+		pass
 	"""
 #-----------------------------
 
@@ -69,7 +75,7 @@ def main():
 	
 	if opts.no_gui:
 
-		cliProcedure( opts, settings )
+		cli_mode( opts, settings )
 		
 	else:
 

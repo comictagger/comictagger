@@ -26,12 +26,14 @@ from PyQt4.QtNetwork import QNetworkAccessManager, QNetworkRequest
 
 from comicvinetalker import ComicVineTalker
 from issueselectionwindow import IssueSelectionWindow
+from issueidentifier import IssueIdentifier
+from genericmetadata import GenericMetadata
 
 class VolumeSelectionWindow(QtGui.QDialog):
 	
 	volume_id = 0
 	
-	def __init__(self, parent, cv_api_key, series_name, issue_number):
+	def __init__(self, parent, cv_api_key, series_name, issue_number, comic_archive):
 		super(VolumeSelectionWindow, self).__init__(parent)
 		
 		uic.loadUi('volumeselectionwindow.ui', self)
@@ -39,6 +41,7 @@ class VolumeSelectionWindow(QtGui.QDialog):
 		self.series_name = series_name
 		self.issue_number = issue_number
 		self.cv_api_key = cv_api_key
+		self.comic_archive = comic_archive
 
 		self.performQuery()
 		
@@ -47,12 +50,29 @@ class VolumeSelectionWindow(QtGui.QDialog):
 		self.twList.cellDoubleClicked.connect(self.cellDoubleClicked)
 		self.btnRequery.clicked.connect(self.requery)			
 		self.btnIssues.clicked.connect(self.showIssues)	
+		self.btnAutoSelect.clicked.connect(self.autoSelect)	
 		
 		self.twList.selectRow(0)
 
 	def requery( self ):
 		self.performQuery()
 		self.twList.selectRow(0)
+
+	def autoSelect( self ):
+		ii = IssueIdentifier( self.comic_archive, self.cv_api_key )
+		
+		md = GenericMetadata()
+		md.series = self.series_name
+		md.issue_number = self.issue_number
+		ii.setAdditionalMetadata( md )
+		
+		matches = ii.search()
+		if len(matches) == 1:
+			print "VolumeSelectionWindow found a match!!", matches[0]['volume_id'], matches[0]['issue_number']
+			self.volume_id = matches[0]['volume_id']
+			self.issue_number = matches[0]['issue_number']
+			self.selectByID()
+			self.showIssues()
 
 	def showIssues( self ):
 		selector = IssueSelectionWindow( self, self.cv_api_key, self.volume_id, self.issue_number )
@@ -64,6 +84,13 @@ class VolumeSelectionWindow(QtGui.QDialog):
 			self.accept()
 		return
 
+	def selectByID( self ):
+		for r in range(0, self.twList.rowCount()):
+			volume_id, b = self.twList.item( r, 0 ).data( QtCore.Qt.UserRole ).toInt()
+			if (volume_id == self.volume_id):
+				self.twList.selectRow( r )
+				break
+		
 	def performQuery( self ):
 		
 		while self.twList.rowCount() > 0:

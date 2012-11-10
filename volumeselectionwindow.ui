@@ -44,14 +44,14 @@
      <x>272</x>
      <y>430</y>
      <width>611</width>
-     <height>29</height>
+     <height>32</height>
     </rect>
    </property>
    <layout class="QHBoxLayout" name="horizontalLayout">
     <item>
-     <widget class="QPushButton" name="btnIssues">
+     <widget class="QPushButton" name="btnAutoSelect">
       <property name="text">
-       <string>Show Issues</string>
+       <string>Auto-Select</string>
       </property>
      </widget>
     </item>
@@ -59,6 +59,13 @@
      <widget class="QPushButton" name="btnRequery">
       <property name="text">
        <string>Re-Query</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="btnIssues">
+      <property name="text">
+       <string>Show Issues</string>
       </property>
      </widget>
     </item>

@@ -39,6 +39,7 @@ class IssueIdentifier:
 		self.min_score_distance = 2
 		self.additional_metadata = GenericMetadata()
 		self.cv_api_key = cv_api_key
+		self.output_function = IssueIdentifier.defaultWriteOutput
 	
 	def setScoreMinThreshold( self, thresh ):
 		self.min_score_thresh = thresh
@@ -51,6 +52,10 @@ class IssueIdentifier:
 
 	def setHasherAlgorithm( self, algo ):
 		self.image_hasher = algo
+		pass
+
+	def setOutputFunction( self, func ):
+		self.output_function = func
 		pass
 	
 	def calculateHash( self, image_data ):
@@ -118,57 +123,60 @@ class IssueIdentifier:
 			search_keys['month'] = md_from_filename.publicationMonth
 			
 		return search_keys
-	
+
 	@staticmethod
-	def log_msg( msg , newline=True ):
-		sys.stdout.write(msg)
-		if newline:
-			sys.stdout.write("\n")
+	def defaultWriteOutput( text ):
+		sys.stdout.write(text)
 		sys.stdout.flush()
 		
+	def log_msg( self, msg , newline=True ):
+		self.output_function(msg)
+		if newline:
+			self.output_function("\n")
+	
 	def search( self ):
 	
 		ca = self.comic_archive
 		if not ca.seemsToBeAComicArchive():
-			IssueIdentifier.log_msg( "Sorry, but "+ opts.filename + "  is not a comic archive!")
-			return
+			self.log_msg( "Sorry, but "+ opts.filename + "  is not a comic archive!")
+			return []
 		
 		cover_image_data = ca.getCoverPage()
 
 		cover_hash = self.calculateHash( cover_image_data )
 
-		#IssueIdentifier.log_msg( "Cover hash = {0:016x}".format(cover_hash) )
+		#self.log_msg( "Cover hash = {0:016x}".format(cover_hash) )
 
 		keys = self.getSearchKeys()
 		
 		# we need, at minimum, a series and issue number
 		if keys['series'] is None or keys['issue_number'] is None:
-			IssueIdentifier.log_msg("Not enough info for a search!")
-			return None
+			self.log_msg("Not enough info for a search!")
+			return []
 		
 		"""
-		IssueIdentifier.log_msg( "Going to search for:" )
-		IssueIdentifier.log_msg( "Series: " + keys['series'] )
-		IssueIdentifier.log_msg( "Issue : " + keys['issue_number']  )
+		self.log_msg( "Going to search for:" )
+		self.log_msg( "Series: " + keys['series'] )
+		self.log_msg( "Issue : " + keys['issue_number']  )
 		if keys['year'] is not None:
-			IssueIdentifier.log_msg( "Year :  " + keys['year'] )
+			self.log_msg( "Year :  " + keys['year'] )
 		if keys['month'] is not None:
-			IssueIdentifier.log_msg( "Month : " + keys['month'] )
+			self.log_msg( "Month : " + keys['month'] )
 		"""
 		comicVine = ComicVineTalker( self.cv_api_key )
 
-		#IssueIdentifier.log_msg( ( "Searching for " + keys['series'] + "...")
-		IssueIdentifier.log_msg( "Searching for  {0} #{1} ...".format( keys['series'], keys['issue_number']) )
+		#self.log_msg( ( "Searching for " + keys['series'] + "...")
+		self.log_msg( "Searching for  {0} #{1} ...".format( keys['series'], keys['issue_number']) )
 
 		keys['series'] = utils.removearticles( keys['series'] )
 		
 		cv_search_results = comicVine.searchForSeries( keys['series'] )
 		
-		#IssueIdentifier.log_msg( "Found " + str(len(cv_search_results)) + " initial results" )
+		#self.log_msg( "Found " + str(len(cv_search_results)) + " initial results" )
 		
 		series_shortlist = []
 		
-		#IssueIdentifier.log_msg( "Removing results with too long names" )
+		#self.log_msg( "Removing results with too long names" )
 		for item in cv_search_results:
 			#assume that our search name is close to the actual name, say within 5 characters
 			if len( utils.removearticles(item['name'])) < len( keys['series'] ) + 5:
@@ -176,10 +184,10 @@ class IssueIdentifier:
 		
 		# if we don't think it's an issue number 1, remove any series' that are one-shots
 		if keys['issue_number'] != '1':
-			#IssueIdentifier.log_msg( "Removing one-shots" )
+			#self.log_msg( "Removing one-shots" )
 			series_shortlist[:] = [x for x in series_shortlist if not x['count_of_issues'] == 1]	
 
-		IssueIdentifier.log_msg( "Searching in " + str(len(series_shortlist)) +" series" )
+		self.log_msg( "Searching in " + str(len(series_shortlist)) +" series" )
 		
 		# now sort the list by name length
 		series_shortlist.sort(key=lambda x: len(x['name']), reverse=False)
@@ -189,14 +197,14 @@ class IssueIdentifier:
 		
 		match_list = []
 
-		IssueIdentifier.log_msg( "Fetching issue data", newline=False)
+		self.log_msg( "Fetching issue data", newline=False)
 
 		for series in series_shortlist:
-			#IssueIdentifier.log_msg( "Fetching info for  ID: {0} {1} ({2}) ...".format(
+			#self.log_msg( "Fetching info for  ID: {0} {1} ({2}) ...".format(
 			#               series['id'], 
 			#               series['name'], 
 			#               series['start_year']) )
-			IssueIdentifier.log_msg( ".", newline=False)
+			self.log_msg( ".", newline=False)
 			
 			cv_series_results = comicVine.fetchVolumeData( series['id'] )
 			issue_list = cv_series_results['issues']
@@ -224,14 +232,16 @@ class IssueIdentifier:
 					match['url_image_hash'] = url_image_hash
 					match['issue_title'] = issue['name']
 					match['img_url'] = thumb_url
+					match['issue_id'] = issue['id']
+					match['volume_id'] = series['id']
 					match_list.append(match)
 					
 					break
-		IssueIdentifier.log_msg( "done!" )
+		self.log_msg( "done!" )
 		
 		if len(match_list) == 0:
-			IssueIdentifier.log_msg( ":-(  no matches!" )
-			return
+			self.log_msg( ":-(  no matches!" )
+			return match_list
 		
 		# sort list by image match scores
 		match_list.sort(key=lambda k: k['distance'])		
@@ -240,11 +250,11 @@ class IssueIdentifier:
 		for i in match_list:
 			l.append( i['distance'] )
 
-		IssueIdentifier.log_msg( "Compared {0} covers".format(len(match_list)), newline=False)
-		IssueIdentifier.log_msg( str(l))
+		self.log_msg( "Compared {0} covers".format(len(match_list)), newline=False)
+		self.log_msg( str(l))
 
 		def print_match(item):
-			IssueIdentifier.log_msg( u"-----> {0} #{1} {2} -- score: {3}\n-------> url:{4}".format(
+			self.log_msg( u"-----> {0} #{1} {2} -- score: {3}\n-------> url:{4}".format(
 									item['series'], 
 									item['issue_number'], 
 									item['issue_title'],
@@ -255,13 +265,13 @@ class IssueIdentifier:
 
 		if len(match_list) == 1:
 			if best_score > self.min_score_thresh:
-				IssueIdentifier.log_msg( "!!!! Very weak score for the cover.  Maybe it's not the cover?" )
+				self.log_msg( "!!!! Very weak score for the cover.  Maybe it's not the cover?" )
 			print_match(match_list[0])
-			return
+			return match_list
 
 		elif best_score > self.min_score_thresh and len(match_list) > 1:
-			IssueIdentifier.log_msg( "No good image matches!  Need to use other info..." )
-			return
+			self.log_msg( "No good image matches!  Need to use other info..." )
+			return match_list
 		
 		#now pare down list, remove any item more than specified distant from the top scores
 		for item in reversed(match_list):
@@ -270,15 +280,14 @@ class IssueIdentifier:
 
 		if len(match_list) == 1:
 			print_match(match_list[0])
-			return
 		elif len(match_list) == 0:
-			IssueIdentifier.log_msg( "No matches found :(" )
-			return
-			
+			self.log_msg( "No matches found :(" )
 		else:
 			print 
-			IssueIdentifier.log_msg( "More than one likley candiate.  Maybe a lexical comparison??" )
+			self.log_msg( "More than one likley candiate.  Maybe a lexical comparison??" )
 			for item in match_list:
 				print_match(item)
-	
+				
+		return match_list
+
 	

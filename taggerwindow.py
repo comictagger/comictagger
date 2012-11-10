@@ -555,7 +555,7 @@ class TaggerWindow( QtGui.QMainWindow):
 			
 		issue_number = str(self.leIssueNum.text()).strip()
 		
-		selector = VolumeSelectionWindow( self, self.settings.cv_api_key, series_name, issue_number )
+		selector = VolumeSelectionWindow( self, self.settings.cv_api_key, series_name, issue_number, self.comic_archive )
 		selector.setModal(True)
 		selector.exec_()
 		
