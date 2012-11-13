@@ -25,14 +25,20 @@ import urllib2, urllib
 import math 
 import re
 
+from PyQt4.QtNetwork import QNetworkAccessManager, QNetworkRequest
+from PyQt4.QtCore import QUrl, pyqtSignal, QObject, QByteArray
+
 import utils
 from settings import ComicTaggerSettings
 from comicvinecacher import ComicVineCacher
 from genericmetadata import GenericMetadata
 
-class ComicVineTalker:
+
+class ComicVineTalker(QObject):
 
 	def __init__(self, api_key):
+		QObject.__init__(self)
+
 		self.api_key = api_key
 
 
@@ -48,15 +54,16 @@ class ComicVineTalker:
 		return cv_response[ 'status_code' ] != 100
 
 
-	def searchForSeries( self, series_name ):
+	def searchForSeries( self, series_name , callback=None, refresh_cache=False ):
 		
 		# before we search online, look in our cache, since we might have
 		# done this same search recently
 		cvc = ComicVineCacher( ComicTaggerSettings.getSettingsFolder() )
-		cached_search_results = cvc.get_search_results( series_name )
-		
-		if len (cached_search_results) > 0:
-			return cached_search_results
+		if not refresh_cache:
+			cached_search_results = cvc.get_search_results( series_name )
+			
+			if len (cached_search_results) > 0:
+				return cached_search_results
 		
 		original_series_name = series_name
 	
@@ -84,9 +91,12 @@ class ComicVineTalker:
 		search_results.extend( cv_response['results'])
 		offset = 0
 		
+		if callback is not None:
+			callback( current_result_count, total_result_count )
+			
 		# see if we need to keep asking for more pages...
 		while ( current_result_count < total_result_count ):
-			print ("getting another page of results...")
+			print ("getting another page of results {0} of {1}...".format( current_result_count, total_result_count))
 			offset += limit
 			resp = urllib2.urlopen( search_url + "&offset="+str(offset) ) 
 			content = resp.read()
@@ -99,6 +109,9 @@ class ComicVineTalker:
 			search_results.extend( cv_response['results'])
 			current_result_count += cv_response['number_of_page_results']
 			
+			if callback is not None:
+				callback( current_result_count, total_result_count )
+
 	
 		#for record in search_results: 
 		#	print( "{0}: {1} ({2})".format(record['id'], smart_str(record['name']) , record['start_year'] ) )
@@ -231,13 +244,10 @@ class ComicVineTalker:
 			
 			return newstring
 
+	
 	def fetchIssueCoverURLs( self, issue_id ):
 
-		# before we search online, look in our cache, since we might already
-		# have this info
-		cvc = ComicVineCacher( ComicTaggerSettings.getSettingsFolder() )
-		cached_image_url,cached_thumb_url = cvc.get_issue_image_url( issue_id )
-		
+		cached_image_url,cached_thumb_url = self.fetchCachedIssueCoverURLs( issue_id )
 		if cached_image_url is not None:
 			return cached_image_url,cached_thumb_url
 
@@ -247,9 +257,57 @@ class ComicVineTalker:
 		cv_response = json.loads(content)
 		if cv_response[ 'status_code' ] != 1:
 			print ( "Comic Vine query failed with error:  [{0}]. ".format( cv_response[ 'error' ] ))
-			return None
-
-		cvc.add_issue_image_url( issue_id, cv_response['results']['image']['super_url'], cv_response['results']['image']['thumb_url'] )
-		return cv_response['results']['image']['super_url'], cv_response['results']['image']['thumb_url']
-
+			return None, None
 		
+		image_url = cv_response['results']['image']['super_url']
+		thumb_url = cv_response['results']['image']['thumb_url']
+				
+		if image_url is not None:
+			self.cacheIssueCoverURLs( issue_id, image_url,thumb_url )
+		return image_url,thumb_url
+		
+	def fetchCachedIssueCoverURLs( self, issue_id ):
+
+		# before we search online, look in our cache, since we might already
+		# have this info
+		cvc = ComicVineCacher( ComicTaggerSettings.getSettingsFolder() )
+		return  cvc.get_issue_image_url( issue_id )
+
+	def cacheIssueCoverURLs( self, issue_id, image_url,thumb_url ):
+		cvc = ComicVineCacher( ComicTaggerSettings.getSettingsFolder() )
+		cvc.add_issue_image_url( issue_id, image_url, thumb_url )
+		
+		
+#---------------------------------------------------------------------------
+	urlFetchComplete = pyqtSignal( str , str, int)
+
+	def asyncFetchIssueCoverURLs( self, issue_id ):
+		
+		self.issue_id = issue_id
+		cached_image_url,cached_thumb_url = self.fetchCachedIssueCoverURLs( issue_id )
+		if cached_image_url is not None:
+			self.urlFetchComplete.emit( cached_image_url,cached_thumb_url, self.issue_id )
+			return
+
+		issue_url = "http://api.comicvine.com/issue/" + str(issue_id) + "/?api_key=" + self.api_key + "&format=json&field_list=image"
+		self.nam = QNetworkAccessManager()
+		self.nam.finished.connect( self.asyncFetchIssueCoverURLComplete )
+		self.nam.get(QNetworkRequest(QUrl(issue_url)))
+
+	def asyncFetchIssueCoverURLComplete( self, reply ):
+
+		# read in the response
+		data = reply.readAll()
+		cv_response = json.loads(str(data))
+		if cv_response[ 'status_code' ] != 1:
+			print ( "Comic Vine query failed with error:  [{0}]. ".format( cv_response[ 'error' ] ))
+			return 
+		
+		image_url = cv_response['results']['image']['super_url']
+		thumb_url = cv_response['results']['image']['thumb_url']
+
+		self.cacheIssueCoverURLs(  self.issue_id, image_url, thumb_url )
+
+		self.urlFetchComplete.emit( image_url, thumb_url, self.issue_id ) 
+
+

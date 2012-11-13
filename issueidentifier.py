@@ -27,6 +27,8 @@ from comicvinecacher import ComicVineCacher
 from genericmetadata import GenericMetadata
 from comicvinetalker import ComicVineTalker
 from imagehasher import ImageHasher
+from imagefetcher import  ImageFetcher
+
 import utils 
 
 class IssueIdentifier:
@@ -40,6 +42,7 @@ class IssueIdentifier:
 		self.additional_metadata = GenericMetadata()
 		self.cv_api_key = cv_api_key
 		self.output_function = IssueIdentifier.defaultWriteOutput
+		self.callback = None
 	
 	def setScoreMinThreshold( self, thresh ):
 		self.min_score_thresh = thresh
@@ -66,6 +69,9 @@ class IssueIdentifier:
 		else:
 			return ImageHasher( data=image_data ).average_hash() 
 	
+	def setProgressCallback( self, cb_func ):
+		self.callback = cb_func
+		
 	def getSearchKeys( self ):
 	
 		ca = self.comic_archive
@@ -137,6 +143,9 @@ class IssueIdentifier:
 	def search( self ):
 	
 		ca = self.comic_archive
+		self.match_list = []
+		self.cancel = False
+
 		if not ca.seemsToBeAComicArchive():
 			self.log_msg( "Sorry, but "+ opts.filename + "  is not a comic archive!")
 			return []
@@ -173,6 +182,8 @@ class IssueIdentifier:
 		cv_search_results = comicVine.searchForSeries( keys['series'] )
 		
 		#self.log_msg( "Found " + str(len(cv_search_results)) + " initial results" )
+		if self.cancel == True:
+			return []
 		
 		series_shortlist = []
 		
@@ -189,22 +200,26 @@ class IssueIdentifier:
 
 		self.log_msg( "Searching in " + str(len(series_shortlist)) +" series" )
 		
+		if self.callback is not None:
+			self.callback( 0, len(series_shortlist))
+			
+		
 		# now sort the list by name length
 		series_shortlist.sort(key=lambda x: len(x['name']), reverse=False)
 		
 		# Now we've got a list of series that we can dig into, 
 		# and look for matching issue number, date, and cover image
 		
-		match_list = []
-
-		self.log_msg( "Fetching issue data", newline=False)
-
+		counter = 0
 		for series in series_shortlist:
-			#self.log_msg( "Fetching info for  ID: {0} {1} ({2}) ...".format(
-			#               series['id'], 
-			#               series['name'], 
-			#               series['start_year']) )
-			self.log_msg( ".", newline=False)
+			if self.callback is not None:
+				counter += 1
+				self.callback( counter, len(series_shortlist))
+				
+			self.log_msg( "Fetching info for  ID: {0} {1} ({2}) ...".format(
+			               series['id'], 
+			               series['name'], 
+			               series['start_year']), newline=False )
 			
 			cv_series_results = comicVine.fetchVolumeData( series['id'] )
 			issue_list = cv_series_results['issues']
@@ -220,8 +235,11 @@ class IssueIdentifier:
 				if num_s == keys['issue_number']:
 					# found a matching issue number!  now get the issue data 
 					img_url, thumb_url = comicVine.fetchIssueCoverURLs( issue['id'] )
-					#TODO get the image from URL, and calc hash!!
-					url_image_data = urllib.urlopen(thumb_url).read()
+					url_image_data = ImageFetcher().fetch(thumb_url, blocking=True)
+
+					if self.cancel == True:
+						self.match_list = []
+						return self.match_list
 
 					url_image_hash = self.calculateHash( url_image_data )
 					
@@ -234,60 +252,62 @@ class IssueIdentifier:
 					match['img_url'] = thumb_url
 					match['issue_id'] = issue['id']
 					match['volume_id'] = series['id']
-					match_list.append(match)
+					self.match_list.append(match)
+
+					self.log_msg( " --> {0}".format(match['distance']), newline=False )
 					
 					break
-		self.log_msg( "done!" )
+			self.log_msg( "" )
+
 		
-		if len(match_list) == 0:
+		if len(self.match_list) == 0:
 			self.log_msg( ":-(  no matches!" )
-			return match_list
+			return self.match_list
 		
 		# sort list by image match scores
-		match_list.sort(key=lambda k: k['distance'])		
+		self.match_list.sort(key=lambda k: k['distance'])		
 		
 		l = []
-		for i in match_list:
+		for i in self.match_list:
 			l.append( i['distance'] )
 
-		self.log_msg( "Compared {0} covers".format(len(match_list)), newline=False)
+		self.log_msg( "Compared {0} covers".format(len(self.match_list)), newline=False)
 		self.log_msg( str(l))
 
 		def print_match(item):
-			self.log_msg( u"-----> {0} #{1} {2} -- score: {3}\n-------> url:{4}".format(
+			self.log_msg( u"-----> {0} #{1} {2} -- score: {3}".format(
 									item['series'], 
 									item['issue_number'], 
 									item['issue_title'],
-									item['distance'],
-									item['img_url']) )
+									item['distance']) )
 		
-		best_score = match_list[0]['distance']
+		best_score = self.match_list[0]['distance']
 
-		if len(match_list) == 1:
+		if len(self.match_list) == 1:
 			if best_score > self.min_score_thresh:
 				self.log_msg( "!!!! Very weak score for the cover.  Maybe it's not the cover?" )
-			print_match(match_list[0])
-			return match_list
+			print_match(self.match_list[0])
+			return self.match_list
 
-		elif best_score > self.min_score_thresh and len(match_list) > 1:
+		elif best_score > self.min_score_thresh and len(self.match_list) > 1:
 			self.log_msg( "No good image matches!  Need to use other info..." )
-			return match_list
+			return self.match_list
 		
 		#now pare down list, remove any item more than specified distant from the top scores
-		for item in reversed(match_list):
+		for item in reversed(self.match_list):
 			if item['distance'] > best_score + self.min_score_distance:
-				match_list.remove(item)
+				self.match_list.remove(item)
 
-		if len(match_list) == 1:
-			print_match(match_list[0])
-		elif len(match_list) == 0:
+		if len(self.match_list) == 1:
+			print_match(self.match_list[0])
+		elif len(self.match_list) == 0:
 			self.log_msg( "No matches found :(" )
 		else:
 			print 
 			self.log_msg( "More than one likley candiate.  Maybe a lexical comparison??" )
-			for item in match_list:
+			for item in self.match_list:
 				print_match(item)
 				
-		return match_list
+		return self.match_list
 
 	

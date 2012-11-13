@@ -32,9 +32,9 @@ from settingswindow import SettingsWindow
 from settings import ComicTaggerSettings
 import utils
 
+
 # this reads the environment and inits the right locale
 locale.setlocale(locale.LC_ALL, "")
-
 
 import os
 class TaggerWindow( QtGui.QMainWindow):
@@ -555,12 +555,13 @@ class TaggerWindow( QtGui.QMainWindow):
 			
 		issue_number = str(self.leIssueNum.text()).strip()
 		
-		selector = VolumeSelectionWindow( self, self.settings.cv_api_key, series_name, issue_number, self.comic_archive )
+		selector = VolumeSelectionWindow( self, self.settings.cv_api_key, series_name, issue_number, self.comic_archive, self.settings )
 		selector.setModal(True)
 		selector.exec_()
 		
 		if selector.result():
 			#we should now have a volume ID
+			QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
 
 			comicVine = ComicVineTalker( self.settings.cv_api_key )
 			self.metadata = comicVine.fetchIssueData( selector.volume_id, selector.issue_number )
@@ -568,14 +569,17 @@ class TaggerWindow( QtGui.QMainWindow):
 			# Now push the right data into the edit controls
 			self.metadataToForm()
 			#!!!ATB should I clear the form???
+			QtGui.QApplication.restoreOverrideCursor()		
 
 	def commitMetadata(self):
 
 		if ( self.metadata is not None and self.comic_archive is not None):	
+			QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
 			self.formToMetadata()
 			self.comic_archive.writeMetadata( self.metadata, self.data_style )
 			self.clearDirtyFlag()
 			self.updateInfoBox()
+			QtGui.QApplication.restoreOverrideCursor()		
 			
 			QtGui.QMessageBox.information(self, self.tr("Yeah!"), self.tr("File written."))
 

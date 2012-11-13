@@ -1,7 +1,15 @@
 
+Windows Packaging:
+	Makefile or script to 
+		CX freeze
+		other files
+		NSIS
+		
 Toolbar icons
 
 Page Browser
+
+Multi-match dialog
 
 Stand-alone CLI
 
@@ -27,15 +35,13 @@ Lots of error checking
 
 Archive function to  detect tag blocks out of sync
 
-Hourglass popup, or whatever, for when busy
 
 Idea:  Support only CBI or CIX for any given file, and not both 
 	   If user selects different one, warn about potential loss/re-arranging of data
 
 Longer term:
 	Think about mass tagging and (semi) automatic volume selection
-	
-Maybe:  keep a history of tagged volumes IDs from CV, and present those first
+
 
 Other settings possibilities:
 	Last tag style
@@ -60,8 +66,6 @@ App option to covert RAR to ZIP
 
 If no unrar in path, then filter out CBR/RAR from open dialog
 
-"Select Issues" dialog request cover URLs in background
-"Select Issues" dialog cache cover images
 
 Wizard for converting between tag styles
 

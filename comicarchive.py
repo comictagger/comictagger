@@ -50,7 +50,7 @@ class ZipArchiver:
 		return comment
 
 	def setArchiveComment( self, comment ):
-		writeZipComment( self.path, comment )
+		self.writeZipComment( self.path, comment )
 
 	def readArchiveFile( self, archive_file ):
 		zf = zipfile.ZipFile( self.path, 'r' )

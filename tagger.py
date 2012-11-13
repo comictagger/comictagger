@@ -34,6 +34,7 @@ from issueidentifier import IssueIdentifier
 
 import utils
 
+
 #-----------------------------
 def cli_mode( opts, settings ):
 
@@ -80,6 +81,7 @@ def main():
 	else:
 
 		app = QtGui.QApplication(sys.argv)
+		
 		tagger_window = TaggerWindow( opts, settings )
 		tagger_window.show()
 		sys.exit(app.exec_())

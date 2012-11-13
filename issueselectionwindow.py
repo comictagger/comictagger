@@ -19,25 +19,28 @@ limitations under the License.
 """
 
 import sys
+import os
 from PyQt4 import QtCore, QtGui, uic
 
-from PyQt4.QtCore import QUrl
+from PyQt4.QtCore import QUrl, pyqtSignal, QByteArray
 from PyQt4.QtNetwork import QNetworkAccessManager, QNetworkRequest
 
 from comicvinetalker import ComicVineTalker
+from  imagefetcher import  ImageFetcher
 
 class IssueSelectionWindow(QtGui.QDialog):
 	
 	volume_id = 0
 	
-	def __init__(self, parent, cv_api_key, series_id, issue_number):
+	def __init__(self, parent, settings, series_id, issue_number):
 		super(IssueSelectionWindow, self).__init__(parent)
 		
 		uic.loadUi('issueselectionwindow.ui', self)
 		
 		self.series_id  = series_id
-		self.cv_api_key = cv_api_key
-
+		self.settings = settings
+		self.url_fetch_thread = None
+		
 		if issue_number is None or issue_number == "":
 			self.issue_number = 1
 		else:
@@ -59,14 +62,17 @@ class IssueSelectionWindow(QtGui.QDialog):
 				if (issue_id == self.initial_id):
 					self.twList.selectRow( r )
 					break
-		
+					
+
 
 	def performQuery( self ):
 		
+		QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+
 		while self.twList.rowCount() > 0:
 			self.twList.removeRow(0)
 		
-		comicVine = ComicVineTalker( self.cv_api_key )
+		comicVine = ComicVineTalker( self.settings.cv_api_key )
 		volume_data = comicVine.fetchVolumeData( self.series_id )
 		self.issue_list = volume_data['issues']
 
@@ -88,8 +94,6 @@ class IssueSelectionWindow(QtGui.QDialog):
 			item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
 			self.twList.setItem(row, 1, item)
 			
-			record['url'] = None  
-			
 			if float(record['issue_number']) == float(self.issue_number):
 				self.initial_id = record['id']
 			
@@ -99,6 +103,8 @@ class IssueSelectionWindow(QtGui.QDialog):
 
 		self.twList.setSortingEnabled(True)
 		self.twList.sortItems( 0 , QtCore.Qt.AscendingOrder )
+
+		QtGui.QApplication.restoreOverrideCursor()		
 
 	def cellDoubleClicked( self, r, c ):
 		self.accept()
@@ -118,22 +124,26 @@ class IssueSelectionWindow(QtGui.QDialog):
 			if record['id'] == self.issue_id:
 				
 				self.issue_number = record['issue_number']
-				
-				# We don't yet have an image URL for this issue.  Make a request for URL, and hold onto it
-				# TODO: this should be reworked...  too much UI latency, maybe chain the NAMs??
-				if record['url'] == None:
-					record['url'], dummy = ComicVineTalker( self.cv_api_key ).fetchIssueCoverURLs( self.issue_id )				
-				
-				self.labelThumbnail.setText("loading...")
-				self.nam = QNetworkAccessManager()
 
-				self.nam.finished.connect(self.finishedImageRequest)
-				self.nam.get(QNetworkRequest(QUrl(record['url'])))
+				self.labelThumbnail.setPixmap(QtGui.QPixmap(os.getcwd() + "/nocover.png"))
+
+				self.cv = ComicVineTalker( self.settings.cv_api_key )
+				self.cv.urlFetchComplete.connect( self.urlFetchComplete )	
+				self.cv.asyncFetchIssueCoverURLs( int(self.issue_id) )
+				
 				break
 
+	# called when the cover URL has been fetched 
+	def urlFetchComplete( self, image_url, thumb_url, issue_id ):
+
+		self.cover_fetcher = ImageFetcher( )
+		self.cover_fetcher.fetchComplete.connect(self.coverFetchComplete)
+		self.cover_fetcher.fetch( str(image_url), user_data=issue_id )
+				
 	# called when the image is done loading
-	def finishedImageRequest(self, reply):
-		img = QtGui.QImage()
-		img.loadFromData(reply.readAll())
-		self.labelThumbnail.setPixmap(QtGui.QPixmap(img))
+	def coverFetchComplete( self, image_data, issue_id ):
+		if self.issue_id == issue_id:
+			img = QtGui.QImage()
+			img.loadFromData( image_data )
+			self.labelThumbnail.setPixmap(QtGui.QPixmap(img))
 		

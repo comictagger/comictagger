@@ -140,8 +140,7 @@ class ImageHasher(object):
 	
 	@staticmethod
 	def hamming_distance(h1, h2):
-
-		if type(h1) == long:
+		if type(h1) == long or type(h1) == int:
 			n1 = h1
 			n2 = h2
 		else:
