@@ -1,29 +1,42 @@
 
-Windows Packaging:
-	Makefile or script to 
-		CX freeze
-		other files
-		NSIS
-		
+-----------------
+Features
+----------------
+
 Toolbar icons
 
-Page Browser
+Page Browser, mode-less dialog
 
 Multi-match dialog
 
+More auto-select logic using 
+
 Stand-alone CLI
+	Info dump
+	optionless args
+	remove tags
+	copy tags
+	
 
 TaggerWindow entry fields
 	General layout
-	Special Dialogs needed for:   
+	Special tabbed Dialogs needed for:   
 		Pages Info
 	Color changing stuff need more work
 		- Indicate credits for CR style 
 		
 	CR has editable dropdowns/comboboxes for Format, Publisher, Imprint
+
+Style sheets for windows/mac/linux
+
 	
-GUI to handle mutliple files or folders
+Version 2 - GUI to handle mutliple files or folders
 -----------		
+
+
+-----------------
+Bugs
+----------------
 
 Be more tolerant of mis-labled extensions i.e. cbr when it's a cbz
 
@@ -32,16 +45,6 @@ Form type validation Ints vs strings for month, year. etc
 Check all HTTP responses for errors
 
 Lots of error checking
-
-Archive function to  detect tag blocks out of sync
-
-
-Idea:  Support only CBI or CIX for any given file, and not both 
-	   If user selects different one, warn about potential loss/re-arranging of data
-
-Longer term:
-	Think about mass tagging and (semi) automatic volume selection
-
 
 Other settings possibilities:
 	Last tag style
@@ -61,27 +64,39 @@ Filename parsing:
 	Concatenation of Name and Issue??
 	"1602"
 
+CV search - 	Maybe remove "the" and leading "A" before searching and matching for closer
 
+	
 App option to covert RAR to ZIP
 
 If no unrar in path, then filter out CBR/RAR from open dialog
 
-
 Wizard for converting between tag styles
 
-
 Remove stale data from cache DB 
+
 SQLite chokes on "Batman\ Li'l Gotham 001.cbr" name
 
-
 Auto search:
-	Logging class
 	Choosing with pub year
 	Lexical analysis 
-	Maybe remove "the" and leading "A" before searching and matching for closer
 	Searching w/o issue #?
 	
-	
+-------------
+Other
+------------
+
+Archive function to  detect tag blocks out of sync
+
+
+Idea:  Support only CBI or CIX for any given file, and not both 
+	   If user selects different one, warn about potential loss/re-arranging of data
+
+Longer term:
+	Think about mass tagging and (semi) automatic volume selection
+
+
+
 ----------------------------------------------
 COMIC RACK Questions
 

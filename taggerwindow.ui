@@ -25,8 +25,8 @@
      <rect>
       <x>20</x>
       <y>150</y>
-      <width>211</width>
-      <height>291</height>
+      <width>200</width>
+      <height>300</height>
      </rect>
     </property>
     <property name="frameShape">
@@ -37,6 +37,9 @@
     </property>
     <property name="text">
      <string/>
+    </property>
+    <property name="scaledContents">
+     <bool>true</bool>
     </property>
    </widget>
    <widget class="QWidget" name="formLayoutWidget">
@@ -305,7 +308,7 @@
           <rect>
            <x>550</x>
            <y>0</y>
-           <width>103</width>
+           <width>107</width>
            <height>120</height>
           </rect>
          </property>
@@ -682,7 +685,7 @@
      <x>0</x>
      <y>0</y>
      <width>943</width>
-     <height>28</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuComicTagger">

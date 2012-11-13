@@ -40,12 +40,15 @@ import os
 class TaggerWindow( QtGui.QMainWindow):
 	
 	appName = "ComicTagger"
+	version = "1.0" # TODO read in from a file??
 	
 	def __init__(self, opts, settings, parent = None):
 		super(TaggerWindow, self).__init__(parent)
 
 		uic.loadUi('taggerwindow.ui', self)
 		self.setWindowIcon(QtGui.QIcon('app.png'))
+		
+		self.lblCover.setPixmap(QtGui.QPixmap(os.getcwd() + "/nocover.png"))
 		self.center()
 		self.raise_()
 		
@@ -65,7 +68,7 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.setAcceptDrops(True)
 		self.droppedFile=None
 
-			
+	
 		self.populateComboBoxes()	
 
 		# hook up the callbacks		
@@ -176,7 +179,10 @@ class TaggerWindow( QtGui.QMainWindow):
 		QtGui.QMessageBox.information(self, self.tr("Repackage Comic Archive"), self.tr("TBD"))
 
 	def aboutApp( self ):
-		QtGui.QMessageBox.information(self, self.tr("About " + self.appName ), self.tr(self.appName + " 0.1"))
+		QtGui.QMessageBox.about (self, self.tr("About " + self.appName ), 
+							self.tr(self.appName) + " " 
+							+ self.version 
+							+"\n(c)2012 Anthony Beville")
 
 		
 	def dragEnterEvent(self, event):
