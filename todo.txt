@@ -5,11 +5,13 @@ Features
 
 Toolbar icons
 
+Infobox needs fixing up
+
 Page Browser, mode-less dialog
 
 Multi-match dialog
 
-More auto-select logic using 
+More auto-select logic using metadata
 
 Stand-alone CLI
 	Info dump
@@ -37,6 +39,8 @@ Version 2 - GUI to handle mutliple files or folders
 -----------------
 Bugs
 ----------------
+SERIOUS BUG: rebuilding zips!
+http://stackoverflow.com/questions/11578443/trigger-io-errno-18-cross-device-link
 
 Be more tolerant of mis-labled extensions i.e. cbr when it's a cbz
 
@@ -110,4 +114,10 @@ Some that seem library only:
 	Tags
 	Proposed Values
 	Community Rating
+	
+Mac Notes:
+
+python ~/pyinstaller-2.0/pyinstaller.py tagger.py -w -i windows/nsis/app.ico 
+
+
 	

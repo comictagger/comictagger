@@ -20,6 +20,7 @@ limitations under the License.
 
 #import sys
 import os
+import sys
 import ConfigParser
 import platform
 
@@ -40,6 +41,14 @@ class ComicTaggerSettings:
 			return os.path.join( os.environ['APPDATA'], 'ComicTagger' )
 		else:
 			return os.path.join( os.path.expanduser('~') , '.ComicTagger')
+
+	@staticmethod
+	def baseDir():
+		if getattr(sys, 'frozen', None):
+			 return sys._MEIPASS
+		else:
+			 return os.path.dirname(__file__)
+
 		
 	def __init__(self):
 		

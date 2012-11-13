@@ -20,7 +20,8 @@ limitations under the License.
 
 import sys
 from PyQt4 import QtCore, QtGui, uic
-
+import os
+from settings import ComicTaggerSettings
 
 
 class IDProgressWindow(QtGui.QDialog):
@@ -29,7 +30,7 @@ class IDProgressWindow(QtGui.QDialog):
 	def __init__(self, parent):
 		super(IDProgressWindow, self).__init__(parent)
 		
-		uic.loadUi('progresswindow.ui', self)
+		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'progresswindow.ui' ), self)
 		
 
 

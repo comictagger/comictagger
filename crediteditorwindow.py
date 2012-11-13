@@ -20,7 +20,8 @@ limitations under the License.
 
 
 from PyQt4 import QtCore, QtGui, uic
-
+from settings import ComicTaggerSettings
+import os
 
 class CreditEditorWindow(QtGui.QDialog):
 	
@@ -32,7 +33,7 @@ class CreditEditorWindow(QtGui.QDialog):
 	def __init__(self, parent, mode, role, name ):
 		super(CreditEditorWindow, self).__init__(parent)
 		
-		uic.loadUi('crediteditorwindow.ui', self)
+		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'crediteditorwindow.ui' ), self)
 		
 		self.mode = mode
 		

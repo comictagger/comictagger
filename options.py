@@ -36,7 +36,7 @@ class MetaDataStyle:
 class Options:
 
 	def __init__(self):
-		self.data_style = MetaDataStyle.CBI
+		self.data_style = MetaDataStyle.CIX
 		self.no_gui = False
 		
 		self.series_name = '' 
@@ -44,7 +44,11 @@ class Options:
 		self.filename = ''  
 		self.image_hasher = 1     
 
-	def parseCmdLineArgs(self):	
+	def parseCmdLineArgs(self):
+			
+		# mac no likey this from .app bundle
+		if getattr(sys, 'frozen', None):
+			 return 
 
 		# parse command line options
 		try:

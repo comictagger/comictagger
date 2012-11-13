@@ -32,6 +32,7 @@ from issueidentifier import IssueIdentifier
 from genericmetadata import GenericMetadata
 from imagefetcher import  ImageFetcher
 from progresswindow import IDProgressWindow
+from settings import ComicTaggerSettings
 
 
 class SearchThread( QtCore.QThread):
@@ -84,7 +85,7 @@ class VolumeSelectionWindow(QtGui.QDialog):
 	def __init__(self, parent, cv_api_key, series_name, issue_number, comic_archive, settings):
 		super(VolumeSelectionWindow, self).__init__(parent)
 		
-		uic.loadUi('volumeselectionwindow.ui', self)
+		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'volumeselectionwindow.ui' ), self)
 		
 		self.settings = settings
 		self.series_name = series_name
@@ -271,8 +272,8 @@ class VolumeSelectionWindow(QtGui.QDialog):
 
 				self.teDetails.setText ( record['description'] )
 
-				self.labelThumbnail.setPixmap(QtGui.QPixmap(os.getcwd() + "/nocover.png"))
-
+				self.labelThumbnail.setPixmap(QtGui.QPixmap(os.path.join(ComicTaggerSettings.baseDir(), 'nocover.png' )))
+				
 				url = record['image']['super_url']
 				self.fetcher = ImageFetcher( )
 				self.fetcher.fetchComplete.connect(self.finishRequest)

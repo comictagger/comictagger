@@ -45,11 +45,12 @@ class TaggerWindow( QtGui.QMainWindow):
 	def __init__(self, opts, settings, parent = None):
 		super(TaggerWindow, self).__init__(parent)
 
-		uic.loadUi('taggerwindow.ui', self)
-		self.setWindowIcon(QtGui.QIcon('app.png'))
+		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'taggerwindow.ui' ), self)
+		self.setWindowIcon(QtGui.QIcon(os.path.join(ComicTaggerSettings.baseDir(), 'app.png' )))
 		
-		self.lblCover.setPixmap(QtGui.QPixmap(os.getcwd() + "/nocover.png"))
+		self.lblCover.setPixmap(QtGui.QPixmap(os.path.join(ComicTaggerSettings.baseDir(), 'nocover.png' )))
 		self.center()
+		self.show()
 		self.raise_()
 		
 		#print platform.system(), platform.release()

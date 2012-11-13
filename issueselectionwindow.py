@@ -27,6 +27,7 @@ from PyQt4.QtNetwork import QNetworkAccessManager, QNetworkRequest
 
 from comicvinetalker import ComicVineTalker
 from  imagefetcher import  ImageFetcher
+from settings import ComicTaggerSettings
 
 class IssueSelectionWindow(QtGui.QDialog):
 	
@@ -35,7 +36,7 @@ class IssueSelectionWindow(QtGui.QDialog):
 	def __init__(self, parent, settings, series_id, issue_number):
 		super(IssueSelectionWindow, self).__init__(parent)
 		
-		uic.loadUi('issueselectionwindow.ui', self)
+		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'issueselectionwindow.ui' ), self)
 		
 		self.series_id  = series_id
 		self.settings = settings
@@ -125,7 +126,7 @@ class IssueSelectionWindow(QtGui.QDialog):
 				
 				self.issue_number = record['issue_number']
 
-				self.labelThumbnail.setPixmap(QtGui.QPixmap(os.getcwd() + "/nocover.png"))
+				self.labelThumbnail.setPixmap(QtGui.QPixmap(os.path.join(ComicTaggerSettings.baseDir(), 'nocover.png' )))
 
 				self.cv = ComicVineTalker( self.settings.cv_api_key )
 				self.cv.urlFetchComplete.connect( self.urlFetchComplete )	
