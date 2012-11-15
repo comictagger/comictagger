@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>957</width>
-    <height>542</height>
+    <width>975</width>
+    <height>539</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -260,363 +260,406 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>690</width>
-                 <height>370</height>
+                 <width>680</width>
+                 <height>380</height>
                 </rect>
                </property>
-               <widget class="QWidget" name="formLayoutWidget_10">
+               <widget class="QWidget" name="layoutWidget">
                 <property name="geometry">
                  <rect>
-                  <x>400</x>
-                  <y>300</y>
-                  <width>211</width>
-                  <height>71</height>
-                 </rect>
-                </property>
-                <layout class="QFormLayout" name="formLayout_10">
-                 <property name="fieldGrowthPolicy">
-                  <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
-                 </property>
-                 <item row="2" column="1">
-                  <widget class="QComboBox" name="cbManga">
-                   <property name="autoFillBackground">
-                    <bool>true</bool>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="2" column="0">
-                  <widget class="QLabel" name="label_31">
-                   <property name="text">
-                    <string>Manga</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="1" column="1">
-                  <widget class="QCheckBox" name="cbBW">
-                   <property name="autoFillBackground">
-                    <bool>true</bool>
-                   </property>
-                   <property name="text">
-                    <string>Black &amp;&amp; White</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </widget>
-               <widget class="QWidget" name="formLayoutWidget_7">
-                <property name="geometry">
-                 <rect>
-                  <x>550</x>
+                  <x>10</x>
                   <y>10</y>
-                  <width>107</width>
-                  <height>120</height>
+                  <width>361</width>
+                  <height>261</height>
                  </rect>
                 </property>
-                <layout class="QFormLayout" name="formLayout_7">
-                 <property name="fieldGrowthPolicy">
-                  <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
-                 </property>
-                 <property name="rowWrapPolicy">
-                  <enum>QFormLayout::WrapAllRows</enum>
-                 </property>
-                 <item row="1" column="0">
-                  <widget class="QLabel" name="label_18">
-                   <property name="text">
-                    <string>Maturity Rating</string>
+                <layout class="QVBoxLayout" name="verticalLayout_7">
+                 <item>
+                  <layout class="QFormLayout" name="formLayout_2">
+                   <property name="sizeConstraint">
+                    <enum>QLayout::SetNoConstraint</enum>
                    </property>
-                  </widget>
-                 </item>
-                 <item row="0" column="0">
-                  <widget class="QLabel" name="label_17">
-                   <property name="text">
-                    <string>Critical Rating</string>
+                   <property name="fieldGrowthPolicy">
+                    <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
                    </property>
-                  </widget>
-                 </item>
-                 <item row="0" column="1">
-                  <widget class="QLineEdit" name="leCriticalRating"/>
-                 </item>
-                 <item row="1" column="1">
-                  <widget class="QComboBox" name="cbMaturityRating">
-                   <property name="autoFillBackground">
-                    <bool>true</bool>
-                   </property>
-                   <property name="editable">
-                    <bool>true</bool>
-                   </property>
-                  </widget>
+                   <item row="0" column="0">
+                    <widget class="QLabel" name="label_2">
+                     <property name="text">
+                      <string>Series</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="0" column="1">
+                    <widget class="QLineEdit" name="leSeries"/>
+                   </item>
+                   <item row="1" column="0">
+                    <widget class="QLabel" name="label_3">
+                     <property name="text">
+                      <string>Title</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="1" column="1">
+                    <widget class="QLineEdit" name="leTitle"/>
+                   </item>
+                   <item row="2" column="0">
+                    <widget class="QLabel" name="label_8">
+                     <property name="text">
+                      <string>Publisher</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="2" column="1">
+                    <widget class="QLineEdit" name="lePublisher"/>
+                   </item>
+                   <item row="3" column="0">
+                    <widget class="QLabel" name="label_10">
+                     <property name="text">
+                      <string>Imprint</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="3" column="1">
+                    <widget class="QLineEdit" name="leImprint"/>
+                   </item>
+                   <item row="4" column="0">
+                    <widget class="QLabel" name="label_11">
+                     <property name="text">
+                      <string>Series Group</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="4" column="1">
+                    <widget class="QLineEdit" name="leSeriesGroup"/>
+                   </item>
+                   <item row="5" column="0">
+                    <widget class="QLabel" name="label_25">
+                     <property name="text">
+                      <string>Story Arc</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="5" column="1">
+                    <widget class="QLineEdit" name="leStoryArc"/>
+                   </item>
+                   <item row="6" column="0">
+                    <widget class="QLabel" name="label_24">
+                     <property name="text">
+                      <string>Genre</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="6" column="1">
+                    <widget class="QLineEdit" name="leGenre"/>
+                   </item>
+                  </layout>
                  </item>
                 </layout>
                </widget>
-               <widget class="QWidget" name="formLayoutWidget_5">
-                <property name="geometry">
-                 <rect>
-                  <x>400</x>
-                  <y>210</y>
-                  <width>251</width>
-                  <height>71</height>
-                 </rect>
-                </property>
-                <layout class="QFormLayout" name="formLayout_5">
-                 <property name="fieldGrowthPolicy">
-                  <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
-                 </property>
-                 <item row="0" column="1">
-                  <widget class="QComboBox" name="cbLanguage"/>
-                 </item>
-                 <item row="1" column="0">
-                  <widget class="QLabel" name="label_14">
-                   <property name="text">
-                    <string>Country</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="1" column="1">
-                  <widget class="QComboBox" name="cbCountry"/>
-                 </item>
-                 <item row="0" column="0">
-                  <widget class="QLabel" name="label_13">
-                   <property name="text">
-                    <string>Language</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </widget>
-               <widget class="QWidget" name="formLayoutWidget_4">
-                <property name="geometry">
-                 <rect>
-                  <x>400</x>
-                  <y>140</y>
-                  <width>112</width>
-                  <height>71</height>
-                 </rect>
-                </property>
-                <layout class="QFormLayout" name="formLayout_4">
-                 <property name="fieldGrowthPolicy">
-                  <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
-                 </property>
-                 <item row="0" column="1">
-                  <widget class="QLineEdit" name="lePubMonth"/>
-                 </item>
-                 <item row="0" column="0">
-                  <widget class="QLabel" name="label_6">
-                   <property name="text">
-                    <string>Month</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="1" column="1">
-                  <widget class="QLineEdit" name="lePubYear"/>
-                 </item>
-                 <item row="1" column="0">
-                  <widget class="QLabel" name="label_7">
-                   <property name="text">
-                    <string>Year</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
-               </widget>
-               <widget class="QWidget" name="formLayoutWidget_3">
+               <widget class="QWidget" name="layoutWidget">
                 <property name="geometry">
                  <rect>
                   <x>390</x>
                   <y>10</y>
-                  <width>151</width>
-                  <height>128</height>
+                  <width>291</width>
+                  <height>351</height>
                  </rect>
                 </property>
-                <layout class="QFormLayout" name="formLayout_3">
-                 <property name="fieldGrowthPolicy">
-                  <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
-                 </property>
-                 <item row="0" column="0">
-                  <widget class="QLabel" name="label_4">
-                   <property name="text">
-                    <string>Issue</string>
+                <layout class="QVBoxLayout" name="verticalLayout_6">
+                 <item>
+                  <layout class="QHBoxLayout" name="horizontalLayout_6">
+                   <item>
+                    <layout class="QFormLayout" name="formLayout_3">
+                     <property name="fieldGrowthPolicy">
+                      <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+                     </property>
+                     <item row="0" column="0">
+                      <widget class="QLabel" name="label_4">
+                       <property name="text">
+                        <string>Issue</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="0" column="1">
+                      <widget class="QLineEdit" name="leIssueNum"/>
+                     </item>
+                     <item row="1" column="0">
+                      <widget class="QLabel" name="label_9">
+                       <property name="text">
+                        <string># Issues</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="1" column="1">
+                      <widget class="QLineEdit" name="leIssueCount"/>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <layout class="QFormLayout" name="formLayout_15">
+                     <property name="fieldGrowthPolicy">
+                      <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+                     </property>
+                     <item row="0" column="0">
+                      <widget class="QLabel" name="label_5">
+                       <property name="text">
+                        <string>Volume</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="0" column="1">
+                      <widget class="QLineEdit" name="leVolumeNum"/>
+                     </item>
+                     <item row="1" column="0">
+                      <widget class="QLabel" name="label_12">
+                       <property name="text">
+                        <string># Volumes</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="1" column="1">
+                      <widget class="QLineEdit" name="leVolumeCount"/>
+                     </item>
+                    </layout>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <layout class="QHBoxLayout" name="horizontalLayout_7">
+                   <item>
+                    <layout class="QFormLayout" name="formLayout_4">
+                     <property name="fieldGrowthPolicy">
+                      <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+                     </property>
+                     <item row="0" column="0">
+                      <widget class="QLabel" name="label_6">
+                       <property name="text">
+                        <string>Month</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="0" column="1">
+                      <widget class="QLineEdit" name="lePubMonth">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="maximumSize">
+                        <size>
+                         <width>50</width>
+                         <height>16777215</height>
+                        </size>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <layout class="QFormLayout" name="formLayout_16">
+                     <item row="0" column="0">
+                      <widget class="QLabel" name="label_35">
+                       <property name="text">
+                        <string>Year</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="0" column="1">
+                      <widget class="QLineEdit" name="lePubYear">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="maximumSize">
+                        <size>
+                         <width>50</width>
+                         <height>16777215</height>
+                        </size>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <layout class="QFormLayout" name="formLayout_17">
+                   <item row="0" column="0">
+                    <widget class="QLabel" name="label_18">
+                     <property name="text">
+                      <string>Maturity Rating</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="0" column="1">
+                    <widget class="QComboBox" name="cbMaturityRating">
+                     <property name="autoFillBackground">
+                      <bool>true</bool>
+                     </property>
+                     <property name="editable">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <spacer name="verticalSpacer_4">
+                   <property name="orientation">
+                    <enum>Qt::Vertical</enum>
                    </property>
-                  </widget>
-                 </item>
-                 <item row="0" column="1">
-                  <widget class="QLineEdit" name="leIssueNum"/>
-                 </item>
-                 <item row="1" column="0">
-                  <widget class="QLabel" name="label_9">
-                   <property name="text">
-                    <string># Issues</string>
+                   <property name="sizeType">
+                    <enum>QSizePolicy::Fixed</enum>
                    </property>
-                  </widget>
-                 </item>
-                 <item row="1" column="1">
-                  <widget class="QLineEdit" name="leIssueCount"/>
-                 </item>
-                 <item row="2" column="0">
-                  <widget class="QLabel" name="label_5">
-                   <property name="text">
-                    <string>Volume</string>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>20</width>
+                     <height>5</height>
+                    </size>
                    </property>
-                  </widget>
+                  </spacer>
                  </item>
-                 <item row="2" column="1">
-                  <widget class="QLineEdit" name="leVolumeNum"/>
-                 </item>
-                 <item row="3" column="0">
-                  <widget class="QLabel" name="label_12">
-                   <property name="text">
-                    <string># Volumes</string>
+                 <item>
+                  <layout class="QFormLayout" name="formLayout_5">
+                   <property name="fieldGrowthPolicy">
+                    <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
                    </property>
-                  </widget>
+                   <item row="0" column="1">
+                    <widget class="QComboBox" name="cbLanguage"/>
+                   </item>
+                   <item row="1" column="0">
+                    <widget class="QLabel" name="label_14">
+                     <property name="text">
+                      <string>Country</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="1" column="1">
+                    <widget class="QComboBox" name="cbCountry"/>
+                   </item>
+                   <item row="0" column="0">
+                    <widget class="QLabel" name="label_13">
+                     <property name="text">
+                      <string>Language</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
                  </item>
-                 <item row="3" column="1">
-                  <widget class="QLineEdit" name="leVolumeCount"/>
+                 <item>
+                  <layout class="QFormLayout" name="formLayout_10">
+                   <property name="fieldGrowthPolicy">
+                    <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+                   </property>
+                   <item row="1" column="1">
+                    <widget class="QCheckBox" name="cbBW">
+                     <property name="autoFillBackground">
+                      <bool>true</bool>
+                     </property>
+                     <property name="text">
+                      <string>Black &amp;&amp; White</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="2" column="0">
+                    <widget class="QLabel" name="label_31">
+                     <property name="text">
+                      <string>Manga</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="2" column="1">
+                    <widget class="QComboBox" name="cbManga">
+                     <property name="autoFillBackground">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="3" column="0">
+                    <widget class="QLabel" name="label_26">
+                     <property name="text">
+                      <string>Format</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="3" column="1">
+                    <widget class="QComboBox" name="cbFormat">
+                     <property name="editable">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
                  </item>
                 </layout>
                </widget>
-               <widget class="QWidget" name="formLayoutWidget_9">
+               <widget class="QWidget" name="layoutWidget_2">
                 <property name="geometry">
                  <rect>
                   <x>10</x>
-                  <y>270</y>
-                  <width>371</width>
-                  <height>101</height>
+                  <y>290</y>
+                  <width>361</width>
+                  <height>71</height>
                  </rect>
                 </property>
-                <layout class="QFormLayout" name="formLayout_9">
-                 <property name="fieldGrowthPolicy">
-                  <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+                <layout class="QVBoxLayout" name="verticalLayout_5">
+                 <property name="spacing">
+                  <number>0</number>
                  </property>
-                 <item row="0" column="0">
-                  <widget class="QLabel" name="label_21">
-                   <property name="text">
-                    <string>Alt. Series</string>
+                 <item>
+                  <layout class="QFormLayout" name="formLayout_9">
+                   <property name="fieldGrowthPolicy">
+                    <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
                    </property>
-                  </widget>
+                   <item row="0" column="1">
+                    <widget class="QLineEdit" name="leAltSeries"/>
+                   </item>
+                   <item row="0" column="0">
+                    <widget class="QLabel" name="label_21">
+                     <property name="text">
+                      <string>Alt. Series</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
                  </item>
-                 <item row="0" column="1">
-                  <widget class="QLineEdit" name="leAltSeries"/>
-                 </item>
-                 <item row="1" column="0">
-                  <widget class="QLabel" name="label_22">
-                   <property name="text">
-                    <string>Alt. Issue</string>
+                 <item>
+                  <layout class="QHBoxLayout" name="horizontalLayout_5">
+                   <property name="spacing">
+                    <number>6</number>
                    </property>
-                  </widget>
-                 </item>
-                 <item row="2" column="0">
-                  <widget class="QLabel" name="label_23">
-                   <property name="text">
-                    <string>Alt. # Issues</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="2" column="1">
-                  <widget class="QLineEdit" name="leAltIssueCount"/>
-                 </item>
-                 <item row="1" column="1">
-                  <widget class="QLineEdit" name="leAltIssueNum"/>
-                 </item>
-                </layout>
-               </widget>
-               <widget class="QWidget" name="formLayoutWidget_2">
-                <property name="geometry">
-                 <rect>
-                  <x>10</x>
-                  <y>10</y>
-                  <width>371</width>
-                  <height>260</height>
-                 </rect>
-                </property>
-                <layout class="QFormLayout" name="formLayout_2">
-                 <property name="sizeConstraint">
-                  <enum>QLayout::SetNoConstraint</enum>
-                 </property>
-                 <property name="fieldGrowthPolicy">
-                  <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
-                 </property>
-                 <item row="0" column="0">
-                  <widget class="QLabel" name="label_2">
-                   <property name="text">
-                    <string>Series</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="0" column="1">
-                  <widget class="QLineEdit" name="leSeries"/>
-                 </item>
-                 <item row="1" column="0">
-                  <widget class="QLabel" name="label_3">
-                   <property name="text">
-                    <string>Title</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="1" column="1">
-                  <widget class="QLineEdit" name="leTitle"/>
-                 </item>
-                 <item row="2" column="0">
-                  <widget class="QLabel" name="label_8">
-                   <property name="text">
-                    <string>Publisher</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="2" column="1">
-                  <widget class="QLineEdit" name="lePublisher"/>
-                 </item>
-                 <item row="3" column="1">
-                  <widget class="QLineEdit" name="leImprint"/>
-                 </item>
-                 <item row="4" column="0">
-                  <widget class="QLabel" name="label_11">
-                   <property name="text">
-                    <string>Series Group</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="4" column="1">
-                  <widget class="QLineEdit" name="leSeriesGroup"/>
-                 </item>
-                 <item row="3" column="0">
-                  <widget class="QLabel" name="label_10">
-                   <property name="text">
-                    <string>Imprint</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="5" column="0">
-                  <widget class="QLabel" name="label_25">
-                   <property name="text">
-                    <string>Story Arc</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="6" column="1">
-                  <widget class="QLineEdit" name="leGenre"/>
-                 </item>
-                 <item row="6" column="0">
-                  <widget class="QLabel" name="label_24">
-                   <property name="text">
-                    <string>Genre</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="7" column="0">
-                  <widget class="QLabel" name="label_26">
-                   <property name="text">
-                    <string>Format</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item row="5" column="1">
-                  <widget class="QLineEdit" name="leStoryArc"/>
-                 </item>
-                 <item row="7" column="1">
-                  <widget class="QComboBox" name="cbFormat">
-                   <property name="editable">
-                    <bool>true</bool>
-                   </property>
-                  </widget>
+                   <item>
+                    <layout class="QFormLayout" name="formLayout_13">
+                     <item row="0" column="0">
+                      <widget class="QLabel" name="label_22">
+                       <property name="text">
+                        <string>Alt. Issue</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="0" column="1">
+                      <widget class="QLineEdit" name="leAltIssueNum"/>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <layout class="QFormLayout" name="formLayout_14">
+                     <item row="0" column="0">
+                      <widget class="QLabel" name="label_23">
+                       <property name="text">
+                        <string>Alt. # Issues</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="0" column="1">
+                      <widget class="QLineEdit" name="leAltIssueCount"/>
+                     </item>
+                    </layout>
+                   </item>
+                  </layout>
                  </item>
                 </layout>
                </widget>
@@ -767,6 +810,29 @@
               <item row="2" column="1">
                <widget class="QLineEdit" name="leWebLink"/>
               </item>
+              <item row="3" column="0">
+               <widget class="QLabel" name="userRatingLabel">
+                <property name="text">
+                 <string>User Rating</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="1">
+               <widget class="QLineEdit" name="leCriticalRating">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>80</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+               </widget>
+              </item>
              </layout>
             </item>
            </layout>
@@ -910,8 +976,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>957</width>
-     <height>25</height>
+     <width>975</width>
+     <height>28</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuComicTagger">
