@@ -193,7 +193,7 @@ class ComicVineTalker(QObject):
 		metadata.publisher = volume_results['publisher']['name']
 		metadata.publicationMonth = issue_results['publish_month']
 		metadata.publicationYear = issue_results['publish_year']
-		metadata.issueCount = volume_results['count_of_issues']
+		#metadata.issueCount = volume_results['count_of_issues']
 		metadata.comments = self.cleanup_html(issue_results['description'])
 
 		metadata.notes   = "Tagged with ComicTagger using info from Comic Vine:\n" 
