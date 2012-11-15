@@ -2,7 +2,9 @@ PY2INSTALLER_CMD := python $(HOME)/pyinstaller-2.0/pyinstaller.py
 TAGGER_BASE := $(HOME)/Dropbox/tagger/comictagger
 
 APP_NAME := ComicTagger
-VERSION_STR := 1.0
+VERSION_STR := $(shell grep version $(TAGGER_BASE)/ctversion.py| cut -d= -f2 | sed 's/\"//g')
+
+
 
 MAC_BASE := $(TAGGER_BASE)/mac
 DIST_DIR := $(MAC_BASE)/dist
@@ -11,20 +13,20 @@ APP_BUNDLE := $(DIST_DIR)/$(APP_NAME).app
 VOLUME_NAME := $(APP_NAME)-$(VERSION_STR)
 DMG_FILE := $(VOLUME_NAME).dmg
 
-all: clean dist
+all: clean dist diskimage
 
 dist:
 	$(PY2INSTALLER_CMD) tagger.py -o $(MAC_BASE) -w -n $(APP_NAME) -s 
 	cp $(TAGGER_BASE)/*.ui $(TAGGER_BASE)/*.png $(APP_BUNDLE)/Contents/MacOS
+	cp -a $(TAGGER_BASE)/graphics $(APP_BUNDLE)/Contents/MacOS
 	cp $(MAC_BASE)/app.icns $(APP_BUNDLE)/Contents/Resources/icon-windowed.icns
+	
 clean:
 	rm -rf $(DIST_DIR) $(MAC_BASE)/build
 	rm -f $(MAC_BASE)/*.spec
 	rm -f "*~" *.pyc *.pyo
-
+	echo $(VERSION_STR)
 diskimage:
-
-	
 	#Set up disk image staging folder
 	rm -rf $(STAGING)
 	mkdir $(STAGING)
