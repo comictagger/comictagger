@@ -182,13 +182,20 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.actionParse_Filename.setStatusTip( 'Try to extract tags from filename' )
 		self.actionParse_Filename.triggered.connect( self.useFilename )
 
-		self.actionQuery_Online.setShortcut( 'Ctrl+W' )
-		self.actionQuery_Online.setStatusTip( 'Search online for tags' )
-		self.actionQuery_Online.triggered.connect( self.queryOnline )
+		self.actionSearchOnline.setShortcut( 'Ctrl+W' )
+		self.actionSearchOnline.setStatusTip( 'Search online for tags' )
+		self.actionSearchOnline.triggered.connect( self.queryOnline )
+
+		#self.actionAutoSearch.triggered.connect( self.autoSearch )
 		
 		#self.actionClearEntryForm.setShortcut( 'Ctrl+C' )
 		self.actionClearEntryForm.setStatusTip( 'Clear all the data on the screen' )
 		self.actionClearEntryForm.triggered.connect( self.clearForm )
+
+		# Window Menu
+		self.actionPageBrowser.setShortcut( 'Ctrl+P' )
+		self.actionPageBrowser.setStatusTip( 'Show the page browser' )
+		self.actionPageBrowser.triggered.connect( self.showPageBrowser )
 
 		# Help Menu
 		self.actionAbout.setShortcut( 'Ctrl+A' )
@@ -197,11 +204,21 @@ class TaggerWindow( QtGui.QMainWindow):
 	
 		# ToolBar
 	
+		self.actionLoad.setIcon( QtGui.QIcon('graphics/open.png') )
+		self.actionWrite_Tags.setIcon( QtGui.QIcon('graphics/save.png') )
+		self.actionParse_Filename.setIcon( QtGui.QIcon('graphics/parse.png') )
+		self.actionSearchOnline.setIcon( QtGui.QIcon('graphics/search.png') )
+		self.actionAutoSearch.setIcon( QtGui.QIcon('graphics/auto.png') )
+		self.actionClearEntryForm.setIcon( QtGui.QIcon('graphics/clear.png') )
+		self.actionPageBrowser.setIcon( QtGui.QIcon('graphics/browse.png') )
+		
 		self.toolBar.addAction( self.actionLoad )
 		self.toolBar.addAction( self.actionWrite_Tags )
 		self.toolBar.addAction( self.actionParse_Filename )
-		self.toolBar.addAction( self.actionQuery_Online )
+		self.toolBar.addAction( self.actionSearchOnline )
+		self.toolBar.addAction( self.actionAutoSearch )
 		self.toolBar.addAction( self.actionClearEntryForm )
+		self.toolBar.addAction( self.actionPageBrowser )
 		#self.toolBar.addAction( self.actionRemoveCBLTags )
 		#self.toolBar.addAction( self.actionRemoveCRTags )
         

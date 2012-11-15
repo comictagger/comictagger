@@ -28,7 +28,7 @@ class PageBrowserWindow(QtGui.QDialog):
 	
 	
 	def __init__(self, parent):
-		super(PageBrowserWindow, self).__init__(None)
+		super(PageBrowserWindow, self).__init__(parent)
 		
 		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'pagebrowser.ui' ), self)
 		

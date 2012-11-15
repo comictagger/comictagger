@@ -19,6 +19,9 @@
   <property name="windowTitle">
    <string>ComicTagger</string>
   </property>
+  <property name="unifiedTitleAndToolBarOnMac">
+   <bool>true</bool>
+  </property>
   <widget class="QWidget" name="centralWidget">
    <property name="sizePolicy">
     <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -949,11 +952,19 @@
      <string>Tags</string>
     </property>
     <addaction name="actionParse_Filename"/>
-    <addaction name="actionQuery_Online"/>
+    <addaction name="actionSearchOnline"/>
+    <addaction name="actionAutoSearch"/>
     <addaction name="actionClearEntryForm"/>
+   </widget>
+   <widget class="QMenu" name="menuWindow">
+    <property name="title">
+     <string>Window</string>
+    </property>
+    <addaction name="actionPageBrowser"/>
    </widget>
    <addaction name="menuComicTagger"/>
    <addaction name="menuTags"/>
+   <addaction name="menuWindow"/>
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QToolBar" name="toolBar">
@@ -962,6 +973,12 @@
    </property>
    <property name="movable">
     <bool>false</bool>
+   </property>
+   <property name="allowedAreas">
+    <set>Qt::NoToolBarArea</set>
+   </property>
+   <property name="toolButtonStyle">
+    <enum>Qt::ToolButtonFollowStyle</enum>
    </property>
    <property name="floatable">
     <bool>false</bool>
@@ -1004,14 +1021,14 @@
     <string>Parse Filename</string>
    </property>
   </action>
-  <action name="actionQuery_Online">
+  <action name="actionSearchOnline">
    <property name="text">
-    <string>Query Online</string>
+    <string>Search Online</string>
    </property>
   </action>
   <action name="actionClearEntryForm">
    <property name="text">
-    <string>Clear Entry Form</string>
+    <string>Clear Form</string>
    </property>
   </action>
   <action name="actionRemoveCRTags">
@@ -1042,6 +1059,34 @@
   <action name="actionSettings">
    <property name="text">
     <string>Settings...</string>
+   </property>
+  </action>
+  <action name="actionAutoSearch">
+   <property name="text">
+    <string>Search and Auto-Select</string>
+   </property>
+   <property name="iconText">
+    <string>Auto-Select</string>
+   </property>
+   <property name="toolTip">
+    <string>Search online for tags and auto-select best match</string>
+   </property>
+   <property name="statusTip">
+    <string>Search online for tags and auto-select best match</string>
+   </property>
+  </action>
+  <action name="actionPageBrowser">
+   <property name="text">
+    <string>Show Page Browser</string>
+   </property>
+   <property name="iconText">
+    <string>Page Browser</string>
+   </property>
+   <property name="toolTip">
+    <string>Show the Page Browser to inspect the comic</string>
+   </property>
+   <property name="statusTip">
+    <string>Show the Page Browser to inspect the comic</string>
    </property>
   </action>
  </widget>
