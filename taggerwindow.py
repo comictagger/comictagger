@@ -427,7 +427,13 @@ class TaggerWindow( QtGui.QMainWindow):
 		assignText( self.teCharacters,    md.characters )
 		assignText( self.teTeams,         md.teams )
 		assignText( self.teLocations,     md.locations )
-		assignText( self.leFormat,        md.format )
+		
+		if md.format is not None and md.format != "":
+			i = self.cbFormat.findText( md.format )
+			if i == -1:
+				self.cbFormat.setEditText( md.format  )
+			else:	
+				self.cbFormat.setCurrentIndex( i )
 
 		if md.maturityRating is not None and md.maturityRating != "":
 			i = self.cbMaturityRating.findText( md.maturityRating )
@@ -539,7 +545,7 @@ class TaggerWindow( QtGui.QMainWindow):
 		md.teams =              xlate( self.teTeams.toPlainText(), "str" )
 		md.locations =          xlate( self.teLocations.toPlainText(), "str" )
 
-		md.format =             xlate( self.leFormat.text(), "str" )
+		md.format =             xlate( self.cbFormat.currentText(), "str" )
 		md.country =            xlate( self.cbCountry.currentText(), "str" )
 		
 		langiso = self.cbLanguage.itemData(self.cbLanguage.currentIndex()).toString()
@@ -701,7 +707,7 @@ class TaggerWindow( QtGui.QMainWindow):
 						self.leStoryArc, self.leScanInfo, self.leSeriesGroup, 
 						self.leAltSeries, self.leAltIssueNum, self.leAltIssueCount,
 						self.leWebLink, self.teCharacters, self.teTeams,
-						self.teLocations, self.cbMaturityRating, self.leFormat
+						self.teLocations, self.cbMaturityRating, self.cbFormat
 					]
 					
 		if self.data_style == MetaDataStyle.CIX:
@@ -846,7 +852,60 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.cbMaturityRating.addItem( "Rating Pending", "" )
 		
 		# Add entries to the format combobox
-		#self.cbFormat.addItem( "Rating Pending", "" )
+		self.cbFormat.addItem("")
+		self.cbFormat.addItem(".1")
+		self.cbFormat.addItem("-1")
+		self.cbFormat.addItem("1 Shot")
+		self.cbFormat.addItem("1/2")
+		self.cbFormat.addItem("1-Shot")
+		self.cbFormat.addItem("Annotation")
+		self.cbFormat.addItem("Annotations")
+		self.cbFormat.addItem("Annual")
+		self.cbFormat.addItem("Anthology")
+		self.cbFormat.addItem("B&W")
+		self.cbFormat.addItem("B/W")
+		self.cbFormat.addItem("B&&W")
+		self.cbFormat.addItem("Black & White")
+		self.cbFormat.addItem("Box Set")
+		self.cbFormat.addItem("Box-Set")
+		self.cbFormat.addItem("Crossover")
+		self.cbFormat.addItem("Director's Cut")
+		self.cbFormat.addItem("Epilogue")
+		self.cbFormat.addItem("Event")
+		self.cbFormat.addItem("FCBD")
+		self.cbFormat.addItem("Flyer")
+		self.cbFormat.addItem("Giant")
+		self.cbFormat.addItem("Giant Size")
+		self.cbFormat.addItem("Giant-Size")
+		self.cbFormat.addItem("Graphic Novel")
+		self.cbFormat.addItem("Hardcover")
+		self.cbFormat.addItem("Hard-Cover")
+		self.cbFormat.addItem("King")
+		self.cbFormat.addItem("King Size")
+		self.cbFormat.addItem("King-Size")
+		self.cbFormat.addItem("Limited Series")
+		self.cbFormat.addItem("Magazine")
+		self.cbFormat.addItem("-1")
+		self.cbFormat.addItem("NSFW")
+		self.cbFormat.addItem("One Shot")
+		self.cbFormat.addItem("One-Shot")
+		self.cbFormat.addItem("Point 1")
+		self.cbFormat.addItem("Preview")
+		self.cbFormat.addItem("Prologue")
+		self.cbFormat.addItem("Reference")
+		self.cbFormat.addItem("Review")
+		self.cbFormat.addItem("Reviewed")
+		self.cbFormat.addItem("Scanlation")
+		self.cbFormat.addItem("Script")
+		self.cbFormat.addItem("Series")
+		self.cbFormat.addItem("Sketch")
+		self.cbFormat.addItem("Special")
+		self.cbFormat.addItem("TPB")
+		self.cbFormat.addItem("Trade Paper Back")
+		self.cbFormat.addItem("WebComic")
+		self.cbFormat.addItem("Web Comic")
+		self.cbFormat.addItem("Year 1")
+		self.cbFormat.addItem("Year One")
 		
 
 	def removeCBLTags( self ):

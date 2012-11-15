@@ -258,7 +258,7 @@
                  <x>0</x>
                  <y>0</y>
                  <width>690</width>
-                 <height>360</height>
+                 <height>370</height>
                 </rect>
                </property>
                <widget class="QWidget" name="formLayoutWidget_10">
@@ -474,9 +474,9 @@
                 <property name="geometry">
                  <rect>
                   <x>10</x>
-                  <y>260</y>
+                  <y>270</y>
                   <width>371</width>
-                  <height>111</height>
+                  <height>101</height>
                  </rect>
                 </property>
                 <layout class="QFormLayout" name="formLayout_9">
@@ -500,9 +500,6 @@
                    </property>
                   </widget>
                  </item>
-                 <item row="1" column="1">
-                  <widget class="QLineEdit" name="leAltIssueNum"/>
-                 </item>
                  <item row="2" column="0">
                   <widget class="QLabel" name="label_23">
                    <property name="text">
@@ -512,6 +509,9 @@
                  </item>
                  <item row="2" column="1">
                   <widget class="QLineEdit" name="leAltIssueCount"/>
+                 </item>
+                 <item row="1" column="1">
+                  <widget class="QLineEdit" name="leAltIssueNum"/>
                  </item>
                 </layout>
                </widget>
@@ -605,11 +605,15 @@
                    </property>
                   </widget>
                  </item>
-                 <item row="7" column="1">
-                  <widget class="QLineEdit" name="leFormat"/>
-                 </item>
                  <item row="5" column="1">
                   <widget class="QLineEdit" name="leStoryArc"/>
+                 </item>
+                 <item row="7" column="1">
+                  <widget class="QComboBox" name="cbFormat">
+                   <property name="editable">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
                  </item>
                 </layout>
                </widget>
