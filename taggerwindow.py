@@ -204,13 +204,13 @@ class TaggerWindow( QtGui.QMainWindow):
 	
 		# ToolBar
 	
-		self.actionLoad.setIcon( QtGui.QIcon('graphics/open.png') )
-		self.actionWrite_Tags.setIcon( QtGui.QIcon('graphics/save.png') )
-		self.actionParse_Filename.setIcon( QtGui.QIcon('graphics/parse.png') )
-		self.actionSearchOnline.setIcon( QtGui.QIcon('graphics/search.png') )
-		self.actionAutoSearch.setIcon( QtGui.QIcon('graphics/auto.png') )
-		self.actionClearEntryForm.setIcon( QtGui.QIcon('graphics/clear.png') )
-		self.actionPageBrowser.setIcon( QtGui.QIcon('graphics/browse.png') )
+		self.actionLoad.setIcon( QtGui.QIcon(os.path.join(ComicTaggerSettings.baseDir(),'graphics/open.png')) )
+		self.actionWrite_Tags.setIcon( QtGui.QIcon(os.path.join(ComicTaggerSettings.baseDir(),'graphics/save.png')) )
+		self.actionParse_Filename.setIcon( QtGui.QIcon(os.path.join(ComicTaggerSettings.baseDir(),'graphics/parse.png')) )
+		self.actionSearchOnline.setIcon( QtGui.QIcon(os.path.join(ComicTaggerSettings.baseDir(),'graphics/search.png')) )
+		self.actionAutoSearch.setIcon( QtGui.QIcon(os.path.join(ComicTaggerSettings.baseDir(),'graphics/auto.png')) )
+		self.actionClearEntryForm.setIcon( QtGui.QIcon(os.path.join(ComicTaggerSettings.baseDir(),'graphics/clear.png')) )
+		self.actionPageBrowser.setIcon( QtGui.QIcon(os.path.join(ComicTaggerSettings.baseDir(),'graphics/browse.png') ))
 		
 		self.toolBar.addAction( self.actionLoad )
 		self.toolBar.addAction( self.actionWrite_Tags )
