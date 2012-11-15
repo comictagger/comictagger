@@ -1,1 +1,1 @@
-make clean win_dist
+make clean dist package

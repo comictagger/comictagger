@@ -9,10 +9,13 @@ Infobox needs fixing up
 
 Page Browser, mode-less dialog
 
-Multi-match dialog
-
-More auto-select logic using metadata
-
+Auto-select:
+	msgbox on autoselect failure, or warning
+	Multi-match dialog
+	More auto-select logic using metadata
+	Page search on only match, but bad image match, to find cover??
+	Check aspect ratio, and maybe break cover into two parts for hashing?
+	
 Stand-alone CLI
 	Info dump
 	optionless args
@@ -53,7 +56,8 @@ Lots of error checking
 Other settings possibilities:
 	Last tag style
 	Last "Open" folder (include dragged)
-	Keep a history of queries somewhere??
+	Clear caches
+	
 	
 Content Hashes!!
 

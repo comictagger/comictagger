@@ -20,6 +20,7 @@ limitations under the License.
 
 import sys
 import getopt
+import platform
 
 class Enum(set):
     def __getattr__(self, name):
@@ -47,7 +48,7 @@ class Options:
 	def parseCmdLineArgs(self):
 			
 		# mac no likey this from .app bundle
-		if getattr(sys, 'frozen', None):
+		if platform.system() == "Darwin" and getattr(sys, 'frozen', None):
 			 return 
 
 		# parse command line options
@@ -83,9 +84,8 @@ class Options:
 					print( __doc__ )
 					sys.exit(0)
 				
-		# process arguments
-		for arg in args:
-			process(arg) # process() is defined elsewhere
-
+		if self.filename == "" and len(args) > 0:
+			self.filename = args[0]
+			
 		return opts
 		

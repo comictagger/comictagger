@@ -448,23 +448,31 @@ class ComicArchive:
 
 	def getCoverPage(self):
 		
-		if self.getNumberOfPages() == 0:
+		# assume first page is the cover (for now)
+		return self.getPage( 0 )
+	
+	def getPage( self, index ):
+		
+		num_pages = self.getNumberOfPages()
+		if num_pages == 0 or index >= num_pages:
 			return None
 			
 		# get the list file names in the archive, and sort
 		files = self.archiver.getArchiveFilenameList()
 		
-		# seems like the scanners are on Windows, and don't know about case-sensitivity!
+		# seems like some archive creators are on  Windows, and don't know about case-sensitivity!
 		files.sort(key=lambda x: x.lower())
 		
-		# find the first image file, assume it's the cover
+		# make a sub-list of image files
+		page_list = []
 		for name in files:
 			if ( name[-4:].lower() in [ ".jpg", "jpeg", ".png" ] ):
-				break
+				page_list.append(name)
 
-		image_data = self.archiver.readArchiveFile( name )
+		image_data = self.archiver.readArchiveFile( page_list[index] )
 	
 		return image_data
+
 
 	def getNumberOfPages(self):
 

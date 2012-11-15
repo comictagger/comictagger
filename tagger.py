@@ -23,6 +23,8 @@ limitations under the License.
 import sys
 import signal
 import os
+import traceback
+import time
 
 from PyQt4 import QtCore, QtGui
 
@@ -82,10 +84,22 @@ def main():
 
 		app = QtGui.QApplication(sys.argv)
 		
-		tagger_window = TaggerWindow( opts, settings )
-		tagger_window.show()
-		sys.exit(app.exec_())
+		img =  QtGui.QPixmap(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/tags.png' ))
+		splash = QtGui.QSplashScreen(img)
+		splash.show()
+		splash.raise_()
+		app.processEvents()
+		app.processEvents()
 
+		try:
+			tagger_window = TaggerWindow( opts, settings )
+			tagger_window.show()
+			splash.finish( tagger_window )
+			sys.exit(app.exec_())
+		except Exception, e:
+			QtGui.QMessageBox.critical(QtGui.QMainWindow(), "Error", "Unhandled exception in app:\n" + traceback.format_exc() )
+			
+			
 if __name__ == "__main__":
     main()
     

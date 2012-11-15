@@ -101,12 +101,8 @@ class VolumeSelectionWindow(QtGui.QDialog):
 		self.btnIssues.clicked.connect(self.showIssues)	
 		self.btnAutoSelect.clicked.connect(self.autoSelect)	
 		
-		self.show()
-		QtCore.QCoreApplication.processEvents()
-
 		self.performQuery()		
 		self.twList.selectRow(0)
-
 
 	def requery( self,  ):
 		self.performQuery( refresh=True )
@@ -188,8 +184,9 @@ class VolumeSelectionWindow(QtGui.QDialog):
 		self.search_thread.progressUpdate.connect( self.searchProgressUpdate )	
 		self.search_thread.start()
 
-		QtCore.QCoreApplication.processEvents()
+		#QtCore.QCoreApplication.processEvents()
 		self.progdialog.exec_()
+
 
 	def searchCanceled( self ):
 		print "query cancelled"

@@ -44,10 +44,12 @@ class ComicTaggerSettings:
 
 	@staticmethod
 	def baseDir():
-		if getattr(sys, 'frozen', None):
-			 return sys._MEIPASS
+		if platform.system() == "Darwin" and getattr(sys, 'frozen', None):
+			return sys._MEIPASS
+		elif platform.system() == "Windows":
+			return "."
 		else:
-			 return os.path.dirname(__file__)
+			return os.path.dirname(__file__)
 
 		
 	def __init__(self):

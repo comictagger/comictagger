@@ -19,8 +19,11 @@ limitations under the License.
 """
 
 from PyQt4 import QtCore, QtGui, uic
+from PyQt4.QtCore import QUrl,pyqtSignal
+
 import locale
 import platform
+import os
 
 from volumeselectionwindow import VolumeSelectionWindow
 from options import Options, MetaDataStyle
@@ -30,17 +33,39 @@ from comicarchive import ComicArchive
 from crediteditorwindow import CreditEditorWindow
 from settingswindow import SettingsWindow
 from settings import ComicTaggerSettings
+from pagebrowser import PageBrowserWindow
 import utils
+import ctversion
 
 
 # this reads the environment and inits the right locale
 locale.setlocale(locale.LC_ALL, "")
 
-import os
+# helper func to allow a label to be clickable
+def clickable(widget):
+
+	class Filter(QtCore.QObject):
+	
+		dblclicked = pyqtSignal()
+		
+		def eventFilter(self, obj, event):
+		
+			if obj == widget:
+				if event.type() == QtCore.QEvent.MouseButtonDblClick:
+					self.dblclicked.emit()
+					return True
+			
+			return False
+	
+	filter = Filter(widget)
+	widget.installEventFilter(filter)
+	return filter.dblclicked
+
+
 class TaggerWindow( QtGui.QMainWindow):
 	
 	appName = "ComicTagger"
-	version = "1.0" # TODO read in from a file??
+	version = ctversion.version
 	
 	def __init__(self, opts, settings, parent = None):
 		super(TaggerWindow, self).__init__(parent)
@@ -69,6 +94,7 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.setAcceptDrops(True)
 		self.droppedFile=None
 
+		self.page_browser = None
 	
 		self.populateComboBoxes()	
 
@@ -78,6 +104,7 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.btnAddCredit.clicked.connect(self.addCredit)	
 		self.btnRemoveCredit.clicked.connect(self.removeCredit)	
 		self.twCredits.cellDoubleClicked.connect(self.editCredit)
+		clickable(self.lblCover).connect(self.showPageBrowser)
 		self.connectDirtyFlagSignals()
 		
 		self.updateStyleTweaks()
@@ -260,6 +287,9 @@ class TaggerWindow( QtGui.QMainWindow):
 				img.loadFromData( image_data )
 				self.lblCover.setPixmap(QtGui.QPixmap(img))
 				self.lblCover.setScaledContents(True)
+			
+			if self.page_browser is not None:
+				self.page_browser.setComicArchive( self.comic_archive )
 
 			self.metadataToForm()
 			self.clearDirtyFlag()  # also updates the app title
@@ -565,6 +595,7 @@ class TaggerWindow( QtGui.QMainWindow):
 		selector = VolumeSelectionWindow( self, self.settings.cv_api_key, series_name, issue_number, self.comic_archive, self.settings )
 		selector.setModal(True)
 		selector.exec_()
+
 		
 		if selector.result():
 			#we should now have a volume ID
@@ -848,3 +879,13 @@ class TaggerWindow( QtGui.QMainWindow):
 		else:
 			event.ignore()
 
+	def showPageBrowser( self ):
+		if self.page_browser is None:
+			self.page_browser = PageBrowserWindow( self )
+			if self.comic_archive is not None:
+				self.page_browser.setComicArchive( self.comic_archive )
+			self.page_browser.finished.connect(self.pageBrowserClosed)
+			
+	def pageBrowserClosed( self ):
+		self.page_browser = None
+			
