@@ -1,3 +1,4 @@
+# coding=utf-8
 """
 The main window of the comictagger app
 """
@@ -34,6 +35,7 @@ from crediteditorwindow import CreditEditorWindow
 from settingswindow import SettingsWindow
 from settings import ComicTaggerSettings
 from pagebrowser import PageBrowserWindow
+from filenameparser import FileNameParser
 import utils
 import ctversion
 
@@ -301,14 +303,34 @@ class TaggerWindow( QtGui.QMainWindow):
 	def updateInfoBox( self ):
 		
 		ca = self.comic_archive
-		info_text = os.path.basename( ca.path ) + "\n"
-		info_text += str(ca.getNumberOfPages()) + " pages \n"
-		if ca.hasCIX():
-			info_text += "* ComicRack tags\n"
-		if ca.hasCBI():
-			info_text += "* ComicBookLover tags\n"
+	
+		filename = os.path.basename( ca.path )
+		filename = os.path.splitext(filename)[0]
+		filename = FileNameParser().fixSpaces(filename)
+
+		self.lblFilename.setText( filename )
+
+		if ca.isZip():
+			self.lblArchiveType.setText( "ZIP archive" )
+		elif ca.isRar():
+			self.lblArchiveType.setText( "RAR archive" )
+		elif ca.isFolder():
+			self.lblArchiveType.setText( "Folder archive" )
+		else:
+			self.lblArchiveType.setText( "" )
 			
-		self.lblArchiveInfo.setText( info_text )
+		page_count = " ({0} pages)".format(ca.getNumberOfPages())
+		self.lblPageCount.setText( page_count)
+		
+		tag_info = ""
+		if ca.hasCIX():
+			tag_info = u"• ComicRack tags"
+		if ca.hasCBI():
+			if tag_info != "":
+				tag_info += "\n"
+			tag_info += u"• ComicBookLover tags"
+
+		self.lblTagList.setText( tag_info )
 
 
 	def setDirtyFlag( self, param1=None, param2=None, param3=None  ):
@@ -822,6 +844,10 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.cbMaturityRating.addItem( "X18+", "" )
 		self.cbMaturityRating.addItem( "Adults Only 18+", "" )
 		self.cbMaturityRating.addItem( "Rating Pending", "" )
+		
+		# Add entries to the format combobox
+		#self.cbFormat.addItem( "Rating Pending", "" )
+		
 
 	def removeCBLTags( self ):
 		self.removeTags(  MetaDataStyle.CBI )
