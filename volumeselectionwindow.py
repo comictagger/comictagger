@@ -82,7 +82,7 @@ class IdentifyThread( QtCore.QThread):
 
 class VolumeSelectionWindow(QtGui.QDialog):
 
-	def __init__(self, parent, cv_api_key, series_name, issue_number, comic_archive, settings):
+	def __init__(self, parent, cv_api_key, series_name, issue_number, comic_archive, settings, autoselect=False):
 		super(VolumeSelectionWindow, self).__init__(parent)
 		
 		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'volumeselectionwindow.ui' ), self)
@@ -93,6 +93,7 @@ class VolumeSelectionWindow(QtGui.QDialog):
 		self.cv_api_key = cv_api_key
 		self.volume_id = 0
 		self.comic_archive = comic_archive
+		self.immediate_autoselect = autoselect
 
 		self.twList.resizeColumnsToContents()	
 		self.twList.currentItemChanged.connect(self.currentItemChanged)
@@ -249,7 +250,14 @@ class VolumeSelectionWindow(QtGui.QDialog):
 		self.twList.sortItems( 2 , QtCore.Qt.DescendingOrder )
 		self.twList.selectRow(0)
 		self.twList.resizeColumnsToContents()
-
+		
+		if self.immediate_autoselect:
+			# defer the immediate autoselect so this dialog has time to pop up
+			QtCore.QTimer.singleShot(10, self.doImmediateAutoselect)
+			
+	def doImmediateAutoselect( self ):
+			self.immediate_autoselect = False
+			self.autoSelect()
 	
 	def cellDoubleClicked( self, r, c ):
 		self.showIssues()

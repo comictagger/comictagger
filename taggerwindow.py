@@ -186,7 +186,7 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.actionSearchOnline.setStatusTip( 'Search online for tags' )
 		self.actionSearchOnline.triggered.connect( self.queryOnline )
 
-		#self.actionAutoSearch.triggered.connect( self.autoSearch )
+		self.actionAutoSearch.triggered.connect( self.autoSelectSearch )
 		
 		#self.actionClearEntryForm.setShortcut( 'Ctrl+C' )
 		self.actionClearEntryForm.setStatusTip( 'Clear all the data on the screen' )
@@ -619,11 +619,18 @@ class TaggerWindow( QtGui.QMainWindow):
 				self.openArchive( str(fileList[0]) )  
 
 			
-
-	def queryOnline(self):
+	def autoSelectSearch(self):
+		if self.comic_archive is None:
+			QtGui.QMessageBox.warning(self, self.tr("Automatic Search"), 
+			       self.tr("You need to load a comic first!"))
+			return
+		
+		self.queryOnline( autoselect=True )
+		
+	def queryOnline(self, autoselect=False):
 		
 		if self.settings.cv_api_key == "":
-			QtGui.QMessageBox.warning(self, self.tr("Online Query"), 
+			QtGui.QMessageBox.warning(self, self.tr("Online Search"), 
 			       self.tr("You need an API key from ComicVine to search online. " + 
 			                "Go to settings and enter it."))
 			return
@@ -637,7 +644,7 @@ class TaggerWindow( QtGui.QMainWindow):
 			
 		issue_number = str(self.leIssueNum.text()).strip()
 		
-		selector = VolumeSelectionWindow( self, self.settings.cv_api_key, series_name, issue_number, self.comic_archive, self.settings )
+		selector = VolumeSelectionWindow( self, self.settings.cv_api_key, series_name, issue_number, self.comic_archive, self.settings, autoselect )
 		selector.setModal(True)
 		selector.exec_()
 
