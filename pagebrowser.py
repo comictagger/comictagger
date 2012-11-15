@@ -43,6 +43,9 @@ class PageBrowserWindow(QtGui.QDialog):
 		self.btnPrev.clicked.connect( self.prevPage )
 		self.show()
 		
+		self.btnNext.setEnabled( False )
+		self.btnPrev.setEnabled( False )
+		
 	def setComicArchive(self, ca):
 
 		self.comic_archive = ca
@@ -70,7 +73,18 @@ class PageBrowserWindow(QtGui.QDialog):
 			self.setCurrentPixmap( image_data )
 			self.setDisplayPixmap( 0, 0)
 		self.setWindowTitle("Page Browser - Page {0} (of {1}) ".format(self.current_page_num+1, self.page_count ) )
+		
+		if self.current_page_num + 1 < self.page_count:
+			self.btnNext.setEnabled( True )
+		else:
+			self.btnNext.setEnabled( False )
 
+		if self.current_page_num - 1 >= 0:
+			self.btnPrev.setEnabled( True )
+		else:
+			self.btnPrev.setEnabled( False )
+
+		
 	def setCurrentPixmap( self, image_data ):
 		if image_data is not None:
 			img = QtGui.QImage()
