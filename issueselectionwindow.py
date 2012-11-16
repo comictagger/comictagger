@@ -64,10 +64,8 @@ class IssueSelectionWindow(QtGui.QDialog):
 					self.twList.selectRow( r )
 					break
 					
-
-
 	def performQuery( self ):
-		
+
 		QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
 
 		while self.twList.rowCount() > 0:

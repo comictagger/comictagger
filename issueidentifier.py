@@ -185,8 +185,6 @@ class IssueIdentifier:
 		#self.log_msg( ( "Searching for " + keys['series'] + "...")
 		self.log_msg( "Searching for  {0} #{1} ...".format( keys['series'], keys['issue_number']) )
 
-		keys['series'] = utils.removearticles( keys['series'] )
-		
 		cv_search_results = comicVine.searchForSeries( keys['series'] )
 		
 		#self.log_msg( "Found " + str(len(cv_search_results)) + " initial results" )

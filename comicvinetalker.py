@@ -57,6 +57,9 @@ class ComicVineTalker(QObject):
 
 	def searchForSeries( self, series_name , callback=None, refresh_cache=False ):
 		
+		# remove cruft from the search string
+		series_name = utils.removearticles( series_name ).lower().strip()
+		
 		# before we search online, look in our cache, since we might have
 		# done this same search recently
 		cvc = ComicVineCacher( ComicTaggerSettings.getSettingsFolder() )
@@ -88,7 +91,8 @@ class ComicVineTalker(QObject):
 		current_result_count = cv_response['number_of_page_results']
 		total_result_count = cv_response['number_of_total_results']
 		
-		print ("Found {0} of {1} results".format( cv_response['number_of_page_results'], cv_response['number_of_total_results']))
+		if callback is None:
+			print ("Found {0} of {1} results".format( cv_response['number_of_page_results'], cv_response['number_of_total_results']))
 		search_results.extend( cv_response['results'])
 		offset = 0
 		
@@ -97,7 +101,8 @@ class ComicVineTalker(QObject):
 			
 		# see if we need to keep asking for more pages...
 		while ( current_result_count < total_result_count ):
-			print ("getting another page of results {0} of {1}...".format( current_result_count, total_result_count))
+			if callback is None:
+				print ("getting another page of results {0} of {1}...".format( current_result_count, total_result_count))
 			offset += limit
 			resp = urllib2.urlopen( search_url + "&offset="+str(offset) ) 
 			content = resp.read()

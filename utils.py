@@ -66,6 +66,7 @@ def removearticles( text ):
 	newText = newText.replace(":", "")
 	newText = newText.replace(".", "")
 	newText = newText.replace(",", "")
+	newText = newText.replace("-", " ")
 	
 	return newText
 

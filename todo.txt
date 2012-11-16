@@ -3,10 +3,6 @@
 Features
 ----------------
 
-Update the ABout Box with better graphic and more info
-
-Issue Selection Dialog title
-Series Selection Dialog title
 
 Auto-select:
 	msgbox on autoselect failure, or warning
@@ -80,8 +76,7 @@ Filename parsing:
 	Concatenation of Name and Issue??
 	"1602"
 
-CV search - 	Maybe remove "the" and leading "A" before searching and matching for closer
-
+Issue identifier - compare names with aricles removed
 	
 App option to covert RAR to ZIP
 

@@ -850,6 +850,10 @@ class TaggerWindow( QtGui.QMainWindow):
 		issue_number = str(self.leIssueNum.text()).strip()
 		
 		selector = VolumeSelectionWindow( self, self.settings.cv_api_key, series_name, issue_number, self.comic_archive, self.settings, autoselect )
+
+		title = "Search: '" + series_name + "' - "
+		selector.setWindowTitle( title + "Select Series")
+
 		selector.setModal(True)
 		selector.exec_()
 
@@ -899,7 +903,6 @@ class TaggerWindow( QtGui.QMainWindow):
 			r = 0
 			while r < self.twCredits.rowCount():
 				if str(self.twCredits.item(r, 0).text()).lower() not in cix_credits:
-					print "Bad credit for CIX:", self.twCredits.item(r, 0).text()
 					self.twCredits.item(r, 0).setBackgroundColor( inactive_color )
 				else:
 					self.twCredits.item(r, 0).setBackgroundColor( active_color )
