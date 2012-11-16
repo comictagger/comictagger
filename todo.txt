@@ -3,6 +3,10 @@
 Features
 ----------------
 
+Update the ABout Box with better graphic and more info
+
+Issue Selection Dialog title
+Series Selection Dialog title
 
 Auto-select:
 	msgbox on autoselect failure, or warning
@@ -21,6 +25,7 @@ Stand-alone CLI
 TaggerWindow entry fields
 	Special tabbed Dialogs needed for:   
 		Pages Info - maybe a custom painted widget
+		At minimum, preserve the page data
  
 
 Verify/warn on save (maybe just on over-write?)

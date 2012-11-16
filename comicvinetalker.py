@@ -197,8 +197,8 @@ class ComicVineTalker(QObject):
 		#metadata.issueCount = volume_results['count_of_issues']
 		metadata.comments = self.cleanup_html(issue_results['description'])
 
-		metadata.notes   = "Tagged with ComicTagger using info from Comic Vine:\n" 
-		metadata.notes  += issue_results['site_detail_url']  
+		metadata.notes   = "Tagged with ComicTagger app using info from Comic Vine." 
+		#metadata.notes  += issue_results['site_detail_url']  
 		
 		metadata.webLink = issue_results['site_detail_url']  
 		

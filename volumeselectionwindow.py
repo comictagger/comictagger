@@ -277,7 +277,7 @@ class VolumeSelectionWindow(QtGui.QDialog):
 
 				self.teDetails.setText ( record['description'] )
 
-				self.labelThumbnail.setPixmap(QtGui.QPixmap(os.path.join(ComicTaggerSettings.baseDir(), 'nocover.png' )))
+				self.labelThumbnail.setPixmap(QtGui.QPixmap(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/nocover.png' )))
 				
 				url = record['image']['super_url']
 				self.fetcher = ImageFetcher( )

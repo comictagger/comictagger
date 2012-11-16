@@ -126,7 +126,7 @@ class IssueSelectionWindow(QtGui.QDialog):
 				
 				self.issue_number = record['issue_number']
 
-				self.labelThumbnail.setPixmap(QtGui.QPixmap(os.path.join(ComicTaggerSettings.baseDir(), 'nocover.png' )))
+				self.labelThumbnail.setPixmap(QtGui.QPixmap(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/nocover.png' )))
 
 				self.cv = ComicVineTalker( self.settings.cv_api_key )
 				self.cv.urlFetchComplete.connect( self.urlFetchComplete )	

@@ -231,9 +231,9 @@ class TaggerWindow( QtGui.QMainWindow):
 		super(TaggerWindow, self).__init__(parent)
 
 		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'taggerwindow.ui' ), self)
-		self.setWindowIcon(QtGui.QIcon(os.path.join(ComicTaggerSettings.baseDir(), 'app.png' )))
+		self.setWindowIcon(QtGui.QIcon(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/app.png' )))
 		
-		self.lblCover.setPixmap(QtGui.QPixmap(os.path.join(ComicTaggerSettings.baseDir(), 'nocover.png' )))
+		self.lblCover.setPixmap(QtGui.QPixmap(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/nocover.png' )))
 		self.center()
 		self.show()
 		self.raise_()
@@ -384,10 +384,24 @@ class TaggerWindow( QtGui.QMainWindow):
 		QtGui.QMessageBox.information(self, self.tr("Repackage Comic Archive"), self.tr("TBD"))
 
 	def aboutApp( self ):
-		QtGui.QMessageBox.about (self, self.tr("About " + self.appName ), 
-							self.tr(self.appName) + " " 
-							+ self.version 
-							+"\n(c)2012 Anthony Beville")
+		
+		website = "http://code.google.com/p/comictagger"
+		email = "comictagger@gmail.com"
+		
+		msgBox = QtGui.QMessageBox()
+		msgBox.setWindowTitle( self.tr("About " + self.appName ) )
+		msgBox.setTextFormat( QtCore.Qt.RichText )
+		msgBox.setIconPixmap( QtGui.QPixmap(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/about.png' )) )
+		msgBox.setText( "<br><br><br>" 
+		               + self.appName + " v" + self.version + "<br>" 
+		               + "(c)2012 Anthony Beville<br><br>"
+		               + "<a href='{0}'>{0}</a><br><br>".format(website)
+		               + "<a href='mailto:{0}'>{0}</a>".format(email)  )
+							
+		msgBox.setStandardButtons( QtGui.QMessageBox.Ok )
+		msgBox.exec_()
+		
+
 
 		
 	def dragEnterEvent(self, event):

@@ -32,7 +32,7 @@ class PageBrowserWindow(QtGui.QDialog):
 		
 		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'pagebrowser.ui' ), self)
 		
-		self.lblPage.setPixmap(QtGui.QPixmap(os.path.join(ComicTaggerSettings.baseDir(), 'nocover.png' )))
+		self.lblPage.setPixmap(QtGui.QPixmap(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/nocover.png' )))
 		self.lblPage.setSizePolicy(QtGui.QSizePolicy.Ignored, QtGui.QSizePolicy.Ignored)
 		self.comic_archive = None
 		self.current_pixmap = None
