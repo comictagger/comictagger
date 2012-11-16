@@ -17,7 +17,7 @@ all: clean dist diskimage
 
 dist:
 	$(PY2INSTALLER_CMD) tagger.py -o $(MAC_BASE) -w -n $(APP_NAME) -s 
-	cp $(TAGGER_BASE)/*.ui $(TAGGER_BASE)/*.png $(APP_BUNDLE)/Contents/MacOS
+	cp $(TAGGER_BASE)/*.ui $(APP_BUNDLE)/Contents/MacOS
 	cp -a $(TAGGER_BASE)/graphics $(APP_BUNDLE)/Contents/MacOS
 	cp $(MAC_BASE)/app.icns $(APP_BUNDLE)/Contents/Resources/icon-windowed.icns
 	

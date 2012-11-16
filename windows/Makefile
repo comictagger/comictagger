@@ -10,13 +10,10 @@ all: clean dist package
 
 dist:
 	cd "$(TAGGER_BASE)" &
-		"C:\Python27\Scripts\cxfreeze.bat" $(TAGGER_BASE)\tagger.py --icon nsis\app.ico 
-# --base-name=Win32GUI 
+		"C:\Python27\Scripts\cxfreeze.bat" $(TAGGER_BASE)\tagger.py --icon nsis\app.ico  --base-name=Win32GUI 
 	cp -R C:\Python27\Lib\site-packages\PyQt4\plugins\imageformats $(DIST_DIR)
 	cp  "$(TAGGER_BASE)\UnRAR2\UnRARDLL\unrar.dll" $(DIST_DIR)
 	cp  "$(TAGGER_BASE)\*.ui" $(DIST_DIR)
-	cp  "$(TAGGER_BASE)\nocover.png" $(DIST_DIR)
-	cp  "$(TAGGER_BASE)\app.png" $(DIST_DIR)
 	cp  -r "$(TAGGER_BASE)\graphics" $(DIST_DIR)
 	
 	rm "$(DIST_DIR)\QtWebKit4.dll"
