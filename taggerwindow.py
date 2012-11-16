@@ -28,6 +28,7 @@ import os
 
 from volumeselectionwindow import VolumeSelectionWindow
 from options import Options, MetaDataStyle
+from comicinfoxml import ComicInfoXml
 from genericmetadata import GenericMetadata
 from comicvinetalker import ComicVineTalker
 from comicarchive import ComicArchive
@@ -62,6 +63,163 @@ def clickable(widget):
 	filter = Filter(widget)
 	widget.installEventFilter(filter)
 	return filter.dblclicked
+
+"""
+class PageTableModel(QtCore.QAbstractTableModel):
+	
+	def __init__(self, comic_archive, parent=None, *args):	
+		QtCore.QAbstractTableModel.__init__(self, parent, *args)
+		
+		self.comic_archive = comic_archive
+		page_list = comic_archive.getPageNameList()
+		
+		self.page_model = []
+		i = 0
+		for page in page_list:
+			item = dict()
+			item['number'] = i
+			item['filename'] = page
+			item['thumb'] = None
+			
+			self.page_model.append( item )
+			i +=1
+
+
+	def rowCount(self, parent):
+		return len(self.page_model)
+
+	def columnCount(self, parent):
+		return 3
+
+	def data(self, index, role):
+		
+		if not index.isValid():
+			return QtCore.QVariant()
+		
+		elif role == QtCore.Qt.DisplayRole:
+			# page num
+			if index.column() == 0:
+				return QtCore.QVariant(self.page_model[index.row()]['number'])
+			
+			# page filename
+			if index.column() == 1:
+				return QtCore.QVariant(self.page_model[index.row()]['filename'])			
+
+		elif role == QtCore.Qt.DecorationRole:
+			
+			if index.column() == 2:
+				if self.page_model[index.row()]['thumb'] is None:
+				
+					image_data = self.comic_archive.getPage( self.page_model[index.row()]['number'] )
+					img = QtGui.QImage()
+					img.loadFromData( image_data )
+					pixmap = QtGui.QPixmap(QtGui.QPixmap(img))
+					#scaled_pixmap = pixmap.scaled(100, 150, QtCore.Qt.KeepAspectRatio)
+
+					self.page_model[index.row()]['thumb'] = pixmap #scaled_pixmap
+				
+				return QtCore.QVariant(self.page_model[index.row()]['thumb'])		
+		
+		else:
+			return QtCore.QVariant()
+"""	
+class PageListModel(QtCore.QAbstractListModel):
+	
+	def __init__(self, comic_archive, parent=None, *args):	
+		QtCore.QAbstractTableModel.__init__(self, parent, *args)
+		
+		self.comic_archive = comic_archive
+		page_list = comic_archive.getPageNameList()
+		
+		self.page_model = []
+		i = 0
+		for page in page_list:
+			item = dict()
+			item['number'] = i
+			item['filename'] = page
+			item['thumb'] = None
+			
+			self.page_model.append( item )
+			i +=1
+
+	def rowCount(self, parent):
+		return len(self.page_model)
+
+	def data(self, index, role):
+		
+		if not index.isValid():
+			return QtCore.QVariant()
+		
+		elif role == QtCore.Qt.DisplayRole:
+			# page num
+			return QtCore.QVariant(self.page_model[index.row()]['number'])
+
+		elif role == QtCore.Qt.DecorationRole:
+			
+			if self.page_model[index.row()]['thumb'] is None:
+
+				#timestamp = datetime.datetime.now()
+			
+				image_data = self.comic_archive.getPage( self.page_model[index.row()]['number'] )
+				img = QtGui.QImage()
+				img.loadFromData( image_data )
+				pixmap = QtGui.QPixmap(QtGui.QPixmap(img))
+				scaled_pixmap = pixmap.scaled(100, 150, QtCore.Qt.KeepAspectRatio)
+
+				self.page_model[index.row()]['thumb'] = scaled_pixmap
+			
+			return QtCore.QVariant(self.page_model[index.row()]['thumb'])		
+		
+		else:
+			return QtCore.QVariant()
+		
+	def flags( self, index):
+		defaultFlags = 	QtCore.QAbstractTableModel.flags(self, index)
+		if index.isValid():
+			return QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled | defaultFlags
+		else:
+			return QtCore.Qt.ItemIsDropEnabled | defaultFlags
+
+	def removeRows(self, row, count, parent=QtCore.QModelIndex()):
+		
+		print "removeRows", row, count
+		return True
+	
+	def insertRows(self, row, count, parent=QtCore.QModelIndex()):
+		
+		print "insertRows", row, count
+		return False	
+
+	def beginRemoveRows(self, sourceParent, start, end, destinationParent, dest):
+		print "beginRemoveRows"
+
+	def dropMimeData(self,data, action, row, col, parent):     
+		print "dropMimeData", action, row, col
+		
+
+		if (row != -1):
+			beginRow = row
+
+		elif (parent.isValid()):
+			beginRow = parent.row()	
+		
+		print beginRow
+		
+		return True
+		if (action == QtCore.Qt.IgnoreAction):
+			return True
+
+		#if ( not data.hasFormat("application/vnd.text.list"))
+		#	return False
+
+		if (column > 0):
+			return False	
+	#def beginMoveRows(self, sourceParent, start, end, destinationParent, dest):
+	#	print "rowsMoved"
+		
+	def	supportedDropActions(self):
+		#print "supportedDropActions"
+		return QtCore.Qt.CopyAction | QtCore.Qt.MoveAction
 
 
 class TaggerWindow( QtGui.QMainWindow):
@@ -312,7 +470,8 @@ class TaggerWindow( QtGui.QMainWindow):
 
 			self.metadataToForm()
 			self.clearDirtyFlag()  # also updates the app title
-			self.updateInfoBox()			
+			self.updateInfoBox()		
+			#self.updatePagesInfo()
 			
 		else:
 			QtGui.QMessageBox.information(self, self.tr("Whoops!"), self.tr("That file doesn't appear to be a comic archive!"))
@@ -349,7 +508,39 @@ class TaggerWindow( QtGui.QMainWindow):
 
 		self.lblTagList.setText( tag_info )
 
+	def updatePagesInfo( self ):
+		
+		#tablemodel = PageTableModel( self.comic_archive, self )
+		#self.tableView.setModel(tablemodel)
 
+		listmodel = PageListModel( self.comic_archive, self )
+		self.listView.setModel(listmodel)
+
+		#self.listView.setDragDropMode(self.InternalMove)
+		#listmodel.installEventFilter(self)
+		
+		self.listView.setDragEnabled(True)
+		self.listView.setAcceptDrops(True)
+		self.listView.setDropIndicatorShown(True)
+		
+		#listmodel.rowsMoved.connect( self.rowsMoved )
+		#listmodel.rowsRemoved.connect( self.rowsRemoved )
+		#listmodel.beginMoveRows.connect( self.beginMoveRows )
+	
+	#def rowsMoved( self, b, c, d):
+	#	print "rowsMoved"
+	#def rowsRemoved( self,b, c, d):
+	#	print "rowsRemoved"
+	
+
+	"""
+	def eventFilter(self, sender, event):
+		if (event.type() == QtCore.QEvent.ChildRemoved):
+			print "QEvent::ChildRemoved"
+		return False # don't actually interrupt anything
+	"""
+        
+        
 	def setDirtyFlag( self, param1=None, param2=None, param3=None  ):
 		if not self.dirtyFlag:
 			self.dirtyFlag = True
@@ -495,6 +686,7 @@ class TaggerWindow( QtGui.QMainWindow):
 				row += 1
 				
 		self.twCredits.setSortingEnabled( True )
+		self.updateCreditColors()
 
 	def addNewCreditEntry( self, row, role, name ):
 		self.twCredits.insertRow(row)
@@ -519,7 +711,6 @@ class TaggerWindow( QtGui.QMainWindow):
 			r = r + 1
 			
 		return False
-
 
 	def formToMetadata( self ):
 		
@@ -681,6 +872,32 @@ class TaggerWindow( QtGui.QMainWindow):
 	def setDataStyle(self, s):
 		self.data_style, b = self.cbDataStyle.itemData(s).toInt()
 		self.updateStyleTweaks()
+		
+	def updateCreditColors( self ):
+		inactive_color = QtGui.QColor(255, 170, 150)
+		active_palette = self.leSeries.palette()
+		active_color = active_palette.color( QtGui.QPalette.Base )
+
+		cix_credits = ComicInfoXml().getParseableCredits()
+
+		if self.data_style == MetaDataStyle.CIX:
+			#loop over credit table, mark selected rows
+			r = 0
+			while r < self.twCredits.rowCount():
+				if str(self.twCredits.item(r, 0).text()).lower() not in cix_credits:
+					print "Bad credit for CIX:", self.twCredits.item(r, 0).text()
+					self.twCredits.item(r, 0).setBackgroundColor( inactive_color )
+				else:
+					self.twCredits.item(r, 0).setBackgroundColor( active_color )
+				r = r + 1
+		
+		if self.data_style == MetaDataStyle.CBI:
+			#loop over credit table, make all active color
+			r = 0
+			while r < self.twCredits.rowCount():
+				self.twCredits.item(r, 0).setBackgroundColor( active_color )
+				r = r + 1
+		
 
 	def updateStyleTweaks( self ):
 
@@ -707,6 +924,7 @@ class TaggerWindow( QtGui.QMainWindow):
 
 			if enable:
 				item.setPalette(active_palette)
+				item.setAutoFillBackground( False )
 				if type(item) == QtGui.QCheckBox:
 					item.setEnabled( True )
 				elif type(item) == QtGui.QComboBox:
@@ -714,6 +932,7 @@ class TaggerWindow( QtGui.QMainWindow):
 				else:
 					item.setReadOnly( False )
 			else:
+				item.setAutoFillBackground( True )
 				if type(item) == QtGui.QCheckBox:
 					item.setPalette(inactive_palette2)
 					item.setEnabled( False )
@@ -733,7 +952,7 @@ class TaggerWindow( QtGui.QMainWindow):
 						self.leWebLink, self.teCharacters, self.teTeams,
 						self.teLocations, self.cbMaturityRating, self.cbFormat
 					]
-					
+							
 		if self.data_style == MetaDataStyle.CIX:
 			for item in cix_only:
 				enableWidget( item, True )
@@ -746,6 +965,8 @@ class TaggerWindow( QtGui.QMainWindow):
 			for item in cix_only:
 				enableWidget(item, False )
 		
+		self.updateCreditColors()
+	
 	def cellDoubleClicked( self, r, c ):
 		self.editCredit()
 
@@ -804,7 +1025,8 @@ class TaggerWindow( QtGui.QMainWindow):
 					# add new entry
 					row = self.twCredits.rowCount()
 					self.addNewCreditEntry( row, new_role, new_name)
-					
+
+			self.updateCreditColors()	
 			self.setDirtyFlag()
 
 	def removeCredit( self ):

@@ -3,17 +3,12 @@
 Features
 ----------------
 
-Toolbar icons
-
-Infobox needs fixing up
-
-Page Browser, mode-less dialog
 
 Auto-select:
 	msgbox on autoselect failure, or warning
 	Multi-match dialog
 	More auto-select logic using metadata
-	Page search on only match, but bad image match, to find cover??
+	Maybe, if only one match, but bad score, compare each page in the archive to online cover
 	Check aspect ratio, and maybe break cover into two parts for hashing?
 	
 Stand-alone CLI
@@ -24,16 +19,16 @@ Stand-alone CLI
 	
 
 TaggerWindow entry fields
-	General layout
 	Special tabbed Dialogs needed for:   
-		Pages Info
-	Color changing stuff need more work
-		- Indicate credits for CR style 
-		
-	CR has editable dropdowns/comboboxes for Format, Publisher, Imprint
+		Pages Info - maybe a custom painted widget
+ 
+
+Verify/warn on save (maybe just on over-write?)
 
 Style sheets for windows/mac/linux
 
+Add class for warning/info  messages with "Don't show again" checkbox.
+   Add list of these flag to settings
 	
 Version 2 - GUI to handle mutliple files or folders
 -----------		
@@ -42,8 +37,18 @@ Version 2 - GUI to handle mutliple files or folders
 -----------------
 Bugs
 ----------------
+
+Disable CBL for RAR
+
 SERIOUS BUG: rebuilding zips!
 http://stackoverflow.com/questions/11578443/trigger-io-errno-18-cross-device-link
+
+MAC:
+	toolbar
+	weird unrar complaints
+	Page browser sizing
+
+Disable save when read-only
 
 Be more tolerant of mis-labled extensions i.e. cbr when it's a cbz
 
@@ -59,10 +64,8 @@ Other settings possibilities:
 	Clear caches
 	
 	
-Content Hashes!!
-
 Image Hashes:
-	Failures of average hash:
+	Failures of image hash:
 		Thor 600 Wrap-around w/ different aspect ratio
 		Bone 3 - Variant Cover, 
 		Avengers #1, #13, #81
@@ -90,9 +93,13 @@ Auto search:
 	Lexical analysis 
 	Searching w/o issue #?
 	
+Determine alternate covers from CV somehow
+	
 -------------
 Other
 ------------
+Content Hashes!!
+
 
 Archive function to  detect tag blocks out of sync
 
@@ -102,7 +109,6 @@ Idea:  Support only CBI or CIX for any given file, and not both
 
 Longer term:
 	Think about mass tagging and (semi) automatic volume selection
-
 
 
 ----------------------------------------------
@@ -118,10 +124,4 @@ Some that seem library only:
 	Tags
 	Proposed Values
 	Community Rating
-	
-Mac Notes:
-
-python ~/pyinstaller-2.0/pyinstaller.py tagger.py -w -i windows/nsis/app.ico 
-
-
 	

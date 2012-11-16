@@ -39,7 +39,8 @@ class ComicVineTalker(QObject):
 	def __init__(self, api_key):
 		QObject.__init__(self)
 
-		self.api_key = api_key
+		# key that is registered to comictagger
+		self.api_key = '27431e6787042105bd3e47e169a624521f89f3a4'
 
 
 	def testKey( self ):

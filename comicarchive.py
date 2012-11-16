@@ -453,36 +453,45 @@ class ComicArchive:
 	
 	def getPage( self, index ):
 		
-		num_pages = self.getNumberOfPages()
+		image_data = None
+		
+		filename = self.getPageName( index )
+
+		if filename is not None:
+			image_data = self.archiver.readArchiveFile( filename )
+
+		return image_data
+
+	def getPageName( self, index ):
+		
+		page_list = self.getPageNameList()
+		
+		num_pages = len( page_list )
 		if num_pages == 0 or index >= num_pages:
 			return None
-			
+	
+		return  page_list[index]
+
+	def getPageNameList( self , sort_list=True):
+		
 		# get the list file names in the archive, and sort
 		files = self.archiver.getArchiveFilenameList()
 		
 		# seems like some archive creators are on  Windows, and don't know about case-sensitivity!
-		files.sort(key=lambda x: x.lower())
+		if sort_list:
+			files.sort(key=lambda x: x.lower())
 		
 		# make a sub-list of image files
 		page_list = []
 		for name in files:
 			if ( name[-4:].lower() in [ ".jpg", "jpeg", ".png" ] ):
 				page_list.append(name)
+				
+		return page_list
 
-		image_data = self.archiver.readArchiveFile( page_list[index] )
-	
-		return image_data
-
-
-	def getNumberOfPages(self):
-
-		count = 0
+	def getNumberOfPages( self ):
 		
-		for item in self.archiver.getArchiveFilenameList():
-			if ( item[-4:].lower() in [ ".jpg", "jpeg", ".png" ] ):
-				count += 1
-
-		return count
+		return len( self.getPageNameList( sort_list=False ) )
 
 	def readCBI( self ):
 

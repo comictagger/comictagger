@@ -32,6 +32,13 @@ from imagefetcher import  ImageFetcher
 import utils 
 
 class IssueIdentifier:
+	
+	ResultNoMatches                         = 0
+	ResultFoundMatchButBadCoverScore        = 1
+	ResultFoundMatchButNotFirstPage         = 2
+	ResultMultipleMatchesWithBadImageScores = 3
+	ResultOneGoodMatch                      = 4
+	ResultMultipleGoodMatches               = 5	
 
 	def __init__(self, comic_archive, cv_api_key ):
 		self.comic_archive = comic_archive
@@ -39,6 +46,7 @@ class IssueIdentifier:
 		self.additional_metadata = None
 		self.min_score_thresh = 22
 		self.min_score_distance = 2
+		self.strong_score_thresh = 8
 		self.additional_metadata = GenericMetadata()
 		self.cv_api_key = cv_api_key
 		self.output_function = IssueIdentifier.defaultWriteOutput
@@ -263,7 +271,7 @@ class IssueIdentifier:
 		if len(self.match_list) == 0:
 			self.log_msg( ":-(  no matches!" )
 			return self.match_list
-		
+
 		# sort list by image match scores
 		self.match_list.sort(key=lambda k: k['distance'])		
 		
@@ -286,13 +294,33 @@ class IssueIdentifier:
 		if len(self.match_list) == 1:
 			if best_score > self.min_score_thresh:
 				self.log_msg( "!!!! Very weak score for the cover.  Maybe it's not the cover?" )
+
+
+				self.log_msg( "Comparing other pages now..." )
+				found = False
+				for i in range(ca.getNumberOfPages()):
+					image_data = ca.getPage(i)
+					page_hash = self.calculateHash( image_data )
+					distance = ImageHasher.hamming_distance(page_hash, self.match_list[0]['url_image_hash'])
+					if distance <= self.strong_score_thresh:
+						print "Found a great match d={0} on page {1}!".format(distance, i+1)
+						found = True
+						break
+					elif distance < self.min_score_thresh:
+						print "Found a good match d={0} on page {1}".format(distance, i)
+						found = True
+					self.log_msg( ".", newline=False )
+				self.log_msg( "" )
+				if not found:
+					self.log_msg( "No matching pages in the issue.  Bummer" )
+
 			print_match(self.match_list[0])
 			return self.match_list
 
 		elif best_score > self.min_score_thresh and len(self.match_list) > 1:
 			self.log_msg( "No good image matches!  Need to use other info..." )
 			return self.match_list
-		
+
 		#now pare down list, remove any item more than specified distant from the top scores
 		for item in reversed(self.match_list):
 			if item['distance'] > best_score + self.min_score_distance:
@@ -307,7 +335,7 @@ class IssueIdentifier:
 			self.log_msg( "More than one likley candiate.  Maybe a lexical comparison??" )
 			for item in self.match_list:
 				print_match(item)
-				
+
 		return self.match_list
 
 	

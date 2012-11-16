@@ -26,7 +26,27 @@ from genericmetadata import GenericMetadata
 import utils
 
 class ComicInfoXml:
+	
+	writer_synonyms = ['writer', 'plotter', 'scripter']
+	penciller_synonyms = [ 'artist', 'penciller', 'penciler', 'breakdowns' ]
+	inker_synonyms = [ 'inker', 'artist', 'finishes' ]
+	colorist_synonyms = [ 'colorist', 'colourist', 'colorer', 'colourer' ]
+	letterer_synonyms = [ 'letterer']
+	cover_synonyms = [ 'cover', 'covers', 'coverartist', 'cover artist' ]
+	editor_synonyms = [ 'editor']
 
+
+	def getParseableCredits( self ):
+		parsable_credits =  []
+		parsable_credits.extend( self.writer_synonyms )
+		parsable_credits.extend( self.penciller_synonyms )
+		parsable_credits.extend( self.inker_synonyms )
+		parsable_credits.extend( self.colorist_synonyms )
+		parsable_credits.extend( self.letterer_synonyms )
+		parsable_credits.extend( self.cover_synonyms )
+		parsable_credits.extend( self.editor_synonyms )		
+		return parsable_credits
+		
 	def metadataFromString( self, string ):
 
 		tree = ET.ElementTree(ET.fromstring( string ))
@@ -110,25 +130,25 @@ class ComicInfoXml:
 		# first, loop thru credits, and build a list for each role that CIX supports
 		for credit in metadata.credits:
 
-			if credit['role'].lower() in set( ['writer', 'plotter', 'scripter'] ):
+			if credit['role'].lower() in set( self.writer_synonyms ):
 				credit_writer_list.append(credit['person'])
 
-			if credit['role'].lower() in set( [ 'artist', 'penciller', 'penciler', 'breakdowns' ] ):
+			if credit['role'].lower() in set( self.penciller_synonyms ):
 				credit_penciller_list.append(credit['person'])
 				
-			if credit['role'].lower() in set( [ 'inker', 'artist', 'finishes' ] ):
+			if credit['role'].lower() in set( self.inker_synonyms ):
 				credit_inker_list.append(credit['person'])
 				
-			if credit['role'].lower() in set( [ 'colorist', 'colourist', 'colorer', 'colourer' ]):
+			if credit['role'].lower() in set( self.colorist_synonyms ):
 				credit_colorist_list.append(credit['person'])
 
-			if credit['role'].lower() in set( [ 'letterer'] ):
+			if credit['role'].lower() in set( self.letterer_synonyms ):
 				credit_letterer_list.append(credit['person'])
 
-			if credit['role'].lower() in set( [ 'cover', 'covers', 'coverartist', 'cover artist' ] ):
+			if credit['role'].lower() in set( self.cover_synonyms ):
 				credit_cover_list.append(credit['person'])
 
-			if credit['role'].lower() in set( [ 'editor'] ):
+			if credit['role'].lower() in set( self.editor_synonyms ):
 				credit_editor_list.append(credit['person'])
 				
 		# second, convert each list to string, and add to XML struct

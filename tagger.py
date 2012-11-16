@@ -89,7 +89,20 @@ def main():
 		splash.show()
 		splash.raise_()
 		app.processEvents()
-		app.processEvents()
+
+		"""
+		lw = QtGui.QListWidget()
+		icon = QtGui.QIcon('app.png')
+		for i in range(10):
+			lw.addItem( QtGui.QListWidgetItem( icon,  "Item {0}".format(i) ) )
+			
+		lw.setDragDropMode(QtGui.QAbstractItemView.InternalMove)
+		#lw.setViewMode(QtGui.QListView.IconMode)	
+		lw.setMovement(QtGui.QListView.Snap)	
+		lw.setGridSize(QtCore.QSize(100,100))	
+		lw.show()
+		sys.exit(app.exec_())
+		"""
 
 		try:
 			tagger_window = TaggerWindow( opts, settings )

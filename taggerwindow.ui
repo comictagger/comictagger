@@ -96,7 +96,7 @@
               </font>
              </property>
              <property name="text">
-              <string>filename</string>
+              <string/>
              </property>
              <property name="wordWrap">
               <bool>true</bool>
@@ -131,7 +131,7 @@
                 <enum>QFrame::Sunken</enum>
                </property>
                <property name="text">
-                <string>archive type</string>
+                <string/>
                </property>
                <property name="wordWrap">
                 <bool>false</bool>
@@ -152,7 +152,7 @@
                 </font>
                </property>
                <property name="text">
-                <string>page count</string>
+                <string/>
                </property>
               </widget>
              </item>
@@ -167,7 +167,7 @@
               </sizepolicy>
              </property>
              <property name="text">
-              <string>tag list</string>
+              <string/>
              </property>
             </widget>
            </item>
@@ -386,12 +386,12 @@
                      <item row="1" column="0">
                       <widget class="QLabel" name="label_9">
                        <property name="text">
-                        <string># Issues</string>
+                        <string>Volume</string>
                        </property>
                       </widget>
                      </item>
                      <item row="1" column="1">
-                      <widget class="QLineEdit" name="leIssueCount"/>
+                      <widget class="QLineEdit" name="leVolumeNum"/>
                      </item>
                     </layout>
                    </item>
@@ -403,12 +403,12 @@
                      <item row="0" column="0">
                       <widget class="QLabel" name="label_5">
                        <property name="text">
-                        <string>Volume</string>
+                        <string># Issues</string>
                        </property>
                       </widget>
                      </item>
                      <item row="0" column="1">
-                      <widget class="QLineEdit" name="leVolumeNum"/>
+                      <widget class="QLineEdit" name="leIssueCount"/>
                      </item>
                      <item row="1" column="0">
                       <widget class="QLabel" name="label_12">
@@ -458,6 +458,9 @@
                    </item>
                    <item>
                     <layout class="QFormLayout" name="formLayout_16">
+                     <property name="fieldGrowthPolicy">
+                      <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+                     </property>
                      <item row="0" column="0">
                       <widget class="QLabel" name="label_35">
                        <property name="text">
@@ -497,7 +500,7 @@
                    <item row="0" column="1">
                     <widget class="QComboBox" name="cbMaturityRating">
                      <property name="autoFillBackground">
-                      <bool>true</bool>
+                      <bool>false</bool>
                      </property>
                      <property name="editable">
                       <bool>true</bool>
@@ -557,7 +560,7 @@
                    <item row="1" column="1">
                     <widget class="QCheckBox" name="cbBW">
                      <property name="autoFillBackground">
-                      <bool>true</bool>
+                      <bool>false</bool>
                      </property>
                      <property name="text">
                       <string>Black &amp;&amp; White</string>
@@ -574,7 +577,7 @@
                    <item row="2" column="1">
                     <widget class="QComboBox" name="cbManga">
                      <property name="autoFillBackground">
-                      <bool>true</bool>
+                      <bool>false</bool>
                      </property>
                     </widget>
                    </item>
@@ -962,6 +965,39 @@
            <attribute name="title">
             <string>Pages</string>
            </attribute>
+           <layout class="QGridLayout" name="gridLayout_6">
+            <item row="0" column="0">
+             <widget class="QListView" name="listView">
+              <property name="dragEnabled">
+               <bool>true</bool>
+              </property>
+              <property name="dragDropMode">
+               <enum>QAbstractItemView::InternalMove</enum>
+              </property>
+              <property name="defaultDropAction">
+               <enum>Qt::MoveAction</enum>
+              </property>
+              <property name="movement">
+               <enum>QListView::Snap</enum>
+              </property>
+              <property name="resizeMode">
+               <enum>QListView::Adjust</enum>
+              </property>
+              <property name="gridSize">
+               <size>
+                <width>100</width>
+                <height>170</height>
+               </size>
+              </property>
+              <property name="viewMode">
+               <enum>QListView::IconMode</enum>
+              </property>
+              <property name="selectionRectVisible">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </widget>
          </widget>
         </item>
@@ -977,7 +1013,7 @@
      <x>0</x>
      <y>0</y>
      <width>975</width>
-     <height>28</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuComicTagger">
