@@ -21,6 +21,8 @@ limitations under the License.
 import sys
 import math
 import urllib2, urllib
+import StringIO
+import Image
 
 from settings import ComicTaggerSettings
 from comicvinecacher import ComicVineCacher
@@ -89,6 +91,26 @@ class IssueIdentifier:
 		else:
 			return ImageHasher( data=image_data ).average_hash() 
 	
+	def getAspectRatio( self, image_data ):
+		
+		im = Image.open(StringIO.StringIO(image_data))
+		w,h = im.size
+		return float(h)/float(w)
+
+	def cropCover( self, image_data ):
+		
+		im = Image.open(StringIO.StringIO(image_data))
+		w,h = im.size
+		
+		cropped_im = im.crop( (int(w/2), 0, w, h) )
+		output = StringIO.StringIO()
+		cropped_im.save(output, format="JPEG")
+		cropped_image_data = output.getvalue()
+		output.close()
+		
+		return cropped_image_data
+
+		
 	def setProgressCallback( self, cb_func ):
 		self.callback = cb_func
 		
@@ -178,8 +200,17 @@ class IssueIdentifier:
 			return self.ResultNoMatches, []
 		
 		cover_image_data = ca.getCoverPage()
-
 		cover_hash = self.calculateHash( cover_image_data )
+
+		#check the apect ratio
+		# if it's wider than it is high, it's probably a two page spread
+		# if so, crop it and calculate a second hash
+		narrow_cover_hash = None
+		aspect_ratio = self.getAspectRatio( cover_image_data )
+		if aspect_ratio < 1.0:
+			right_side_image_data = self.cropCover( cover_image_data )
+			narrow_cover_hash = self.calculateHash( right_side_image_data )
+			print "narrow_cover_hash", narrow_cover_hash
 
 		#self.log_msg( "Cover hash = {0:016x}".format(cover_hash) )
 
@@ -190,7 +221,7 @@ class IssueIdentifier:
 			self.log_msg("Not enough info for a search!")
 			return []
 		
-		
+		"""
 		self.log_msg( "Going to search for:" )
 		self.log_msg( "Series: " + keys['series'] )
 		self.log_msg( "Issue : " + keys['issue_number']  )
@@ -198,6 +229,7 @@ class IssueIdentifier:
 			self.log_msg( "Year :  " + keys['year'] )
 		if keys['month'] is not None:
 			self.log_msg( "Month : " + keys['month'] )
+		"""
 		
 		comicVine = ComicVineTalker( self.cv_api_key )
 
@@ -280,10 +312,16 @@ class IssueIdentifier:
 						return self.match_list
 
 					url_image_hash = self.calculateHash( url_image_data )
+					score = ImageHasher.hamming_distance(cover_hash, url_image_hash)
 					
+					# if we have a cropped version of the cover, check that one also, and use the best score
+					if narrow_cover_hash is not None:
+						score2 = ImageHasher.hamming_distance(narrow_cover_hash, url_image_hash)
+						score = min( score, score2 )
+
 					match = dict()
 					match['series'] = "{0} ({1})".format(series['name'], series['start_year'])
-					match['distance'] = ImageHasher.hamming_distance(cover_hash, url_image_hash)
+					match['distance'] = score
 					match['issue_number'] = num_s
 					match['url_image_hash'] = url_image_hash
 					match['issue_title'] = issue['name']
