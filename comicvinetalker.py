@@ -250,38 +250,47 @@ class ComicVineTalker(QObject):
 			
 			return newstring
 
-	
+	def fetchIssueDate( self, issue_id ):
+		image_url, thumb_url, month,year = self.fetchIssueSelectDetails( issue_id )
+		return month, year
+
 	def fetchIssueCoverURLs( self, issue_id ):
+		image_url, thumb_url, month,year = self.fetchIssueSelectDetails( issue_id )
+		return image_url, thumb_url
+		
+	def fetchIssueSelectDetails( self, issue_id ):
 
-		cached_image_url,cached_thumb_url = self.fetchCachedIssueCoverURLs( issue_id )
+		cached_image_url,cached_thumb_url,cached_month,cached_year = self.fetchCachedIssueSelectDetails( issue_id )
 		if cached_image_url is not None:
-			return cached_image_url,cached_thumb_url
+			return cached_image_url,cached_thumb_url, cached_month, cached_year
 
-		issue_url = "http://api.comicvine.com/issue/" + str(issue_id) + "/?api_key=" + self.api_key + "&format=json&field_list=image"
+		issue_url = "http://api.comicvine.com/issue/" + str(issue_id) + "/?api_key=" + self.api_key + "&format=json&field_list=image,publish_month,publish_year"
 		resp = urllib2.urlopen(issue_url) 
 		content = resp.read()
 		cv_response = json.loads(content)
 		if cv_response[ 'status_code' ] != 1:
 			print ( "Comic Vine query failed with error:  [{0}]. ".format( cv_response[ 'error' ] ))
-			return None, None
+			return None, None,None,None
 		
 		image_url = cv_response['results']['image']['super_url']
 		thumb_url = cv_response['results']['image']['thumb_url']
+		year = cv_response['results']['publish_year']
+		month = cv_response['results']['publish_month']
 				
 		if image_url is not None:
-			self.cacheIssueCoverURLs( issue_id, image_url,thumb_url )
-		return image_url,thumb_url
+			self.cacheIssueSelectDetails( issue_id, image_url,thumb_url, month, year )
+		return image_url,thumb_url,month,year
 		
-	def fetchCachedIssueCoverURLs( self, issue_id ):
+	def fetchCachedIssueSelectDetails( self, issue_id ):
 
 		# before we search online, look in our cache, since we might already
 		# have this info
 		cvc = ComicVineCacher( ComicTaggerSettings.getSettingsFolder() )
-		return  cvc.get_issue_image_url( issue_id )
+		return  cvc.get_issue_select_details( issue_id )
 
-	def cacheIssueCoverURLs( self, issue_id, image_url,thumb_url ):
+	def cacheIssueSelectDetails( self, issue_id, image_url, thumb_url, month, year ):
 		cvc = ComicVineCacher( ComicTaggerSettings.getSettingsFolder() )
-		cvc.add_issue_image_url( issue_id, image_url, thumb_url )
+		cvc.add_issue_select_details( issue_id, image_url, thumb_url, month, year )
 		
 		
 #---------------------------------------------------------------------------
@@ -290,12 +299,12 @@ class ComicVineTalker(QObject):
 	def asyncFetchIssueCoverURLs( self, issue_id ):
 		
 		self.issue_id = issue_id
-		cached_image_url,cached_thumb_url = self.fetchCachedIssueCoverURLs( issue_id )
+		cached_image_url,cached_thumb_url,month,year = self.fetchCachedIssueSelectDetails( issue_id )
 		if cached_image_url is not None:
 			self.urlFetchComplete.emit( cached_image_url,cached_thumb_url, self.issue_id )
 			return
 
-		issue_url = "http://api.comicvine.com/issue/" + str(issue_id) + "/?api_key=" + self.api_key + "&format=json&field_list=image"
+		issue_url = "http://api.comicvine.com/issue/" + str(issue_id) + "/?api_key=" + self.api_key + "&format=json&field_list=image,publish_month,publish_year"
 		self.nam = QNetworkAccessManager()
 		self.nam.finished.connect( self.asyncFetchIssueCoverURLComplete )
 		self.nam.get(QNetworkRequest(QUrl(issue_url)))
@@ -311,8 +320,10 @@ class ComicVineTalker(QObject):
 		
 		image_url = cv_response['results']['image']['super_url']
 		thumb_url = cv_response['results']['image']['thumb_url']
+		year = cv_response['results']['publish_year']
+		month = cv_response['results']['publish_month']
 
-		self.cacheIssueCoverURLs(  self.issue_id, image_url, thumb_url )
+		self.cacheIssueSelectDetails(  self.issue_id, image_url, thumb_url, month, year )
 
 		self.urlFetchComplete.emit( image_url, thumb_url, self.issue_id ) 
 

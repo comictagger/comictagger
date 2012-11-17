@@ -3,12 +3,8 @@
 Features
 ----------------
 
-
 Auto-select:
-	msgbox on autoselect failure, or warning
 	Multi-match dialog
-	More auto-select logic using metadata
-	Maybe, if only one match, but bad score, compare each page in the archive to online cover
 	Check aspect ratio, and maybe break cover into two parts for hashing?
 	
 Stand-alone CLI
@@ -19,7 +15,7 @@ Stand-alone CLI
 	
 
 TaggerWindow entry fields
-	Special tabbed Dialogs needed for:   
+	Special tabbed Dialog needed for:   
 		Pages Info - maybe a custom painted widget
 		At minimum, preserve the page data
  
@@ -44,7 +40,7 @@ Disable CBL for RAR
 SERIOUS BUG: rebuilding zips!
 http://stackoverflow.com/questions/11578443/trigger-io-errno-18-cross-device-link
 
-MAC:
+OSX:
 	toolbar
 	weird unrar complaints
 	Page browser sizing
@@ -76,7 +72,6 @@ Filename parsing:
 	Concatenation of Name and Issue??
 	"1602"
 
-Issue identifier - compare names with aricles removed
 	
 App option to covert RAR to ZIP
 

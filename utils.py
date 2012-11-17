@@ -54,6 +54,7 @@ def addtopath( dir ):
 		os.environ['PATH'] = dir + os.pathsep + os.environ['PATH']
 
 def removearticles( text ):
+	text = text.lower()
 	articles = ['and', 'the', 'a', '&' ]
 	newText = ''
 	for word in text.split(' '):

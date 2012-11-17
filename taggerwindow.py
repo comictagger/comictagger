@@ -848,8 +848,12 @@ class TaggerWindow( QtGui.QMainWindow):
 			return
 			
 		issue_number = str(self.leIssueNum.text()).strip()
-		
-		selector = VolumeSelectionWindow( self, self.settings.cv_api_key, series_name, issue_number, self.comic_archive, self.settings, autoselect )
+ 
+		year = str(self.lePubYear.text()).strip()
+		if year == "":
+			year = None
+
+		selector = VolumeSelectionWindow( self, self.settings.cv_api_key, series_name, issue_number, year, self.comic_archive, self.settings, autoselect )
 
 		title = "Search: '" + series_name + "' - "
 		selector.setWindowTitle( title + "Select Series")

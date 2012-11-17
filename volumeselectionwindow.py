@@ -77,12 +77,11 @@ class IdentifyThread( QtCore.QThread):
 	def run(self):
 		matches =self.identifier.search()
 		self.identifyComplete.emit( )
-		
 
 
 class VolumeSelectionWindow(QtGui.QDialog):
 
-	def __init__(self, parent, cv_api_key, series_name, issue_number, comic_archive, settings, autoselect=False):
+	def __init__(self, parent, cv_api_key, series_name, issue_number, year, comic_archive, settings, autoselect=False):
 		super(VolumeSelectionWindow, self).__init__(parent)
 		
 		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'volumeselectionwindow.ui' ), self)
@@ -90,6 +89,7 @@ class VolumeSelectionWindow(QtGui.QDialog):
 		self.settings = settings
 		self.series_name = series_name
 		self.issue_number = issue_number
+		self.year = year
 		self.cv_api_key = cv_api_key
 		self.volume_id = 0
 		self.comic_archive = comic_archive
@@ -121,7 +121,10 @@ class VolumeSelectionWindow(QtGui.QDialog):
 		md = GenericMetadata()
 		md.series = self.series_name
 		md.issueNumber = self.issue_number
+		md.publicationYear = self.year
+
 		self.ii.setAdditionalMetadata( md )
+		self.ii.onlyUseAdditionalMetaData = True
 		
 		self.id_thread = IdentifyThread( self.ii )
 		self.id_thread.identifyComplete.connect( self.identifyComplete )	
@@ -147,7 +150,25 @@ class VolumeSelectionWindow(QtGui.QDialog):
 	def identifyComplete( self ):
 
 		matches = self.ii.match_list
-		if len(matches) == 1:
+		result = self.ii.search_result
+		
+		found_match = False
+		if result == self.ii.ResultNoMatches:
+			QtGui.QMessageBox.information(self,"Auto-Select Result", " No matches found :-(")
+		elif result == self.ii.ResultFoundMatchButBadCoverScore:
+			QtGui.QMessageBox.information(self,"Auto-Select Result", " Found a match, but cover doesn't seem to match.  Verify before commiting!")
+			found_match = True
+		elif result == self.ii.ResultFoundMatchButNotFirstPage :
+			QtGui.QMessageBox.information(self,"Auto-Select Result", " Found a match, but not with the first page of the archive.")
+			found_match = True
+		elif result == self.ii.ResultMultipleMatchesWithBadImageScores:
+			QtGui.QMessageBox.information(self,"Auto-Select Result", " Found some possibilities, but no confidence. Proceed manually.")
+		elif result == self.ii.ResultOneGoodMatch:
+			found_match = True
+		elif result == self.ii.ResultMultipleGoodMatches:
+			QtGui.QMessageBox.information(self,"Auto-Select Result", " Found multiple likely matches!  Selection DIALOG TBD.")
+			
+		if found_match:
 			self.iddialog.accept()
 
 			print "VolumeSelectionWindow found a match!!", matches[0]['volume_id'], matches[0]['issue_number']

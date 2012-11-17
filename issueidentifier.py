@@ -43,14 +43,26 @@ class IssueIdentifier:
 	def __init__(self, comic_archive, cv_api_key ):
 		self.comic_archive = comic_archive
 		self.image_hasher = 1
-		self.additional_metadata = None
-		self.min_score_thresh = 22
+		
+		self.onlyUseAdditionalMetaData = False
+
+		# a decent hamming score, good enough to call it a match
+		self.min_score_thresh = 20
+		
+		# the min distance a hamming score must be to separate itself from closest neighbor
 		self.min_score_distance = 2
+
+		# a very strong hamming score, almost certainly the same image
 		self.strong_score_thresh = 8
+		
+		# used to eliminate series names that are too long based on our search string
+		self.length_delta_thresh = 3
+		
 		self.additional_metadata = GenericMetadata()
 		self.cv_api_key = cv_api_key
 		self.output_function = IssueIdentifier.defaultWriteOutput
 		self.callback = None
+		self.search_result = self.ResultNoMatches
 	
 	def setScoreMinThreshold( self, thresh ):
 		self.min_score_thresh = thresh
@@ -91,7 +103,14 @@ class IssueIdentifier:
 		
 		if ca is None:
 			return
-		
+
+		if self.onlyUseAdditionalMetaData:
+			search_keys['series'] = self.additional_metadata.series
+			search_keys['issue_number'] = self.additional_metadata.issueNumber
+			search_keys['year'] = self.additional_metadata.publicationYear
+			search_keys['month'] = self.additional_metadata.publicationMonth
+			return search_keys
+
 		# see if the archive has any useful meta data for searching with
 		if ca.hasCIX():
 			internal_metadata = ca.readCIX()
@@ -128,7 +147,7 @@ class IssueIdentifier:
 			search_keys['year'] = internal_metadata.publicationYear
 		else:
 			search_keys['year'] = md_from_filename.publicationYear
-			
+
 		if self.additional_metadata.publicationMonth is not None:
 			search_keys['month'] = self.additional_metadata.publicationMonth
 		elif internal_metadata.publicationMonth is not None:
@@ -156,7 +175,7 @@ class IssueIdentifier:
 
 		if not ca.seemsToBeAComicArchive():
 			self.log_msg( "Sorry, but "+ opts.filename + "  is not a comic archive!")
-			return []
+			return self.ResultNoMatches, []
 		
 		cover_image_data = ca.getCoverPage()
 
@@ -171,7 +190,7 @@ class IssueIdentifier:
 			self.log_msg("Not enough info for a search!")
 			return []
 		
-		"""
+		
 		self.log_msg( "Going to search for:" )
 		self.log_msg( "Series: " + keys['series'] )
 		self.log_msg( "Issue : " + keys['issue_number']  )
@@ -179,7 +198,7 @@ class IssueIdentifier:
 			self.log_msg( "Year :  " + keys['year'] )
 		if keys['month'] is not None:
 			self.log_msg( "Month : " + keys['month'] )
-		"""
+		
 		comicVine = ComicVineTalker( self.cv_api_key )
 
 		#self.log_msg( ( "Searching for " + keys['series'] + "...")
@@ -195,8 +214,10 @@ class IssueIdentifier:
 		
 		#self.log_msg( "Removing results with too long names" )
 		for item in cv_search_results:
-			#assume that our search name is close to the actual name, say within 5 characters
-			if len( utils.removearticles(item['name'])) < len( keys['series'] ) + 5:
+			#assume that our search name is close to the actual name, say within ,e.g. 5 chars
+			shortened_key =       utils.removearticles(keys['series'])
+			shortened_item_name = utils.removearticles(item['name'])
+			if len( shortened_item_name ) <  ( len( shortened_key ) + self.length_delta_thresh) :
 				series_shortlist.append(item)
 		
 		# if we don't think it's an issue number 1, remove any series' that are one-shots
@@ -241,6 +262,17 @@ class IssueIdentifier:
 				if num_s == keys['issue_number']:
 					# found a matching issue number!  now get the issue data 
 					img_url, thumb_url = comicVine.fetchIssueCoverURLs( issue['id'] )
+					month, year = comicVine.fetchIssueDate( issue['id'] )
+
+					if self.cancel == True:
+						self.match_list = []
+						return self.match_list
+							
+					# now, if we have an issue year key given, reject this one if not a match
+					if keys['year'] is not None:
+						if keys['year'] != year:
+							break
+						
 					url_image_data = ImageFetcher().fetch(thumb_url, blocking=True)
 
 					if self.cancel == True:
@@ -258,6 +290,8 @@ class IssueIdentifier:
 					match['img_url'] = thumb_url
 					match['issue_id'] = issue['id']
 					match['volume_id'] = series['id']
+					match['month'] = month
+					match['year'] = year
 					self.match_list.append(match)
 
 					self.log_msg( " --> {0}".format(match['distance']), newline=False )
@@ -268,7 +302,9 @@ class IssueIdentifier:
 		
 		if len(self.match_list) == 0:
 			self.log_msg( ":-(  no matches!" )
+			self.search_result = self.ResultNoMatches
 			return self.match_list
+
 
 		# sort list by image match scores
 		self.match_list.sort(key=lambda k: k['distance'])		
@@ -281,20 +317,22 @@ class IssueIdentifier:
 		self.log_msg( str(l))
 
 		def print_match(item):
-			self.log_msg( u"-----> {0} #{1} {2} -- score: {3}".format(
+			self.log_msg( u"-----> {0} #{1} {2} ({3}/{4}) -- score: {5}".format(
 									item['series'], 
 									item['issue_number'], 
 									item['issue_title'],
+									item['month'],
+									item['year'],
 									item['distance']) )
 		
 		best_score = self.match_list[0]['distance']
 
 		if len(self.match_list) == 1:
+			self.search_result = self.ResultOneGoodMatch
 			if best_score > self.min_score_thresh:
 				self.log_msg( "!!!! Very weak score for the cover.  Maybe it's not the cover?" )
 
-
-				self.log_msg( "Comparing other pages now..." )
+				self.log_msg( "Comparing other archive pages now..." )
 				found = False
 				for i in range(ca.getNumberOfPages()):
 					image_data = ca.getPage(i)
@@ -311,12 +349,15 @@ class IssueIdentifier:
 				self.log_msg( "" )
 				if not found:
 					self.log_msg( "No matching pages in the issue.  Bummer" )
+					self.search_result = self.ResultFoundMatchButBadCoverScore
 
 			print_match(self.match_list[0])
 			return self.match_list
 
 		elif best_score > self.min_score_thresh and len(self.match_list) > 1:
 			self.log_msg( "No good image matches!  Need to use other info..." )
+			self.search_result = self.ResultMultipleMatchesWithBadImageScores
+					
 			return self.match_list
 
 		#now pare down list, remove any item more than specified distant from the top scores
@@ -326,11 +367,15 @@ class IssueIdentifier:
 
 		if len(self.match_list) == 1:
 			print_match(self.match_list[0])
+			self.search_result = self.ResultOneGoodMatch
+			
 		elif len(self.match_list) == 0:
 			self.log_msg( "No matches found :(" )
+			self.search_result = self.ResultNoMatches
 		else:
 			print 
-			self.log_msg( "More than one likley candiate.  Maybe a lexical comparison??" )
+			self.log_msg( "More than one likley candiate." )
+			self.search_result = self.ResultMultipleGoodMatches
 			for item in self.match_list:
 				print_match(item)
 
