@@ -260,7 +260,7 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>680</width>
+                 <width>685</width>
                  <height>380</height>
                 </rect>
                </property>
@@ -1013,7 +1013,7 @@
      <x>0</x>
      <y>0</y>
      <width>975</width>
-     <height>25</height>
+     <height>28</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuComicTagger">
@@ -1080,7 +1080,7 @@
     <set>Qt::NoToolBarArea</set>
    </property>
    <property name="toolButtonStyle">
-    <enum>Qt::ToolButtonFollowStyle</enum>
+    <enum>Qt::ToolButtonTextBesideIcon</enum>
    </property>
    <property name="floatable">
     <bool>false</bool>

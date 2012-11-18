@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>796</width>
-    <height>454</height>
+    <width>801</width>
+    <height>470</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -156,7 +156,7 @@
          <item>
           <widget class="QPushButton" name="btnRequery">
            <property name="text">
-            <string>Re-Query</string>
+            <string>Re-Search</string>
            </property>
           </widget>
          </item>

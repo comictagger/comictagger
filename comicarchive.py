@@ -397,16 +397,11 @@ class ComicArchive:
 
 	def seemsToBeAComicArchive( self ):
 
-		ext = os.path.splitext(self.path)[1].lower()		
-		if (  
-		      ( ( ( self.isZip() ) and 
-		      ( ext.lower() in [ '.zip', '.cbz' ] ))  
-		        or
-		      (( self.isRar() ) and 
-		      ( ext.lower() in [ '.rar', '.cbr' ] ))  
-		        or
-		      ( self.isFolder()   ) )  
+		# Do we even care about extensions??
+		ext = os.path.splitext(self.path)[1].lower()
 
+		if ( 
+		      ( self.isZip() or  self.isRar() or self.isFolder() )
 		      and
 		      ( self.getNumberOfPages() > 3)
 

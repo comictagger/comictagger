@@ -55,7 +55,7 @@ class ComicVineCacher:
 							"count_of_issues INT," +
 							"image_url TEXT," +
 							"description TEXT," +
-							"timestamp TEXT)" 
+							"timestamp DATE DEFAULT (datetime('now','localtime')) ) " 
 						)
 						
 			cur.execute("CREATE TABLE Volumes(" +
@@ -63,7 +63,7 @@ class ComicVineCacher:
 							"name TEXT," +
 							"publisher TEXT," +
 							"count_of_issues INT," +
-							"timestamp TEXT," +
+							"timestamp DATE DEFAULT (datetime('now','localtime')), " + 
 							"PRIMARY KEY (id) )" 
 						)
 
@@ -78,7 +78,7 @@ class ComicVineCacher:
 							"thumb_image_hash TEXT," +
 							"publish_month TEXT," +
 							"publish_year TEXT," +
-							"timestamp TEXT,"  +
+							"timestamp DATE DEFAULT (datetime('now','localtime')), " + 
 							"PRIMARY KEY (id ) )" 
 						)
 
@@ -107,7 +107,9 @@ class ComicVineCacher:
 				else:
 					url = record['image']['super_url']
 					
-				cur.execute("INSERT INTO VolumeSearchCache VALUES( ?, ?, ?, ?, ?, ?, ?, ?, ? )" ,
+				cur.execute("INSERT INTO VolumeSearchCache " +
+				            "(search_term, id, name, start_year, publisher, count_of_issues, image_url, description ) " +
+				            "VALUES( ?, ?, ?, ?, ?, ?, ?, ? )" ,
 								( search_term.lower(),
 								record['id'],
 								record['name'],
@@ -115,8 +117,7 @@ class ComicVineCacher:
 								pub_name,
 								record['count_of_issues'],
 								url,
-								record['description'],
-								timestamp ) 
+								record['description']) 
 							)
 							
 	def get_search_results( self, search_term ):
@@ -126,7 +127,10 @@ class ComicVineCacher:
 		with con:
 			cur = con.cursor() 
 			
-			# TODO purge stale search results ( older than a day, maybe??)
+			
+			# purge stale search results 
+			a_day_ago = datetime.datetime.today()-datetime.timedelta(days=1)
+			cur.execute( "DELETE FROM VolumeSearchCache WHERE timestamp  < ?", [ str(a_day_ago) ] )
 			
 			# fetch
 			cur.execute("SELECT * FROM VolumeSearchCache WHERE search_term=?", [ search_term.lower() ] )
@@ -194,7 +198,13 @@ class ComicVineCacher:
 		with con:
 			cur = con.cursor() 
 			
-			# TODO purge stale volume records ( older than a week, maybe??)
+			# purge stale volume info
+			a_week_ago = datetime.datetime.today()-datetime.timedelta(days=7)
+			cur.execute( "DELETE FROM Volumes WHERE timestamp  < ?", [ str(a_week_ago) ] )	
+
+			# purge stale issue info - probably issue data won't change much....
+			a_month_ago = datetime.datetime.today()-datetime.timedelta(days=30)
+			cur.execute( "DELETE FROM Issues WHERE timestamp  < ?", [ str(a_month_ago) ] )	
 			
 			# fetch
 			cur.execute("SELECT id,name,publisher,count_of_issues FROM Volumes WHERE id = ?", [ volume_id ] )

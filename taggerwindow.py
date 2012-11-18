@@ -252,6 +252,7 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.statusBar()
 		self.updateAppTitle()
 		self.setAcceptDrops(True)
+		self.updateSaveMenu()
 		self.droppedFile=None
 
 		self.page_browser = None
@@ -292,7 +293,7 @@ class TaggerWindow( QtGui.QMainWindow):
 				mod_str = " [modified]"
 			
 			if not self.comic_archive.isWritable():
-				ro_str = " [read only ]"
+				ro_str = " [read only]"
 				
 			self.setWindowTitle( self.appName + " - " + self.comic_archive.path + mod_str + ro_str)
 
@@ -484,12 +485,24 @@ class TaggerWindow( QtGui.QMainWindow):
 
 			self.metadataToForm()
 			self.clearDirtyFlag()  # also updates the app title
-			self.updateInfoBox()		
+			self.updateInfoBox()
+			self.updateSaveMenu()
 			#self.updatePagesInfo()
 			
 		else:
 			QtGui.QMessageBox.information(self, self.tr("Whoops!"), self.tr("That file doesn't appear to be a comic archive!"))
 
+	def updateSaveMenu( self ):
+
+		if ( self.comic_archive is not None and 
+		     self.comic_archive.isWritable() and
+		     not ( self.data_style == MetaDataStyle.CBI and self.comic_archive.isRar() )
+		   ):
+			self.actionWrite_Tags.setEnabled( True )
+		else:
+			self.actionWrite_Tags.setEnabled( False )
+			
+			
 	def updateInfoBox( self ):
 		
 		ca = self.comic_archive
@@ -800,17 +813,23 @@ class TaggerWindow( QtGui.QMainWindow):
 
 
 	def useFilename( self ):
-		self.metadata = self.comic_archive.metadataFromFilename( )
-		self.metadataToForm()
-
+		if self.comic_archive is not None:
+			self.metadata = self.comic_archive.metadataFromFilename( )
+			self.metadataToForm()
 
 	def selectFile( self ):
 		
 		dialog = QtGui.QFileDialog(self)
 		dialog.setFileMode(QtGui.QFileDialog.ExistingFile)
 		#dialog.setFileMode(QtGui.QFileDialog.Directory )
+		
+		if platform.system() != "Windows" and utils.which("unrar") is None:
+			archive_filter = "Comic archive files (*.cbz *.zip)"
+		else:
+			archive_filter = "Comic archive files (*.cbz *.zip *.cbr *.rar)"
+			
 		filters  = [ 
-		             "Comic archive files (*.cbz *.zip *.cbr *.rar)",
+		             archive_filter,
 		             "Any files (*)"
 		             ]
 		
@@ -826,7 +845,7 @@ class TaggerWindow( QtGui.QMainWindow):
 			
 	def autoSelectSearch(self):
 		if self.comic_archive is None:
-			QtGui.QMessageBox.warning(self, self.tr("Automatic Search"), 
+			QtGui.QMessageBox.warning(self, self.tr("Automatic Online Search"), 
 			       self.tr("You need to load a comic first!"))
 			return
 		
@@ -834,20 +853,25 @@ class TaggerWindow( QtGui.QMainWindow):
 		
 	def queryOnline(self, autoselect=False):
 		
-		if self.settings.cv_api_key == "":
-			QtGui.QMessageBox.warning(self, self.tr("Online Search"), 
-			       self.tr("You need an API key from ComicVine to search online. " + 
-			                "Go to settings and enter it."))
-			return
+		#if self.settings.cv_api_key == "":
+		#	QtGui.QMessageBox.warning(self, self.tr("Online Search"), 
+		#	       self.tr("You need an API key from ComicVine to search online. " + 
+		#	                "Go to settings and enter it."))
+		#	return
 		
+
+		issue_number = str(self.leIssueNum.text()).strip()
+
+		if autoselect and issue_number == "":
+			QtGui.QMessageBox.information(self,"Automatic Online Search", "Can't auto-select without an issue number (yet!)")
+			return
 	
 		if str(self.leSeries.text()).strip() != "":
 			series_name = str(self.leSeries.text()).strip()
 		else:
-			QtGui.QMessageBox.information(self, self.tr("Whoops"), self.tr("Need to enter a series name to query."))
+			QtGui.QMessageBox.information(self, self.tr("Online Search"), self.tr("Need to enter a series name to search."))
 			return
 			
-		issue_number = str(self.leIssueNum.text()).strip()
  
 		year = str(self.lePubYear.text()).strip()
 		if year == "":
@@ -877,14 +901,21 @@ class TaggerWindow( QtGui.QMainWindow):
 	def commitMetadata(self):
 
 		if ( self.metadata is not None and self.comic_archive is not None):	
-			QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
-			self.formToMetadata()
-			self.comic_archive.writeMetadata( self.metadata, self.data_style )
-			self.clearDirtyFlag()
-			self.updateInfoBox()
-			QtGui.QApplication.restoreOverrideCursor()		
-			
-			QtGui.QMessageBox.information(self, self.tr("Yeah!"), self.tr("File written."))
+		
+			reply = QtGui.QMessageBox.question(self, 
+			     self.tr("Save Tags"), 
+			     self.tr("Are you sure you wish to save " +  MetaDataStyle.name[self.data_style] + " tags to this archive?"),
+			     QtGui.QMessageBox.Yes, QtGui.QMessageBox.No )
+			     
+			if reply == QtGui.QMessageBox.Yes:		
+				QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+				self.formToMetadata()
+				self.comic_archive.writeMetadata( self.metadata, self.data_style )
+				self.clearDirtyFlag()
+				self.updateInfoBox()
+				QtGui.QApplication.restoreOverrideCursor()		
+				
+				QtGui.QMessageBox.information(self, self.tr("Yeah!"), self.tr("File written."))
 
 
 		else:
@@ -894,6 +925,7 @@ class TaggerWindow( QtGui.QMainWindow):
 	def setDataStyle(self, s):
 		self.data_style, b = self.cbDataStyle.itemData(s).toInt()
 		self.updateStyleTweaks()
+		self.updateSaveMenu()
 		
 	def updateCreditColors( self ):
 		inactive_color = QtGui.QColor(255, 170, 150)

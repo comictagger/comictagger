@@ -83,12 +83,21 @@ class FileNameParser:
 
 		# use the issue number string to split the filename string
 		# assume first element of list is the series name, plus cruft
-
 		#!!! this could fail in the case of small numerics in the series name!!!
+
+		# TODO:  we really should pass in the *INDEX* of the issue, that makes 
+		# finding it easier
+		
 		
 		tmpstr = self.fixSpaces(filename)
-		if issue != "":			
-			series = tmpstr.split(issue)[0]
+		
+		#remove pound signs.  this might mess up the series name if there is a# in it.
+		tmpstr = tmpstr.replace("#", " ")
+
+		if issue != "":	
+			# assume that issue substr has at least on space before it
+			issue_str = " " + str(issue)
+			series = tmpstr.split(issue_str)[0]
 		else:
 			# no issue to work off of
 			#!!! TODO we should look for the year, and split from that

@@ -52,13 +52,16 @@ class IssueIdentifier:
 		self.min_score_thresh = 20
 		
 		# the min distance a hamming score must be to separate itself from closest neighbor
-		self.min_score_distance = 2
+		self.min_score_distance = 4
 
 		# a very strong hamming score, almost certainly the same image
 		self.strong_score_thresh = 8
 		
 		# used to eliminate series names that are too long based on our search string
-		self.length_delta_thresh = 3
+		self.length_delta_thresh = 5
+
+		# used to eliminate unlikely publishers
+		self.publisher_blacklist = [ 'panini comics', 'abril', 'scholastic book services' ]
 		
 		self.additional_metadata = GenericMetadata()
 		self.cv_api_key = cv_api_key
@@ -74,6 +77,12 @@ class IssueIdentifier:
 		
 	def setAdditionalMetadata( self, md ):
 		self.additional_metadata = md
+
+	def setNameLengthDeltaThreshold( self, delta ):
+		self.length_delta_thresh = md
+
+	def setPublisherBlackList( self, blacklist ):
+		self.publisher_blacklist = blacklist
 
 	def setHasherAlgorithm( self, algo ):
 		self.image_hasher = algo
@@ -244,12 +253,31 @@ class IssueIdentifier:
 		
 		series_shortlist = []
 		
-		#self.log_msg( "Removing results with too long names" )
+		#self.log_msg( "Removing results with too long names, banned publishers, or future start dates" )
 		for item in cv_search_results:
+			length_approved = False
+			publisher_approved = True
+			date_approved = True
+			
+			# remove any series that starts after the issue year
+			if keys['year'] is not None and keys['year'].isdigit():
+				print "ATB",   keys['year'] , item['start_year']
+				if int(keys['year']) < item['start_year']:
+					date_approved = False
+					
 			#assume that our search name is close to the actual name, say within ,e.g. 5 chars
 			shortened_key =       utils.removearticles(keys['series'])
 			shortened_item_name = utils.removearticles(item['name'])
 			if len( shortened_item_name ) <  ( len( shortened_key ) + self.length_delta_thresh) :
+				length_approved = True
+				
+			# remove any series from publishers on the blacklist
+			if item['publisher'] is not None:
+				publisher = item['publisher']['name']
+				if publisher is not None and publisher.lower() in self.publisher_blacklist:
+					publisher_approved = False
+
+			if length_approved and publisher_approved and date_approved:
 				series_shortlist.append(item)
 		
 		# if we don't think it's an issue number 1, remove any series' that are one-shots
@@ -325,11 +353,15 @@ class IssueIdentifier:
 					match['issue_number'] = num_s
 					match['url_image_hash'] = url_image_hash
 					match['issue_title'] = issue['name']
-					match['img_url'] = thumb_url
+					match['img_url'] = img_url
 					match['issue_id'] = issue['id']
 					match['volume_id'] = series['id']
 					match['month'] = month
 					match['year'] = year
+					match['publisher'] = None
+					if series['publisher'] is not None:
+						match['publisher'] = series['publisher']['name']
+						
 					self.match_list.append(match)
 
 					self.log_msg( " --> {0}".format(match['distance']), newline=False )
@@ -370,18 +402,18 @@ class IssueIdentifier:
 			if best_score > self.min_score_thresh:
 				self.log_msg( "!!!! Very weak score for the cover.  Maybe it's not the cover?" )
 
-				self.log_msg( "Comparing other archive pages now..." )
+				self.log_msg( "Comparing to some other archive pages now..." )
 				found = False
-				for i in range(ca.getNumberOfPages()):
+				for i in range( min(5, ca.getNumberOfPages())):
 					image_data = ca.getPage(i)
 					page_hash = self.calculateHash( image_data )
 					distance = ImageHasher.hamming_distance(page_hash, self.match_list[0]['url_image_hash'])
 					if distance <= self.strong_score_thresh:
-						print "Found a great match d={0} on page {1}!".format(distance, i+1)
+						self.log_msg(  "Found a great match d={0} on page {1}!".format(distance, i+1) )
 						found = True
 						break
 					elif distance < self.min_score_thresh:
-						print "Found a good match d={0} on page {1}".format(distance, i)
+						self.log_msg( "Found a good match d={0} on page {1}".format(distance, i) )
 						found = True
 					self.log_msg( ".", newline=False )
 				self.log_msg( "" )

@@ -33,7 +33,7 @@ from genericmetadata import GenericMetadata
 from imagefetcher import  ImageFetcher
 from progresswindow import IDProgressWindow
 from settings import ComicTaggerSettings
-
+from matchselectionwindow import MatchSelectionWindow
 
 class SearchThread( QtCore.QThread):
 
@@ -111,12 +111,21 @@ class VolumeSelectionWindow(QtGui.QDialog):
 
 	def autoSelect( self ):
 
+		if self.comic_archive is None:
+			QtGui.QMessageBox.information(self,"Auto-Select", "You need to load a comic first!")
+			return
+			
+		if self.issue_number is None or self.issue_number == "":
+			QtGui.QMessageBox.information(self,"Auto-Select", "Can't auto-select without an issue number (yet!)")
+			return
+			
 		self.iddialog = IDProgressWindow( self)
 		self.iddialog.setModal(True)
 		self.iddialog.rejected.connect( self.identifyCancel )
 		self.iddialog.show()
 		
 		self.ii = IssueIdentifier( self.comic_archive, self.cv_api_key )
+		
 		
 		md = GenericMetadata()
 		md.series = self.series_name
@@ -151,29 +160,49 @@ class VolumeSelectionWindow(QtGui.QDialog):
 
 		matches = self.ii.match_list
 		result = self.ii.search_result
+		match_index = 0
 		
 		found_match = False
+		choices = False
 		if result == self.ii.ResultNoMatches:
 			QtGui.QMessageBox.information(self,"Auto-Select Result", " No matches found :-(")
 		elif result == self.ii.ResultFoundMatchButBadCoverScore:
-			QtGui.QMessageBox.information(self,"Auto-Select Result", " Found a match, but cover doesn't seem to match.  Verify before commiting!")
+			QtGui.QMessageBox.information(self,"Auto-Select Result", " Found a match, but cover doesn't seem the same.  Verify before commiting!")
 			found_match = True
 		elif result == self.ii.ResultFoundMatchButNotFirstPage :
 			QtGui.QMessageBox.information(self,"Auto-Select Result", " Found a match, but not with the first page of the archive.")
 			found_match = True
 		elif result == self.ii.ResultMultipleMatchesWithBadImageScores:
 			QtGui.QMessageBox.information(self,"Auto-Select Result", " Found some possibilities, but no confidence. Proceed manually.")
+			choices = True
 		elif result == self.ii.ResultOneGoodMatch:
 			found_match = True
 		elif result == self.ii.ResultMultipleGoodMatches:
-			QtGui.QMessageBox.information(self,"Auto-Select Result", " Found multiple likely matches!  Selection DIALOG TBD.")
+			QtGui.QMessageBox.information(self,"Auto-Select Result", " Found multiple likely matches.  Please select.")
+			choices = True
+
+		if choices:
+			selector = MatchSelectionWindow( self, matches )
+			selector.setModal(True)
 			
+			title = self.series_name
+			title += " #" + self.issue_number
+			if self.year is not None:
+				title += " (" + str(self.year) + ")"
+			title += " - "
+					
+			selector.setWindowTitle( title + "Select Match")
+			selector.exec_()
+			if selector.result():
+				#we should now have a list index
+				found_match = True
+				match_index = selector.current_row			
+		
 		if found_match:
 			self.iddialog.accept()
 
-			print "VolumeSelectionWindow found a match!!", matches[0]['volume_id'], matches[0]['issue_number']
-			self.volume_id = matches[0]['volume_id']
-			self.issue_number = matches[0]['issue_number']
+			self.volume_id = matches[match_index]['volume_id']
+			self.issue_number = matches[match_index]['issue_number']
 			self.selectByID()
 			self.showIssues()
 

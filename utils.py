@@ -53,9 +53,27 @@ def addtopath( dir ):
 	if dir is not None and dir != "": 
 		os.environ['PATH'] = dir + os.pathsep + os.environ['PATH']
 
+# returns executable path, if it exists
+def which(program):
+    import os
+    def is_exe(fpath):
+        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+
+    fpath, fname = os.path.split(program)
+    if fpath:
+        if is_exe(program):
+            return program
+    else:
+        for path in os.environ["PATH"].split(os.pathsep):
+            exe_file = os.path.join(path, program)
+            if is_exe(exe_file):
+                return exe_file
+
+    return None
+
 def removearticles( text ):
 	text = text.lower()
-	articles = ['and', 'the', 'a', '&' ]
+	articles = ['and', 'the', 'a', '&', 'issue' ]
 	newText = ''
 	for word in text.split(' '):
 		if word not in articles:

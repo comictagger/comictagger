@@ -103,7 +103,7 @@ class ImageFetcher(QObject):
 
 		# wipe any existing image cache folder too
 		if os.path.isdir( self.cache_folder ):
-			shutil.rmtree(path)
+			shutil.rmtree( self.cache_folder )
 		os.makedirs( self.cache_folder )
 
 		con = lite.connect( self.db_file )
