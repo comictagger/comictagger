@@ -91,7 +91,7 @@ class ComicVineCacher:
 			cur = con.cursor()    
 			
 			# remove all previous entries with this search term
-			cur.execute("DELETE FROM VolumeSearchCache WHERE search_term = '{0}'".format(search_term.lower()))
+			cur.execute("DELETE FROM VolumeSearchCache WHERE search_term = ?", [ search_term.lower() ])
 			
 			# now add in new results
 			for record in cv_search_results:
