@@ -2,8 +2,14 @@
 Features
 ----------------
 CLI
-  rename
-  save
+	save log
+	abort flag
+	explicit metadata settings option format
+		just series, issue, year??
+	multiple files?
+	verbose settings for identifier
+	interactive for choices option?
+		--- or defer choices to end, by keeping special log of those files
 	
 Settings/Preferences Dialog
 	Remove API Key
@@ -34,13 +40,11 @@ Bugs
 SERIOUS BUG: rebuilding zips!
     http://stackoverflow.com/questions/11578443/trigger-io-errno-18-cross-device-link
 
-Test ComicRack android
-
 OSX:
 	toolbar
 	weird unrar complaints
 	Page browser sizing
-	Override curson is not beachball
+	Override cursor is not beachball
 
 Other settings possibilities:
 	Last tag style
@@ -49,6 +53,8 @@ Other settings possibilities:
 	
 Filename parsing:
 	Rework how series name is separated from issue
+
+Test ComicRack android
 
 Form type validation Ints vs strings for month, year. etc
 

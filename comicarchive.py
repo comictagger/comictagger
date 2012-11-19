@@ -561,5 +561,5 @@ class ComicArchive:
 			metadata.publicationYear = fnp.year
 
 		metadata.isEmpty = False
-		
+
 		return metadata

@@ -97,6 +97,59 @@ class GenericMetadata:
 		self.tags               = list()
 		self.pages              = list()
 
+	def overlay( self, new_md ):
+		# Overlay a metadata object on this one
+		# that is, when the new object has non-None
+		# values, over-write them to this one
+		
+		def assign( cur, new ):
+			if new is not None:
+				setattr(self, cur, new)
+				
+		if not new_md.isEmpty:
+			self.isEmpty = False
+				
+		assign( 'series',            new_md.series )
+		assign( "issueNumber",       new_md.issueNumber )
+		assign( "issueCount",        new_md.issueCount )
+		assign( "title",             new_md.title )
+		assign( "publisher",         new_md.publisher )
+		assign( "publicationMonth",  new_md.publicationMonth )
+		assign( "publicationYear",   new_md.publicationYear )
+		assign( "volumeNumber",      new_md.volumeNumber )
+		assign( "volumeCount",       new_md.volumeCount )
+		assign( "genre",             new_md.genre )
+		assign( "language",          new_md.language )
+		assign( "country",           new_md.country )
+		assign( "alternateSeries",   new_md.criticalRating )
+		assign( "alt. series",       new_md.alternateSeries )
+		assign( "alternateNumber",   new_md.alternateNumber )
+		assign( "alternateCount",    new_md.alternateCount )
+		assign( "imprint",           new_md.imprint )
+		assign( "web",               new_md.webLink )
+		assign( "format",            new_md.format )
+		assign( "manga",             new_md.manga )
+		assign( "blackAndWhite",     new_md.blackAndWhite )
+		assign( "maturityRating",    new_md.maturityRating )
+		assign( "scanInfo",          new_md.scanInfo )
+		assign( "scanInfo",          new_md.scanInfo )
+		assign( "scanInfo",          new_md.scanInfo )
+		assign( "characters",        new_md.characters )
+		assign( "teams",             new_md.teams )
+		assign( "locations",         new_md.locations )
+		assign( "comments",          new_md.comments )
+		assign( "notes",             new_md.notes )
+		
+		# TODO
+		# not sure if the tags, credits, and pages should broken down, or treated
+		# as whole lists....  For now, go the easy route, where any overlay
+		# value wipes out the whole list
+		
+		assign( "tags",              new_md.tags )
+		assign( "credits",           new_md.credits )
+		assign( "pages",             new_md.pages )
+
+		
 	def addCredit( self, person, role, primary = False ):
 		
 		credit = dict()
@@ -114,7 +167,7 @@ class GenericMetadata:
 			return "No metadata"
 
 		def add( tag, val ):
-			if val is not None and str(val) != "":
+			if val is not None and u"{0}".format(val) != "":
 				vals.append( (tag, val) )
 
 		add( "series",         self.series )
@@ -148,10 +201,10 @@ class GenericMetadata:
 		add( "comments",       self.comments )
 		add( "notes",          self.notes )
 		add( "tags",           utils.listToString( self.tags ) )
+		
 		for c in self.credits:
 			add( "credit",     c['role']+": "+c['person'] )
 			
-
 		# find the longest field name
 		flen = 0
 		for i in vals:
@@ -160,7 +213,8 @@ class GenericMetadata:
 	
 		#format the data nicely
 		outstr = ""
+		fmt_str = u"{0: <" + str(flen) + "}: {1}\n"
 		for i in vals:
-			outstr += ("{0: <" + str(flen) + "}: {1}\n").format( i[0], i[1] )
+			outstr += fmt_str.format( i[0], i[1] )
 	
 		return outstr

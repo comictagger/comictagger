@@ -33,6 +33,8 @@ from taggerwindow import TaggerWindow
 from options import Options, MetaDataStyle
 from comicarchive import ComicArchive
 from issueidentifier import IssueIdentifier
+from genericmetadata import GenericMetadata
+from comicvinetalker import ComicVineTalker
 
 import utils
 
@@ -49,6 +51,11 @@ def cli_mode( opts, settings ):
 	if not ca.seemsToBeAComicArchive():
 		print "Sorry, but "+ opts.filename + "  is not a comic archive!"
 		return
+	
+	if not ca.isWritable() and ( opts.delete_tags or opts.save_tags or opts.rename_file ):
+		print "This archive is not writable."
+		return
+		
 
 	cix = False
 	cbi = False
@@ -81,61 +88,128 @@ def cli_mode( opts, settings ):
 		if opts.data_style is None or opts.data_style == MetaDataStyle.CIX:
 			if cix:
 				print "------ComicRack tags--------"
-				print ca.readCIX()
+				print u"{0}".format(ca.readCIX())
 		if opts.data_style is None or opts.data_style == MetaDataStyle.CBI:
 			if cbi:
 				print "------ComicBookLover tags--------"
-				print ca.readCBI()
+				print u"{0}".format(ca.readCBI())
 			
 			
-	elif opts.delete_tags:
-		if not ca.isWritable():
-			print "This archive is not writable."
-			return
-		
+	elif opts.delete_tags:		
 		if opts.data_style == MetaDataStyle.CIX:
 			if cix:
-				ca.removeCIX()
-				print "Removed ComicRack tags."
+				if not opts.dryrun:
+					ca.removeCIX()
+					print "Removed ComicRack tags."
+				else:
+					print "dry-run.  ComicRack tags not removed"					
 			else:
 				print "This archive doesn't have ComicRack tags."
 					
 		if opts.data_style == MetaDataStyle.CBI:
 			if cbi:
-				ca.removeCBI()
-				print "Removed ComicBookLover tags."
+				if not opts.dryrun:
+					ca.removeCBI()
+					print "Removed ComicBookLover tags."
+				else:
+					print "dry-run.  ComicBookLover tags not removed"					
 			else:
 				print "This archive doesn't have ComicBookLover tags."
 		
-	#elif opt.rename:
-	#	print "Gonna rename file"
-
 	elif opts.save_tags:
-		if opts.data_style == MetaDataStyle.CIX:
-			print "Gonna save ComicRack tags"
-		if opts.data_style == MetaDataStyle.CBI:
-			print "Gonna save ComicBookLover tags"
 		
-		"""
-		ii = IssueIdentifier( ca, settings.cv_api_key )
-		matches = ii.search()
-		
+		# OK we're gonna do a save of some new data		
+		md = GenericMetadata()
 
-		if len(matches) == 1:
+		# First read in existing data, if it's there		
+		if opts.data_style == MetaDataStyle.CIX and cix:
+				md = ca.readCIX()
+		elif opts.data_style == MetaDataStyle.CBI and cbi:
+				md = ca.readCBI()
+				
+		# now, overlay the new data onto the old, in order
+		
+		if opts.parse_filename:
+			md.overlay( ca.metadataFromFilename() )
+		
+		if opts.metadata is not None:
+			md.overlay( opts.metadata )
+			
+
+		# finally, search online
+		if opts.search_online:
+	
+			ii = IssueIdentifier( ca, "" )
+			
+			if md is None or md.isEmpty:
+				print "No metadata given to search online with!"
+				return
+
+			def myoutput( text ):
+				if opts.verbose:
+					IssueIdentifier.defaultWriteOutput( text )
+				
+			# use our overlayed MD struct to search
+			ii.setAdditionalMetadata( md )
+			ii.onlyUseAdditionalMetaData = True
+			ii.setOutputFunction( myoutput )
+			matches = ii.search()
+			
+			result = ii.search_result
+			
+			found_match = False
+			choices = False
+			low_confidence = False
+			
+			if result == ii.ResultNoMatches:
+				pass
+			elif result == ii.ResultFoundMatchButBadCoverScore:
+				low_confidence = False
+				found_match = True
+			elif result == ii.ResultFoundMatchButNotFirstPage :
+				found_match = True
+			elif result == ii.ResultMultipleMatchesWithBadImageScores:
+				low_confidence = False
+				choices = True
+			elif result == ii.ResultOneGoodMatch:
+				found_match = True
+			elif result == ii.ResultMultipleGoodMatches:
+				choices = True
+
+			if choices:
+				print "Online search: Multiple matches.  Save aborted"
+				return
+			if low_confidence:
+				print "Online search: Low confidence match.  Save aborted"
+				return
+			if not found_match:
+				print "Online search: No match found.  Save aborted"
+				return
+			
+			# we got here, so we have a single match
 			
 			# now get the particular issue data
-			metadata = comicVine.fetchIssueData( match[0]['series'],  match[0]['issue_number'] )
-			
-			# write out the new data
-			ca.writeMetadata( metadata, opts.data_style )
-			
-		elif len(matches) == 0:
-			pass
+			cv_md = ComicVineTalker().fetchIssueData( matches[0]['volume_id'],  matches[0]['issue_number'] )
+				
+			md.overlay( cv_md )
+		# ok, done building our metadata. time to save
 
-		elif len(matches) == 0:
-			# print match options, with CV issue ID's
-			pass
-		"""
+		#HACK 
+		opts.dryrun = True
+		#HACK 
+		
+		if not opts.dryrun:
+			# write out the new data
+			ca.writeMetadata( md, opts.data_style )
+		else:
+			print "dry-run option was set, so nothing was written, but here is the final set of tags:"
+			print u"{0}".format(md)
+
+	elif opt.rename_file:
+		print "File renaming TBD"
+
+			
+		
 #-----------------------------
 
 def main():

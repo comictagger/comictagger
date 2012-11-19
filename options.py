@@ -56,7 +56,7 @@ If no options are given, {0} will run in windowed mode
                              year
   -o, --online               Search online and attempt to identify file using 
                              existing metadata and images in archive. May be used
-                             in conjuntion with -p and -m
+                             in conjuntion with -f and -m
   -m, --metadata=LIST        Explicity define some tags to be used as a list                            
                              ....TBD........
                              ....TBD........
@@ -72,11 +72,11 @@ If no options are given, {0} will run in windowed mode
 		self.no_gui = False
 		self.filename = None  
 		self.verbose = False
-		self.md_settings = None
+		self.metadata = None
 		self.print_tags = False
 		self.delete_tags = False
 		self.search_online = False
-		self.dryrun = True  # keep this true for now!
+		self.dryrun = False
 		self.save_tags = False
 		self.parse_filename = False
 		self.rename_file = False
@@ -87,10 +87,12 @@ If no options are given, {0} will run in windowed mode
 			print( msg )
 		print self.help_text.format(appname)
 		sys.exit(code)
-		
+	
+	def parseMetadataFromString( self, mdstr ):
+		print "TBD!!!!!!!!!!!!!!!!!!!!!"
+		return None
 		
 	def parseCmdLineArgs(self):
-		
 			
 		# mac no likey this from .app bundle
 		if platform.system() == "Darwin" and getattr(sys, 'frozen', None):
@@ -121,7 +123,7 @@ If no options are given, {0} will run in windowed mode
 			if o in ("-n", "--dryrun"):
 				self.dryrun = True
 			if o in ("-m", "--metadata"):
-				self.md_settings = a
+				self.metadata = self.parseMetadataFromString(a)
 			if o in ("-s", "--save"):
 				self.save_tags = True
 			if o in ("-r", "--rename"):

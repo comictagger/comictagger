@@ -36,7 +36,7 @@ from genericmetadata import GenericMetadata
 
 class ComicVineTalker(QObject):
 
-	def __init__(self, api_key):
+	def __init__(self, api_key=""):
 		QObject.__init__(self)
 
 		# key that is registered to comictagger
@@ -142,7 +142,6 @@ class ComicVineTalker(QObject):
 
 	
 		volume_url = "http://api.comicvine.com/volume/" + str(series_id) + "/?api_key=" + self.api_key + "&format=json"
-		#print "search_url = : ", volume_url 
 
 		resp = urllib2.urlopen(volume_url) 
 		content = resp.read()
