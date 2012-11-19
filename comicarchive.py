@@ -559,6 +559,8 @@ class ComicArchive:
 			metadata.volumeNumber = fnp.volume
 		if fnp.year != "":
 			metadata.publicationYear = fnp.year
+		if fnp.issue_count != "":
+			metadata.issueCount = fnp.issue_count
 
 		metadata.isEmpty = False
 

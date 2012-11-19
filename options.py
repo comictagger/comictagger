@@ -80,6 +80,7 @@ If no options are given, {0} will run in windowed mode
 		self.save_tags = False
 		self.parse_filename = False
 		self.rename_file = False
+		self.file_list = []
 		
 	def display_help_and_quit( self, msg, code ):
 		appname = os.path.basename(sys.argv[0])
@@ -152,6 +153,7 @@ If no options are given, {0} will run in windowed mode
 		
 		if len(args) > 0:
 			self.filename = args[0]
+			self.file_list = args
 
 		if self.no_gui and self.filename is None:
 			self.display_help_and_quit( "Command requires a filename!", 1 )

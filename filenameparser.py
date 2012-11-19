@@ -47,11 +47,42 @@ class FileNameParser:
 		except ValueError:
 			pass
 		return ret
+
+
+	def getIssueCount( self,filename ):
+
+		count = ""
+		# replace any name seperators with spaces
+		tmpstr = self.fixSpaces(filename)
+		found = False
+		
+		match = re.search('(?<=\sof\s)\d+(?=\s)', tmpstr, re.IGNORECASE)
+		if match:
+			count = match.group()
+			found = True
+
+		if not found:
+			match = re.search('(?<=\(of\s)\d+(?=\))', tmpstr,  re.IGNORECASE)
+			if match:
+				count = match.group()
+				found = True
+			
+
+		count = count.lstrip("0")
+
+		return count
+		
 		
 	def getIssueNumber( self,filename ):
 
 		found = False
 		issue = ''
+		
+		# first, look for multiple "--", this mean's it's formatted differently from most:
+		if "--" in filename:
+			# the pattern seems to be that anything to left of the first "--" is the series name follow
+			filename = filename.split("--")[0]
+			
 		# guess based on position
 
 		# replace any name seperators with spaces
@@ -129,15 +160,8 @@ class FileNameParser:
 			year = re.sub("[^0-9]", "", year)
 		return year
 
-		self.issue = ""
-		self.series = "" 
-		self.volume = ""
-		self.year = ""
-
-
 	def parseFilename( self, filename ):
  
-		
 		# remove the path
 		filename = os.path.basename(filename)
 
@@ -159,6 +183,7 @@ class FileNameParser:
 		self.issue = self.getIssueNumber(filename)
 		self.series, self.volume = self.getSeriesName(filename, self.issue)
 		self.year = self.getYear(filename)
+		self.issue_count = self.getIssueCount(filename)
 	
 		if self.issue != "":
 			# strip off leading zeros

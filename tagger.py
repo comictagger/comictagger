@@ -41,15 +41,21 @@ import utils
 
 #-----------------------------
 def cli_mode( opts, settings ):
+	for f in opts.file_list:
+		print "Processing: ", f
+		process_file_cli( f, opts, settings )
 
-	if opts.filename is None:
+def process_file_cli( filename, opts, settings ):
+
+	if filename is None:
 		return
-	ca = ComicArchive(opts.filename)
+	
+	ca = ComicArchive(filename)
 	if settings.rar_exe_path != "":
 		ca.setExternalRarProgram( settings.rar_exe_path )	
 	
 	if not ca.seemsToBeAComicArchive():
-		print "Sorry, but "+ opts.filename + "  is not a comic archive!"
+		print "Sorry, but "+ filename + "  is not a comic archive!"
 		return
 	
 	if not ca.isWritable() and ( opts.delete_tags or opts.save_tags or opts.rename_file ):
@@ -164,12 +170,12 @@ def cli_mode( opts, settings ):
 			if result == ii.ResultNoMatches:
 				pass
 			elif result == ii.ResultFoundMatchButBadCoverScore:
-				low_confidence = False
+				#low_confidence = True
 				found_match = True
 			elif result == ii.ResultFoundMatchButNotFirstPage :
 				found_match = True
 			elif result == ii.ResultMultipleMatchesWithBadImageScores:
-				low_confidence = False
+				low_confidence = True
 				choices = True
 			elif result == ii.ResultOneGoodMatch:
 				found_match = True
