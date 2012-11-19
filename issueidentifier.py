@@ -261,7 +261,6 @@ class IssueIdentifier:
 			
 			# remove any series that starts after the issue year
 			if keys['year'] is not None and keys['year'].isdigit():
-				print "ATB",   keys['year'] , item['start_year']
 				if int(keys['year']) < item['start_year']:
 					date_approved = False
 					

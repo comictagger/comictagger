@@ -1,11 +1,9 @@
 -----------------
 Features
 ----------------
-Stand-alone CLI
-	Info dump
-	optionless args
-	remove tags
-	copy tags
+CLI
+  rename
+  save
 	
 Settings/Preferences Dialog
 	Remove API Key
@@ -13,6 +11,7 @@ Settings/Preferences Dialog
 	Add reset settings
 	Tab w/Identifier  Settings
 		Add publisher blacklist
+	    other Identifier tunings
 
 Add class for warning/info  messages with "Don't show again" checkbox.
    Add list of these flags to settings
@@ -22,17 +21,20 @@ TaggerWindow entry fields
 		Pages Info - maybe a custom painted widget
 		At minimum, preserve the page data
  
+File rename
+	-Dialog??
 	
 Style sheets for windows/mac/linux
+
+Better stripping of html from CV text
 
 -----------------
 Bugs
 ----------------
-
-SQLite chokes on "Batman\ Li'l Gotham 001.cbr" name -- Doesn't like single quote '
-
 SERIOUS BUG: rebuilding zips!
     http://stackoverflow.com/questions/11578443/trigger-io-errno-18-cross-device-link
+
+Test ComicRack android
 
 OSX:
 	toolbar

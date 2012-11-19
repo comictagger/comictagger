@@ -40,30 +40,102 @@ import utils
 #-----------------------------
 def cli_mode( opts, settings ):
 
+	if opts.filename is None:
+		return
 	ca = ComicArchive(opts.filename)
+	if settings.rar_exe_path != "":
+		ca.setExternalRarProgram( settings.rar_exe_path )	
+	
 	if not ca.seemsToBeAComicArchive():
 		print "Sorry, but "+ opts.filename + "  is not a comic archive!"
 		return
-	
-	ii = IssueIdentifier( ca, settings.cv_api_key )
-	matches = ii.search()
-	
-	"""
-	if len(matches) == 1:
-		
-		# now get the particular issue data
-		metadata = comicVine.fetchIssueData( match[0]['series'],  match[0]['issue_number'] )
-		
-		# write out the new data
-		ca.writeMetadata( metadata, opts.data_style )
-		
-	elif len(matches) == 0:
-		pass
 
-	elif len(matches) == 0:
-		# print match options, with CV issue ID's
-		pass
-	"""
+	cix = False
+	cbi = False
+	if ca.hasCIX(): cix = True
+	if ca.hasCBI(): cbi = True
+
+	if opts.print_tags:
+
+		if opts.data_style is None:
+			page_count = ca.getNumberOfPages()
+
+			brief = ""
+			if ca.isZip():      brief = "ZIP archive    "
+			elif ca.isRar():    brief = "RAR archive    "
+			elif ca.isFolder(): brief = "Folder archive "
+				
+			brief += "({0: >3} pages)".format(page_count)			
+			brief += "  tags:[ "
+
+			if not (cbi or cix):
+				brief += "none"
+			else:
+				if cbi: brief += "CBL "
+				if cix: brief += "CR "
+			brief += "]"
+				
+			print brief
+			print
+			
+		if opts.data_style is None or opts.data_style == MetaDataStyle.CIX:
+			if cix:
+				print "------ComicRack tags--------"
+				print ca.readCIX()
+		if opts.data_style is None or opts.data_style == MetaDataStyle.CBI:
+			if cbi:
+				print "------ComicBookLover tags--------"
+				print ca.readCBI()
+			
+			
+	elif opts.delete_tags:
+		if not ca.isWritable():
+			print "This archive is not writable."
+			return
+		
+		if opts.data_style == MetaDataStyle.CIX:
+			if cix:
+				ca.removeCIX()
+				print "Removed ComicRack tags."
+			else:
+				print "This archive doesn't have ComicRack tags."
+					
+		if opts.data_style == MetaDataStyle.CBI:
+			if cbi:
+				ca.removeCBI()
+				print "Removed ComicBookLover tags."
+			else:
+				print "This archive doesn't have ComicBookLover tags."
+		
+	#elif opt.rename:
+	#	print "Gonna rename file"
+
+	elif opts.save_tags:
+		if opts.data_style == MetaDataStyle.CIX:
+			print "Gonna save ComicRack tags"
+		if opts.data_style == MetaDataStyle.CBI:
+			print "Gonna save ComicBookLover tags"
+		
+		"""
+		ii = IssueIdentifier( ca, settings.cv_api_key )
+		matches = ii.search()
+		
+
+		if len(matches) == 1:
+			
+			# now get the particular issue data
+			metadata = comicVine.fetchIssueData( match[0]['series'],  match[0]['issue_number'] )
+			
+			# write out the new data
+			ca.writeMetadata( metadata, opts.data_style )
+			
+		elif len(matches) == 0:
+			pass
+
+		elif len(matches) == 0:
+			# print match options, with CV issue ID's
+			pass
+		"""
 #-----------------------------
 
 def main():
@@ -90,22 +162,8 @@ def main():
 		splash.raise_()
 		app.processEvents()
 
-		"""
-		lw = QtGui.QListWidget()
-		icon = QtGui.QIcon('app.png')
-		for i in range(10):
-			lw.addItem( QtGui.QListWidgetItem( icon,  "Item {0}".format(i) ) )
-			
-		lw.setDragDropMode(QtGui.QAbstractItemView.InternalMove)
-		#lw.setViewMode(QtGui.QListView.IconMode)	
-		lw.setMovement(QtGui.QListView.Snap)	
-		lw.setGridSize(QtCore.QSize(100,100))	
-		lw.show()
-		sys.exit(app.exec_())
-		"""
-
 		try:
-			tagger_window = TaggerWindow( opts, settings )
+			tagger_window = TaggerWindow( opts.filename, settings )
 			tagger_window.show()
 			splash.finish( tagger_window )
 			sys.exit(app.exec_())

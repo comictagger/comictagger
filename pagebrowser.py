@@ -26,7 +26,6 @@ from settings import ComicTaggerSettings
 
 class PageBrowserWindow(QtGui.QDialog):
 	
-	
 	def __init__(self, parent):
 		super(PageBrowserWindow, self).__init__(parent)
 		

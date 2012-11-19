@@ -27,7 +27,7 @@ import platform
 import os
 
 from volumeselectionwindow import VolumeSelectionWindow
-from options import Options, MetaDataStyle
+from options import MetaDataStyle
 from comicinfoxml import ComicInfoXml
 from genericmetadata import GenericMetadata
 from comicvinetalker import ComicVineTalker
@@ -64,162 +64,6 @@ def clickable(widget):
 	widget.installEventFilter(filter)
 	return filter.dblclicked
 
-"""
-class PageTableModel(QtCore.QAbstractTableModel):
-	
-	def __init__(self, comic_archive, parent=None, *args):	
-		QtCore.QAbstractTableModel.__init__(self, parent, *args)
-		
-		self.comic_archive = comic_archive
-		page_list = comic_archive.getPageNameList()
-		
-		self.page_model = []
-		i = 0
-		for page in page_list:
-			item = dict()
-			item['number'] = i
-			item['filename'] = page
-			item['thumb'] = None
-			
-			self.page_model.append( item )
-			i +=1
-
-
-	def rowCount(self, parent):
-		return len(self.page_model)
-
-	def columnCount(self, parent):
-		return 3
-
-	def data(self, index, role):
-		
-		if not index.isValid():
-			return QtCore.QVariant()
-		
-		elif role == QtCore.Qt.DisplayRole:
-			# page num
-			if index.column() == 0:
-				return QtCore.QVariant(self.page_model[index.row()]['number'])
-			
-			# page filename
-			if index.column() == 1:
-				return QtCore.QVariant(self.page_model[index.row()]['filename'])			
-
-		elif role == QtCore.Qt.DecorationRole:
-			
-			if index.column() == 2:
-				if self.page_model[index.row()]['thumb'] is None:
-				
-					image_data = self.comic_archive.getPage( self.page_model[index.row()]['number'] )
-					img = QtGui.QImage()
-					img.loadFromData( image_data )
-					pixmap = QtGui.QPixmap(QtGui.QPixmap(img))
-					#scaled_pixmap = pixmap.scaled(100, 150, QtCore.Qt.KeepAspectRatio)
-
-					self.page_model[index.row()]['thumb'] = pixmap #scaled_pixmap
-				
-				return QtCore.QVariant(self.page_model[index.row()]['thumb'])		
-		
-		else:
-			return QtCore.QVariant()
-"""	
-class PageListModel(QtCore.QAbstractListModel):
-	
-	def __init__(self, comic_archive, parent=None, *args):	
-		QtCore.QAbstractTableModel.__init__(self, parent, *args)
-		
-		self.comic_archive = comic_archive
-		page_list = comic_archive.getPageNameList()
-		
-		self.page_model = []
-		i = 0
-		for page in page_list:
-			item = dict()
-			item['number'] = i
-			item['filename'] = page
-			item['thumb'] = None
-			
-			self.page_model.append( item )
-			i +=1
-
-	def rowCount(self, parent):
-		return len(self.page_model)
-
-	def data(self, index, role):
-		
-		if not index.isValid():
-			return QtCore.QVariant()
-		
-		elif role == QtCore.Qt.DisplayRole:
-			# page num
-			return QtCore.QVariant(self.page_model[index.row()]['number'])
-
-		elif role == QtCore.Qt.DecorationRole:
-			
-			if self.page_model[index.row()]['thumb'] is None:
-
-				#timestamp = datetime.datetime.now()
-			
-				image_data = self.comic_archive.getPage( self.page_model[index.row()]['number'] )
-				img = QtGui.QImage()
-				img.loadFromData( image_data )
-				pixmap = QtGui.QPixmap(QtGui.QPixmap(img))
-				scaled_pixmap = pixmap.scaled(100, 150, QtCore.Qt.KeepAspectRatio)
-
-				self.page_model[index.row()]['thumb'] = scaled_pixmap
-			
-			return QtCore.QVariant(self.page_model[index.row()]['thumb'])		
-		
-		else:
-			return QtCore.QVariant()
-		
-	def flags( self, index):
-		defaultFlags = 	QtCore.QAbstractTableModel.flags(self, index)
-		if index.isValid():
-			return QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled | defaultFlags
-		else:
-			return QtCore.Qt.ItemIsDropEnabled | defaultFlags
-
-	def removeRows(self, row, count, parent=QtCore.QModelIndex()):
-		
-		print "removeRows", row, count
-		return True
-	
-	def insertRows(self, row, count, parent=QtCore.QModelIndex()):
-		
-		print "insertRows", row, count
-		return False	
-
-	def beginRemoveRows(self, sourceParent, start, end, destinationParent, dest):
-		print "beginRemoveRows"
-
-	def dropMimeData(self,data, action, row, col, parent):     
-		print "dropMimeData", action, row, col
-		
-
-		if (row != -1):
-			beginRow = row
-
-		elif (parent.isValid()):
-			beginRow = parent.row()	
-		
-		print beginRow
-		
-		return True
-		if (action == QtCore.Qt.IgnoreAction):
-			return True
-
-		#if ( not data.hasFormat("application/vnd.text.list"))
-		#	return False
-
-		if (column > 0):
-			return False	
-	#def beginMoveRows(self, sourceParent, start, end, destinationParent, dest):
-	#	print "rowsMoved"
-		
-	def	supportedDropActions(self):
-		#print "supportedDropActions"
-		return QtCore.Qt.CopyAction | QtCore.Qt.MoveAction
 
 
 class TaggerWindow( QtGui.QMainWindow):
@@ -227,7 +71,7 @@ class TaggerWindow( QtGui.QMainWindow):
 	appName = "ComicTagger"
 	version = ctversion.version
 	
-	def __init__(self, opts, settings, parent = None):
+	def __init__(self, filename, settings, parent = None):
 		super(TaggerWindow, self).__init__(parent)
 
 		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'taggerwindow.ui' ), self)
@@ -240,9 +84,8 @@ class TaggerWindow( QtGui.QMainWindow):
 		
 		#print platform.system(), platform.release()
 		self.dirtyFlag = False
-		self.opts = opts
 		self.settings = settings
-		self.data_style = opts.data_style
+		self.data_style = MetaDataStyle.CIX
 		
 		#set up a default metadata object
 		self.metadata = GenericMetadata()
@@ -270,16 +113,8 @@ class TaggerWindow( QtGui.QMainWindow):
 		
 		self.updateStyleTweaks()
 
-
-		self.openArchive( opts.filename )
-
-		# fill in some explicit metadata stuff from our options
-		# this overrides what we just read in
-		if self.metadata.series is None:
-			self.metadata.series = opts.series_name
-		if self.metadata.issueNumber is None:
-			self.metadata.issueNumber = opts.issue_number
-
+		if filename is not None:
+			self.openArchive( filename )
 
 	def updateAppTitle( self ):
 			
