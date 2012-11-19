@@ -85,6 +85,7 @@ If no options are given, {0} will run in windowed mode
 		self.dryrun = False
 		self.save_tags = False
 		self.parse_filename = False
+		self.raw = False
 		self.rename_file = False
 		self.file_list = []
 		
@@ -148,7 +149,7 @@ If no options are given, {0} will run in windowed mode
 		try:
 			opts, args = getopt.getopt(sys.argv[1:], 
 			           "hpdt:fm:vonsr", 
-			           [ "help", "print", "delete", "type=", "parsefilename", "metadata=", "verbose", "online", "dryrun", "save", "rename"  ])
+			           [ "help", "print", "delete", "type=", "parsefilename", "metadata=", "verbose", "online", "dryrun", "save", "rename" , "raw" ])
 			           
 		except getopt.GetoptError as err:
 			self.display_help_and_quit( str(err), 2 )
@@ -175,6 +176,8 @@ If no options are given, {0} will run in windowed mode
 				self.rename_file = True
 			if o in ("-f", "--parsefilename"):
 				self.parse_filename = True
+			if o in ("--raw"):
+				self.raw = True
 			if o in ("-t", "--type"):
 				if a.lower() == "cr":
 					self.data_style = MetaDataStyle.CIX

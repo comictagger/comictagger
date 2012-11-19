@@ -33,6 +33,8 @@ Bugs
 ----------------
 Unicode errors when piping or redirecting stdout
 
+Broke windows installer graphics somehow
+
 Windows zip and rar: set proper path for writing to archive
 
 SERIOUS BUG: rebuilding zips!

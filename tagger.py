@@ -25,6 +25,8 @@ import signal
 import os
 import traceback
 import time
+from pprint import pprint
+import json
 
 from PyQt4 import QtCore, QtGui
 
@@ -95,12 +97,18 @@ def process_file_cli( filename, opts, settings ):
 		if opts.data_style is None or opts.data_style == MetaDataStyle.CIX:
 			if cix:
 				print "------ComicRack tags--------"
-				print u"{0}".format(ca.readCIX()).encode("utf-8")
+				if opts.raw:
+					print u"{0}".format(ca.readRawCIX()).encode("utf-8")	
+				else:
+					print u"{0}".format(ca.readCIX()).encode("utf-8")
 				
 		if opts.data_style is None or opts.data_style == MetaDataStyle.CBI:
 			if cbi:
 				print "------ComicBookLover tags--------"
-				print u"{0}".format(ca.readCBI()).encode("utf-8")
+				if opts.raw:
+					pprint(json.loads(ca.readRawCBI()))
+				else:
+					print u"{0}".format(ca.readCBI()).encode("utf-8")
 			
 			
 	elif opts.delete_tags:		

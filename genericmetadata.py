@@ -199,7 +199,8 @@ class GenericMetadata:
 		add_attr_string( "webLink" )
 		add_attr_string( "format" )
 		add_attr_string( "manga" )
-		add_attr_string( "blackAndWhite" )
+		if self.blackAndWhite:
+			add_attr_string( "blackAndWhite" )
 		add_attr_string( "maturityRating" )
 		add_attr_string( "storyArc" )
 		add_attr_string( "seriesGroup" )

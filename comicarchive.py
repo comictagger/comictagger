@@ -489,17 +489,20 @@ class ComicArchive:
 		return len( self.getPageNameList( sort_list=False ) )
 
 	def readCBI( self ):
-
-		if ( not self.hasCBI() ):
+		raw_cbi = self.readRawCBI()
+		if raw_cbi is None:
 			return GenericMetadata()
-
-		cbi_string = self.archiver.getArchiveComment()
 		
-		metadata = ComicBookInfo().metadataFromString( cbi_string )
-		return metadata
+		return ComicBookInfo().metadataFromString( raw_cbi )
+	
+	def readRawCBI( self ):
+		if ( not self.hasCBI() ):
+			return None
+
+		return self.archiver.getArchiveComment()
+
 
 	def writeCBI( self, metadata ):
-
 		cbi_string = ComicBookInfo().stringFromMetadata( metadata )
 		self.archiver.setArchiveComment( cbi_string )
 		
@@ -507,16 +510,19 @@ class ComicArchive:
 		self.archiver.setArchiveComment( "" )
 		
 	def readCIX( self ):
-		
+		raw_cix = self.readRawCIX()
+		if raw_cix is None:
+			return GenericMetadata()
+			
+		return ComicInfoXml().metadataFromString( raw_cix )		
+
+	def readRawCIX( self ):
 		if not self.hasCIX():
 			print self.path, "doesn't has ComicInfo.xml data!"
-			return GenericMetadata()
+			return None
 
-		cix_string = self.archiver.readArchiveFile( self.ci_xml_filename )
+		return  self.archiver.readArchiveFile( self.ci_xml_filename )
 		
-		metadata = ComicInfoXml().metadataFromString( cix_string )		
-		return metadata
-
 	def writeCIX(self, metadata):
 
 		if metadata is not None:
