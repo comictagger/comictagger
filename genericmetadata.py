@@ -58,13 +58,13 @@ class GenericMetadata:
 		self.tagOrigin = None
 		
 		self.series             = None
-		self.issueNumber        = None
+		self.issue              = None
 		self.title              = None
 		self.publisher          = None
-		self.publicationMonth   = None
-		self.publicationYear    = None
+		self.month              = None
+		self.year               = None
 		self.issueCount         = None
-		self.volumeNumber       = None
+		self.volume             = None
 		self.genre              = None
 		self.language           = None  # 2 letter iso code
 		self.comments           = None  # use same way as Summary in CIX
@@ -104,25 +104,28 @@ class GenericMetadata:
 		
 		def assign( cur, new ):
 			if new is not None:
-				setattr(self, cur, new)
+				if type(new) == str and len(new) == 0:
+					setattr(self, cur, None)
+				else:
+					setattr(self, cur, new)
 				
 		if not new_md.isEmpty:
 			self.isEmpty = False
 				
 		assign( 'series',            new_md.series )
-		assign( "issueNumber",       new_md.issueNumber )
+		assign( "issue",             new_md.issue )
 		assign( "issueCount",        new_md.issueCount )
 		assign( "title",             new_md.title )
 		assign( "publisher",         new_md.publisher )
-		assign( "publicationMonth",  new_md.publicationMonth )
-		assign( "publicationYear",   new_md.publicationYear )
-		assign( "volumeNumber",      new_md.volumeNumber )
+		assign( "month",             new_md.month )
+		assign( "year",              new_md.year )
+		assign( "volume",            new_md.volume )
 		assign( "volumeCount",       new_md.volumeCount )
 		assign( "genre",             new_md.genre )
 		assign( "language",          new_md.language )
 		assign( "country",           new_md.country )
 		assign( "alternateSeries",   new_md.criticalRating )
-		assign( "alt. series",       new_md.alternateSeries )
+		assign( "alternateSeries",   new_md.alternateSeries )
 		assign( "alternateNumber",   new_md.alternateNumber )
 		assign( "alternateCount",    new_md.alternateCount )
 		assign( "imprint",           new_md.imprint )
@@ -144,10 +147,12 @@ class GenericMetadata:
 		# not sure if the tags, credits, and pages should broken down, or treated
 		# as whole lists....  For now, go the easy route, where any overlay
 		# value wipes out the whole list
-		
-		assign( "tags",              new_md.tags )
-		assign( "credits",           new_md.credits )
-		assign( "pages",             new_md.pages )
+		if len(new_md.tags) > 0:
+			assign( "tags",              new_md.tags )
+		if len(new_md.credits) > 0:	
+			assign( "credits",           new_md.credits )
+		if len(new_md.pages) > 0:	
+			assign( "pages",           new_md.pages )
 
 		
 	def addCredit( self, person, role, primary = False ):
@@ -166,44 +171,49 @@ class GenericMetadata:
 		if self.isEmpty:
 			return "No metadata"
 
-		def add( tag, val ):
+		def add_string( tag, val ):
 			if val is not None and u"{0}".format(val) != "":
 				vals.append( (tag, val) )
 
-		add( "series",         self.series )
-		add( "issue number",   self.issueNumber )
-		add( "issue count",    self.issueCount )
-		add( "title",          self.title )
-		add( "publisher",      self.publisher )
-		add( "month",          self.publicationMonth )
-		add( "year",           self.publicationYear )
-		add( "volume number",  self.volumeNumber )
-		add( "volume count",   self.volumeCount )
-		add( "genre",          self.genre )
-		add( "language",       self.language )
-		add( "country",        self.country )
-		add( "user rating",    self.criticalRating )
-		add( "alt. series",    self.alternateSeries )
-		add( "alt. number",    self.alternateNumber )
-		add( "alt. count",     self.alternateCount )
-		add( "imprint",        self.imprint )
-		add( "web",            self.webLink )
-		add( "format",         self.format )
-		add( "manga",          self.manga )
-		add( "B&W",            self.blackAndWhite )
-		add( "age rating",     self.maturityRating )
-		add( "story arc",      self.storyArc )
-		add( "series group",   self.seriesGroup )
-		add( "scan info",      self.scanInfo )
-		add( "characters",     self.characters )
-		add( "teams",          self.teams )
-		add( "locations",      self.locations )
-		add( "comments",       self.comments )
-		add( "notes",          self.notes )
-		add( "tags",           utils.listToString( self.tags ) )
+		def add_attr_string( tag ):
+			val = getattr(self,tag)
+			add_string( tag, getattr(self,tag) )
+
+		add_attr_string( "series" )
+		add_attr_string( "issue" )
+		add_attr_string( "issueCount" )
+		add_attr_string( "title" )
+		add_attr_string( "publisher" )
+		add_attr_string( "month" )
+		add_attr_string( "year" )
+		add_attr_string( "volume" )
+		add_attr_string( "volumeCount" )
+		add_attr_string( "genre" )
+		add_attr_string( "language" )
+		add_attr_string( "country" )
+		add_attr_string( "criticalRating" )
+		add_attr_string( "alternateSeries" )
+		add_attr_string( "alternateNumber" )
+		add_attr_string( "alternateCount" )
+		add_attr_string( "imprint" )
+		add_attr_string( "webLink" )
+		add_attr_string( "format" )
+		add_attr_string( "manga" )
+		add_attr_string( "blackAndWhite" )
+		add_attr_string( "maturityRating" )
+		add_attr_string( "storyArc" )
+		add_attr_string( "seriesGroup" )
+		add_attr_string( "scanInfo" )
+		add_attr_string( "characters" )
+		add_attr_string( "teams" )
+		add_attr_string( "locations" )
+		add_attr_string( "comments" )
+		add_attr_string( "notes" )
 		
+		add_string( "tags",  utils.listToString( self.tags ) )
+		 
 		for c in self.credits:
-			add( "credit",     c['role']+": "+c['person'] )
+			add_string( "credit",     c['role']+": "+c['person'] )
 			
 		# find the longest field name
 		flen = 0
@@ -213,8 +223,8 @@ class GenericMetadata:
 	
 		#format the data nicely
 		outstr = ""
-		fmt_str = u"{0: <" + str(flen) + "}: {1}\n"
+		fmt_str = u"{0: <" + str(flen) + "} {1}\n"
 		for i in vals:
-			outstr += fmt_str.format( i[0], i[1] )
+			outstr += fmt_str.format( i[0]+":", i[1] )
 	
 		return outstr

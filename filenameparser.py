@@ -73,7 +73,7 @@ class FileNameParser:
 		return count
 		
 		
-	def getIssueNumber( self,filename ):
+	def getIssueNumber( self, filename ):
 
 		found = False
 		issue = ''

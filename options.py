@@ -23,6 +23,8 @@ import getopt
 import platform
 import os
 
+from genericmetadata import GenericMetadata
+
 class Enum(set):
     def __getattr__(self, name):
         if name in self:
@@ -57,9 +59,13 @@ If no options are given, {0} will run in windowed mode
   -o, --online               Search online and attempt to identify file using 
                              existing metadata and images in archive. May be used
                              in conjuntion with -f and -m
-  -m, --metadata=LIST        Explicity define some tags to be used as a list                            
-                             ....TBD........
-                             ....TBD........
+  -m, --metadata=LIST        Explicity define, as a list, some tags to be used                           
+                                e.g. "series=Plastic Man , publisher=Quality Comics"
+                                     "series=Kickers^, Inc., issue=1, year=1986"
+                             Name-Value pairs are comma separated.  Use a "^" to 
+                             escape an "=" or a ",", ash show in the example above
+                             Some names that can be used:
+                                 series, issue, issueCount, year, publisher, title
   -r, --rename               Rename the file based on metadata as indicated.  TBD!
   -a, --abort                Abort save operation when online match is of low confidence TBD!  
   -v, --verbose              Be noisy when doing what it does                            
@@ -90,8 +96,46 @@ If no options are given, {0} will run in windowed mode
 		sys.exit(code)
 	
 	def parseMetadataFromString( self, mdstr ):
-		print "TBD!!!!!!!!!!!!!!!!!!!!!"
-		return None
+		# The metadata string is a comma separated list of name-value pairs
+		# The names match the attributes of the internal metadata struct (for now)
+		# The caret is the special "escape character", since it's not common in 
+		# natural language text
+
+		# example = "series=Kickers^, Inc. ,issue=1, year=1986"
+		
+		escaped_comma = "^,"
+		escaped_equals = "^="		
+		replacement_token = "<_~_>"
+		
+		md = GenericMetadata()
+
+		# First, replace escaped commas with with a unique token (to be changed back later)
+		mdstr = mdstr.replace( escaped_comma, replacement_token)
+		tmp_list = mdstr.split(",")
+		md_list = []
+		for item in tmp_list:
+			item = item.replace( replacement_token, "," )
+			md_list.append(item)
+			
+		# Now build a nice dict from the list
+		md_dict = dict()
+		for item in md_list:
+			# Make sure to fix any escaped equal signs
+			i = item.replace( escaped_equals, replacement_token)
+			key,value = i.split("=")
+			value = value.replace( replacement_token, "=" ).strip()
+			key = key.strip()
+			md_dict[key] = value
+		
+		# Map the dict to the metadata object
+		for key in md_dict:
+			if not hasattr(md, key):
+				print "Warning: '{0}' is not a valid tag name".format(key)
+			else:
+				md.isEmpty = False
+				setattr( md, key, md_dict[key] )
+		#print md
+		return md
 		
 	def parseCmdLineArgs(self):
 			

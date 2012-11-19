@@ -193,11 +193,11 @@ class ComicVineTalker(QObject):
 		if math.floor(num_f) != num_f:
 			num_s = str( num_f )
 			
-		metadata.issueNumber = num_s
+		metadata.issue = num_s
 		metadata.title = issue_results['name']
 		metadata.publisher = volume_results['publisher']['name']
-		metadata.publicationMonth = issue_results['publish_month']
-		metadata.publicationYear = issue_results['publish_year']
+		metadata.month = issue_results['publish_month']
+		metadata.year = issue_results['publish_year']
 		#metadata.issueCount = volume_results['count_of_issues']
 		metadata.comments = self.cleanup_html(issue_results['description'])
 

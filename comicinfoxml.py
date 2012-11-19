@@ -54,8 +54,10 @@ class ComicInfoXml:
 
 	def stringFromMetadata( self, metadata ):
 
+		header = '<?xml version="1.0"?>\n'
+		
 		tree = self.convertMetadataToXML( self, metadata )
-		return ET.tostring(tree.getroot())
+		return header + ET.tostring(tree.getroot())
 
 	def indent( self, elem, level=0 ):
 		# for making the XML output readable
@@ -80,25 +82,25 @@ class ComicInfoXml:
 
 		# build a tree structure
 		root = ET.Element("ComicInfo")
-
-
+		root.attrib['xmlns:xsi']="http://www.w3.org/2001/XMLSchema-instance"
+		root.attrib['xmlns:xsd']="http://www.w3.org/2001/XMLSchema"
 		#helper func
 		def assign( cix_entry, md_entry):
 			if md_entry is not None:
 				ET.SubElement(root, cix_entry).text = u"{0}".format(md_entry)
 
 		assign( 'Series', md.series )
-		assign( 'Number', md.issueNumber )
+		assign( 'Number', md.issue )
 		assign( 'Title', md.title )
 		assign( 'Count', md.issueCount )
-		assign( 'Volume', md.volumeNumber )
+		assign( 'Volume', md.volume )
 		assign( 'AlternateSeries', md.alternateSeries )
 		assign( 'AlternateNumber', md.alternateNumber )
 		assign( 'AlternateCount', md.alternateCount )
 		assign( 'Summary', md.comments )
 		assign( 'Notes', md.notes )
-		assign( 'Year', md.publicationYear )
-		assign( 'Month', md.publicationMonth )
+		assign( 'Year', md.year )
+		assign( 'Month', md.month )
 		assign( 'Publisher', md.publisher )
 		assign( 'Imprint', md.imprint )
 		assign( 'Genre', md.genre )
@@ -213,16 +215,16 @@ class ComicInfoXml:
 				
 		md.series =           xlate( 'Series' )
 		md.title =            xlate( 'Title' )
-		md.issueNumber =      xlate( 'Number' )
+		md.issue =            xlate( 'Number' )
 		md.issueCount =       xlate( 'Count' )
-		md.volumeNumber =     xlate( 'Volume' )
+		md.volume =           xlate( 'Volume' )
 		md.alternateSeries =  xlate( 'AlternateSeries' )
 		md.alternateNumber =  xlate( 'AlternateNumber' )
 		md.alternateCount =   xlate( 'AlternateCount' )
 		md.comments =         xlate( 'Summary' )
 		md.notes =            xlate( 'Notes' )
-		md.publicationYear =  xlate( 'Year' )
-		md.publicationMonth = xlate( 'Month' )
+		md.year =             xlate( 'Year' )
+		md.month =            xlate( 'Month' )
 		md.publisher =        xlate( 'Publisher' )
 		md.imprint =          xlate( 'Imprint' )
 		md.genre =            xlate( 'Genre' )

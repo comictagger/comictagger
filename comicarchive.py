@@ -552,13 +552,13 @@ class ComicArchive:
 		fnp.parseFilename( self.path )
 
 		if fnp.issue != "":
-			metadata.issueNumber = fnp.issue
+			metadata.issue = fnp.issue
 		if fnp.series != "":
 			metadata.series = fnp.series
 		if fnp.volume != "":
-			metadata.volumeNumber = fnp.volume
+			metadata.volume = fnp.volume
 		if fnp.year != "":
-			metadata.publicationYear = fnp.year
+			metadata.year = fnp.year
 		if fnp.issue_count != "":
 			metadata.issueCount = fnp.issue_count
 

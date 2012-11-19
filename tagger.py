@@ -42,7 +42,8 @@ import utils
 #-----------------------------
 def cli_mode( opts, settings ):
 	for f in opts.file_list:
-		print "Processing: ", f
+		if len( opts.file_list ) > 1:
+			print "Processing: ", f
 		process_file_cli( f, opts, settings )
 
 def process_file_cli( filename, opts, settings ):
@@ -94,11 +95,12 @@ def process_file_cli( filename, opts, settings ):
 		if opts.data_style is None or opts.data_style == MetaDataStyle.CIX:
 			if cix:
 				print "------ComicRack tags--------"
-				print u"{0}".format(ca.readCIX())
+				print u"{0}".format(ca.readCIX()).encode("utf-8")
+				
 		if opts.data_style is None or opts.data_style == MetaDataStyle.CBI:
 			if cbi:
 				print "------ComicBookLover tags--------"
-				print u"{0}".format(ca.readCBI())
+				print u"{0}".format(ca.readCBI()).encode("utf-8")
 			
 			
 	elif opts.delete_tags:		

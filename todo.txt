@@ -1,15 +1,6 @@
 -----------------
 Features
 ----------------
-CLI
-	multiple files?
-		save log
-	abort flag
-	explicit metadata settings option format
-		just series, issue, year??
-	verbose settings for identifier
-	interactive for choices option?
-		--- or defer choices to end, by keeping special log of those files
 	
 Settings/Preferences Dialog
 	Remove API Key
@@ -40,6 +31,10 @@ Better stripping of html from CV text
 -----------------
 Bugs
 ----------------
+Unicode errors when piping or redirecting stdout
+
+Windows zip and rar: set proper path for writing to archive
+
 SERIOUS BUG: rebuilding zips!
     http://stackoverflow.com/questions/11578443/trigger-io-errno-18-cross-device-link
 
@@ -52,8 +47,6 @@ OSX:
 Filename parsing:
 	Rework how series name is separated from issue
 
-Test ComicRack android
-
 Form type validation Ints vs strings for month, year. etc
 
 Check all HTTP responses for errors
@@ -64,6 +57,16 @@ Lots of error checking
 -------------
 Future
 ------------
+
+CLI
+	write a log for multiple file processing
+	override abort on low confidence flag
+	explicit metadata settings option format
+		-- figure out how to add credits,tags
+	interactive for choices option?
+		--- or defer choices to end, by keeping special log of those files
+
+
 Add  warning message to allow writing CBI to RAR, and ask them to contact CBL ! :-)
 
 Scrape alternate Covers from ComicVine issue pages
@@ -91,6 +94,8 @@ Idea:  Support only CBI or CIX for any given file, and not both
 Longer term:
 	Think about mass tagging and (semi) automatic volume selection
 
+	<?xml version="1.0"?>
+-<ComicInfo xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
 ----------------------------------------------
 COMIC RACK Questions

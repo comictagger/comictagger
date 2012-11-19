@@ -137,9 +137,9 @@ class IssueIdentifier:
 
 		if self.onlyUseAdditionalMetaData:
 			search_keys['series'] = self.additional_metadata.series
-			search_keys['issue_number'] = self.additional_metadata.issueNumber
-			search_keys['year'] = self.additional_metadata.publicationYear
-			search_keys['month'] = self.additional_metadata.publicationMonth
+			search_keys['issue_number'] = self.additional_metadata.issue
+			search_keys['year'] = self.additional_metadata.year
+			search_keys['month'] = self.additional_metadata.month
 			return search_keys
 
 		# see if the archive has any useful meta data for searching with
@@ -165,26 +165,26 @@ class IssueIdentifier:
 		else:
 			search_keys['series'] = md_from_filename.series
 
-		if self.additional_metadata.issueNumber is not None:
-			search_keys['issue_number'] = self.additional_metadata.issueNumber
-		elif internal_metadata.issueNumber is not None:
-			search_keys['issue_number'] = internal_metadata.issueNumber
+		if self.additional_metadata.issue is not None:
+			search_keys['issue_number'] = self.additional_metadata.issue
+		elif internal_metadata.issue is not None:
+			search_keys['issue_number'] = internal_metadata.issue
 		else:
-			search_keys['issue_number'] = md_from_filename.issueNumber
+			search_keys['issue_number'] = md_from_filename.issue
 			
-		if self.additional_metadata.publicationYear is not None:
-			search_keys['year'] = self.additional_metadata.publicationYear
-		elif internal_metadata.publicationYear is not None:
-			search_keys['year'] = internal_metadata.publicationYear
+		if self.additional_metadata.year is not None:
+			search_keys['year'] = self.additional_metadata.year
+		elif internal_metadata.year is not None:
+			search_keys['year'] = internal_metadata.year
 		else:
-			search_keys['year'] = md_from_filename.publicationYear
+			search_keys['year'] = md_from_filename.year
 
-		if self.additional_metadata.publicationMonth is not None:
-			search_keys['month'] = self.additional_metadata.publicationMonth
-		elif internal_metadata.publicationMonth is not None:
-			search_keys['month'] = internal_metadata.publicationMonth
+		if self.additional_metadata.month is not None:
+			search_keys['month'] = self.additional_metadata.month
+		elif internal_metadata.month is not None:
+			search_keys['month'] = internal_metadata.month
 		else:
-			search_keys['month'] = md_from_filename.publicationMonth
+			search_keys['month'] = md_from_filename.month
 			
 		return search_keys
 
@@ -230,15 +230,15 @@ class IssueIdentifier:
 			self.log_msg("Not enough info for a search!")
 			return []
 		
-		"""
+		
 		self.log_msg( "Going to search for:" )
-		self.log_msg( "Series: " + keys['series'] )
-		self.log_msg( "Issue : " + keys['issue_number']  )
+		self.log_msg( "\tSeries: " + keys['series'] )
+		self.log_msg( "\tIssue : " + keys['issue_number']  )
 		if keys['year'] is not None:
-			self.log_msg( "Year :  " + keys['year'] )
+			self.log_msg( "\tYear :  " + keys['year'] )
 		if keys['month'] is not None:
-			self.log_msg( "Month : " + keys['month'] )
-		"""
+			self.log_msg( "\tMonth : " + keys['month'] )
+		
 		
 		comicVine = ComicVineTalker( self.cv_api_key )
 

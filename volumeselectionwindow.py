@@ -129,8 +129,8 @@ class VolumeSelectionWindow(QtGui.QDialog):
 		
 		md = GenericMetadata()
 		md.series = self.series_name
-		md.issueNumber = self.issue_number
-		md.publicationYear = self.year
+		md.issue = self.issue_number
+		md.year = self.year
 
 		self.ii.setAdditionalMetadata( md )
 		self.ii.onlyUseAdditionalMetaData = True
