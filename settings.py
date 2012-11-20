@@ -35,6 +35,14 @@ class ComicTaggerSettings:
 	unrar_exe_path = ""
 	cv_api_key = ""
 	
+	# automatic settings
+	last_selected_data_style = 0
+	last_opened_folder = None
+	last_main_window_width = 0
+	last_main_window_height = 0
+	last_main_window_x = 0
+	last_main_window_y = 0
+	
 	@staticmethod
 	def getSettingsFolder():
 		if platform.system() == "Windows":
@@ -93,23 +101,42 @@ class ComicTaggerSettings:
 
 	def load(self):
 		
-		#print "reading", self.path
 		self.config.read( self.settings_file )
 		
 		self.rar_exe_path =    self.config.get( 'settings', 'rar_exe_path' )
 		self.unrar_exe_path =  self.config.get( 'settings', 'unrar_exe_path' )
-		self.cv_api_key =      self.config.get( 'settings', 'cv_api_key' )
+		#self.cv_api_key =      self.config.get( 'settings', 'cv_api_key' )
     
+		self.last_selected_data_style =  self.config.getint( 'auto', 'last_selected_data_style' )
+		self.last_opened_folder =        self.config.get( 'auto', 'last_opened_folder' )
+		if self.config.has_option('auto', 'last_main_window_width'):
+			self.last_main_window_width =    self.config.getint( 'auto', 'last_main_window_width' )
+		if self.config.has_option('auto', 'last_main_window_height'):
+			self.last_main_window_height =   self.config.getint( 'auto', 'last_main_window_height' )
+		if self.config.has_option('auto', 'last_main_window_x'):
+			self.last_main_window_x =   self.config.getint( 'auto', 'last_main_window_x' )
+		if self.config.has_option('auto', 'last_main_window_y'):
+			self.last_main_window_y =   self.config.getint( 'auto', 'last_main_window_y' )
     
 	def save( self ):
 
 		if not self.config.has_section( 'settings' ):
 			self.config.add_section( 'settings' )
 			
-		self.config.set( 'settings', 'cv_api_key',     self.cv_api_key )
+		#self.config.set( 'settings', 'cv_api_key',     self.cv_api_key )
 		self.config.set( 'settings', 'rar_exe_path',   self.rar_exe_path )
 		self.config.set( 'settings', 'unrar_exe_path', self.unrar_exe_path )
 
+		if not self.config.has_section( 'auto' ):
+			self.config.add_section( 'auto' )
+
+		self.config.set( 'auto', 'last_selected_data_style', self.last_selected_data_style )
+		self.config.set( 'auto', 'last_opened_folder', self.last_opened_folder )
+		self.config.set( 'auto', 'last_main_window_width', self.last_main_window_width )
+		self.config.set( 'auto', 'last_main_window_height', self.last_main_window_height )
+		self.config.set( 'auto', 'last_main_window_x', self.last_main_window_x )
+		self.config.set( 'auto', 'last_main_window_y', self.last_main_window_y )
+			
 		with open( self.settings_file, 'wb') as configfile:
 			self.config.write(configfile)    
     

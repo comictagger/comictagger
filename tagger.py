@@ -39,7 +39,7 @@ from genericmetadata import GenericMetadata
 from comicvinetalker import ComicVineTalker
 
 import utils
-
+import codecs
 
 #-----------------------------
 def cli_mode( opts, settings ):
@@ -98,9 +98,9 @@ def process_file_cli( filename, opts, settings ):
 			if cix:
 				print "------ComicRack tags--------"
 				if opts.raw:
-					print u"{0}".format(ca.readRawCIX()).encode("utf-8")	
+					print u"{0}".format(ca.readRawCIX())
 				else:
-					print u"{0}".format(ca.readCIX()).encode("utf-8")
+					print u"{0}".format(ca.readCIX())
 				
 		if opts.data_style is None or opts.data_style == MetaDataStyle.CBI:
 			if cbi:
@@ -108,7 +108,7 @@ def process_file_cli( filename, opts, settings ):
 				if opts.raw:
 					pprint(json.loads(ca.readRawCBI()))
 				else:
-					print u"{0}".format(ca.readCBI()).encode("utf-8")
+					print u"{0}".format(ca.readCBI())
 			
 			
 	elif opts.delete_tags:		
@@ -229,6 +229,10 @@ def process_file_cli( filename, opts, settings ):
 #-----------------------------
 
 def main():
+	
+	# try to make stdout encodings happy for unicode
+	sys.stdout = codecs.getwriter('utf8')(sys.stdout)
+
 	opts = Options()
 	opts.parseCmdLineArgs()
 

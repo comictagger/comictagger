@@ -81,15 +81,21 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.setWindowIcon(QtGui.QIcon(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/app.png' )))
 		
 		self.lblCover.setPixmap(QtGui.QPixmap(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/nocover.png' )))
-		self.center()
-		self.show()
-		self.raise_()
 		
 		#print platform.system(), platform.release()
 		self.dirtyFlag = False
 		self.settings = settings
-		self.data_style = MetaDataStyle.CIX
-		
+		self.data_style = settings.last_selected_data_style
+
+		if self.settings.last_main_window_width != 0:
+			geo = QtCore.QRect( self.settings.last_main_window_x, 
+			                  self.settings.last_main_window_y,
+			                  self.settings.last_main_window_width,
+			                  self.settings.last_main_window_height )
+			self.setGeometry( geo )
+		else:
+			self.center()
+
 		#set up a default metadata object
 		self.metadata = GenericMetadata()
 		self.comic_archive = None
@@ -99,7 +105,7 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.updateAppTitle()
 		self.setAcceptDrops(True)
 		self.updateSaveMenu()
-		self.droppedFile=None
+		self.droppedFile = None
 
 		self.page_browser = None
 	
@@ -116,8 +122,12 @@ class TaggerWindow( QtGui.QMainWindow):
 		
 		self.updateStyleTweaks()
 
+		self.show()
+		self.raise_()
+
 		if filename is not None:
 			self.openArchive( filename )
+
 
 	def updateAppTitle( self ):
 			
@@ -222,9 +232,7 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.toolBar.addAction( self.actionAutoSearch )
 		self.toolBar.addAction( self.actionClearEntryForm )
 		self.toolBar.addAction( self.actionPageBrowser )
-		#self.toolBar.addAction( self.actionRemoveCBLTags )
-		#self.toolBar.addAction( self.actionRemoveCRTags )
-        
+       
 	def repackageArchive( self ):
 		QtGui.QMessageBox.information(self, self.tr("Repackage Comic Archive"), self.tr("TBD"))
 
@@ -274,6 +282,8 @@ class TaggerWindow( QtGui.QMainWindow):
 				
 		if ca is not None and ca.seemsToBeAComicArchive():
 
+			self.settings.last_opened_folder = os.path.dirname( path )
+			
 			# clear form and current metadata, we're all in!
 			if clear_form:
 				self.clearForm()
@@ -665,6 +675,8 @@ class TaggerWindow( QtGui.QMainWindow):
 		
 		dialog = QtGui.QFileDialog(self)
 		dialog.setFileMode(QtGui.QFileDialog.ExistingFile)
+		if self.settings.last_opened_folder is not None:
+			dialog.setDirectory( self.settings.last_opened_folder )
 		#dialog.setFileMode(QtGui.QFileDialog.Directory )
 		
 		if platform.system() != "Windows" and utils.which("unrar") is None:
@@ -768,6 +780,8 @@ class TaggerWindow( QtGui.QMainWindow):
 
 	def setDataStyle(self, s):
 		self.data_style, b = self.cbDataStyle.itemData(s).toInt()
+
+		self.settings.last_selected_data_style = self.data_style
 		self.updateStyleTweaks()
 		self.updateSaveMenu()
 		
@@ -1103,6 +1117,12 @@ class TaggerWindow( QtGui.QMainWindow):
 
 		if self.dirtyFlagVerification( "Exit " + self.appName,
 		                             "If you quit now, data in the form will be lost.  Are you sure?"):
+			geo = self.geometry()
+			self.settings.last_main_window_width = geo.width()
+			self.settings.last_main_window_height = geo.height()
+			self.settings.last_main_window_x = geo.x()
+			self.settings.last_main_window_y = geo.y()
+			self.settings.save()
 			event.accept()
 		else:
 			event.ignore()
