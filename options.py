@@ -47,6 +47,8 @@ If no options are given, {0} will run in windowed mode
 
   -p, --print                Print out tag info from file.  Specify type
                              (via -t) to get only info of that tag type
+      --raw                  With -p, will print out the raw tag block(s)
+                             from the file
   -d, --delete               Deletes the tag block of specified type (via -t)
   -s, --save                 Save out tags as specified type (via -t)
                              Must specify also at least -o, -p, or -m

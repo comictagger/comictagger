@@ -40,15 +40,16 @@ class PageType:
 	Other        = "Other"
 	Deleted      = "Deleted"
 
+"""
 class PageInfo:
-	SeqNum = 0
-	Type = PageType.FrontCover
+	Image = 0
+	Type = PageType.Story
 	DoublePage = False
 	ImageSize = 0
 	Key = ""
 	ImageWidth = 0
 	ImageHeight = 0
-		
+"""	
 
 class GenericMetadata:
 

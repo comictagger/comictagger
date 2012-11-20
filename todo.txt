@@ -1,7 +1,9 @@
 -----------------
 Features
 ----------------
-	
+
+Raw Tag Block Window
+
 Settings/Preferences Dialog
 	Remove API Key
 	Add clear cache
@@ -16,14 +18,6 @@ save Last "Open" folder (include dragged)
 Add class for warning/info  messages with "Don't show again" checkbox.
    Add list of these flags to settings
 
-TaggerWindow entry fields
-	Special tabbed Dialog needed for:   
-		Pages Info - maybe a custom painted widget
-		At minimum, preserve the page data
- 
-File rename
-	-Dialog??
-	
 Style sheets for windows/mac/linux
 
 Better stripping of html from CV text
@@ -60,6 +54,14 @@ Lots of error checking
 Future
 ------------
 
+File rename
+	-Dialog??
+	
+
+TaggerWindow entry fields
+	Special tabbed Dialog needed for:   
+		Pages Info - maybe a custom painted widget
+ 
 CLI
 	write a log for multiple file processing
 	override abort on low confidence flag

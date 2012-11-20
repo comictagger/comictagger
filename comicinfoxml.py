@@ -182,8 +182,12 @@ class ComicInfoXml:
 			node = ET.SubElement(root, 'Editor')
 			node.text = utils.listToString( credit_editor_list )
 		
-		# !!!ATB todo: loop and add the page entries under pages node
-		#pages = ET.SubElement(root, 'Pages')
+		#  loop and add the page entries under pages node
+		if len( md.pages ) > 0:
+			pages_node = ET.SubElement(root, 'Pages')
+			for page_dict in md.pages:
+				page_node = ET.SubElement(pages_node, 'Page')
+				page_node.attrib = page_dict
 
 		# self pretty-print
 		self.indent(root)
@@ -261,9 +265,13 @@ class ComicInfoXml:
 				for name in n.text.split(','):
 					metadata.addCredit( name.strip(), "Cover" )
 
-			#!!! ATB parse page data now	
-			
+		# parse page data now	
+		pages_node = root.find( "Pages" )
+		if pages_node is not None:			
+			for page in pages_node:
+				metadata.pages.append( page.attrib )
 
+		print metadata.pages
 
 		metadata.isEmpty = False
 		
