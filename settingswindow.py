@@ -23,8 +23,9 @@ import os
 from PyQt4 import QtCore, QtGui, uic
 
 from settings import ComicTaggerSettings
-from comicvinetalker import *
-
+from comicvinecacher import ComicVineCacher
+from imagefetcher import ImageFetcher
+import utils
 
 windowsRarHelp = """
                  <html><head/><body><p>In order to write to CBR/RAR archives, 
@@ -48,10 +49,8 @@ macRarHelp = """
                  </p></body></html>
                 """
 
-
 class SettingsWindow(QtGui.QDialog):
-	
-	
+		
 	def __init__(self, parent, settings ):
 		super(SettingsWindow, self).__init__(parent)
 		
@@ -72,44 +71,33 @@ class SettingsWindow(QtGui.QDialog):
 			self.lblRarHelp.setText( macRarHelp )
 			
 		# Copy values from settings to form
-		self.leCVAPIKey.setText( self.settings.cv_api_key )
 		self.leRarExePath.setText( self.settings.rar_exe_path )
 		self.leUnrarExePath.setText( self.settings.unrar_exe_path )
+		self.leNameLengthDeltaThresh.setText( str(self.settings.id_length_delta_thresh) )
+		self.tePublisherBlacklist.setPlainText( self.settings.id_publisher_blacklist )
 		
-		
-		self.btnTestKey.clicked.connect(self.testAPIKey)
 		self.btnBrowseRar.clicked.connect(self.selectRar)
-		self.btnBrowseUnrar.clicked.connect(self.selectUnrar)
+		self.btnBrowseUnrar.clicked.connect(self.selectUnrar)		
+		self.btnClearCache.clicked.connect(self.clearCache)
 
 	def accept( self ):
 		
 		# Copy values from form to settings and save
-		self.settings.cv_api_key = str(self.leCVAPIKey.text())
 		self.settings.rar_exe_path = str(self.leRarExePath.text())
 		self.settings.unrar_exe_path = str(self.leUnrarExePath.text())
 		
 		# make sure unrar program is now in the path for the UnRAR class
 		utils.addtopath(os.path.dirname(self.settings.unrar_exe_path))
 		
+		if not str(self.leNameLengthDeltaThresh.text()).isdigit():
+			QtGui.QMessageBox.information(self,"Settings", "The Name Length Delta Threshold must be a number!")
+			return
+		
+		self.settings.id_length_delta_thresh = int(self.leNameLengthDeltaThresh.text())
+		self.settings.id_publisher_blacklist = str(self.tePublisherBlacklist.toPlainText())
+		
 		self.settings.save()
 		QtGui.QDialog.accept(self)
-	
-	def testAPIKey( self ):
-		# TODO hourglass
-
-		palette = self.lblResult.palette()
-		bad_color = QtGui.QColor(255, 0, 0)
-		good_color = QtGui.QColor(0, 255, 0)
-
-		comicVine = ComicVineTalker( str(self.leCVAPIKey.text()) )
-		if comicVine.testKey( ):
-			palette.setColor(self.lblResult.foregroundRole(), good_color)
-			self.lblResult.setText("Good Key!")
-		else:
-			palette.setColor(self.lblResult.foregroundRole(), bad_color)
-			self.lblResult.setText("Bad Key :(")
-
-		self.lblResult.setPalette(palette)
 	
 	
 	def selectRar( self ):
@@ -118,6 +106,9 @@ class SettingsWindow(QtGui.QDialog):
 	def selectUnrar( self ):
 		self.selectFile( self.leUnrarExePath, "UnRAR" )
 
+	def clearCache( self ):
+		ImageFetcher().clearCache()
+		ComicVineCacher( ).clearCache()	
 	
 	def selectFile( self, control, name ):
 		

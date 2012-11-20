@@ -124,8 +124,7 @@ class VolumeSelectionWindow(QtGui.QDialog):
 		self.iddialog.rejected.connect( self.identifyCancel )
 		self.iddialog.show()
 		
-		self.ii = IssueIdentifier( self.comic_archive, self.cv_api_key )
-		
+		self.ii = IssueIdentifier( self.comic_archive, self.settings )
 		
 		md = GenericMetadata()
 		md.series = self.series_name

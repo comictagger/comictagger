@@ -42,7 +42,7 @@ class IssueIdentifier:
 	ResultOneGoodMatch                      = 4
 	ResultMultipleGoodMatches               = 5	
 
-	def __init__(self, comic_archive, cv_api_key ):
+	def __init__(self, comic_archive, settings ):
 		self.comic_archive = comic_archive
 		self.image_hasher = 1
 		
@@ -58,13 +58,13 @@ class IssueIdentifier:
 		self.strong_score_thresh = 8
 		
 		# used to eliminate series names that are too long based on our search string
-		self.length_delta_thresh = 5
+		self.length_delta_thresh = settings.id_length_delta_thresh
 
 		# used to eliminate unlikely publishers
-		self.publisher_blacklist = [ 'panini comics', 'abril', 'scholastic book services' ]
+		#self.publisher_blacklist = [ 'panini comics', 'abril', 'scholastic book services' ]
+		self.publisher_blacklist = [ s.strip().lower() for s in settings.id_publisher_blacklist.split(',') ]
 		
 		self.additional_metadata = GenericMetadata()
-		self.cv_api_key = cv_api_key
 		self.output_function = IssueIdentifier.defaultWriteOutput
 		self.callback = None
 		self.search_result = self.ResultNoMatches
@@ -239,8 +239,9 @@ class IssueIdentifier:
 		if keys['month'] is not None:
 			self.log_msg( "\tMonth : " + keys['month'] )
 		
+		self.log_msg("Publisher Blacklist: " + str(self.publisher_blacklist))
 		
-		comicVine = ComicVineTalker( self.cv_api_key )
+		comicVine = ComicVineTalker( )
 
 		#self.log_msg( ( "Searching for " + keys['series'] + "...")
 		self.log_msg( "Searching for  {0} #{1} ...".format( keys['series'], keys['issue_number']) )

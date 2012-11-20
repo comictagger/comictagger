@@ -25,14 +25,19 @@ import sys
 import os
 import datetime
 
+from settings import ComicTaggerSettings
+
 class ComicVineCacher:
 
-	def __init__(self, settings_folder ):
-		self.settings_folder = settings_folder
+	def __init__(self ):
+		self.settings_folder = ComicTaggerSettings.getSettingsFolder()
 		self.db_file = os.path.join( self.settings_folder, "cv_cache.db")
 		
 		if not os.path.exists( self.db_file ):
 			self.create_cache_db()
+
+	def clearCache( self ):
+		os.unlink( self.db_file )
 
 	def create_cache_db( self ):
 		

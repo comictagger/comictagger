@@ -62,7 +62,7 @@ class ComicVineTalker(QObject):
 		
 		# before we search online, look in our cache, since we might have
 		# done this same search recently
-		cvc = ComicVineCacher( ComicTaggerSettings.getSettingsFolder() )
+		cvc = ComicVineCacher( )
 		if not refresh_cache:
 			cached_search_results = cvc.get_search_results( series_name )
 			
@@ -134,7 +134,7 @@ class ComicVineTalker(QObject):
 		
 		# before we search online, look in our cache, since we might already
 		# have this info
-		cvc = ComicVineCacher( ComicTaggerSettings.getSettingsFolder() )
+		cvc = ComicVineCacher( )
 		cached_volume_result = cvc.get_volume_info( series_id )
 		
 		if cached_volume_result is not None:
@@ -284,11 +284,11 @@ class ComicVineTalker(QObject):
 
 		# before we search online, look in our cache, since we might already
 		# have this info
-		cvc = ComicVineCacher( ComicTaggerSettings.getSettingsFolder() )
+		cvc = ComicVineCacher( )
 		return  cvc.get_issue_select_details( issue_id )
 
 	def cacheIssueSelectDetails( self, issue_id, image_url, thumb_url, month, year ):
-		cvc = ComicVineCacher( ComicTaggerSettings.getSettingsFolder() )
+		cvc = ComicVineCacher( )
 		cvc.add_issue_select_details( issue_id, image_url, thumb_url, month, year )
 		
 		

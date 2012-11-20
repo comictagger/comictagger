@@ -2,19 +2,6 @@
 Features
 ----------------
 
-Raw Tag Block Window
-
-Settings/Preferences Dialog
-	Remove API Key
-	Add clear cache
-	Add reset settings
-	Tab w/Identifier  Settings
-		Add publisher blacklist
-	    other Identifier tunings
-
-save Last tag style
-save Last "Open" folder (include dragged)
-
 Add class for warning/info  messages with "Don't show again" checkbox.
    Add list of these flags to settings
 
@@ -22,19 +9,23 @@ Style sheets for windows/mac/linux
 
 Better stripping of html from CV text
 
+Add  warning message to allow writing CBI to RAR, and ask them to contact CBL ! :-)
+
+Move RAR/CBL test into ComicArchive class, isWriteable
+
+
 -----------------
 Bugs
 ----------------
-Unicode errors when piping or redirecting stdout
-
-Broke windows installer graphics somehow
 
 Windows zip and rar: set proper path for writing to archive
 
 SERIOUS BUG: rebuilding zips!
     http://stackoverflow.com/questions/11578443/trigger-io-errno-18-cross-device-link
 
-OSX:
+Frozen apps better finding of resource files
+
+OSX
 	toolbar
 	weird unrar complaints
 	Page browser sizing
@@ -49,14 +40,12 @@ Check all HTTP responses for errors
 
 Lots of error checking
 
-
 -------------
 Future
 ------------
 
 File rename
 	-Dialog??
-	
 
 TaggerWindow entry fields
 	Special tabbed Dialog needed for:   
@@ -69,7 +58,6 @@ CLI
 		-- figure out how to add credits,tags
 	interactive for choices option?
 		--- or defer choices to end, by keeping special log of those files
-
 
 Add  warning message to allow writing CBI to RAR, and ask them to contact CBL ! :-)
 
@@ -88,18 +76,13 @@ Wizard for converting between tag styles
 
 App option to covert RAR to ZIP
 
-
 Archive function to  detect tag blocks out of sync
-
 
 Idea:  Support only CBI or CIX for any given file, and not both 
 	   If user selects different one, warn about potential loss/re-arranging of data
 
 Longer term:
 	Think about mass tagging and (semi) automatic volume selection
-
-	<?xml version="1.0"?>
--<ComicInfo xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 
 ----------------------------------------------
 COMIC RACK Questions

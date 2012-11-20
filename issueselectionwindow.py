@@ -98,8 +98,6 @@ class IssueSelectionWindow(QtGui.QDialog):
 			
 			row += 1
 			
-		#TODO look for given issue in list, and select that one
-
 		self.twList.setSortingEnabled(True)
 		self.twList.sortItems( 0 , QtCore.Qt.AscendingOrder )
 

@@ -155,7 +155,7 @@ def process_file_cli( filename, opts, settings ):
 		# finally, search online
 		if opts.search_online:
 	
-			ii = IssueIdentifier( ca, "" )
+			ii = IssueIdentifier( ca, settings )
 			
 			if md is None or md.isEmpty:
 				print "No metadata given to search online with!"

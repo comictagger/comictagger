@@ -46,6 +46,12 @@ class ImageFetcher(QObject):
 		if not os.path.exists( self.db_file ):
 			self.create_image_db()
 
+	def clearCache( self ):
+		os.unlink( self.db_file )
+		if os.path.isdir( self.cache_folder ):
+			shutil.rmtree( self.cache_folder )
+
+
 	def fetch( self, url, user_data=None, blocking=False  ):
 		"""
 		If called with blocking=True, this will block until the image is 

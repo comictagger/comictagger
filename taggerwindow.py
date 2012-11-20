@@ -912,7 +912,6 @@ class TaggerWindow( QtGui.QMainWindow):
 			ok_to_mod = True
 			if self.isDupeCredit( new_role, new_name):
 				# delete the dupe credit from list
-				#TODO warn user!!
 				reply = QtGui.QMessageBox.question(self, 
 								self.tr("Duplicate Credit!"), 
 								self.tr("This will create a duplicate credit entry. Would you like to merge the entries, or create a duplicate?"),
