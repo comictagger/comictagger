@@ -61,8 +61,8 @@ def process_file_cli( filename, opts, settings ):
 		print "Sorry, but "+ filename + "  is not a comic archive!"
 		return
 	
-	if not ca.isWritable() and ( opts.delete_tags or opts.save_tags or opts.rename_file ):
-		print "This archive is not writable."
+	if not ca.isWritableForStyle( opts.data_style ) and ( opts.delete_tags or opts.save_tags or opts.rename_file ):
+		print "This archive is not writable for that tag type"
 		return
 		
 
@@ -240,7 +240,7 @@ def main():
 	# make sure unrar program is in the path for the UnRAR class
 	utils.addtopath(os.path.dirname(settings.unrar_exe_path))
 	
-	signal.signal(signal.SIGINT, signal.SIG_DFL)
+	#signal.signal(signal.SIGINT, signal.SIG_DFL)
 	
 	if opts.no_gui:
 

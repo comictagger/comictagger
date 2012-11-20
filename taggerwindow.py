@@ -22,6 +22,7 @@ limitations under the License.
 from PyQt4 import QtCore, QtGui, uic
 from PyQt4.QtCore import QUrl,pyqtSignal
 
+import signal
 import locale
 import platform
 import os
@@ -40,6 +41,7 @@ from settings import ComicTaggerSettings
 from pagebrowser import PageBrowserWindow
 from filenameparser import FileNameParser
 from logwindow import LogWindow
+from optionalmsgdialog import OptionalMessageDialog
 import utils
 import ctversion
 
@@ -76,6 +78,14 @@ class TaggerWindow( QtGui.QMainWindow):
 	
 	def __init__(self, filename, settings, parent = None):
 		super(TaggerWindow, self).__init__(parent)
+
+		# Set up a timer so the interpreter runs every so often
+		# This helps catch and process SIGINT from console
+		self.timer = QtCore.QTimer()
+		self.timer.start(500)  
+		self.timer.timeout.connect(lambda: None)
+		
+		signal.signal(signal.SIGINT, self.sigint_handler)
 
 		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'taggerwindow.ui' ), self)
 		self.setWindowIcon(QtGui.QIcon(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/app.png' )))
@@ -116,14 +126,18 @@ class TaggerWindow( QtGui.QMainWindow):
 		# The show/hide/show is on purpose, to let the layout manager figure
 		# do some calculations first
 		self.show()
-		self.hide() 
 		self.setAppPosition()
+		self.hide() 
 		self.show()
 		self.raise_()
+		QtCore.QCoreApplication.processEvents()
 
 		if filename is not None:
 			self.openArchive( filename )
-
+		
+	def sigint_handler(self, *args):
+		# defer the actual close in the app loop thread
+		QtCore.QTimer.singleShot(200, self.close)
 
 	def updateAppTitle( self ):
 			
@@ -345,8 +359,7 @@ class TaggerWindow( QtGui.QMainWindow):
 	def updateSaveMenu( self ):
 
 		if ( self.comic_archive is not None and 
-		     self.comic_archive.isWritable() and
-		     not ( self.data_style == MetaDataStyle.CBI and self.comic_archive.isRar() )
+		     self.comic_archive.isWritable( )  
 		   ):
 			self.actionWrite_Tags.setEnabled( True )
 		else:
@@ -951,13 +964,8 @@ class TaggerWindow( QtGui.QMainWindow):
 
 	def setAppPosition( self ):
 		if self.settings.last_main_window_width != 0:
-			geo = QtCore.QRect( self.settings.last_main_window_x, 
-			                  self.settings.last_main_window_y,
-			                  self.settings.last_main_window_width,
-			                  self.settings.last_main_window_height )
-			self.setGeometry( geo )
-			print "ATB ", self.settings.last_main_window_x, self.settings.last_main_window_y 
 			self.move( self.settings.last_main_window_x, self.settings.last_main_window_y )
+			self.resize( self.settings.last_main_window_width, self.settings.last_main_window_height )
 		else:
 			screen = QtGui.QDesktopWidget().screenGeometry()
 			size =  self.frameGeometry()
@@ -1122,9 +1130,9 @@ class TaggerWindow( QtGui.QMainWindow):
 
 		if self.dirtyFlagVerification( "Exit " + self.appName,
 		                             "If you quit now, data in the form will be lost.  Are you sure?"):
-			geo = self.geometry()
-			self.settings.last_main_window_width = geo.width()
-			self.settings.last_main_window_height = geo.height()
+			appsize = self.size()
+			self.settings.last_main_window_width = appsize.width()
+			self.settings.last_main_window_height = appsize.height()
 			self.settings.last_main_window_x = self.x()
 			self.settings.last_main_window_y = self.y()
 			self.settings.save()
