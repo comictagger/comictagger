@@ -31,9 +31,10 @@ class ComicTaggerSettings:
 	settings_file = ""
 	folder = ""
 	
+	# General Settings
 	rar_exe_path = ""
 	unrar_exe_path = ""
-	cv_api_key = ""
+	allow_cbi_in_rar = True
 	
 	# automatic settings
 	last_selected_data_style = 0
@@ -46,6 +47,11 @@ class ComicTaggerSettings:
 	# identifier settings
 	id_length_delta_thresh = 5
 	id_publisher_blacklist = "Panini Comics, Abril, Scholastic Book Services"
+	
+	# Show/ask dialog flags
+	ask_about_cbi_in_rar = True
+	show_disclaimer = True
+	
 	
 	@staticmethod
 	def getSettingsFolder():
@@ -109,7 +115,6 @@ class ComicTaggerSettings:
 		
 		self.rar_exe_path =    self.config.get( 'settings', 'rar_exe_path' )
 		self.unrar_exe_path =  self.config.get( 'settings', 'unrar_exe_path' )
-		#self.cv_api_key =      self.config.get( 'settings', 'cv_api_key' )
     
 		self.last_selected_data_style =  self.config.getint( 'auto', 'last_selected_data_style' )
 		self.last_opened_folder =        self.config.get( 'auto', 'last_opened_folder' )
@@ -126,13 +131,17 @@ class ComicTaggerSettings:
 			self.id_length_delta_thresh =   self.config.getint( 'identifier', 'id_length_delta_thresh' )
 		if self.config.has_option('identifier', 'id_publisher_blacklist'):
 			self.id_publisher_blacklist =        self.config.get( 'identifier', 'id_publisher_blacklist' )
+
+		if self.config.has_option('dialogflags', 'ask_about_cbi_in_rar'):
+			self.ask_about_cbi_in_rar =        self.config.getboolean( 'dialogflags', 'ask_about_cbi_in_rar' )		
+		if self.config.has_option('dialogflags', 'show_disclaimer'):
+			self.show_disclaimer =        self.config.getboolean( 'dialogflags', 'show_disclaimer' )
     
 	def save( self ):
 
 		if not self.config.has_section( 'settings' ):
 			self.config.add_section( 'settings' )
 			
-		#self.config.set( 'settings', 'cv_api_key',     self.cv_api_key )
 		self.config.set( 'settings', 'rar_exe_path',   self.rar_exe_path )
 		self.config.set( 'settings', 'unrar_exe_path', self.unrar_exe_path )
 
@@ -151,7 +160,13 @@ class ComicTaggerSettings:
 
 		self.config.set( 'identifier', 'id_length_delta_thresh', self.id_length_delta_thresh )
 		self.config.set( 'identifier', 'id_publisher_blacklist', self.id_publisher_blacklist )
-			
+
+		if not self.config.has_section( 'dialogflags' ):
+			self.config.add_section( 'dialogflags' )
+
+		self.config.set( 'dialogflags', 'ask_about_cbi_in_rar', self.ask_about_cbi_in_rar )
+		self.config.set( 'dialogflags', 'show_disclaimer', self.show_disclaimer )
+
 		with open( self.settings_file, 'wb') as configfile:
 			self.config.write(configfile)    
     

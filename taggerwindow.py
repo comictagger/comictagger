@@ -81,11 +81,10 @@ class TaggerWindow( QtGui.QMainWindow):
 
 		# Set up a timer so the interpreter runs every so often
 		# This helps catch and process SIGINT from console
-		self.timer = QtCore.QTimer()
-		self.timer.start(500)  
-		self.timer.timeout.connect(lambda: None)
-		
-		signal.signal(signal.SIGINT, self.sigint_handler)
+		#self.timer = QtCore.QTimer()
+		#self.timer.start(500)  
+		#self.timer.timeout.connect(lambda: None)
+		#signal.signal(signal.SIGINT, self.sigint_handler)
 
 		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'taggerwindow.ui' ), self)
 		self.setWindowIcon(QtGui.QIcon(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/app.png' )))
@@ -134,6 +133,16 @@ class TaggerWindow( QtGui.QMainWindow):
 
 		if filename is not None:
 			self.openArchive( filename )
+		
+		if self.settings.show_disclaimer:
+			checked = OptionalMessageDialog.msg(  self, "Disclaimer", 
+								"Thanks for trying Comic Tagger!\n\n" +
+								"Be aware that is beta-level software, and the developers\n" +
+								"of this program can take no responsibility for any loss of data due\n" +
+								"to its use.\n\n" +
+								"That said, have fun!\n",
+								)
+			self.settings.show_disclaimer = not checked
 		
 	def sigint_handler(self, *args):
 		# defer the actual close in the app loop thread
@@ -718,13 +727,6 @@ class TaggerWindow( QtGui.QMainWindow):
 		
 	def queryOnline(self, autoselect=False):
 		
-		#if self.settings.cv_api_key == "":
-		#	QtGui.QMessageBox.warning(self, self.tr("Online Search"), 
-		#	       self.tr("You need an API key from ComicVine to search online. " + 
-		#	                "Go to settings and enter it."))
-		#	return
-		
-
 		issue_number = str(self.leIssueNum.text()).strip()
 
 		if autoselect and issue_number == "":
@@ -742,20 +744,19 @@ class TaggerWindow( QtGui.QMainWindow):
 		if year == "":
 			year = None
 
-		selector = VolumeSelectionWindow( self, self.settings.cv_api_key, series_name, issue_number, year, self.comic_archive, self.settings, autoselect )
+		selector = VolumeSelectionWindow( self, series_name, issue_number, year, self.comic_archive, self.settings, autoselect )
 
 		title = "Search: '" + series_name + "' - "
 		selector.setWindowTitle( title + "Select Series")
 
 		selector.setModal(True)
 		selector.exec_()
-
 		
 		if selector.result():
 			#we should now have a volume ID
 			QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
 
-			comicVine = ComicVineTalker( self.settings.cv_api_key )
+			comicVine = ComicVineTalker( )
 			self.metadata = comicVine.fetchIssueData( selector.volume_id, selector.issue_number )
 
 			# Now push the right data into the edit controls
@@ -766,6 +767,21 @@ class TaggerWindow( QtGui.QMainWindow):
 	def commitMetadata(self):
 
 		if ( self.metadata is not None and self.comic_archive is not None):	
+		
+			if self.comic_archive.isRar() and self.data_style == MetaDataStyle.CBI:
+				if self.settings.ask_about_cbi_in_rar:
+					answered_yes, checked = OptionalMessageDialog.question(  self, "RAR and ComicBookLover", 
+										"You are about to write a CBL tag block to a RAR archive!\n\n" +
+										"While technically possible, no known reader can read those tags from RAR\n" +
+										"yet.  If you would like this feature from ComicBookLover, please go their\n" +
+										"forums and add a feature request!\n\n" +
+										"http://forums.comicbooklover.com/categories/ipad-features\n\n" +
+										"Do you want to continue with the save?\n",
+										)
+					self.settings.ask_about_cbi_in_rar = not checked
+					if not answered_yes:
+						return
+		
 		
 			reply = QtGui.QMessageBox.question(self, 
 			     self.tr("Save Tags"), 
