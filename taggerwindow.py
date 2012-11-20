@@ -25,6 +25,8 @@ from PyQt4.QtCore import QUrl,pyqtSignal
 import locale
 import platform
 import os
+import pprint
+import json
 
 from volumeselectionwindow import VolumeSelectionWindow
 from options import MetaDataStyle
@@ -37,6 +39,7 @@ from settingswindow import SettingsWindow
 from settings import ComicTaggerSettings
 from pagebrowser import PageBrowserWindow
 from filenameparser import FileNameParser
+from logwindow import LogWindow
 import utils
 import ctversion
 
@@ -163,6 +166,12 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.actionReloadCRTags.setStatusTip( 'Reload ComicRack tags' )
 		self.actionReloadCRTags.triggered.connect( self.reloadCRTags )
 	
+		self.actionViewRawCRTags.setStatusTip( 'View raw ComicRack tag block from file' )
+		self.actionViewRawCRTags.triggered.connect( self.viewRawCRTags )
+
+		self.actionViewRawCBLTags.setStatusTip( 'View raw ComicBookLover tag block from file' )
+		self.actionViewRawCBLTags.triggered.connect( self.viewRawCBLTags )
+
 		#self.actionRepackage.setShortcut(  )
 		self.actionRepackage.setStatusTip( 'Re-create archive as CBZ' )
 		self.actionRepackage.triggered.connect( self.repackageArchive )
@@ -1108,3 +1117,20 @@ class TaggerWindow( QtGui.QMainWindow):
 	def pageBrowserClosed( self ):
 		self.page_browser = None
 			
+	def viewRawCRTags( self ):
+		if self.comic_archive is not None and self.comic_archive.hasCIX():
+			dlg = LogWindow( self )
+			dlg.setText( self.comic_archive.readRawCIX() )
+			dlg.setWindowTitle( "Raw ComicRack Tag View" )
+			dlg.exec_()
+		
+	def viewRawCBLTags( self ):
+		if self.comic_archive is not None and self.comic_archive.hasCBI():
+			dlg = LogWindow( self )
+			text = pprint.pformat( json.loads(self.comic_archive.readRawCBI()), indent=4  )
+			print text
+			dlg.setText(text )
+			dlg.setWindowTitle( "Raw ComicBookLover Tag View" )
+			dlg.exec_()
+		
+		

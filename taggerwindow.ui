@@ -1035,11 +1035,19 @@
      <addaction name="actionReloadCBLTags"/>
      <addaction name="actionReloadCRTags"/>
     </widget>
+    <widget class="QMenu" name="menuViewRawTags">
+     <property name="title">
+      <string>View Raw Tags</string>
+     </property>
+     <addaction name="actionViewRawCRTags"/>
+     <addaction name="actionViewRawCBLTags"/>
+    </widget>
     <addaction name="actionLoad"/>
     <addaction name="actionWrite_Tags"/>
-    <addaction name="actionRepackage"/>
     <addaction name="menuReload"/>
     <addaction name="menuRemove"/>
+    <addaction name="menuViewRawTags"/>
+    <addaction name="actionRepackage"/>
     <addaction name="actionSettings"/>
     <addaction name="actionExit"/>
    </widget>
@@ -1053,10 +1061,10 @@
     <property name="title">
      <string>Tags</string>
     </property>
+    <addaction name="actionClearEntryForm"/>
     <addaction name="actionParse_Filename"/>
     <addaction name="actionSearchOnline"/>
     <addaction name="actionAutoSearch"/>
-    <addaction name="actionClearEntryForm"/>
    </widget>
    <widget class="QMenu" name="menuWindow">
     <property name="title">
@@ -1189,6 +1197,16 @@
    </property>
    <property name="statusTip">
     <string>Show the Page Browser to inspect the comic</string>
+   </property>
+  </action>
+  <action name="actionViewRawCRTags">
+   <property name="text">
+    <string>View Raw ComicRack Tags</string>
+   </property>
+  </action>
+  <action name="actionViewRawCBLTags">
+   <property name="text">
+    <string>View Raw ComicBookLover Tags</string>
    </property>
   </action>
  </widget>
