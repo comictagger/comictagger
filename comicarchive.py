@@ -395,6 +395,13 @@ class ComicArchive:
 
 		return True
 
+	def isWritableForStyle( self, data_style ):
+
+		if self.isRar() and data_style == MetaDataStyle.CBI:
+			return False
+
+		return self.isWritable()
+
 	def seemsToBeAComicArchive( self ):
 
 		# Do we even care about extensions??
@@ -403,7 +410,7 @@ class ComicArchive:
 		if ( 
 		      ( self.isZip() or  self.isRar() or self.isFolder() )
 		      and
-		      ( self.getNumberOfPages() > 3)
+		      ( self.getNumberOfPages() > 2)
 
 			):
 			return True
