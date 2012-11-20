@@ -240,14 +240,24 @@ class ComicVineTalker(QObject):
 		return metadata
 	
 	def cleanup_html( self, string):
-			p = re.compile(r'<[^<]*?>')
+		
+		# remove all newlines first
+		string = string.replace("\n", "")
+		
+		#put in our own
+		string = string.replace("<br>", "\n")
+		string = string.replace("</p>", "\n\n")
+		string = string.replace("<h4>", "*")
+		string = string.replace("</h4>", "*\n")
+		
+		# now strip all other tags
+		p = re.compile(r'<[^<]*?>')
+		newstring = p.sub('',string)
 
-			newstring = p.sub('',string)
-
-			newstring = newstring.replace('&nbsp;',' ')
-			newstring = newstring.replace('&amp;','&')
-			
-			return newstring
+		newstring = newstring.replace('&nbsp;',' ')
+		newstring = newstring.replace('&amp;','&')
+		
+		return newstring
 
 	def fetchIssueDate( self, issue_id ):
 		image_url, thumb_url, month,year = self.fetchIssueSelectDetails( issue_id )
