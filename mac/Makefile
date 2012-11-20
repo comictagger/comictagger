@@ -24,6 +24,7 @@ dist:
 clean:
 	rm -rf $(DIST_DIR) $(MAC_BASE)/build
 	rm -f $(MAC_BASE)/*.spec
+	rm -f /logdict*.log
 	rm -f "*~" *.pyc *.pyo
 	echo $(VERSION_STR)
 diskimage:

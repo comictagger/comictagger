@@ -45,7 +45,7 @@ class ComicTaggerSettings:
 	
 	# identifier settings
 	id_length_delta_thresh = 5
-	id_publisher_blacklist = "panini comics, abril, scholastic book services"
+	id_publisher_blacklist = "Panini Comics, Abril, Scholastic Book Services"
 	
 	@staticmethod
 	def getSettingsFolder():

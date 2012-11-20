@@ -1,23 +1,23 @@
------------------
+-----------------------------------------------------
 Features
-----------------
-
+-----------------------------------------------------
 Add class for warning/info  messages with "Don't show again" checkbox.
    Add list of these flags to settings
 
-Style sheets for windows/mac/linux
+Add  setting to allow writing CBI to RAR, and ask them to contact CBL ! :-)
+
+	warning about writing Rars
+	Disclaimer pop up at start, modifies file, changes hash, etc
+	app tour?
 
 Better stripping of html from CV text
 
-Add  warning message to allow writing CBI to RAR, and ask them to contact CBL ! :-)
-
 Move RAR/CBL test into ComicArchive class, isWriteable
 
-
------------------
+Style sheets for windows/mac/linux
+-----------------------------------------------------
 Bugs
-----------------
-
+-----------------------------------------------------
 Windows zip and rar: set proper path for writing to archive
 
 SERIOUS BUG: rebuilding zips!
@@ -26,10 +26,8 @@ SERIOUS BUG: rebuilding zips!
 Frozen apps better finding of resource files
 
 OSX
-	toolbar
 	weird unrar complaints
 	Page browser sizing
-	Override cursor is not beachball
 	
 Filename parsing:
 	Rework how series name is separated from issue
@@ -39,11 +37,9 @@ Form type validation Ints vs strings for month, year. etc
 Check all HTTP responses for errors
 
 Lots of error checking
-
--------------
+-----------------------------------------------------
 Future
-------------
-
+-----------------------------------------------------
 File rename
 	-Dialog??
 
@@ -57,9 +53,7 @@ CLI
 	explicit metadata settings option format
 		-- figure out how to add credits,tags
 	interactive for choices option?
-		--- or defer choices to end, by keeping special log of those files
-
-Add  warning message to allow writing CBI to RAR, and ask them to contact CBL ! :-)
+		--- or defer choices to end, by keeping special log of match option for each file
 
 Scrape alternate Covers from ComicVine issue pages
 
@@ -77,14 +71,9 @@ Wizard for converting between tag styles
 App option to covert RAR to ZIP
 
 Archive function to  detect tag blocks out of sync
-
-Idea:  Support only CBI or CIX for any given file, and not both 
-	   If user selects different one, warn about potential loss/re-arranging of data
-
-Longer term:
-	Think about mass tagging and (semi) automatic volume selection
-
 ----------------------------------------------
+
+
 COMIC RACK Questions
 
 Missing from XML as enterable in ComicRack:

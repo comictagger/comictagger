@@ -87,15 +87,6 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.settings = settings
 		self.data_style = settings.last_selected_data_style
 
-		if self.settings.last_main_window_width != 0:
-			geo = QtCore.QRect( self.settings.last_main_window_x, 
-			                  self.settings.last_main_window_y,
-			                  self.settings.last_main_window_width,
-			                  self.settings.last_main_window_height )
-			self.setGeometry( geo )
-		else:
-			self.center()
-
 		#set up a default metadata object
 		self.metadata = GenericMetadata()
 		self.comic_archive = None
@@ -122,6 +113,11 @@ class TaggerWindow( QtGui.QMainWindow):
 		
 		self.updateStyleTweaks()
 
+		# The show/hide/show is on purpose, to let the layout manager figure
+		# do some calculations first
+		self.show()
+		self.hide() 
+		self.setAppPosition()
 		self.show()
 		self.raise_()
 
@@ -953,10 +949,20 @@ class TaggerWindow( QtGui.QMainWindow):
 		if settingswin.result():
 			pass
 
-	def center(self):
-		screen = QtGui.QDesktopWidget().screenGeometry()
-		size =  self.geometry()
-		self.move((screen.width()-size.width())/2, (screen.height()-size.height())/2)
+	def setAppPosition( self ):
+		if self.settings.last_main_window_width != 0:
+			geo = QtCore.QRect( self.settings.last_main_window_x, 
+			                  self.settings.last_main_window_y,
+			                  self.settings.last_main_window_width,
+			                  self.settings.last_main_window_height )
+			self.setGeometry( geo )
+			print "ATB ", self.settings.last_main_window_x, self.settings.last_main_window_y 
+			self.move( self.settings.last_main_window_x, self.settings.last_main_window_y )
+		else:
+			screen = QtGui.QDesktopWidget().screenGeometry()
+			size =  self.frameGeometry()
+			self.move((screen.width()-size.width())/2, (screen.height()-size.height())/2)
+		
 		
 	def adjustStyleCombo( self ):
 		# select the current style
@@ -1119,8 +1125,8 @@ class TaggerWindow( QtGui.QMainWindow):
 			geo = self.geometry()
 			self.settings.last_main_window_width = geo.width()
 			self.settings.last_main_window_height = geo.height()
-			self.settings.last_main_window_x = geo.x()
-			self.settings.last_main_window_y = geo.y()
+			self.settings.last_main_window_x = self.x()
+			self.settings.last_main_window_y = self.y()
 			self.settings.save()
 			event.accept()
 		else:
