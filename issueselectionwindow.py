@@ -71,7 +71,7 @@ class IssueSelectionWindow(QtGui.QDialog):
 		while self.twList.rowCount() > 0:
 			self.twList.removeRow(0)
 		
-		comicVine = ComicVineTalker( self.settings.cv_api_key )
+		comicVine = ComicVineTalker( )
 		volume_data = comicVine.fetchVolumeData( self.series_id )
 		self.issue_list = volume_data['issues']
 
@@ -124,7 +124,7 @@ class IssueSelectionWindow(QtGui.QDialog):
 
 				self.labelThumbnail.setPixmap(QtGui.QPixmap(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/nocover.png' )))
 
-				self.cv = ComicVineTalker( self.settings.cv_api_key )
+				self.cv = ComicVineTalker( )
 				self.cv.urlFetchComplete.connect( self.urlFetchComplete )	
 				self.cv.asyncFetchIssueCoverURLs( int(self.issue_id) )
 				

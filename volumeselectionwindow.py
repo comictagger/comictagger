@@ -40,14 +40,13 @@ class SearchThread( QtCore.QThread):
 	searchComplete = pyqtSignal()
 	progressUpdate = pyqtSignal(int, int)
 
-	def __init__(self, series_name, cv_api_key, refresh):
+	def __init__(self, series_name, refresh):
 		QtCore.QThread.__init__(self)
 		self.series_name = series_name
-		self.cv_api_key = cv_api_key
 		self.refresh = refresh
 		
 	def run(self):
-		comicVine = ComicVineTalker( self.cv_api_key )
+		comicVine = ComicVineTalker( )
 		matches = self.cv_search_results = comicVine.searchForSeries( self.series_name, callback=self.prog_callback, refresh_cache=self.refresh )
 	
 		self.searchComplete.emit()
@@ -81,7 +80,7 @@ class IdentifyThread( QtCore.QThread):
 
 class VolumeSelectionWindow(QtGui.QDialog):
 
-	def __init__(self, parent, cv_api_key, series_name, issue_number, year, comic_archive, settings, autoselect=False):
+	def __init__(self, parent, series_name, issue_number, year, comic_archive, settings, autoselect=False):
 		super(VolumeSelectionWindow, self).__init__(parent)
 		
 		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'volumeselectionwindow.ui' ), self)
@@ -90,7 +89,6 @@ class VolumeSelectionWindow(QtGui.QDialog):
 		self.series_name = series_name
 		self.issue_number = issue_number
 		self.year = year
-		self.cv_api_key = cv_api_key
 		self.volume_id = 0
 		self.comic_archive = comic_archive
 		self.immediate_autoselect = autoselect
@@ -239,7 +237,7 @@ class VolumeSelectionWindow(QtGui.QDialog):
 		self.progdialog.canceled.connect( self.searchCanceled )
 		self.progdialog.setModal(True)
 
-		self.search_thread = SearchThread( self.series_name, self.cv_api_key, refresh )
+		self.search_thread = SearchThread( self.series_name, refresh )
 		self.search_thread.searchComplete.connect( self.searchComplete )	
 		self.search_thread.progressUpdate.connect( self.searchProgressUpdate )	
 		self.search_thread.start()
