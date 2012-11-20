@@ -1,18 +1,16 @@
 -----------------------------------------------------
 Features
 -----------------------------------------------------
-Add class for warning/info  messages with "Don't show again" checkbox.
-   Add list of these flags to settings
+General Setting Tab:
+	Add Settings Reset - may require restart
+	Add setting to dis-allow writing CBI to RAR
 
-Add  setting to allow writing CBI to RAR, and ask them to contact CBL ! :-)
-
-	warning about writing Rars
-	Disclaimer pop up at start, modifies file, changes hash, etc
-	app tour?
-
-Better stripping of html from CV text
-
-Move RAR/CBL test into ComicArchive class, isWriteable
+Optional dialog
+	maybe move to a UI file
+	add wordwrap, maybe some spacing in there, maybe center?
+	Make URL clickable
+	
+Fix about graphics
 
 Style sheets for windows/mac/linux
 -----------------------------------------------------
@@ -28,6 +26,7 @@ Frozen apps better finding of resource files
 OSX
 	weird unrar complaints
 	Page browser sizing
+	command-line args don't work with pyinstaller pkg
 	
 Filename parsing:
 	Rework how series name is separated from issue
@@ -40,6 +39,8 @@ Lots of error checking
 -----------------------------------------------------
 Future
 -----------------------------------------------------
+Add CoMet Support
+
 File rename
 	-Dialog??
 
@@ -71,6 +72,10 @@ Wizard for converting between tag styles
 App option to covert RAR to ZIP
 
 Archive function to  detect tag blocks out of sync
+
+app tour?
+
+
 ----------------------------------------------
 
 
