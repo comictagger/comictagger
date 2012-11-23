@@ -51,7 +51,7 @@ class OptionalMessageDialog(QDialog):
 		self.theLabel.setWordWrap(True)
 		self.theLabel.setWordWrap(True)
 		self.theLabel.setTextFormat( Qt.RichText )
-		self.theLabel.setTextInteractionFlags( Qt.LinksAccessibleByMouse | Qt.LinksAccessibleByKeyboard )
+		self.theLabel.setTextInteractionFlags( Qt.TextSelectableByMouse | Qt.LinksAccessibleByMouse | Qt.LinksAccessibleByKeyboard )
 		
 		l.addWidget( self.theLabel ) 
 		l.insertSpacing ( -1, 10 )

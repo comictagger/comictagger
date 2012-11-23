@@ -17,6 +17,7 @@ Style sheets for windows/mac/linux
 Bugs
 -----------------------------------------------------
 Windows zip and rar: set proper path for writing to archive
+	set working dir for sys calls
 
 SERIOUS BUG: rebuilding zips!
     http://stackoverflow.com/questions/11578443/trigger-io-errno-18-cross-device-link

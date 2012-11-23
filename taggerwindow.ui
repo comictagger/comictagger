@@ -233,6 +233,9 @@
         </property>
         <item>
          <widget class="QTabWidget" name="tabWidget">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
           <property name="currentIndex">
            <number>0</number>
           </property>
@@ -367,7 +370,7 @@
                 </property>
                 <layout class="QVBoxLayout" name="verticalLayout_6">
                  <property name="spacing">
-                  <number>-1</number>
+                  <number>6</number>
                  </property>
                  <property name="bottomMargin">
                   <number>3</number>
@@ -500,7 +503,7 @@
                     <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
                    </property>
                    <property name="verticalSpacing">
-                    <number>-1</number>
+                    <number>6</number>
                    </property>
                    <item row="0" column="0">
                     <widget class="QLabel" name="label_18">
@@ -996,44 +999,6 @@
             </item>
            </layout>
           </widget>
-          <widget class="QWidget" name="tab_5">
-           <attribute name="title">
-            <string>Pages</string>
-           </attribute>
-           <layout class="QGridLayout" name="gridLayout_6">
-            <item row="0" column="0">
-             <widget class="QListView" name="listView">
-              <property name="dragEnabled">
-               <bool>true</bool>
-              </property>
-              <property name="dragDropMode">
-               <enum>QAbstractItemView::InternalMove</enum>
-              </property>
-              <property name="defaultDropAction">
-               <enum>Qt::MoveAction</enum>
-              </property>
-              <property name="movement">
-               <enum>QListView::Snap</enum>
-              </property>
-              <property name="resizeMode">
-               <enum>QListView::Adjust</enum>
-              </property>
-              <property name="gridSize">
-               <size>
-                <width>100</width>
-                <height>170</height>
-               </size>
-              </property>
-              <property name="viewMode">
-               <enum>QListView::IconMode</enum>
-              </property>
-              <property name="selectionRectVisible">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </widget>
          </widget>
         </item>
        </layout>
@@ -1048,7 +1013,7 @@
      <x>0</x>
      <y>0</y>
      <width>1030</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuComicTagger">
