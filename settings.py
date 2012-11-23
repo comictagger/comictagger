@@ -38,7 +38,7 @@ class ComicTaggerSettings:
 	
 	# automatic settings
 	last_selected_data_style = 0
-	last_opened_folder = None
+	last_opened_folder = ""
 	last_main_window_width = 0
 	last_main_window_height = 0
 	last_main_window_x = 0
@@ -116,8 +116,10 @@ class ComicTaggerSettings:
 		self.rar_exe_path =    self.config.get( 'settings', 'rar_exe_path' )
 		self.unrar_exe_path =  self.config.get( 'settings', 'unrar_exe_path' )
     
-		self.last_selected_data_style =  self.config.getint( 'auto', 'last_selected_data_style' )
-		self.last_opened_folder =        self.config.get( 'auto', 'last_opened_folder' )
+		if self.config.has_option('auto', 'last_selected_data_style'):
+			self.last_selected_data_style =  self.config.getint( 'auto', 'last_selected_data_style' )
+		if self.config.has_option('auto', 'last_opened_folder'):
+			self.last_opened_folder =        self.config.get( 'auto', 'last_opened_folder' )
 		if self.config.has_option('auto', 'last_main_window_width'):
 			self.last_main_window_width =    self.config.getint( 'auto', 'last_main_window_width' )
 		if self.config.has_option('auto', 'last_main_window_height'):

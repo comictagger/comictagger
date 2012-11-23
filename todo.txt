@@ -5,10 +5,9 @@ General Setting Tab:
 	Add Settings Reset - may require restart
 	Add setting to dis-allow writing CBI to RAR
 
-
+Use QT Config Dialog??
+	
 Optional dialog
-	maybe move to a UI file
-	add wordwrap, maybe some spacing in there, maybe center?
 	Make URL clickable
 	
 Fix about graphics

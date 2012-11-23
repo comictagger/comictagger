@@ -136,11 +136,11 @@ class TaggerWindow( QtGui.QMainWindow):
 		
 		if self.settings.show_disclaimer:
 			checked = OptionalMessageDialog.msg(  self, "Disclaimer", 
-								"Thanks for trying Comic Tagger!\n\n" +
-								"Be aware that is beta-level software, and the developers\n" +
-								"of this program can take no responsibility for any loss of data due\n" +
-								"to its use.\n\n" +
-								"That said, have fun!\n",
+								"Thanks for trying Comic Tagger!<br><br>" +
+								"Be aware that this is beta-level software, and the developers " +
+								"of this program can take no responsibility for any loss of data due " +
+								"to its use.<br><br>" +
+								"That said, have fun!",
 								)
 			self.settings.show_disclaimer = not checked
 		
@@ -771,12 +771,13 @@ class TaggerWindow( QtGui.QMainWindow):
 			if self.comic_archive.isRar() and self.data_style == MetaDataStyle.CBI:
 				if self.settings.ask_about_cbi_in_rar:
 					answered_yes, checked = OptionalMessageDialog.question(  self, "RAR and ComicBookLover", 
-										"You are about to write a CBL tag block to a RAR archive!\n\n" +
-										"While technically possible, no known reader can read those tags from RAR\n" +
-										"yet.  If you would like this feature from ComicBookLover, please go their\n" +
-										"forums and add a feature request!\n\n" +
-										"http://forums.comicbooklover.com/categories/ipad-features\n\n" +
-										"Do you want to continue with the save?\n",
+										"You are about to write a CBL tag block to a RAR archive!<br><br>" +
+										"While technically possible, no known reader can read those tags from RAR " +
+										"yet.  If you would like this feature from ComicBookLover, please go their " +
+										"forums and add a feature request!<br><br>" +
+										"<a href=http://forums.comicbooklover.com/categories/ipad-features>" +
+										"http://forums.comicbooklover.com/categories/ipad-features/</a><br><br>" +
+										"Do you want to continue with the save?",
 										)
 					self.settings.ask_about_cbi_in_rar = not checked
 					if not answered_yes:

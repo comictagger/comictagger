@@ -46,8 +46,15 @@ class OptionalMessageDialog(QDialog):
 		self.was_accepted = False
 		
 		l = QVBoxLayout( self )
+		
 		self.theLabel = QLabel( msg )
+		self.theLabel.setWordWrap(True)
+		self.theLabel.setWordWrap(True)
+		self.theLabel.setTextFormat( Qt.RichText )
+		self.theLabel.setTextInteractionFlags( Qt.LinksAccessibleByMouse | Qt.LinksAccessibleByKeyboard )
+		
 		l.addWidget( self.theLabel ) 
+		l.insertSpacing ( -1, 10 )
 		
 		if check_text is None:
 			if style == StyleQuestion:

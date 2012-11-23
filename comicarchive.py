@@ -24,6 +24,7 @@ import struct
 import sys
 import tempfile
 import subprocess
+import _subprocess
 import platform
 import time
 
@@ -174,7 +175,7 @@ class RarArchiver:
 		# windows only, keeps the cmd.exe from popping up
 		if platform.system() == "Windows":
 			self.startupinfo = subprocess.STARTUPINFO()
-			self.startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+			self.startupinfo.dwFlags |= _subprocess.STARTF_USESHOWWINDOW
 		else:
 			self.startupinfo = None
 
