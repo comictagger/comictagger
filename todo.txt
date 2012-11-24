@@ -1,14 +1,14 @@
 -----------------------------------------------------
 Features
 -----------------------------------------------------
-General Setting Tab:
-	Add Settings Reset - may require restart
-	Add setting to dis-allow writing CBI to RAR
+CLI
+	explicit metadata settings option format
+		-- figure out how to add credits,tags
+		-- delete tags, credits
 
-Use QT Config Dialog??
-	
-Optional dialog
-	Make URL clickable
+Credit overlay:
+	Just add non-dupes
+	Create a credit list class to manage
 	
 Fix about graphics
 
@@ -16,13 +16,16 @@ Style sheets for windows/mac/linux
 -----------------------------------------------------
 Bugs
 -----------------------------------------------------
+
+Comma in Credits in CIX
+
 Windows zip and rar: set proper path for writing to archive
 	set working dir for sys calls
 
 SERIOUS BUG: rebuilding zips!
     http://stackoverflow.com/questions/11578443/trigger-io-errno-18-cross-device-link
 
-Frozen apps better finding of resource files
+Frozen apps: better finding of resource files
 
 OSX
 	weird unrar complaints
@@ -76,7 +79,9 @@ Archive function to  detect tag blocks out of sync
 
 app tour?
 
-
+Settings
+	Add setting to dis-allow writing CBI to RAR
+	Overwrite or overlay
 ----------------------------------------------
 
 

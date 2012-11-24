@@ -70,17 +70,21 @@ class SettingsWindow(QtGui.QDialog):
 		elif platform.system() == "Darwin":
 			self.lblRarHelp.setText( macRarHelp )
 			
-		# Copy values from settings to form
-		self.leRarExePath.setText( self.settings.rar_exe_path )
-		self.leUnrarExePath.setText( self.settings.unrar_exe_path )
-		self.leNameLengthDeltaThresh.setText( str(self.settings.id_length_delta_thresh) )
-		self.tePublisherBlacklist.setPlainText( self.settings.id_publisher_blacklist )
+		self.settingsToForm()
 		
 		self.btnBrowseRar.clicked.connect(self.selectRar)
 		self.btnBrowseUnrar.clicked.connect(self.selectUnrar)		
 		self.btnClearCache.clicked.connect(self.clearCache)
 		self.btnResetSettings.clicked.connect(self.resetSettings)
 
+	def settingsToForm( self ):
+			
+		# Copy values from settings to form
+		self.leRarExePath.setText( self.settings.rar_exe_path )
+		self.leUnrarExePath.setText( self.settings.unrar_exe_path )
+		self.leNameLengthDeltaThresh.setText( str(self.settings.id_length_delta_thresh) )
+		self.tePublisherBlacklist.setPlainText( self.settings.id_publisher_blacklist )
+	
 	def accept( self ):
 		
 		# Copy values from form to settings and save
@@ -113,7 +117,8 @@ class SettingsWindow(QtGui.QDialog):
 	
 	def resetSettings( self ):
 		self.settings.reset()
-		print "ATB reset setting!!"
+		self.settingsToForm()
+		QtGui.QMessageBox.information(self,"Settings", "Settings have been returned to default values.")
 	
 	def selectFile( self, control, name ):
 		

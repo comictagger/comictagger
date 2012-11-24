@@ -28,31 +28,6 @@ import utils
 
 class ComicTaggerSettings:
 
-	settings_file = ""
-	folder = ""
-	
-	# General Settings
-	rar_exe_path = ""
-	unrar_exe_path = ""
-	allow_cbi_in_rar = True
-	
-	# automatic settings
-	last_selected_data_style = 0
-	last_opened_folder = ""
-	last_main_window_width = 0
-	last_main_window_height = 0
-	last_main_window_x = 0
-	last_main_window_y = 0
-	
-	# identifier settings
-	id_length_delta_thresh = 5
-	id_publisher_blacklist = "Panini Comics, Abril, Scholastic Book Services"
-	
-	# Show/ask dialog flags
-	ask_about_cbi_in_rar = True
-	show_disclaimer = True
-	
-	
 	@staticmethod
 	def getSettingsFolder():
 		if platform.system() == "Windows":
@@ -69,9 +44,35 @@ class ComicTaggerSettings:
 		else:
 			return os.path.dirname(__file__)
 
+	def setDefaultValues( self ):
+
+		# General Settings
+		self.rar_exe_path = ""
+		self.unrar_exe_path = ""
+		self.allow_cbi_in_rar = True
 		
+		# automatic settings
+		self.last_selected_data_style = 0
+		self.last_opened_folder = ""
+		self.last_main_window_width = 0
+		self.last_main_window_height = 0
+		self.last_main_window_x = 0
+		self.last_main_window_y = 0
+		
+		# identifier settings
+		self.id_length_delta_thresh = 5
+		self.id_publisher_blacklist = "Panini Comics, Abril, Scholastic Book Services"
+		
+		# Show/ask dialog flags
+		self.ask_about_cbi_in_rar = True
+		self.show_disclaimer = True
+	
 	def __init__(self):
 		
+		self.settings_file = ""
+		self.folder = ""
+		self.setDefaultValues()
+
 		self.config = ConfigParser.RawConfigParser()
 		self.folder = ComicTaggerSettings.getSettingsFolder()
 		

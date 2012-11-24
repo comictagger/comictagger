@@ -976,7 +976,7 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.setDirtyFlag()
 
 	def showSettings( self ):
-
+		
 		settingswin = SettingsWindow( self, self.settings )
 		settingswin.setModal(True)
 		settingswin.exec_()
