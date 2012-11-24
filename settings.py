@@ -39,11 +39,10 @@ class ComicTaggerSettings:
 	def baseDir():
 		if platform.system() == "Darwin" and getattr(sys, 'frozen', None):
 			return sys._MEIPASS
-		elif platform.system() == "Windows":
-			return "."
 		else:
-			return os.path.dirname(__file__)
-
+			#print "ATB basename", os.path.dirname( os.path.abspath( sys.argv[0] ) )
+			return os.path.dirname( os.path.abspath( sys.argv[0] ) )
+		
 	def setDefaultValues( self ):
 
 		# General Settings

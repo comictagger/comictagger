@@ -16,7 +16,6 @@ Style sheets for windows/mac/linux
 -----------------------------------------------------
 Bugs
 -----------------------------------------------------
-
 Comma in Credits in CIX
 
 Windows zip and rar: set proper path for writing to archive
@@ -24,6 +23,8 @@ Windows zip and rar: set proper path for writing to archive
 
 SERIOUS BUG: rebuilding zips!
     http://stackoverflow.com/questions/11578443/trigger-io-errno-18-cross-device-link
+
+Execption handling for save operations
 
 Frozen apps: better finding of resource files
 
@@ -55,8 +56,6 @@ TaggerWindow entry fields
 CLI
 	write a log for multiple file processing
 	override abort on low confidence flag
-	explicit metadata settings option format
-		-- figure out how to add credits,tags
 	interactive for choices option?
 		--- or defer choices to end, by keeping special log of match option for each file
 
@@ -69,8 +68,6 @@ GUI to handle mutliple files or folders
 Auto search:
 	Searching w/o issue #?
 
-Content Hashes!!
-
 Wizard for converting between tag styles
 
 App option to covert RAR to ZIP
@@ -82,6 +79,11 @@ app tour?
 Settings
 	Add setting to dis-allow writing CBI to RAR
 	Overwrite or overlay
+
+
+Google App engine to store hashes 
+	Content Hashes??
+
 ----------------------------------------------
 
 
