@@ -79,6 +79,7 @@ class SettingsWindow(QtGui.QDialog):
 		self.btnBrowseRar.clicked.connect(self.selectRar)
 		self.btnBrowseUnrar.clicked.connect(self.selectUnrar)		
 		self.btnClearCache.clicked.connect(self.clearCache)
+		self.btnResetSettings.clicked.connect(self.resetSettings)
 
 	def accept( self ):
 		
@@ -109,6 +110,10 @@ class SettingsWindow(QtGui.QDialog):
 	def clearCache( self ):
 		ImageFetcher().clearCache()
 		ComicVineCacher( ).clearCache()	
+	
+	def resetSettings( self ):
+		self.settings.reset()
+		print "ATB reset setting!!"
 	
 	def selectFile( self, control, name ):
 		

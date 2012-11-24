@@ -109,6 +109,10 @@ class ComicTaggerSettings:
 			if self.unrar_exe_path != "":
 				self.save()
 
+	def reset( self ):
+		os.unlink( self.settings_file )
+		self.__init__()
+		
 	def load(self):
 		
 		self.config.read( self.settings_file )
