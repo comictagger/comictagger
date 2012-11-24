@@ -85,8 +85,13 @@ class ZipArchiver:
 		# TODO: use tempfile.mkstemp
 		# this recompresses the zip archive, without the files in the exclude_list
 		print "Rebuilding zip {0} without {1}".format( self.path, exclude_list )
+		
+		# generate temp file
+		tmp_fd, tmp_name = tempfile.mkstemp( dir=os.path.dirname(self.path) )
+		os.close( tmp_fd )
+		
 		zin = zipfile.ZipFile (self.path, 'r')
-		zout = zipfile.ZipFile ('tmpnew.zip', 'w')
+		zout = zipfile.ZipFile (tmp_name, 'w')
 		for item in zin.infolist():
 			buffer = zin.read(item.filename)
 			if ( item.filename not in exclude_list ):
@@ -100,7 +105,7 @@ class ZipArchiver:
 		
 		# replace with the new file 
 		os.remove( self.path )
-		os.rename( 'tmpnew.zip', self.path )
+		os.rename( tmp_name, self.path )
 
 
 	def writeZipComment( self, filename, comment ):
