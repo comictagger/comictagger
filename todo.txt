@@ -3,19 +3,20 @@ Features
 -----------------------------------------------------
 CLI
 	explicit metadata settings option format
-		-- figure out how to add credits,tags
-		-- delete tags, credits
-
-Credit overlay:
-	Just add non-dupes
-	Create a credit list class to manage
+		-- figure out how to add tags
+		-- delete tags 
 	
 Fix about graphics
 
 Style sheets for windows/mac/linux
+
+
 -----------------------------------------------------
 Bugs
 -----------------------------------------------------
+
+Preserve Primary flags in credits
+
 Comma in Credits in CIX
 
 Windows zip and rar: set proper path for writing to archive

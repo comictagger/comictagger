@@ -61,7 +61,8 @@ def process_file_cli( filename, opts, settings ):
 		print "Sorry, but "+ filename + "  is not a comic archive!"
 		return
 	
-	if not ca.isWritableForStyle( opts.data_style ) and ( opts.delete_tags or opts.save_tags or opts.rename_file ):
+	#if not ca.isWritableForStyle( opts.data_style ) and ( opts.delete_tags or opts.save_tags or opts.rename_file ):
+	if not ca.isWritable(  ) and ( opts.delete_tags or opts.save_tags or opts.rename_file ):
 		print "This archive is not writable for that tag type"
 		return
 		
@@ -85,7 +86,7 @@ def process_file_cli( filename, opts, settings ):
 			brief += "  tags:[ "
 
 			if not (cbi or cix):
-				brief += "none"
+				brief += "none "
 			else:
 				if cbi: brief += "CBL "
 				if cix: brief += "CR "

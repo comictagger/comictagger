@@ -235,9 +235,9 @@ class IssueIdentifier:
 		self.log_msg( "\tSeries: " + keys['series'] )
 		self.log_msg( "\tIssue : " + keys['issue_number']  )
 		if keys['year'] is not None:
-			self.log_msg( "\tYear :  " + keys['year'] )
+			self.log_msg( "\tYear :  " + str(keys['year']) )
 		if keys['month'] is not None:
-			self.log_msg( "\tMonth : " + keys['month'] )
+			self.log_msg( "\tMonth : " + str(keys['month']) )
 		
 		self.log_msg("Publisher Blacklist: " + str(self.publisher_blacklist))
 		

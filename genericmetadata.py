@@ -146,12 +146,26 @@ class GenericMetadata:
 		
 		# TODO
 		# not sure if the tags, credits, and pages should broken down, or treated
-		# as whole lists....  For now, go the easy route, where any overlay
+		# as whole lists.... 
+		for c in new_md.credits:	
+			if c.has_key('primary') and c['primary']:
+				primary = True
+			else:
+				primary = False
+
+			# Remove credit role if person is blank
+			if c['person'] == "":			
+				for r in reversed(self.credits):
+					if r['role'].lower() == c['role'].lower():
+						self.credits.remove(r)
+			else:
+				self.addCredit( c['person'], c['role'], primary )
+
+			
+		# For now, go the easy route, where any overlay
 		# value wipes out the whole list
 		if len(new_md.tags) > 0:
 			assign( "tags",              new_md.tags )
-		if len(new_md.credits) > 0:	
-			assign( "credits",           new_md.credits )
 		if len(new_md.pages) > 0:	
 			assign( "pages",           new_md.pages )
 
@@ -163,8 +177,19 @@ class GenericMetadata:
 		credit['role'] = role
 		if primary:
 			credit['primary'] = primary
-			
-		self.credits.append(credit)
+
+		# look to see if it's not already there...
+		found = False
+		for c in self.credits:
+			if (   c['person'].lower() == person.lower() and
+				   c['role'].lower() == role.lower() ):
+				# no need to add it. just adjust the "primary" flag as needed
+				c['primary'] = primary
+				found = True
+				break
+		
+		if not found:
+			self.credits.append(credit)
 
       		
 	def __str__( self ):
@@ -215,7 +240,10 @@ class GenericMetadata:
 		add_string( "tags",  utils.listToString( self.tags ) )
 		 
 		for c in self.credits:
-			add_string( "credit",     c['role']+": "+c['person'] )
+			primary = ""
+			if c.has_key('primary') and c['primary']: 
+				primary == " [P]"
+			add_string( "credit",  c['role']+": "+c['person'] + primary)
 			
 		# find the longest field name
 		flen = 0

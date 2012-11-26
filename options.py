@@ -128,7 +128,14 @@ If no options are given, {0} will run in windowed mode
 			key,value = i.split("=")
 			value = value.replace( replacement_token, "=" ).strip()
 			key = key.strip()
-			md_dict[key] = value
+			if key.lower() == "credit":
+				cred_attribs = value.split(":")
+				role = cred_attribs[0]
+				person = ( cred_attribs[1] if len( cred_attribs ) > 1 else  "" )
+				primary = (cred_attribs[2] if len( cred_attribs ) > 2 else None )
+				md.addCredit( person.strip(), role.strip(), True if primary is not None else False )
+			else:			
+				md_dict[key] = value
 		
 		# Map the dict to the metadata object
 		for key in md_dict:
