@@ -5,6 +5,8 @@ CLI
 	explicit metadata settings option format
 		-- figure out how to add tags
 		-- delete tags 
+
+Overlay credits,tags, myabe more on online search
 	
 Fix about graphics
 
