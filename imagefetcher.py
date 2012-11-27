@@ -30,7 +30,16 @@ try:
 	from PyQt4.QtCore import QUrl, pyqtSignal, QObject, QByteArray
 	from PyQt4 import  QtGui
 except ImportError:
-	pass
+	# No Qt, so define a few dummy QObjects to help us compile
+	class QObject():
+		pass
+	class QByteArray():
+		pass
+	class pyqtSignal():
+		def __init__(self,*args):
+			pass
+		def emit(a,b,c):
+			pass
 
 from settings import ComicTaggerSettings 
 

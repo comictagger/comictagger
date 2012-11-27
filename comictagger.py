@@ -28,15 +28,15 @@ import time
 from pprint import pprint
 import json
 
-qt_available = True
 try:
+	qt_available = True
 	from PyQt4 import QtCore, QtGui
+	from taggerwindow import TaggerWindow
 except ImportError:
 	qt_available = False
 
 
 from settings import ComicTaggerSettings
-from taggerwindow import TaggerWindow
 from options import Options, MetaDataStyle
 from comicarchive import ComicArchive
 from issueidentifier import IssueIdentifier

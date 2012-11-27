@@ -29,7 +29,14 @@ try:
 	from PyQt4.QtNetwork import QNetworkAccessManager, QNetworkRequest
 	from PyQt4.QtCore import QUrl, pyqtSignal, QObject, QByteArray
 except ImportError:
-	pass
+	# No Qt, so define a few dummy QObjects to help us compile
+	class QObject():
+		pass
+	class pyqtSignal():
+		def __init__(self,*args):
+			pass
+		def emit(a,b,c):
+			pass
 
 import utils
 from settings import ComicTaggerSettings
