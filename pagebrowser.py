@@ -108,6 +108,8 @@ class PageBrowserWindow(QtGui.QDialog):
 				new_w = 0;
 			scaled_pixmap = self.current_pixmap.scaled(new_w, new_h, QtCore.Qt.KeepAspectRatio)			
 			self.lblPage.setPixmap( scaled_pixmap )
+			#QtCore.QCoreApplication.processEvents()
+
 			
 
 			
