@@ -1,4 +1,4 @@
-PY2INSTALLER_CMD := python $(HOME)/pyinstaller-2.0/pyinstaller.py
+PYINSTALLER_CMD := python $(HOME)/pyinstaller-2.0/pyinstaller.py
 TAGGER_BASE := $(HOME)/Dropbox/tagger/comictagger
 
 APP_NAME := ComicTagger
@@ -16,7 +16,7 @@ DMG_FILE := $(VOLUME_NAME).dmg
 all: clean dist diskimage
 
 dist:
-	$(PY2INSTALLER_CMD) $(TAGGER_BASE)/comictagger.py -o $(MAC_BASE) -c -n $(APP_NAME) -s 
+	$(PYINSTALLER_CMD) $(TAGGER_BASE)/comictagger.py -o $(MAC_BASE) -w -n $(APP_NAME) -s 
 	cp $(TAGGER_BASE)/*.ui $(APP_BUNDLE)/Contents/MacOS
 	cp -a $(TAGGER_BASE)/graphics $(APP_BUNDLE)/Contents/MacOS
 	cp $(MAC_BASE)/app.icns $(APP_BUNDLE)/Contents/Resources/icon-windowed.icns
@@ -24,7 +24,7 @@ dist:
 clean:
 	rm -rf $(DIST_DIR) $(MAC_BASE)/build
 	rm -f $(MAC_BASE)/*.spec
-	rm -f /logdict*.log
+	rm -f logdict*.log
 	rm -f *~ *.pyc *.pyo
 	echo $(VERSION_STR)
 diskimage:
