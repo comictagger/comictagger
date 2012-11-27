@@ -210,7 +210,7 @@ class IssueIdentifier:
 		self.search_result = self.ResultNoMatches
 		
 		if not pil_available:
-			print "Python Imaging Library (PIL) is not available and is needed for issue identification."
+			self.log_msg( "Python Imaging Library (PIL) is not available and is needed for issue identification." )
 			return self.match_list
 			
 		if not ca.seemsToBeAComicArchive():
