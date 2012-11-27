@@ -41,7 +41,7 @@ class Options:
 	help_text = """	
 Usage: {0} [OPTION]... [FILE]
 
-A utility for read and writing metadata to comic archives.
+A utility for reading and writing metadata to comic archives.
 
 If no options are given, {0} will run in windowed mode
 
@@ -148,15 +148,16 @@ If no options are given, {0} will run in windowed mode
 		return md
 		
 	def parseCmdLineArgs(self):
+		
+		if platform.system() == "Darwin" and hasattr(sys, "frozen") and sys.frozen == 1:
+			# remove the PSN ("process serial number") argument from OS/X
+			input_args = [a for a in sys.argv[1:] if "-psn_0_" not in  a ]
+		else:
+			input_args = sys.argv[1:]
 			
-		# mac no likey this from .app bundle
-		if platform.system() == "Darwin" and getattr(sys, 'frozen', None):
-			 return 
-
-
 		# parse command line options
 		try:
-			opts, args = getopt.getopt(sys.argv[1:], 
+			opts, args = getopt.getopt( input_args, 
 			           "hpdt:fm:vonsr", 
 			           [ "help", "print", "delete", "type=", "parsefilename", "metadata=", "verbose", "online", "dryrun", "save", "rename" , "raw" ])
 			           
