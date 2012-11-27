@@ -301,7 +301,7 @@ class TaggerWindow( QtGui.QMainWindow):
 				
 		if ca is not None and ca.seemsToBeAComicArchive():
 
-			self.settings.last_opened_folder = os.path.dirname( path )
+			self.settings.last_opened_folder = os.path.dirname( os.path.abspath(path) )  
 			
 			# clear form and current metadata, we're all in!
 			if clear_form:
@@ -693,6 +693,7 @@ class TaggerWindow( QtGui.QMainWindow):
 		
 		dialog = QtGui.QFileDialog(self)
 		dialog.setFileMode(QtGui.QFileDialog.ExistingFile)
+		print "last opened folder=", self.settings.last_opened_folder
 		if self.settings.last_opened_folder is not None:
 			dialog.setDirectory( self.settings.last_opened_folder )
 		#dialog.setFileMode(QtGui.QFileDialog.Directory )
