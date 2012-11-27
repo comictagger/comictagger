@@ -781,7 +781,7 @@ class TaggerWindow( QtGui.QMainWindow):
 										You are about to write a CBL tag block to a RAR archive!<br><br>
 										While technically possible, no known reader can read those tags from RAR
 										yet.  If you would like this feature in ComicBookLover, please go  to their
-										forums and add your voice to feature request!<br><br>
+										forums and add your voice to a feature request!<br><br>
 									    <a href=http://forums.comicbooklover.com/categories/ipad-features>
 										http://forums.comicbooklover.com/categories/ipad-features</a><br>
 									    <a href=http://forums.comicbooklover.com/categories/mac-features>
