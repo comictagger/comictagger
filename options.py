@@ -65,7 +65,7 @@ If no options are given, {0} will run in windowed mode
                                 e.g. "series=Plastic Man , publisher=Quality Comics"
                                      "series=Kickers^, Inc., issue=1, year=1986"
                              Name-Value pairs are comma separated.  Use a "^" to 
-                             escape an "=" or a ",", ash show in the example above
+                             escape an "=" or a ",", as shown in the example above
                              Some names that can be used:
                                  series, issue, issueCount, year, publisher, title
   -r, --rename               Rename the file based on specified tag style.
