@@ -16,7 +16,7 @@ DMG_FILE := $(VOLUME_NAME).dmg
 all: clean dist diskimage
 
 dist:
-	$(PY2INSTALLER_CMD) $(TAGGER_BASE)/tagger.py -o $(MAC_BASE) -c -n $(APP_NAME) -s 
+	$(PY2INSTALLER_CMD) $(TAGGER_BASE)/comictagger.py -o $(MAC_BASE) -c -n $(APP_NAME) -s 
 	cp $(TAGGER_BASE)/*.ui $(APP_BUNDLE)/Contents/MacOS
 	cp -a $(TAGGER_BASE)/graphics $(APP_BUNDLE)/Contents/MacOS
 	cp $(MAC_BASE)/app.icns $(APP_BUNDLE)/Contents/Resources/icon-windowed.icns

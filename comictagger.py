@@ -28,7 +28,12 @@ import time
 from pprint import pprint
 import json
 
-from PyQt4 import QtCore, QtGui
+qt_available = True
+try:
+	from PyQt4 import QtCore, QtGui
+except ImportError:
+	qt_available = False
+
 
 from settings import ComicTaggerSettings
 from taggerwindow import TaggerWindow
@@ -43,6 +48,10 @@ import codecs
 
 #-----------------------------
 def cli_mode( opts, settings ):
+	if len( opts.file_list ) < 1:
+		print "You must specify at least one filename.  Use the -h option for more info"
+		return
+	
 	for f in opts.file_list:
 		if len( opts.file_list ) > 1:
 			print "Processing: ", f
@@ -50,8 +59,6 @@ def cli_mode( opts, settings ):
 
 def process_file_cli( filename, opts, settings ):
 
-	if filename is None:
-		return
 	
 	ca = ComicArchive(filename)
 	if settings.rar_exe_path != "":
@@ -212,7 +219,7 @@ def process_file_cli( filename, opts, settings ):
 		# ok, done building our metadata. time to save
 
 		#HACK 
-		opts.dryrun = True
+		#opts.dryrun = True
 		#HACK 
 		
 		if not opts.dryrun:
@@ -243,8 +250,11 @@ def main():
 	
 	signal.signal(signal.SIGINT, signal.SIG_DFL)
 	
+	if not qt_available:
+		opts.no_gui = True
+		print "QT is not available.  Running in text mode"
+	
 	if opts.no_gui:
-
 		cli_mode( opts, settings )
 		
 	else:

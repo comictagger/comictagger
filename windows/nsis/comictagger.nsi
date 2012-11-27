@@ -123,11 +123,11 @@ Section "Install Section" SecInstall
 		;Create shortcuts
 		CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
 		CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
-		CreateShortCut "$SMPROGRAMS\$StartMenuFolder\ComicTagger.lnk" "$INSTDIR\tagger.exe"
+		CreateShortCut "$SMPROGRAMS\$StartMenuFolder\ComicTagger.lnk" "$INSTDIR\comictagger.exe"
 
 	!insertmacro MUI_STARTMENU_WRITE_END
 
-	CreateShortCut "$DESKTOP\ComicTagger.lnk" "$INSTDIR\tagger.exe" ""
+	CreateShortCut "$DESKTOP\ComicTagger.lnk" "$INSTDIR\comictagger.exe" ""
 
 	
 SectionEnd
