@@ -68,7 +68,7 @@ If no options are given, {0} will run in windowed mode
                              escape an "=" or a ",", ash show in the example above
                              Some names that can be used:
                                  series, issue, issueCount, year, publisher, title
-  -r, --rename               Rename the file based on metadata as indicated.  TBD!
+  -r, --rename               Rename the file based on specified tag style.
   -a, --abort                Abort save operation when online match is of low confidence TBD!  
   -v, --verbose              Be noisy when doing what it does                            
   -h, --help                 Display this message                            
@@ -220,4 +220,6 @@ If no options are given, {0} will run in windowed mode
 		if self.save_tags and self.data_style is None:
 			self.display_help_and_quit( "Please specify the type to save with -t", 1 )
 			
+		if self.rename_file and self.data_style is None:
+			self.display_help_and_quit( "Please specify the type to use for renaming with -t", 1 )
 		

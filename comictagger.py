@@ -219,7 +219,7 @@ def process_file_cli( filename, opts, settings ):
 		# ok, done building our metadata. time to save
 
 		#HACK 
-		#opts.dryrun = True
+		opts.dryrun = True
 		#HACK 
 		
 		if not opts.dryrun:
@@ -229,8 +229,70 @@ def process_file_cli( filename, opts, settings ):
 			print "dry-run option was set, so nothing was written, but here is the final set of tags:"
 			print u"{0}".format(md)
 
-	elif opt.rename_file:
-		print "File renaming TBD"
+	elif opts.rename_file:
+
+		md = GenericMetadata()
+		# First read in existing data, if it's there		
+		if opts.data_style == MetaDataStyle.CIX and cix:
+				md = ca.readCIX()
+		elif opts.data_style == MetaDataStyle.CBI and cbi:
+				md = ca.readCBI()
+
+		if md.isEmpty:
+			print "Comic archive contains no tags!"
+
+		if opts.data_style == MetaDataStyle.CIX:
+			if cix:
+				md = ca.readCIX()
+			else:
+				print "Comic archive contains no ComicRack tags!"
+				
+		if opts.data_style == MetaDataStyle.CBI:
+			if cbi:
+				md = ca.readCBI()
+			else:
+				print "Comic archive contains no ComicBookLover tags!"
+		
+		# TODO move this to ComicArchive, or maybe another class???
+		new_name = ""
+		if md.series is not None:
+			new_name += "{0}".format( md.series )
+		else:
+			print "Can't rename without series name"
+			return
+			
+		if md.volume is not None:
+			new_name += " v{0}".format( md.volume )
+
+		if md.issue is not None:
+			new_name += " #{0}".format( md.issue )
+		else:
+			print "Can't rename without issue number"
+			return
+		
+		if md.issueCount is not None:
+			new_name += " (of {0})".format( md.issueCount )
+		
+		if md.year is not None:
+			new_name += " ({0})".format( md.year )
+		
+		if ca.isZip:
+			new_name += ".cbz"
+		elif ca.isRar():
+			new_name += ".cbr"
+			
+		#HACK 
+		opts.dryrun = True
+		#HACK 
+			
+		if not opts.dryrun:
+			# write out the new data
+			#ca.rename()
+			pass
+		else:
+			print "dry-run option was set, so nothing was changed, but here is the proposed filename:"
+			print "'{0}'".format(new_name)
+
 
 			
 		
