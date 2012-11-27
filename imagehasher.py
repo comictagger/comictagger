@@ -1,6 +1,13 @@
 
-import Image
 import StringIO
+
+try: 
+	import Image
+	pil_available = True
+except ImportError:
+	pil_available = False
+
+
 
 class ImageHasher(object):
 	def __init__(self, path=None, data=None, width=8, height=8):

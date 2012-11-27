@@ -25,8 +25,11 @@ import urllib2, urllib
 import math 
 import re
 
-from PyQt4.QtNetwork import QNetworkAccessManager, QNetworkRequest
-from PyQt4.QtCore import QUrl, pyqtSignal, QObject, QByteArray
+try:
+	from PyQt4.QtNetwork import QNetworkAccessManager, QNetworkRequest
+	from PyQt4.QtCore import QUrl, pyqtSignal, QObject, QByteArray
+except ImportError:
+	pass
 
 import utils
 from settings import ComicTaggerSettings

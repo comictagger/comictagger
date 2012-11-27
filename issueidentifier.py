@@ -22,7 +22,11 @@ import sys
 import math
 import urllib2, urllib
 import StringIO
-import Image
+try: 
+	import Image
+	pil_available = True
+except ImportError:
+	pil_available = False
 
 from settings import ComicTaggerSettings
 from comicvinecacher import ComicVineCacher
@@ -203,10 +207,15 @@ class IssueIdentifier:
 		ca = self.comic_archive
 		self.match_list = []
 		self.cancel = False
-
+		self.search_result = self.ResultNoMatches
+		
+		if not pil_available:
+			print "Python Imaging Library (PIL) is not available and is needed for issue identification."
+			return self.match_list
+			
 		if not ca.seemsToBeAComicArchive():
 			self.log_msg( "Sorry, but "+ opts.filename + "  is not a comic archive!")
-			return self.ResultNoMatches, []
+			return self.match_list
 		
 		cover_image_data = ca.getCoverPage()
 		cover_hash = self.calculateHash( cover_image_data )
