@@ -24,8 +24,9 @@ import struct
 import sys
 import tempfile
 import subprocess
-import _subprocess
 import platform
+if platform.system() == "Windows":
+	import _subprocess
 import time
 
 sys.path.insert(0, os.path.abspath(".") )
