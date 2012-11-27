@@ -32,7 +32,8 @@ try:
 except ImportError:
 	# No Qt, so define a few dummy QObjects to help us compile
 	class QObject():
-		pass
+		def __init__(self,*args):
+			pass
 	class QByteArray():
 		pass
 	class pyqtSignal():
