@@ -144,10 +144,22 @@ class GenericMetadata:
 		assign( "comments",          new_md.comments )
 		assign( "notes",             new_md.notes )
 		
+		self.overlayCredits( new_md.credits )
 		# TODO
-		# not sure if the tags, credits, and pages should broken down, or treated
+		
+		# not sure if the tags and pages should broken down, or treated
 		# as whole lists.... 
-		for c in new_md.credits:	
+
+		# For now, go the easy route, where any overlay
+		# value wipes out the whole list
+		if len(new_md.tags) > 0:
+			assign( "tags",              new_md.tags )
+		if len(new_md.pages) > 0:	
+			assign( "pages",           new_md.pages )
+
+	
+	def overlayCredits( self, new_credits ):
+		for c in new_credits:	
 			if c.has_key('primary') and c['primary']:
 				primary = True
 			else:
@@ -158,17 +170,9 @@ class GenericMetadata:
 				for r in reversed(self.credits):
 					if r['role'].lower() == c['role'].lower():
 						self.credits.remove(r)
+			# otherwise, add it!
 			else:
 				self.addCredit( c['person'], c['role'], primary )
-
-			
-		# For now, go the easy route, where any overlay
-		# value wipes out the whole list
-		if len(new_md.tags) > 0:
-			assign( "tags",              new_md.tags )
-		if len(new_md.pages) > 0:	
-			assign( "pages",           new_md.pages )
-
 		
 	def addCredit( self, person, role, primary = False ):
 		

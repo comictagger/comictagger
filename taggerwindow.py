@@ -756,11 +756,17 @@ class TaggerWindow( QtGui.QMainWindow):
 			#we should now have a volume ID
 			QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
 
+			#copy the form onto metadata object
+			self.formToMetadata()
+			
 			comicVine = ComicVineTalker( )
-			self.metadata = comicVine.fetchIssueData( selector.volume_id, selector.issue_number )
+			new_metadata = comicVine.fetchIssueData( selector.volume_id, selector.issue_number )
 
-			# Now push the right data into the edit controls
+			self.metadata.overlay( new_metadata )
+			
+			# Now push the new combined data into the edit controls
 			self.metadataToForm()
+			
 			#!!!ATB should I clear the form???
 			QtGui.QApplication.restoreOverrideCursor()		
 
