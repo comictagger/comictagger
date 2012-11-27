@@ -390,7 +390,7 @@ class ComicArchive:
 	def isFolder( self ):
 		return self.archive_type ==  self.ArchiveType.Folder
 
-	def isWritable( self ):
+	def isWritable( self ):	
 		if self.archive_type == self.ArchiveType.Unknown :
 			return False
 		
@@ -398,6 +398,10 @@ class ComicArchive:
 			return False
 			
 		elif not os.access(self.path, os.W_OK):
+			return False
+		
+		elif ((self.archive_type != self.ArchiveType.Folder) and 
+		        (not os.access( os.path.dirname( os.path.abspath(self.path)), os.W_OK ))):
 			return False
 
 		return True
