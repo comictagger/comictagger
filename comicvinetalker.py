@@ -266,6 +266,9 @@ class ComicVineTalker(QObject):
 
 		newstring = newstring.replace('&nbsp;',' ')
 		newstring = newstring.replace('&amp;','&')
+	
+		newstring = newstring.strip()
+
 		
 		return newstring
 
