@@ -139,12 +139,8 @@ class TaggerWindow( QtGui.QMainWindow):
 		
 		self.updateStyleTweaks()
 
-		# The show/hide/show is on purpose, to let the layout manager figure
-		# do some calculations first
 		self.show()
 		self.setAppPosition()
-		self.hide() 
-		self.show()
 		self.raise_()
 		QtCore.QCoreApplication.processEvents()
 
