@@ -693,7 +693,6 @@ class TaggerWindow( QtGui.QMainWindow):
 		
 		dialog = QtGui.QFileDialog(self)
 		dialog.setFileMode(QtGui.QFileDialog.ExistingFile)
-		print "last opened folder=", self.settings.last_opened_folder
 		if self.settings.last_opened_folder is not None:
 			dialog.setDirectory( self.settings.last_opened_folder )
 		#dialog.setFileMode(QtGui.QFileDialog.Directory )
@@ -803,13 +802,16 @@ class TaggerWindow( QtGui.QMainWindow):
 			if reply == QtGui.QMessageBox.Yes:		
 				QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
 				self.formToMetadata()
-				self.comic_archive.writeMetadata( self.metadata, self.data_style )
-				self.clearDirtyFlag()
-				self.updateInfoBox()
-				QtGui.QApplication.restoreOverrideCursor()		
 				
-				QtGui.QMessageBox.information(self, self.tr("Yeah!"), self.tr("File written."))
-
+				success = self.comic_archive.writeMetadata( self.metadata, self.data_style )
+				QtGui.QApplication.restoreOverrideCursor()
+				
+				if not success:
+					QtGui.QMessageBox.warning(self, self.tr("Save failed"), self.tr("The tag save operation seemed to fail!"))
+				else:
+					self.clearDirtyFlag()
+					self.updateInfoBox()
+					#QtGui.QMessageBox.information(self, self.tr("Yeah!"), self.tr("File written."))
 
 		else:
 			QtGui.QMessageBox.information(self, self.tr("Whoops!"), self.tr("No data to commit!"))
@@ -1123,8 +1125,10 @@ class TaggerWindow( QtGui.QMainWindow):
 			     
 			if reply == QtGui.QMessageBox.Yes:
 				path = self.comic_archive.path
-				self.comic_archive.removeMetadata( style )
-				self.updateInfoBox()
+				if not self.comic_archive.removeMetadata( style ):
+					QtGui.QMessageBox.warning(self, self.tr("Remove failed"), self.tr("The tag removal operation seemed to fail!"))
+				else:
+					self.updateInfoBox()
 				
 
 	def reloadAuto( self ):

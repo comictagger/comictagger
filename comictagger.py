@@ -27,6 +27,7 @@ import traceback
 import time
 from pprint import pprint
 import json
+import platform
 
 try:
 	qt_available = True
@@ -123,8 +124,10 @@ def process_file_cli( filename, opts, settings ):
 		if opts.data_style == MetaDataStyle.CIX:
 			if cix:
 				if not opts.dryrun:
-					ca.removeCIX()
-					print "Removed ComicRack tags."
+					if not ca.removeCIX():
+						print "Tag removal seemed to fail!"
+					else:
+						print "Removed ComicRack tags."
 				else:
 					print "dry-run.  ComicRack tags not removed"					
 			else:
@@ -133,8 +136,10 @@ def process_file_cli( filename, opts, settings ):
 		if opts.data_style == MetaDataStyle.CBI:
 			if cbi:
 				if not opts.dryrun:
-					ca.removeCBI()
-					print "Removed ComicBookLover tags."
+					if not ca.removeCBI():
+						print "Tag removal seemed to fail!"
+					else:
+						print "Removed ComicBookLover tags."
 				else:
 					print "dry-run.  ComicBookLover tags not removed"					
 			else:
@@ -224,7 +229,10 @@ def process_file_cli( filename, opts, settings ):
 		
 		if not opts.dryrun:
 			# write out the new data
-			ca.writeMetadata( md, opts.data_style )
+			if not ca.writeMetadata( md, opts.data_style ):
+				print "The tag save seemed to fail!"
+			else:
+				print "Save complete."				
 		else:
 			print "dry-run option was set, so nothing was written, but here is the final set of tags:"
 			print u"{0}".format(md)
@@ -265,7 +273,7 @@ def process_file_cli( filename, opts, settings ):
 			new_name += " v{0}".format( md.volume )
 
 		if md.issue is not None:
-			new_name += " #{0}".format( md.issue )
+			new_name += " #{:03d}".format( int(md.issue) )
 		else:
 			print "Can't rename without issue number"
 			return
@@ -276,7 +284,7 @@ def process_file_cli( filename, opts, settings ):
 		if md.year is not None:
 			new_name += " ({0})".format( md.year )
 		
-		if ca.isZip:
+		if ca.isZip():
 			new_name += ".cbz"
 		elif ca.isRar():
 			new_name += ".cbr"
@@ -323,16 +331,20 @@ def main():
 
 		app = QtGui.QApplication(sys.argv)
 		
-		img =  QtGui.QPixmap(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/tags.png' ))
-		splash = QtGui.QSplashScreen(img)
-		splash.show()
-		splash.raise_()
-		app.processEvents()
-
+		if platform.system() != "Linux":
+			img =  QtGui.QPixmap(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/tags.png' ))
+			splash = QtGui.QSplashScreen(img)
+			splash.show()
+			splash.raise_()
+			app.processEvents()
+	
 		try:
 			tagger_window = TaggerWindow( opts.filename, settings )
 			tagger_window.show()
-			splash.finish( tagger_window )
+
+			if platform.system() != "Linux":
+				splash.finish( tagger_window )
+
 			sys.exit(app.exec_())
 		except Exception, e:
 			QtGui.QMessageBox.critical(QtGui.QMainWindow(), "Error", "Unhandled exception in app:\n" + traceback.format_exc() )

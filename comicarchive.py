@@ -52,7 +52,7 @@ class ZipArchiver:
 		return comment
 
 	def setArchiveComment( self, comment ):
-		self.writeZipComment( self.path, comment )
+		return self.writeZipComment( self.path, comment )
 
 	def readArchiveFile( self, archive_file ):
 		zf = zipfile.ZipFile( self.path, 'r' )
@@ -61,19 +61,28 @@ class ZipArchiver:
 		return data
 
 	def removeArchiveFile( self, archive_file ):
-		self.rebuildZipFile(  [ archive_file ] )
-
+		try:
+			self.rebuildZipFile(  [ archive_file ] )
+		except:
+			return False
+		else:
+			return True
+			
 	def writeArchiveFile( self, archive_file, data ):
 		#  At the moment, no other option but to rebuild the whole 
 		#  zip archive w/o the indicated file. Very sucky, but maybe 
 		# another solution can be found
-		self.rebuildZipFile(  [ archive_file ] )
-		
-		#now just add the archive file as a new one
-		zf = zipfile.ZipFile(self.path, mode='a', compression=zipfile.ZIP_DEFLATED ) 
-		zf.writestr( archive_file, data )
-		zf.close()
-
+		try:
+			self.rebuildZipFile(  [ archive_file ] )
+			
+			#now just add the archive file as a new one
+			zf = zipfile.ZipFile(self.path, mode='a', compression=zipfile.ZIP_DEFLATED ) 
+			zf.writestr( archive_file, data )
+			zf.close()
+			return True
+		except:
+			return False
+			
 	def getArchiveFilenameList( self ):		
 		zf = zipfile.ZipFile( self.path, 'r' )
 		namelist = zf.namelist()
@@ -85,7 +94,7 @@ class ZipArchiver:
 		
 		# TODO: use tempfile.mkstemp
 		# this recompresses the zip archive, without the files in the exclude_list
-		print "Rebuilding zip {0} without {1}".format( self.path, exclude_list )
+		#print "Rebuilding zip {0} without {1}".format( self.path, exclude_list )
 		
 		# generate temp file
 		tmp_fd, tmp_name = tempfile.mkstemp( dir=os.path.dirname(self.path) )
@@ -123,50 +132,54 @@ class ZipArchiver:
 		statinfo = os.stat(filename)
 		file_length = statinfo.st_size
 
-		fo = open(filename, "r+b")
+		try:
+			fo = open(filename, "r+b")
 
-		#the starting position, relative to EOF
-		pos = -4
+			#the starting position, relative to EOF
+			pos = -4
 
-		found = False
-		value = bytearray()
-
-		# walk backwards to find the "End of Central Directory" record
-		while ( not found ) and ( -pos != file_length ):
-			# seek, relative to EOF	
-			fo.seek( pos,  2)
-
-			value = fo.read( 4 )
-
-			#look for the end of central directory signature
-			if bytearray(value) == bytearray([ 0x50, 0x4b, 0x05, 0x06 ]):
-				found = True
-			else:
-				# not found, step back another byte
-				pos = pos - 1
-			#print pos,"{1} int: {0:x}".format(bytearray(value)[0], value)
+			found = False
+			value = bytearray()
 		
-		if found:
-			
-			# now skip forward 20 bytes to the comment length word
-			pos += 20
-			fo.seek( pos,  2)
+			# walk backwards to find the "End of Central Directory" record
+			while ( not found ) and ( -pos != file_length ):
+				# seek, relative to EOF	
+				fo.seek( pos,  2)
 
-			# Pack the length of the comment string
-			format = "H"                   # one 2-byte integer
-			comment_length = struct.pack(format, len(comment)) # pack integer in a binary string
-			
-			# write out the length
-			fo.write( comment_length )
-			fo.seek( pos+2,  2)
-			
-			# write out the comment itself
-			fo.write( comment )
-			fo.truncate()
-			fo.close()
+				value = fo.read( 4 )
 
+				#look for the end of central directory signature
+				if bytearray(value) == bytearray([ 0x50, 0x4b, 0x05, 0x06 ]):
+					found = True
+				else:
+					# not found, step back another byte
+					pos = pos - 1
+				#print pos,"{1} int: {0:x}".format(bytearray(value)[0], value)
+			
+			if found:
+				
+				# now skip forward 20 bytes to the comment length word
+				pos += 20
+				fo.seek( pos,  2)
+
+				# Pack the length of the comment string
+				format = "H"                   # one 2-byte integer
+				comment_length = struct.pack(format, len(comment)) # pack integer in a binary string
+				
+				# write out the length
+				fo.write( comment_length )
+				fo.seek( pos+2,  2)
+				
+				# write out the comment itself
+				fo.write( comment )
+				fo.truncate()
+				fo.close()
+			else:
+				raise Exception('Failed to write comment to zip file!')
+		except:
+			return False
 		else:
-			raise Exception('Failed to write comment to zip file!')
+			return True
 		
 #------------------------------------------
 # RAR implementation
@@ -196,22 +209,29 @@ class RarArchiver:
 	def setArchiveComment( self, comment ):
 
 		if self.rar_exe_path is not None:
-			# write comment to temp file
-			tmp_fd, tmp_name = tempfile.mkstemp()
-			f = os.fdopen(tmp_fd, 'w+b')
-			f.write( comment )		
-			f.close()
+			try:
+				# write comment to temp file
+				tmp_fd, tmp_name = tempfile.mkstemp()
+				f = os.fdopen(tmp_fd, 'w+b')
+				f.write( comment )		
+				f.close()
 
-			# use external program to write comment to Rar archive
-			subprocess.call([self.rar_exe_path, 'c', '-c-', '-z' + tmp_name, self.path], 
-                   startupinfo=self.startupinfo, 
-				   stdout=self.devnull)
-			
-			if platform.system() == "Darwin":
-				time.sleep(1)
+				# use external program to write comment to Rar archive
+				subprocess.call([self.rar_exe_path, 'c', '-c-', '-z' + tmp_name, self.path], 
+					startupinfo=self.startupinfo, 
+					stdout=self.devnull)
 				
-			os.remove( tmp_name)
-
+				if platform.system() == "Darwin":
+					time.sleep(1)
+					
+				os.remove( tmp_name)
+			except:
+				return False
+			else:
+				return True
+		else:
+			return False
+			
 	def readArchiveFile( self, archive_file ):
 
 		entries = UnRAR2.RarFile( self.path ).read_files( archive_file )
@@ -225,36 +245,48 @@ class RarArchiver:
 	def writeArchiveFile( self, archive_file, data ):
 
 		if self.rar_exe_path is not None:
+			try:
+				tmp_folder = tempfile.mkdtemp()
+
+				tmp_file = os.path.join( tmp_folder, archive_file )
+
+				f = open(tmp_file, 'w')
+				f.write( data )		
+				f.close()
+
+				# use external program to write file to Rar archive
+				subprocess.call([self.rar_exe_path, 'a', '-c-', '-ep', self.path, tmp_file], 
+					startupinfo=self.startupinfo,
+					stdout=self.devnull)
+
+				if platform.system() == "Darwin":
+					time.sleep(1)
+				os.remove( tmp_file)
+				os.rmdir( tmp_folder)
+			except:
+				return False
+			else:
+				return True
+		else:
+			return False
 			
-			tmp_folder = tempfile.mkdtemp()
-
-			tmp_file = os.path.join( tmp_folder, archive_file )
-
-			f = open(tmp_file, 'w')
-			f.write( data )		
-			f.close()
-
-			# use external program to write file to Rar archive
-			subprocess.call([self.rar_exe_path, 'a', '-c-', '-ep', self.path, tmp_file], 
-                   startupinfo=self.startupinfo,
-				   stdout=self.devnull)
-
-			if platform.system() == "Darwin":
-				time.sleep(1)
-			os.remove( tmp_file)
-			os.rmdir( tmp_folder)
-
 	def removeArchiveFile( self, archive_file ):
 		if self.rar_exe_path is not None:
+			try:
+				# use external program to remove file from Rar archive
+				subprocess.call([self.rar_exe_path, 'd','-c-', self.path, archive_file], 
+					startupinfo=self.startupinfo, 				   
+					stdout=self.devnull)
 
-			# use external program to remove file from Rar archive
-			subprocess.call([self.rar_exe_path, 'd','-c-', self.path, archive_file], 
-                   startupinfo=self.startupinfo, 				   
-                   stdout=self.devnull)
-
-			if platform.system() == "Darwin":
-				time.sleep(1)
-
+				if platform.system() == "Darwin":
+					time.sleep(1)
+			except:
+				return False
+			else:
+				return True
+		else:
+			return False
+			
 	def getArchiveFilenameList( self ):
 
 		rarc = UnRAR2.RarFile( self.path )
@@ -273,7 +305,7 @@ class FolderArchiver:
 		return self.readArchiveFile( self.comment_file_name )
 	
 	def setArchiveComment( self, comment ):
-		self.writeArchiveFile( self.comment_file_name, comment )
+		return self.writeArchiveFile( self.comment_file_name, comment )
 		
 	def readArchiveFile( self, archive_file ):
 		
@@ -295,8 +327,10 @@ class FolderArchiver:
 			with open(fname, 'w+') as f: 
 				f.write( data )
 				f.close()
-		except IOError as e:
-			pass
+		except:
+			return False
+		else:
+			return True
 		
 	def removeArchiveFile( self, archive_file ):
 
@@ -304,7 +338,9 @@ class FolderArchiver:
 		try:
 			os.remove( fname )
 		except:
-			pass
+			return False
+		else:
+			return True
 		
 	def getArchiveFilenameList( self ):
 		return self.listFiles( self.path )
@@ -330,13 +366,13 @@ class UnknownArchiver:
 	def getArchiveComment( self ):
 		return ""
 	def setArchiveComment( self, comment ):
-		return
+		return False
 	def readArchiveFilen( self ):
 		return ""
 	def writeArchiveFile( self, archive_file, data ):
-		return
+		return False
 	def removeArchiveFile( self, archive_file ):
-		return
+		return False
 	def getArchiveFilenameList( self ):
 		return []
 
@@ -440,9 +476,9 @@ class ComicArchive:
 	def writeMetadata( self, metadata, style ):
 		
 		if style == MetaDataStyle.CIX:
-			self.writeCIX( metadata )
+			return self.writeCIX( metadata )
 		elif style == MetaDataStyle.CBI:
-			self.writeCBI( metadata )
+			return self.writeCBI( metadata )
 
 	def hasMetadata( self, style ):
 		
@@ -455,9 +491,9 @@ class ComicArchive:
 	
 	def removeMetadata( self, style ):
 		if style == MetaDataStyle.CIX:
-			self.removeCIX()
+			return self.removeCIX()
 		elif style == MetaDataStyle.CBI:
-			self.removeCBI()
+			return self.removeCBI()
 
 	def getCoverPage(self):
 		
@@ -522,10 +558,10 @@ class ComicArchive:
 
 	def writeCBI( self, metadata ):
 		cbi_string = ComicBookInfo().stringFromMetadata( metadata )
-		self.archiver.setArchiveComment( cbi_string )
+		return self.archiver.setArchiveComment( cbi_string )
 		
 	def removeCBI( self ):
-		self.archiver.setArchiveComment( "" )
+		return self.archiver.setArchiveComment( "" )
 		
 	def readCIX( self ):
 		raw_cix = self.readRawCIX()
@@ -545,11 +581,13 @@ class ComicArchive:
 
 		if metadata is not None:
 			cix_string = ComicInfoXml().stringFromMetadata( metadata )
-			self.archiver.writeArchiveFile( self.ci_xml_filename, cix_string )
-
+			return self.archiver.writeArchiveFile( self.ci_xml_filename, cix_string )
+		else:
+			return False
+			
 	def removeCIX( self ):
 
-		self.archiver.removeArchiveFile( self.ci_xml_filename )
+		return self.archiver.removeArchiveFile( self.ci_xml_filename )
 		
 	def hasCIX(self):
 		if not self.seemsToBeAComicArchive():
