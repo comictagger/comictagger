@@ -91,9 +91,10 @@ class ImageFetcher(QObject):
 					print e
 					raise ImageFetcherException("Network Error!")
 
-				# save the image to the cache
-				self.add_image_to_cache( self.fetched_url, image_data )	
-				return image_data		
+			# save the image to the cache
+			self.add_image_to_cache( self.fetched_url, image_data )	
+			return image_data
+		
 		else:
 			
 			# if we found it, just emit the signal asap
