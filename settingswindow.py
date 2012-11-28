@@ -114,6 +114,8 @@ class SettingsWindow(QtGui.QDialog):
 	def clearCache( self ):
 		ImageFetcher().clearCache()
 		ComicVineCacher( ).clearCache()	
+		QtGui.QMessageBox.information(self, "Settings", "Cache has been cleared.")
+
 	
 	def resetSettings( self ):
 		self.settings.reset()
