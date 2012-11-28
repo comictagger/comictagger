@@ -42,7 +42,7 @@ from options import Options, MetaDataStyle
 from comicarchive import ComicArchive
 from issueidentifier import IssueIdentifier
 from genericmetadata import GenericMetadata
-from comicvinetalker import ComicVineTalker
+from comicvinetalker import ComicVineTalker, ComicVineTalkerException
 
 import utils
 import codecs
@@ -218,7 +218,11 @@ def process_file_cli( filename, opts, settings ):
 			# we got here, so we have a single match
 			
 			# now get the particular issue data
-			cv_md = ComicVineTalker().fetchIssueData( matches[0]['volume_id'],  matches[0]['issue_number'] )
+			try:
+				cv_md = ComicVineTalker().fetchIssueData( matches[0]['volume_id'],  matches[0]['issue_number'] )
+			except ComicVineTalkerException:
+				print "Network error while getting issue details.  Save aborted"
+				return
 				
 			md.overlay( cv_md )
 		# ok, done building our metadata. time to save

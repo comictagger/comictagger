@@ -44,6 +44,8 @@ from settings import ComicTaggerSettings
 from comicvinecacher import ComicVineCacher
 from genericmetadata import GenericMetadata
 
+class ComicVineTalkerException(Exception):
+	pass
 
 class ComicVineTalker(QObject):
 
@@ -65,6 +67,13 @@ class ComicVineTalker(QObject):
 		# Bogus request, but if the key is wrong, you get error 100: "Invalid API Key"
 		return cv_response[ 'status_code' ] != 100
 
+	def getUrlContent( self, url ):
+		try:
+			resp = urllib2.urlopen( url ) 
+			return resp.read()
+		except Exception as e:
+			print e
+			raise ComicVineTalkerException("Network Error!")
 
 	def searchForSeries( self, series_name , callback=None, refresh_cache=False ):
 		
@@ -85,8 +94,7 @@ class ComicVineTalker(QObject):
 		series_name = urllib.quote_plus(str(series_name))
 		search_url = "http://api.comicvine.com/search/?api_key=" + self.api_key + "&format=json&resources=volume&query=" + series_name + "&field_list=name,id,start_year,publisher,image,description,count_of_issues&sort=start_year"
 
-		resp = urllib2.urlopen(search_url) 
-		content = resp.read()
+		content = self.getUrlContent(search_url) 
 	
 		cv_response = json.loads(content)
 	
@@ -115,8 +123,7 @@ class ComicVineTalker(QObject):
 			if callback is None:
 				print ("getting another page of results {0} of {1}...".format( current_result_count, total_result_count))
 			offset += limit
-			resp = urllib2.urlopen( search_url + "&offset="+str(offset) ) 
-			content = resp.read()
+			content = self.getUrlContent(search_url + "&offset="+str(offset)) 
 		
 			cv_response = json.loads(content)
 		
@@ -154,9 +161,7 @@ class ComicVineTalker(QObject):
 	
 		volume_url = "http://api.comicvine.com/volume/" + str(series_id) + "/?api_key=" + self.api_key + "&format=json"
 
-		resp = urllib2.urlopen(volume_url) 
-		content = resp.read()
-	
+		content = self.getUrlContent(volume_url) 	
 		cv_response = json.loads(content)
 
 		if cv_response[ 'status_code' ] != 1:
@@ -182,8 +187,8 @@ class ComicVineTalker(QObject):
 			
 		if (found):
 			issue_url = "http://api.comicvine.com/issue/" + str(record['id']) + "/?api_key=" + self.api_key + "&format=json"
-			resp = urllib2.urlopen(issue_url) 
-			content = resp.read()
+
+			content = self.getUrlContent(issue_url) 
 			cv_response = json.loads(content)
 			if cv_response[ 'status_code' ] != 1:
 				print ( "Comic Vine query failed with error:  [{0}]. ".format( cv_response[ 'error' ] ))
@@ -288,8 +293,9 @@ class ComicVineTalker(QObject):
 			return cached_image_url,cached_thumb_url, cached_month, cached_year
 
 		issue_url = "http://api.comicvine.com/issue/" + str(issue_id) + "/?api_key=" + self.api_key + "&format=json&field_list=image,publish_month,publish_year"
-		resp = urllib2.urlopen(issue_url) 
-		content = resp.read()
+
+		content = self.getUrlContent(issue_url) 
+		
 		cv_response = json.loads(content)
 		if cv_response[ 'status_code' ] != 1:
 			print ( "Comic Vine query failed with error:  [{0}]. ".format( cv_response[ 'error' ] ))

@@ -44,6 +44,9 @@ except ImportError:
 
 from settings import ComicTaggerSettings 
 
+class ImageFetcherException(Exception):
+	pass
+
 class ImageFetcher(QObject):
 	
 	fetchComplete = pyqtSignal( QByteArray , int)
@@ -82,11 +85,15 @@ class ImageFetcher(QObject):
 		
 		if blocking:
 			if image_data is None:
-				image_data = urllib.urlopen(url).read()
+				try:
+					image_data = urllib.urlopen(url).read()
+				except Exception as e:
+					print e
+					raise ImageFetcherException("Network Error!")
+
 				# save the image to the cache
 				self.add_image_to_cache( self.fetched_url, image_data )	
-			return image_data
-		
+				return image_data		
 		else:
 			
 			# if we found it, just emit the signal asap

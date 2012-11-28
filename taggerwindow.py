@@ -33,7 +33,7 @@ from volumeselectionwindow import VolumeSelectionWindow
 from options import MetaDataStyle
 from comicinfoxml import ComicInfoXml
 from genericmetadata import GenericMetadata
-from comicvinetalker import ComicVineTalker
+from comicvinetalker import ComicVineTalker, ComicVineTalkerException
 from comicarchive import ComicArchive
 from crediteditorwindow import CreditEditorWindow
 from settingswindow import SettingsWindow
@@ -784,16 +784,18 @@ class TaggerWindow( QtGui.QMainWindow):
 			#copy the form onto metadata object
 			self.formToMetadata()
 			
-			comicVine = ComicVineTalker( )
-			new_metadata = comicVine.fetchIssueData( selector.volume_id, selector.issue_number )
-
-			self.metadata.overlay( new_metadata )
-			
-			# Now push the new combined data into the edit controls
-			self.metadataToForm()
-			
-			#!!!ATB should I clear the form???
-			QtGui.QApplication.restoreOverrideCursor()		
+			try:
+				comicVine = ComicVineTalker( )
+				new_metadata = comicVine.fetchIssueData( selector.volume_id, selector.issue_number )
+			except ComicVineTalkerException:
+				QtGui.QApplication.restoreOverrideCursor()		
+				QtGui.QMessageBox.critical(self, self.tr("Network Issue"), self.tr("Could not connect to ComicVine to get issue details!"))
+			else:
+				self.metadata.overlay( new_metadata )				
+				# Now push the new combined data into the edit controls
+				self.metadataToForm()
+			finally:			
+				QtGui.QApplication.restoreOverrideCursor()		
 
 	def commitMetadata(self):
 

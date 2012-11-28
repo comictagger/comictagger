@@ -25,7 +25,7 @@ from PyQt4 import QtCore, QtGui, uic
 from PyQt4.QtCore import QUrl, pyqtSignal, QByteArray
 from PyQt4.QtNetwork import QNetworkAccessManager, QNetworkRequest
 
-from comicvinetalker import ComicVineTalker
+from comicvinetalker import ComicVineTalker, ComicVineTalkerException
 from  imagefetcher import  ImageFetcher
 from settings import ComicTaggerSettings
 
@@ -68,11 +68,17 @@ class IssueSelectionWindow(QtGui.QDialog):
 
 		QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
 
+		try:
+			comicVine = ComicVineTalker( )
+			volume_data = comicVine.fetchVolumeData( self.series_id )
+		except ComicVineTalkerException:
+			QtGui.QApplication.restoreOverrideCursor()		
+			QtGui.QMessageBox.critical(self, self.tr("Network Issue"), self.tr("Could not connect to ComicVine to list issues!"))
+			return
+
 		while self.twList.rowCount() > 0:
 			self.twList.removeRow(0)
-		
-		comicVine = ComicVineTalker( )
-		volume_data = comicVine.fetchVolumeData( self.series_id )
+				
 		self.issue_list = volume_data['issues']
 
 		self.twList.setSortingEnabled(False)

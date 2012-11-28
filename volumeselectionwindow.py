@@ -26,7 +26,7 @@ from PyQt4.QtCore import QObject
 from PyQt4.QtCore import QUrl,pyqtSignal
 from PyQt4.QtNetwork import QNetworkAccessManager, QNetworkRequest
 
-from comicvinetalker import ComicVineTalker
+from comicvinetalker import ComicVineTalker, ComicVineTalkerException
 from issueselectionwindow import IssueSelectionWindow
 from issueidentifier import IssueIdentifier
 from genericmetadata import GenericMetadata
@@ -47,9 +47,14 @@ class SearchThread( QtCore.QThread):
 		
 	def run(self):
 		comicVine = ComicVineTalker( )
-		matches = self.cv_search_results = comicVine.searchForSeries( self.series_name, callback=self.prog_callback, refresh_cache=self.refresh )
-	
-		self.searchComplete.emit()
+		try:
+			self.cv_error = False
+			self.cv_search_results = comicVine.searchForSeries( self.series_name, callback=self.prog_callback, refresh_cache=self.refresh )
+		except ComicVineTalkerException:
+			self.cv_search_results = []
+			self.cv_error = True
+		finally:
+			self.searchComplete.emit()
 		
 	def prog_callback(self, current, total):
 		self.progressUpdate.emit(current, total)
@@ -265,7 +270,10 @@ class VolumeSelectionWindow(QtGui.QDialog):
 
 	def searchComplete( self ):
 		self.progdialog.accept()
-
+		if self.search_thread.cv_error:
+			QtGui.QMessageBox.critical(self, self.tr("Network Issue"), self.tr("Could not connect to ComicVine to search for series!"))
+			return
+		
 		self.cv_search_results = self.search_thread.cv_search_results
 				
 		self.twList.setSortingEnabled(False)

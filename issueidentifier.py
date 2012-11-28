@@ -31,9 +31,9 @@ except ImportError:
 from settings import ComicTaggerSettings
 from comicvinecacher import ComicVineCacher
 from genericmetadata import GenericMetadata
-from comicvinetalker import ComicVineTalker
+from comicvinetalker import ComicVineTalker, ComicVineTalkerException
 from imagehasher import ImageHasher
-from imagefetcher import  ImageFetcher
+from imagefetcher import ImageFetcher, ImageFetcherException
 
 import utils 
 
@@ -254,8 +254,11 @@ class IssueIdentifier:
 
 		#self.log_msg( ( "Searching for " + keys['series'] + "...")
 		self.log_msg( "Searching for  {0} #{1} ...".format( keys['series'], keys['issue_number']) )
-
-		cv_search_results = comicVine.searchForSeries( keys['series'] )
+		try:
+			cv_search_results = comicVine.searchForSeries( keys['series'] )
+		except ComicVineTalkerException:
+			self.log_msg( "Network issue while searching for series.  Aborting...")
+			return []
 		
 		#self.log_msg( "Found " + str(len(cv_search_results)) + " initial results" )
 		if self.cancel == True:
@@ -316,8 +319,13 @@ class IssueIdentifier:
 			               series['id'], 
 			               series['name'], 
 			               series['start_year']), newline=False )
+
+			try:
+				cv_series_results = comicVine.fetchVolumeData( series['id'] )
+			except ComicVineTalkerException:
+				self.log_msg( "Network issue while searching for series details.  Aborting...")
+				return []
 			
-			cv_series_results = comicVine.fetchVolumeData( series['id'] )
 			issue_list = cv_series_results['issues']
 			for issue in issue_list:
 				
@@ -341,9 +349,12 @@ class IssueIdentifier:
 					if keys['year'] is not None:
 						if keys['year'] != year:
 							break
+					try:
+						url_image_data = ImageFetcher().fetch(thumb_url, blocking=True)
+					except ImageFetcherException:
+						self.log_msg( "Network issue while fetching cover image from ComicVine.  Aborting...")
+						return []
 						
-					url_image_data = ImageFetcher().fetch(thumb_url, blocking=True)
-
 					if self.cancel == True:
 						self.match_list = []
 						return self.match_list

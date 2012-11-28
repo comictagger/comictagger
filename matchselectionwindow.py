@@ -24,7 +24,6 @@ from PyQt4 import QtCore, QtGui, uic
 
 from PyQt4.QtCore import QUrl, pyqtSignal, QByteArray
 
-from comicvinetalker import ComicVineTalker
 from imagefetcher import  ImageFetcher
 from settings import ComicTaggerSettings
 

@@ -1,47 +1,23 @@
 -----------------------------------------------------
 Features
 -----------------------------------------------------
-CLI
-	explicit metadata settings option format
-		-- figure out how to add tags
-		-- delete tags 
 
-Overlay credits,tags, myabe more on online search
-	
-Fix about graphics
+Release notes
 
-Style sheets for windows/mac/linux
+WIki for CLI
 
+Wiki for basic usage
+
+Add license file to OSX package/Win Package
+
+Config Dialog layout -- help stuff?
 
 -----------------------------------------------------
 Bugs
 -----------------------------------------------------
+Mac Build needs Quartz??
 
-Preserve Primary flags in credits
-
-Comma in Credits in CIX
-
-Windows zip and rar: set proper path for writing to archive
-	set working dir for sys calls
-
-SERIOUS BUG: rebuilding zips!
-    http://stackoverflow.com/questions/11578443/trigger-io-errno-18-cross-device-link
-
-Execption handling for save operations
-
-Frozen apps: better finding of resource files
-
-OSX
-	weird unrar complaints
-	Page browser sizing
-	command-line args don't work with pyinstaller pkg
-	
-Filename parsing:
-	Rework how series name is separated from issue
-
-Form type validation Ints vs strings for month, year. etc
-
-Check all HTTP responses for errors
+Size/Position memory  Win vs Lin vs Mac
 
 Lots of error checking
 -----------------------------------------------------
@@ -49,14 +25,23 @@ Future
 -----------------------------------------------------
 Add CoMet Support
 
+Support marvel's "AU" issues...
+
+Style sheets for windows/mac/linux
+
 File rename
 	-Dialog??
+	formatting with missing pieces.
+	Deal with creating dupes
 
 TaggerWindow entry fields
 	Special tabbed Dialog needed for:   
 		Pages Info - maybe a custom painted widget
  
 CLI
+	explicit metadata settings option format
+		-- figure out how to add tags
+		-- delete tags 
 	write a log for multiple file processing
 	override abort on low confidence flag
 	interactive for choices option?
@@ -65,6 +50,8 @@ CLI
 Scrape alternate Covers from ComicVine issue pages
 
 GCD scraper or DB reader
+
+Overlay tags, maybe more, on online search
 
 GUI to handle mutliple files or folders
 
@@ -83,10 +70,13 @@ Settings
 	Add setting to dis-allow writing CBI to RAR
 	Overwrite or overlay
 
-
 Google App engine to store hashes 
-	Content Hashes??
+	Content Hashes, Image hashes, who knows?
 
+Support primary credit flag editing
+
+Filename parsing:
+	Rework how series name is separated from issue
 ----------------------------------------------
 
 
