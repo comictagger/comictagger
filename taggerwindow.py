@@ -111,6 +111,23 @@ class TaggerWindow( QtGui.QMainWindow):
 	
 		self.populateComboBoxes()	
 
+		# set up some basic field validators
+		validator = QtGui.QIntValidator(1900, 2099, self)
+		self.lePubYear.setValidator(validator)
+
+		validator = QtGui.QIntValidator(1, 12, self)
+		self.lePubMonth.setValidator(validator)
+		
+		validator = QtGui.QIntValidator(1, 99999, self)
+		self.leIssueCount.setValidator(validator)
+		self.leVolumeNum.setValidator(validator)
+		self.leVolumeCount.setValidator(validator)
+		self.leAltIssueNum.setValidator(validator)
+		self.leAltIssueCount.setValidator(validator)
+		
+		#TODO set up an RE validator for issueNum that allows
+		# for all sorts of wacky things
+
 		# hook up the callbacks		
 		self.cbDataStyle.currentIndexChanged.connect(self.setDataStyle)
 		self.btnEditCredit.clicked.connect(self.editCredit)	
