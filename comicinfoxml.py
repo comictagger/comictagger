@@ -133,25 +133,25 @@ class ComicInfoXml:
 		for credit in metadata.credits:
 
 			if credit['role'].lower() in set( self.writer_synonyms ):
-				credit_writer_list.append(credit['person'])
+				credit_writer_list.append(credit['person'].replace(",",""))
 
 			if credit['role'].lower() in set( self.penciller_synonyms ):
-				credit_penciller_list.append(credit['person'])
+				credit_penciller_list.append(credit['person'].replace(",",""))
 				
 			if credit['role'].lower() in set( self.inker_synonyms ):
-				credit_inker_list.append(credit['person'])
+				credit_inker_list.append(credit['person'].replace(",",""))
 				
 			if credit['role'].lower() in set( self.colorist_synonyms ):
-				credit_colorist_list.append(credit['person'])
+				credit_colorist_list.append(credit['person'].replace(",",""))
 
 			if credit['role'].lower() in set( self.letterer_synonyms ):
-				credit_letterer_list.append(credit['person'])
+				credit_letterer_list.append(credit['person'].replace(",",""))
 
 			if credit['role'].lower() in set( self.cover_synonyms ):
-				credit_cover_list.append(credit['person'])
+				credit_cover_list.append(credit['person'].replace(",",""))
 
 			if credit['role'].lower() in set( self.editor_synonyms ):
-				credit_editor_list.append(credit['person'])
+				credit_editor_list.append(credit['person'].replace(",",""))
 				
 		# second, convert each list to string, and add to XML struct
 		if len( credit_writer_list ) > 0:
