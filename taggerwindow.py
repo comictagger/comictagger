@@ -135,12 +135,17 @@ class TaggerWindow( QtGui.QMainWindow):
 			self.openArchive( filename )
 		
 		if self.settings.show_disclaimer:
-			checked = OptionalMessageDialog.msg(  self, "Disclaimer", 
-								"Thanks for trying Comic Tagger!<br><br>" +
-								"Be aware that this is beta-level software, and the developers " +
-								"of this program can take no responsibility for any loss of data due " +
-								"to its use.<br><br>" +
-								"That said, have fun!",
+			checked = OptionalMessageDialog.msg(  self, "Welcome!",
+								"""
+								Thanks for trying ComicTagger!<br><br>
+								Be aware that this is beta-level software, and consider it experimental.
+								You should use it very carefully when modifying your data files.  As the
+								license says, it's "AS IS!"<br><br>
+								Also, be aware that writing tags to comic archives will change their file hashes,
+								which has implications with respect to other software packages.  It's best to
+								use ComicTagger on local copies of your comics.<br><br>
+								Have fun!
+								"""
 								)
 			self.settings.show_disclaimer = not checked
 		
@@ -580,14 +585,14 @@ class TaggerWindow( QtGui.QMainWindow):
 				if self.isDupeCredit( credit['role'].title(), credit['person']):
 					continue
 				
-				self.addNewCreditEntry( row, credit['role'].title(), credit['person'] )
+				self.addNewCreditEntry( row, credit['role'].title(), credit['person'], (credit['primary'] if credit.has_key('primary') else False ) )
 
 				row += 1
 				
 		self.twCredits.setSortingEnabled( True )
 		self.updateCreditColors()
 
-	def addNewCreditEntry( self, row, role, name ):
+	def addNewCreditEntry( self, row, role, name, primary_flag=False ):
 		self.twCredits.insertRow(row)
 		
 		item_text = role
@@ -599,7 +604,8 @@ class TaggerWindow( QtGui.QMainWindow):
 		item = QtGui.QTableWidgetItem(item_text)			
 		item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
 		self.twCredits.setItem(row, 1, item)
-		
+		# for now, jusr preserve the primary flag
+		item.setData( QtCore.Qt.UserRole, primary_flag)
 		
 	def isDupeCredit( self, role, name ):
 		r = 0
@@ -680,7 +686,9 @@ class TaggerWindow( QtGui.QMainWindow):
 		while row < self.twCredits.rowCount():
 			role = str(self.twCredits.item(row, 0).text())
 			name = str(self.twCredits.item(row, 1).text())
-			md.addCredit( name, role, False )
+			primary_flag = self.twCredits.item( row, 1 ).data( QtCore.Qt.UserRole ).toBool()
+
+			md.addCredit( name, role, bool(primary_flag) )
 			row += 1
 
 
@@ -739,7 +747,7 @@ class TaggerWindow( QtGui.QMainWindow):
 			QtGui.QMessageBox.information(self, self.tr("Online Search"), self.tr("Need to enter a series name to search."))
 			return
 			
- 
+
 		year = str(self.lePubYear.text()).strip()
 		if year == "":
 			year = None
@@ -782,9 +790,9 @@ class TaggerWindow( QtGui.QMainWindow):
 										While technically possible, no known reader can read those tags from RAR
 										yet.  If you would like this feature in ComicBookLover, please go  to their
 										forums and add your voice to a feature request!<br><br>
-									    <a href=http://forums.comicbooklover.com/categories/ipad-features>
+										<a href=http://forums.comicbooklover.com/categories/ipad-features>
 										http://forums.comicbooklover.com/categories/ipad-features</a><br>
-									    <a href=http://forums.comicbooklover.com/categories/mac-features>
+										<a href=http://forums.comicbooklover.com/categories/mac-features>
 										http://forums.comicbooklover.com/categories/mac-features</a><br><br>
 										Do you want to continue with the save?
 										""",
