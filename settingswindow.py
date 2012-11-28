@@ -70,6 +70,24 @@ class SettingsWindow(QtGui.QDialog):
 		elif platform.system() == "Darwin":
 			self.lblRarHelp.setText( macRarHelp )
 			
+		nldtTip = (
+			""" <html>The <b>Name Length Delta Threshold</b> is for eliminating automatic
+			    search matches that are too long compared to your series name search. The higher
+			    it is, the more likely to have a good match, but each search will take longer and
+				use more bandwidth. Too low, and only the very closest lexical matches will be
+				explored.</html>""" )
+		
+		self.leNameLengthDeltaThresh.setToolTip(nldtTip)
+			
+		pblTip = (
+			"""<html>
+			The <b>Publisher Blacklist</b> is for eliminating automatic matches to certain publishers
+			that you know are incorrect. Useful for avoiding international re-prints with same
+			covers or series names. Enter publisher names separated by commas.
+			</html>"""
+		)
+		self.tePublisherBlacklist.setToolTip(pblTip)
+
 		self.settingsToForm()
 		
 		self.btnBrowseRar.clicked.connect(self.selectRar)
