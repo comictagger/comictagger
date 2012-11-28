@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1030</width>
-    <height>559</height>
+    <width>959</width>
+    <height>539</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -273,10 +273,13 @@
                   <x>10</x>
                   <y>10</y>
                   <width>361</width>
-                  <height>261</height>
+                  <height>341</height>
                  </rect>
                 </property>
                 <layout class="QVBoxLayout" name="verticalLayout_7">
+                 <property name="spacing">
+                  <number>4</number>
+                 </property>
                  <item>
                   <layout class="QFormLayout" name="formLayout_2">
                    <property name="sizeConstraint">
@@ -327,6 +330,12 @@
                    </item>
                    <item row="4" column="0">
                     <widget class="QLabel" name="label_11">
+                     <property name="minimumSize">
+                      <size>
+                       <width>85</width>
+                       <height>0</height>
+                      </size>
+                     </property>
                      <property name="text">
                       <string>Series Group</string>
                      </property>
@@ -355,6 +364,86 @@
                    <item row="6" column="1">
                     <widget class="QLineEdit" name="leGenre"/>
                    </item>
+                   <item row="8" column="0">
+                    <widget class="QLabel" name="label_21">
+                     <property name="text">
+                      <string>Alt. Series</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="8" column="1">
+                    <widget class="QLineEdit" name="leAltSeries"/>
+                   </item>
+                   <item row="7" column="1">
+                    <spacer name="verticalSpacer_4">
+                     <property name="orientation">
+                      <enum>Qt::Vertical</enum>
+                     </property>
+                     <property name="sizeType">
+                      <enum>QSizePolicy::Maximum</enum>
+                     </property>
+                     <property name="sizeHint" stdset="0">
+                      <size>
+                       <width>20</width>
+                       <height>10</height>
+                      </size>
+                     </property>
+                    </spacer>
+                   </item>
+                  </layout>
+                 </item>
+                 <item>
+                  <layout class="QHBoxLayout" name="horizontalLayout_5">
+                   <property name="spacing">
+                    <number>6</number>
+                   </property>
+                   <property name="topMargin">
+                    <number>4</number>
+                   </property>
+                   <item>
+                    <layout class="QFormLayout" name="formLayout_13">
+                     <property name="fieldGrowthPolicy">
+                      <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+                     </property>
+                     <item row="0" column="0">
+                      <widget class="QLabel" name="label_22">
+                       <property name="minimumSize">
+                        <size>
+                         <width>85</width>
+                         <height>0</height>
+                        </size>
+                       </property>
+                       <property name="text">
+                        <string>Alt. Issue</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="0" column="1">
+                      <widget class="QLineEdit" name="leAltIssueNum">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </item>
+                   <item>
+                    <layout class="QFormLayout" name="formLayout_14">
+                     <item row="0" column="0">
+                      <widget class="QLabel" name="label_23">
+                       <property name="text">
+                        <string>Alt. # Issues</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="0" column="1">
+                      <widget class="QLineEdit" name="leAltIssueCount"/>
+                     </item>
+                    </layout>
+                   </item>
                   </layout>
                  </item>
                 </layout>
@@ -365,7 +454,7 @@
                   <x>380</x>
                   <y>10</y>
                   <width>301</width>
-                  <height>351</height>
+                  <height>341</height>
                  </rect>
                 </property>
                 <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -402,6 +491,32 @@
                      <item row="1" column="1">
                       <widget class="QLineEdit" name="leVolumeNum"/>
                      </item>
+                     <item row="2" column="0">
+                      <widget class="QLabel" name="label_6">
+                       <property name="text">
+                        <string>Year</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="2" column="1">
+                      <widget class="QLineEdit" name="lePubYear">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="maximumSize">
+                        <size>
+                         <width>50</width>
+                         <height>16777215</height>
+                        </size>
+                       </property>
+                       <property name="inputMethodHints">
+                        <set>Qt::ImhDigitsOnly</set>
+                       </property>
+                      </widget>
+                     </item>
                     </layout>
                    </item>
                    <item>
@@ -417,7 +532,11 @@
                       </widget>
                      </item>
                      <item row="0" column="1">
-                      <widget class="QLineEdit" name="leIssueCount"/>
+                      <widget class="QLineEdit" name="leIssueCount">
+                       <property name="inputMethodHints">
+                        <set>Qt::ImhDigitsOnly</set>
+                       </property>
+                      </widget>
                      </item>
                      <item row="1" column="0">
                       <widget class="QLabel" name="label_12">
@@ -427,57 +546,20 @@
                       </widget>
                      </item>
                      <item row="1" column="1">
-                      <widget class="QLineEdit" name="leVolumeCount"/>
-                     </item>
-                    </layout>
-                   </item>
-                  </layout>
-                 </item>
-                 <item>
-                  <layout class="QHBoxLayout" name="horizontalLayout_7">
-                   <item>
-                    <layout class="QFormLayout" name="formLayout_4">
-                     <property name="fieldGrowthPolicy">
-                      <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
-                     </property>
-                     <item row="0" column="0">
-                      <widget class="QLabel" name="label_6">
-                       <property name="text">
-                        <string>Year</string>
+                      <widget class="QLineEdit" name="leVolumeCount">
+                       <property name="inputMethodHints">
+                        <set>Qt::ImhDigitsOnly</set>
                        </property>
                       </widget>
                      </item>
-                     <item row="0" column="1">
-                      <widget class="QLineEdit" name="lePubYear">
-                       <property name="sizePolicy">
-                        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-                         <horstretch>0</horstretch>
-                         <verstretch>0</verstretch>
-                        </sizepolicy>
-                       </property>
-                       <property name="maximumSize">
-                        <size>
-                         <width>50</width>
-                         <height>16777215</height>
-                        </size>
-                       </property>
-                      </widget>
-                     </item>
-                    </layout>
-                   </item>
-                   <item>
-                    <layout class="QFormLayout" name="formLayout_16">
-                     <property name="fieldGrowthPolicy">
-                      <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
-                     </property>
-                     <item row="0" column="0">
+                     <item row="2" column="0">
                       <widget class="QLabel" name="label_35">
                        <property name="text">
                         <string>Month</string>
                        </property>
                       </widget>
                      </item>
-                     <item row="0" column="1">
+                     <item row="2" column="1">
                       <widget class="QLineEdit" name="lePubMonth">
                        <property name="sizePolicy">
                         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -490,6 +572,9 @@
                          <width>50</width>
                          <height>16777215</height>
                         </size>
+                       </property>
+                       <property name="inputMethodHints">
+                        <set>Qt::ImhDigitsOnly</set>
                        </property>
                       </widget>
                      </item>
@@ -589,7 +674,7 @@
                    <property name="sizeHint" stdset="0">
                     <size>
                      <width>20</width>
-                     <height>20</height>
+                     <height>10</height>
                     </size>
                    </property>
                   </spacer>
@@ -632,73 +717,6 @@
                       <string>Language</string>
                      </property>
                     </widget>
-                   </item>
-                  </layout>
-                 </item>
-                </layout>
-               </widget>
-               <widget class="QWidget" name="layoutWidget_2">
-                <property name="geometry">
-                 <rect>
-                  <x>10</x>
-                  <y>290</y>
-                  <width>361</width>
-                  <height>71</height>
-                 </rect>
-                </property>
-                <layout class="QVBoxLayout" name="verticalLayout_5">
-                 <property name="spacing">
-                  <number>0</number>
-                 </property>
-                 <item>
-                  <layout class="QFormLayout" name="formLayout_9">
-                   <property name="fieldGrowthPolicy">
-                    <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
-                   </property>
-                   <item row="0" column="1">
-                    <widget class="QLineEdit" name="leAltSeries"/>
-                   </item>
-                   <item row="0" column="0">
-                    <widget class="QLabel" name="label_21">
-                     <property name="text">
-                      <string>Alt. Series</string>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
-                 </item>
-                 <item>
-                  <layout class="QHBoxLayout" name="horizontalLayout_5">
-                   <property name="spacing">
-                    <number>6</number>
-                   </property>
-                   <item>
-                    <layout class="QFormLayout" name="formLayout_13">
-                     <item row="0" column="0">
-                      <widget class="QLabel" name="label_22">
-                       <property name="text">
-                        <string>Alt. Issue</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="0" column="1">
-                      <widget class="QLineEdit" name="leAltIssueNum"/>
-                     </item>
-                    </layout>
-                   </item>
-                   <item>
-                    <layout class="QFormLayout" name="formLayout_14">
-                     <item row="0" column="0">
-                      <widget class="QLabel" name="label_23">
-                       <property name="text">
-                        <string>Alt. # Issues</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="0" column="1">
-                      <widget class="QLineEdit" name="leAltIssueCount"/>
-                     </item>
-                    </layout>
                    </item>
                   </layout>
                  </item>
@@ -1012,8 +1030,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1030</width>
-     <height>21</height>
+     <width>959</width>
+     <height>28</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuComicTagger">
