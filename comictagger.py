@@ -35,7 +35,7 @@ try:
 	from taggerwindow import TaggerWindow
 except ImportError as e:
 	qt_available = False
-	print e
+
 
 from settings import ComicTaggerSettings
 from options import Options, MetaDataStyle
