@@ -4,22 +4,23 @@ Features
 
 Release notes
 
-WIki for CLI
+Wiki for CLI
 
 Wiki for basic usage
 
+Wiki Feature Roadmap
+
 Add license file to OSX package/Win Package
 
-Config Dialog layout -- help stuff?
-
+Better volume icon for Mac
 -----------------------------------------------------
 Bugs
 -----------------------------------------------------
-Mac Build needs Quartz??
+Enable write and rename on command-line
+Rename - check for existence, and add (#)
+Fix QT not available message
+Add abort/not abort
 
-Size/Position memory  Win vs Lin vs Mac
-
-Lots of error checking
 -----------------------------------------------------
 Future
 -----------------------------------------------------

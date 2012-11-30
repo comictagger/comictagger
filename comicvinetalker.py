@@ -220,7 +220,7 @@ class ComicVineTalker(QObject):
 		metadata.notes   = "Tagged with ComicTagger app using info from Comic Vine." 
 		#metadata.notes  += issue_results['site_detail_url']  
 		
-		metadata.webLink = issue_results['site_detail_url']  
+		metadata.webLink = issue_results['site_detail_url']
 		
 		person_credits = issue_results['person_credits']
 		for person in person_credits: 

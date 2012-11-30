@@ -26,6 +26,7 @@ clean:
 	rm -f $(MAC_BASE)/*.spec
 	rm -f logdict*.log
 	rm -f *~ *.pyc *.pyo
+	rm -f raw*.dmg
 	echo $(VERSION_STR)
 diskimage:
 	#Set up disk image staging folder

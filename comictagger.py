@@ -33,9 +33,9 @@ try:
 	qt_available = True
 	from PyQt4 import QtCore, QtGui
 	from taggerwindow import TaggerWindow
-except ImportError:
+except ImportError as e:
 	qt_available = False
-
+	print e
 
 from settings import ComicTaggerSettings
 from options import Options, MetaDataStyle

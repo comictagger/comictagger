@@ -318,6 +318,7 @@ class VolumeSelectionWindow(QtGui.QDialog):
 		
 		if self.immediate_autoselect:
 			# defer the immediate autoselect so this dialog has time to pop up
+			QtCore.QCoreApplication.processEvents()
 			QtCore.QTimer.singleShot(10, self.doImmediateAutoselect)
 			
 	def doImmediateAutoselect( self ):

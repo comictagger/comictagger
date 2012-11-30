@@ -39,7 +39,7 @@ class MetaDataStyle:
 
 class Options:
 	help_text = """	
-Usage: {0} [OPTION]... [FILE]
+Usage: {0} [OPTION]... [FILE LIST]
 
 A utility for reading and writing metadata to comic archives.
 

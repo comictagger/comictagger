@@ -130,7 +130,7 @@ class GenericMetadata:
 		assign( "alternateNumber",   new_md.alternateNumber )
 		assign( "alternateCount",    new_md.alternateCount )
 		assign( "imprint",           new_md.imprint )
-		assign( "web",               new_md.webLink )
+		assign( "webLink",               new_md.webLink )
 		assign( "format",            new_md.format )
 		assign( "manga",             new_md.manga )
 		assign( "blackAndWhite",     new_md.blackAndWhite )

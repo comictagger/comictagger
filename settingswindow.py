@@ -58,6 +58,8 @@ class SettingsWindow(QtGui.QDialog):
 
 		self.settings = settings
 		
+		self.name = "Settings"
+				
 		if platform.system() == "Windows":
 			self.lblUnrar.hide()
 			self.leUnrarExePath.hide()
@@ -69,6 +71,12 @@ class SettingsWindow(QtGui.QDialog):
 			
 		elif platform.system() == "Darwin":
 			self.lblRarHelp.setText( macRarHelp )
+			self.name = "Preferences"
+			
+		self.setWindowTitle("ComicTagger " + self.name)
+		self.lblDefaultSettings.setText( "Revert to default " + self.name.lower())
+		self.btnResetSettings.setText( "Default " + self.name)
+			
 			
 		nldtTip = (
 			""" <html>The <b>Name Length Delta Threshold</b> is for eliminating automatic
@@ -132,13 +140,13 @@ class SettingsWindow(QtGui.QDialog):
 	def clearCache( self ):
 		ImageFetcher().clearCache()
 		ComicVineCacher( ).clearCache()	
-		QtGui.QMessageBox.information(self, "Settings", "Cache has been cleared.")
+		QtGui.QMessageBox.information(self, self.name, "Cache has been cleared.")
 
 	
 	def resetSettings( self ):
 		self.settings.reset()
 		self.settingsToForm()
-		QtGui.QMessageBox.information(self,"Settings", "Settings have been returned to default values.")
+		QtGui.QMessageBox.information(self, self.name, self.name + " have been returned to default values.")
 	
 	def selectFile( self, control, name ):
 		

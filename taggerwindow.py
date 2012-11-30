@@ -388,8 +388,12 @@ class TaggerWindow( QtGui.QMainWindow):
 		if ( self.comic_archive is not None and 
 		     self.comic_archive.isWritable( )  
 		   ):
+			self.actionRemoveCRTags.setEnabled( True )
+			self.actionRemoveCBLTags.setEnabled( True )
 			self.actionWrite_Tags.setEnabled( True )
 		else:
+			self.actionRemoveCRTags.setEnabled( False )
+			self.actionRemoveCBLTags.setEnabled( False )
 			self.actionWrite_Tags.setEnabled( False )
 			
 			
@@ -799,22 +803,20 @@ class TaggerWindow( QtGui.QMainWindow):
 		
 			if self.comic_archive.isRar() and self.data_style == MetaDataStyle.CBI:
 				if self.settings.ask_about_cbi_in_rar:
-					answered_yes, checked = OptionalMessageDialog.question(  self, "RAR and ComicBookLover", 
+					checked = OptionalMessageDialog.msg(  self, "RAR and ComicBookLover", 
 										"""
-										You are about to write a CBL tag block to a RAR archive!<br><br>
+										You are about to write a CBL tag block to a RAR archive! 
 										While technically possible, no known reader can read those tags from RAR
-										yet.  If you would like this feature in ComicBookLover, please go  to their
-										forums and add your voice to a feature request!<br><br>
+										yet.<br><br>
+										If you would like this feature in the ComicBookLover apps, please go  to their
+										forums and add your voice to a feature request!
 										<a href=http://forums.comicbooklover.com/categories/ipad-features>
 										http://forums.comicbooklover.com/categories/ipad-features</a><br>
 										<a href=http://forums.comicbooklover.com/categories/mac-features>
-										http://forums.comicbooklover.com/categories/mac-features</a><br><br>
-										Do you want to continue with the save?
+										http://forums.comicbooklover.com/categories/mac-features</a>
 										""",
 										)
 					self.settings.ask_about_cbi_in_rar = not checked
-					if not answered_yes:
-						return
 		
 		
 			reply = QtGui.QMessageBox.question(self, 
