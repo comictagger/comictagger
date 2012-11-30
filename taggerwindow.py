@@ -791,11 +791,14 @@ class TaggerWindow( QtGui.QMainWindow):
 				QtGui.QApplication.restoreOverrideCursor()		
 				QtGui.QMessageBox.critical(self, self.tr("Network Issue"), self.tr("Could not connect to ComicVine to get issue details!"))
 			else:
-				self.metadata.overlay( new_metadata )				
-				# Now push the new combined data into the edit controls
-				self.metadataToForm()
-			finally:			
 				QtGui.QApplication.restoreOverrideCursor()		
+				if new_metadata is not None:
+					self.metadata.overlay( new_metadata )				
+					# Now push the new combined data into the edit controls
+					self.metadataToForm()
+				else:
+					QtGui.QMessageBox.critical(self, self.tr("Search"), self.tr("Could not find an issue {0} for that series".format(selector.issue_number)))
+
 
 	def commitMetadata(self):
 
