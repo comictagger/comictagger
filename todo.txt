@@ -16,10 +16,7 @@ Better volume icon for Mac
 -----------------------------------------------------
 Bugs
 -----------------------------------------------------
-Enable write and rename on command-line
-Rename - check for existence, and add (#)
-Fix QT not available message
-Add abort/not abort
+
 
 -----------------------------------------------------
 Future

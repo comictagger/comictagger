@@ -193,7 +193,7 @@ def process_file_cli( filename, opts, settings ):
 			if result == ii.ResultNoMatches:
 				pass
 			elif result == ii.ResultFoundMatchButBadCoverScore:
-				#low_confidence = True
+				low_confidence = True
 				found_match = True
 			elif result == ii.ResultFoundMatchButNotFirstPage :
 				found_match = True
@@ -208,7 +208,7 @@ def process_file_cli( filename, opts, settings ):
 			if choices:
 				print "Online search: Multiple matches.  Save aborted"
 				return
-			if low_confidence:
+			if low_confidence and opts.abortOnLowConfidence:
 				print "Online search: Low confidence match.  Save aborted"
 				return
 			if not found_match:
@@ -228,7 +228,7 @@ def process_file_cli( filename, opts, settings ):
 		# ok, done building our metadata. time to save
 
 		#HACK 
-		opts.dryrun = True
+		#opts.dryrun = True
 		#HACK 
 		
 		if not opts.dryrun:
@@ -293,17 +293,23 @@ def process_file_cli( filename, opts, settings ):
 		elif ca.isRar():
 			new_name += ".cbr"
 			
+		if new_name == os.path.basename(filename):
+			print "Filename is already good!"
+			return
+		
+		folder = os.path.dirname( os.path.abspath( filename ) )
+		new_abs_path = utils.unique_file( os.path.join( folder, new_name ) )
+
 		#HACK 
-		opts.dryrun = True
+		#opts.dryrun = True
 		#HACK 
 			
 		if not opts.dryrun:
-			# write out the new data
-			#ca.rename()
-			pass
+			# rename the file
+			os.rename( filename, new_abs_path )
 		else:
 			print "dry-run option was set, so nothing was changed, but here is the proposed filename:"
-			print "'{0}'".format(new_name)
+			print "'{0}'".format(new_abs_path)
 
 
 			
@@ -324,9 +330,9 @@ def main():
 	
 	signal.signal(signal.SIGINT, signal.SIG_DFL)
 	
-	if not qt_available:
+	if not qt_available and not opts.no_gui:
 		opts.no_gui = True
-		print "QT is not available.  Running in text mode"
+		print "QT is not available."
 	
 	if opts.no_gui:
 		cli_mode( opts, settings )

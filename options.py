@@ -69,7 +69,7 @@ If no options are given, {0} will run in windowed mode
                              Some names that can be used:
                                  series, issue, issueCount, year, publisher, title
   -r, --rename               Rename the file based on specified tag style.
-  -a, --abort                Abort save operation when online match is of low confidence TBD!  
+      --noabort              Don't abort save operation when online match is of low confidence  
   -v, --verbose              Be noisy when doing what it does                            
   -h, --help                 Display this message                            
 		"""
@@ -85,6 +85,7 @@ If no options are given, {0} will run in windowed mode
 		self.delete_tags = False
 		self.search_online = False
 		self.dryrun = False
+		self.abortOnLowConfidence = True
 		self.save_tags = False
 		self.parse_filename = False
 		self.raw = False
@@ -159,7 +160,8 @@ If no options are given, {0} will run in windowed mode
 		try:
 			opts, args = getopt.getopt( input_args, 
 			           "hpdt:fm:vonsr", 
-			           [ "help", "print", "delete", "type=", "parsefilename", "metadata=", "verbose", "online", "dryrun", "save", "rename" , "raw" ])
+			           [ "help", "print", "delete", "type=", "parsefilename", "metadata=", "verbose",
+						"online", "dryrun", "save", "rename" , "raw", "noabort" ])
 			           
 		except getopt.GetoptError as err:
 			self.display_help_and_quit( str(err), 2 )
@@ -188,6 +190,8 @@ If no options are given, {0} will run in windowed mode
 				self.parse_filename = True
 			if o in ("--raw"):
 				self.raw = True
+			if o in ("--noabort"):
+				self.abortOnLowConfidence = False
 			if o in ("-t", "--type"):
 				if a.lower() == "cr":
 					self.data_style = MetaDataStyle.CIX
