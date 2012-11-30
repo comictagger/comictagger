@@ -79,7 +79,7 @@ def unique_file(file_name):
 	while 1:
 		if not os.path.lexists( file_name):
 			return file_name
-		file_name = file_name_parts[0] + '_' + str(counter) + file_name_parts[1]
+		file_name = file_name_parts[0] + ' (' + str(counter) + ')' + file_name_parts[1]
 		counter += 1
 
 
