@@ -1,18 +1,23 @@
 -----------------------------------------------------
+Config Mgmt
+-----------------------------------------------------
+
+Release Process
+    Optionally, make screen shots, upload to wiki
+    Update release notes and wiki
+	Update ctversion.py
+	Build packages
+	    Make exe on Windows
+		Make dmg on Mac
+		Make zip on Mac or Linux
+    Tag the repository
+	Upload packages
+	
+-----------------------------------------------------
 Features
 -----------------------------------------------------
 
-Release notes
 
-Wiki for CLI
-
-Wiki for basic usage
-
-Wiki Feature Roadmap
-
-Add license file to OSX package/Win Package
-
-Better volume icon for Mac
 -----------------------------------------------------
 Bugs
 -----------------------------------------------------
@@ -21,6 +26,8 @@ Bugs
 -----------------------------------------------------
 Future
 -----------------------------------------------------
+Add license info to About Dialog
+
 Add CoMet Support
 
 Support marvel's "AU" issues...
@@ -30,7 +37,6 @@ Style sheets for windows/mac/linux
 File rename
 	-Dialog??
 	formatting with missing pieces.
-	Deal with creating dupes
 
 TaggerWindow entry fields
 	Special tabbed Dialog needed for:   
