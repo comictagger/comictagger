@@ -16,5 +16,9 @@ zip:
 		rm -rf comictagger-src-$(VERSION_STR)
 	
 	@echo When satisfied with release, do this:
-	@echo svn fpoooo $(VERSION_STR)
+	@echo make svn_tag
+	
+svn_tag:
+	svn copy https://comictagger.googlecode.com/svn/trunk \
+      https://comictagger.googlecode.com/svn/tags/$(VERSION_STR) -m "Release $(VERSION_STR)"
 	
