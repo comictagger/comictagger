@@ -23,7 +23,7 @@ dist:
 package:
 	echo !define RELEASE_STR $(VERSION) > $(TAGGER_BASE)\windows\nsis\release.nsh
 	$(NSIS_CMD) "$(TAGGER_BASE)\windows\nsis\comictagger.nsi"
-	mv  "$(TAGGER_BASE)\windows\nsis\ComicTagger*.exe" "$(TAGGER_BASE)\windows"
+	mv  "$(TAGGER_BASE)\windows\nsis\ComicTagger*.exe" "$(TAGGER_BASE)\release"
 
 clean:
 	-rm -rf dist

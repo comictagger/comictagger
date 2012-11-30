@@ -47,7 +47,7 @@
 	
 	!define MUI_FINISHPAGE_NOAUTOCLOSE	
 
-	!define MUI_FINISHPAGE_SHOWREADME "todo.txt"
+	!define MUI_FINISHPAGE_SHOWREADME "release_notes.txt"
 	!define MUI_FINISHPAGE_SHOWREADME_TEXT "Show Release Notes"
 	!define MUI_FINISHPAGE_SHOWREADME_NOTCHECKED
 	
@@ -98,7 +98,7 @@ Section "Install Section" SecInstall
 
 	SetOutPath "$INSTDIR"
 	File /r ..\dist\*
-	File ..\..\todo.txt
+	File ..\..\release_notes.txt
 
 	;Store installation folder
 	WriteRegStr HKLM "Software\ComicTagger" "" $INSTDIR

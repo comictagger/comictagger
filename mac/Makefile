@@ -32,7 +32,7 @@ diskimage:
 	#Set up disk image staging folder
 	rm -rf $(STAGING)
 	mkdir $(STAGING)
-	#cp $(TAGGER_BASE)/README.txt $(STAGING)
+	cp $(TAGGER_BASE)/release_notes.txt $(STAGING)
 	cp -a $(APP_BUNDLE) $(STAGING)
 	cp $(MAC_BASE)/volume.icns $(STAGING)/.VolumeIcon.icns
 	SetFile -c icnC $(STAGING)/.VolumeIcon.icns
@@ -57,4 +57,7 @@ diskimage:
 	rm -f $(DMG_FILE)
 	hdiutil convert raw-$(DMG_FILE) -format UDZO -o $(DMG_FILE)
 	rm -f raw-$(DMG_FILE)
+	
+	#move finished product to release folder
+	mv $(DMG_FILE) $(TAGGER_BASE)/release
 	
