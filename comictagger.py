@@ -77,8 +77,10 @@ def process_file_cli( filename, opts, settings ):
 
 	cix = False
 	cbi = False
+	comet = False
 	if ca.hasCIX(): cix = True
 	if ca.hasCBI(): cbi = True
+	if ca.hasCoMet(): comet = True
 
 	if opts.print_tags:
 
@@ -93,11 +95,12 @@ def process_file_cli( filename, opts, settings ):
 			brief += "({0: >3} pages)".format(page_count)			
 			brief += "  tags:[ "
 
-			if not (cbi or cix):
+			if not ( cbi or cix or comet ):
 				brief += "none "
 			else:
 				if cbi: brief += "CBL "
 				if cix: brief += "CR "
+				if comet: brief += "CoMet "
 			brief += "]"
 				
 			print brief
@@ -118,6 +121,14 @@ def process_file_cli( filename, opts, settings ):
 					pprint(json.loads(ca.readRawCBI()))
 				else:
 					print u"{0}".format(ca.readCBI())
+					
+		if opts.data_style is None or opts.data_style == MetaDataStyle.COMET:
+			if comet:
+				print "------CoMet tags--------"
+				if opts.raw:
+					print u"{0}".format(ca.readRawCoMet())
+				else:
+					print u"{0}".format(ca.readCoMet())
 			
 			
 	elif opts.delete_tags:		
@@ -144,6 +155,18 @@ def process_file_cli( filename, opts, settings ):
 					print "dry-run.  ComicBookLover tags not removed"					
 			else:
 				print "This archive doesn't have ComicBookLover tags."
+
+		if opts.data_style == MetaDataStyle.COMET:
+			if comet:
+				if not opts.dryrun:
+					if not ca.removeCoMet():
+						print "Tag removal seemed to fail!"
+					else:
+						print "Removed CoMet tags."
+				else:
+					print "dry-run.  CoMet tags not removed"					
+			else:
+				print "This archive doesn't have CoMet tags."
 		
 	elif opts.save_tags:
 		
@@ -155,6 +178,8 @@ def process_file_cli( filename, opts, settings ):
 				md = ca.readCIX()
 		elif opts.data_style == MetaDataStyle.CBI and cbi:
 				md = ca.readCBI()
+		elif opts.data_style == MetaDataStyle.COMET and comet:
+				md = ca.readCoMet()
 				
 		# now, overlay the new data onto the old, in order
 		
@@ -249,6 +274,8 @@ def process_file_cli( filename, opts, settings ):
 				md = ca.readCIX()
 		elif opts.data_style == MetaDataStyle.CBI and cbi:
 				md = ca.readCBI()
+		elif opts.data_style == MetaDataStyle.COMET and comet:
+				md = ca.readCoMet()
 
 		if md.isEmpty:
 			print "Comic archive contains no tags!"
@@ -264,6 +291,12 @@ def process_file_cli( filename, opts, settings ):
 				md = ca.readCBI()
 			else:
 				print "Comic archive contains no ComicBookLover tags!"
+
+		if opts.data_style == MetaDataStyle.COMET:
+			if comet:
+				md = ca.readCoMet()
+			else:
+				print "Comic archive contains no CoMet tags!"
 		
 		# TODO move this to ComicArchive, or maybe another class???
 		new_name = ""

@@ -34,7 +34,8 @@ class Enum(set):
 class MetaDataStyle:
 	CBI = 0
 	CIX = 1
-	name = [ 'ComicBookLover', 'ComicRack' ]
+	COMET = 2
+	name = [ 'ComicBookLover', 'ComicRack', 'CoMet' ]
 
 
 class Options:
@@ -53,8 +54,8 @@ If no options are given, {0} will run in windowed mode
   -s, --save                 Save out tags as specified type (via -t)
                              Must specify also at least -o, -p, or -m
   -n, --dryrun               Don't actually modify file (only relevent for -d, -s, or -r)
-  -t, --type=TYPE            Specify TYPE as either "CR" or "CBL", (as either 
-                             ComicRack or ComicBookLover style tags, respectivly)
+  -t, --type=TYPE            Specify TYPE as either "CR", "CBL", or "COMET" (as either 
+                             ComicRack, ComicBookLover, or CoMet style tags, respectivly)
   -f, --parsefilename        Parse the filename to get some info, specifically
                              series name, issue number, volume, and publication 
                              year
@@ -197,6 +198,8 @@ If no options are given, {0} will run in windowed mode
 					self.data_style = MetaDataStyle.CIX
 				elif a.lower() == "cbl":
 					self.data_style = MetaDataStyle.CBI
+				elif a.lower() == "comet":
+					self.data_style = MetaDataStyle.COMET
 				else:
 					self.display_help_and_quit( "Invalid tag type", 1 )
 			

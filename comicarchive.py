@@ -36,6 +36,7 @@ from UnRAR2.rar_exceptions import *
 from options import Options, MetaDataStyle
 from comicinfoxml import ComicInfoXml
 from comicbookinfo import ComicBookInfo
+from comet import CoMet
 from genericmetadata import GenericMetadata
 from filenameparser import FileNameParser
 
@@ -385,6 +386,7 @@ class ComicArchive:
 	def __init__( self, path ):
 		self.path = path
 		self.ci_xml_filename = 'ComicInfo.xml'
+		self.comet_filename = 'CoMet.xml'
 
 		if self.zipTest():
 			self.archive_type =  self.ArchiveType.Zip
@@ -470,6 +472,8 @@ class ComicArchive:
 			return self.readCIX()
 		elif style == MetaDataStyle.CBI:
 			return self.readCBI()
+		elif style == MetaDataStyle.COMET:
+			return self.readCoMet()
 		else:
 			return GenericMetadata()
 
@@ -479,6 +483,8 @@ class ComicArchive:
 			return self.writeCIX( metadata )
 		elif style == MetaDataStyle.CBI:
 			return self.writeCBI( metadata )
+		elif style == MetaDataStyle.COMET:
+			return self.writeCoMet( metadata )
 
 	def hasMetadata( self, style ):
 		
@@ -486,6 +492,8 @@ class ComicArchive:
 			return self.hasCIX()
 		elif style == MetaDataStyle.CBI:
 			return self.hasCBI()
+		elif style == MetaDataStyle.COMET:
+			return self.hasCoMet()
 		else:
 			return False
 	
@@ -494,6 +502,8 @@ class ComicArchive:
 			return self.removeCIX()
 		elif style == MetaDataStyle.CBI:
 			return self.removeCBI()
+		elif style == MetaDataStyle.COMET:
+			return self.removeCoMet()
 
 	def getCoverPage(self):
 		
@@ -555,7 +565,14 @@ class ComicArchive:
 
 		return self.archiver.getArchiveComment()
 
+	def hasCBI(self):
+		#if ( not ( self.isZip() or self.isRar()) or not self.seemsToBeAComicArchive() ): 
+		if not self.seemsToBeAComicArchive(): 
+			return False
 
+		comment = self.archiver.getArchiveComment()
+		return ComicBookInfo().validateString( comment )	
+	
 	def writeCBI( self, metadata ):
 		cbi_string = ComicBookInfo().stringFromMetadata( metadata )
 		return self.archiver.setArchiveComment( cbi_string )
@@ -597,14 +614,41 @@ class ComicArchive:
 		else:
 			return False
 
-	def hasCBI(self):
 
-		#if ( not ( self.isZip() or self.isRar()) or not self.seemsToBeAComicArchive() ): 
-		if not self.seemsToBeAComicArchive(): 
+	def readCoMet( self ):
+		raw_comet = self.readRawCoMet()
+		if raw_comet is None:
+			return GenericMetadata()
+			
+		return CoMet().metadataFromString( raw_comet )		
+
+	def readRawCoMet( self ):
+		if not self.hasCoMet():
+			print self.path, "doesn't has CoMet data!"
+			return None
+
+		return self.archiver.readArchiveFile( self.comet_filename )
+		
+	def writeCoMet(self, metadata):
+
+		if metadata is not None:
+			comet_string = CoMet().stringFromMetadata( metadata )
+			return self.archiver.writeArchiveFile( self.comet_filename, comet_string )
+		else:
+			return False
+			
+	def removeCoMet( self ):
+
+		return self.archiver.removeArchiveFile( self.comet_filename )
+		
+	def hasCoMet(self):
+		if not self.seemsToBeAComicArchive():
+			return False
+		elif self.comet_filename in self.archiver.getArchiveFilenameList():
+			return True
+		else:
 			return False
 
-		comment = self.archiver.getArchiveComment()
-		return ComicBookInfo().validateString( comment )	
 
 	def metadataFromFilename( self ):
 		 
