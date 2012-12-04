@@ -43,6 +43,7 @@ import utils
 from settings import ComicTaggerSettings
 from comicvinecacher import ComicVineCacher
 from genericmetadata import GenericMetadata
+from issuestring import IssueString
 
 class ComicVineTalkerException(Exception):
 	pass
@@ -203,11 +204,7 @@ class ComicVineTalker(QObject):
 		
 		metadata.series = issue_results['volume']['name']
 		
-		# format the issue number string nicely, since it's usually something like "2.00"
-		num_f = float(issue_results['issue_number'])
-		num_s = str( int(math.floor(num_f)) )
-		if math.floor(num_f) != num_f:
-			num_s = str( num_f )
+		num_s = IssueString(issue['issue_number']).asString()
 			
 		metadata.issue = num_s
 		metadata.title = issue_results['name']

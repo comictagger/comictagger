@@ -34,6 +34,7 @@ from genericmetadata import GenericMetadata
 from comicvinetalker import ComicVineTalker, ComicVineTalkerException
 from imagehasher import ImageHasher
 from imagefetcher import ImageFetcher, ImageFetcherException
+from issuestring import IssueString
 
 import utils 
 
@@ -328,13 +329,8 @@ class IssueIdentifier:
 			
 			issue_list = cv_series_results['issues']
 			for issue in issue_list:
+				num_s = IssueString(issue['issue_number']).asString()
 				
-				# format the issue number string nicely, since it's usually something like "2.00"
-				num_f = float(issue['issue_number'])
-				num_s = str( int(math.floor(num_f)) )
-				if math.floor(num_f) != num_f:
-					num_s = str( num_f )			
-
 				# look for a matching issue number
 				if num_s == keys['issue_number']:
 					# found a matching issue number!  now get the issue data 

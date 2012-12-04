@@ -228,6 +228,6 @@ If no options are given, {0} will run in windowed mode
 		if self.save_tags and self.data_style is None:
 			self.display_help_and_quit( "Please specify the type to save with -t", 1 )
 			
-		if self.rename_file and self.data_style is None:
-			self.display_help_and_quit( "Please specify the type to use for renaming with -t", 1 )
+		#if self.rename_file and self.data_style is None:
+		#	self.display_help_and_quit( "Please specify the type to use for renaming with -t", 1 )
 		

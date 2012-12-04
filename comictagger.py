@@ -43,7 +43,7 @@ from comicarchive import ComicArchive
 from issueidentifier import IssueIdentifier
 from genericmetadata import GenericMetadata
 from comicvinetalker import ComicVineTalker, ComicVineTalkerException
-
+from issuestring import IssueString
 import utils
 import codecs
 
@@ -57,6 +57,28 @@ def cli_mode( opts, settings ):
 		if len( opts.file_list ) > 1:
 			print "Processing: ", f
 		process_file_cli( f, opts, settings )
+
+
+def create_local_metadata( opts, ca, cix, cbi, comet):
+	
+	md = GenericMetadata()
+
+	if opts.data_style == MetaDataStyle.CIX and cix:
+		md = ca.readCIX()
+	elif opts.data_style == MetaDataStyle.CBI and cbi:
+		md = ca.readCBI()
+	elif opts.data_style == MetaDataStyle.COMET and comet:
+		md = ca.readCoMet()
+		
+	# now, overlay the parsed filename info	
+	if opts.parse_filename:
+		md.overlay( ca.metadataFromFilename() )
+	
+	# finally, use explicit stuff	
+	if opts.metadata is not None:
+		md.overlay( opts.metadata )
+
+	return md
 
 def process_file_cli( filename, opts, settings ):
 
@@ -171,26 +193,9 @@ def process_file_cli( filename, opts, settings ):
 	elif opts.save_tags:
 		
 		# OK we're gonna do a save of some new data		
-		md = GenericMetadata()
+		md = create_local_metadata( opts, ca, cix, cbi, comet)
 
-		# First read in existing data, if it's there		
-		if opts.data_style == MetaDataStyle.CIX and cix:
-				md = ca.readCIX()
-		elif opts.data_style == MetaDataStyle.CBI and cbi:
-				md = ca.readCBI()
-		elif opts.data_style == MetaDataStyle.COMET and comet:
-				md = ca.readCoMet()
-				
-		# now, overlay the new data onto the old, in order
-		
-		if opts.parse_filename:
-			md.overlay( ca.metadataFromFilename() )
-		
-		if opts.metadata is not None:
-			md.overlay( opts.metadata )
-			
-
-		# finally, search online
+		# now, search online
 		if opts.search_online:
 	
 			ii = IssueIdentifier( ca, settings )
@@ -268,36 +273,8 @@ def process_file_cli( filename, opts, settings ):
 
 	elif opts.rename_file:
 
-		md = GenericMetadata()
-		# First read in existing data, if it's there		
-		if opts.data_style == MetaDataStyle.CIX and cix:
-				md = ca.readCIX()
-		elif opts.data_style == MetaDataStyle.CBI and cbi:
-				md = ca.readCBI()
-		elif opts.data_style == MetaDataStyle.COMET and comet:
-				md = ca.readCoMet()
+		md = create_local_metadata( opts, ca, cix, cbi, comet) 
 
-		if md.isEmpty:
-			print "Comic archive contains no tags!"
-
-		if opts.data_style == MetaDataStyle.CIX:
-			if cix:
-				md = ca.readCIX()
-			else:
-				print "Comic archive contains no ComicRack tags!"
-				
-		if opts.data_style == MetaDataStyle.CBI:
-			if cbi:
-				md = ca.readCBI()
-			else:
-				print "Comic archive contains no ComicBookLover tags!"
-
-		if opts.data_style == MetaDataStyle.COMET:
-			if comet:
-				md = ca.readCoMet()
-			else:
-				print "Comic archive contains no CoMet tags!"
-		
 		# TODO move this to ComicArchive, or maybe another class???
 		new_name = ""
 		if md.series is not None:
@@ -310,7 +287,7 @@ def process_file_cli( filename, opts, settings ):
 			new_name += " v{0}".format( md.volume )
 
 		if md.issue is not None:
-			new_name += " #{:03d}".format( int(md.issue) )
+			new_name += " #{0}".format( IssueString(md.issue).asString(pad=3) ) 
 		else:
 			print "Can't rename without issue number"
 			return
@@ -335,14 +312,16 @@ def process_file_cli( filename, opts, settings ):
 
 		#HACK 
 		#opts.dryrun = True
-		#HACK 
-			
+		#HACK
+		
+		suffix = ""
 		if not opts.dryrun:
 			# rename the file
 			os.rename( filename, new_abs_path )
 		else:
-			print "dry-run option was set, so nothing was changed, but here is the proposed filename:"
-			print "'{0}'".format(new_abs_path)
+			suffix = " (dry-run, no change)"
+
+		print "renamed '{0}' -> '{1}' {2}".format(os.path.basename(filename), new_name, suffix)
 
 
 			
