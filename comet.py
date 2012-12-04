@@ -34,18 +34,6 @@ class CoMet:
 	letterer_synonyms = [ 'letterer']
 	cover_synonyms = [ 'cover', 'covers', 'coverartist', 'cover artist' ]
 	editor_synonyms = [ 'editor']
-
-
-	def getParseableCredits( self ):
-		parsable_credits =  []
-		parsable_credits.extend( self.writer_synonyms )
-		parsable_credits.extend( self.penciller_synonyms )
-		parsable_credits.extend( self.inker_synonyms )
-		parsable_credits.extend( self.colorist_synonyms )
-		parsable_credits.extend( self.letterer_synonyms )
-		parsable_credits.extend( self.cover_synonyms )
-		parsable_credits.extend( self.editor_synonyms )		
-		return parsable_credits
 		
 	def metadataFromString( self, string ):
 

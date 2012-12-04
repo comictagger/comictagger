@@ -589,7 +589,7 @@ class ComicArchive:
 
 	def readRawCIX( self ):
 		if not self.hasCIX():
-			print self.path, "doesn't has ComicInfo.xml data!"
+			print self.path, "doesn't have ComicInfo.xml data!"
 			return None
 
 		return  self.archiver.readArchiveFile( self.ci_xml_filename )
@@ -624,7 +624,7 @@ class ComicArchive:
 
 	def readRawCoMet( self ):
 		if not self.hasCoMet():
-			print self.path, "doesn't has CoMet data!"
+			print self.path, "doesn't have CoMet data!"
 			return None
 
 		return self.archiver.readArchiveFile( self.comet_filename )
@@ -644,6 +644,8 @@ class ComicArchive:
 	def hasCoMet(self):
 		if not self.seemsToBeAComicArchive():
 			return False
+		#TODO look at all xml files in root, and search for CoMet data, get first
+		#TODO if doesn't exist, use default
 		elif self.comet_filename in self.archiver.getArchiveFilenameList():
 			return True
 		else:
