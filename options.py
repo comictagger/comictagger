@@ -72,6 +72,7 @@ If no options are given, {0} will run in windowed mode
   -r, --rename               Rename the file based on specified tag style.
       --noabort              Don't abort save operation when online match is of low confidence  
   -v, --verbose              Be noisy when doing what it does                            
+      --terse                Don't say much (for print mode)                            
   -h, --help                 Display this message                            
 		"""
 
@@ -81,6 +82,7 @@ If no options are given, {0} will run in windowed mode
 		self.no_gui = False
 		self.filename = None  
 		self.verbose = False
+		self.terse = False
 		self.metadata = None
 		self.print_tags = False
 		self.delete_tags = False
@@ -162,7 +164,7 @@ If no options are given, {0} will run in windowed mode
 			opts, args = getopt.getopt( input_args, 
 			           "hpdt:fm:vonsr", 
 			           [ "help", "print", "delete", "type=", "parsefilename", "metadata=", "verbose",
-						"online", "dryrun", "save", "rename" , "raw", "noabort" ])
+						"online", "dryrun", "save", "rename" , "raw", "noabort", "terse" ])
 			           
 		except getopt.GetoptError as err:
 			self.display_help_and_quit( str(err), 2 )
@@ -193,6 +195,8 @@ If no options are given, {0} will run in windowed mode
 				self.raw = True
 			if o in ("--noabort"):
 				self.abortOnLowConfidence = False
+			if o in ("--terse"):
+				self.terse = True
 			if o in ("-t", "--type"):
 				if a.lower() == "cr":
 					self.data_style = MetaDataStyle.CIX

@@ -123,8 +123,13 @@ def process_file_cli( filename, opts, settings ):
 			brief += "]"
 				
 			print brief
-			print
-			
+
+		if opts.terse:
+			sys.stdout.flush()
+			return
+
+		print
+		
 		if opts.data_style is None or opts.data_style == MetaDataStyle.CIX:
 			if has[ MetaDataStyle.CIX ]:
 				print "------ComicRack tags--------"
