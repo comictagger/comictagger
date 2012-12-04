@@ -171,6 +171,13 @@ class FileNameParser:
 		#url decode, just in case
 		filename = unquote(filename)
 
+		# sometimes archives get messed up names from too many decodings
+		# often url encodings will break and leave "_28" and "_29" in place
+		# of "(" and ")"  see if there are a number of these, and replace them
+		if filename.count("_28") > 1 and filename.count("_29") > 1:
+			filename = filename.replace("_28", "(")
+			filename = filename.replace("_29", ")")
+		
 		# ----HACK  
 		# remove the first word that word is a 3 digit number.
 		# some story arcs collection packs do this, but it's ugly
