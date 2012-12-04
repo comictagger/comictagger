@@ -54,21 +54,15 @@ def cli_mode( opts, settings ):
 		return
 	
 	for f in opts.file_list:
-		if len( opts.file_list ) > 1:
-			print "Processing: ", f
 		process_file_cli( f, opts, settings )
 
 
-def create_local_metadata( opts, ca, cix, cbi, comet):
+def create_local_metadata( opts, ca, has_desired_tags ):
 	
 	md = GenericMetadata()
 
-	if opts.data_style == MetaDataStyle.CIX and cix:
-		md = ca.readCIX()
-	elif opts.data_style == MetaDataStyle.CBI and cbi:
-		md = ca.readCBI()
-	elif opts.data_style == MetaDataStyle.COMET and comet:
-		md = ca.readCoMet()
+	if has_desired_tags:
+		md = ca.readMetadata( opts.data_style )
 		
 	# now, overlay the parsed filename info	
 	if opts.parse_filename:
@@ -82,7 +76,8 @@ def create_local_metadata( opts, ca, cix, cbi, comet):
 
 def process_file_cli( filename, opts, settings ):
 
-	
+	batch_mode = len( opts.file_list ) > 1
+		
 	ca = ComicArchive(filename)
 	if settings.rar_exe_path != "":
 		ca.setExternalRarProgram( settings.rar_exe_path )	
@@ -95,41 +90,43 @@ def process_file_cli( filename, opts, settings ):
 	if not ca.isWritable(  ) and ( opts.delete_tags or opts.save_tags or opts.rename_file ):
 		print "This archive is not writable for that tag type"
 		return
-		
 
-	cix = False
-	cbi = False
-	comet = False
-	if ca.hasCIX(): cix = True
-	if ca.hasCBI(): cbi = True
-	if ca.hasCoMet(): comet = True
+	has = [ False, False, False ]
+	if ca.hasCIX(): has[ MetaDataStyle.CIX ] = True
+	if ca.hasCBI(): has[ MetaDataStyle.CBI ] = True
+	if ca.hasCoMet(): has[ MetaDataStyle.COMET ] = True
 
 	if opts.print_tags:
+
 
 		if opts.data_style is None:
 			page_count = ca.getNumberOfPages()
 
 			brief = ""
-			if ca.isZip():      brief = "ZIP archive    "
-			elif ca.isRar():    brief = "RAR archive    "
-			elif ca.isFolder(): brief = "Folder archive "
+
+			if batch_mode:
+				brief = "{0}: ".format(filename)
+
+			if ca.isZip():      brief += "ZIP archive    "
+			elif ca.isRar():    brief += "RAR archive    "
+			elif ca.isFolder(): brief += "Folder archive "
 				
 			brief += "({0: >3} pages)".format(page_count)			
 			brief += "  tags:[ "
 
-			if not ( cbi or cix or comet ):
+			if not ( has[ MetaDataStyle.CBI ] or has[ MetaDataStyle.CIX ] or has[ MetaDataStyle.COMET ] ):
 				brief += "none "
 			else:
-				if cbi: brief += "CBL "
-				if cix: brief += "CR "
-				if comet: brief += "CoMet "
+				if has[ MetaDataStyle.CBI ]: brief += "CBL "
+				if has[ MetaDataStyle.CIX ]: brief += "CR "
+				if has[ MetaDataStyle.COMET ]: brief += "CoMet "
 			brief += "]"
 				
 			print brief
 			print
 			
 		if opts.data_style is None or opts.data_style == MetaDataStyle.CIX:
-			if cix:
+			if has[ MetaDataStyle.CIX ]:
 				print "------ComicRack tags--------"
 				if opts.raw:
 					print u"{0}".format(ca.readRawCIX())
@@ -137,7 +134,7 @@ def process_file_cli( filename, opts, settings ):
 					print u"{0}".format(ca.readCIX())
 				
 		if opts.data_style is None or opts.data_style == MetaDataStyle.CBI:
-			if cbi:
+			if has[ MetaDataStyle.CBI ]:
 				print "------ComicBookLover tags--------"
 				if opts.raw:
 					pprint(json.loads(ca.readRawCBI()))
@@ -145,7 +142,7 @@ def process_file_cli( filename, opts, settings ):
 					print u"{0}".format(ca.readCBI())
 					
 		if opts.data_style is None or opts.data_style == MetaDataStyle.COMET:
-			if comet:
+			if has[ MetaDataStyle.COMET ]:
 				print "------CoMet tags--------"
 				if opts.raw:
 					print u"{0}".format(ca.readRawCoMet())
@@ -153,47 +150,25 @@ def process_file_cli( filename, opts, settings ):
 					print u"{0}".format(ca.readCoMet())
 			
 			
-	elif opts.delete_tags:		
-		if opts.data_style == MetaDataStyle.CIX:
-			if cix:
-				if not opts.dryrun:
-					if not ca.removeCIX():
-						print "Tag removal seemed to fail!"
-					else:
-						print "Removed ComicRack tags."
+	elif opts.delete_tags:
+		style_name = MetaDataStyle.name[ opts.data_style ]
+		if has[ opts.data_style ]:
+			if not opts.dryrun:
+				if not ca.removeMetadata( opts.data_style ):
+					print "{0}: Tag removal seemed to fail!".format( filename )
 				else:
-					print "dry-run.  ComicRack tags not removed"					
+					print "{0}: Removed {1} tags.".format( filename, style_name )
 			else:
-				print "This archive doesn't have ComicRack tags."
-					
-		if opts.data_style == MetaDataStyle.CBI:
-			if cbi:
-				if not opts.dryrun:
-					if not ca.removeCBI():
-						print "Tag removal seemed to fail!"
-					else:
-						print "Removed ComicBookLover tags."
-				else:
-					print "dry-run.  ComicBookLover tags not removed"					
-			else:
-				print "This archive doesn't have ComicBookLover tags."
-
-		if opts.data_style == MetaDataStyle.COMET:
-			if comet:
-				if not opts.dryrun:
-					if not ca.removeCoMet():
-						print "Tag removal seemed to fail!"
-					else:
-						print "Removed CoMet tags."
-				else:
-					print "dry-run.  CoMet tags not removed"					
-			else:
-				print "This archive doesn't have CoMet tags."
+				print "{0}: dry-run.  {1} tags not removed".format( filename, style_name )		
+		else:
+			print "{0}: This archive doesn't have {1} tags.".format( filename, style_name )
 		
 	elif opts.save_tags:
-		
-		# OK we're gonna do a save of some new data		
-		md = create_local_metadata( opts, ca, cix, cbi, comet)
+
+		if batch_mode:
+			print "Processing {0}: ".format(filename)
+			
+		md = create_local_metadata( opts, ca, has[ opts.data_style ] )
 
 		# now, search online
 		if opts.search_online:
@@ -273,14 +248,23 @@ def process_file_cli( filename, opts, settings ):
 
 	elif opts.rename_file:
 
-		md = create_local_metadata( opts, ca, cix, cbi, comet) 
+		msg_hdr = ""
+		if batch_mode:
+			msg_hdr = "{0}: ".format(filename)
+
+		if opts.data_style is not None:
+			use_tags = has[ opts.data_style ]
+		else:
+			use_tags = False
+			
+		md = create_local_metadata( opts, ca, use_tags )
 
 		# TODO move this to ComicArchive, or maybe another class???
 		new_name = ""
 		if md.series is not None:
 			new_name += "{0}".format( md.series )
 		else:
-			print "Can't rename without series name"
+			print msg_hdr + "Can't rename without series name"
 			return
 			
 		if md.volume is not None:
@@ -288,9 +272,9 @@ def process_file_cli( filename, opts, settings ):
 
 		if md.issue is not None:
 			new_name += " #{0}".format( IssueString(md.issue).asString(pad=3) ) 
-		else:
-			print "Can't rename without issue number"
-			return
+		#else:
+		#	print msg_hdr + "Can't rename without issue number"
+		#	return
 		
 		if md.issueCount is not None:
 			new_name += " (of {0})".format( md.issueCount )
@@ -304,7 +288,7 @@ def process_file_cli( filename, opts, settings ):
 			new_name += ".cbr"
 			
 		if new_name == os.path.basename(filename):
-			print "Filename is already good!"
+			print msg_hdr + "Filename is already good!"
 			return
 		
 		folder = os.path.dirname( os.path.abspath( filename ) )
@@ -322,6 +306,7 @@ def process_file_cli( filename, opts, settings ):
 			suffix = " (dry-run, no change)"
 
 		print "renamed '{0}' -> '{1}' {2}".format(os.path.basename(filename), new_name, suffix)
+	sys.stdout.flush()
 
 
 			
