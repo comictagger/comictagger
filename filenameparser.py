@@ -132,8 +132,9 @@ class FileNameParser:
 		else:
 			# no issue to work off of
 			#!!! TODO we should look for the year, and split from that
-			# and if that doesn't exist, remove parenthetical words
+			# and if that doesn't exist, remove parenthetical phrases
 			series = tmpstr
+			series = re.sub( "\(.*\)", "", tmpstr)
 			
 		volume = ""
 		
