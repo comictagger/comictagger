@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>959</width>
-    <height>539</height>
+    <height>541</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -748,14 +748,25 @@
                    <number>0</number>
                   </property>
                   <property name="columnCount">
-                   <number>2</number>
+                   <number>3</number>
                   </property>
+                  <attribute name="horizontalHeaderMinimumSectionSize">
+                   <number>2</number>
+                  </attribute>
                   <attribute name="horizontalHeaderStretchLastSection">
                    <bool>true</bool>
                   </attribute>
                   <attribute name="verticalHeaderVisible">
                    <bool>false</bool>
                   </attribute>
+                  <column>
+                   <property name="text">
+                    <string>Primary</string>
+                   </property>
+                   <property name="textAlignment">
+                    <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                   </property>
+                  </column>
                   <column>
                    <property name="text">
                     <string>Credit</string>
@@ -1031,7 +1042,7 @@
      <x>0</x>
      <y>0</y>
      <width>959</width>
-     <height>28</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuComicTagger">

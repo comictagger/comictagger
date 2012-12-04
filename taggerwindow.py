@@ -615,20 +615,23 @@ class TaggerWindow( QtGui.QMainWindow):
 		item_text = role
 		item = QtGui.QTableWidgetItem(item_text)			
 		item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
-		self.twCredits.setItem(row, 0, item)
+		self.twCredits.setItem(row, 1, item)
 		
 		item_text = name
 		item = QtGui.QTableWidgetItem(item_text)			
 		item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
-		self.twCredits.setItem(row, 1, item)
-		# for now, jusr preserve the primary flag
-		item.setData( QtCore.Qt.UserRole, primary_flag)
+		self.twCredits.setItem(row, 2, item)
+		
+		item = QtGui.QTableWidgetItem("")			
+		item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
+		self.twCredits.setItem(row, 0, item)
+		self.updateCreditPrimaryFlag( row, primary_flag )
 		
 	def isDupeCredit( self, role, name ):
 		r = 0
 		while r < self.twCredits.rowCount():
-			if ( self.twCredits.item(r, 0).text() == role and
-					self.twCredits.item(r, 1).text() == name ):
+			if ( self.twCredits.item(r, 1).text() == role and
+					self.twCredits.item(r, 2).text() == name ):
 				return True
 			r = r + 1
 			
@@ -701,9 +704,9 @@ class TaggerWindow( QtGui.QMainWindow):
 		md.credits = list()
 		row = 0
 		while row < self.twCredits.rowCount():
-			role = str(self.twCredits.item(row, 0).text())
-			name = str(self.twCredits.item(row, 1).text())
-			primary_flag = self.twCredits.item( row, 1 ).data( QtCore.Qt.UserRole ).toBool()
+			role = str(self.twCredits.item(row, 1).text())
+			name = str(self.twCredits.item(row, 2).text())
+			primary_flag = self.twCredits.item( row, 0 ).text() != ""
 
 			md.addCredit( name, role, bool(primary_flag) )
 			row += 1
@@ -863,10 +866,12 @@ class TaggerWindow( QtGui.QMainWindow):
 			#loop over credit table, mark selected rows
 			r = 0
 			while r < self.twCredits.rowCount():
-				if str(self.twCredits.item(r, 0).text()).lower() not in cix_credits:
-					self.twCredits.item(r, 0).setBackgroundColor( inactive_color )
+				if str(self.twCredits.item(r, 1).text()).lower() not in cix_credits:
+					self.twCredits.item(r, 1).setBackgroundColor( inactive_color )
 				else:
-					self.twCredits.item(r, 0).setBackgroundColor( active_color )
+					self.twCredits.item(r, 1).setBackgroundColor( active_color )
+				# turn off entire primary column
+				self.twCredits.item(r, 0).setBackgroundColor( inactive_color )
 				r = r + 1
 		
 		if self.data_style == MetaDataStyle.CBI:
@@ -874,6 +879,7 @@ class TaggerWindow( QtGui.QMainWindow):
 			r = 0
 			while r < self.twCredits.rowCount():
 				self.twCredits.item(r, 0).setBackgroundColor( active_color )
+				self.twCredits.item(r, 1).setBackgroundColor( active_color )
 				r = r + 1
 		
 
@@ -954,25 +960,51 @@ class TaggerWindow( QtGui.QMainWindow):
 	def editCredit( self ):
 		if ( self.twCredits.currentRow() > -1 ):
 			self.modifyCredits( "edit" )
+	
+	def updateCreditPrimaryFlag( self, row, primary ):
 		
+		# if we're clearing a flagm do it and quit
+		if not primary:
+			self.twCredits.item(row, 0).setText( "" )
+			return
+		
+		# otherwise, we need to check for, and clear, other primaries with same role
+		role = str(self.twCredits.item(row, 1).text())
+		r = 0
+		while r < self.twCredits.rowCount():
+			if ( self.twCredits.item(r, 0).text() != "" and
+					str(self.twCredits.item(r, 1).text()).lower() == role.lower() ):
+				self.twCredits.item(r, 0).setText( "" )
+			r = r + 1
+		
+		# Now set our new primary
+		self.twCredits.item(row, 0).setText( "Yes" )
+
 	def modifyCredits( self , action ):
 		
 		if action == "edit":
 			row = self.twCredits.currentRow()
-			role = self.twCredits.item( row, 0 ).text()
-			name = self.twCredits.item( row, 1 ).text()
+			role = self.twCredits.item( row, 1 ).text()
+			name = self.twCredits.item( row, 2 ).text()
+			primary = self.twCredits.item( row, 0 ).text() != ""
 		else:
 			role = ""
 			name = ""
+			primary = False
 		
-		editor = CreditEditorWindow( self, CreditEditorWindow.ModeEdit, role, name )
+		editor = CreditEditorWindow( self, CreditEditorWindow.ModeEdit, role, name, primary )
 		editor.setModal(True)
 		editor.exec_()
 		if editor.result():
-			new_role, new_name =  editor.getCredits()
+			new_role, new_name, new_primary =  editor.getCredits()
 			
-			if new_name == name and new_role == role:
+			if new_name == name and new_role == role and new_primary == primary:
 				#nothing has changed, just quit
+				return
+			
+			# name and role is the same, but primary flag changed
+			if new_name == name and new_role == role:
+				self.updateCreditPrimaryFlag( row, new_primary )
 				return
 			
 			# check for dupes
@@ -989,6 +1021,7 @@ class TaggerWindow( QtGui.QMainWindow):
 					if action == "edit":
 						# just remove the row that would be same
 						self.twCredits.removeRow( row )
+						# TODO -- need to find the row of the dupe, and possible change the primary flag
 						
 					ok_to_mod = False
 
@@ -996,12 +1029,13 @@ class TaggerWindow( QtGui.QMainWindow):
 			if ok_to_mod:
 				#modify it
 				if action == "edit":
-					self.twCredits.item(row, 0).setText( new_role )
-					self.twCredits.item(row, 1).setText( new_name )
+					self.twCredits.item(row, 1).setText( new_role )
+					self.twCredits.item(row, 2).setText( new_name )
+					self.updateCreditPrimaryFlag( row, new_primary )
 				else:
 					# add new entry
 					row = self.twCredits.rowCount()
-					self.addNewCreditEntry( row, new_role, new_name)
+					self.addNewCreditEntry( row, new_role, new_name, new_primary)
 
 			self.updateCreditColors()	
 			self.setDirtyFlag()

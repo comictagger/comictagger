@@ -30,7 +30,7 @@ class CreditEditorWindow(QtGui.QDialog):
 	ModeNew = 1
 	
 	
-	def __init__(self, parent, mode, role, name ):
+	def __init__(self, parent, mode, role, name, primary ):
 		super(CreditEditorWindow, self).__init__(parent)
 		
 		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'crediteditorwindow.ui' ), self)
@@ -64,10 +64,33 @@ class CreditEditorWindow(QtGui.QDialog):
 				self.cbRole.setEditText( role  )
 			else:	
 				self.cbRole.setCurrentIndex( i )
+
+		if primary:
+			self.cbPrimary.setCheckState( QtCore.Qt.Checked )
+			
+		self.cbRole.currentIndexChanged.connect(self.roleChanged)
+		self.cbRole.editTextChanged.connect(self.roleChanged)
+	
+		self.updatePrimaryButton()
+
+	def updatePrimaryButton( self ):
+		enabled =self.currentRoleCanBePrimary()
+		self.cbPrimary.setEnabled( enabled )
+
+	def currentRoleCanBePrimary( self ):
+		role =  self.cbRole.currentText()
+		if str(role).lower() == "writer" or str(role).lower() == "artist":
+			return True
+		else:
+			return False
+		
+	def roleChanged( self, s ):
+		self.updatePrimaryButton()
 				
 	def getCredits( self ):
-		return self.cbRole.currentText(), self.leName.text()
-			
+		primary = self.currentRoleCanBePrimary() and self.cbPrimary.isChecked() 
+		return self.cbRole.currentText(), self.leName.text(), primary
+
 
 	def accept( self ):
 		if self.cbRole.currentText() == "" or self.leName.text() == "":
