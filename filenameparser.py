@@ -89,6 +89,15 @@ class FileNameParser:
 		tmpstr = self.fixSpaces(filename)
 		word_list = tmpstr.split(' ')
 		
+		#before we search, remove any kind of likely "of X" phrase
+		for i in range(0, len(word_list)-2):
+			if ( word_list[i].isdigit() and
+				word_list[i+1] == "of"  and
+				word_list[i+2].isdigit() ):
+				word_list[i+1] ="XXX"
+				word_list[i+2] ="XXX"
+				
+				
 		# assume the last number in the filename that is under 4 digits is the issue number
 		for word in reversed(word_list):			
 			if ( 
