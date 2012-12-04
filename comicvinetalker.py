@@ -204,7 +204,7 @@ class ComicVineTalker(QObject):
 		
 		metadata.series = issue_results['volume']['name']
 		
-		num_s = IssueString(issue['issue_number']).asString()
+		num_s = IssueString(issue_results['issue_number']).asString()
 			
 		metadata.issue = num_s
 		metadata.title = issue_results['name']
