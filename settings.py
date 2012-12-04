@@ -65,6 +65,9 @@ class ComicTaggerSettings:
 		# Show/ask dialog flags
 		self.ask_about_cbi_in_rar = True
 		self.show_disclaimer = True
+		
+		# Comic Vine settings
+		self.assumeLoneCreditIsPrimary = False
 	
 	def __init__(self):
 		
@@ -142,6 +145,10 @@ class ComicTaggerSettings:
 			self.ask_about_cbi_in_rar =        self.config.getboolean( 'dialogflags', 'ask_about_cbi_in_rar' )		
 		if self.config.has_option('dialogflags', 'show_disclaimer'):
 			self.show_disclaimer =        self.config.getboolean( 'dialogflags', 'show_disclaimer' )
+			
+		if self.config.has_option('comicvine', 'assumeLoneCreditIsPrimary'):
+			self.ask_about_cbi_in_rar =        self.config.getboolean( 'comicvine', 'assumeLoneCreditIsPrimary' )		
+			
     
 	def save( self ):
 
@@ -173,8 +180,14 @@ class ComicTaggerSettings:
 		self.config.set( 'dialogflags', 'ask_about_cbi_in_rar', self.ask_about_cbi_in_rar )
 		self.config.set( 'dialogflags', 'show_disclaimer', self.show_disclaimer )
 
+		if not self.config.has_section( 'comicvine' ):
+			self.config.add_section( 'comicvine' )
+			
+		self.config.set( 'comicvine', 'assumeLoneCreditIsPrimary', self.assumeLoneCreditIsPrimary )
+
+
 		with open( self.settings_file, 'wb') as configfile:
 			self.config.write(configfile)    
-    
+
     
     

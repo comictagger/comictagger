@@ -176,7 +176,7 @@ class ComicVineTalker(QObject):
 		return volume_results
 				
 
-	def fetchIssueData( self, series_id, issue_number ):
+	def fetchIssueData( self, series_id, issue_number, assumeLoneCreditIsPrimary = False ):
 
 		volume_results = self.fetchVolumeData( series_id )
 	
@@ -225,6 +225,31 @@ class ComicVineTalker(QObject):
 				# can we determine 'primary' from CV??
 				role_name = role['role'].title()
 				metadata.addCredit( person['name'], role['role'].title(), False )
+		
+		assumeLoneCreditIsPrimary = True
+		if assumeLoneCreditIsPrimary:
+			def setLonePrimary( role ):
+				lone_credit = None
+				count = 0
+				for c in metadata.credits:
+					if c['role'].lower() == role:
+						count += 1
+						lone_credit = c
+					if count > 1:
+						lone_credit = None
+						break
+				if lone_credit is not None:
+					lone_credit['primary'] = True
+				return lone_credit
+				
+			#need to loop three times, once for 'writer', 'artist', and then 'penciler' if no artist
+			setLonePrimary( 'writer' )
+			if setLonePrimary( 'artist' ) is None:
+				c = setLonePrimary( 'penciler' )
+				if c is not None:
+					c['primary'] = False
+					metadata.addCredit( c['person'], 'Artist', True )
+			
 
 		character_credits = issue_results['character_credits']
 		character_list = list()
