@@ -56,7 +56,7 @@ class IssueString:
 				self.suffix = parts[1]
 
 	def asString( self, pad = 0 ):
-		#return the float, left size zero-padded, with suffix attached
+		#return the float, left side zero-padded, with suffix attached
 		negative = self.num < 0
 
 		num_f = abs(self.num)
@@ -81,11 +81,11 @@ class IssueString:
 		return num_s
 	
 	def asFloat( self ):
-		#return the float, left size zero-padded, with suffix attached
+		#return the float, with no suffix
 		return self.num
 	
 	def asInt( self ):
-		#return the int, left size zero-padded, with suffix attached
+		#return the int version of the float
 		return  int( self.num )
 	
 	
