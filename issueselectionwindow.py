@@ -28,6 +28,7 @@ from PyQt4.QtNetwork import QNetworkAccessManager, QNetworkRequest
 from comicvinetalker import ComicVineTalker, ComicVineTalkerException
 from  imagefetcher import  ImageFetcher
 from settings import ComicTaggerSettings
+from issuestring import IssueString
 
 class IssueSelectionWindow(QtGui.QDialog):
 	
@@ -99,7 +100,7 @@ class IssueSelectionWindow(QtGui.QDialog):
 			item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
 			self.twList.setItem(row, 1, item)
 			
-			if float(record['issue_number']) == float(self.issue_number):
+			if IssueString(record['issue_number']).asString() == IssueString(self.issue_number).asString():
 				self.initial_id = record['id']
 			
 			row += 1
