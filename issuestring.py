@@ -1,5 +1,14 @@
 """
 Class for handling the odd permutations of an 'issue number' that the comics industry throws at us
+
+e.g.:
+
+"12"
+"12.1"
+"0"
+"-1"
+"5AU"
+
 """
 
 """
