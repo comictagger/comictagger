@@ -52,7 +52,7 @@ If no options are given, {0} will run in windowed mode
                              from the file
   -d, --delete               Deletes the tag block of specified type (via -t)
   -c, --copy=SOURCE          Copy the specified source tag block to destination style
-                             specified via via -t
+                             specified via via -t (potentially lossy operation)
   -s, --save                 Save out tags as specified type (via -t)
                              Must specify also at least -o, -p, or -m
      --nooverwrite           Don't modify tag block if it already exists ( relevent for -s or -c )  
@@ -206,13 +206,14 @@ If no options are given, {0} will run in windowed mode
 				self.rename_file = True
 			if o in ("-f", "--parsefilename"):
 				self.parse_filename = True
-			if o in ("--raw"):
+			if o == "--raw":
 				self.raw = True
-			if o in ("--noabort"):
+			if o  == "--noabort":
 				self.abortOnLowConfidence = False
-			if o in ("--terse"):
+			if o == "--terse":
+				print "setting terse!"
 				self.terse = True
-			if o in ("--nooverwrite"):
+			if o  == "--nooverwrite":
 				self.no_overwrite = True
 			if o in ("-t", "--type"):
 				if a.lower() == "cr":
