@@ -1042,7 +1042,7 @@
      <x>0</x>
      <y>0</y>
      <width>959</width>
-     <height>22</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuComicTagger">
@@ -1084,6 +1084,10 @@
     <property name="title">
      <string>Help</string>
     </property>
+    <addaction name="actionWiki"/>
+    <addaction name="actionReportBug"/>
+    <addaction name="actionComicTaggerForum"/>
+    <addaction name="separator"/>
     <addaction name="actionAbout"/>
    </widget>
    <widget class="QMenu" name="menuTags">
@@ -1236,6 +1240,21 @@
   <action name="actionViewRawCBLTags">
    <property name="text">
     <string>View Raw ComicBookLover Tags</string>
+   </property>
+  </action>
+  <action name="actionReportBug">
+   <property name="text">
+    <string>Report Bug...</string>
+   </property>
+  </action>
+  <action name="actionComicTaggerForum">
+   <property name="text">
+    <string>ComicTagger Forum...</string>
+   </property>
+  </action>
+  <action name="actionWiki">
+   <property name="text">
+    <string>Online Docs...</string>
    </property>
   </action>
  </widget>

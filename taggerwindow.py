@@ -28,6 +28,7 @@ import platform
 import os
 import pprint
 import json
+import webbrowser
 
 from volumeselectionwindow import VolumeSelectionWindow
 from options import MetaDataStyle
@@ -251,6 +252,9 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.actionAbout.setShortcut( 'Ctrl+A' )
 		self.actionAbout.setStatusTip( 'Show the ' + self.appName + ' info' )
 		self.actionAbout.triggered.connect( self.aboutApp )
+		self.actionWiki.triggered.connect( self.showWiki )
+		self.actionReportBug.triggered.connect( self.reportBug )
+		self.actionComicTaggerForum.triggered.connect( self.showForum )
 	
 		# ToolBar
 	
@@ -1259,5 +1263,13 @@ class TaggerWindow( QtGui.QMainWindow):
 			dlg.setText(text )
 			dlg.setWindowTitle( "Raw ComicBookLover Tag View" )
 			dlg.exec_()
+
+	def showWiki( self ):
+		webbrowser.open("http://code.google.com/p/comictagger/wiki/Home?tm=6")
 		
+	def reportBug( self ):
+		webbrowser.open("http://code.google.com/p/comictagger/issues/list")
+		
+	def showForum( self ):
+		webbrowser.open("http://comictagger.forumotion.com/")
 		
