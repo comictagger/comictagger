@@ -1,5 +1,5 @@
 """
-A python class to encapsulate CoMets's data and file handling
+A python class to encapsulate CoMet data 
 """
 
 """
@@ -84,25 +84,37 @@ class CoMet:
 			md.title = ""
 		assign( 'title', md.title )
 		assign( 'series', md.series )
-		assign( 'issue', md.issue )  #must be int...
+		assign( 'issue', md.issue )  #must be int??
 		assign( 'volume', md.volume )
 		assign( 'description', md.comments )
-		#assign( 'date', md.year )  #need to make a date from month, year
 		assign( 'publisher', md.publisher )
-		assign( 'genre', md.genre )
 		assign( 'pages', md.pageCount )
 		assign( 'format', md.format )
 		assign( 'language', md.language )
-		#assign( 'readingDirection', md.??? )
-
-		assign( 'character', md.characters )
 		assign( 'rating', md.maturityRating )
-		#assign( 'price', md.??? )
-		#assign( 'isVersionOf', md.??? )
-		#assign( 'rights', md.??? )
-		#assign( 'identifier', md.??? )
-		#assign( 'coverImage', md.??? )
-		#assign( 'lastMark', md.??? )
+		assign( 'price', md.price )
+		assign( 'isVersionOf', md.isVersionOf )
+		assign( 'rights', md.rights )
+		assign( 'identifier', md.identifier )
+		assign( 'lastMark', md.lastMark )		
+		assign( 'genre', md.genre )   # TODO repeatable
+
+		if md.characters is not None:
+			char_list = [ c.strip() for c in md.characters.split(',') ]
+		for c in char_list:
+			assign( 'character', c ) 
+			
+		if md.manga is not None and md.manga == "YesAndRightToLeft":
+			assign( 'readingDirection', "rtl")
+		
+		date_str = ""
+		if md.year is not None:
+			date_str = md.year.zfill(4) 
+			if md.month is not None:
+				date_str += "-" + md.month.zfill(2)
+			assign( 'date', date_str )  
+
+		#assign( 'coverImage', md.??? )  #TODO Need to use pages list, eventually...
 
 		# need to specially process the credits, since they are structured differently than CIX	
 		credit_writer_list    = list()
@@ -171,16 +183,38 @@ class CoMet:
 		md.issue =            xlate( 'issue' )
 		md.volume =           xlate( 'volume' )
 		md.comments =         xlate( 'description' )
-		#md.year =             xlate( 'Year' )
-		#md.month =            xlate( 'Month' )
 		md.publisher =        xlate( 'publisher' )
-		md.genre =            xlate( 'genre' )
 		md.language =         xlate( 'language' )
 		md.format =           xlate( 'format' )
-		#md.manga =            xlate( 'readingDirection' )
-		#md.characters =       xlate( 'character' )
 		md.pageCount =        xlate( 'pages' )
 		md.maturityRating =   xlate( 'rating' )
+		md.price =            xlate( 'price' )
+		md.isVersionOf =      xlate( 'isVersionOf' )
+		md.rights =           xlate( 'rights' )
+		md.identifier =       xlate( 'identifier' )
+		md.lastMark =         xlate( 'lastMark' )
+		md.genre =            xlate( 'genre' ) # TODO - repeatable field
+
+		date = xlate( 'date' )
+		if date is not None:
+			parts = date.split('-')
+			if len( parts) > 0:
+				md.year = parts[0]
+			if len( parts) > 1:
+				md.month = parts[1]
+				
+		coverImage = xlate( 'coverImage' ) # TODO - do something with this!
+		
+		readingDirection = xlate( 'readingDirection' )
+		if readingDirection is not None and readingDirection == "rtl":
+			md.manga = "YesAndRightToLeft"
+	
+		# loop for character tags		
+		char_list =  []
+		for n in root:
+			if n.tag == 'character':
+				char_list.append(n.text.strip())
+		md.characters = utils.listToString( char_list )
 
 		# Now extract the credit info
 		for n in root:
@@ -200,6 +234,19 @@ class CoMet:
 		metadata.isEmpty = False
 		
 		return metadata
+
+	#verify that the string actually contains CoMet data in XML format
+	def validateString( self, string ):
+		try:
+			tree = ET.ElementTree(ET.fromstring( string ))
+			root = tree.getroot()
+			if root.tag != 'comet':
+				raise Exception
+		except:
+			return False
+		
+		return True
+
 
 	def writeToExternalFile( self, filename, metadata ):
 		

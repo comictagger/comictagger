@@ -93,10 +93,18 @@ class GenericMetadata:
 		self.characters          = None
 		self.teams               = None
 		self.locations           = None
-	
+
 		self.credits            = list()		
 		self.tags               = list()
 		self.pages              = list()
+
+		# Some CoMet-only items
+		self.price               = None
+		self.isVersionOf         = None
+		self.rights              = None
+		self.identifier          = None
+		self.lastMark            = None
+	
 
 	def overlay( self, new_md ):
 		# Overlay a metadata object on this one
@@ -130,7 +138,7 @@ class GenericMetadata:
 		assign( "alternateNumber",   new_md.alternateNumber )
 		assign( "alternateCount",    new_md.alternateCount )
 		assign( "imprint",           new_md.imprint )
-		assign( "webLink",               new_md.webLink )
+		assign( "webLink",           new_md.webLink )
 		assign( "format",            new_md.format )
 		assign( "manga",             new_md.manga )
 		assign( "blackAndWhite",     new_md.blackAndWhite )
@@ -143,6 +151,12 @@ class GenericMetadata:
 		assign( "locations",         new_md.locations )
 		assign( "comments",          new_md.comments )
 		assign( "notes",             new_md.notes )
+
+		assign( "price",             new_md.price )
+		assign( "isVersionOf",       new_md.isVersionOf )
+		assign( "rights",            new_md.rights )
+		assign( "identifier",        new_md.identifier )
+		assign( "lastMark",          new_md.lastMark )
 		
 		self.overlayCredits( new_md.credits )
 		# TODO
@@ -229,6 +243,13 @@ class GenericMetadata:
 		add_attr_string( "webLink" )
 		add_attr_string( "format" )
 		add_attr_string( "manga" )
+
+		add_attr_string( "price" )
+		add_attr_string( "isVersionOf" )
+		add_attr_string( "rights" )
+		add_attr_string( "identifier" )
+		add_attr_string( "lastMark" )
+		
 		if self.blackAndWhite:
 			add_attr_string( "blackAndWhite" )
 		add_attr_string( "maturityRating" )

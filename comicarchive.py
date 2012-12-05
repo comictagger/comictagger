@@ -386,7 +386,8 @@ class ComicArchive:
 	def __init__( self, path ):
 		self.path = path
 		self.ci_xml_filename = 'ComicInfo.xml'
-		self.comet_filename = 'CoMet.xml'
+		self.comet_default_filename = 'CoMet.xml'
+		self.comet_filename = None
 
 		if self.zipTest():
 			self.archive_type =  self.ArchiveType.Zip
@@ -597,6 +598,7 @@ class ComicArchive:
 	def writeCIX(self, metadata):
 
 		if metadata is not None:
+			metadata.pageCount = self.getNumberOfPages()
 			cix_string = ComicInfoXml().stringFromMetadata( metadata )
 			return self.archiver.writeArchiveFile( self.ci_xml_filename, cix_string )
 		else:
@@ -632,24 +634,43 @@ class ComicArchive:
 	def writeCoMet(self, metadata):
 
 		if metadata is not None:
+			if not self.hasCoMet():
+				self.comet_filename = self.comet_default_filename
+			
+			metadata.pageCount = self.getNumberOfPages()
 			comet_string = CoMet().stringFromMetadata( metadata )
 			return self.archiver.writeArchiveFile( self.comet_filename, comet_string )
 		else:
 			return False
 			
 	def removeCoMet( self ):
-
-		return self.archiver.removeArchiveFile( self.comet_filename )
+		if self.hasCoMet():
+			retcode = self.archiver.removeArchiveFile( self.comet_filename )
+			self.comet_filename = None
+			return retcode
+		return True
 		
 	def hasCoMet(self):
 		if not self.seemsToBeAComicArchive():
 			return False
-		#TODO look at all xml files in root, and search for CoMet data, get first
-		#TODO if doesn't exist, use default
-		elif self.comet_filename in self.archiver.getArchiveFilenameList():
-			return True
-		else:
+		
+		#Use the existence of self.comet_filename as a cue that the tag block exists
+		if self.comet_filename is None:
+			#TODO look at all xml files in root, and search for CoMet data, get first
+			for n in self.archiver.getArchiveFilenameList():
+				if ( os.path.dirname(n) == "" and
+					os.path.splitext(n)[1].lower() == '.xml'):
+					# read in XML file, and validate it
+					data = self.archiver.readArchiveFile( n )
+					if CoMet().validateString( data ):
+						# since we found it, save it!
+						self.comet_filename = n
+						return True
+			# if we made it through the loop, no CoMet here...
 			return False
+			
+		else:
+			return True
 
 
 	def metadataFromFilename( self ):
