@@ -89,7 +89,7 @@ def process_file_cli( filename, opts, settings ):
 		return
 	
 	#if not ca.isWritableForStyle( opts.data_style ) and ( opts.delete_tags or opts.save_tags or opts.rename_file ):
-	if not ca.isWritable(  ) and ( opts.delete_tags or opts.save_tags or opts.rename_file ):
+	if not ca.isWritable(  ) and ( opts.delete_tags or opts.copy_tags or opts.save_tags or opts.rename_file ):
 		print "This archive is not writable for that tag type"
 		return
 
