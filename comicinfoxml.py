@@ -1,5 +1,5 @@
 """
-A python class to encapsulate ComicRack's ComicInfo.xml data and file handling
+A python class to encapsulate ComicRack's ComicInfo.xml data 
 """
 
 """

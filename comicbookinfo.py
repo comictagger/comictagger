@@ -1,5 +1,5 @@
 """
-A python class to encapsulate the ComicBookInfo data and file handling
+A python class to encapsulate the ComicBookInfo data 
 """
 
 """
