@@ -229,7 +229,7 @@ def process_file_cli( filename, opts, settings ):
 			
 			# now get the particular issue data
 			try:
-				cv_md = ComicVineTalker().fetchIssueData( matches[0]['volume_id'],  matches[0]['issue_number'] )
+				cv_md = ComicVineTalker().fetchIssueData( matches[0]['volume_id'],  matches[0]['issue_number'], settings.assume_lone_credit_is_primary )
 			except ComicVineTalkerException:
 				print "Network error while getting issue details.  Save aborted"
 				return

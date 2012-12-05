@@ -301,6 +301,24 @@
          </item>
         </layout>
        </widget>
+       <widget class="QWidget" name="tab_3">
+        <attribute name="title">
+         <string>Comic Vine</string>
+        </attribute>
+        <widget class="QCheckBox" name="cbxAssumeLoneCreditIsPrimary">
+         <property name="geometry">
+          <rect>
+           <x>50</x>
+           <y>30</y>
+           <width>241</width>
+           <height>20</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Assume Lone Credit Is Primary</string>
+         </property>
+        </widget>
+       </widget>
       </widget>
      </item>
      <item>

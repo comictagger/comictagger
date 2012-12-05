@@ -111,6 +111,9 @@ class SettingsWindow(QtGui.QDialog):
 		self.leNameLengthDeltaThresh.setText( str(self.settings.id_length_delta_thresh) )
 		self.tePublisherBlacklist.setPlainText( self.settings.id_publisher_blacklist )
 	
+		if self.settings.assume_lone_credit_is_primary:
+			self.cbxAssumeLoneCreditIsPrimary.setCheckState( QtCore.Qt.Checked)
+			
 	def accept( self ):
 		
 		# Copy values from form to settings and save
@@ -126,6 +129,7 @@ class SettingsWindow(QtGui.QDialog):
 		
 		self.settings.id_length_delta_thresh = int(self.leNameLengthDeltaThresh.text())
 		self.settings.id_publisher_blacklist = str(self.tePublisherBlacklist.toPlainText())
+		self.settings.assume_lone_credit_is_primary = self.cbxAssumeLoneCreditIsPrimary.isChecked()
 		
 		self.settings.save()
 		QtGui.QDialog.accept(self)

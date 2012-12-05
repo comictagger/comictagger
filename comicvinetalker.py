@@ -226,7 +226,6 @@ class ComicVineTalker(QObject):
 				role_name = role['role'].title()
 				metadata.addCredit( person['name'], role['role'].title(), False )
 		
-		assumeLoneCreditIsPrimary = True
 		if assumeLoneCreditIsPrimary:
 			def setLonePrimary( role ):
 				lone_credit = None

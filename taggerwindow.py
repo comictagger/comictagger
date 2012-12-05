@@ -789,7 +789,7 @@ class TaggerWindow( QtGui.QMainWindow):
 			
 			try:
 				comicVine = ComicVineTalker( )
-				new_metadata = comicVine.fetchIssueData( selector.volume_id, selector.issue_number )
+				new_metadata = comicVine.fetchIssueData( selector.volume_id, selector.issue_number, self.settings.assume_lone_credit_is_primary )
 			except ComicVineTalkerException:
 				QtGui.QApplication.restoreOverrideCursor()		
 				QtGui.QMessageBox.critical(self, self.tr("Network Issue"), self.tr("Could not connect to ComicVine to get issue details!"))
