@@ -51,8 +51,11 @@ If no options are given, {0} will run in windowed mode
       --raw                  With -p, will print out the raw tag block(s)
                              from the file
   -d, --delete               Deletes the tag block of specified type (via -t)
+  -c, --copy=SOURCE          Copy the specified source tag block to destination style
+                             specified via via -t
   -s, --save                 Save out tags as specified type (via -t)
                              Must specify also at least -o, -p, or -m
+     --nooverwrite           Don't modify tag block if it already exists ( relevent for -s or -c )  
   -n, --dryrun               Don't actually modify file (only relevent for -d, -s, or -r)
   -t, --type=TYPE            Specify TYPE as either "CR", "CBL", or "COMET" (as either 
                              ComicRack, ComicBookLover, or CoMet style tags, respectivly)
@@ -85,6 +88,7 @@ If no options are given, {0} will run in windowed mode
 		self.terse = False
 		self.metadata = None
 		self.print_tags = False
+		self.copy_tags = False
 		self.delete_tags = False
 		self.search_online = False
 		self.dryrun = False
@@ -93,6 +97,7 @@ If no options are given, {0} will run in windowed mode
 		self.parse_filename = False
 		self.raw = False
 		self.rename_file = False
+		self.no_overwrite = False
 		self.file_list = []
 		
 	def display_help_and_quit( self, msg, code ):
@@ -162,9 +167,9 @@ If no options are given, {0} will run in windowed mode
 		# parse command line options
 		try:
 			opts, args = getopt.getopt( input_args, 
-			           "hpdt:fm:vonsr", 
-			           [ "help", "print", "delete", "type=", "parsefilename", "metadata=", "verbose",
-						"online", "dryrun", "save", "rename" , "raw", "noabort", "terse" ])
+			           "hpdt:fm:vonsrc:", 
+			           [ "help", "print", "delete", "type=", "copy=", "parsefilename", "metadata=", "verbose",
+						"online", "dryrun", "save", "rename" , "raw", "noabort", "terse", "nooverwrite" ])
 			           
 		except getopt.GetoptError as err:
 			self.display_help_and_quit( str(err), 2 )
@@ -179,6 +184,16 @@ If no options are given, {0} will run in windowed mode
 				self.print_tags = True
 			if o in ("-d", "--delete"):
 				self.delete_tags = True
+			if o in ("-c", "--copy"):
+				self.copy_tags = True
+				if a.lower() == "cr":
+					self.copy_source = MetaDataStyle.CIX
+				elif a.lower() == "cbl":
+					self.copy_source = MetaDataStyle.CBI
+				elif a.lower() == "comet":
+					self.copy_source = MetaDataStyle.COMET
+				else:
+					self.display_help_and_quit( "Invalid copy tag source type", 1 )
 			if o in ("-o", "--online"):
 				self.search_online = True
 			if o in ("-n", "--dryrun"):
@@ -197,6 +212,8 @@ If no options are given, {0} will run in windowed mode
 				self.abortOnLowConfidence = False
 			if o in ("--terse"):
 				self.terse = True
+			if o in ("--nooverwrite"):
+				self.no_overwrite = True
 			if o in ("-t", "--type"):
 				if a.lower() == "cr":
 					self.data_style = MetaDataStyle.CIX
@@ -207,17 +224,18 @@ If no options are given, {0} will run in windowed mode
 				else:
 					self.display_help_and_quit( "Invalid tag type", 1 )
 			
-		if self.print_tags or self.delete_tags or self.save_tags or self.rename_file:
+		if self.print_tags or self.delete_tags or self.save_tags or self.copy_tags or self.rename_file:
 			self.no_gui = True
 
 		count = 0
 		if self.print_tags: count += 1
 		if self.delete_tags: count += 1
 		if self.save_tags: count += 1
+		if self.copy_tags: count += 1
 		if self.rename_file: count += 1
 		
 		if count > 1:
-			self.display_help_and_quit( "Must choose only one action of print, delete, save, or rename", 1 )
+			self.display_help_and_quit( "Must choose only one action of print, delete, save, copy, or rename", 1 )
 		
 		if len(args) > 0:
 			self.filename = args[0]
@@ -231,6 +249,9 @@ If no options are given, {0} will run in windowed mode
 			
 		if self.save_tags and self.data_style is None:
 			self.display_help_and_quit( "Please specify the type to save with -t", 1 )
+
+		if self.copy_tags and self.data_style is None:
+			self.display_help_and_quit( "Please specify the type to copy to with -t", 1 )
 			
 		#if self.rename_file and self.data_style is None:
 		#	self.display_help_and_quit( "Please specify the type to use for renaming with -t", 1 )

@@ -55,6 +55,8 @@ def cli_mode( opts, settings ):
 	
 	for f in opts.file_list:
 		process_file_cli( f, opts, settings )
+		sys.stdout.flush()
+
 
 
 def create_local_metadata( opts, ca, has_desired_tags ):
@@ -125,7 +127,6 @@ def process_file_cli( filename, opts, settings ):
 			print brief
 
 		if opts.terse:
-			sys.stdout.flush()
 			return
 
 		print
@@ -166,10 +167,37 @@ def process_file_cli( filename, opts, settings ):
 			else:
 				print "{0}: dry-run.  {1} tags not removed".format( filename, style_name )		
 		else:
-			print "{0}: This archive doesn't have {1} tags.".format( filename, style_name )
+			print "{0}: This archive doesn't have {1} tags to remove.".format( filename, style_name )
+
+	elif opts.copy_tags:
+		dst_style_name = MetaDataStyle.name[ opts.data_style ]
+		if opts.no_overwrite and has[ opts.data_style ]:
+			print "{0}: Already has {1} tags.  Not overwriting.".format(filename, dst_style_name)
+			return
+		if opts.copy_source == opts.data_style:
+			print "{0}: Destination and source are same: {1}.  Nothing to do.".format(filename, dst_style_name)
+			return
+			
+		src_style_name = MetaDataStyle.name[ opts.copy_source ]
+		if has[ opts.copy_source ]:
+			if not opts.dryrun:
+				md = ca.readMetadata( opts.copy_source )
+				if not ca.writeMetadata( md, opts.data_style ):
+					print "{0}: Tag copy seemed to fail!".format( filename )
+				else:
+					print "{0}: Copied {1} tags to {2} .".format( filename, src_style_name, dst_style_name )
+			else:
+				print "{0}: dry-run.  {1} tags not copied".format( filename, src_style_name )		
+		else:
+			print "{0}: This archive doesn't have {1} tags to copy.".format( filename, src_style_name )
+
 		
 	elif opts.save_tags:
 
+		if opts.no_overwrite and has[ opts.data_style ]:
+			print "{0}: Already has {1} tags.  Not overwriting.".format(filename, MetaDataStyle.name[ opts.data_style ])
+			return
+		
 		if batch_mode:
 			print "Processing {0}: ".format(filename)
 			
@@ -311,7 +339,6 @@ def process_file_cli( filename, opts, settings ):
 			suffix = " (dry-run, no change)"
 
 		print "renamed '{0}' -> '{1}' {2}".format(os.path.basename(filename), new_name, suffix)
-	sys.stdout.flush()
 
 
 			
