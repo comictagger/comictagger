@@ -62,6 +62,12 @@ class ComicBookInfo:
 		metadata.criticalRating =    xlate( 'rating' )
 		metadata.tags =              xlate( 'tags' )
 		
+		# make sure credits and tags are at least empty lists and not None
+		if metadata.credits is None:
+			metadata.credits = []
+		if metadata.tags is None:
+			metadata.tags = []
+			
 		#need to massage the language string to be ISO
 		if metadata.language is not None:
 			# reverse look-up
