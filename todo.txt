@@ -1,53 +1,38 @@
------------------------------------------------------
-Config Mgmt
------------------------------------------------------
 
-Release Process
-    Optionally, make screen shots, upload to wiki
-    Update release notes and wiki
-	Update ctversion.py
-	Build packages
-	    Make exe on Windows
-		Make dmg on Mac
-		Make zip on Mac or Linux
-    Tag the repository
-	Upload packages
-	
 -----------------------------------------------------
 Features
 -----------------------------------------------------
 
+CLI batch save, keep log of failures
+CLI batch save, interactive at end
 
+
+TaggerWindow entry fields
+	Special tabbed Dialog needed for:   
+		Pages Info - maybe a custom painted widget
+		
 -----------------------------------------------------
 Bugs
 -----------------------------------------------------
 
+Auto-select failure when year is off by one.  Maybe check with a wider radius??
 
 -----------------------------------------------------
 Future
 -----------------------------------------------------
 Add license info to About Dialog
 
-Add CoMet Support
-
-Support marvel's "AU" issues...
-
 Style sheets for windows/mac/linux
 
 File rename
 	-Dialog??
 	formatting with missing pieces.
-
-TaggerWindow entry fields
-	Special tabbed Dialog needed for:   
-		Pages Info - maybe a custom painted widget
  
 CLI
 	explicit metadata settings option format
-		-- figure out how to add tags
-		-- delete tags 
+		-- figure out how to add CBI "tags"
+		-- delete CBI "tags" 
 	write a log for multiple file processing
-	override abort on low confidence flag
 	interactive for choices option?
 		--- or defer choices to end, by keeping special log of match option for each file
 
@@ -77,10 +62,27 @@ Settings
 Google App engine to store hashes 
 	Content Hashes, Image hashes, who knows?
 
-Support primary credit flag editing
-
 Filename parsing:
 	Rework how series name is separated from issue
+	
+Support marvel's "AU" issues...
+	Mostly done, gotta wait and see what CV does
+
+-----------------------------------------------------
+Config Mgmt check list
+-----------------------------------------------------
+
+Release Process
+    Optionally, make screen shots, upload to wiki
+    Update release notes and wiki
+	Update ctversion.py
+	Build packages
+	    Make exe on Windows
+		Make dmg on Mac
+		Make zip on Mac or Linux
+    Tag the repository
+	Upload packages
+	
 ----------------------------------------------
 
 
