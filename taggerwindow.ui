@@ -1042,7 +1042,7 @@
      <x>0</x>
      <y>0</y>
      <width>959</width>
-     <height>25</height>
+     <height>28</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuComicTagger">
@@ -1053,6 +1053,7 @@
      <property name="title">
       <string>Remove</string>
      </property>
+     <addaction name="actionRemoveAuto"/>
      <addaction name="actionRemoveCBLTags"/>
      <addaction name="actionRemoveCRTags"/>
     </widget>
@@ -1255,6 +1256,11 @@
   <action name="actionWiki">
    <property name="text">
     <string>Online Docs...</string>
+   </property>
+  </action>
+  <action name="actionRemoveAuto">
+   <property name="text">
+    <string>Remove Selected Tag Style</string>
    </property>
   </action>
  </widget>

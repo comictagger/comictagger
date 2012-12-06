@@ -105,7 +105,7 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.statusBar()
 		self.updateAppTitle()
 		self.setAcceptDrops(True)
-		self.updateSaveMenu()
+		self.updateMenus()
 		self.droppedFile = None
 
 		self.page_browser = None
@@ -198,6 +198,10 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.actionWrite_Tags.setStatusTip( 'Save tags to comic archive' )
 		self.actionWrite_Tags.triggered.connect( self.commitMetadata )
 
+		self.actionRemoveAuto.setShortcut( 'Ctrl+D' )
+		self.actionRemoveAuto.setStatusTip( 'Remove selected style tags from archive' )
+		self.actionRemoveAuto.triggered.connect( self.removeAuto )
+
 		self.actionRemoveCBLTags.setStatusTip( 'Remove ComicBookLover tags from comic archive' )
 		self.actionRemoveCBLTags.triggered.connect( self.removeCBLTags )
 
@@ -220,11 +224,10 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.actionViewRawCBLTags.setStatusTip( 'View raw ComicBookLover tag block from file' )
 		self.actionViewRawCBLTags.triggered.connect( self.viewRawCBLTags )
 
-		#self.actionRepackage.setShortcut(  )
+		self.actionRepackage.setShortcut( 'Ctrl+E' )
 		self.actionRepackage.setStatusTip( 'Re-create archive as CBZ' )
 		self.actionRepackage.triggered.connect( self.repackageArchive )
 		
-		#self.actionRepackage.setShortcut(  )
 		self.actionSettings.setStatusTip( 'Configure ComicTagger' )
 		self.actionSettings.triggered.connect( self.showSettings )
 		
@@ -279,12 +282,39 @@ class TaggerWindow( QtGui.QMainWindow):
 			if self.comic_archive.isZip():			
 				QtGui.QMessageBox.information(self, self.tr("Export as Zip Archive"), self.tr("It's already a Zip Archive!"))
 				return
+
+			if not self.dirtyFlagVerification( "Export as Zip Archive",
+										"If you export the archive to Zip format, the data in the form won't be in the new " +
+										"archive unless you save it first.  Do you want to continue with the export?"):
+				return
 			
-			#TODO get the new zip file name
-			export_name = "test.cbz"
+			export_name = os.path.splitext(self.comic_archive.path)[0] + ".cbz"
+			#export_name = utils.unique_file( export_name )
+
+			dialog = QtGui.QFileDialog(self)
+			dialog.setFileMode(QtGui.QFileDialog.AnyFile)
+			if self.settings.last_opened_folder is not None:
+				dialog.setDirectory( self.settings.last_opened_folder )
+			filters  = [ 
+						 "Comic archive files (*.cbz *.zip)",
+						 "Any files (*)"
+						 ]			
+			dialog.setNameFilters(filters)
+			dialog.selectFile( export_name )
+					
+			if (dialog.exec_()):
+				fileList = dialog.selectedFiles()
+				if os.path.lexists( fileList[0] ):
+					reply = QtGui.QMessageBox.question(self, 
+						 self.tr("Export as Zip Archive"), 
+						 self.tr(fileList[0] + " already exisits.  Are you sure you want to overwrite it?"),
+						 QtGui.QMessageBox.Yes, QtGui.QMessageBox.No )
+						 
+					if reply == QtGui.QMessageBox.No:		
+						return
 			
 			QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
-			retcode = self.comic_archive.exportAsZip( "test.cbz")
+			retcode = self.comic_archive.exportAsZip( str(fileList[0]) )
 			QtGui.QApplication.restoreOverrideCursor()		
 		
 			if not retcode:
@@ -394,26 +424,57 @@ class TaggerWindow( QtGui.QMainWindow):
 			self.metadataToForm()
 			self.clearDirtyFlag()  # also updates the app title
 			self.updateInfoBox()
-			self.updateSaveMenu()
+			self.updateMenus()
 			#self.updatePagesInfo()
 			
 		else:
 			QtGui.QMessageBox.information(self, self.tr("Whoops!"), self.tr("That file doesn't appear to be a comic archive!"))
 
-	def updateSaveMenu( self ):
+	def updateMenus( self ):
+		
+		# First just disable all the questionable items
+		self.actionRemoveAuto.setEnabled( False )
+		self.actionRemoveCRTags.setEnabled( False )
+		self.actionRemoveCBLTags.setEnabled( False )
+		self.actionWrite_Tags.setEnabled( False )
+		self.actionRepackage.setEnabled(False)
+		self.actionViewRawCBLTags.setEnabled( False )
+		self.actionViewRawCRTags.setEnabled( False )
+		self.actionReloadCRTags.setEnabled( False )
+		self.actionReloadCBLTags.setEnabled( False )
+		self.actionReloadAuto.setEnabled( False )
+		self.actionParse_Filename.setEnabled( False )
+		self.actionAutoSearch.setEnabled( False )
+			
+		# now, selectively re-enable
+		if self.comic_archive is not None :
+			has_cix = self.comic_archive.hasCIX()
+			has_cbi = self.comic_archive.hasCBI()
+			
+			self.actionParse_Filename.setEnabled( True )
+			self.actionAutoSearch.setEnabled( True )
+			
+			if not self.comic_archive.isZip():
+				self.actionRepackage.setEnabled(True)
+			
+			if has_cix or has_cbi:
+				self.actionReloadAuto.setEnabled( True )
+			if has_cix:
+				self.actionReloadCRTags.setEnabled( True )
+				self.actionViewRawCRTags.setEnabled( True )
+			if has_cbi:
+				self.actionReloadCBLTags.setEnabled( True )
+				self.actionViewRawCBLTags.setEnabled( True )
+				
+			if self.comic_archive.isWritable():
+				self.actionWrite_Tags.setEnabled( True )
+				if has_cix or has_cbi:
+					self.actionRemoveAuto.setEnabled( True )
+				if has_cix:
+					self.actionRemoveCRTags.setEnabled( True )
+				if has_cbi:
+					self.actionRemoveCBLTags.setEnabled( True )
 
-		if ( self.comic_archive is not None and 
-		     self.comic_archive.isWritable( )  
-		   ):
-			self.actionRemoveCRTags.setEnabled( True )
-			self.actionRemoveCBLTags.setEnabled( True )
-			self.actionWrite_Tags.setEnabled( True )
-		else:
-			self.actionRemoveCRTags.setEnabled( False )
-			self.actionRemoveCBLTags.setEnabled( False )
-			self.actionWrite_Tags.setEnabled( False )
-			
-			
 	def updateInfoBox( self ):
 		
 		ca = self.comic_archive
@@ -859,6 +920,7 @@ class TaggerWindow( QtGui.QMainWindow):
 				else:
 					self.clearDirtyFlag()
 					self.updateInfoBox()
+					self.updateMenus()
 					#QtGui.QMessageBox.information(self, self.tr("Yeah!"), self.tr("File written."))
 
 		else:
@@ -870,7 +932,7 @@ class TaggerWindow( QtGui.QMainWindow):
 
 		self.settings.last_selected_data_style = self.data_style
 		self.updateStyleTweaks()
-		self.updateSaveMenu()
+		self.updateMenus()
 		
 	def updateCreditColors( self ):
 		inactive_color = QtGui.QColor(255, 170, 150)
@@ -1186,6 +1248,8 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.cbFormat.addItem("Year 1")
 		self.cbFormat.addItem("Year One")
 		
+	def removeAuto( self ):
+		self.removeTags( self.data_style )
 
 	def removeCBLTags( self ):
 		self.removeTags(  MetaDataStyle.CBI )
@@ -1208,6 +1272,7 @@ class TaggerWindow( QtGui.QMainWindow):
 					QtGui.QMessageBox.warning(self, self.tr("Remove failed"), self.tr("The tag removal operation seemed to fail!"))
 				else:
 					self.updateInfoBox()
+					self.updateMenus()
 				
 
 	def reloadAuto( self ):
