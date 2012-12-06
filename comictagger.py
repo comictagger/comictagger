@@ -47,16 +47,116 @@ from issuestring import IssueString
 import utils
 import codecs
 
+class MultipleMatch():
+	def __init__( self, filename, match_list):
+		self.filename = filename  
+		self.matches = match_list  
+
+class OnlineMatchResults():
+	def __init__(self):
+		self.goodMatches = []  
+		self.noMatches = []    
+		self.multipleMatches = []  
+		self.writeFailures = []  
+
 #-----------------------------
+
+def actual_issue_data_fetch( match, settings ):
+
+	# now get the particular issue data
+	try:
+		cv_md = ComicVineTalker().fetchIssueData( match['volume_id'],  match['issue_number'], settings.assume_lone_credit_is_primary )
+	except ComicVineTalkerException:
+		print "Network error while getting issue details.  Save aborted"
+		return None
+	return cv_md
+
+def actual_metadata_save( ca, opts, md ):
+
+	if not opts.dryrun:
+		# write out the new data
+		if not ca.writeMetadata( md, opts.data_style ):
+			print "The tag save seemed to fail!"
+			return False
+		else:
+			print "Save complete."				
+	else:
+		if opts.terse:
+			print "dry-run option was set, so nothing was written"
+		else:
+			print "dry-run option was set, so nothing was written, but here is the final set of tags:"
+			print u"{0}".format(md)
+	return True
+		
+
+def post_process_matches( match_results, opts, settings ):
+	# now go through the match results
+	if opts.show_save_summary:
+		if len( match_results.goodMatches ) > 0:
+			print "\nSuccessful matches:"
+			print "------------------"
+			for f in match_results.goodMatches:
+				print f
+				
+		if len( match_results.noMatches ) > 0:
+			print "\nNo matches:"
+			print "------------------"
+			for f in match_results.noMatches:
+				print f
+	
+		if len( match_results.writeFailures ) > 0:
+			print "\nFile Write Failures:"
+			print "------------------"
+			for f in match_results.writeFailures:
+				print f
+
+	if not opts.show_save_summary and not opts.interactive:
+		#jusr quit if we're not interactive or showing the summary
+		return
+	
+	if len( match_results.multipleMatches ) > 0:
+		print "\nMultiple matches:"
+		print "------------------"
+		for mm in match_results.multipleMatches:
+			print mm.filename
+			for (counter,m) in enumerate(mm.matches):
+				print "  {0}. {1} #{2} [{3}] ({4}/{5}) - {6}".format(counter,
+											   m['series'],
+											   m['issue_number'],
+											   m['publisher'],
+											   m['month'],
+											   m['year'],
+											   m['issue_title'])
+			if opts.interactive:
+				while True:
+					i = raw_input("Choose a match #, or 's' to skip: ")
+					if (i.isdigit() and int(i) in range(len(mm.matches))) or i == 's':
+						break
+				if i != 's':
+					# save the data!
+					# we know at this point, that the file is all good to go
+					ca = ComicArchive( mm.filename )
+					md = create_local_metadata( opts, ca, ca.hasMetadata(opts.data_style) )
+					cv_md = actual_issue_data_fetch(mm.matches[int(i)], settings)
+					md.overlay( cv_md )
+					actual_metadata_save( ca, opts, md )
+					
+					
+			print
+
+
 def cli_mode( opts, settings ):
 	if len( opts.file_list ) < 1:
 		print "You must specify at least one filename.  Use the -h option for more info"
 		return
 	
+	match_results = OnlineMatchResults()
+	
 	for f in opts.file_list:
-		process_file_cli( f, opts, settings )
+		process_file_cli( f, opts, settings, match_results )
 		sys.stdout.flush()
-
+		
+	post_process_matches( match_results, opts, settings )	
 
 
 def create_local_metadata( opts, ca, has_desired_tags ):
@@ -76,7 +176,7 @@ def create_local_metadata( opts, ca, has_desired_tags ):
 
 	return md
 
-def process_file_cli( filename, opts, settings ):
+def process_file_cli( filename, opts, settings, match_results ):
 
 	batch_mode = len( opts.file_list ) > 1
 		
@@ -245,39 +345,32 @@ def process_file_cli( filename, opts, settings ):
 
 			if choices:
 				print "Online search: Multiple matches.  Save aborted"
+				match_results.multipleMatches.append(MultipleMatch(filename,matches))
 				return
 			if low_confidence and opts.abortOnLowConfidence:
 				print "Online search: Low confidence match.  Save aborted"
+				match_results.noMatches.append(filename)
 				return
 			if not found_match:
 				print "Online search: No match found.  Save aborted"
+				match_results.noMatches.append(filename)
 				return
-			
+
+
 			# we got here, so we have a single match
 			
 			# now get the particular issue data
-			try:
-				cv_md = ComicVineTalker().fetchIssueData( matches[0]['volume_id'],  matches[0]['issue_number'], settings.assume_lone_credit_is_primary )
-			except ComicVineTalkerException:
-				print "Network error while getting issue details.  Save aborted"
+			cv_md = actual_issue_data_fetch(matches[0], settings)
+			if cv_md is None:
 				return
-				
+			
 			md.overlay( cv_md )
+			
 		# ok, done building our metadata. time to save
-
-		#HACK 
-		#opts.dryrun = True
-		#HACK 
-		
-		if not opts.dryrun:
-			# write out the new data
-			if not ca.writeMetadata( md, opts.data_style ):
-				print "The tag save seemed to fail!"
-			else:
-				print "Save complete."				
+		if not actual_metadata_save( ca, opts, md ):
+				match_results.writeFailures.append(filename)
 		else:
-			print "dry-run option was set, so nothing was written, but here is the final set of tags:"
-			print u"{0}".format(md)
+				match_results.goodMatches.append(filename)
 
 	elif opts.rename_file:
 
@@ -327,10 +420,6 @@ def process_file_cli( filename, opts, settings ):
 		folder = os.path.dirname( os.path.abspath( filename ) )
 		new_abs_path = utils.unique_file( os.path.join( folder, new_name ) )
 
-		#HACK 
-		#opts.dryrun = True
-		#HACK
-		
 		suffix = ""
 		if not opts.dryrun:
 			# rename the file

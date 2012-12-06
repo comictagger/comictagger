@@ -62,6 +62,9 @@ If no options are given, {0} will run in windowed mode
   -f, --parsefilename        Parse the filename to get some info, specifically
                              series name, issue number, volume, and publication 
                              year
+  -i, --interactive          Interactively query the user when there are multiple matches for
+                             an online search
+      --nosummary            Suppress the default summary after a save operation
   -o, --online               Search online and attempt to identify file using 
                              existing metadata and images in archive. May be used
                              in conjuntion with -f and -m
@@ -95,9 +98,11 @@ If no options are given, {0} will run in windowed mode
 		self.abortOnLowConfidence = True
 		self.save_tags = False
 		self.parse_filename = False
+		self.show_save_summary = True
 		self.raw = False
 		self.rename_file = False
 		self.no_overwrite = False
+		self.interactive = False
 		self.file_list = []
 		
 	def display_help_and_quit( self, msg, code ):
@@ -167,9 +172,10 @@ If no options are given, {0} will run in windowed mode
 		# parse command line options
 		try:
 			opts, args = getopt.getopt( input_args, 
-			           "hpdt:fm:vonsrc:", 
+			           "hpdt:fm:vonsrc:i", 
 			           [ "help", "print", "delete", "type=", "copy=", "parsefilename", "metadata=", "verbose",
-						"online", "dryrun", "save", "rename" , "raw", "noabort", "terse", "nooverwrite" ])
+			            "online", "dryrun", "save", "rename" , "raw", "noabort", "terse", "nooverwrite",
+			            "interactive", "nosummary" ])
 			           
 		except getopt.GetoptError as err:
 			self.display_help_and_quit( str(err), 2 )
@@ -184,6 +190,8 @@ If no options are given, {0} will run in windowed mode
 				self.print_tags = True
 			if o in ("-d", "--delete"):
 				self.delete_tags = True
+			if o in ("-i", "--interactive"):
+				self.interactive = True
 			if o in ("-c", "--copy"):
 				self.copy_tags = True
 				if a.lower() == "cr":
@@ -211,8 +219,9 @@ If no options are given, {0} will run in windowed mode
 			if o  == "--noabort":
 				self.abortOnLowConfidence = False
 			if o == "--terse":
-				print "setting terse!"
 				self.terse = True
+			if o == "--nosummary":
+				self.show_save_summary = False
 			if o  == "--nooverwrite":
 				self.no_overwrite = True
 			if o in ("-t", "--type"):
