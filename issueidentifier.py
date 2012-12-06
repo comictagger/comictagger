@@ -420,7 +420,7 @@ class IssueIdentifier:
 
 				self.log_msg( "Comparing to some other archive pages now..." )
 				found = False
-				for i in range( min(5, ca.getNumberOfPages())):
+				for i in range( min(3, ca.getNumberOfPages())):
 					image_data = ca.getPage(i)
 					page_hash = self.calculateHash( image_data )
 					distance = ImageHasher.hamming_distance(page_hash, self.match_list[0]['url_image_hash'])
