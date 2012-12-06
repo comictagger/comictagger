@@ -138,8 +138,7 @@ class CoMet:
 				ET.SubElement(root, 'inker').text = u"{0}".format(credit['person'])
 				
 			if credit['role'].lower() in set( self.colorist_synonyms ):
-				ET.SubElement(root, 'inker').text = u"{0}".format(credit['person'])
-				credit_colorist_list.append(credit['person'].replace(",",""))
+				ET.SubElement(root, 'colorist').text = u"{0}".format(credit['person'])
 
 			if credit['role'].lower() in set( self.letterer_synonyms ):
 				ET.SubElement(root, 'letterer').text = u"{0}".format(credit['person'])
