@@ -33,14 +33,13 @@ import re
 
 class IssueString:
 	def __init__(self, text):
-		self.text = text
-		
+		self.text = str(text)
 		#strip out non float-y stuff
-		tmp_num_str = re.sub('[^0-9.-]',"", text )
+		tmp_num_str = re.sub('[^0-9.-]',"", self.text )
 
 		if tmp_num_str == "":
 			self.num = None
-			self.suffix = text
+			self.suffix = self.text
 			
 		else:
 			if tmp_num_str.count(".") > 1:
@@ -51,7 +50,7 @@ class IssueString:
 				self.num = float( tmp_num_str )
 				
 			self.suffix = ""		
-			parts = text.split(tmp_num_str)
+			parts = self.text.split(tmp_num_str)
 			if len( parts ) > 1 :
 				self.suffix = parts[1]
 
