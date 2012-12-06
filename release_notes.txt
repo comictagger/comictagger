@@ -1,4 +1,18 @@
+---------------------------------  
+0.9.1-beta - 07-Dec-2012
+---------------------------------
+  Export as ZIP Archive
+  Added help menu option for websites
+  Added Primary Credit Flag editing
+  Menu enhancements
+  CLI Enhancements:
+	Interactive selection of matches
+	Tag copy
+	Better output
+	CoMet support
+  Minor bug and crash fixes
 
-30-Nov-2012
-0.9.0-beta
+---------------------------------  
+0.9.0-beta - 30-Nov-2012
+---------------------------------
 Initial beta release
