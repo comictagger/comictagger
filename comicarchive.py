@@ -93,7 +93,6 @@ class ZipArchiver:
 	# zip helper func
 	def rebuildZipFile( self, exclude_list ):
 		
-		# TODO: use tempfile.mkstemp
 		# this recompresses the zip archive, without the files in the exclude_list
 		#print "Rebuilding zip {0} without {1}".format( self.path, exclude_list )
 		
@@ -181,6 +180,26 @@ class ZipArchiver:
 			return False
 		else:
 			return True
+
+	def copyFromArchive( self, otherArchive ):
+		# Replace the current zip with one copied from another archive
+		try:		
+			zout = zipfile.ZipFile (self.path, 'w')
+			for fname in otherArchive.getArchiveFilenameList():
+				data = otherArchive.readArchiveFile( fname )
+				zout.writestr( fname, data )
+			zout.close()
+			
+			#preserve the old comment
+			comment = otherArchive.getArchiveComment()
+			if comment is not None:
+				if not self.writeZipComment( self.path, comment ):
+					return False
+		except:
+			return False
+		else:
+			return True
+
 		
 #------------------------------------------
 # RAR implementation
@@ -694,3 +713,12 @@ class ComicArchive:
 		metadata.isEmpty = False
 
 		return metadata
+
+	def exportAsZip( self, zipfilename ):
+		if self.archive_type == self.ArchiveType.Zip:
+			# nothing to do, we're already a zip
+			return True
+		
+		zip_archiver = ZipArchiver( zipfilename )
+		return zip_archiver.copyFromArchive( self.archiver )
+		

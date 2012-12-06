@@ -275,8 +275,21 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.toolBar.addAction( self.actionPageBrowser )
        
 	def repackageArchive( self ):
-		QtGui.QMessageBox.information(self, self.tr("Repackage Comic Archive"), self.tr("TBD"))
-
+		if self.comic_archive is not None:
+			if self.comic_archive.isZip():			
+				QtGui.QMessageBox.information(self, self.tr("Export as Zip Archive"), self.tr("It's already a Zip Archive!"))
+				return
+			
+			#TODO get the new zip file name
+			export_name = "test.cbz"
+			
+			QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+			retcode = self.comic_archive.exportAsZip( "test.cbz")
+			QtGui.QApplication.restoreOverrideCursor()		
+		
+			if not retcode:
+				QtGui.QMessageBox.information(self, self.tr("Export as Zip Archive"), self.tr("An error occure while exporting."))
+			
 	def aboutApp( self ):
 		
 		website = "http://code.google.com/p/comictagger"

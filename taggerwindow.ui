@@ -1146,7 +1146,7 @@
   </action>
   <action name="actionRepackage">
    <property name="text">
-    <string>Repackage</string>
+    <string>Export as Zip Archive</string>
    </property>
   </action>
   <action name="actionExit">
