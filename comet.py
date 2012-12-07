@@ -109,9 +109,9 @@ class CoMet:
 		
 		date_str = ""
 		if md.year is not None:
-			date_str = md.year.zfill(4) 
+			date_str = str(md.year).zfill(4) 
 			if md.month is not None:
-				date_str += "-" + md.month.zfill(2)
+				date_str += "-" + str(md.month).zfill(2)
 			assign( 'date', date_str )  
 
 		#assign( 'coverImage', md.??? )  #TODO Need to use pages list, eventually...
