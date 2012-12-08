@@ -101,8 +101,8 @@ class CoMet:
 
 		if md.characters is not None:
 			char_list = [ c.strip() for c in md.characters.split(',') ]
-		for c in char_list:
-			assign( 'character', c ) 
+			for c in char_list:
+				assign( 'character', c ) 
 			
 		if md.manga is not None and md.manga == "YesAndRightToLeft":
 			assign( 'readingDirection', "rtl")
@@ -114,7 +114,7 @@ class CoMet:
 				date_str += "-" + str(md.month).zfill(2)
 			assign( 'date', date_str )  
 
-		#assign( 'coverImage', md.??? )  #TODO Need to use pages list, eventually...
+		assign( 'coverImage', md.coverImage )
 
 		# need to specially process the credits, since they are structured differently than CIX	
 		credit_writer_list    = list()
@@ -202,7 +202,7 @@ class CoMet:
 			if len( parts) > 1:
 				md.month = parts[1]
 				
-		coverImage = xlate( 'coverImage' ) # TODO - do something with this!
+		md.coverImage = xlate( 'coverImage' )
 		
 		readingDirection = xlate( 'readingDirection' )
 		if readingDirection is not None and readingDirection == "rtl":

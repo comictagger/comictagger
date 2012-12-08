@@ -85,7 +85,7 @@ class IdentifyThread( QtCore.QThread):
 
 class VolumeSelectionWindow(QtGui.QDialog):
 
-	def __init__(self, parent, series_name, issue_number, year, comic_archive, settings, autoselect=False):
+	def __init__(self, parent, series_name, issue_number, year, cover_index_list, comic_archive, settings, autoselect=False):
 		super(VolumeSelectionWindow, self).__init__(parent)
 		
 		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'volumeselectionwindow.ui' ), self)
@@ -97,7 +97,8 @@ class VolumeSelectionWindow(QtGui.QDialog):
 		self.volume_id = 0
 		self.comic_archive = comic_archive
 		self.immediate_autoselect = autoselect
-
+		self.cover_index_list = cover_index_list
+		
 		self.twList.resizeColumnsToContents()	
 		self.twList.currentItemChanged.connect(self.currentItemChanged)
 		self.twList.cellDoubleClicked.connect(self.cellDoubleClicked)
@@ -136,6 +137,8 @@ class VolumeSelectionWindow(QtGui.QDialog):
 
 		self.ii.setAdditionalMetadata( md )
 		self.ii.onlyUseAdditionalMetaData = True
+		print self.cover_index_list
+		self.ii.cover_page_index = int(self.cover_index_list[0])
 		
 		self.id_thread = IdentifyThread( self.ii )
 		self.id_thread.identifyComplete.connect( self.identifyComplete )	

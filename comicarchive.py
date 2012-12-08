@@ -29,6 +29,13 @@ if platform.system() == "Windows":
 	import _subprocess
 import time
 
+import StringIO
+try: 
+	import Image
+	pil_available = True
+except ImportError:
+	pil_available = False
+	
 sys.path.insert(0, os.path.abspath(".") )
 import UnRAR2
 from UnRAR2.rar_exceptions import *
@@ -37,7 +44,7 @@ from options import Options, MetaDataStyle
 from comicinfoxml import ComicInfoXml
 from comicbookinfo import ComicBookInfo
 from comet import CoMet
-from genericmetadata import GenericMetadata
+from genericmetadata import GenericMetadata, PageType
 from filenameparser import FileNameParser
 
 
@@ -524,11 +531,6 @@ class ComicArchive:
 			return self.removeCBI()
 		elif style == MetaDataStyle.COMET:
 			return self.removeCoMet()
-
-	def getCoverPage(self):
-		
-		# assume first page is the cover (for now)
-		return self.getPage( 0 )
 	
 	def getPage( self, index ):
 		
@@ -575,9 +577,13 @@ class ComicArchive:
 	def readCBI( self ):
 		raw_cbi = self.readRawCBI()
 		if raw_cbi is None:
-			return GenericMetadata()
+			md =GenericMetadata()
+		else:
+			md = ComicBookInfo().metadataFromString( raw_cbi )
 		
-		return ComicBookInfo().metadataFromString( raw_cbi )
+		md.setDefaultPageList( self.getNumberOfPages() )
+				
+		return md
 	
 	def readRawCBI( self ):
 		if ( not self.hasCBI() ):
@@ -594,6 +600,7 @@ class ComicArchive:
 		return ComicBookInfo().validateString( comment )	
 	
 	def writeCBI( self, metadata ):
+		self.applyArchiveInfoToMetadata( metadata )
 		cbi_string = ComicBookInfo().stringFromMetadata( metadata )
 		return self.archiver.setArchiveComment( cbi_string )
 		
@@ -603,9 +610,20 @@ class ComicArchive:
 	def readCIX( self ):
 		raw_cix = self.readRawCIX()
 		if raw_cix is None:
-			return GenericMetadata()
+			md = GenericMetadata()
+		else:
+			md = ComicInfoXml().metadataFromString( raw_cix )
+
+		#validate the existing page list (make sure count is correct)
+		if len ( md.pages ) !=  0 :
+			if len ( md.pages ) != self.getNumberOfPages():
+				# pages array doesn't match the actual number of images we're seeing
+				# in the archive, so discard the data
+				md.pages = []
 			
-		return ComicInfoXml().metadataFromString( raw_cix )		
+		if len( md.pages ) == 0:
+			md.setDefaultPageList( self.getNumberOfPages() )
+		return md		
 
 	def readRawCIX( self ):
 		if not self.hasCIX():
@@ -617,7 +635,7 @@ class ComicArchive:
 	def writeCIX(self, metadata):
 
 		if metadata is not None:
-			metadata.pageCount = self.getNumberOfPages()
+			self.applyArchiveInfoToMetadata( metadata, calc_page_sizes=True )
 			cix_string = ComicInfoXml().stringFromMetadata( metadata )
 			return self.archiver.writeArchiveFile( self.ci_xml_filename, cix_string )
 		else:
@@ -639,9 +657,26 @@ class ComicArchive:
 	def readCoMet( self ):
 		raw_comet = self.readRawCoMet()
 		if raw_comet is None:
-			return GenericMetadata()
-			
-		return CoMet().metadataFromString( raw_comet )		
+			md = GenericMetadata()
+		else:
+			md = CoMet().metadataFromString( raw_comet )
+		
+		md.setDefaultPageList( self.getNumberOfPages() )
+		#use the coverImage value from the comet_data to mark the cover in this struct
+		# walk through list of images in file, and find the matching one for md.coverImage
+		# need to remove the existing one in the default
+		if md.coverImage is not None:
+			cover_idx = 0
+			for idx,f in enumerate(self.getPageNameList()):
+				if md.coverImage == f:
+					cover_idx = idx
+					break
+			if cover_idx != 0:
+				del (md.pages[0]['Type'] )
+				md.pages[ cover_idx ]['Type'] = PageType.FrontCover
+					
+				
+		return md	
 
 	def readRawCoMet( self ):
 		if not self.hasCoMet():
@@ -656,7 +691,12 @@ class ComicArchive:
 			if not self.hasCoMet():
 				self.comet_filename = self.comet_default_filename
 			
-			metadata.pageCount = self.getNumberOfPages()
+			self.applyArchiveInfoToMetadata( metadata )
+			# Set the coverImage value, if it's not the first page
+			cover_idx = int(metadata.getCoverPageIndexList()[0])
+			if cover_idx != 0:
+				metadata.coverImage = self.getPageName( cover_idx )
+		
 			comet_string = CoMet().stringFromMetadata( metadata )
 			return self.archiver.writeArchiveFile( self.comet_filename, comet_string )
 		else:
@@ -691,7 +731,29 @@ class ComicArchive:
 		else:
 			return True
 
+	def applyArchiveInfoToMetadata( self, md, calc_page_sizes=False):
+		md.pageCount = self.getNumberOfPages()
+		
+		if calc_page_sizes:
+			for p in md.pages:
+				idx = int( p['Image'] )
+				if pil_available:
+					if 'ImageSize' not in p or 'ImageHeight' not in p or 'ImageWidth' not in p:
+						data = self.getPage( idx )
+						
+						im = Image.open(StringIO.StringIO(data))
+						w,h = im.size
+						
+						p['ImageSize'] = str(len(data))
+						p['ImageHeight'] = str(h)
+						p['ImageWidth'] = str(w)
+				else:
+					if 'ImageSize' not in p:
+						data = self.getPage( idx )
+						p['ImageSize'] = str(len(data))
 
+
+			
 	def metadataFromFilename( self ):
 		 
 		metadata = GenericMetadata()

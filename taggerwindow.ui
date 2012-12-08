@@ -1028,6 +1028,11 @@
             </item>
            </layout>
           </widget>
+          <widget class="QWidget" name="tabPages">
+           <attribute name="title">
+            <string>Pages</string>
+           </attribute>
+          </widget>
          </widget>
         </item>
        </layout>

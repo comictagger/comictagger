@@ -73,7 +73,8 @@ class IssueIdentifier:
 		self.output_function = IssueIdentifier.defaultWriteOutput
 		self.callback = None
 		self.search_result = self.ResultNoMatches
-	
+		self.cover_page_index = 0
+
 	def setScoreMinThreshold( self, thresh ):
 		self.min_score_thresh = thresh
 
@@ -218,7 +219,7 @@ class IssueIdentifier:
 			self.log_msg( "Sorry, but "+ opts.filename + "  is not a comic archive!")
 			return self.match_list
 		
-		cover_image_data = ca.getCoverPage()
+		cover_image_data = ca.getPage( self.cover_page_index )
 		cover_hash = self.calculateHash( cover_image_data )
 
 		#check the apect ratio

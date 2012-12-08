@@ -43,6 +43,7 @@ from pagebrowser import PageBrowserWindow
 from filenameparser import FileNameParser
 from logwindow import LogWindow
 from optionalmsgdialog import OptionalMessageDialog
+from pagelisteditor import PageListEditor
 import utils
 import ctversion
 
@@ -88,6 +89,11 @@ class TaggerWindow( QtGui.QMainWindow):
 		#signal.signal(signal.SIGINT, self.sigint_handler)
 
 		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'taggerwindow.ui' ), self)
+		
+		self.pageListEditor = PageListEditor( self.tabPages )
+		gridlayout = QtGui.QGridLayout( self.tabPages )
+		gridlayout.addWidget( self.pageListEditor ) 
+		
 		self.setWindowIcon(QtGui.QIcon(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/app.png' )))
 		
 		self.lblCover.setPixmap(QtGui.QPixmap(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/nocover.png' )))
@@ -339,8 +345,6 @@ class TaggerWindow( QtGui.QMainWindow):
 		msgBox.exec_()
 		
 
-
-		
 	def dragEnterEvent(self, event):
 		self.droppedFile=None
 		if event.mimeData().hasUrls():
@@ -382,6 +386,7 @@ class TaggerWindow( QtGui.QMainWindow):
 				# no style indicated, so try to choose
 				if hasNeither:
 					self.metadata = self.comic_archive.metadataFromFilename( )
+					self.metadata.setDefaultPageList( self.comic_archive.getNumberOfPages() )
 				else:	
 					if hasCBI and not hasCIX:
 						self.data_style = MetaDataStyle.CBI
@@ -410,8 +415,10 @@ class TaggerWindow( QtGui.QMainWindow):
 					
 			if self.metadata.isEmpty:
 				self.metadata = self.comic_archive.metadataFromFilename( )
-				
-			image_data = self.comic_archive.getCoverPage()
+				self.metadata.setDefaultPageList( self.comic_archive.getNumberOfPages() )
+
+			cover_idx = self.metadata.getCoverPageIndexList()[0]
+			image_data = self.comic_archive.getPage( cover_idx )
 			if not image_data is None:
 				img = QtGui.QImage()
 				img.loadFromData( image_data )
@@ -420,6 +427,7 @@ class TaggerWindow( QtGui.QMainWindow):
 			
 			if self.page_browser is not None:
 				self.page_browser.setComicArchive( self.comic_archive )
+				self.page_browser.metadata = self.metadata
 
 			self.metadataToForm()
 			self.clearDirtyFlag()  # also updates the app title
@@ -574,6 +582,8 @@ class TaggerWindow( QtGui.QMainWindow):
 	
 		# get a minty fresh metadata object
 		self.metadata = GenericMetadata()
+		if self.comic_archive is not None:
+			self.metadata.setDefaultPageList( self.comic_archive.getNumberOfPages() )
 		
 		# recursivly clear the tab form
 		self.clearChildren( self.tabWidget )
@@ -789,11 +799,14 @@ class TaggerWindow( QtGui.QMainWindow):
 			md.addCredit( name, role, bool(primary_flag) )
 			row += 1
 
-
 	def useFilename( self ):
 		if self.comic_archive is not None:
-			self.metadata = self.comic_archive.metadataFromFilename( )
-			self.metadataToForm()
+			#copy the form onto metadata object
+			self.formToMetadata()
+			new_metadata = self.comic_archive.metadataFromFilename( )
+			if new_metadata is not None:
+				self.metadata.overlay( new_metadata )				
+				self.metadataToForm()
 
 	def selectFile( self ):
 		
@@ -850,7 +863,8 @@ class TaggerWindow( QtGui.QMainWindow):
 		if year == "":
 			year = None
 
-		selector = VolumeSelectionWindow( self, series_name, issue_number, year, self.comic_archive, self.settings, autoselect )
+		cover_index_list =  self.metadata.getCoverPageIndexList()
+		selector = VolumeSelectionWindow( self, series_name, issue_number, year, cover_index_list, self.comic_archive, self.settings, autoselect )
 
 		title = "Search: '" + series_name + "' - "
 		selector.setWindowTitle( title + "Select Series")
@@ -1318,7 +1332,7 @@ class TaggerWindow( QtGui.QMainWindow):
 
 	def showPageBrowser( self ):
 		if self.page_browser is None:
-			self.page_browser = PageBrowserWindow( self )
+			self.page_browser = PageBrowserWindow( self, self.metadata )
 			if self.comic_archive is not None:
 				self.page_browser.setComicArchive( self.comic_archive )
 			self.page_browser.finished.connect(self.pageBrowserClosed)

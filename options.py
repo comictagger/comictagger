@@ -23,6 +23,7 @@ import getopt
 import platform
 import os
 
+import ctversion
 from genericmetadata import GenericMetadata
 
 class Enum(set):
@@ -55,7 +56,7 @@ If no options are given, {0} will run in windowed mode
                              specified via via -t (potentially lossy operation)
   -s, --save                 Save out tags as specified type (via -t)
                              Must specify also at least -o, -p, or -m
-     --nooverwrite           Don't modify tag block if it already exists ( relevent for -s or -c )  
+      --nooverwrite          Don't modify tag block if it already exists ( relevent for -s or -c )  
   -n, --dryrun               Don't actually modify file (only relevent for -d, -s, or -r)
   -t, --type=TYPE            Specify TYPE as either "CR", "CBL", or "COMET" (as either 
                              ComicRack, ComicBookLover, or CoMet style tags, respectivly)
@@ -79,6 +80,7 @@ If no options are given, {0} will run in windowed mode
       --noabort              Don't abort save operation when online match is of low confidence  
   -v, --verbose              Be noisy when doing what it does                            
       --terse                Don't say much (for print mode)                            
+      --version              Display version                            
   -h, --help                 Display this message                            
 		"""
 
@@ -175,7 +177,7 @@ If no options are given, {0} will run in windowed mode
 			           "hpdt:fm:vonsrc:i", 
 			           [ "help", "print", "delete", "type=", "copy=", "parsefilename", "metadata=", "verbose",
 			            "online", "dryrun", "save", "rename" , "raw", "noabort", "terse", "nooverwrite",
-			            "interactive", "nosummary" ])
+			            "interactive", "nosummary", "version" ])
 			           
 		except getopt.GetoptError as err:
 			self.display_help_and_quit( str(err), 2 )
@@ -224,6 +226,9 @@ If no options are given, {0} will run in windowed mode
 				self.show_save_summary = False
 			if o  == "--nooverwrite":
 				self.no_overwrite = True
+			if o  == "--version":
+				print "ComicTagger version: ", ctversion.version
+				quit()
 			if o in ("-t", "--type"):
 				if a.lower() == "cr":
 					self.data_style = MetaDataStyle.CIX

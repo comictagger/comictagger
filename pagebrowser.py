@@ -26,7 +26,7 @@ from settings import ComicTaggerSettings
 
 class PageBrowserWindow(QtGui.QDialog):
 	
-	def __init__(self, parent):
+	def __init__(self, parent, metadata):
 		super(PageBrowserWindow, self).__init__(parent)
 		
 		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'pagebrowser.ui' ), self)
@@ -37,6 +37,7 @@ class PageBrowserWindow(QtGui.QDialog):
 		self.current_pixmap = None
 		self.page_count = 0
 		self.current_page_num = 0
+		self.metadata = metadata
 		
 		self.btnNext.clicked.connect( self.nextPage )
 		self.btnPrev.clicked.connect( self.prevPage )
@@ -66,7 +67,8 @@ class PageBrowserWindow(QtGui.QDialog):
 		self.setPage()
 			
 	def setPage( self ):
-		image_data = self.comic_archive.getPage( self.current_page_num )
+		archive_page_index = self.metadata.getArchivePageIndex( self.current_page_num )
+		image_data = self.comic_archive.getPage( archive_page_index )
 
 		if  image_data is not None:
 			self.setCurrentPixmap( image_data )

@@ -104,7 +104,7 @@ class GenericMetadata:
 		self.rights              = None
 		self.identifier          = None
 		self.lastMark            = None
-	
+		self.coverImage	         = None
 
 	def overlay( self, new_md ):
 		# Overlay a metadata object on this one
@@ -167,7 +167,9 @@ class GenericMetadata:
 		# For now, go the easy route, where any overlay
 		# value wipes out the whole list
 		if len(new_md.tags) > 0:
-			assign( "tags",              new_md.tags )
+			assign( "tags",  new_md.tags )
+			
+		print "MD overlay len of old pages = {0} len of new pages = {1}".format(len(self.pages), len(new_md.pages))
 		if len(new_md.pages) > 0:	
 			assign( "pages",           new_md.pages )
 
@@ -187,7 +189,35 @@ class GenericMetadata:
 			# otherwise, add it!
 			else:
 				self.addCredit( c['person'], c['role'], primary )
-		
+	
+	def setDefaultPageList( self, count ):
+		# generate a default page list, with the first page marked as the cover
+		for i in range(count):
+			page_dict = dict()
+			page_dict['Image'] = str(i)
+			if i == 0:
+				page_dict['Type'] = PageType.FrontCover
+			self.pages.append( page_dict )
+
+	def getArchivePageIndex( self, pagenum ):
+		# convert the displayed page number to the page index of the file in the archive
+		if pagenum < len( self.pages ):
+			return int( self.pages[pagenum]['Image'] )
+		else:
+			return 0
+	
+	def getCoverPageIndexList( self ):
+		# return a list of archive page indices of cover pages
+		coverlist = []
+		for p in self.pages:
+			if 'Type' in p and p['Type'] == PageType.FrontCover:
+				coverlist.append( int(p['Image']))
+				
+		if len(coverlist) == 0:
+			coverlist.append( 0 )
+			
+		return coverlist
+	
 	def addCredit( self, person, role, primary = False ):
 		
 		credit = dict()

@@ -162,7 +162,8 @@ def cli_mode( opts, settings ):
 def create_local_metadata( opts, ca, has_desired_tags ):
 	
 	md = GenericMetadata()
-
+	md.setDefaultPageList( ca.getNumberOfPages() )
+	
 	if has_desired_tags:
 		md = ca.readMetadata( opts.data_style )
 		
@@ -235,7 +236,7 @@ def process_file_cli( filename, opts, settings, match_results ):
 			if has[ MetaDataStyle.CIX ]:
 				print "------ComicRack tags--------"
 				if opts.raw:
-					print u"{0}".format(ca.readRawCIX())
+					print u"{0}".format(unicode(ca.readRawCIX(), errors='ignore'))
 				else:
 					print u"{0}".format(ca.readCIX())
 				
@@ -307,7 +308,7 @@ def process_file_cli( filename, opts, settings, match_results ):
 		if opts.search_online:
 	
 			ii = IssueIdentifier( ca, settings )
-			
+
 			if md is None or md.isEmpty:
 				print "No metadata given to search online with!"
 				return
@@ -320,6 +321,7 @@ def process_file_cli( filename, opts, settings, match_results ):
 			ii.setAdditionalMetadata( md )
 			ii.onlyUseAdditionalMetaData = True
 			ii.setOutputFunction( myoutput )
+			ii.cover_page_index = md.getCoverPageIndexList()[0]
 			matches = ii.search()
 			
 			result = ii.search_result
