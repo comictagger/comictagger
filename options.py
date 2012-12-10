@@ -253,8 +253,17 @@ If no options are given, {0} will run in windowed mode
 			self.display_help_and_quit( "Must choose only one action of print, delete, save, copy, or rename", 1 )
 		
 		if len(args) > 0:
-			self.filename = args[0]
-			self.file_list = args
+			if platform.system() == "Windows":
+				# no globbing on windows shell, so do it for them
+				import glob
+				self.file_list = []
+				for item in args:
+					self.file_list.extend(glob.glob(item))
+					print self.file_list
+				self.filename = self.file_list[0]
+			else:
+				self.filename = args[0]
+				self.file_list = args
 
 		if self.no_gui and self.filename is None:
 			self.display_help_and_quit( "Command requires a filename!", 1 )
