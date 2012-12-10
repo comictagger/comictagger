@@ -80,6 +80,9 @@ class PageListEditor(QWidget):
 		self.comic_archive = None
 		self.pages_list = None
 
+		self.current_pixmap = QPixmap(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/nocover.png' ))
+		self.setDisplayPixmap( 0, 0)
+	
 		# Add the entries to the manga combobox
 		self.comboBox.addItem( "", "" )
 		self.comboBox.addItem( self.pageTypeNames[ PageType.FrontCover], PageType.FrontCover )
@@ -155,7 +158,6 @@ class PageListEditor(QWidget):
 			img = QImage()
 			img.loadFromData( image_data )
 			self.current_pixmap = QPixmap(QPixmap(img))
-
 			self.setDisplayPixmap( 0, 0)
 
 	def getFirstFrontCover( self ):
@@ -192,6 +194,13 @@ class PageListEditor(QWidget):
 		item.setData(Qt.UserRole, (page_dict,) )
 		item.setText( self.listEntryText( page_dict ) )
 
+
+	def resizeEvent( self, resize_event ):
+		if self.current_pixmap is not None:
+			delta_w = resize_event.size().width() - resize_event.oldSize().width()
+			delta_h = resize_event.size().height() - resize_event.oldSize().height()
+			self.setDisplayPixmap( delta_w , delta_h )
+			
 	def setDisplayPixmap( self, delta_w , delta_h ):
 			# the deltas let us know what the new width and height of the label will be
 			new_h = self.label.height() + delta_h
@@ -200,11 +209,19 @@ class PageListEditor(QWidget):
 			#account for the border
 			new_h -= 4  
 			new_w -= 2  
+
+			#allow for the user to force a reduce by making it a bit smaller than the label
+			new_h -= 10 
+			new_w -= 10  
 			
 			if new_h < 0:
 				new_h = 0;
 			if new_w < 0:
 				new_w = 0;
+
+			if new_w > 1000 or new_h > 1000:
+				return
+				
 			scaled_pixmap = self.current_pixmap.scaled(new_w, new_h, Qt.KeepAspectRatio)			
 			self.label.setPixmap( scaled_pixmap )		
 		
@@ -270,4 +287,14 @@ class PageListEditor(QWidget):
 		elif data_style == MetaDataStyle.CoMet:
 			pass
 			
-			
+	def showEvent( self, event ):
+		self.label.show()
+		self.setDisplayPixmap( 0,0 )
+
+	def hideEvent( self, event ):
+		# make the image tiny so that other tabs can resize?
+		self.show()
+		self.setDisplayPixmap( -10000,-10000 )
+		QCoreApplication.processEvents()
+		self.label.hide()
+		QCoreApplication.processEvents()
