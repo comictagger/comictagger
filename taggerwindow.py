@@ -1023,6 +1023,7 @@ class TaggerWindow( QtGui.QMainWindow):
 				enableWidget(item, False )
 		
 		self.updateCreditColors()
+		self.pageListEditor.setMetadataStyle( self.data_style )
 	
 	def cellDoubleClicked( self, r, c ):
 		self.editCredit()

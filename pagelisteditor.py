@@ -26,7 +26,7 @@ from PyQt4 import uic
 
 from settings import ComicTaggerSettings
 from genericmetadata import GenericMetadata, PageType
-
+from options import MetaDataStyle
 
 def itemMoveEvents( widget ):
 
@@ -240,3 +240,34 @@ class PageListEditor(QWidget):
 			self.first_front_page = self.getFirstFrontCover()
 			self.firstFrontCoverChanged.emit( self.first_front_page )
 
+	def setMetadataStyle( self, data_style ):
+
+		# depending on the current data style, certain fields are disabled
+		
+		inactive_color = QColor(255, 170, 150)
+		active_palette = self.label.palette()
+		
+		inactive_palette3 = self.label.palette()
+		inactive_palette3.setColor(QPalette.Base, inactive_color)
+
+
+		if data_style == MetaDataStyle.CIX:
+			self.btnUp.setEnabled( True )
+			self.btnDown.setEnabled( True )
+			self.comboBox.setEnabled( True )
+			self.listWidget.setEnabled( True )
+			
+			self.listWidget.setPalette(active_palette)
+		
+		elif data_style == MetaDataStyle.CBI:
+			self.btnUp.setEnabled( False )
+			self.btnDown.setEnabled( False )
+			self.comboBox.setEnabled( False )
+			self.listWidget.setEnabled( False )
+
+			self.listWidget.setPalette(inactive_palette3)
+			
+		elif data_style == MetaDataStyle.CoMet:
+			pass
+			
+			
