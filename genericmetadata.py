@@ -32,7 +32,6 @@ class PageType:
 	Roundup      = "Roundup"
 	Story        = "Story"
 	Advertisment = "Advertisment"
-	Story        = "Story"
 	Editorial    = "Editorial"
 	Letters      = "Letters"
 	Preview      = "Preview"
@@ -169,7 +168,6 @@ class GenericMetadata:
 		if len(new_md.tags) > 0:
 			assign( "tags",  new_md.tags )
 			
-		print "MD overlay len of old pages = {0} len of new pages = {1}".format(len(self.pages), len(new_md.pages))
 		if len(new_md.pages) > 0:	
 			assign( "pages",           new_md.pages )
 

@@ -142,7 +142,12 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.btnRemoveCredit.clicked.connect(self.removeCredit)	
 		self.twCredits.cellDoubleClicked.connect(self.editCredit)
 		clickable(self.lblCover).connect(self.showPageBrowser)
+
 		self.connectDirtyFlagSignals()
+		self.pageListEditor.modified.connect(self.setDirtyFlag)
+
+		self.pageListEditor.firstFrontCoverChanged.connect( self.frontCoverChanged )
+		self.pageListEditor.listOrderChanged.connect( self.pageListOrderChanged )
 		
 		self.updateStyleTweaks()
 
@@ -417,19 +422,14 @@ class TaggerWindow( QtGui.QMainWindow):
 				self.metadata = self.comic_archive.metadataFromFilename( )
 				self.metadata.setDefaultPageList( self.comic_archive.getNumberOfPages() )
 
-			cover_idx = self.metadata.getCoverPageIndexList()[0]
-			image_data = self.comic_archive.getPage( cover_idx )
-			if not image_data is None:
-				img = QtGui.QImage()
-				img.loadFromData( image_data )
-				self.lblCover.setPixmap(QtGui.QPixmap(img))
-				self.lblCover.setScaledContents(True)
+			self.updateCoverImage()
 			
 			if self.page_browser is not None:
 				self.page_browser.setComicArchive( self.comic_archive )
 				self.page_browser.metadata = self.metadata
 
 			self.metadataToForm()
+			self.pageListEditor.setData( self.comic_archive, self.metadata.pages )
 			self.clearDirtyFlag()  # also updates the app title
 			self.updateInfoBox()
 			self.updateMenus()
@@ -438,6 +438,15 @@ class TaggerWindow( QtGui.QMainWindow):
 		else:
 			QtGui.QMessageBox.information(self, self.tr("Whoops!"), self.tr("That file doesn't appear to be a comic archive!"))
 
+	def updateCoverImage( self ):
+		cover_idx = self.metadata.getCoverPageIndexList()[0]
+		image_data = self.comic_archive.getPage( cover_idx )
+		if not image_data is None:
+			img = QtGui.QImage()
+			img.loadFromData( image_data )
+			self.lblCover.setPixmap(QtGui.QPixmap(img))
+			self.lblCover.setScaledContents(True)
+		
 	def updateMenus( self ):
 		
 		# First just disable all the questionable items
@@ -514,39 +523,6 @@ class TaggerWindow( QtGui.QMainWindow):
 			tag_info += u"• ComicBookLover tags"
 
 		self.lblTagList.setText( tag_info )
-
-	def updatePagesInfo( self ):
-		
-		#tablemodel = PageTableModel( self.comic_archive, self )
-		#self.tableView.setModel(tablemodel)
-
-		listmodel = PageListModel( self.comic_archive, self )
-		self.listView.setModel(listmodel)
-
-		#self.listView.setDragDropMode(self.InternalMove)
-		#listmodel.installEventFilter(self)
-		
-		self.listView.setDragEnabled(True)
-		self.listView.setAcceptDrops(True)
-		self.listView.setDropIndicatorShown(True)
-		
-		#listmodel.rowsMoved.connect( self.rowsMoved )
-		#listmodel.rowsRemoved.connect( self.rowsRemoved )
-		#listmodel.beginMoveRows.connect( self.beginMoveRows )
-	
-	#def rowsMoved( self, b, c, d):
-	#	print "rowsMoved"
-	#def rowsRemoved( self,b, c, d):
-	#	print "rowsRemoved"
-	
-
-	"""
-	def eventFilter(self, sender, event):
-		if (event.type() == QtCore.QEvent.ChildRemoved):
-			print "QEvent::ChildRemoved"
-		return False # don't actually interrupt anything
-	"""
-        
         
 	def setDirtyFlag( self, param1=None, param2=None, param3=None  ):
 		if not self.dirtyFlag:
@@ -575,7 +551,8 @@ class TaggerWindow( QtGui.QMainWindow):
 
 		# recursive call on chillun
 		for child in widget.children():
-			self.connectChildDirtyFlagSignals( child )
+			if child != self.pageListEditor:
+				self.connectChildDirtyFlagSignals( child )
 
 	
 	def clearForm( self ):		
@@ -590,7 +567,8 @@ class TaggerWindow( QtGui.QMainWindow):
 		
 		# clear the dirty flag, since there is nothing in there now to lose
 		self.clearDirtyFlag()  
-		
+
+		self.pageListEditor.setData( self.comic_archive, self.metadata.pages )
 		
 	def clearChildren (self, widget ):
 
@@ -798,6 +776,8 @@ class TaggerWindow( QtGui.QMainWindow):
 
 			md.addCredit( name, role, bool(primary_flag) )
 			row += 1
+
+		md.pages = self.pageListEditor.getPageList()
 
 	def useFilename( self ):
 		if self.comic_archive is not None:
@@ -1364,4 +1344,11 @@ class TaggerWindow( QtGui.QMainWindow):
 		
 	def showForum( self ):
 		webbrowser.open("http://comictagger.forumotion.com/")
+
+	def frontCoverChanged( self, int ):
+		self.metadata.pages = self.pageListEditor.getPageList()
+		self.updateCoverImage()
 		
+	def pageListOrderChanged( self ):
+		self.metadata.pages = self.pageListEditor.getPageList()
+
