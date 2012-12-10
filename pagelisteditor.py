@@ -203,28 +203,28 @@ class PageListEditor(QWidget):
 			
 	def setDisplayPixmap( self, delta_w , delta_h ):
 			# the deltas let us know what the new width and height of the label will be
-			new_h = self.label.height() + delta_h
-			new_w = self.label.width() + delta_w
-			
-			#account for the border
-			new_h -= 4  
-			new_w -= 2  
+			new_h = self.frame.height() + delta_h
+			new_w = self.frame.width() + delta_w
 
-			#allow for the user to force a reduce by making it a bit smaller than the label
-			new_h -= 10 
-			new_w -= 10  
+			new_h -= 2
+			new_w -= 2
 			
 			if new_h < 0:
 				new_h = 0;
 			if new_w < 0:
 				new_w = 0;
-
-			if new_w > 1000 or new_h > 1000:
-				return
 				
+			# scale the pixmap to fit in the frame
 			scaled_pixmap = self.current_pixmap.scaled(new_w, new_h, Qt.KeepAspectRatio)			
-			self.label.setPixmap( scaled_pixmap )		
-		
+			self.label.setPixmap( scaled_pixmap )
+			
+			# ,pve and resize the label to be centered in the fame
+			img_w = scaled_pixmap.width()
+			img_h = scaled_pixmap.height()
+			self.label.resize( img_w, img_h )
+			self.label.move( (new_w - img_w)/2, (new_h - img_h)/2 )
+			
+
 	def setData( self, comic_archive, pages_list ):
 		self.comic_archive = comic_archive
 		self.pages_list = pages_list
@@ -288,13 +288,6 @@ class PageListEditor(QWidget):
 			pass
 			
 	def showEvent( self, event ):
-		self.label.show()
+		# make sure to adjust the size and pos of the pixmap based on frame size
 		self.setDisplayPixmap( 0,0 )
 
-	def hideEvent( self, event ):
-		# make the image tiny so that other tabs can resize?
-		self.show()
-		self.setDisplayPixmap( -10000,-10000 )
-		QCoreApplication.processEvents()
-		self.label.hide()
-		QCoreApplication.processEvents()
