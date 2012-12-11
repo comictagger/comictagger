@@ -243,8 +243,10 @@ class RarArchiver:
 				f.write( comment )		
 				f.close()
 
+				working_dir = os.path.dirname( os.path.abspath( self.path ) )
+
 				# use external program to write comment to Rar archive
-				subprocess.call([self.rar_exe_path, 'c', '-c-', '-z' + tmp_name, self.path], 
+				subprocess.call([self.rar_exe_path, 'c', '-w' + working_dir , '-c-', '-z' + tmp_name, self.path], 
 					startupinfo=self.startupinfo, 
 					stdout=self.devnull)
 				
@@ -276,13 +278,17 @@ class RarArchiver:
 				tmp_folder = tempfile.mkdtemp()
 
 				tmp_file = os.path.join( tmp_folder, archive_file )
+				
+				working_dir = os.path.dirname( os.path.abspath( self.path ) )
 
+				# TODO: will this break if 'archive_file' is in a subfolder. i.e. "foo/bar.txt"
+				# will need to create the subfolder above, I guess...
 				f = open(tmp_file, 'w')
 				f.write( data )		
 				f.close()
-
+				
 				# use external program to write file to Rar archive
-				subprocess.call([self.rar_exe_path, 'a', '-c-', '-ep', self.path, tmp_file], 
+				subprocess.call([self.rar_exe_path, 'a', '-w' + working_dir ,'-c-', '-ep', self.path, tmp_file], 
 					startupinfo=self.startupinfo,
 					stdout=self.devnull)
 
