@@ -335,6 +335,8 @@ class TaggerWindow( QtGui.QMainWindow):
 		
 		website = "http://code.google.com/p/comictagger"
 		email = "comictagger@gmail.com"
+		license_link = "http://www.apache.org/licenses/LICENSE-2.0"
+		license_name = "Apache License 2.0"
 		
 		msgBox = QtGui.QMessageBox()
 		msgBox.setWindowTitle( self.tr("About " + self.appName ) )
@@ -344,7 +346,8 @@ class TaggerWindow( QtGui.QMainWindow):
 		               + self.appName + " v" + self.version + "<br>" 
 		               + "(c)2012 Anthony Beville<br><br>"
 		               + "<a href='{0}'>{0}</a><br><br>".format(website)
-		               + "<a href='mailto:{0}'>{0}</a>".format(email)  )
+		               + "<a href='mailto:{0}'>{0}</a><br><br>".format(email) 
+		               + "License: <a href='{0}'>{1}</a>".format(license_link, license_name) )
 							
 		msgBox.setStandardButtons( QtGui.QMessageBox.Ok )
 		msgBox.exec_()
