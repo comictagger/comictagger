@@ -239,12 +239,13 @@ class ComicVineTalker(QObject):
 						break
 				if lone_credit is not None:
 					lone_credit['primary'] = True
-				return lone_credit
+				return lone_credit, count
 				
 			#need to loop three times, once for 'writer', 'artist', and then 'penciler' if no artist
 			setLonePrimary( 'writer' )
-			if setLonePrimary( 'artist' ) is None:
-				c = setLonePrimary( 'penciler' )
+			c, count = setLonePrimary( 'artist' )
+			if c is None and count == 0:
+				c, count = setLonePrimary( 'penciler' )
 				if c is not None:
 					c['primary'] = False
 					metadata.addCredit( c['person'], 'Artist', True )
