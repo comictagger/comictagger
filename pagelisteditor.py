@@ -206,8 +206,11 @@ class PageListEditor(QWidget):
 			new_h = self.frame.height() + delta_h
 			new_w = self.frame.width() + delta_w
 
-			new_h -= 2
-			new_w -= 2
+			frame_w = new_w
+			frame_h = new_h
+
+			new_h -= 4
+			new_w -= 4
 			
 			if new_h < 0:
 				new_h = 0;
@@ -222,7 +225,7 @@ class PageListEditor(QWidget):
 			img_w = scaled_pixmap.width()
 			img_h = scaled_pixmap.height()
 			self.label.resize( img_w, img_h )
-			self.label.move( (new_w - img_w)/2, (new_h - img_h)/2 )
+			self.label.move( (frame_w - img_w)/2, (frame_h - img_h)/2 )
 			
 
 	def setData( self, comic_archive, pages_list ):
