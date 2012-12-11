@@ -259,7 +259,6 @@ If no options are given, {0} will run in windowed mode
 				self.file_list = []
 				for item in args:
 					self.file_list.extend(glob.glob(item))
-					print self.file_list
 				self.filename = self.file_list[0]
 			else:
 				self.filename = args[0]
