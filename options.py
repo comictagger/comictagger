@@ -228,7 +228,7 @@ If no options are given, {0} will run in windowed mode
 				self.no_overwrite = True
 			if o  == "--version":
 				print "ComicTagger version: ", ctversion.version
-				quit()
+				sys.exit(0)
 			if o in ("-t", "--type"):
 				if a.lower() == "cr":
 					self.data_style = MetaDataStyle.CIX
