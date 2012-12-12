@@ -1,16 +1,12 @@
-
 -----------------------------------------------------
 Features
 -----------------------------------------------------
 
-CLI batch save, keep log of failures
-CLI batch save, interactive at end
-
-
-TaggerWindow entry fields
-	Special tabbed Dialog needed for:   
-		Pages Info - maybe a custom painted widget
-		
+File rename
+    renamer class
+	-Dialog
+	formatting with missing pieces. "Smart Clean-up"
+	
 -----------------------------------------------------
 Bugs
 -----------------------------------------------------
@@ -18,42 +14,39 @@ Bugs
 Auto-select failure when year is off by one.  Maybe check with a wider radius??
 
 -----------------------------------------------------
-Future
+Big  Future Features
 -----------------------------------------------------
-Add license info to About Dialog
-
-Style sheets for windows/mac/linux
-
-File rename
-	-Dialog??
-	formatting with missing pieces.
- 
-CLI
-	explicit metadata settings option format
-		-- figure out how to add CBI "tags"
-		-- delete CBI "tags" 
-	write a log for multiple file processing
-	interactive for choices option?
-		--- or defer choices to end, by keeping special log of match option for each file
+GUI to handle mutliple files or folders
 
 Scrape alternate Covers from ComicVine issue pages
-
-GCD scraper or DB reader
-
-Overlay tags, maybe more, on online search
-
-GUI to handle mutliple files or folders
 
 Auto search:
 	Searching w/o issue #?
 
-Wizard for converting between tag styles
+GCD scraper or DB reader
 
-App option to covert RAR to ZIP
+pyComicMetaThis CBI features
 
+-----------------------------------------------------
+Small(er) Future Feature
+-----------------------------------------------------
+
+Style sheets for windows/mac/linux
+ 
+Setting/Option to copy Characters and others to CBL "Tags"
+	CLI "--cbl_opts"
+	GUI settings, or buttons??
+	Maybe CV setting
+ 
+CLI
+	explicit metadata settings option format
+		-- figure out how to add CBI "tags"
+		-- delete CBI "tags"
+		-- set primary credit flags
+		-- set frontcover and others?
+	write a log for multiple file processing
+	
 Archive function to  detect tag blocks out of sync
-
-app tour?
 
 Settings
 	Add setting to dis-allow writing CBI to RAR
@@ -67,6 +60,8 @@ Filename parsing:
 	
 Support marvel's "AU" issues...
 	Mostly done, gotta wait and see what CV does
+	
+Internal GenericMetadata - Make Characters, Genre lists?
 
 -----------------------------------------------------
 Config Mgmt check list
