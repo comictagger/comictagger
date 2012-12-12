@@ -33,6 +33,7 @@ diskimage:
 	rm -rf $(STAGING)
 	mkdir $(STAGING)
 	cp $(TAGGER_BASE)/release_notes.txt $(STAGING)
+	ln -s /Applications $(STAGING)/Applications
 	cp -a $(APP_BUNDLE) $(STAGING)
 	cp $(MAC_BASE)/volume.icns $(STAGING)/.VolumeIcon.icns
 	SetFile -c icnC $(STAGING)/.VolumeIcon.icns
