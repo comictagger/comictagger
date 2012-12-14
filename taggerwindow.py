@@ -251,6 +251,7 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.actionSearchOnline.setStatusTip( 'Search online for tags' )
 		self.actionSearchOnline.triggered.connect( self.queryOnline )
 
+		self.actionAutoSearch.setShortcut( 'Ctrl+A' )
 		self.actionAutoSearch.triggered.connect( self.autoSelectSearch )
 		
 		#self.actionClearEntryForm.setShortcut( 'Ctrl+C' )
@@ -263,7 +264,6 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.actionPageBrowser.triggered.connect( self.showPageBrowser )
 
 		# Help Menu
-		self.actionAbout.setShortcut( 'Ctrl+A' )
 		self.actionAbout.setStatusTip( 'Show the ' + self.appName + ' info' )
 		self.actionAbout.triggered.connect( self.aboutApp )
 		self.actionWiki.triggered.connect( self.showWiki )
