@@ -3,15 +3,17 @@ Features
 -----------------------------------------------------
 
 File rename
-    renamer class
 	-Dialog
-	formatting with missing pieces. "Smart Clean-up"
+
+ComicVine setting:  Set Start year as volume
+
 	
 -----------------------------------------------------
 Bugs
 -----------------------------------------------------
 
 Auto-select failure when year is off by one.  Maybe check with a wider radius??
+Avengers 181 - Francois.. encoding error in credits
 
 -----------------------------------------------------
 Big  Future Features
@@ -30,6 +32,7 @@ pyComicMetaThis CBI features
 -----------------------------------------------------
 Small(er) Future Feature
 -----------------------------------------------------
+Parse out the rest of the scan info from filename
 
 Style sheets for windows/mac/linux
  

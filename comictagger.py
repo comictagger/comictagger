@@ -43,7 +43,8 @@ from comicarchive import ComicArchive
 from issueidentifier import IssueIdentifier
 from genericmetadata import GenericMetadata
 from comicvinetalker import ComicVineTalker, ComicVineTalkerException
-from issuestring import IssueString
+from filerenamer import FileRenamer
+
 import utils
 import codecs
 
@@ -386,34 +387,21 @@ def process_file_cli( filename, opts, settings, match_results ):
 			use_tags = False
 			
 		md = create_local_metadata( opts, ca, use_tags )
-
-		# TODO move this to ComicArchive, or maybe another class???
-		new_name = ""
-		if md.series is not None:
-			new_name += "{0}".format( md.series )
-		else:
+		
+		if md.series is None:
 			print msg_hdr + "Can't rename without series name"
 			return
-			
-		if md.volume is not None:
-			new_name += " v{0}".format( md.volume )
 
-		if md.issue is not None:
-			new_name += " #{0}".format( IssueString(md.issue).asString(pad=3) ) 
-		#else:
-		#	print msg_hdr + "Can't rename without issue number"
-		#	return
-		
-		if md.issueCount is not None:
-			new_name += " (of {0})".format( md.issueCount )
-		
-		if md.year is not None:
-			new_name += " ({0})".format( md.year )
-		
 		if ca.isZip():
-			new_name += ".cbz"
+			new_ext = ".cbz"
 		elif ca.isRar():
-			new_name += ".cbr"
+			new_ext = ".cbr"
+		else:
+			new_ext = None  # default
+			
+		renamer = FileRenamer( md )
+		renamer.setTemplate( "%series% v%volume% %issue% (of %issuecount%) (%year%)" )
+		new_name = renamer.determineName( filename, ext=new_ext )
 			
 		if new_name == os.path.basename(filename):
 			print msg_hdr + "Filename is already good!"
