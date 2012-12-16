@@ -773,8 +773,8 @@ class TaggerWindow( QtGui.QMainWindow):
 		md.credits = list()
 		row = 0
 		while row < self.twCredits.rowCount():
-			role = str(self.twCredits.item(row, 1).text())
-			name = str(self.twCredits.item(row, 2).text())
+			role = u"{0}".format(self.twCredits.item(row, 1).text())
+			name = u"{0}".format(self.twCredits.item(row, 2).text())
 			primary_flag = self.twCredits.item( row, 0 ).text() != ""
 
 			md.addCredit( name, role, bool(primary_flag) )
