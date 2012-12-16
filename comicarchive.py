@@ -571,7 +571,7 @@ class ComicArchive:
 		# make a sub-list of image files
 		page_list = []
 		for name in files:
-			if ( name[-4:].lower() in [ ".jpg", "jpeg", ".png" ] ):
+			if ( name[-4:].lower() in [ ".jpg", "jpeg", ".png" ] and os.path.basename(name)[0] != "." ):
 				page_list.append(name)
 				
 		return page_list
