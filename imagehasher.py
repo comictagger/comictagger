@@ -17,11 +17,16 @@ class ImageHasher(object):
 
 		if path is None and data is None:
 			raise IOError
-		elif path is not None:
-			self.image = Image.open(path)
 		else:
-			self.image = Image.open(StringIO.StringIO(data))
-			
+			try:
+				if path is not None:
+					self.image = Image.open(path)
+				else:
+					self.image = Image.open(StringIO.StringIO(data))
+			except:
+				print "Image data seems corrupted!"
+				# just generate a bogus image
+				self.image = Image.new( "L", (1,1))
 
 	def average_hash(self):
 		image = self.image.resize((self.width, self.height), Image.ANTIALIAS).convert("L")

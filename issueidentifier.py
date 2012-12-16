@@ -107,11 +107,13 @@ class IssueIdentifier:
 			return ImageHasher( data=image_data ).average_hash() 
 	
 	def getAspectRatio( self, image_data ):
+		try:
+			im = Image.open(StringIO.StringIO(image_data))
+			w,h = im.size
+			return float(h)/float(w)
+		except:
+			return 1.5
 		
-		im = Image.open(StringIO.StringIO(image_data))
-		w,h = im.size
-		return float(h)/float(w)
-
 	def cropCover( self, image_data ):
 		
 		im = Image.open(StringIO.StringIO(image_data))
