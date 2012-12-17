@@ -45,6 +45,7 @@ from comicvinecacher import ComicVineCacher
 from genericmetadata import GenericMetadata
 from issuestring import IssueString
 
+
 class ComicVineTalkerException(Exception):
 	pass
 
@@ -226,32 +227,7 @@ class ComicVineTalker(QObject):
 			for role in person['roles']:
 				# can we determine 'primary' from CV??
 				role_name = role['role'].title()
-				metadata.addCredit( person['name'], role['role'].title(), False )
-		
-		if settings.assume_lone_credit_is_primary:
-			def setLonePrimary( role ):
-				lone_credit = None
-				count = 0
-				for c in metadata.credits:
-					if c['role'].lower() == role:
-						count += 1
-						lone_credit = c
-					if count > 1:
-						lone_credit = None
-						break
-				if lone_credit is not None:
-					lone_credit['primary'] = True
-				return lone_credit, count
-				
-			#need to loop three times, once for 'writer', 'artist', and then 'penciler' if no artist
-			setLonePrimary( 'writer' )
-			c, count = setLonePrimary( 'artist' )
-			if c is None and count == 0:
-				c, count = setLonePrimary( 'penciler' )
-				if c is not None:
-					c['primary'] = False
-					metadata.addCredit( c['person'], 'Artist', True )
-			
+				metadata.addCredit( person['name'], role['role'].title(), False )			
 
 		character_credits = issue_results['character_credits']
 		character_list = list()

@@ -44,6 +44,7 @@ from issueidentifier import IssueIdentifier
 from genericmetadata import GenericMetadata
 from comicvinetalker import ComicVineTalker, ComicVineTalkerException
 from filerenamer import FileRenamer
+from cbltransformer import CBLTransformer
 
 import utils
 import codecs
@@ -70,6 +71,10 @@ def actual_issue_data_fetch( match, settings ):
 	except ComicVineTalkerException:
 		print "Network error while getting issue details.  Save aborted"
 		return None
+
+	if settings.apply_cbl_transform_on_cv_import:
+		cv_md = CBLTransformer( cv_md, settings ).apply()
+		
 	return cv_md
 
 def actual_metadata_save( ca, opts, md ):
@@ -284,6 +289,10 @@ def process_file_cli( filename, opts, settings, match_results ):
 		if has[ opts.copy_source ]:
 			if not opts.dryrun:
 				md = ca.readMetadata( opts.copy_source )
+				
+				if settings.apply_cbl_transform_on_bulk_operation:
+					md = CBLTransformer( md, settings ).apply()
+				
 				if not ca.writeMetadata( md, opts.data_style ):
 					print "{0}: Tag copy seemed to fail!".format( filename )
 				else:

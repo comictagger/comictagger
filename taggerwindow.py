@@ -44,6 +44,7 @@ from filenameparser import FileNameParser
 from logwindow import LogWindow
 from optionalmsgdialog import OptionalMessageDialog
 from pagelisteditor import PageListEditor
+from cbltransformer import CBLTransformer
 import utils
 import ctversion
 
@@ -871,6 +872,10 @@ class TaggerWindow( QtGui.QMainWindow):
 			else:
 				QtGui.QApplication.restoreOverrideCursor()		
 				if new_metadata is not None:
+				
+					if self.settings.apply_cbl_transform_on_cv_import:
+						new_metadata = CBLTransformer( new_metadata, self.settings ).apply()
+						
 					self.metadata.overlay( new_metadata )				
 					# Now push the new combined data into the edit controls
 					self.metadataToForm()

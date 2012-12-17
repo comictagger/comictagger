@@ -150,8 +150,10 @@ class SettingsWindow(QtGui.QDialog):
 		utils.addtopath(os.path.dirname(self.settings.unrar_exe_path))
 		
 		if not str(self.leNameLengthDeltaThresh.text()).isdigit():
-			QtGui.QMessageBox.information(self,"Settings", "The Name Length Delta Threshold must be a number!")
-			return
+			self.leNameLengthDeltaThresh.setText("0")
+
+		if not str(self.leIssueNumPadding.text()).isdigit():
+			self.leIssueNumPadding.setText("0")
 		
 		self.settings.id_length_delta_thresh = int(self.leNameLengthDeltaThresh.text())
 		self.settings.id_publisher_blacklist = str(self.tePublisherBlacklist.toPlainText())
