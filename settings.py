@@ -67,8 +67,24 @@ class ComicTaggerSettings:
 		self.show_disclaimer = True
 		
 		# Comic Vine settings
+		self.use_series_start_as_volume = False
+		
+		# CBL Tranform settings
+		
 		self.assume_lone_credit_is_primary = False
-	
+		self.copy_characters_to_tags = False
+		self.copy_teams_to_tags = False
+		self.copy_locations_to_tags = False
+		self.copy_notes_to_tags = False
+		self.apply_cbl_transform_on_cv_import = False
+		self.apply_cbl_transform_on_bulk_operation = False
+
+		# Rename settings
+		self.rename_template = "%series% #%issue% (%year%)"
+		self.rename_issue_number_padding = 3
+		self.rename_use_smart_string_cleanup = True
+		
+
 	def __init__(self):
 		
 		self.settings_file = ""
@@ -139,17 +155,39 @@ class ComicTaggerSettings:
 		if self.config.has_option('identifier', 'id_length_delta_thresh'):
 			self.id_length_delta_thresh =   self.config.getint( 'identifier', 'id_length_delta_thresh' )
 		if self.config.has_option('identifier', 'id_publisher_blacklist'):
-			self.id_publisher_blacklist =        self.config.get( 'identifier', 'id_publisher_blacklist' )
+			self.id_publisher_blacklist =   self.config.get( 'identifier', 'id_publisher_blacklist' )
 
 		if self.config.has_option('dialogflags', 'ask_about_cbi_in_rar'):
 			self.ask_about_cbi_in_rar =        self.config.getboolean( 'dialogflags', 'ask_about_cbi_in_rar' )		
 		if self.config.has_option('dialogflags', 'show_disclaimer'):
 			self.show_disclaimer =        self.config.getboolean( 'dialogflags', 'show_disclaimer' )
 			
-		if self.config.has_option('comicvine', 'assume_lone_credit_is_primary'):
-			self.assume_lone_credit_is_primary =        self.config.getboolean( 'comicvine', 'assume_lone_credit_is_primary' )		
+		if self.config.has_option('comicvine', 'use_series_start_as_volume'):
+			self.use_series_start_as_volume =        self.config.getboolean( 'comicvine', 'use_series_start_as_volume' )		
+
+		if self.config.has_option('cbl_transform', 'assume_lone_credit_is_primary'):
+			self.assume_lone_credit_is_primary =         self.config.getboolean( 'cbl_transform', 'assume_lone_credit_is_primary' )		
+		if self.config.has_option('cbl_transform', 'copy_characters_to_tags'):
+			self.copy_characters_to_tags =               self.config.getboolean( 'cbl_transform', 'copy_characters_to_tags' )		
+		if self.config.has_option('cbl_transform', 'copy_teams_to_tags'):
+			self.copy_teams_to_tags =                    self.config.getboolean( 'cbl_transform', 'copy_teams_to_tags' )		
+		if self.config.has_option('cbl_transform', 'copy_locations_to_tags'):
+			self.copy_locations_to_tags =                self.config.getboolean( 'cbl_transform', 'copy_locations_to_tags' )		
+		if self.config.has_option('cbl_transform', 'copy_notes_to_tags'):
+			self.copy_notes_to_tags =                    self.config.getboolean( 'cbl_transform', 'copy_notes_to_tags' )		
+		if self.config.has_option('cbl_transform', 'apply_cbl_transform_on_cv_import'):
+			self.apply_cbl_transform_on_cv_import =      self.config.getboolean( 'cbl_transform', 'apply_cbl_transform_on_cv_import' )		
+		if self.config.has_option('cbl_transform', 'apply_cbl_transform_on_bulk_operation'):
+			self.apply_cbl_transform_on_bulk_operation = self.config.getboolean( 'cbl_transform', 'apply_cbl_transform_on_bulk_operation' )		
 			
-    
+		if self.config.has_option('rename', 'rename_template'):
+			self.rename_template =                  self.config.get( 'rename', 'rename_template' )		
+		if self.config.has_option('rename', 'rename_issue_number_padding'):
+			self.rename_issue_number_padding =      self.config.getint( 'rename', 'rename_issue_number_padding' )		
+		if self.config.has_option('rename', 'rename_use_smart_string_cleanup'):
+			self.rename_use_smart_string_cleanup =  self.config.getboolean( 'rename', 'rename_use_smart_string_cleanup' )		
+			
+
 	def save( self ):
 
 		if not self.config.has_section( 'settings' ):
@@ -183,11 +221,26 @@ class ComicTaggerSettings:
 		if not self.config.has_section( 'comicvine' ):
 			self.config.add_section( 'comicvine' )
 			
-		self.config.set( 'comicvine', 'assume_lone_credit_is_primary', self.assume_lone_credit_is_primary )
+		self.config.set( 'comicvine', 'use_series_start_as_volume', self.use_series_start_as_volume )
 
+		if not self.config.has_section( 'cbl_transform' ):
+			self.config.add_section( 'cbl_transform' )
 
+		self.config.set( 'cbl_transform', 'assume_lone_credit_is_primary', self.assume_lone_credit_is_primary )
+		self.config.set( 'cbl_transform', 'copy_characters_to_tags', self.copy_characters_to_tags )
+		self.config.set( 'cbl_transform', 'copy_teams_to_tags', self.copy_teams_to_tags )
+		self.config.set( 'cbl_transform', 'copy_locations_to_tags', self.copy_locations_to_tags )
+		self.config.set( 'cbl_transform', 'copy_notes_to_tags', self.copy_notes_to_tags )
+		self.config.set( 'cbl_transform', 'apply_cbl_transform_on_cv_import', self.apply_cbl_transform_on_cv_import )
+		self.config.set( 'cbl_transform', 'apply_cbl_transform_on_bulk_operation', self.apply_cbl_transform_on_bulk_operation )
+
+		if not self.config.has_section( 'rename' ):
+			self.config.add_section( 'rename' )
+
+		self.config.set( 'rename', 'rename_template', self.rename_template )
+		self.config.set( 'rename', 'rename_issue_number_padding', self.rename_issue_number_padding )
+		self.config.set( 'rename', 'rename_use_smart_string_cleanup', self.rename_use_smart_string_cleanup )
+		
 		with open( self.settings_file, 'wb') as configfile:
 			self.config.write(configfile)    
 
-    
-    

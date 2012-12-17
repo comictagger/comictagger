@@ -96,6 +96,12 @@ class SettingsWindow(QtGui.QDialog):
 		)
 		self.tePublisherBlacklist.setToolTip(pblTip)
 
+		validator = QtGui.QIntValidator(0, 4, self)
+		self.leIssueNumPadding.setValidator(validator)
+
+		validator = QtGui.QIntValidator(0, 99, self)
+		self.leNameLengthDeltaThresh.setValidator(validator)
+
 		self.settingsToForm()
 		
 		self.btnBrowseRar.clicked.connect(self.selectRar)
@@ -110,10 +116,30 @@ class SettingsWindow(QtGui.QDialog):
 		self.leUnrarExePath.setText( self.settings.unrar_exe_path )
 		self.leNameLengthDeltaThresh.setText( str(self.settings.id_length_delta_thresh) )
 		self.tePublisherBlacklist.setPlainText( self.settings.id_publisher_blacklist )
+
+		if self.settings.use_series_start_as_volume:
+			self.cbxUseSeriesStartAsVolume.setCheckState( QtCore.Qt.Checked)
 	
 		if self.settings.assume_lone_credit_is_primary:
 			self.cbxAssumeLoneCreditIsPrimary.setCheckState( QtCore.Qt.Checked)
-			
+		if self.settings.copy_characters_to_tags:
+			self.cbxCopyCharactersToTags.setCheckState( QtCore.Qt.Checked)
+		if self.settings.copy_teams_to_tags:
+			self.cbxCopyTeamsToTags.setCheckState( QtCore.Qt.Checked)
+		if self.settings.copy_locations_to_tags:
+			self.cbxCopyLocationsToTags.setCheckState( QtCore.Qt.Checked)
+		if self.settings.copy_notes_to_tags:
+			self.cbxCopyNotesToTags.setCheckState( QtCore.Qt.Checked)
+		if self.settings.apply_cbl_transform_on_cv_import:
+			self.cbxApplyCBLTransformOnCVIMport.setCheckState( QtCore.Qt.Checked)
+		if self.settings.apply_cbl_transform_on_bulk_operation:
+			self.cbxApplyCBLTransformOnBatchOperation.setCheckState( QtCore.Qt.Checked)
+
+		self.leRenameTemplate.setText( self.settings.rename_template )
+		self.leIssueNumPadding.setText( str(self.settings.rename_issue_number_padding) )
+		if self.settings.rename_use_smart_string_cleanup:
+			self.cbxSmartCleanup.setCheckState( QtCore.Qt.Checked )
+
 	def accept( self ):
 		
 		# Copy values from form to settings and save
@@ -129,7 +155,20 @@ class SettingsWindow(QtGui.QDialog):
 		
 		self.settings.id_length_delta_thresh = int(self.leNameLengthDeltaThresh.text())
 		self.settings.id_publisher_blacklist = str(self.tePublisherBlacklist.toPlainText())
+		
+		self.settings.use_series_start_as_volume = self.cbxUseSeriesStartAsVolume.isChecked()
+				
 		self.settings.assume_lone_credit_is_primary = self.cbxAssumeLoneCreditIsPrimary.isChecked()
+		self.settings.copy_characters_to_tags = self.cbxCopyCharactersToTags.isChecked()
+		self.settings.copy_teams_to_tags = self.cbxCopyTeamsToTags.isChecked()
+		self.settings.copy_locations_to_tags = self.cbxCopyLocationsToTags.isChecked()
+		self.settings.copy_notes_to_tags = self.cbxCopyNotesToTags.isChecked()
+		self.settings.apply_cbl_transform_on_cv_import = self.cbxApplyCBLTransformOnCVIMport.isChecked()
+		self.settings.apply_cbl_transform_on_bulk_operation = self.cbxApplyCBLTransformOnBatchOperation.isChecked()
+	
+		self.settings.rename_template = self.leRenameTemplate.text()
+		self.settings.rename_issue_number_padding = int(self.leIssueNumPadding.text())
+		self.settings.rename_use_smart_string_cleanup = self.cbxSmartCleanup.isChecked()
 		
 		self.settings.save()
 		QtGui.QDialog.accept(self)
