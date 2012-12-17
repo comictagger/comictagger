@@ -68,6 +68,7 @@ class ComicVineCacher:
 							"name TEXT," +
 							"publisher TEXT," +
 							"count_of_issues INT," +
+							"start_year INT," +
 							"timestamp DATE DEFAULT (datetime('now','localtime')), " + 
 							"PRIMARY KEY (id) )" 
 						)
@@ -178,6 +179,7 @@ class ComicVineCacher:
 						"name":            cv_volume_record['name'], 
 						"publisher":       pub_name, 
 						"count_of_issues": cv_volume_record['count_of_issues'],
+						"start_year":      cv_volume_record['start_year'], 
 						"timestamp":       timestamp 
 					}
 			self.upsert( cur, "volumes", "id", cv_volume_record['id'], data)
@@ -212,7 +214,7 @@ class ComicVineCacher:
 			cur.execute( "DELETE FROM Issues WHERE timestamp  < ?", [ str(a_month_ago) ] )	
 			
 			# fetch
-			cur.execute("SELECT id,name,publisher,count_of_issues FROM Volumes WHERE id = ?", [ volume_id ] )
+			cur.execute("SELECT id,name,publisher,count_of_issues,start_year FROM Volumes WHERE id = ?", [ volume_id ] )
 			
 			row = cur.fetchone()
 			
@@ -227,6 +229,7 @@ class ComicVineCacher:
 			result['publisher'] = dict()
 			result['publisher']['name'] = row[2]
 			result['count_of_issues'] =   row[3]
+			result['start_year'] =   row[4]
 			result['issues'] = list()
 
 			cur.execute("SELECT id,name,issue_number,image_url,image_hash FROM Issues WHERE volume_id = ?", [ volume_id ] )

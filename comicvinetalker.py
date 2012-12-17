@@ -176,7 +176,7 @@ class ComicVineTalker(QObject):
 		return volume_results
 				
 
-	def fetchIssueData( self, series_id, issue_number, assumeLoneCreditIsPrimary = False ):
+	def fetchIssueData( self, series_id, issue_number, settings ):
 
 		volume_results = self.fetchVolumeData( series_id )
 	
@@ -213,7 +213,9 @@ class ComicVineTalker(QObject):
 		metadata.year = issue_results['publish_year']
 		#metadata.issueCount = volume_results['count_of_issues']
 		metadata.comments = self.cleanup_html(issue_results['description'])
-
+		if settings.use_series_start_as_volume:
+			metadata.volume = volume_results['start_year']
+		
 		metadata.notes   = "Tagged with ComicTagger app using info from Comic Vine." 
 		#metadata.notes  += issue_results['site_detail_url']  
 		
@@ -226,7 +228,7 @@ class ComicVineTalker(QObject):
 				role_name = role['role'].title()
 				metadata.addCredit( person['name'], role['role'].title(), False )
 		
-		if assumeLoneCreditIsPrimary:
+		if settings.assume_lone_credit_is_primary:
 			def setLonePrimary( role ):
 				lone_credit = None
 				count = 0

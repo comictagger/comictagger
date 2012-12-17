@@ -66,7 +66,7 @@ def actual_issue_data_fetch( match, settings ):
 
 	# now get the particular issue data
 	try:
-		cv_md = ComicVineTalker().fetchIssueData( match['volume_id'],  match['issue_number'], settings.assume_lone_credit_is_primary )
+		cv_md = ComicVineTalker().fetchIssueData( match['volume_id'],  match['issue_number'], settings )
 	except ComicVineTalkerException:
 		print "Network error while getting issue details.  Save aborted"
 		return None
