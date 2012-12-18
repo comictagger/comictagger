@@ -295,7 +295,7 @@ class GenericMetadata:
 		for c in self.credits:
 			primary = ""
 			if c.has_key('primary') and c['primary']: 
-				primary == " [P]"
+				primary = " [P]"
 			add_string( "credit",  c['role']+": "+c['person'] + primary)
 			
 		# find the longest field name
