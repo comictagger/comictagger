@@ -239,6 +239,10 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.actionRepackage.setShortcut( 'Ctrl+E' )
 		self.actionRepackage.setStatusTip( 'Re-create archive as CBZ' )
 		self.actionRepackage.triggered.connect( self.repackageArchive )
+
+		self.actionRename.setShortcut( 'Ctrl+N' )
+		self.actionRename.setStatusTip( 'Rename archive based on tags' )
+		self.actionRename.triggered.connect( self.renameArchive )
 		
 		self.actionSettings.setStatusTip( 'Configure ComicTagger' )
 		self.actionSettings.triggered.connect( self.showSettings )
@@ -255,6 +259,10 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.actionAutoSearch.setShortcut( 'Ctrl+A' )
 		self.actionAutoSearch.triggered.connect( self.autoSelectSearch )
 		
+		self.actionApplyCBLTransform.setShortcut( 'Ctrl+L' )
+		self.actionApplyCBLTransform.setStatusTip( 'Modify tags specifically for CBL format' )
+		self.actionApplyCBLTransform.triggered.connect( self.applyCBLTransform )		
+
 		#self.actionClearEntryForm.setShortcut( 'Ctrl+C' )
 		self.actionClearEntryForm.setStatusTip( 'Clear all the data on the screen' )
 		self.actionClearEntryForm.triggered.connect( self.clearForm )
@@ -466,6 +474,8 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.actionReloadAuto.setEnabled( False )
 		self.actionParse_Filename.setEnabled( False )
 		self.actionAutoSearch.setEnabled( False )
+		self.actionRename.setEnabled( False )
+		self.actionApplyCBLTransform.setEnabled( False )
 			
 		# now, selectively re-enable
 		if self.comic_archive is not None :
@@ -474,6 +484,8 @@ class TaggerWindow( QtGui.QMainWindow):
 			
 			self.actionParse_Filename.setEnabled( True )
 			self.actionAutoSearch.setEnabled( True )
+			self.actionRename.setEnabled( True )
+			self.actionApplyCBLTransform.setEnabled( True )
 			
 			if not self.comic_archive.isZip():
 				self.actionRepackage.setEnabled(True)
@@ -1360,4 +1372,12 @@ class TaggerWindow( QtGui.QMainWindow):
 		
 	def pageListOrderChanged( self ):
 		self.metadata.pages = self.pageListEditor.getPageList()
-
+	
+	def applyCBLTransform(self):
+		self.formToMetadata()
+		self.metadata = CBLTransformer( self.metadata, self.settings ).apply()
+		self.metadataToForm()
+	
+	def renameArchive(self):
+		pass
+		

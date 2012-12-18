@@ -1047,7 +1047,7 @@
      <x>0</x>
      <y>0</y>
      <width>959</width>
-     <height>28</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuComicTagger">
@@ -1083,6 +1083,7 @@
     <addaction name="menuRemove"/>
     <addaction name="menuViewRawTags"/>
     <addaction name="actionRepackage"/>
+    <addaction name="actionRename"/>
     <addaction name="actionSettings"/>
     <addaction name="actionExit"/>
    </widget>
@@ -1104,6 +1105,8 @@
     <addaction name="actionParse_Filename"/>
     <addaction name="actionSearchOnline"/>
     <addaction name="actionAutoSearch"/>
+    <addaction name="separator"/>
+    <addaction name="actionApplyCBLTransform"/>
    </widget>
    <widget class="QMenu" name="menuWindow">
     <property name="title">
@@ -1266,6 +1269,16 @@
   <action name="actionRemoveAuto">
    <property name="text">
     <string>Remove Selected Tag Style</string>
+   </property>
+  </action>
+  <action name="actionRename">
+   <property name="text">
+    <string>Rename</string>
+   </property>
+  </action>
+  <action name="actionApplyCBLTransform">
+   <property name="text">
+    <string>Apply CBL Transform</string>
    </property>
   </action>
  </widget>
