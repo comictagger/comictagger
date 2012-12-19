@@ -96,7 +96,7 @@ class SettingsWindow(QtGui.QDialog):
 		)
 		self.tePublisherBlacklist.setToolTip(pblTip)
 
-		validator = QtGui.QIntValidator(0, 4, self)
+		validator = QtGui.QIntValidator(1, 4, self)
 		self.leIssueNumPadding.setValidator(validator)
 
 		validator = QtGui.QIntValidator(0, 99, self)
