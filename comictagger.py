@@ -409,7 +409,10 @@ def process_file_cli( filename, opts, settings, match_results ):
 			new_ext = None  # default
 			
 		renamer = FileRenamer( md )
-		renamer.setTemplate( "%series% v%volume% %issue% (of %issuecount%) (%year%)" )
+		renamer.setTemplate( settings.rename_template )
+		renamer.setIssueZeroPadding( settings.rename_issue_number_padding )
+		renamer.setSmartCleanup( settings.rename_use_smart_string_cleanup )
+		
 		new_name = renamer.determineName( filename, ext=new_ext )
 			
 		if new_name == os.path.basename(filename):

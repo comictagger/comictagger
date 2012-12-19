@@ -168,7 +168,7 @@ class SettingsWindow(QtGui.QDialog):
 		self.settings.apply_cbl_transform_on_cv_import = self.cbxApplyCBLTransformOnCVIMport.isChecked()
 		self.settings.apply_cbl_transform_on_bulk_operation = self.cbxApplyCBLTransformOnBatchOperation.isChecked()
 	
-		self.settings.rename_template = self.leRenameTemplate.text()
+		self.settings.rename_template = str(self.leRenameTemplate.text())
 		self.settings.rename_issue_number_padding = int(self.leIssueNumPadding.text())
 		self.settings.rename_use_smart_string_cleanup = self.cbxSmartCleanup.isChecked()
 		
@@ -215,5 +215,6 @@ class SettingsWindow(QtGui.QDialog):
 			fileList = dialog.selectedFiles()
 			control.setText( str(fileList[0]) )
 
-			
+	def showRenameTab( self ):
+		self.tabWidget.setCurrentIndex(4)	
 		

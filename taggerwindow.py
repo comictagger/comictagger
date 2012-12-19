@@ -45,6 +45,7 @@ from logwindow import LogWindow
 from optionalmsgdialog import OptionalMessageDialog
 from pagelisteditor import PageListEditor
 from cbltransformer import CBLTransformer
+from renamewindow import RenameWindow
 import utils
 import ctversion
 
@@ -1352,7 +1353,6 @@ class TaggerWindow( QtGui.QMainWindow):
 		if self.comic_archive is not None and self.comic_archive.hasCBI():
 			dlg = LogWindow( self )
 			text = pprint.pformat( json.loads(self.comic_archive.readRawCBI()), indent=4  )
-			print text
 			dlg.setText(text )
 			dlg.setWindowTitle( "Raw ComicBookLover Tag View" )
 			dlg.exec_()
@@ -1379,5 +1379,15 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.metadataToForm()
 	
 	def renameArchive(self):
-		pass
+		if self.comic_archive is not None:
+			self.formToMetadata()
+			dlg = RenameWindow( self, self.comic_archive, self.metadata, self.settings )
+			dlg.setModal( True )
+			if dlg.exec_():
+				#reopen the archive, since the filename changed
+				print dlg.new_name
+				self.comic_archive = None
+				self.openArchive( dlg.new_name )
+		
+
 		

@@ -42,7 +42,6 @@ class FileRenamer:
 		self.template = template
 		
 	def replaceToken( self, text, value, token ):
-		
 		#helper func
 		def isToken( word ):
 			return (word[0] == "%" and word[-1:] == "%")

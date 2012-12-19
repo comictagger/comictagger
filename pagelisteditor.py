@@ -152,8 +152,11 @@ class PageListEditor(QWidget):
 		#idx = int(str (self.listWidget.item( row ).text()))
 		idx = int(self.listWidget.item( row ).data(Qt.UserRole).toPyObject()[0]['Image'])
 		
-		image_data = self.comic_archive.getPage( idx )
-
+		if self.comic_archive is not None:
+			image_data = self.comic_archive.getPage( idx )
+		else:
+			image_data = None
+			
 		if  image_data is not None:
 			img = QImage()
 			img.loadFromData( image_data )
