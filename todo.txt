@@ -2,18 +2,9 @@
 Features
 -----------------------------------------------------
 
-File rename
-	-Dialog
-
-ComicVine setting:  Set Start year as volume
-
-	
 -----------------------------------------------------
 Bugs
 -----------------------------------------------------
-
-Auto-select failure when year is off by one.  Maybe check with a wider radius??
-Avengers 181 - Francois.. encoding error in credits
 
 -----------------------------------------------------
 Big  Future Features
@@ -22,13 +13,12 @@ GUI to handle mutliple files or folders
 
 Scrape alternate Covers from ComicVine issue pages
 
-Auto search:
-	Searching w/o issue #?
-
 GCD scraper or DB reader
 
 pyComicMetaThis CBI features
 
+Auto search:
+	Searching w/o issue #
 -----------------------------------------------------
 Small(er) Future Feature
 -----------------------------------------------------
@@ -36,19 +26,13 @@ Parse out the rest of the scan info from filename
 
 Style sheets for windows/mac/linux
  
-Setting/Option to copy Characters and others to CBL "Tags"
-	CLI "--cbl_opts"
-	GUI settings, or buttons??
-	Maybe CV setting
- 
 CLI
 	explicit metadata settings option format
 		-- figure out how to add CBI "tags"
 		-- delete CBI "tags"
 		-- set primary credit flags
 		-- set frontcover and others?
-	write a log for multiple file processing
-	
+
 Archive function to  detect tag blocks out of sync
 
 Settings
@@ -64,7 +48,7 @@ Filename parsing:
 Support marvel's "AU" issues...
 	Mostly done, gotta wait and see what CV does
 	
-Internal GenericMetadata - Make Characters, Genre lists?
+Internal GenericMetadata - Make Characters, Genre into lists?
 
 -----------------------------------------------------
 Config Mgmt check list
@@ -80,6 +64,7 @@ Release Process
 		Make zip on Mac or Linux
     Tag the repository
 	Upload packages
+	Announce on Forum and Main Page
 	
 ----------------------------------------------
 
