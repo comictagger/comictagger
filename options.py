@@ -107,11 +107,14 @@ If no options are given, {0} will run in windowed mode
 		self.interactive = False
 		self.file_list = []
 		
-	def display_help_and_quit( self, msg, code ):
+	def display_msg_and_quit( self, msg, code, show_help=False ):
 		appname = os.path.basename(sys.argv[0])
 		if msg is not None:
 			print( msg )
-		print self.help_text.format(appname)
+		if show_help:
+			print self.help_text.format(appname)
+		else:
+			print "For more help, run with '--help'"
 		sys.exit(code)
 	
 	def parseMetadataFromString( self, mdstr ):
@@ -180,12 +183,12 @@ If no options are given, {0} will run in windowed mode
 			            "interactive", "nosummary", "version" ])
 			           
 		except getopt.GetoptError as err:
-			self.display_help_and_quit( str(err), 2 )
+			self.display_msg_and_quit( str(err), 2 )
 			
 		# process options
 		for o, a in opts:
 			if o in ("-h", "--help"):
-				self.display_help_and_quit( None, 0 )
+				self.display_msg_and_quit( None, 0, show_help=True )
 			if o in ("-v", "--verbose"):
 				self.verbose = True
 			if o in ("-p", "--print"):
@@ -203,7 +206,7 @@ If no options are given, {0} will run in windowed mode
 				elif a.lower() == "comet":
 					self.copy_source = MetaDataStyle.COMET
 				else:
-					self.display_help_and_quit( "Invalid copy tag source type", 1 )
+					self.display_msg_and_quit( "Invalid copy tag source type", 1 )
 			if o in ("-o", "--online"):
 				self.search_online = True
 			if o in ("-n", "--dryrun"):
@@ -237,7 +240,7 @@ If no options are given, {0} will run in windowed mode
 				elif a.lower() == "comet":
 					self.data_style = MetaDataStyle.COMET
 				else:
-					self.display_help_and_quit( "Invalid tag type", 1 )
+					self.display_msg_and_quit( "Invalid tag type", 1 )
 			
 		if self.print_tags or self.delete_tags or self.save_tags or self.copy_tags or self.rename_file:
 			self.no_gui = True
@@ -250,7 +253,7 @@ If no options are given, {0} will run in windowed mode
 		if self.rename_file: count += 1
 		
 		if count > 1:
-			self.display_help_and_quit( "Must choose only one action of print, delete, save, copy, or rename", 1 )
+			self.display_msg_and_quit( "Must choose only one action of print, delete, save, copy, or rename", 1 )
 		
 		if len(args) > 0:
 			if platform.system() == "Windows":
@@ -265,17 +268,17 @@ If no options are given, {0} will run in windowed mode
 				self.file_list = args
 
 		if self.no_gui and self.filename is None:
-			self.display_help_and_quit( "Command requires a filename!", 1 )
+			self.display_msg_and_quit( "Command requires a filename!", 1 )
 			
 		if self.delete_tags and self.data_style is None:
-			self.display_help_and_quit( "Please specify the type to delete with -t", 1 )
+			self.display_msg_and_quit( "Please specify the type to delete with -t", 1 )
 			
 		if self.save_tags and self.data_style is None:
-			self.display_help_and_quit( "Please specify the type to save with -t", 1 )
+			self.display_msg_and_quit( "Please specify the type to save with -t", 1 )
 
 		if self.copy_tags and self.data_style is None:
-			self.display_help_and_quit( "Please specify the type to copy to with -t", 1 )
+			self.display_msg_and_quit( "Please specify the type to copy to with -t", 1 )
 			
 		#if self.rename_file and self.data_style is None:
-		#	self.display_help_and_quit( "Please specify the type to use for renaming with -t", 1 )
+		#	self.display_msg_and_quit( "Please specify the type to use for renaming with -t", 1 )
 		
