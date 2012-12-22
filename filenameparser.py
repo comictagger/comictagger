@@ -80,8 +80,11 @@ class FileNameParser:
 		
 		# first, look for multiple "--", this mean's it's formatted differently from most:
 		if "--" in filename:
-			# the pattern seems to be that anything to left of the first "--" is the series name follow
+			# the pattern seems to be that anything to left of the first "--" is the series name followed by issue
 			filename = filename.split("--")[0]
+		elif "___" in filename:
+			# the pattern seems to be that anything to left of the first "__" is the series name followed by issue
+			filename = filename.split("__")[0]
 			
 		# guess based on position
 
@@ -99,7 +102,9 @@ class FileNameParser:
 				
 				
 		# assume the last number in the filename that is under 4 digits is the issue number
-		for word in reversed(word_list):			
+		for word in reversed(word_list):
+			if word[0] == "#":
+				word = word[1:]
 			if ( 
 				 (word.isdigit() and len(word) < 4) or
 				 (self.isPointIssue(word))
