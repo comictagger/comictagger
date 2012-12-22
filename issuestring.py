@@ -56,6 +56,9 @@ class IssueString:
 
 	def asString( self, pad = 0 ):
 		#return the float, left side zero-padded, with suffix attached
+		if self.num is None:
+			return self.suffix
+		
 		negative = self.num < 0
 
 		num_f = abs(self.num)
@@ -85,6 +88,8 @@ class IssueString:
 	
 	def asInt( self ):
 		#return the int version of the float
+		if self.num is None:
+			return None
 		return  int( self.num )
 	
 	
