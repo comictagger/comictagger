@@ -257,7 +257,7 @@ class IssueIdentifier:
 		comicVine = ComicVineTalker( )
 
 		#self.log_msg( ( "Searching for " + keys['series'] + "...")
-		self.log_msg( "Searching for  {0} #{1} ...".format( keys['series'], keys['issue_number']) )
+		self.log_msg( u"Searching for  {0} #{1} ...".format( keys['series'], keys['issue_number']) )
 		try:
 			cv_search_results = comicVine.searchForSeries( keys['series'] )
 		except ComicVineTalkerException:
@@ -277,7 +277,7 @@ class IssueIdentifier:
 			date_approved = True
 			
 			# remove any series that starts after the issue year
-			if keys['year'] is not None and keys['year'].isdigit():
+			if keys['year'] is not None and str(keys['year']).isdigit():
 				if int(keys['year']) < item['start_year']:
 					date_approved = False
 					
@@ -319,7 +319,7 @@ class IssueIdentifier:
 				counter += 1
 				self.callback( counter, len(series_shortlist))
 				
-			self.log_msg( "Fetching info for  ID: {0} {1} ({2}) ...".format(
+			self.log_msg( u"Fetching info for  ID: {0} {1} ({2}) ...".format(
 			               series['id'], 
 			               series['name'], 
 			               series['start_year']), newline=False )
@@ -367,7 +367,7 @@ class IssueIdentifier:
 						score = min( score, score2 )
 
 					match = dict()
-					match['series'] = "{0} ({1})".format(series['name'], series['start_year'])
+					match['series'] = u"{0} ({1})".format(series['name'], series['start_year'])
 					match['distance'] = score
 					match['issue_number'] = num_s
 					match['url_image_hash'] = url_image_hash
