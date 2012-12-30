@@ -93,7 +93,8 @@ class ComicVineTalker(QObject):
 		
 		original_series_name = series_name
 	
-		series_name = urllib.quote_plus(str(series_name))
+		series_name = urllib.quote_plus(series_name.encode("utf-8"))
+		#series_name = urllib.quote_plus(unicode(series_name))
 		search_url = "http://api.comicvine.com/search/?api_key=" + self.api_key + "&format=json&resources=volume&query=" + series_name + "&field_list=name,id,start_year,publisher,image,description,count_of_issues&sort=start_year"
 
 		content = self.getUrlContent(search_url) 

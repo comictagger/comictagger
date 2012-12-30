@@ -50,7 +50,7 @@ class RenameWindow(QtGui.QDialog):
 		
 	def doPreview( self ):
 		self.new_name = self.renamer.determineName( self.comic_archive.path )		
-		preview = "\"{0}\"  ==>  \"{1}\"".format( self.comic_archive.path, self.new_name )
+		preview = u"\"{0}\"  ==>  \"{1}\"".format( self.comic_archive.path, self.new_name )
 		self.textEdit.setPlainText( preview )
 		
 	def modifySettings( self ):

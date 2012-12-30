@@ -140,7 +140,7 @@ class FileNameParser:
 		tmpstr = tmpstr.replace("#", " ")
 
 		if issue != "":	
-			# assume that issue substr has at least on space before it
+			# assume that issue substr has at least one space before it
 			issue_str = " " + str(issue)
 			series = tmpstr.split(issue_str)[0]
 		else:
@@ -176,7 +176,7 @@ class FileNameParser:
 		return year
 
 	def parseFilename( self, filename ):
- 
+
 		# remove the path
 		filename = os.path.basename(filename)
 

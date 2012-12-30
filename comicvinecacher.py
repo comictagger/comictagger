@@ -93,7 +93,7 @@ class ComicVineCacher:
 		con = lite.connect( self.db_file )
 
 		with con:
-			
+			con.text_factory = unicode					
 			cur = con.cursor()    
 			
 			# remove all previous entries with this search term
@@ -131,6 +131,7 @@ class ComicVineCacher:
 		results = list()
 		con = lite.connect( self.db_file )
 		with con:
+			con.text_factory = unicode					
 			cur = con.cursor() 
 			
 			
@@ -204,6 +205,7 @@ class ComicVineCacher:
 		con = lite.connect( self.db_file )
 		with con:
 			cur = con.cursor() 
+			con.text_factory = unicode					
 			
 			# purge stale volume info
 			a_week_ago = datetime.datetime.today()-datetime.timedelta(days=7)
@@ -255,6 +257,7 @@ class ComicVineCacher:
 
 		with con:
 			cur = con.cursor()    
+			con.text_factory = unicode					
 			timestamp = datetime.datetime.now()
 			
 			data = { 
@@ -273,6 +276,7 @@ class ComicVineCacher:
 		con = lite.connect( self.db_file )
 		with con:
 			cur = con.cursor() 
+			con.text_factory = unicode					
 			
 			cur.execute("SELECT image_url,thumb_image_url,publish_month,publish_year FROM Issues WHERE id=?", [ issue_id ])
 			row = cur.fetchone()

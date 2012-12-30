@@ -375,7 +375,7 @@ class TaggerWindow( QtGui.QMainWindow):
 	def dropEvent(self, event):
 		if self.dirtyFlagVerification( "Open Archive",
 									"If you open a new archive now, data in the form will be lost.  Are you sure?"):
-			self.openArchive( str(self.droppedFile) ) 
+			self.openArchive( unicode(self.droppedFile)) 
 					
 	def openArchive( self, path, explicit_style=None, clear_form=True ):
 		
@@ -611,7 +611,7 @@ class TaggerWindow( QtGui.QMainWindow):
 		#helper func
 		def assignText( field, value):
 			if value is not None:
-				field.setText( u"{0}".format(value) )
+				field.setText( unicode(value) )
 			
 		md = self.metadata
 		
@@ -830,7 +830,7 @@ class TaggerWindow( QtGui.QMainWindow):
 			fileList = dialog.selectedFiles()
 			if self.dirtyFlagVerification( "Open Archive",
 										"If you open a new archive now, data in the form will be lost.  Are you sure?"):
-				self.openArchive( str(fileList[0]) )  
+				self.openArchive( unicode(fileList[0]) )  
 
 			
 	def autoSelectSearch(self):
@@ -849,8 +849,8 @@ class TaggerWindow( QtGui.QMainWindow):
 			QtGui.QMessageBox.information(self,"Automatic Online Search", "Can't auto-select without an issue number (yet!)")
 			return
 	
-		if str(self.leSeries.text()).strip() != "":
-			series_name = str(self.leSeries.text()).strip()
+		if unicode(self.leSeries.text()).strip() != "":
+			series_name = unicode(self.leSeries.text()).strip()
 		else:
 			QtGui.QMessageBox.information(self, self.tr("Online Search"), self.tr("Need to enter a series name to search."))
 			return

@@ -28,7 +28,10 @@ import time
 from pprint import pprint
 import json
 import platform
+import locale
 
+filename_encoding = sys.getfilesystemencoding()
+	
 try:
 	qt_available = True
 	from PyQt4 import QtCore, QtGui
@@ -126,7 +129,7 @@ def post_process_matches( match_results, opts, settings ):
 		for mm in match_results.multipleMatches:
 			print mm.filename
 			for (counter,m) in enumerate(mm.matches):
-				print "  {0}. {1} #{2} [{3}] ({4}/{5}) - {6}".format(counter,
+				print u"  {0}. {1} #{2} [{3}] ({4}/{5}) - {6}".format(counter,
 											   m['series'],
 											   m['issue_number'],
 											   m['publisher'],
@@ -159,6 +162,7 @@ def cli_mode( opts, settings ):
 	match_results = OnlineMatchResults()
 	
 	for f in opts.file_list:
+		f = f.decode(filename_encoding, 'replace')
 		process_file_cli( f, opts, settings, match_results )
 		sys.stdout.flush()
 		
@@ -294,23 +298,23 @@ def process_file_cli( filename, opts, settings, match_results ):
 					md = CBLTransformer( md, settings ).apply()
 				
 				if not ca.writeMetadata( md, opts.data_style ):
-					print "{0}: Tag copy seemed to fail!".format( filename )
+					print u"{0}: Tag copy seemed to fail!".format( filename )
 				else:
-					print "{0}: Copied {1} tags to {2} .".format( filename, src_style_name, dst_style_name )
+					print u"{0}: Copied {1} tags to {2} .".format( filename, src_style_name, dst_style_name )
 			else:
-				print "{0}: dry-run.  {1} tags not copied".format( filename, src_style_name )		
+				print u"{0}: dry-run.  {1} tags not copied".format( filename, src_style_name )		
 		else:
-			print "{0}: This archive doesn't have {1} tags to copy.".format( filename, src_style_name )
+			print u"{0}: This archive doesn't have {1} tags to copy.".format( filename, src_style_name )
 
 		
 	elif opts.save_tags:
 
 		if opts.no_overwrite and has[ opts.data_style ]:
-			print "{0}: Already has {1} tags.  Not overwriting.".format(filename, MetaDataStyle.name[ opts.data_style ])
+			print u"{0}: Already has {1} tags.  Not overwriting.".format(filename, MetaDataStyle.name[ opts.data_style ])
 			return
 		
 		if batch_mode:
-			print "Processing {0}: ".format(filename)
+			print u"Processing {0}: ".format(filename)
 			
 		md = create_local_metadata( opts, ca, has[ opts.data_style ] )
 
@@ -388,7 +392,7 @@ def process_file_cli( filename, opts, settings, match_results ):
 
 		msg_hdr = ""
 		if batch_mode:
-			msg_hdr = "{0}: ".format(filename)
+			msg_hdr = u"{0}: ".format(filename)
 
 		if opts.data_style is not None:
 			use_tags = has[ opts.data_style ]
@@ -429,7 +433,7 @@ def process_file_cli( filename, opts, settings, match_results ):
 		else:
 			suffix = " (dry-run, no change)"
 
-		print "renamed '{0}' -> '{1}' {2}".format(os.path.basename(filename), new_name, suffix)
+		print u"renamed '{0}' -> '{1}' {2}".format(os.path.basename(filename), new_name, suffix)
 
 
 			
@@ -439,7 +443,7 @@ def process_file_cli( filename, opts, settings, match_results ):
 def main():
 	
 	# try to make stdout encodings happy for unicode
-	sys.stdout = codecs.getwriter('utf8')(sys.stdout)
+	sys.stdout = codecs.getwriter(locale.getpreferredencoding())(sys.stdout)
 
 	opts = Options()
 	opts.parseCmdLineArgs()
@@ -469,7 +473,10 @@ def main():
 			app.processEvents()
 	
 		try:
-			tagger_window = TaggerWindow( opts.filename, settings )
+			fname = None
+			if opts.filename is not None:
+				fname = opts.filename.decode(filename_encoding, 'replace')
+			tagger_window = TaggerWindow( fname, settings )
 			tagger_window.show()
 
 			if platform.system() != "Linux":
@@ -481,8 +488,7 @@ def main():
 			
 			
 if __name__ == "__main__":
-    main()
-    
+	main()
     
     
     

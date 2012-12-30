@@ -219,7 +219,7 @@ class VolumeSelectionWindow(QtGui.QDialog):
 		for record in self.cv_search_results:
 			if record['id'] ==  self.volume_id:
 				title = record['name']
-				title += " (" + str(record['start_year']) + ")"
+				title += " (" + unicode(record['start_year']) + ")"
 				title += " - "
 				break
 				
@@ -288,8 +288,8 @@ class VolumeSelectionWindow(QtGui.QDialog):
 		for record in self.cv_search_results: 
 			self.twList.insertRow(row)
 
-			item_text = record['name']  
-			item = QtGui.QTableWidgetItem(item_text)			
+			item_text = record['name']
+			item = QtGui.QTableWidgetItem( item_text )			
 			item.setData( QtCore.Qt.UserRole ,record['id'])
 			item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
 			self.twList.setItem(row, 0, item)

@@ -95,7 +95,7 @@ class IssueSelectionWindow(QtGui.QDialog):
 			item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
 			self.twList.setItem(row, 0, item)
 			
-			item_text = u"{0}".format(record['name'])  
+			item_text = record['name']
 			item = QtGui.QTableWidgetItem(item_text)			
 			item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
 			self.twList.setItem(row, 1, item)

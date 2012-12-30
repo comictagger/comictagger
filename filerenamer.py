@@ -47,7 +47,7 @@ class FileRenamer:
 			return (word[0] == "%" and word[-1:] == "%")
 
 		if value is not None:
-			return text.replace( token, str(value) )
+			return text.replace( token, unicode(value) )
 		else:
 			if self.smart_cleanup:
 				# smart cleanup means we want to remove anything appended to token if it's empty
@@ -77,7 +77,7 @@ class FileRenamer:
 		new_name = self.replaceToken( new_name, md.volume, '%volume%')
 		
 		if md.issue is not None:
-			issue_str = "{0}".format( IssueString(md.issue).asString(pad=self.issue_zero_padding) ) 
+			issue_str = u"{0}".format( IssueString(md.issue).asString(pad=self.issue_zero_padding) ) 
 		else:
 			issue_str = None		
 		new_name = self.replaceToken( new_name, issue_str, '%issue%')
@@ -99,7 +99,7 @@ class FileRenamer:
 			new_name = re.sub("(\s-)+", " -", new_name )
 
 			# remove duplicate spaces
-			new_name = " ".join(new_name.split())
+			new_name = u" ".join(new_name.split())
 		
 		if ext is None:
 			ext = os.path.splitext( filename )[1]
