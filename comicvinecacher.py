@@ -25,6 +25,7 @@ import sys
 import os
 import datetime
 
+import ctversion
 from settings import ComicTaggerSettings
 
 class ComicVineCacher:
@@ -32,14 +33,37 @@ class ComicVineCacher:
 	def __init__(self ):
 		self.settings_folder = ComicTaggerSettings.getSettingsFolder()
 		self.db_file = os.path.join( self.settings_folder, "cv_cache.db")
+		self.version_file = os.path.join( self.settings_folder, "cache_version.txt")
+		
+		#verify that cache is from same version as this one
+		data = ""
+		try:
+			with open( self.version_file, 'rb' ) as f: 
+				data = f.read()
+				f.close()
+		except:
+			pass
+		if data != ctversion.version:
+			self.clearCache()
 		
 		if not os.path.exists( self.db_file ):
 			self.create_cache_db()
 
 	def clearCache( self ):
-		os.unlink( self.db_file )
+		try:
+			os.unlink( self.db_file )
+		except:
+			pass
+		try:
+			os.unlink( self.version_file )
+		except:
+			pass
 
 	def create_cache_db( self ):
+		
+		#create the version file
+		with open( self.version_file, 'w' ) as f:
+			f.write( ctversion.version )
 		
 		# this will wipe out any existing version
 		open( self.db_file, 'w').close()
