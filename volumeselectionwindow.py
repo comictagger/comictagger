@@ -98,6 +98,7 @@ class VolumeSelectionWindow(QtGui.QDialog):
 		self.comic_archive = comic_archive
 		self.immediate_autoselect = autoselect
 		self.cover_index_list = cover_index_list
+		self.cv_search_results = None
 		
 		self.twList.resizeColumnsToContents()	
 		self.twList.currentItemChanged.connect(self.currentItemChanged)
@@ -106,9 +107,21 @@ class VolumeSelectionWindow(QtGui.QDialog):
 		self.btnIssues.clicked.connect(self.showIssues)	
 		self.btnAutoSelect.clicked.connect(self.autoSelect)	
 		
+		self.updateButtons()
 		self.performQuery()		
 		self.twList.selectRow(0)
 
+	def updateButtons( self ):
+		if self.cv_search_results is not None and len(self.cv_search_results) > 0:
+			enabled = True
+		else:
+			enabled = False
+			
+		self.btnRequery.setEnabled( enabled )			
+		self.btnIssues.setEnabled( enabled )	
+		self.btnAutoSelect.setEnabled( enabled )
+		self.buttonBox.button(QtGui.QDialogButtonBox.Ok).setEnabled( enabled )
+		
 	def requery( self,  ):
 		self.performQuery( refresh=True )
 		self.twList.selectRow(0)
@@ -150,7 +163,7 @@ class VolumeSelectionWindow(QtGui.QDialog):
 		self.iddialog.exec_()
 
 	def logIDOutput( self, text ):
-		print text,
+		print unicode(text),
 		self.iddialog.textEdit.ensureCursorVisible()
 		self.iddialog.textEdit.insertPlainText(text)
 
@@ -277,8 +290,9 @@ class VolumeSelectionWindow(QtGui.QDialog):
 			QtGui.QMessageBox.critical(self, self.tr("Network Issue"), self.tr("Could not connect to ComicVine to search for series!"))
 			return
 		
-		self.cv_search_results = self.search_thread.cv_search_results
-				
+		self.cv_search_results = self.search_thread.cv_search_results		
+		self.updateButtons()
+
 		self.twList.setSortingEnabled(False)
 
 		while self.twList.rowCount() > 0:
@@ -319,7 +333,11 @@ class VolumeSelectionWindow(QtGui.QDialog):
 		self.twList.selectRow(0)
 		self.twList.resizeColumnsToContents()
 		
-		if self.immediate_autoselect:
+		if len( self.cv_search_results ) == 0:
+			QtCore.QCoreApplication.processEvents()
+			QtGui.QMessageBox.information(self,"Search Result", "No matches found!")
+
+		if self.immediate_autoselect and len( self.cv_search_results ) > 0:
 			# defer the immediate autoselect so this dialog has time to pop up
 			QtCore.QCoreApplication.processEvents()
 			QtCore.QTimer.singleShot(10, self.doImmediateAutoselect)
