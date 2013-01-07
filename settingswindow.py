@@ -128,8 +128,10 @@ class SettingsWindow(QtGui.QDialog):
 			self.cbxCopyTeamsToTags.setCheckState( QtCore.Qt.Checked)
 		if self.settings.copy_locations_to_tags:
 			self.cbxCopyLocationsToTags.setCheckState( QtCore.Qt.Checked)
-		if self.settings.copy_notes_to_tags:
-			self.cbxCopyNotesToTags.setCheckState( QtCore.Qt.Checked)
+		if self.settings.copy_notes_to_comments:
+			self.cbxCopyNotesToComments.setCheckState( QtCore.Qt.Checked)
+		if self.settings.copy_weblink_to_comments:
+			self.cbxCopyWebLinkToComments.setCheckState( QtCore.Qt.Checked)
 		if self.settings.apply_cbl_transform_on_cv_import:
 			self.cbxApplyCBLTransformOnCVIMport.setCheckState( QtCore.Qt.Checked)
 		if self.settings.apply_cbl_transform_on_bulk_operation:
@@ -164,7 +166,8 @@ class SettingsWindow(QtGui.QDialog):
 		self.settings.copy_characters_to_tags = self.cbxCopyCharactersToTags.isChecked()
 		self.settings.copy_teams_to_tags = self.cbxCopyTeamsToTags.isChecked()
 		self.settings.copy_locations_to_tags = self.cbxCopyLocationsToTags.isChecked()
-		self.settings.copy_notes_to_tags = self.cbxCopyNotesToTags.isChecked()
+		self.settings.copy_notes_to_comments = self.cbxCopyNotesToComments.isChecked()
+		self.settings.copy_weblink_to_comments = self.cbxCopyWebLinkToComments.isChecked()
 		self.settings.apply_cbl_transform_on_cv_import = self.cbxApplyCBLTransformOnCVIMport.isChecked()
 		self.settings.apply_cbl_transform_on_bulk_operation = self.cbxApplyCBLTransformOnBatchOperation.isChecked()
 	
