@@ -2,6 +2,15 @@
 Features
 -----------------------------------------------------
 
+Multi-file:
+		Does the main UI need to have "View/Read Tag Style" and "Write Tag style" concept?
+		Create ComicArchiveListWidget
+				as item is added, new metadata object is attached (for each block??)
+				
+        How to add items to list?
+				recursive
+				drag and drop
+
 -----------------------------------------------------
 Bugs
 -----------------------------------------------------

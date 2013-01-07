@@ -1,3 +1,12 @@
+
+---------------------------------  
+0.9.4-beta - 7-Jan-2013
+---------------------------------
+Changes:
+  Better handling of non-ascii characters in filenames and data
+  Add CBL Transform to copy Web Link and Notes to comments
+  Minor bug fixes
+
 ---------------------------------  
 0.9.3-beta - 19-Dec-2012
 ---------------------------------
