@@ -320,65 +320,79 @@ def process_file_cli( filename, opts, settings, match_results ):
 
 		# now, search online
 		if opts.search_online:
-	
-			ii = IssueIdentifier( ca, settings )
-
-			if md is None or md.isEmpty:
-				print "No metadata given to search online with!"
-				return
-
-			def myoutput( text ):
-				if opts.verbose:
-					IssueIdentifier.defaultWriteOutput( text )
+			if opts.issue_id is not None:
+				# we were given the actual ID to search with
+				try:
+					cv_md = ComicVineTalker().fetchIssueDataByIssueID( opts.issue_id, settings )
+				except ComicVineTalkerException:
+					print "Network error while getting issue details.  Save aborted"
+					return None
 				
-			# use our overlayed MD struct to search
-			ii.setAdditionalMetadata( md )
-			ii.onlyUseAdditionalMetaData = True
-			ii.setOutputFunction( myoutput )
-			ii.cover_page_index = md.getCoverPageIndexList()[0]
-			matches = ii.search()
-			
-			result = ii.search_result
-			
-			found_match = False
-			choices = False
-			low_confidence = False
-			
-			if result == ii.ResultNoMatches:
-				pass
-			elif result == ii.ResultFoundMatchButBadCoverScore:
-				low_confidence = True
-				found_match = True
-			elif result == ii.ResultFoundMatchButNotFirstPage :
-				found_match = True
-			elif result == ii.ResultMultipleMatchesWithBadImageScores:
-				low_confidence = True
-				choices = True
-			elif result == ii.ResultOneGoodMatch:
-				found_match = True
-			elif result == ii.ResultMultipleGoodMatches:
-				choices = True
-
-			if choices:
-				print "Online search: Multiple matches.  Save aborted"
-				match_results.multipleMatches.append(MultipleMatch(filename,matches))
-				return
-			if low_confidence and opts.abortOnLowConfidence:
-				print "Online search: Low confidence match.  Save aborted"
-				match_results.noMatches.append(filename)
-				return
-			if not found_match:
-				print "Online search: No match found.  Save aborted"
-				match_results.noMatches.append(filename)
-				return
-
-
-			# we got here, so we have a single match
-			
-			# now get the particular issue data
-			cv_md = actual_issue_data_fetch(matches[0], settings)
-			if cv_md is None:
-				return
+				if cv_md is None:
+					print "No match for ID {0} was found.".format(opts.issue_id)
+					return None
+				
+				if settings.apply_cbl_transform_on_cv_import:
+					cv_md = CBLTransformer( cv_md, settings ).apply()
+			else:
+				ii = IssueIdentifier( ca, settings )
+	
+				if md is None or md.isEmpty:
+					print "No metadata given to search online with!"
+					return
+	
+				def myoutput( text ):
+					if opts.verbose:
+						IssueIdentifier.defaultWriteOutput( text )
+					
+				# use our overlayed MD struct to search
+				ii.setAdditionalMetadata( md )
+				ii.onlyUseAdditionalMetaData = True
+				ii.setOutputFunction( myoutput )
+				ii.cover_page_index = md.getCoverPageIndexList()[0]
+				matches = ii.search()
+				
+				result = ii.search_result
+				
+				found_match = False
+				choices = False
+				low_confidence = False
+				
+				if result == ii.ResultNoMatches:
+					pass
+				elif result == ii.ResultFoundMatchButBadCoverScore:
+					low_confidence = True
+					found_match = True
+				elif result == ii.ResultFoundMatchButNotFirstPage :
+					found_match = True
+				elif result == ii.ResultMultipleMatchesWithBadImageScores:
+					low_confidence = True
+					choices = True
+				elif result == ii.ResultOneGoodMatch:
+					found_match = True
+				elif result == ii.ResultMultipleGoodMatches:
+					choices = True
+	
+				if choices:
+					print "Online search: Multiple matches.  Save aborted"
+					match_results.multipleMatches.append(MultipleMatch(filename,matches))
+					return
+				if low_confidence and opts.abortOnLowConfidence:
+					print "Online search: Low confidence match.  Save aborted"
+					match_results.noMatches.append(filename)
+					return
+				if not found_match:
+					print "Online search: No match found.  Save aborted"
+					match_results.noMatches.append(filename)
+					return
+	
+	
+				# we got here, so we have a single match
+				
+				# now get the particular issue data
+				cv_md = actual_issue_data_fetch(matches[0], settings)
+				if cv_md is None:
+					return
 			
 			md.overlay( cv_md )
 			

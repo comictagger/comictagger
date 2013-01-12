@@ -69,6 +69,7 @@ If no options are given, {0} will run in windowed mode
   -o, --online               Search online and attempt to identify file using 
                              existing metadata and images in archive. May be used
                              in conjuntion with -f and -m
+      --id=ID                Use the issue ID when searching online.  Overrides all other metadata
   -m, --metadata=LIST        Explicity define, as a list, some tags to be used                           
                                 e.g. "series=Plastic Man , publisher=Quality Comics"
                                      "series=Kickers^, Inc., issue=1, year=1986"
@@ -105,6 +106,7 @@ If no options are given, {0} will run in windowed mode
 		self.rename_file = False
 		self.no_overwrite = False
 		self.interactive = False
+		self.issue_id = None
 		self.file_list = []
 		
 	def display_msg_and_quit( self, msg, code, show_help=False ):
@@ -180,7 +182,7 @@ If no options are given, {0} will run in windowed mode
 			           "hpdt:fm:vonsrc:i", 
 			           [ "help", "print", "delete", "type=", "copy=", "parsefilename", "metadata=", "verbose",
 			            "online", "dryrun", "save", "rename" , "raw", "noabort", "terse", "nooverwrite",
-			            "interactive", "nosummary", "version" ])
+			            "interactive", "nosummary", "version", "id=" ])
 			           
 		except getopt.GetoptError as err:
 			self.display_msg_and_quit( str(err), 2 )
@@ -219,6 +221,8 @@ If no options are given, {0} will run in windowed mode
 				self.rename_file = True
 			if o in ("-f", "--parsefilename"):
 				self.parse_filename = True
+			if o == "--id":
+				self.issue_id = a
 			if o == "--raw":
 				self.raw = True
 			if o  == "--noabort":

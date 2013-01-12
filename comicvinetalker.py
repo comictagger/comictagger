@@ -202,6 +202,29 @@ class ComicVineTalker(QObject):
 			return None
 		
 		# now, map the comicvine data to generic metadata
+		return self.mapCVDataToMetadata( volume_results, issue_results, settings )
+
+	def fetchIssueDataByIssueID( self, issue_id, settings ):
+
+		issue_url = "http://api.comicvine.com/issue/" + str(issue_id) + "/?api_key=" + self.api_key + "&format=json"
+		content = self.getUrlContent(issue_url)
+		cv_response = json.loads(content)
+		if cv_response[ 'status_code' ] != 1:
+			print ( "Comic Vine query failed with error:  [{0}]. ".format( cv_response[ 'error' ] ))
+			return None
+		
+		issue_results = cv_response['results']
+
+		volume_results = self.fetchVolumeData( issue_results['volume']['id'] )		
+		
+		# now, map the comicvine data to generic metadata
+		md = self.mapCVDataToMetadata( volume_results, issue_results, settings )
+		md.isEmpty = False
+		return md
+		
+	def mapCVDataToMetadata(self, volume_results, issue_results, settings ):
+		
+		# now, map the comicvine data to generic metadata
 		metadata = GenericMetadata()
 		
 		metadata.series = issue_results['volume']['name']
