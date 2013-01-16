@@ -543,13 +543,16 @@ class ComicArchive:
 			return False
 	
 	def removeMetadata( self, style ):
+		retcode = True
 		if style == MetaDataStyle.CIX:
-			return self.removeCIX()
+			retcode = self.removeCIX()
 		elif style == MetaDataStyle.CBI:
-			return self.removeCBI()
+			retcode = self.removeCBI()
 		elif style == MetaDataStyle.COMET:
-			return self.removeCoMet()
-	
+			retcode = self.removeCoMet()
+		self.resetCache()
+		return retcode
+
 	def getPage( self, index ):
 		
 		image_data = None
