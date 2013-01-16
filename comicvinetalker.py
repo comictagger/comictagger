@@ -272,11 +272,12 @@ class ComicVineTalker(QObject):
 		metadata.locations = utils.listToString( location_list )
 	
 		story_arc_credits = issue_results['story_arc_credits']
-		for arc in story_arc_credits: 
-			metadata.storyArc =  arc['name']
-			#just use the first one, if at all
-			break
-	
+		arc_list = []
+		for arc in story_arc_credits:
+			arc_list.append(arc['name'])
+		if len(arc_list) > 0:
+			metadata.storyArc =  utils.listToString(arc_list)
+
 		return metadata
 	
 	def cleanup_html( self, string):
