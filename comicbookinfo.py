@@ -25,6 +25,7 @@ import zipfile
 
 from genericmetadata import GenericMetadata
 import utils
+import ctversion
 
 class ComicBookInfo:
 		 
@@ -102,7 +103,7 @@ class ComicBookInfo:
 		
 		# Create the dictionary that we will convert to JSON text
 		cbi = dict()
-		cbi_container = {'appID' : 'ComicTagger/0.1', 
+		cbi_container = {'appID' : 'ComicTagger/' + ctversion.version, 
 		                 'lastModified' : str(datetime.now()), 
 		                 'ComicBookInfo/1.0' : cbi }
 		
@@ -110,18 +111,28 @@ class ComicBookInfo:
 		def assign( cbi_entry, md_entry):
 			if md_entry is not None:
 				cbi[cbi_entry] = md_entry
+			
+		#helper func
+		def toInt(s):
+			i = None
+			if type(s) == str or type(s) == int:
+				try:
+					i = int(s)
+				except ValueError:
+					pass
+			return i
 				
 		assign( 'series', metadata.series )
 		assign( 'title', metadata.title )
 		assign( 'issue', metadata.issue )
 		assign( 'publisher', metadata.publisher )
-		assign( 'publicationMonth', metadata.month )
-		assign( 'publicationYear', metadata.year )
-		assign( 'numberOfIssues', metadata.issueCount )
+		assign( 'publicationMonth', toInt(metadata.month) )
+		assign( 'publicationYear', toInt(metadata.year) )
+		assign( 'numberOfIssues', toInt(metadata.issueCount) )
 		assign( 'comments', metadata.comments )
 		assign( 'genre', metadata.genre )
-		assign( 'volume', metadata.volume )
-		assign( 'numberOfVolumes', metadata.volumeCount )
+		assign( 'volume', toInt(metadata.volume) )
+		assign( 'numberOfVolumes', toInt(metadata.volumeCount) )
 		assign( 'language', utils.getLanguageFromISO(metadata.language) )
 		assign( 'country', metadata.country )
 		assign( 'rating', metadata.criticalRating )
