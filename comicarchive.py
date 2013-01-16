@@ -419,8 +419,8 @@ class ComicArchive:
 		self.path = path
 		self.ci_xml_filename = 'ComicInfo.xml'
 		self.comet_default_filename = 'CoMet.xml'
-		self.comet_filename = None
-
+		self.resetCache()
+		
 		if self.zipTest():
 			self.archive_type =  self.ArchiveType.Zip
 			self.archiver = ZipArchiver( self.path )
@@ -436,6 +436,14 @@ class ComicArchive:
 			self.archive_type =  self.ArchiveType.Unknown
 			self.archiver = UnknownArchiver( self.path )
 
+	# Clears the cached data
+	def resetCache( self ):
+		self.has_cix = None
+		self.has_cbi = None
+		self.comet_filename = None
+		self.page_count  = None
+		self.page_list  = None
+		
 	def setExternalRarProgram( self, rar_exe_path ):
 		if self.isRar():
 			self.archiver.rar_exe_path = rar_exe_path
@@ -512,12 +520,16 @@ class ComicArchive:
 
 	def writeMetadata( self, metadata, style ):
 		
+		retcode = None
 		if style == MetaDataStyle.CIX:
-			return self.writeCIX( metadata )
+			retcode = self.writeCIX( metadata )
 		elif style == MetaDataStyle.CBI:
-			return self.writeCBI( metadata )
+			retcode = self.writeCBI( metadata )
 		elif style == MetaDataStyle.COMET:
-			return self.writeCoMet( metadata )
+			retcode = self.writeCoMet( metadata )
+		self.resetCache()
+		return retcode
+		
 
 	def hasMetadata( self, style ):
 		
@@ -561,29 +573,32 @@ class ComicArchive:
 
 	def getPageNameList( self , sort_list=True):
 		
-		# get the list file names in the archive, and sort
-		files = self.archiver.getArchiveFilenameList()
-		
-		# seems like some archive creators are on  Windows, and don't know about case-sensitivity!
-		if sort_list:
-			files.sort(key=lambda x: x.lower())
-		
-		# make a sub-list of image files
-		page_list = []
-		for name in files:
-			if ( name[-4:].lower() in [ ".jpg", "jpeg", ".png" ] and os.path.basename(name)[0] != "." ):
-				page_list.append(name)
+		if self.page_list is None:
+			# get the list file names in the archive, and sort
+			files = self.archiver.getArchiveFilenameList()
+			
+			# seems like some archive creators are on  Windows, and don't know about case-sensitivity!
+			if sort_list:
+				files.sort(key=lambda x: x.lower())
+			
+			# make a sub-list of image files
+			self.page_list = []
+			for name in files:
+				if ( name[-4:].lower() in [ ".jpg", "jpeg", ".png" ] and os.path.basename(name)[0] != "." ):
+					self.page_list.append(name)
 				
-		return page_list
+		return self.page_list
 
 	def getNumberOfPages( self ):
 		
-		return len( self.getPageNameList( sort_list=False ) )
+		if self.page_count is None:
+			self.page_count = len( self.getPageNameList( ) )
+		return self.page_count
 
 	def readCBI( self ):
 		raw_cbi = self.readRawCBI()
 		if raw_cbi is None:
-			md =GenericMetadata()
+			md = GenericMetadata()
 		else:
 			md = ComicBookInfo().metadataFromString( raw_cbi )
 		
@@ -598,12 +613,16 @@ class ComicArchive:
 		return self.archiver.getArchiveComment()
 
 	def hasCBI(self):
-		#if ( not ( self.isZip() or self.isRar()) or not self.seemsToBeAComicArchive() ): 
-		if not self.seemsToBeAComicArchive(): 
-			return False
+		if self.has_cbi is None:
 
-		comment = self.archiver.getArchiveComment()
-		return ComicBookInfo().validateString( comment )	
+			#if ( not ( self.isZip() or self.isRar()) or not self.seemsToBeAComicArchive() ): 
+			if not self.seemsToBeAComicArchive(): 
+				self.has_cbi = False
+			else:
+				comment = self.archiver.getArchiveComment()
+				self.has_cbi = ComicBookInfo().validateString( comment )
+			
+		return self.has_cbi
 	
 	def writeCBI( self, metadata ):
 		self.applyArchiveInfoToMetadata( metadata )
@@ -633,7 +652,6 @@ class ComicArchive:
 
 	def readRawCIX( self ):
 		if not self.hasCIX():
-			print self.path, "doesn't have ComicInfo.xml data!"
 			return None
 
 		return  self.archiver.readArchiveFile( self.ci_xml_filename )
@@ -652,12 +670,15 @@ class ComicArchive:
 		return self.archiver.removeArchiveFile( self.ci_xml_filename )
 		
 	def hasCIX(self):
-		if not self.seemsToBeAComicArchive():
-			return False
-		elif self.ci_xml_filename in self.archiver.getArchiveFilenameList():
-			return True
-		else:
-			return False
+		if self.has_cix is None:
+
+			if not self.seemsToBeAComicArchive():
+				self.has_cix = False
+			elif self.ci_xml_filename in self.archiver.getArchiveFilenameList():
+				self.has_cix = True
+			else:
+				self.has_cix = False
+		return self.has_cix
 
 
 	def readCoMet( self ):

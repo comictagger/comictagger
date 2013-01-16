@@ -44,8 +44,10 @@ from filenameparser import FileNameParser
 from logwindow import LogWindow
 from optionalmsgdialog import OptionalMessageDialog
 from pagelisteditor import PageListEditor
+from fileselectionlist import FileSelectionList
 from cbltransformer import CBLTransformer
 from renamewindow import RenameWindow
+from pageloader import PageLoader
 import utils
 import ctversion
 
@@ -91,10 +93,25 @@ class TaggerWindow( QtGui.QMainWindow):
 		#signal.signal(signal.SIGINT, self.sigint_handler)
 
 		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'taggerwindow.ui' ), self)
+		self.settings = settings
 		
 		self.pageListEditor = PageListEditor( self.tabPages )
 		gridlayout = QtGui.QGridLayout( self.tabPages )
 		gridlayout.addWidget( self.pageListEditor ) 
+		
+		#---------------------------
+		self.fileSelectionList = FileSelectionList( self.widgetListHolder, self.settings )
+		gridlayout = QtGui.QGridLayout( self.widgetListHolder )
+		gridlayout.addWidget( self.fileSelectionList )
+		
+		self.fileSelectionList.selectionChanged.connect( self.fileListSelectionChanged )
+		# ATB: Disable the list for now...
+		self.splitter.setSizes([100,0])
+		self.splitter.setHandleWidth(0)
+		self.splitter.handle(1).setDisabled(True)
+		
+		#---------------------------		
+
 		
 		self.setWindowIcon(QtGui.QIcon(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/app.png' )))
 		
@@ -102,7 +119,6 @@ class TaggerWindow( QtGui.QMainWindow):
 		
 		#print platform.system(), platform.release()
 		self.dirtyFlag = False
-		self.settings = settings
 		self.data_style = settings.last_selected_data_style
 
 		#set up a default metadata object
@@ -117,6 +133,7 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.droppedFile = None
 
 		self.page_browser = None
+		self.page_loader = None
 	
 		self.populateComboBoxes()	
 
@@ -362,7 +379,6 @@ class TaggerWindow( QtGui.QMainWindow):
 		msgBox.setStandardButtons( QtGui.QMessageBox.Ok )
 		msgBox.exec_()
 		
-
 	def dragEnterEvent(self, event):
 		self.droppedFile=None
 		if event.mimeData().hasUrls():
@@ -371,12 +387,12 @@ class TaggerWindow( QtGui.QMainWindow):
 				if url.scheme()=="file":
 					self.droppedFile=url.toLocalFile()
 					event.accept()
- 
+
 	def dropEvent(self, event):
 		if self.dirtyFlagVerification( "Open Archive",
 									"If you open a new archive now, data in the form will be lost.  Are you sure?"):
 			self.openArchive( unicode(self.droppedFile)) 
-					
+
 	def openArchive( self, path, explicit_style=None, clear_form=True ):
 		
 		if path is None or path == "":
@@ -431,35 +447,44 @@ class TaggerWindow( QtGui.QMainWindow):
 				else:
 					return
 					
-			if self.metadata.isEmpty:
-				self.metadata = self.comic_archive.metadataFromFilename( )
-				self.metadata.setDefaultPageList( self.comic_archive.getNumberOfPages() )
-
-			self.updateCoverImage()
-			
-			if self.page_browser is not None:
-				self.page_browser.setComicArchive( self.comic_archive )
-				self.page_browser.metadata = self.metadata
-
-			self.metadataToForm()
-			self.pageListEditor.setData( self.comic_archive, self.metadata.pages )
-			self.clearDirtyFlag()  # also updates the app title
-			self.updateInfoBox()
-			self.updateMenus()
-			#self.updatePagesInfo()
+			self.loadCurrentArchive()
 			
 		else:
 			QtGui.QMessageBox.information(self, self.tr("Whoops!"), self.tr("That file doesn't appear to be a comic archive!"))
 
-	def updateCoverImage( self ):
-		cover_idx = self.metadata.getCoverPageIndexList()[0]
-		image_data = self.comic_archive.getPage( cover_idx )
-		if not image_data is None:
-			img = QtGui.QImage()
-			img.loadFromData( image_data )
-			self.lblCover.setPixmap(QtGui.QPixmap(img))
-			self.lblCover.setScaledContents(True)
+	def loadCurrentArchive( self ):
+		if self.metadata.isEmpty:
+			self.metadata = self.comic_archive.metadataFromFilename( )
+			self.metadata.setDefaultPageList( self.comic_archive.getNumberOfPages() )
+
+		self.updateCoverImage()
 		
+		if self.page_browser is not None:
+			self.page_browser.setComicArchive( self.comic_archive )
+			self.page_browser.metadata = self.metadata
+
+		self.metadataToForm()
+		self.pageListEditor.setData( self.comic_archive, self.metadata.pages )
+		self.clearDirtyFlag()  # also updates the app title
+		self.updateInfoBox()
+		self.updateMenus()
+
+	def updateCoverImage( self ):
+		if self.page_loader is not None:
+			self.page_loader.abandoned = True
+			
+		cover_idx = self.metadata.getCoverPageIndexList()[0]
+			
+		self.page_loader = PageLoader( self.comic_archive, cover_idx )
+		self.page_loader.loadComplete.connect( self.actualUpdateCoverImage )	
+		self.page_loader.start()
+		
+	def actualUpdateCoverImage( self, img ):
+		self.page_loader = None
+		self.lblCover.setPixmap(QtGui.QPixmap(img))
+		self.lblCover.setScaledContents(True)
+
+	
 	def updateMenus( self ):
 		
 		# First just disable all the questionable items
@@ -1389,5 +1414,19 @@ class TaggerWindow( QtGui.QMainWindow):
 				self.comic_archive = None
 				self.openArchive( dlg.new_name )
 		
+	def fileListSelectionChanged( self, qvarFI ):
+		fi = qvarFI.toPyObject()
+		#if fi.cix_md is not None:
+		#	print u"{0}".format(fi.cix_md)
+		self.comic_archive = None
+		self.clearForm()
 
-		
+		self.comic_archive = fi.ca
+		if self.data_style == MetaDataStyle.CIX:
+			self.metadata = fi.cix_md
+		else:
+			self.metadata = fi.cbi_md
+		if self.metadata is None:
+			self.metadata = GenericMetadata()
+			
+		self.loadCurrentArchive()

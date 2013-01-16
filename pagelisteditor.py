@@ -27,6 +27,7 @@ from PyQt4 import uic
 from settings import ComicTaggerSettings
 from genericmetadata import GenericMetadata, PageType
 from options import MetaDataStyle
+from pageloader import PageLoader
 
 def itemMoveEvents( widget ):
 
@@ -79,6 +80,7 @@ class PageListEditor(QWidget):
 
 		self.comic_archive = None
 		self.pages_list = None
+		self.page_loader = None
 
 		self.current_pixmap = QPixmap(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/nocover.png' ))
 		self.setDisplayPixmap( 0, 0)
@@ -151,17 +153,19 @@ class PageListEditor(QWidget):
 	
 		#idx = int(str (self.listWidget.item( row ).text()))
 		idx = int(self.listWidget.item( row ).data(Qt.UserRole).toPyObject()[0]['Image'])
-		
+
+		if self.page_loader is not None:
+			self.page_loader.abandoned = True
+
 		if self.comic_archive is not None:
-			image_data = self.comic_archive.getPage( idx )
-		else:
-			image_data = None
-			
-		if  image_data is not None:
-			img = QImage()
-			img.loadFromData( image_data )
-			self.current_pixmap = QPixmap(QPixmap(img))
-			self.setDisplayPixmap( 0, 0)
+			self.page_loader = PageLoader( self.comic_archive, idx )
+			self.page_loader.loadComplete.connect( self.actualChangePageImage )	
+			self.page_loader.start()
+
+	def actualChangePageImage( self, img ):
+		self.page_loader = None
+		self.current_pixmap = QPixmap(img)
+		self.setDisplayPixmap( 0, 0)
 
 	def getFirstFrontCover( self ):
 		frontCover = 0
