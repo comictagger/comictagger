@@ -82,8 +82,7 @@ class PageListEditor(QWidget):
 		self.pages_list = None
 		self.page_loader = None
 
-		self.current_pixmap = QPixmap(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/nocover.png' ))
-		self.setDisplayPixmap( 0, 0)
+		self.resetPage()
 	
 		# Add the entries to the manga combobox
 		self.comboBox.addItem( "", "" )
@@ -107,6 +106,10 @@ class PageListEditor(QWidget):
 		self.pre_move_row = -1
 		self.first_front_page = None
 
+	def resetPage( self ):
+		self.current_pixmap = QPixmap(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/nocover.png' ))
+		self.setDisplayPixmap( 0, 0)
+		
 	def moveCurrentUp( self ):
 		row = self.listWidget.currentRow()
 		if row > 0:
@@ -238,7 +241,9 @@ class PageListEditor(QWidget):
 	def setData( self, comic_archive, pages_list ):
 		self.comic_archive = comic_archive
 		self.pages_list = pages_list
-		
+
+		self.listWidget.itemSelectionChanged.disconnect( self.changePage )
+
 		self.listWidget.clear()
 		for p in pages_list:
 			item = QListWidgetItem(  self.listEntryText( p ) )
@@ -246,8 +251,9 @@ class PageListEditor(QWidget):
 			item.setData(Qt.UserRole, (p, ))
 						
 			self.listWidget.addItem(  item )
-		self.listWidget.setCurrentRow ( 0 )
 		self.first_front_page = self.getFirstFrontCover()
+		self.listWidget.itemSelectionChanged.connect( self.changePage )
+		self.listWidget.setCurrentRow ( 0 )
 
 	def listEntryText(self, page_dict):
 		text =  page_dict['Image']

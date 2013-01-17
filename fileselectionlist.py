@@ -58,6 +58,7 @@ class FileInfo(  ):
 class FileSelectionList(QWidget):
 
 	selectionChanged = pyqtSignal(QVariant)
+	listCleared = pyqtSignal()
 
 	def __init__(self, parent , settings ):
 		super(FileSelectionList, self).__init__(parent)
@@ -71,7 +72,47 @@ class FileSelectionList(QWidget):
 		self.setAcceptDrops(True)
 		
 		self.twList.itemSelectionChanged.connect( self.itemSelectionChangedCB )
+		
+		self.setContextMenuPolicy(Qt.ActionsContextMenu)
+		
+		selectAllAction = QAction("Select All", self)
+		invertSelectionAction = QAction("Invert Selection", self)
+		removeAction = QAction("Remove Selected Items", self)
+		
+		selectAllAction.triggered.connect(self.selectAll)
+		removeAction.triggered.connect(self.removeSelection)
 
+		self.addAction(selectAllAction)			
+		self.addAction(removeAction)		
+
+	def selectAll( self ):
+		self.twList.setRangeSelected( QTableWidgetSelectionRange ( 0, 0, self.twList.rowCount()-1, 1 ), True )
+	
+	def removeSelection( self ):
+		row_list = []
+		for item in self.twList.selectedItems():
+			if item.column() == 0:
+			    row_list.append(item.row())
+
+		if len(row_list) == 0:
+			return
+		
+		row_list.sort()
+		row_list.reverse()
+
+		self.twList.itemSelectionChanged.disconnect( self.itemSelectionChangedCB )
+
+		for i in row_list:
+			self.twList.removeRow(i)
+			
+		self.twList.itemSelectionChanged.connect( self.itemSelectionChangedCB )
+		
+		if self.twList.rowCount() > 0:
+			self.twList.selectRow(0)
+		else:
+			self.listCleared.emit()
+			
+		
 	def dragEnterEvent(self, event):
 		self.droppedFiles = None
 		if event.mimeData().hasUrls():

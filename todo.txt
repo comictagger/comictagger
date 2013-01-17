@@ -5,7 +5,12 @@ Features
 Multi-file:
 		Does the main UI need to have "View/Read Tag Style" and "Write Tag style" concept?
 
-		Edit functions on list: select, select all, delete, 
+		Select first dropped Item into list
+		Turn off drop accept for edit lines/boxes
+		Drop on app goes to list and selects it
+		Accept multiple files on file open dialog
+		Warn on moving selection list away from modified form
+		ComicArchive: cache each metadata block?  Need to make sure cache is cleared on file modify
 
 		Batch Functions:
 				Auto-Select
@@ -18,14 +23,9 @@ Multi-file:
 								
 				Copy Block
 						Verify overwrites
-		
-		Turn off drop accept for edit lines/boxes
-		Drop on app goes to list and selects it
-		Accept multiple files on file open dialog
-		Warn on moving selection list away from modified form
+				Delete
 		
 
-		ComicArchive: cache each metadata block?  Need to make sure cache is cleared on file modify
 -----------------------------------------------------
 Bugs
 -----------------------------------------------------

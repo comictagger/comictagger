@@ -105,10 +105,11 @@ class TaggerWindow( QtGui.QMainWindow):
 		gridlayout.addWidget( self.fileSelectionList )
 		
 		self.fileSelectionList.selectionChanged.connect( self.fileListSelectionChanged )
+		self.fileSelectionList.listCleared.connect( self.fileListCleared )
 		# ATB: Disable the list for now...
-		self.splitter.setSizes([100,0])
-		self.splitter.setHandleWidth(0)
-		self.splitter.handle(1).setDisabled(True)
+		#self.splitter.setSizes([100,0])
+		#self.splitter.setHandleWidth(0)
+		#self.splitter.handle(1).setDisabled(True)
 		
 		#---------------------------		
 
@@ -117,26 +118,15 @@ class TaggerWindow( QtGui.QMainWindow):
 		
 		self.lblCover.setPixmap(QtGui.QPixmap(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/nocover.png' )))
 		
-		#print platform.system(), platform.release()
-		self.dirtyFlag = False
 		self.data_style = settings.last_selected_data_style
 
-		#set up a default metadata object
-		self.metadata = GenericMetadata()
-		self.comic_archive = None
-
-		self.configMenus()
-		self.statusBar()
-		self.updateAppTitle()
 		self.setAcceptDrops(True)
-		self.updateMenus()
-		self.droppedFile = None
-
-		self.page_browser = None
-		self.page_loader = None
-	
+		self.configMenus()
+		self.statusBar()	
 		self.populateComboBoxes()	
 
+		self.resetApp()
+		
 		# set up some basic field validators
 		validator = QtGui.QIntValidator(1900, 2099, self)
 		self.lePubYear.setValidator(validator)
@@ -197,6 +187,24 @@ class TaggerWindow( QtGui.QMainWindow):
 		# defer the actual close in the app loop thread
 		QtCore.QTimer.singleShot(200, self.close)
 
+	def resetApp( self ):
+
+		self.lblCover.setPixmap(QtGui.QPixmap(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/nocover.png' )))
+
+		self.comic_archive = None
+		self.dirtyFlag = False
+		self.clearForm()
+		self.pageListEditor.resetPage()
+
+		self.updateAppTitle()
+		self.updateMenus()
+		self.updateInfoBox()
+		
+		self.droppedFile = None
+		self.page_browser = None
+		self.page_loader = None
+
+		
 	def updateAppTitle( self ):
 			
 		if self.comic_archive is None:
@@ -537,7 +545,14 @@ class TaggerWindow( QtGui.QMainWindow):
 	def updateInfoBox( self ):
 		
 		ca = self.comic_archive
-	
+		
+		if ca is None:
+			self.lblFilename.setText( "" )
+			self.lblArchiveType.setText( "" )
+			self.lblTagList.setText( "" )
+			self.lblPageCount.setText( "" )
+			return
+			
 		filename = os.path.basename( ca.path )
 		filename = os.path.splitext(filename)[0]
 		filename = FileNameParser().fixSpaces(filename)
@@ -1430,3 +1445,6 @@ class TaggerWindow( QtGui.QMainWindow):
 			self.metadata = GenericMetadata()
 			
 		self.loadCurrentArchive()
+		
+	def fileListCleared( self ):
+		self.resetApp()

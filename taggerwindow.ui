@@ -322,7 +322,11 @@
                       </widget>
                      </item>
                      <item row="0" column="1">
-                      <widget class="QLineEdit" name="leSeries"/>
+                      <widget class="QLineEdit" name="leSeries">
+                       <property name="acceptDrops">
+                        <bool>false</bool>
+                       </property>
+                      </widget>
                      </item>
                      <item row="1" column="0">
                       <widget class="QLabel" name="label_3">
@@ -332,7 +336,11 @@
                       </widget>
                      </item>
                      <item row="1" column="1">
-                      <widget class="QLineEdit" name="leTitle"/>
+                      <widget class="QLineEdit" name="leTitle">
+                       <property name="acceptDrops">
+                        <bool>false</bool>
+                       </property>
+                      </widget>
                      </item>
                      <item row="2" column="0">
                       <widget class="QLabel" name="label_8">
@@ -342,7 +350,11 @@
                       </widget>
                      </item>
                      <item row="2" column="1">
-                      <widget class="QLineEdit" name="lePublisher"/>
+                      <widget class="QLineEdit" name="lePublisher">
+                       <property name="acceptDrops">
+                        <bool>false</bool>
+                       </property>
+                      </widget>
                      </item>
                      <item row="3" column="0">
                       <widget class="QLabel" name="label_10">
@@ -352,7 +364,11 @@
                       </widget>
                      </item>
                      <item row="3" column="1">
-                      <widget class="QLineEdit" name="leImprint"/>
+                      <widget class="QLineEdit" name="leImprint">
+                       <property name="acceptDrops">
+                        <bool>false</bool>
+                       </property>
+                      </widget>
                      </item>
                      <item row="4" column="0">
                       <widget class="QLabel" name="label_11">
@@ -368,7 +384,11 @@
                       </widget>
                      </item>
                      <item row="4" column="1">
-                      <widget class="QLineEdit" name="leSeriesGroup"/>
+                      <widget class="QLineEdit" name="leSeriesGroup">
+                       <property name="acceptDrops">
+                        <bool>false</bool>
+                       </property>
+                      </widget>
                      </item>
                      <item row="5" column="0">
                       <widget class="QLabel" name="label_25">
@@ -378,7 +398,11 @@
                       </widget>
                      </item>
                      <item row="5" column="1">
-                      <widget class="QLineEdit" name="leStoryArc"/>
+                      <widget class="QLineEdit" name="leStoryArc">
+                       <property name="acceptDrops">
+                        <bool>false</bool>
+                       </property>
+                      </widget>
                      </item>
                      <item row="6" column="0">
                       <widget class="QLabel" name="label_24">
@@ -388,7 +412,11 @@
                       </widget>
                      </item>
                      <item row="6" column="1">
-                      <widget class="QLineEdit" name="leGenre"/>
+                      <widget class="QLineEdit" name="leGenre">
+                       <property name="acceptDrops">
+                        <bool>false</bool>
+                       </property>
+                      </widget>
                      </item>
                      <item row="8" column="0">
                       <widget class="QLabel" name="label_21">
@@ -398,7 +426,11 @@
                       </widget>
                      </item>
                      <item row="8" column="1">
-                      <widget class="QLineEdit" name="leAltSeries"/>
+                      <widget class="QLineEdit" name="leAltSeries">
+                       <property name="acceptDrops">
+                        <bool>false</bool>
+                       </property>
+                      </widget>
                      </item>
                      <item row="7" column="1">
                       <spacer name="verticalSpacer_4">
@@ -452,6 +484,9 @@
                            <verstretch>0</verstretch>
                           </sizepolicy>
                          </property>
+                         <property name="acceptDrops">
+                          <bool>false</bool>
+                         </property>
                         </widget>
                        </item>
                       </layout>
@@ -466,7 +501,11 @@
                         </widget>
                        </item>
                        <item row="0" column="1">
-                        <widget class="QLineEdit" name="leAltIssueCount"/>
+                        <widget class="QLineEdit" name="leAltIssueCount">
+                         <property name="acceptDrops">
+                          <bool>false</bool>
+                         </property>
+                        </widget>
                        </item>
                       </layout>
                      </item>
@@ -1080,7 +1119,7 @@
      <x>0</x>
      <y>0</y>
      <width>968</width>
-     <height>28</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuComicTagger">
