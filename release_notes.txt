@@ -1,5 +1,13 @@
 
 ---------------------------------  
+0.9.5-beta - 16-Jan-2013
+---------------------------------
+Changes:
+  Added CLI option to search by comicvine issue ID
+  Some image loading optimizations
+  Bug Fix:  Some CBL fields that should have been ints were written as strings
+
+---------------------------------  
 0.9.4-beta - 7-Jan-2013
 ---------------------------------
 Changes:

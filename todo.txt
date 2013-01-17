@@ -4,13 +4,28 @@ Features
 
 Multi-file:
 		Does the main UI need to have "View/Read Tag Style" and "Write Tag style" concept?
-		Create ComicArchiveListWidget
-				as item is added, new metadata object is attached (for each block??)
-				
-        How to add items to list?
-				recursive
-				drag and drop
 
+		Edit functions on list: select, select all, delete, 
+
+		Batch Functions:
+				Auto-Select
+						Start/Options Dialog
+						Progress Dialog - maybe reuse
+						Interactive dialog at end						
+				Rename
+						Start dialog with preview
+								maybe table with checkboxes?
+								
+				Copy Block
+						Verify overwrites
+		
+		Turn off drop accept for edit lines/boxes
+		Drop on app goes to list and selects it
+		Accept multiple files on file open dialog
+		Warn on moving selection list away from modified form
+		
+
+		ComicArchive: cache each metadata block?  Need to make sure cache is cleared on file modify
 -----------------------------------------------------
 Bugs
 -----------------------------------------------------
