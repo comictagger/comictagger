@@ -486,11 +486,8 @@ def main():
 			splash.raise_()
 			app.processEvents()
 	
-		try:
-			fname = None
-			if opts.filename is not None:
-				fname = opts.filename.decode(filename_encoding, 'replace')
-			tagger_window = TaggerWindow( fname, settings )
+		try:			
+			tagger_window = TaggerWindow( opts.file_list, settings )
 			tagger_window.show()
 
 			if platform.system() != "Linux":

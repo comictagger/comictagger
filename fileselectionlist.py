@@ -69,7 +69,6 @@ class FileSelectionList(QWidget):
 		#self.twList = FileTableWidget( self )
 		#gridlayout = QGridLayout( self )
 		#gridlayout.addWidget( self.twList )
-		self.setAcceptDrops(True)
 		
 		self.twList.itemSelectionChanged.connect( self.itemSelectionChangedCB )
 		
@@ -111,25 +110,6 @@ class FileSelectionList(QWidget):
 			self.twList.selectRow(0)
 		else:
 			self.listCleared.emit()
-			
-		
-	def dragEnterEvent(self, event):
-		self.droppedFiles = None
-		if event.mimeData().hasUrls():
-					
-			# walk through the URL list and build a file list
-			for url in event.mimeData().urls():
-				if url.isValid() and url.scheme() == "file":
-					if self.droppedFiles is None:
-						self.droppedFiles = []
-					self.droppedFiles.append(url.toLocalFile())
-					
-			if self.droppedFiles is not None:	
-				event.accept()
-
-	def dropEvent(self, event):
-		self.addPathList( self.droppedFiles)
-		event.accept()
 	
 	def addPathList( self, pathlist ):
 		filelist = []
@@ -148,15 +128,21 @@ class FileSelectionList(QWidget):
 		progdialog.setWindowTitle( "Adding Files" )
 		progdialog.setWindowModality(Qt.WindowModal)
 		
+		firstAdded = None
 		self.twList.setSortingEnabled(False)
 		for idx,f in enumerate(filelist):
 			QCoreApplication.processEvents()
 			if progdialog.wasCanceled():
 				break
 			progdialog.setValue(idx)
-			self.addPathItem( f )
-
+			row = self.addPathItem( f )
+			if firstAdded is None and row is not None:
+				firstAdded = row
+			
 		progdialog.close()
+		if firstAdded is not None:
+			self.twList.selectRow(firstAdded)
+			
 		self.twList.setSortingEnabled(True)
 		
 		#Maybe set a max size??
@@ -178,7 +164,7 @@ class FileSelectionList(QWidget):
 		#print "processing", path
 		
 		if self.isListDupe(path):
-			return
+			return None
 		
 		ca = ComicArchive( path )
 		if self.settings.rar_exe_path != "":
@@ -246,6 +232,7 @@ class FileSelectionList(QWidget):
 			else:
 				item.setData(Qt.UserRole, False)
 			self.twList.setItem(row, 3, item)
+			return row
 			
 	def itemSelectionChangedCB( self ):
 		idx = self.twList.currentRow()

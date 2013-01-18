@@ -254,7 +254,7 @@
              <bool>true</bool>
             </property>
             <property name="acceptDrops">
-             <bool>true</bool>
+             <bool>false</bool>
             </property>
             <property name="currentIndex">
              <number>0</number>
@@ -544,7 +544,11 @@
                         </widget>
                        </item>
                        <item row="0" column="1">
-                        <widget class="QLineEdit" name="leIssueNum"/>
+                        <widget class="QLineEdit" name="leIssueNum">
+                         <property name="acceptDrops">
+                          <bool>false</bool>
+                         </property>
+                        </widget>
                        </item>
                        <item row="1" column="0">
                         <widget class="QLabel" name="label_9">
@@ -554,7 +558,11 @@
                         </widget>
                        </item>
                        <item row="1" column="1">
-                        <widget class="QLineEdit" name="leVolumeNum"/>
+                        <widget class="QLineEdit" name="leVolumeNum">
+                         <property name="acceptDrops">
+                          <bool>false</bool>
+                         </property>
+                        </widget>
                        </item>
                        <item row="2" column="0">
                         <widget class="QLabel" name="label_6">
@@ -577,6 +585,9 @@
                            <height>16777215</height>
                           </size>
                          </property>
+                         <property name="acceptDrops">
+                          <bool>false</bool>
+                         </property>
                          <property name="inputMethodHints">
                           <set>Qt::ImhDigitsOnly</set>
                          </property>
@@ -598,6 +609,9 @@
                        </item>
                        <item row="0" column="1">
                         <widget class="QLineEdit" name="leIssueCount">
+                         <property name="acceptDrops">
+                          <bool>false</bool>
+                         </property>
                          <property name="inputMethodHints">
                           <set>Qt::ImhDigitsOnly</set>
                          </property>
@@ -612,6 +626,9 @@
                        </item>
                        <item row="1" column="1">
                         <widget class="QLineEdit" name="leVolumeCount">
+                         <property name="acceptDrops">
+                          <bool>false</bool>
+                         </property>
                          <property name="inputMethodHints">
                           <set>Qt::ImhDigitsOnly</set>
                          </property>
@@ -637,6 +654,9 @@
                            <width>50</width>
                            <height>16777215</height>
                           </size>
+                         </property>
+                         <property name="acceptDrops">
+                          <bool>false</bool>
                          </property>
                          <property name="inputMethodHints">
                           <set>Qt::ImhDigitsOnly</set>
@@ -923,7 +943,11 @@
                  </widget>
                 </item>
                 <item row="0" column="1">
-                 <widget class="QTextEdit" name="teComments"/>
+                 <widget class="QTextEdit" name="teComments">
+                  <property name="acceptDrops">
+                   <bool>false</bool>
+                  </property>
+                 </widget>
                 </item>
                 <item row="1" column="0">
                  <widget class="QLabel" name="label_16">
@@ -933,7 +957,11 @@
                  </widget>
                 </item>
                 <item row="1" column="1">
-                 <widget class="QTextEdit" name="teNotes"/>
+                 <widget class="QTextEdit" name="teNotes">
+                  <property name="acceptDrops">
+                   <bool>false</bool>
+                  </property>
+                 </widget>
                 </item>
                 <item row="2" column="0">
                  <widget class="QLabel" name="label_19">
@@ -943,7 +971,11 @@
                  </widget>
                 </item>
                 <item row="2" column="1">
-                 <widget class="QLineEdit" name="leWebLink"/>
+                 <widget class="QLineEdit" name="leWebLink">
+                  <property name="acceptDrops">
+                   <bool>false</bool>
+                  </property>
+                 </widget>
                 </item>
                 <item row="3" column="0">
                  <widget class="QLabel" name="userRatingLabel">
@@ -965,6 +997,9 @@
                     <width>80</width>
                     <height>16777215</height>
                    </size>
+                  </property>
+                  <property name="acceptDrops">
+                   <bool>false</bool>
                   </property>
                  </widget>
                 </item>
@@ -1012,6 +1047,9 @@
                     <height>16777215</height>
                    </size>
                   </property>
+                  <property name="acceptDrops">
+                   <bool>false</bool>
+                  </property>
                  </widget>
                 </item>
                 <item row="2" column="0">
@@ -1035,6 +1073,9 @@
                     <height>16777215</height>
                    </size>
                   </property>
+                  <property name="acceptDrops">
+                   <bool>false</bool>
+                  </property>
                  </widget>
                 </item>
                 <item row="3" column="0">
@@ -1057,6 +1098,9 @@
                     <width>16777215</width>
                     <height>16777215</height>
                    </size>
+                  </property>
+                  <property name="acceptDrops">
+                   <bool>false</bool>
                   </property>
                  </widget>
                 </item>
@@ -1086,6 +1130,9 @@
                     <width>0</width>
                     <height>100</height>
                    </size>
+                  </property>
+                  <property name="acceptDrops">
+                   <bool>false</bool>
                   </property>
                  </widget>
                 </item>
@@ -1119,7 +1166,7 @@
      <x>0</x>
      <y>0</y>
      <width>968</width>
-     <height>25</height>
+     <height>28</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuComicTagger">
@@ -1150,6 +1197,7 @@
      <addaction name="actionViewRawCBLTags"/>
     </widget>
     <addaction name="actionLoad"/>
+    <addaction name="actionLoadFolder"/>
     <addaction name="actionWrite_Tags"/>
     <addaction name="menuReload"/>
     <addaction name="menuRemove"/>
@@ -1351,6 +1399,11 @@
   <action name="actionApplyCBLTransform">
    <property name="text">
     <string>Apply CBL Transform</string>
+   </property>
+  </action>
+  <action name="actionLoadFolder">
+   <property name="text">
+    <string>Open Folder</string>
    </property>
   </action>
  </widget>

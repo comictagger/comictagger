@@ -82,15 +82,8 @@ class TaggerWindow( QtGui.QMainWindow):
 	appName = "ComicTagger"
 	version = ctversion.version
 	
-	def __init__(self, filename, settings, parent = None):
+	def __init__(self, file_list, settings, parent = None):
 		super(TaggerWindow, self).__init__(parent)
-
-		# Set up a timer so the interpreter runs every so often
-		# This helps catch and process SIGINT from console
-		#self.timer = QtCore.QTimer()
-		#self.timer.start(500)  
-		#self.timer.timeout.connect(lambda: None)
-		#signal.signal(signal.SIGINT, self.sigint_handler)
 
 		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'taggerwindow.ui' ), self)
 		self.settings = settings
@@ -143,6 +136,10 @@ class TaggerWindow( QtGui.QMainWindow):
 		
 		#TODO set up an RE validator for issueNum that allows
 		# for all sorts of wacky things
+		
+		#make sure some editable comboboxes don't take drop actions
+		self.cbFormat.lineEdit().setAcceptDrops(False)
+		self.cbMaturityRating.lineEdit().setAcceptDrops(False)
 
 		# hook up the callbacks		
 		self.cbDataStyle.currentIndexChanged.connect(self.setDataStyle)
@@ -165,9 +162,9 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.raise_()
 		QtCore.QCoreApplication.processEvents()
 
-		if filename is not None:
-			self.openArchive( filename )
-		
+		if len(file_list) != 0:
+			self.fileSelectionList.addPathList( file_list )
+			
 		if self.settings.show_disclaimer:
 			checked = OptionalMessageDialog.msg(  self, "Welcome!",
 								"""
@@ -231,6 +228,10 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.actionLoad.setShortcut( 'Ctrl+O' )
 		self.actionLoad.setStatusTip( 'Load comic archive' )
 		self.actionLoad.triggered.connect( self.selectFile )
+
+		#self.actionLoadFolder.setShortcut( 'Ctrl+F' )
+		self.actionLoadFolder.setStatusTip( 'Load folder with comic archives' )
+		self.actionLoadFolder.triggered.connect( self.selectFolder )
 
 		self.actionWrite_Tags.setShortcut( 'Ctrl+S' )
 		self.actionWrite_Tags.setStatusTip( 'Save tags to comic archive' )
@@ -388,19 +389,26 @@ class TaggerWindow( QtGui.QMainWindow):
 		msgBox.exec_()
 		
 	def dragEnterEvent(self, event):
-		self.droppedFile=None
+		self.droppedFiles = None
 		if event.mimeData().hasUrls():
-			url=event.mimeData().urls()[0]
-			if url.isValid():
-				if url.scheme()=="file":
-					self.droppedFile=url.toLocalFile()
-					event.accept()
-
+					
+			# walk through the URL list and build a file list
+			for url in event.mimeData().urls():
+				if url.isValid() and url.scheme() == "file":
+					if self.droppedFiles is None:
+						self.droppedFiles = []
+					self.droppedFiles.append(url.toLocalFile())
+					
+			if self.droppedFiles is not None:	
+				event.accept()
+					
 	def dropEvent(self, event):
 		if self.dirtyFlagVerification( "Open Archive",
 									"If you open a new archive now, data in the form will be lost.  Are you sure?"):
-			self.openArchive( unicode(self.droppedFile)) 
-
+			#self.openArchive( unicode(self.droppedFile))
+			self.fileSelectionList.addPathList( self.droppedFiles )
+			event.accept()
+			
 	def openArchive( self, path, explicit_style=None, clear_form=True ):
 		
 		if path is None or path == "":
@@ -845,33 +853,37 @@ class TaggerWindow( QtGui.QMainWindow):
 				self.metadata.overlay( new_metadata )				
 				self.metadataToForm()
 
-	def selectFile( self ):
+	def selectFolder( self ):
+		self.selectFile( folder_mode=True )
+		
+	def selectFile( self , folder_mode = False):
 		
 		dialog = QtGui.QFileDialog(self)
-		dialog.setFileMode(QtGui.QFileDialog.ExistingFile)
+		if folder_mode:
+			dialog.setFileMode(QtGui.QFileDialog.Directory)
+		else:
+			dialog.setFileMode(QtGui.QFileDialog.ExistingFiles)
+		
 		if self.settings.last_opened_folder is not None:
 			dialog.setDirectory( self.settings.last_opened_folder )
 		#dialog.setFileMode(QtGui.QFileDialog.Directory )
 		
-		if platform.system() != "Windows" and utils.which("unrar") is None:
-			archive_filter = "Comic archive files (*.cbz *.zip)"
-		else:
-			archive_filter = "Comic archive files (*.cbz *.zip *.cbr *.rar)"
-			
-		filters  = [ 
-		             archive_filter,
-		             "Any files (*)"
-		             ]
-		
-		dialog.setNameFilters(filters)
-		#dialog.setFilter (self, QString filter)
+		if not folder_mode:
+			if platform.system() != "Windows" and utils.which("unrar") is None:
+				archive_filter = "Comic archive files (*.cbz *.zip)"
+			else:
+				archive_filter = "Comic archive files (*.cbz *.zip *.cbr *.rar)"
+			filters  = [ 
+						 archive_filter,
+						 "Any files (*)"
+						 ]
+			dialog.setNameFilters(filters)
 		
 		if (dialog.exec_()):
 			fileList = dialog.selectedFiles()
 			if self.dirtyFlagVerification( "Open Archive",
 										"If you open a new archive now, data in the form will be lost.  Are you sure?"):
-				self.openArchive( unicode(fileList[0]) )  
-
+				self.fileSelectionList.addPathList( fileList )
 			
 	def autoSelectSearch(self):
 		if self.comic_archive is None:
