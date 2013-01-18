@@ -440,9 +440,17 @@ class ComicArchive:
 	def resetCache( self ):
 		self.has_cix = None
 		self.has_cbi = None
+		self.has_comet = None
 		self.comet_filename = None
 		self.page_count  = None
 		self.page_list  = None
+		self.cix_md  = None
+		self.cbi_md  = None
+		self.comet_md  = None
+	
+	def rename( self, path ):
+		self.path = path
+		self.archiver.path = path
 		
 	def setExternalRarProgram( self, rar_exe_path ):
 		if self.isRar():
@@ -527,7 +535,6 @@ class ComicArchive:
 			retcode = self.writeCBI( metadata )
 		elif style == MetaDataStyle.COMET:
 			retcode = self.writeCoMet( metadata )
-		self.resetCache()
 		return retcode
 		
 
@@ -550,7 +557,6 @@ class ComicArchive:
 			retcode = self.removeCBI()
 		elif style == MetaDataStyle.COMET:
 			retcode = self.removeCoMet()
-		self.resetCache()
 		return retcode
 
 	def getPage( self, index ):
@@ -599,15 +605,16 @@ class ComicArchive:
 		return self.page_count
 
 	def readCBI( self ):
-		raw_cbi = self.readRawCBI()
-		if raw_cbi is None:
-			md = GenericMetadata()
-		else:
-			md = ComicBookInfo().metadataFromString( raw_cbi )
-		
-		md.setDefaultPageList( self.getNumberOfPages() )
+		if self.cbi_md is None:
+			raw_cbi = self.readRawCBI()
+			if raw_cbi is None:
+				self.cbi_md = GenericMetadata()
+			else:
+				self.cbi_md = ComicBookInfo().metadataFromString( raw_cbi )
+			
+			self.cbi_md.setDefaultPageList( self.getNumberOfPages() )
 				
-		return md
+		return self.cbi_md
 	
 	def readRawCBI( self ):
 		if ( not self.hasCBI() ):
@@ -628,30 +635,49 @@ class ComicArchive:
 		return self.has_cbi
 	
 	def writeCBI( self, metadata ):
-		self.applyArchiveInfoToMetadata( metadata )
-		cbi_string = ComicBookInfo().stringFromMetadata( metadata )
-		return self.archiver.setArchiveComment( cbi_string )
+		if metadata is not None:
+			self.applyArchiveInfoToMetadata( metadata )
+			cbi_string = ComicBookInfo().stringFromMetadata( metadata )
+			write_success =  self.archiver.setArchiveComment( cbi_string )
+			if write_success:
+				self.has_cbi = True
+				self.cbi_md = metadata
+			else:
+				self.resetCache()
+			return write_success
+		else:
+			return False
 		
 	def removeCBI( self ):
-		return self.archiver.setArchiveComment( "" )
+		if self.hasCBI():
+			write_success = self.archiver.setArchiveComment( "" )
+			if write_success:
+				self.has_cbi = False
+				self.cbi_md = None
+			else:
+				self.resetCache()
+			return write_success
+		return True	
 		
 	def readCIX( self ):
-		raw_cix = self.readRawCIX()
-		if raw_cix is None:
-			md = GenericMetadata()
-		else:
-			md = ComicInfoXml().metadataFromString( raw_cix )
+		if self.cix_md is None:
+			raw_cix = self.readRawCIX()
+			if raw_cix is None:
+				self.cix_md = GenericMetadata()
+			else:
+				self.cix_md = ComicInfoXml().metadataFromString( raw_cix )
 
-		#validate the existing page list (make sure count is correct)
-		if len ( md.pages ) !=  0 :
-			if len ( md.pages ) != self.getNumberOfPages():
-				# pages array doesn't match the actual number of images we're seeing
-				# in the archive, so discard the data
-				md.pages = []
+			#validate the existing page list (make sure count is correct)
+			if len ( self.cix_md.pages ) !=  0 :
+				if len ( self.cix_md.pages ) != self.getNumberOfPages():
+					# pages array doesn't match the actual number of images we're seeing
+					# in the archive, so discard the data
+					self.cix_md.pages = []
+				
+			if len( self.cix_md.pages ) == 0:
+				self.cix_md.setDefaultPageList( self.getNumberOfPages() )
 			
-		if len( md.pages ) == 0:
-			md.setDefaultPageList( self.getNumberOfPages() )
-		return md		
+		return self.cix_md
 
 	def readRawCIX( self ):
 		if not self.hasCIX():
@@ -664,13 +690,27 @@ class ComicArchive:
 		if metadata is not None:
 			self.applyArchiveInfoToMetadata( metadata, calc_page_sizes=True )
 			cix_string = ComicInfoXml().stringFromMetadata( metadata )
-			return self.archiver.writeArchiveFile( self.ci_xml_filename, cix_string )
+			write_success = self.archiver.writeArchiveFile( self.ci_xml_filename, cix_string )
+			if write_success:
+				self.has_cix = True
+				self.cix_md = metadata
+			else:
+				self.resetCache()
+			return write_success
 		else:
 			return False
 			
 	def removeCIX( self ):
-
-		return self.archiver.removeArchiveFile( self.ci_xml_filename )
+		if self.hasCIX():
+			write_success = self.archiver.removeArchiveFile( self.ci_xml_filename )
+			if write_success:
+				self.has_cix = False
+				self.cix_md = None
+			else:
+				self.resetCache()
+			return write_success
+		return True
+		
 		
 	def hasCIX(self):
 		if self.has_cix is None:
@@ -685,28 +725,28 @@ class ComicArchive:
 
 
 	def readCoMet( self ):
-		raw_comet = self.readRawCoMet()
-		if raw_comet is None:
-			md = GenericMetadata()
-		else:
-			md = CoMet().metadataFromString( raw_comet )
-		
-		md.setDefaultPageList( self.getNumberOfPages() )
-		#use the coverImage value from the comet_data to mark the cover in this struct
-		# walk through list of images in file, and find the matching one for md.coverImage
-		# need to remove the existing one in the default
-		if md.coverImage is not None:
-			cover_idx = 0
-			for idx,f in enumerate(self.getPageNameList()):
-				if md.coverImage == f:
-					cover_idx = idx
-					break
-			if cover_idx != 0:
-				del (md.pages[0]['Type'] )
-				md.pages[ cover_idx ]['Type'] = PageType.FrontCover
-					
-				
-		return md	
+		if self.comet_md is None:
+			raw_comet = self.readRawCoMet()
+			if raw_comet is None:
+				self.comet_md = GenericMetadata()
+			else:
+				self.comet_md = CoMet().metadataFromString( raw_comet )
+			
+			self.comet_md.setDefaultPageList( self.getNumberOfPages() )
+			#use the coverImage value from the comet_data to mark the cover in this struct
+			# walk through list of images in file, and find the matching one for md.coverImage
+			# need to remove the existing one in the default
+			if self.comet_md.coverImage is not None:
+				cover_idx = 0
+				for idx,f in enumerate(self.getPageNameList()):
+					if self.comet_md.coverImage == f:
+						cover_idx = idx
+						break
+				if cover_idx != 0:
+					del (self.comet_md.pages[0]['Type'] )
+					self.comet_md.pages[ cover_idx ]['Type'] = PageType.FrontCover
+
+		return self.comet_md	
 
 	def readRawCoMet( self ):
 		if not self.hasCoMet():
@@ -728,24 +768,34 @@ class ComicArchive:
 				metadata.coverImage = self.getPageName( cover_idx )
 		
 			comet_string = CoMet().stringFromMetadata( metadata )
-			return self.archiver.writeArchiveFile( self.comet_filename, comet_string )
+			write_success = self.archiver.writeArchiveFile( self.comet_filename, comet_string )
+			if write_success:
+				self.has_comet = True
+				self.comet_md = metadata
+			else:
+				self.resetCache()
+			return write_success
 		else:
 			return False
 			
 	def removeCoMet( self ):
 		if self.hasCoMet():
-			retcode = self.archiver.removeArchiveFile( self.comet_filename )
-			self.comet_filename = None
-			return retcode
+			write_success = self.archiver.removeArchiveFile( self.comet_filename )
+			if write_success:
+				self.has_comet = False
+				self.comet_md = None
+			else:
+				self.resetCache()
+			return write_success
 		return True
 		
 	def hasCoMet(self):
-		if not self.seemsToBeAComicArchive():
-			return False
-		
-		#Use the existence of self.comet_filename as a cue that the tag block exists
-		if self.comet_filename is None:
-			#TODO look at all xml files in root, and search for CoMet data, get first
+		if self.has_comet is None:
+			self.has_comet = False
+			if not self.seemsToBeAComicArchive():
+				return self.has_comet
+			
+			#look at all xml files in root, and search for CoMet data, get first
 			for n in self.archiver.getArchiveFilenameList():
 				if ( os.path.dirname(n) == "" and
 					os.path.splitext(n)[1].lower() == '.xml'):
@@ -754,12 +804,12 @@ class ComicArchive:
 					if CoMet().validateString( data ):
 						# since we found it, save it!
 						self.comet_filename = n
-						return True
-			# if we made it through the loop, no CoMet here...
-			return False
-			
-		else:
-			return True
+						self.has_comet = True
+						break
+						
+			return self.has_comet
+				
+
 
 	def applyArchiveInfoToMetadata( self, md, calc_page_sizes=False):
 		md.pageCount = self.getNumberOfPages()

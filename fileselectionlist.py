@@ -49,10 +49,7 @@ class FileTableWidgetItem(QTableWidgetItem):
 
 
 class FileInfo(  ):
-	def __init__(self, path, ca, cix_md, cbi_md ):
-		self.path = path
-		self.cix_md = cix_md
-		self.cbi_md = cbi_md
+	def __init__(self, ca ):
 		self.ca = ca
 
 class FileSelectionList(QWidget):
@@ -70,9 +67,12 @@ class FileSelectionList(QWidget):
 		#gridlayout = QGridLayout( self )
 		#gridlayout.addWidget( self.twList )
 		
-		self.twList.itemSelectionChanged.connect( self.itemSelectionChangedCB )
+		#self.twList.itemSelectionChanged.connect( self.itemSelectionChangedCB )
+		self.twList.currentItemChanged.connect( self.currentItemChangedCB )
 		
+		self.currentItem = None
 		self.setContextMenuPolicy(Qt.ActionsContextMenu)
+		self.modifiedFlag = False
 		
 		selectAllAction = QAction("Select All", self)
 		invertSelectionAction = QAction("Invert Selection", self)
@@ -84,8 +84,14 @@ class FileSelectionList(QWidget):
 		self.addAction(selectAllAction)			
 		self.addAction(removeAction)		
 
+	def setModifiedFlag( self, modified ):
+		self.modifiedFlag = modified
+		
 	def selectAll( self ):
 		self.twList.setRangeSelected( QTableWidgetSelectionRange ( 0, 0, self.twList.rowCount()-1, 1 ), True )
+
+	def deselectAll( self ):
+		self.twList.setRangeSelected( QTableWidgetSelectionRange ( 0, 0, self.twList.rowCount()-1, 1 ), False )
 	
 	def removeSelection( self ):
 		row_list = []
@@ -95,6 +101,11 @@ class FileSelectionList(QWidget):
 
 		if len(row_list) == 0:
 			return
+		
+		if self.twList.currentRow() in row_list:
+			if not self.modifiedFlagVerification( "Remove Archive",
+					"If you close this archive, data in the form will be lost.  Are you sure?"):
+				return
 		
 		row_list.sort()
 		row_list.reverse()
@@ -153,7 +164,7 @@ class FileSelectionList(QWidget):
 		r = 0
 		while r < self.twList.rowCount():
 			fi = self.twList.item(r, 0).data( Qt.UserRole ).toPyObject()
-			if fi.path == path:
+			if fi.ca.path == path:
 				return True
 			r = r + 1
 			
@@ -175,71 +186,119 @@ class FileSelectionList(QWidget):
 			row = self.twList.rowCount()
 			self.twList.insertRow( row )
 			
-			cix_md = None
-			cbi_md = None
+			fi = FileInfo( ca )
 			
-			has_cix = ca.hasCIX()
-			if has_cix:
-				cix_md = ca.readCIX()
+			filename_item = QTableWidgetItem()
+			folder_item =   QTableWidgetItem()
+			cix_item =      QTableWidgetItem()
+			cbi_item =      QTableWidgetItem()
 				
-			has_cbi = ca.hasCBI()
-			if has_cbi:
-				cbi_md = ca.readCBI()
-			
-			fi = FileInfo( path, ca, cix_md, cbi_md )
-			
-			item_text = os.path.split(path)[1]
-			item = QTableWidgetItem(item_text)			
-			item.setFlags(Qt.ItemIsSelectable| Qt.ItemIsEnabled)
-			item.setData( Qt.UserRole , fi )
-			item.setData( Qt.ToolTipRole ,item_text)
-			self.twList.setItem(row, 0, item)
-			
-			item_text = os.path.split(path)[0]
-			item = QTableWidgetItem(item_text)			
-			item.setFlags(Qt.ItemIsSelectable| Qt.ItemIsEnabled)
-			item.setData( Qt.ToolTipRole ,item_text)
-			self.twList.setItem(row, 1, item)
+			filename_item.setFlags(Qt.ItemIsSelectable| Qt.ItemIsEnabled)
+			filename_item.setData( Qt.UserRole , fi )
+			self.twList.setItem(row, 0, filename_item)
+					
+			folder_item.setFlags(Qt.ItemIsSelectable| Qt.ItemIsEnabled)
+			self.twList.setItem(row, 1, folder_item)
 
-			# Attempt to use a special checkbox widget in the cell.
-			# Couldn't figure out how to disable it with "enabled" colors
-			#w = QWidget()
-			#cb = QCheckBox(w)
-			#cb.setCheckState(Qt.Checked)
-			#layout = QHBoxLayout()
-			#layout.addWidget( cb )
-			#layout.setAlignment(Qt.AlignHCenter)
-			#layout.setMargin(2)
-			#w.setLayout(layout)
-			#self.twList.setCellWidget( row, 2, w )
+			cix_item.setFlags(Qt.ItemIsSelectable| Qt.ItemIsEnabled)
+			cix_item.setTextAlignment(Qt.AlignHCenter)
+			self.twList.setItem(row, 2, cix_item)
 
-			item = FileTableWidgetItem()
-			item.setFlags(Qt.ItemIsSelectable| Qt.ItemIsEnabled)
-			item.setTextAlignment(Qt.AlignHCenter)
-			if has_cix:
-				item.setCheckState(Qt.Checked)       
-				item.setData(Qt.UserRole, True)
-			else:
-				item.setData(Qt.UserRole, False)
-			self.twList.setItem(row, 2, item)
-
-			item = FileTableWidgetItem()
-			item.setFlags(Qt.ItemIsSelectable| Qt.ItemIsEnabled)
-			item.setTextAlignment(Qt.AlignHCenter)
-			if has_cbi:
-				item.setCheckState(Qt.Checked)       
-				item.setData(Qt.UserRole, True)
-			else:
-				item.setData(Qt.UserRole, False)
-			self.twList.setItem(row, 3, item)
+			cbi_item.setFlags(Qt.ItemIsSelectable| Qt.ItemIsEnabled)
+			cbi_item.setTextAlignment(Qt.AlignHCenter)
+			self.twList.setItem(row, 3, cbi_item)
+			
+			self.updateRow( row )
+			
 			return row
+
+	def updateRow( self, row ):
+		fi = self.twList.item( row, 0 ).data( Qt.UserRole ).toPyObject()
+
+		filename_item = self.twList.item( row, 0 )
+		folder_item =   self.twList.item( row, 1 )
+		cix_item =      self.twList.item( row, 2 )
+		cbi_item =      self.twList.item( row, 3 )
+
+		item_text = os.path.split(fi.ca.path)[0]
+		folder_item.setText( item_text )
+		folder_item.setData( Qt.ToolTipRole, item_text )
+
+		item_text = os.path.split(fi.ca.path)[1]
+		filename_item.setText( item_text )
+		filename_item.setData( Qt.ToolTipRole, item_text )
+
+		if fi.ca.hasCIX():
+			cix_item.setCheckState(Qt.Checked)       
+			cix_item.setData(Qt.UserRole, True)
+		else:
+			cix_item.setData(Qt.UserRole, False)
+			cix_item.setCheckState(Qt.Unchecked)       
+
+		if fi.ca.hasCBI():
+			cbi_item.setCheckState(Qt.Checked)       
+			cbi_item.setData(Qt.UserRole, True)
+		else:
+			cbi_item.setData(Qt.UserRole, False)
+			cbi_item.setCheckState(Qt.Unchecked)
 			
-	def itemSelectionChangedCB( self ):
-		idx = self.twList.currentRow()
-		
-		fi = self.twList.item(idx, 0).data( Qt.UserRole ).toPyObject()
-		
-		#if fi.cix_md is not None:
-		#	print u"{0}".format(fi.cix_md)
+		# Reading these will force them into the ComicArchive's cache
+		fi.ca.readCIX()
+		fi.ca.hasCBI()
+
 			
+	def updateCurrentRow( self ):
+		self.updateRow( self.twList.currentRow() )
+			
+	def currentItemChangedCB( self, curr, prev ):
+
+		new_idx = curr.row()
+		old_idx = -1
+		if prev is not None:
+			old_idx = prev.row()
+		#print "old {0} new {1}".format(old_idx, new_idx)
+		
+		if old_idx == new_idx:
+			return
+			
+		# don't allow change if modified
+		if prev is not None and new_idx != old_idx:
+			if not self.modifiedFlagVerification( "Change Archive",
+						"If you change archives now, data in the form will be lost.  Are you sure?"):
+				self.twList.currentItemChanged.disconnect( self.currentItemChangedCB )
+				self.twList.setCurrentItem( prev )
+				self.twList.currentItemChanged.connect( self.currentItemChangedCB )
+				# Need to defer this revert selection, for some reason
+				QTimer.singleShot(1, self.revertSelection)
+				return
+
+		fi = self.twList.item( new_idx, 0 ).data( Qt.UserRole ).toPyObject()		
 		self.selectionChanged.emit( QVariant(fi))
+		
+	def revertSelection( self ):
+		self.twList.selectRow( self.twList.currentRow() )
+		
+	
+	def modifiedFlagVerification( self, title, desc):
+		if self.modifiedFlag:
+			reply = QMessageBox.question(self, 
+			     self.tr(title), 
+			     self.tr(desc),
+			     QMessageBox.Yes, QMessageBox.No )
+			     
+			if reply != QMessageBox.Yes:
+				return False
+		return True
+		
+		
+# Attempt to use a special checkbox widget in the cell.
+# Couldn't figure out how to disable it with "enabled" colors
+#w = QWidget()
+#cb = QCheckBox(w)
+#cb.setCheckState(Qt.Checked)
+#layout = QHBoxLayout()
+#layout.addWidget( cb )
+#layout.setAlignment(Qt.AlignHCenter)
+#layout.setMargin(2)
+#w.setLayout(layout)
+#self.twList.setCellWidget( row, 2, w )

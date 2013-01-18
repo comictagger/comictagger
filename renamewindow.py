@@ -75,5 +75,5 @@ class RenameWindow(QtGui.QDialog):
 		os.rename( self.comic_archive.path, new_abs_path )
 
 		self.new_name = new_abs_path
-		
+		self.comic_archive.rename( new_abs_path )
 		

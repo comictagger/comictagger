@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>968</width>
-    <height>547</height>
+    <height>575</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -62,12 +62,22 @@
             <item row="0" column="0">
              <widget class="QLabel" name="label">
               <property name="text">
-               <string>Tag Style:</string>
+               <string>Read Style</string>
               </property>
              </widget>
             </item>
             <item row="0" column="1">
-             <widget class="QComboBox" name="cbDataStyle"/>
+             <widget class="QComboBox" name="cbLoadDataStyle"/>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="saveStyleLabel">
+              <property name="text">
+               <string>Write Style</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QComboBox" name="cbSaveDataStyle"/>
             </item>
            </layout>
           </item>
@@ -1181,14 +1191,6 @@
      <addaction name="actionRemoveCBLTags"/>
      <addaction name="actionRemoveCRTags"/>
     </widget>
-    <widget class="QMenu" name="menuReload">
-     <property name="title">
-      <string>Reload</string>
-     </property>
-     <addaction name="actionReloadAuto"/>
-     <addaction name="actionReloadCBLTags"/>
-     <addaction name="actionReloadCRTags"/>
-    </widget>
     <widget class="QMenu" name="menuViewRawTags">
      <property name="title">
       <string>View Raw Tags</string>
@@ -1199,7 +1201,6 @@
     <addaction name="actionLoad"/>
     <addaction name="actionLoadFolder"/>
     <addaction name="actionWrite_Tags"/>
-    <addaction name="menuReload"/>
     <addaction name="menuRemove"/>
     <addaction name="menuViewRawTags"/>
     <addaction name="actionRepackage"/>

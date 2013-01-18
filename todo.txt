@@ -3,20 +3,14 @@ Features
 -----------------------------------------------------
 
 Multi-file:
-		Does the main UI need to have "View/Read Tag Style" and "Write Tag style" concept?
-
-		Select first dropped Item into list
-		Turn off drop accept for edit lines/boxes
-		Drop on app goes to list and selects it
-		Accept multiple files on file open dialog
-		Warn on moving selection list away from modified form
-		ComicArchive: cache each metadata block?  Need to make sure cache is cleared on file modify
 
 		Batch Functions:
 				Auto-Select
 						Start/Options Dialog
 						Progress Dialog - maybe reuse
-						Interactive dialog at end						
+						Interactive dialog at end
+						Summary Dialog
+						
 				Rename
 						Start dialog with preview
 								maybe table with checkboxes?
@@ -24,7 +18,7 @@ Multi-file:
 				Copy Block
 						Verify overwrites
 				Delete
-		
+				Export to CBZ?
 
 -----------------------------------------------------
 Bugs
