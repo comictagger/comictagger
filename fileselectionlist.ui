@@ -25,6 +25,9 @@
      <property name="selectionBehavior">
       <enum>QAbstractItemView::SelectRows</enum>
      </property>
+     <property name="textElideMode">
+      <enum>Qt::ElideMiddle</enum>
+     </property>
      <attribute name="horizontalHeaderDefaultSectionSize">
       <number>61</number>
      </attribute>

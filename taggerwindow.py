@@ -164,6 +164,10 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.raise_()
 		QtCore.QCoreApplication.processEvents()
 
+		self.fileSelectionList.addAppAction( self.actionAutoSearch )
+		self.fileSelectionList.addAppAction( self.actionRename )
+		self.fileSelectionList.addAppAction( self.actionRemoveAuto )
+		
 		if len(file_list) != 0:
 			self.fileSelectionList.addPathList( file_list )
 			
@@ -231,7 +235,7 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.actionLoad.setStatusTip( 'Load comic archive' )
 		self.actionLoad.triggered.connect( self.selectFile )
 
-		#self.actionLoadFolder.setShortcut( 'Ctrl+F' )
+		self.actionLoadFolder.setShortcut( 'Ctrl+Shift+O' )
 		self.actionLoadFolder.setStatusTip( 'Load folder with comic archives' )
 		self.actionLoadFolder.triggered.connect( self.selectFolder )
 
@@ -275,7 +279,7 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.actionSearchOnline.setStatusTip( 'Search online for tags' )
 		self.actionSearchOnline.triggered.connect( self.queryOnline )
 
-		self.actionAutoSearch.setShortcut( 'Ctrl+A' )
+		self.actionAutoSearch.setShortcut( 'Ctrl+Shift+A' )
 		self.actionAutoSearch.triggered.connect( self.autoSelectSearch )
 		
 		self.actionApplyCBLTransform.setShortcut( 'Ctrl+L' )
@@ -436,9 +440,9 @@ class TaggerWindow( QtGui.QMainWindow):
 	def updateMenus( self ):
 		
 		# First just disable all the questionable items
-		self.actionRemoveAuto.setEnabled( False )
-		self.actionRemoveCRTags.setEnabled( False )
-		self.actionRemoveCBLTags.setEnabled( False )
+		self.actionRemoveAuto.setEnabled( True )
+		self.actionRemoveCRTags.setEnabled( True )
+		self.actionRemoveCBLTags.setEnabled( True )
 		self.actionWrite_Tags.setEnabled( False )
 		self.actionRepackage.setEnabled(False)
 		self.actionViewRawCBLTags.setEnabled( False )
@@ -1279,21 +1283,49 @@ class TaggerWindow( QtGui.QMainWindow):
 			
 	def removeTags( self, style):
 		# remove the indicated tags from the archive
-		# ( keep the form and the current metadata object intact. )
-		if self.comic_archive is not None and self.comic_archive.hasMetadata( style ):
+		#ATB
+		ca_list = self.fileSelectionList.getSelectedArchiveList()
+		has_md_count = 0
+		for ca in ca_list:
+			if ca.hasMetadata( style ):
+				has_md_count += 1
+
+		if has_md_count != 0 and not self.dirtyFlagVerification( "Remove Tags",
+						"If remove tags now, unsaved data in the form will be lost.  Are you sure?"):			
+			return
+		
+		if has_md_count != 0:
 			reply = QtGui.QMessageBox.question(self, 
 			     self.tr("Remove Tags"), 
-			     self.tr("Are you sure you wish to remove the " +  MetaDataStyle.name[style] + " tags from this archive?"),
+			     self.tr("Are you sure you wish to remove the {0} tags from {1} archive(s)?".format(MetaDataStyle.name[style], has_md_count)),
 			     QtGui.QMessageBox.Yes, QtGui.QMessageBox.No )
 			     
 			if reply == QtGui.QMessageBox.Yes:
-				path = self.comic_archive.path
-				if not self.comic_archive.removeMetadata( style ):
-					QtGui.QMessageBox.warning(self, self.tr("Remove failed"), self.tr("The tag removal operation seemed to fail!"))
-				else:
-					self.updateInfoBox()
-					self.updateMenus()
-				self.fileSelectionList.updateCurrentRow()
+				progdialog = QtGui.QProgressDialog("", "Cancel", 0, has_md_count, self)
+				progdialog.setWindowTitle( "Removing Tags" )
+				progdialog.setWindowModality(QtCore.Qt.WindowModal)
+				prog_idx = 0
+				
+				for ca in ca_list:
+					if ca.hasMetadata( style ):
+						QtCore.QCoreApplication.processEvents()
+						if progdialog.wasCanceled():
+							break
+						prog_idx += 1
+						progdialog.setValue(prog_idx)
+					
+					if ca.hasMetadata( style ) and ca.isWritable():
+						if not ca.removeMetadata( style ):
+							if has_md_count == 1:
+								QtGui.QMessageBox.warning(self, self.tr("Remove failed"), self.tr("The tag removal operation seemed to fail!"))
+							else:
+								QtGui.QMessageBox.warning(self, self.tr("Remove failed"),
+														  self.tr("The tag removal operation seemed to fail for {0}  Operation aborted!".format(ca.path)))
+							break
+				progdialog.close()		
+				self.fileSelectionList.updateSelectedRows()
+				self.updateInfoBox()
+				self.updateMenus()
 
 	def dirtyFlagVerification( self, title, desc):
 		if self.dirtyFlag:
@@ -1369,7 +1401,7 @@ class TaggerWindow( QtGui.QMainWindow):
 	def renameArchive(self):
 		if self.comic_archive is not None:
 			if self.dirtyFlagVerification( "File Rename",
-									"If rename files now, unsave data in the form will be lost.  Are you sure?"):			
+									"If rename files now, unsaved data in the form will be lost.  Are you sure?"):			
 				#get list of archives from filelist
 				ca_list = self.fileSelectionList.getSelectedArchiveList()
 				dlg = RenameWindow( self, ca_list, self.load_data_style, self.settings )

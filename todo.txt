@@ -5,15 +5,14 @@ Features
 Multi-file:
 
 		Batch Functions:
-				Delete
-								
-				Auto-Select
+
+				Batch Auto-Select
 						Start/Options Dialog
 						Progress Dialog - maybe reuse
 						Interactive dialog at end
 						Summary Dialog
 								
-				Copy Block
+				Batch Tag Copy
 						Verify overwrites
 
 				Rename
@@ -24,7 +23,8 @@ Multi-file:
 		Filelist:
 				Add archive type column
 				add read-only column
-				
+				Better column sizing
+				Text display to cut out middle if too short?
 
 -----------------------------------------------------
 Bugs

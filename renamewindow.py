@@ -78,14 +78,24 @@ class RenameWindow(QtGui.QDialog):
 	def accept( self ):
 		QtGui.QDialog.accept(self)		
 
-		for item in self.rename_list:
+		progdialog = QtGui.QProgressDialog("", "Cancel", 0, len(self.rename_list), self)
+		progdialog.setWindowTitle( "Renaming Archives" )
+		progdialog.setWindowModality(QtCore.Qt.WindowModal)
+
+		for idx,item in enumerate(self.rename_list):
+
+			QtCore.QCoreApplication.processEvents()
+			if progdialog.wasCanceled():
+				break
+			idx += 1
+			progdialog.setValue(idx)
 			
 			if item['new_name'] == os.path.basename( item['archive'].path ):
 				print item['new_name'] , "Filename is already good!"
-				break
+				continue
 			
 			if not item['archive'].isWritable():
-				break
+				continue
 			
 			folder = os.path.dirname( os.path.abspath( item['archive'].path ) )
 			new_abs_path = utils.unique_file( os.path.join( folder, item['new_name'] ) )
@@ -93,4 +103,5 @@ class RenameWindow(QtGui.QDialog):
 			os.rename( item['archive'].path, new_abs_path )
 	
 			item['archive'].rename( new_abs_path )
-		
+			
+		progdialog.close()		

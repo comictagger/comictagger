@@ -75,15 +75,23 @@ class FileSelectionList(QWidget):
 		self.modifiedFlag = False
 		
 		selectAllAction = QAction("Select All", self)
-		invertSelectionAction = QAction("Invert Selection", self)
 		removeAction = QAction("Remove Selected Items", self)
+		self.separator = QAction("",self)
+		self.separator.setSeparator(True)
+		
+		selectAllAction.setShortcut( 'Ctrl+A' )
+		removeAction.setShortcut( 'Ctrl+X' )
 		
 		selectAllAction.triggered.connect(self.selectAll)
 		removeAction.triggered.connect(self.removeSelection)
 
+		self.addAction(self.separator)
 		self.addAction(selectAllAction)			
-		self.addAction(removeAction)		
+		self.addAction(removeAction)
 
+	def addAppAction( self, action ):
+		self.insertAction( self.separator , action )
+	
 	def setModifiedFlag( self, modified ):
 		self.modifiedFlag = modified
 		

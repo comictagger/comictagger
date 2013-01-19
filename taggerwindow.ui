@@ -72,7 +72,7 @@
             <item row="1" column="0">
              <widget class="QLabel" name="saveStyleLabel">
               <property name="text">
-               <string>Write Style</string>
+               <string>Modify Style</string>
               </property>
              </widget>
             </item>
@@ -1176,7 +1176,7 @@
      <x>0</x>
      <y>0</y>
      <width>968</width>
-     <height>28</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuComicTagger">
