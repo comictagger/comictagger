@@ -1368,12 +1368,16 @@ class TaggerWindow( QtGui.QMainWindow):
 	
 	def renameArchive(self):
 		if self.comic_archive is not None:
-			self.formToMetadata()
-			dlg = RenameWindow( self, self.comic_archive, self.metadata, self.settings )
-			dlg.setModal( True )
-			if dlg.exec_():
-				self.fileSelectionList.updateCurrentRow()
-				self.loadArchive( self.comic_archive )
+			if self.dirtyFlagVerification( "File Rename",
+									"If rename files now, unsave data in the form will be lost.  Are you sure?"):			
+				#get list of archives from filelist
+				ca_list = self.fileSelectionList.getSelectedArchiveList()
+				dlg = RenameWindow( self, ca_list, self.load_data_style, self.settings )
+				dlg.setModal( True )
+				if dlg.exec_():
+					self.fileSelectionList.updateSelectedRows()
+					self.loadArchive( self.comic_archive )
+
 
 		
 	def fileListSelectionChanged( self, qvarFI ):

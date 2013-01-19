@@ -5,38 +5,43 @@ Features
 Multi-file:
 
 		Batch Functions:
+				Delete
+								
 				Auto-Select
 						Start/Options Dialog
 						Progress Dialog - maybe reuse
 						Interactive dialog at end
 						Summary Dialog
-						
-				Rename
-						Start dialog with preview
-								maybe table with checkboxes?
 								
 				Copy Block
 						Verify overwrites
-				Delete
+
+				Rename
+						maybe make preview a table with checkboxes?
+						
 				Export to CBZ?
+
+		Filelist:
+				Add archive type column
+				add read-only column
+				
 
 -----------------------------------------------------
 Bugs
 -----------------------------------------------------
-
+Ultimate Spider-Man files can't be read
+		---Maybe the foldername in the archive?
+		
 -----------------------------------------------------
 Big  Future Features
 -----------------------------------------------------
-GUI to handle mutliple files or folders
-
 Scrape alternate Covers from ComicVine issue pages
 
 GCD scraper or DB reader
 
-pyComicMetaThis CBI features
-
 Auto search:
 	Searching w/o issue #
+	
 -----------------------------------------------------
 Small(er) Future Feature
 -----------------------------------------------------
@@ -55,7 +60,6 @@ Archive function to  detect tag blocks out of sync
 
 Settings
 	Add setting to dis-allow writing CBI to RAR
-	Overwrite or overlay
 
 Google App engine to store hashes 
 	Content Hashes, Image hashes, who knows?
@@ -86,17 +90,4 @@ Release Process
 	
 ----------------------------------------------
 
-
-COMIC RACK Questions
-
-Missing from XML as enterable in ComicRack:
-	Main Character or Team
-	Review
-	User Rating
-	
-Some that seem library only:
-	"Series Complete"
-	Tags
-	Proposed Values
-	Community Rating
 	

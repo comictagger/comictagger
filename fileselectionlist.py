@@ -88,10 +88,10 @@ class FileSelectionList(QWidget):
 		self.modifiedFlag = modified
 		
 	def selectAll( self ):
-		self.twList.setRangeSelected( QTableWidgetSelectionRange ( 0, 0, self.twList.rowCount()-1, 1 ), True )
+		self.twList.setRangeSelected( QTableWidgetSelectionRange ( 0, 0, self.twList.rowCount()-1, 3 ), True )
 
 	def deselectAll( self ):
-		self.twList.setRangeSelected( QTableWidgetSelectionRange ( 0, 0, self.twList.rowCount()-1, 1 ), False )
+		self.twList.setRangeSelected( QTableWidgetSelectionRange ( 0, 0, self.twList.rowCount()-1, 3 ), False )
 	
 	def removeSelection( self ):
 		row_list = []
@@ -110,12 +110,12 @@ class FileSelectionList(QWidget):
 		row_list.sort()
 		row_list.reverse()
 
-		self.twList.itemSelectionChanged.disconnect( self.itemSelectionChangedCB )
+		self.twList.currentItemChanged.disconnect( self.currentItemChangedCB )
 
 		for i in row_list:
 			self.twList.removeRow(i)
 			
-		self.twList.itemSelectionChanged.connect( self.itemSelectionChangedCB )
+		self.twList.currentItemChanged.connect( self.currentItemChangedCB )
 		
 		if self.twList.rowCount() > 0:
 			self.twList.selectRow(0)
@@ -190,8 +190,8 @@ class FileSelectionList(QWidget):
 			
 			filename_item = QTableWidgetItem()
 			folder_item =   QTableWidgetItem()
-			cix_item =      QTableWidgetItem()
-			cbi_item =      QTableWidgetItem()
+			cix_item =      FileTableWidgetItem()
+			cbi_item =      FileTableWidgetItem()
 				
 			filename_item.setFlags(Qt.ItemIsSelectable| Qt.ItemIsEnabled)
 			filename_item.setData( Qt.UserRole , fi )
@@ -246,9 +246,26 @@ class FileSelectionList(QWidget):
 		fi.ca.readCIX()
 		fi.ca.hasCBI()
 
-			
+	def getSelectedArchiveList( self ):
+		ca_list = []
+		for r in range( self.twList.rowCount() ):
+			item = self.twList.item(r, 0)
+			if self.twList.isItemSelected(item):
+				fi = item.data( Qt.UserRole ).toPyObject()
+				ca_list.append(fi.ca)
+
+		return ca_list
+	
 	def updateCurrentRow( self ):
 		self.updateRow( self.twList.currentRow() )
+
+	def updateSelectedRows( self ):
+		self.twList.setSortingEnabled(False)
+		for r in range( self.twList.rowCount() ):
+			item = self.twList.item(r, 0)
+			if self.twList.isItemSelected(item):
+				self.updateRow( r )
+		self.twList.setSortingEnabled(True)
 			
 	def currentItemChangedCB( self, curr, prev ):
 

@@ -28,29 +28,42 @@ import utils
 
 class RenameWindow(QtGui.QDialog):
 		
-	def __init__( self, parent, comic_archive, metadata, settings ):
+	def __init__( self, parent, comic_archive_list, data_style, settings ):
 		super(RenameWindow, self).__init__(parent)
 		
 		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'renamewindow.ui' ), self)
 
 		self.settings = settings
-		self.metadata = metadata
-		self.comic_archive = comic_archive
-		self.new_name = None
+		self.comic_archive_list = comic_archive_list
+		self.data_style = data_style
 		
 		self.btnSettings.clicked.connect( self.modifySettings )
 		self.configRenamer()
 		self.doPreview()
 
 	def configRenamer( self ):
-		self.renamer = FileRenamer( self.metadata )
+		self.renamer = FileRenamer( None )
 		self.renamer.setTemplate( self.settings.rename_template )
 		self.renamer.setIssueZeroPadding( self.settings.rename_issue_number_padding )
 		self.renamer.setSmartCleanup( self.settings.rename_use_smart_string_cleanup )		
 		
 	def doPreview( self ):
-		self.new_name = self.renamer.determineName( self.comic_archive.path )		
-		preview = u"\"{0}\"  ==>  \"{1}\"".format( self.comic_archive.path, self.new_name )
+		preview = ""
+		self.rename_list = []
+		
+		for ca in self.comic_archive_list:
+			md = ca.readMetadata(self.data_style)
+			if md.isEmpty:
+				md = ca.metadataFromFilename()
+			self.renamer.setMetadata( md )
+			new_name = self.renamer.determineName( ca.path )		
+			preview += u"\"{0}\"  ==>  \"{1}\"\n".format( ca.path, new_name )
+
+			dict_item = dict()
+			dict_item['archive'] = ca
+			dict_item['new_name'] = new_name
+			self.rename_list.append( dict_item)
+
 		self.textEdit.setPlainText( preview )
 		
 	def modifySettings( self ):
@@ -64,16 +77,20 @@ class RenameWindow(QtGui.QDialog):
 				
 	def accept( self ):
 		QtGui.QDialog.accept(self)		
-		
-		if self.new_name == os.path.basename( self.comic_archive.path ):
-			#print msg_hdr + "Filename is already good!"
-			return
-		
-		folder = os.path.dirname( os.path.abspath( self.comic_archive.path ) )
-		new_abs_path = utils.unique_file( os.path.join( folder, self.new_name ) )
 
-		os.rename( self.comic_archive.path, new_abs_path )
-
-		self.new_name = new_abs_path
-		self.comic_archive.rename( new_abs_path )
+		for item in self.rename_list:
+			
+			if item['new_name'] == os.path.basename( item['archive'].path ):
+				print item['new_name'] , "Filename is already good!"
+				break
+			
+			if not item['archive'].isWritable():
+				break
+			
+			folder = os.path.dirname( os.path.abspath( item['archive'].path ) )
+			new_abs_path = utils.unique_file( os.path.join( folder, item['new_name'] ) )
+	
+			os.rename( item['archive'].path, new_abs_path )
+	
+			item['archive'].rename( new_abs_path )
 		
