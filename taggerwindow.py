@@ -99,6 +99,7 @@ class TaggerWindow( QtGui.QMainWindow):
 		
 		self.fileSelectionList.selectionChanged.connect( self.fileListSelectionChanged )
 		self.fileSelectionList.listCleared.connect( self.fileListCleared )
+		self.splitter.setSizes([500,200])
 		# ATB: Disable the list for now...
 		#self.splitter.setSizes([100,0])
 		#self.splitter.setHandleWidth(0)
@@ -164,7 +165,9 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.raise_()
 		QtCore.QCoreApplication.processEvents()
 
-		self.fileSelectionList.addAppAction( self.actionAutoSearch )
+		self.fileSelectionList.addAppAction( self.actionAutoIdentify )
+		self.fileSelectionList.addAppAction( self.actionAutoTag )
+		self.fileSelectionList.addAppAction( self.actionCopyTags )
 		self.fileSelectionList.addAppAction( self.actionRename )
 		self.fileSelectionList.addAppAction( self.actionRemoveAuto )
 		self.fileSelectionList.addAppAction( self.actionRepackage )
@@ -244,10 +247,18 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.actionWrite_Tags.setStatusTip( 'Save tags to comic archive' )
 		self.actionWrite_Tags.triggered.connect( self.commitMetadata )
 
-		self.actionRemoveAuto.setShortcut( 'Ctrl+D' )
-		self.actionRemoveAuto.setStatusTip( 'Remove selected style tags from archive' )
-		self.actionRemoveAuto.triggered.connect( self.removeAuto )
+		self.actionAutoTag.setShortcut( 'Ctrl+T' )
+		self.actionAutoTag.setStatusTip( 'Auto-tag multiple archives' )
+		self.actionAutoTag.triggered.connect( self.autoTag )
+				
+		self.actionCopyTags.setShortcut( 'Ctrl+C' )
+		self.actionCopyTags.setStatusTip( 'Copy one tag style to another' )
+		self.actionCopyTags.triggered.connect( self.copyTags )
 
+		self.actionRemoveAuto.setShortcut( 'Ctrl+D' )
+		self.actionRemoveAuto.setStatusTip( 'Remove currently selected modify tag style from the archive' )
+		self.actionRemoveAuto.triggered.connect( self.removeAuto )
+		
 		self.actionRemoveCBLTags.setStatusTip( 'Remove ComicBookLover tags from comic archive' )
 		self.actionRemoveCBLTags.triggered.connect( self.removeCBLTags )
 
@@ -280,8 +291,8 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.actionSearchOnline.setStatusTip( 'Search online for tags' )
 		self.actionSearchOnline.triggered.connect( self.queryOnline )
 
-		self.actionAutoSearch.setShortcut( 'Ctrl+Shift+A' )
-		self.actionAutoSearch.triggered.connect( self.autoSelectSearch )
+		self.actionAutoIdentify.setShortcut( 'Ctrl+I' )
+		self.actionAutoIdentify.triggered.connect( self.autoIdentifySearch )
 		
 		self.actionApplyCBLTransform.setShortcut( 'Ctrl+L' )
 		self.actionApplyCBLTransform.setStatusTip( 'Modify tags specifically for CBL format' )
@@ -309,7 +320,7 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.actionWrite_Tags.setIcon( QtGui.QIcon(os.path.join(ComicTaggerSettings.baseDir(),'graphics/save.png')) )
 		self.actionParse_Filename.setIcon( QtGui.QIcon(os.path.join(ComicTaggerSettings.baseDir(),'graphics/parse.png')) )
 		self.actionSearchOnline.setIcon( QtGui.QIcon(os.path.join(ComicTaggerSettings.baseDir(),'graphics/search.png')) )
-		self.actionAutoSearch.setIcon( QtGui.QIcon(os.path.join(ComicTaggerSettings.baseDir(),'graphics/auto.png')) )
+		self.actionAutoIdentify.setIcon( QtGui.QIcon(os.path.join(ComicTaggerSettings.baseDir(),'graphics/auto.png')) )
 		self.actionClearEntryForm.setIcon( QtGui.QIcon(os.path.join(ComicTaggerSettings.baseDir(),'graphics/clear.png')) )
 		self.actionPageBrowser.setIcon( QtGui.QIcon(os.path.join(ComicTaggerSettings.baseDir(),'graphics/browse.png') ))
 		
@@ -317,54 +328,10 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.toolBar.addAction( self.actionWrite_Tags )
 		self.toolBar.addAction( self.actionParse_Filename )
 		self.toolBar.addAction( self.actionSearchOnline )
-		self.toolBar.addAction( self.actionAutoSearch )
+		self.toolBar.addAction( self.actionAutoIdentify )
 		self.toolBar.addAction( self.actionClearEntryForm )
 		self.toolBar.addAction( self.actionPageBrowser )
-	"""       
-	def repackageArchive( self ):
-		if self.comic_archive is not None:
-			if self.comic_archive.isZip():			
-				QtGui.QMessageBox.information(self, self.tr("Export as Zip Archive"), self.tr("It's already a Zip Archive!"))
-				return
 
-			if not self.dirtyFlagVerification( "Export as Zip Archive",
-										"If you export the archive to Zip format, the data in the form won't be in the new " +
-										"archive unless you save it first.  Do you want to continue with the export?"):
-				return
-			
-			export_name = os.path.splitext(self.comic_archive.path)[0] + ".cbz"
-			#export_name = utils.unique_file( export_name )
-
-			dialog = QtGui.QFileDialog(self)
-			dialog.setFileMode(QtGui.QFileDialog.AnyFile)
-			if self.settings.last_opened_folder is not None:
-				dialog.setDirectory( self.settings.last_opened_folder )
-			filters  = [ 
-						 "Comic archive files (*.cbz *.zip)",
-						 "Any files (*)"
-						 ]			
-			dialog.setNameFilters(filters)
-			dialog.selectFile( export_name )
-					
-			if (dialog.exec_()):
-				fileList = dialog.selectedFiles()
-				if os.path.lexists( fileList[0] ):
-					reply = QtGui.QMessageBox.question(self, 
-						 self.tr("Export as Zip Archive"), 
-						 self.tr(fileList[0] + " already exisits.  Are you sure you want to overwrite it?"),
-						 QtGui.QMessageBox.Yes, QtGui.QMessageBox.No )
-						 
-					if reply == QtGui.QMessageBox.No:		
-						return
-			
-			QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
-			retcode = self.comic_archive.exportAsZip( str(fileList[0]) )
-			QtGui.QApplication.restoreOverrideCursor()		
-		
-			if not retcode:
-				QtGui.QMessageBox.information(self, self.tr("Export as Zip Archive"), self.tr("An error occure while exporting."))
-	"""		
-	#ATB2
 	def repackageArchive( self ):
 		ca_list = self.fileSelectionList.getSelectedArchiveList()
 		rar_count = 0
@@ -499,7 +466,7 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.actionViewRawCBLTags.setEnabled( False )
 		self.actionViewRawCRTags.setEnabled( False )
 		self.actionParse_Filename.setEnabled( False )
-		self.actionAutoSearch.setEnabled( False )
+		self.actionAutoIdentify.setEnabled( False )
 		self.actionRename.setEnabled( False )
 		self.actionApplyCBLTransform.setEnabled( False )
 			
@@ -509,7 +476,7 @@ class TaggerWindow( QtGui.QMainWindow):
 			has_cbi = self.comic_archive.hasCBI()
 			
 			self.actionParse_Filename.setEnabled( True )
-			self.actionAutoSearch.setEnabled( True )
+			self.actionAutoIdentify.setEnabled( True )
 			self.actionRename.setEnabled( True )
 			self.actionApplyCBLTransform.setEnabled( True )
 			
@@ -867,9 +834,9 @@ class TaggerWindow( QtGui.QMainWindow):
 			#							"If you open a new archive now, data in the form will be lost.  Are you sure?"):
 			self.fileSelectionList.addPathList( fileList )
 			
-	def autoSelectSearch(self):
+	def autoIdentifySearch(self):
 		if self.comic_archive is None:
-			QtGui.QMessageBox.warning(self, self.tr("Automatic Online Search"), 
+			QtGui.QMessageBox.warning(self, self.tr("Automatic Identify Search"), 
 			       self.tr("You need to load a comic first!"))
 			return
 		
@@ -880,7 +847,7 @@ class TaggerWindow( QtGui.QMainWindow):
 		issue_number = str(self.leIssueNum.text()).strip()
 
 		if autoselect and issue_number == "":
-			QtGui.QMessageBox.information(self,"Automatic Online Search", "Can't auto-select without an issue number (yet!)")
+			QtGui.QMessageBox.information(self,"Automatic Identify Search", "Can't auto-identify without an issue number (yet!)")
 			return
 	
 		if unicode(self.leSeries.text()).strip() != "":
@@ -1341,6 +1308,11 @@ class TaggerWindow( QtGui.QMainWindow):
 			if ca.hasMetadata( style ):
 				has_md_count += 1
 
+		if has_md_count == 0:
+			QtGui.QMessageBox.information(self, self.tr("Remove Tags"),
+						self.tr("No archives with {0} tags selected!".format(MetaDataStyle.name[style])))
+			return
+				
 		if has_md_count != 0 and not self.dirtyFlagVerification( "Remove Tags",
 						"If remove tags now, unsaved data in the form will be lost.  Are you sure?"):			
 			return
@@ -1377,6 +1349,76 @@ class TaggerWindow( QtGui.QMainWindow):
 				self.fileSelectionList.updateSelectedRows()
 				self.updateInfoBox()
 				self.updateMenus()
+
+				
+	def copyTags( self ):
+		# copy the indicated tags in the archive
+		ca_list = self.fileSelectionList.getSelectedArchiveList()
+		has_src_count = 0
+		
+		src_style = self.load_data_style
+		dest_style = self.save_data_style
+		
+		if src_style == dest_style:
+			QtGui.QMessageBox.information(self, self.tr("Copy Tags"), self.tr("Can't copy tag style onto itself." +
+						"  Read style and modify style must be different."))
+			return
+		
+		for ca in ca_list:
+			if ca.hasMetadata( src_style ):
+				has_src_count += 1
+				
+		if has_src_count == 0:
+			QtGui.QMessageBox.information(self, self.tr("Copy Tags"), self.tr("No archives with {0} tags selected!".format(
+					MetaDataStyle.name[src_style])))
+			return
+			
+		if has_src_count != 0 and not self.dirtyFlagVerification( "Copy Tags",
+						"If copy tags now, unsaved data in the form may be lost.  Are you sure?"):			
+			return
+		
+		if has_src_count != 0:
+			reply = QtGui.QMessageBox.question(self, 
+			     self.tr("Copy Tags"), 
+			     self.tr("Are you sure you wish to copy the {0} tags to {1} tags in {2} archive(s)?".format(
+					MetaDataStyle.name[src_style], MetaDataStyle.name[dest_style], has_src_count)),
+			     QtGui.QMessageBox.Yes, QtGui.QMessageBox.No )
+			     
+			if reply == QtGui.QMessageBox.Yes:
+				progdialog = QtGui.QProgressDialog("", "Cancel", 0, has_src_count, self)
+				progdialog.setWindowTitle( "Copying Tags" )
+				progdialog.setWindowModality(QtCore.Qt.WindowModal)
+				prog_idx = 0
+				
+				for ca in ca_list:
+					if ca.hasMetadata( src_style ):
+						QtCore.QCoreApplication.processEvents()
+						if progdialog.wasCanceled():
+							break
+						prog_idx += 1
+						progdialog.setValue(prog_idx)
+						QtCore.QCoreApplication.processEvents()
+					
+					if ca.hasMetadata( src_style ) and ca.isWritable():
+						md = ca.readMetadata( src_style )
+
+						if dest_style == MetaDataStyle.CBI and self.settings.apply_cbl_transform_on_bulk_operation:
+							md = CBLTransformer( md, self.settings ).apply()
+												
+						if not ca.writeMetadata( md, dest_style ):
+							if has_md_count == 1:
+								QtGui.QMessageBox.warning(self, self.tr("Remove failed"), self.tr("The tag removal operation seemed to fail!"))
+							else:
+								QtGui.QMessageBox.warning(self, self.tr("Remove failed"),
+														  self.tr("The tag removal operation seemed to fail for {0}  Operation aborted!".format(ca.path)))
+							break
+				progdialog.close()		
+				self.fileSelectionList.updateSelectedRows()
+				self.updateInfoBox()
+				self.updateMenus()
+				
+	def autoTag( self ):
+		print "TBD"
 
 	def dirtyFlagVerification( self, title, desc):
 		if self.dirtyFlag:

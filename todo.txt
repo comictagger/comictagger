@@ -12,29 +12,34 @@ Multi-file:
 						Interactive dialog at end
 						Summary Dialog
 								
-				Batch Tag Copy
-						Verify overwrites
-						
 				Export to CBZ:
 						start dialog with:
 								option to delete originals
 								option to add to list
-								option to stop current export if file already exists
-								
+								option, when filename already exists:
+										create new, unique file
+										don't export
+										over-write existing zip
+										    -- special case of misnamed RAR as cbz
 						maybe show a summary of files created at end
 						
-
 				Rename
-						check-box for rows?
 
+						check-box for rows?
+						fix extensions?
+
+				Batch Tag Copy
+						Disallow overwrites?
+						
 
 -----------------------------------------------------
 Bugs
 -----------------------------------------------------
 Ultimate Spider-Man files can't be read
-		---Maybe the foldername in the archive?
-Last opened folder memory??
-		
+		square bracket in folder name
+
+(python:4401): GLib-ERROR **: Creating pipes for GWakeup: Too many open files
+
 -----------------------------------------------------
 Big  Future Features
 -----------------------------------------------------

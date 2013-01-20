@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>968</width>
+    <width>1007</width>
     <height>575</height>
    </rect>
   </property>
@@ -1175,8 +1175,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>968</width>
-     <height>25</height>
+     <width>1007</width>
+     <height>28</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuComicTagger">
@@ -1185,7 +1185,7 @@
     </property>
     <widget class="QMenu" name="menuRemove">
      <property name="title">
-      <string>Remove</string>
+      <string>Remove Tags</string>
      </property>
      <addaction name="actionRemoveAuto"/>
      <addaction name="actionRemoveCBLTags"/>
@@ -1201,6 +1201,8 @@
     <addaction name="actionLoad"/>
     <addaction name="actionLoadFolder"/>
     <addaction name="actionWrite_Tags"/>
+    <addaction name="actionAutoTag"/>
+    <addaction name="actionCopyTags"/>
     <addaction name="menuRemove"/>
     <addaction name="menuViewRawTags"/>
     <addaction name="actionRepackage"/>
@@ -1225,7 +1227,7 @@
     <addaction name="actionClearEntryForm"/>
     <addaction name="actionParse_Filename"/>
     <addaction name="actionSearchOnline"/>
-    <addaction name="actionAutoSearch"/>
+    <addaction name="actionAutoIdentify"/>
     <addaction name="separator"/>
     <addaction name="actionApplyCBLTransform"/>
    </widget>
@@ -1334,18 +1336,18 @@
     <string>Settings...</string>
    </property>
   </action>
-  <action name="actionAutoSearch">
+  <action name="actionAutoIdentify">
    <property name="text">
-    <string>Search and Auto-Select</string>
+    <string>Auto-Identify</string>
    </property>
    <property name="iconText">
-    <string>Auto-Select</string>
+    <string>Auto-Identify</string>
    </property>
    <property name="toolTip">
-    <string>Search online for tags and auto-select best match</string>
+    <string>Search online for tags and auto-identify best match for single archive</string>
    </property>
    <property name="statusTip">
-    <string>Search online for tags and auto-select best match</string>
+    <string>Search online for tags and auto-identify best match for single archive</string>
    </property>
   </action>
   <action name="actionPageBrowser">
@@ -1405,6 +1407,22 @@
   <action name="actionLoadFolder">
    <property name="text">
     <string>Open Folder</string>
+   </property>
+  </action>
+  <action name="actionCopyTags">
+   <property name="text">
+    <string>Copy Tags</string>
+   </property>
+  </action>
+  <action name="actionAutoTag">
+   <property name="text">
+    <string>Auto-Tag</string>
+   </property>
+   <property name="toolTip">
+    <string>Search online for tags,auto-identify best match, and save to archive</string>
+   </property>
+   <property name="statusTip">
+    <string>Search online for tags,auto-identify best match, and save to archive</string>
    </property>
   </action>
  </widget>

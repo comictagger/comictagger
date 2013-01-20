@@ -105,10 +105,10 @@ class FileSelectionList(QWidget):
 		self.modifiedFlag = modified
 		
 	def selectAll( self ):
-		self.twList.setRangeSelected( QTableWidgetSelectionRange ( 0, 0, self.twList.rowCount()-1, 3 ), True )
+		self.twList.setRangeSelected( QTableWidgetSelectionRange ( 0, 0, self.twList.rowCount()-1, 5 ), True )
 
 	def deselectAll( self ):
-		self.twList.setRangeSelected( QTableWidgetSelectionRange ( 0, 0, self.twList.rowCount()-1, 3 ), False )
+		self.twList.setRangeSelected( QTableWidgetSelectionRange ( 0, 0, self.twList.rowCount()-1, 5 ), False )
 	
 	def removeSelection( self ):
 		row_list = []
