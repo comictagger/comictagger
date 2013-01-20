@@ -1389,7 +1389,7 @@
   </action>
   <action name="actionRemoveAuto">
    <property name="text">
-    <string>Remove Selected Tag Style</string>
+    <string>Remove Current 'Modify' Tag Style</string>
    </property>
   </action>
   <action name="actionRename">

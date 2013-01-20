@@ -477,11 +477,11 @@ class ComicArchive:
 	def isFolder( self ):
 		return self.archive_type ==  self.ArchiveType.Folder
 
-	def isWritable( self ):	
+	def isWritable( self, check_rar_status=True ):	
 		if self.archive_type == self.ArchiveType.Unknown :
 			return False
 		
-		elif self.isRar() and self.archiver.rar_exe_path is None:
+		elif check_rar_status and self.isRar() and self.archiver.rar_exe_path is None:
 			return False
 			
 		elif not os.access(self.path, os.W_OK):

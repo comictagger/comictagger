@@ -48,23 +48,55 @@ class RenameWindow(QtGui.QDialog):
 		self.renamer.setSmartCleanup( self.settings.rename_use_smart_string_cleanup )		
 		
 	def doPreview( self ):
-		preview = ""
 		self.rename_list = []
-		
+		while self.twList.rowCount() > 0:
+			self.twList.removeRow(0)
+
+		self.twList.setSortingEnabled(False)
+			
 		for ca in self.comic_archive_list:
 			md = ca.readMetadata(self.data_style)
 			if md.isEmpty:
 				md = ca.metadataFromFilename()
 			self.renamer.setMetadata( md )
 			new_name = self.renamer.determineName( ca.path )		
-			preview += u"\"{0}\"  ==>  \"{1}\"\n".format( ca.path, new_name )
 
+			row = self.twList.rowCount()
+			self.twList.insertRow( row )
+			folder_item =   QtGui.QTableWidgetItem()
+			old_name_item = QtGui.QTableWidgetItem()
+			new_name_item = QtGui.QTableWidgetItem()
+			
+			item_text = os.path.split(ca.path)[0]
+			folder_item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
+			self.twList.setItem(row, 0, folder_item)
+			folder_item.setText( item_text )
+			folder_item.setData( QtCore.Qt.ToolTipRole, item_text )
+					
+			item_text = os.path.split(ca.path)[1]
+			old_name_item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
+			self.twList.setItem(row, 1, old_name_item)
+			old_name_item.setText( item_text )
+			old_name_item.setData( QtCore.Qt.ToolTipRole, item_text )
+
+			new_name_item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
+			self.twList.setItem(row, 2, new_name_item)
+			new_name_item.setText( new_name )
+			new_name_item.setData( QtCore.Qt.ToolTipRole, new_name )
+			
 			dict_item = dict()
 			dict_item['archive'] = ca
 			dict_item['new_name'] = new_name
 			self.rename_list.append( dict_item)
 
-		self.textEdit.setPlainText( preview )
+		# Adjust column sizes
+		self.twList.setVisible( False )
+		self.twList.resizeColumnsToContents()
+		self.twList.setVisible( True )
+		if self.twList.columnWidth(0) > 200:
+			self.twList.setColumnWidth(0, 200)
+			
+		self.twList.setSortingEnabled(True)
 		
 	def modifySettings( self ):
 		settingswin = SettingsWindow( self, self.settings )
@@ -94,7 +126,7 @@ class RenameWindow(QtGui.QDialog):
 				print item['new_name'] , "Filename is already good!"
 				continue
 			
-			if not item['archive'].isWritable():
+			if not item['archive'].isWritable(check_rar_status=False):
 				continue
 			
 			folder = os.path.dirname( os.path.abspath( item['archive'].path ) )

@@ -44,11 +44,6 @@
      </column>
      <column>
       <property name="text">
-       <string>Path</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
        <string>CR</string>
       </property>
       <property name="toolTip">
@@ -64,6 +59,21 @@
       </property>
       <property name="textAlignment">
        <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Type</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>R/O</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Folder</string>
       </property>
      </column>
     </widget>

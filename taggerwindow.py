@@ -167,6 +167,7 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.fileSelectionList.addAppAction( self.actionAutoSearch )
 		self.fileSelectionList.addAppAction( self.actionRename )
 		self.fileSelectionList.addAppAction( self.actionRemoveAuto )
+		self.fileSelectionList.addAppAction( self.actionRepackage )
 		
 		if len(file_list) != 0:
 			self.fileSelectionList.addPathList( file_list )
@@ -319,7 +320,7 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.toolBar.addAction( self.actionAutoSearch )
 		self.toolBar.addAction( self.actionClearEntryForm )
 		self.toolBar.addAction( self.actionPageBrowser )
-       
+	"""       
 	def repackageArchive( self ):
 		if self.comic_archive is not None:
 			if self.comic_archive.isZip():			
@@ -362,7 +363,57 @@ class TaggerWindow( QtGui.QMainWindow):
 		
 			if not retcode:
 				QtGui.QMessageBox.information(self, self.tr("Export as Zip Archive"), self.tr("An error occure while exporting."))
+	"""		
+	#ATB2
+	def repackageArchive( self ):
+		ca_list = self.fileSelectionList.getSelectedArchiveList()
+		rar_count = 0
+		for ca in ca_list:
+			if ca.isRar( ):
+				rar_count += 1
+		
+		if rar_count == 0:
+			QtGui.QMessageBox.information(self, self.tr("Export as Zip Archive"), self.tr("No RAR archives selected!"))
+			return
+
+		if not self.dirtyFlagVerification( "Export as Zip Archive",
+								"If export archives as Zip now, unsaved data in the form may be lost.  Are you sure?"):			
+			return
+
+		if rar_count != 0:
+			reply = QtGui.QMessageBox.question(self, 
+			     self.tr("Export Archives"), 
+			     self.tr("Are you sure you wish to export {0} archive(s) to Zip format?".format(rar_count)),
+			     QtGui.QMessageBox.Yes, QtGui.QMessageBox.No )
+			     
+			if reply == QtGui.QMessageBox.No:
+				return
+		
+			progdialog = QtGui.QProgressDialog("", "Cancel", 0, rar_count, self)
+			progdialog.setWindowTitle( "Exporting as ZIP" )
+			progdialog.setWindowModality(QtCore.Qt.WindowModal)
+			prog_idx = 0
+		
+			for ca in ca_list:
+				if ca.isRar():
+					QtCore.QCoreApplication.processEvents()
+					if progdialog.wasCanceled():
+						break
+					prog_idx += 1
+					progdialog.setValue(prog_idx)
+
+					export_name = os.path.splitext(ca.path)[0] + ".cbz"
+					export_name = utils.unique_file( export_name )
+					retcode = ca.exportAsZip( export_name )
+				
+					if not retcode:
+						QtGui.QMessageBox.information(self, self.tr("Export as Zip Archive"),
+													  self.tr("An error occure while exporting {0}. Batch operation aborted!".format(ca.path)))
+						break
 			
+			progdialog.close()		
+			# ATB maybe show a summary of files created here...?
+
 	def aboutApp( self ):
 		
 		website = "http://code.google.com/p/comictagger"
@@ -444,7 +495,7 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.actionRemoveCRTags.setEnabled( True )
 		self.actionRemoveCBLTags.setEnabled( True )
 		self.actionWrite_Tags.setEnabled( False )
-		self.actionRepackage.setEnabled(False)
+		#self.actionRepackage.setEnabled(False)
 		self.actionViewRawCBLTags.setEnabled( False )
 		self.actionViewRawCRTags.setEnabled( False )
 		self.actionParse_Filename.setEnabled( False )
@@ -1420,6 +1471,7 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.comic_archive = None
 		self.clearForm()
 
+		self.settings.last_opened_folder = os.path.abspath(os.path.split(comic_archive.path)[0])
 		self.comic_archive = comic_archive
 		self.metadata = self.comic_archive.readMetadata(self.load_data_style)
 		if self.metadata is None:

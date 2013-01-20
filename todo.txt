@@ -14,23 +14,26 @@ Multi-file:
 								
 				Batch Tag Copy
 						Verify overwrites
+						
+				Export to CBZ:
+						start dialog with:
+								option to delete originals
+								option to add to list
+								option to stop current export if file already exists
+								
+						maybe show a summary of files created at end
+						
 
 				Rename
-						maybe make preview a table with checkboxes?
-						
-				Export to CBZ?
+						check-box for rows?
 
-		Filelist:
-				Add archive type column
-				add read-only column
-				Better column sizing
-				Text display to cut out middle if too short?
 
 -----------------------------------------------------
 Bugs
 -----------------------------------------------------
 Ultimate Spider-Man files can't be read
 		---Maybe the foldername in the archive?
+Last opened folder memory??
 		
 -----------------------------------------------------
 Big  Future Features
