@@ -33,6 +33,12 @@ import re
 
 class IssueString:
 	def __init__(self, text):
+	
+		if text is None:
+			self.num = None
+			self.suffix = ""
+			return
+			
 		self.text = str(text)
 		#strip out non float-y stuff
 		tmp_num_str = re.sub('[^0-9.-]',"", self.text )

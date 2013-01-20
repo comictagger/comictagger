@@ -183,7 +183,9 @@ class ComicVineTalker(QObject):
 		volume_results = self.fetchVolumeData( series_id )
 	
 		found = False
-		for record in volume_results['issues']: 
+		for record in volume_results['issues']:
+			if IssueString(issue_number).asFloat() is None:
+				issue_number = 1
 			if float(record['issue_number']) == float(issue_number):
 				found = True
 				break
