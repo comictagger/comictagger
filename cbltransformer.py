@@ -76,12 +76,22 @@ class CBLTransformer:
 			add_string_list_to_tags( self.metadata.locations )
 			
 		if self.settings.copy_notes_to_comments:
-			if self.metadata.notes is not None and self.metadata.notes not in self.metadata.comments:
-				self.metadata.comments += "\n\n" + self.metadata.notes
+			if self.metadata.notes is not None:
+				if self.metadata.comments is None:
+					self.metadata.comments = ""
+				else:
+					self.metadata.comments += "\n\n"
+				if self.metadata.notes not in self.metadata.comments:
+					self.metadata.comments += self.metadata.notes
 
 		if self.settings.copy_weblink_to_comments:
-			if self.metadata.webLink is not None and self.metadata.webLink not in self.metadata.comments:
-				self.metadata.comments += "\n\n" + self.metadata.webLink
+			if self.metadata.webLink is not None:
+				if self.metadata.comments is None:
+					self.metadata.comments = ""
+				else:
+					self.metadata.comments += "\n\n"
+				if self.metadata.webLink not in self.metadata.comments:
+					self.metadata.comments += self.metadata.webLink
 
 		return self.metadata
 

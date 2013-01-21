@@ -24,6 +24,8 @@ from pprint import pprint
 import urllib2, urllib 
 import math 
 import re
+import datetime
+import ctversion
 
 try:
 	from PyQt4.QtNetwork import QNetworkAccessManager, QNetworkRequest
@@ -243,7 +245,10 @@ class ComicVineTalker(QObject):
 		if settings.use_series_start_as_volume:
 			metadata.volume = volume_results['start_year']
 		
-		metadata.notes   = "Tagged with ComicTagger app using info from Comic Vine." 
+		metadata.notes   = "Tagged with ComicTagger {0} using info from Comic Vine on {1}.  [Issue ID {2}]".format(
+			ctversion.version,
+			datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+			issue_results['id']) 
 		#metadata.notes  += issue_results['site_detail_url']  
 		
 		metadata.webLink = issue_results['site_detail_url']
