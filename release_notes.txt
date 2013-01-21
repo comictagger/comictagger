@@ -1,5 +1,19 @@
 
 ---------------------------------  
+1.0.0-beta - ??-Jan-2013
+---------------------------------
+Version 1!  New multi-file processing in GUI!
+
+GUI Changes:
+  Open multiple files and/or folders via drag/drop or file dialog
+  File management list for easy viewing and selection
+  Batch tag remove
+  Batch export as zip
+  Batch rename
+  Batch tag copy
+  Batch auto-select and save!
+  
+---------------------------------  
 0.9.5-beta - 16-Jan-2013
 ---------------------------------
 Changes:

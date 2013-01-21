@@ -121,6 +121,7 @@ class RenameWindow(QtGui.QDialog):
 		progdialog = QtGui.QProgressDialog("", "Cancel", 0, len(self.rename_list), self)
 		progdialog.setWindowTitle( "Renaming Archives" )
 		progdialog.setWindowModality(QtCore.Qt.WindowModal)
+		progdialog.show()
 
 		for idx,item in enumerate(self.rename_list):
 
@@ -129,6 +130,7 @@ class RenameWindow(QtGui.QDialog):
 				break
 			idx += 1
 			progdialog.setValue(idx)
+			progdialog.setLabelText( item['new_name'] )
 			
 			if item['new_name'] == os.path.basename( item['archive'].path ):
 				print item['new_name'] , "Filename is already good!"

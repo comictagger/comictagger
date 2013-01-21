@@ -109,6 +109,17 @@ class FileSelectionList(QWidget):
 
 	def deselectAll( self ):
 		self.twList.setRangeSelected( QTableWidgetSelectionRange ( 0, 0, self.twList.rowCount()-1, 5 ), False )
+
+	def removeArchiveList( self, ca_list ):
+		self.twList.setSortingEnabled(False)
+		for ca in ca_list:
+			for row in range(self.twList.rowCount()):
+				fi = self.twList.item(row, FileSelectionList.dataColNum).data( Qt.UserRole ).toPyObject()
+				if fi.ca == ca:
+					self.twList.removeRow(row)
+					break
+		self.twList.setSortingEnabled(True)
+				
 	
 	def removeSelection( self ):
 		row_list = []
@@ -128,10 +139,12 @@ class FileSelectionList(QWidget):
 		row_list.reverse()
 
 		self.twList.currentItemChanged.disconnect( self.currentItemChangedCB )
+		self.twList.setSortingEnabled(False)
 
 		for i in row_list:
 			self.twList.removeRow(i)
 			
+		self.twList.setSortingEnabled(True)
 		self.twList.currentItemChanged.connect( self.currentItemChangedCB )
 		
 		if self.twList.rowCount() > 0:
@@ -155,6 +168,7 @@ class FileSelectionList(QWidget):
 		progdialog = QProgressDialog("", "Cancel", 0, len(filelist), self)
 		progdialog.setWindowTitle( "Adding Files" )
 		progdialog.setWindowModality(Qt.WindowModal)
+		progdialog.show()
 		
 		firstAdded = None
 		self.twList.setSortingEnabled(False)
@@ -163,6 +177,8 @@ class FileSelectionList(QWidget):
 			if progdialog.wasCanceled():
 				break
 			progdialog.setValue(idx)
+			progdialog.setLabelText(f)
+			QCoreApplication.processEvents()
 			row = self.addPathItem( f )
 			if firstAdded is None and row is not None:
 				firstAdded = row

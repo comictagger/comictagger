@@ -4,29 +4,21 @@ Features
 
 Multi-file:
 
+		File list:
+		
+				Delete archive function??
+				
 		Batch Functions:
 
 				Batch Auto-Select
 						Start/Options Dialog
 						Progress Dialog - maybe reuse
+								-Show compared images to show progress in a sexy way
 						Interactive dialog at end
 						Summary Dialog
 								
-				Export to CBZ:
-						start dialog with:
-								option to delete originals
-								option to add to list
-								option, when filename already exists:
-										create new, unique file
-										don't export
-										over-write existing zip
-										    -- special case of misnamed RAR as cbz
-						maybe show a summary of files created at end
-						
 				Rename
-
 						check-box for rows?
-						fix extensions?
 
 				Batch Tag Copy
 						Disallow overwrites?

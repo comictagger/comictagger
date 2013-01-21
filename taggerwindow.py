@@ -47,6 +47,7 @@ from pagelisteditor import PageListEditor
 from fileselectionlist import FileSelectionList
 from cbltransformer import CBLTransformer
 from renamewindow import RenameWindow
+from exportwindow import ExportWindow, ExportConflictOpts
 from pageloader import PageLoader
 import utils
 import ctversion
@@ -348,19 +349,21 @@ class TaggerWindow( QtGui.QMainWindow):
 			return
 
 		if rar_count != 0:
-			reply = QtGui.QMessageBox.question(self, 
-			     self.tr("Export Archives"), 
-			     self.tr("Are you sure you wish to export {0} archive(s) to Zip format?".format(rar_count)),
-			     QtGui.QMessageBox.Yes, QtGui.QMessageBox.No )
-			     
-			if reply == QtGui.QMessageBox.No:
+			dlg = ExportWindow( self, self.settings,
+						self.tr("You have selected {0} archive(s) to export  to Zip format.  New archives will be created in the same folder as the original.\n\nPlease choose options below, and select OK.\n".format(rar_count) ))
+			dlg.setModal( True )
+			if not dlg.exec_():
 				return
-		
+					
 			progdialog = QtGui.QProgressDialog("", "Cancel", 0, rar_count, self)
 			progdialog.setWindowTitle( "Exporting as ZIP" )
 			progdialog.setWindowModality(QtCore.Qt.WindowModal)
+			progdialog.show()
 			prog_idx = 0
 		
+			new_archives_to_add = []
+			archives_to_remove = []
+			
 			for ca in ca_list:
 				if ca.isRar():
 					QtCore.QCoreApplication.processEvents()
@@ -368,17 +371,35 @@ class TaggerWindow( QtGui.QMainWindow):
 						break
 					prog_idx += 1
 					progdialog.setValue(prog_idx)
+					progdialog.setLabelText( ca.path )
+					QtCore.QCoreApplication.processEvents()
 
-					export_name = os.path.splitext(ca.path)[0] + ".cbz"
-					export_name = utils.unique_file( export_name )
-					retcode = ca.exportAsZip( export_name )
-				
-					if not retcode:
-						QtGui.QMessageBox.information(self, self.tr("Export as Zip Archive"),
-													  self.tr("An error occure while exporting {0}. Batch operation aborted!".format(ca.path)))
-						break
+					original_path = os.path.abspath( ca.path )
+					export_name = os.path.splitext(original_path)[0] + ".cbz"
+					
+					if os.path.lexists( export_name ):
+						if dlg.fileConflictBehavior == ExportConflictOpts.dontCreate:
+							export_name = None
+						elif dlg.fileConflictBehavior == ExportConflictOpts.createUnique:
+							export_name = utils.unique_file( export_name )
+								
+					if export_name is not None:
+						if ca.exportAsZip( export_name ):
+							if dlg.addToList:
+								new_archives_to_add.append( export_name )
+							if dlg.deleteOriginal:
+								archives_to_remove.append( ca )
+								os.unlink( ca.path )
+								
+						else:
+							QtGui.QMessageBox.information(self, self.tr("Export as Zip Archive"),
+														  self.tr("An error occured while exporting {0} to {1}. Batch operation aborted!".format(original_path, export_name)))
+							break
+						
+			progdialog.close()
 			
-			progdialog.close()		
+			self.fileSelectionList.addPathList( new_archives_to_add )
+			self.fileSelectionList.removeArchiveList( archives_to_remove )
 			# ATB maybe show a summary of files created here...?
 
 	def aboutApp( self ):
@@ -1327,6 +1348,7 @@ class TaggerWindow( QtGui.QMainWindow):
 				progdialog = QtGui.QProgressDialog("", "Cancel", 0, has_md_count, self)
 				progdialog.setWindowTitle( "Removing Tags" )
 				progdialog.setWindowModality(QtCore.Qt.WindowModal)
+				progdialog.show()				
 				prog_idx = 0
 				
 				for ca in ca_list:
@@ -1336,6 +1358,8 @@ class TaggerWindow( QtGui.QMainWindow):
 							break
 						prog_idx += 1
 						progdialog.setValue(prog_idx)
+						progdialog.setLabelText( ca.path )
+						QtCore.QCoreApplication.processEvents()
 					
 					if ca.hasMetadata( style ) and ca.isWritable():
 						if not ca.removeMetadata( style ):
@@ -1388,6 +1412,7 @@ class TaggerWindow( QtGui.QMainWindow):
 				progdialog = QtGui.QProgressDialog("", "Cancel", 0, has_src_count, self)
 				progdialog.setWindowTitle( "Copying Tags" )
 				progdialog.setWindowModality(QtCore.Qt.WindowModal)
+				progdialog.show()
 				prog_idx = 0
 				
 				for ca in ca_list:
@@ -1397,6 +1422,7 @@ class TaggerWindow( QtGui.QMainWindow):
 							break
 						prog_idx += 1
 						progdialog.setValue(prog_idx)
+						progdialog.setLabelText( ca.path )
 						QtCore.QCoreApplication.processEvents()
 					
 					if ca.hasMetadata( src_style ) and ca.isWritable():
