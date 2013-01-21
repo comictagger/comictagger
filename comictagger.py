@@ -419,12 +419,12 @@ def process_file_cli( filename, opts, settings, match_results ):
 			print msg_hdr + "Can't rename without series name"
 			return
 
-		if ca.isZip():
-			new_ext = ".cbz"
-		elif ca.isRar():
-			new_ext = ".cbr"
-		else:
-			new_ext = None  # default
+		new_ext = None  # default
+		if settings.rename_extension_based_on_archive:
+			if ca.isZip():
+				new_ext = ".cbz"
+			elif ca.isRar():
+				new_ext = ".cbr"
 			
 		renamer = FileRenamer( md )
 		renamer.setTemplate( settings.rename_template )

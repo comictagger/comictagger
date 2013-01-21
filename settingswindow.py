@@ -141,6 +141,9 @@ class SettingsWindow(QtGui.QDialog):
 		self.leIssueNumPadding.setText( str(self.settings.rename_issue_number_padding) )
 		if self.settings.rename_use_smart_string_cleanup:
 			self.cbxSmartCleanup.setCheckState( QtCore.Qt.Checked )
+		if self.settings.rename_extension_based_on_archive:
+			self.cbxChangeExtension.setCheckState( QtCore.Qt.Checked )
+
 
 	def accept( self ):
 		
@@ -174,6 +177,7 @@ class SettingsWindow(QtGui.QDialog):
 		self.settings.rename_template = str(self.leRenameTemplate.text())
 		self.settings.rename_issue_number_padding = int(self.leIssueNumPadding.text())
 		self.settings.rename_use_smart_string_cleanup = self.cbxSmartCleanup.isChecked()
+		self.settings.rename_extension_based_on_archive = self.cbxChangeExtension.isChecked()
 		
 		self.settings.save()
 		QtGui.QDialog.accept(self)

@@ -22,7 +22,7 @@
      <item>
       <widget class="QTabWidget" name="tabWidget">
        <property name="currentIndex">
-        <number>0</number>
+        <number>4</number>
        </property>
        <widget class="QWidget" name="tab">
         <attribute name="title">
@@ -354,7 +354,7 @@
              <rect>
               <x>11</x>
               <y>21</y>
-              <width>242</width>
+              <width>246</width>
               <height>182</height>
              </rect>
             </property>
@@ -480,6 +480,13 @@
              </property>
              <property name="text">
               <string>Use Smart Text Cleanup (Experimental)</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="0" colspan="2">
+            <widget class="QCheckBox" name="cbxChangeExtension">
+             <property name="text">
+              <string>Change Extension Based On Archive Type</string>
              </property>
             </widget>
            </item>

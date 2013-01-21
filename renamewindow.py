@@ -55,11 +55,19 @@ class RenameWindow(QtGui.QDialog):
 		self.twList.setSortingEnabled(False)
 			
 		for ca in self.comic_archive_list:
+
+			new_ext = None  # default
+			if self.settings.rename_extension_based_on_archive:
+				if ca.isZip():
+					new_ext = ".cbz"
+				elif ca.isRar():
+					new_ext = ".cbr"			
+
 			md = ca.readMetadata(self.data_style)
 			if md.isEmpty:
 				md = ca.metadataFromFilename()
 			self.renamer.setMetadata( md )
-			new_name = self.renamer.determineName( ca.path )		
+			new_name = self.renamer.determineName( ca.path, ext=new_ext )		
 
 			row = self.twList.rowCount()
 			self.twList.insertRow( row )

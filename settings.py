@@ -85,7 +85,7 @@ class ComicTaggerSettings:
 		self.rename_template = "%series% #%issue% (%year%)"
 		self.rename_issue_number_padding = 3
 		self.rename_use_smart_string_cleanup = True
-		
+		self.rename_extension_based_on_archive = True
 
 	def __init__(self):
 		
@@ -192,8 +192,9 @@ class ComicTaggerSettings:
 			self.rename_issue_number_padding =      self.config.getint( 'rename', 'rename_issue_number_padding' )		
 		if self.config.has_option('rename', 'rename_use_smart_string_cleanup'):
 			self.rename_use_smart_string_cleanup =  self.config.getboolean( 'rename', 'rename_use_smart_string_cleanup' )		
+		if self.config.has_option('rename', 'rename_extension_based_on_archive'):
+			self.rename_extension_based_on_archive =  self.config.getboolean( 'rename', 'rename_extension_based_on_archive' )		
 			
-
 	def save( self ):
 
 		if not self.config.has_section( 'settings' ):
@@ -248,6 +249,7 @@ class ComicTaggerSettings:
 		self.config.set( 'rename', 'rename_template', self.rename_template )
 		self.config.set( 'rename', 'rename_issue_number_padding', self.rename_issue_number_padding )
 		self.config.set( 'rename', 'rename_use_smart_string_cleanup', self.rename_use_smart_string_cleanup )
+		self.config.set( 'rename', 'rename_extension_based_on_archive', self.rename_extension_based_on_archive )
 		
 		with open( self.settings_file, 'wb') as configfile:
 			self.config.write(configfile)    
