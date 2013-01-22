@@ -72,6 +72,7 @@ class IssueIdentifier:
 		self.additional_metadata = GenericMetadata()
 		self.output_function = IssueIdentifier.defaultWriteOutput
 		self.callback = None
+		self.coverUrlCallback = None
 		self.search_result = self.ResultNoMatches
 		self.cover_page_index = 0
 
@@ -97,7 +98,7 @@ class IssueIdentifier:
 	def setOutputFunction( self, func ):
 		self.output_function = func
 		pass
-	
+
 	def calculateHash( self, image_data ):
 		if self.image_hasher == '3':
 			return ImageHasher( data=image_data ).dct_average_hash() 
@@ -130,6 +131,9 @@ class IssueIdentifier:
 		
 	def setProgressCallback( self, cb_func ):
 		self.callback = cb_func
+
+	def setCoverURLCallback( self, cb_func ):
+		self.coverUrlCallback = cb_func
 		
 	def getSearchKeys( self ):
 	
@@ -306,7 +310,6 @@ class IssueIdentifier:
 		if self.callback is not None:
 			self.callback( 0, len(series_shortlist))
 			
-		
 		# now sort the list by name length
 		series_shortlist.sort(key=lambda x: len(x['name']), reverse=False)
 		
@@ -358,6 +361,9 @@ class IssueIdentifier:
 						self.match_list = []
 						return self.match_list
 
+					if self.coverUrlCallback is not None:
+						self.coverUrlCallback( url_image_data )
+
 					url_image_hash = self.calculateHash( url_image_data )
 					score = ImageHasher.hamming_distance(cover_hash, url_image_hash)
 					
@@ -387,7 +393,6 @@ class IssueIdentifier:
 					
 					break
 			self.log_msg( "" )
-
 		
 		if len(self.match_list) == 0:
 			self.log_msg( ":-(  no matches!" )

@@ -294,7 +294,7 @@ def process_file_cli( filename, opts, settings, match_results ):
 			if not opts.dryrun:
 				md = ca.readMetadata( opts.copy_source )
 				
-				if settings.apply_cbl_transform_on_bulk_operation:
+				if settings.apply_cbl_transform_on_bulk_operation and opts.data_style == MetaDataStyle.CBI:
 					md = CBLTransformer( md, settings ).apply()
 				
 				if not ca.writeMetadata( md, opts.data_style ):

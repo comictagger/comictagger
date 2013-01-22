@@ -23,6 +23,8 @@ from PyQt4 import QtCore, QtGui, uic
 from settings import ComicTaggerSettings
 from settingswindow import SettingsWindow
 from filerenamer import FileRenamer
+from options import MetaDataStyle
+
 import os
 import utils
 
@@ -32,6 +34,7 @@ class RenameWindow(QtGui.QDialog):
 		super(RenameWindow, self).__init__(parent)
 		
 		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'renamewindow.ui' ), self)
+		self.label.setText("Preview (based on {0} tags):".format(MetaDataStyle.name[data_style]))
 
 		self.settings = settings
 		self.comic_archive_list = comic_archive_list

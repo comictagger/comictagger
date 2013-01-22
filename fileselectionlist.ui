@@ -41,13 +41,19 @@
       <property name="text">
        <string>File</string>
       </property>
+      <property name="toolTip">
+       <string>File Name</string>
+      </property>
+      <property name="textAlignment">
+       <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+      </property>
      </column>
      <column>
       <property name="text">
        <string>CR</string>
       </property>
       <property name="toolTip">
-       <string/>
+       <string>Has ComicRack Tags</string>
       </property>
       <property name="textAlignment">
        <set>AlignHCenter|AlignVCenter|AlignCenter</set>
@@ -57,6 +63,9 @@
       <property name="text">
        <string>CBL</string>
       </property>
+      <property name="toolTip">
+       <string>Has ComicBookLover Tags</string>
+      </property>
       <property name="textAlignment">
        <set>AlignHCenter|AlignVCenter|AlignCenter</set>
       </property>
@@ -65,15 +74,33 @@
       <property name="text">
        <string>Type</string>
       </property>
+      <property name="toolTip">
+       <string>Archive Type</string>
+      </property>
+      <property name="textAlignment">
+       <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+      </property>
      </column>
      <column>
       <property name="text">
        <string>R/O</string>
       </property>
+      <property name="toolTip">
+       <string>Read-Only</string>
+      </property>
+      <property name="textAlignment">
+       <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+      </property>
      </column>
      <column>
       <property name="text">
        <string>Folder</string>
+      </property>
+      <property name="toolTip">
+       <string>File Location</string>
+      </property>
+      <property name="textAlignment">
+       <set>AlignHCenter|AlignVCenter|AlignCenter</set>
       </property>
      </column>
     </widget>

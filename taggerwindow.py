@@ -51,6 +51,7 @@ from exportwindow import ExportWindow, ExportConflictOpts
 from pageloader import PageLoader
 from issueidentifier import IssueIdentifier
 from autotagstartwindow import AutoTagStartWindow
+from autotagprogresswindow import AutoTagProgressWindow
 import utils
 import ctversion
 
@@ -489,7 +490,6 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.lblCover.setPixmap(QtGui.QPixmap(img))
 		self.lblCover.setScaledContents(True)
 
-	
 	def updateMenus( self ):
 		
 		# First just disable all the questionable items
@@ -1468,7 +1468,7 @@ class TaggerWindow( QtGui.QMainWindow):
 			print "Network error while getting issue details.  Save aborted"
 		
 		if cv_md is not None:
-			if self.settings.apply_cbl_transform_on_bulk_operation:
+			if self.settings.apply_cbl_transform_on_cv_import:
 				cv_md = CBLTransformer( cv_md, self.settings ).apply()
 
 		QtGui.QApplication.restoreOverrideCursor()		
@@ -1476,7 +1476,7 @@ class TaggerWindow( QtGui.QMainWindow):
 		return cv_md
 
 								
-	def identifyAndTagSingleArchive( self, ca, match_results, abortOnLowConfidence ):
+	def identifyAndTagSingleArchive( self, ca, match_results, abortOnLowConfidence, dontUseYear ):
 		success = False
 		ii = IssueIdentifier( ca, self.settings )
 	
@@ -1491,14 +1491,20 @@ class TaggerWindow( QtGui.QMainWindow):
 	
 		def myoutput( text ):
 			IssueIdentifier.defaultWriteOutput( text )
+			self.atprogdialog.textEdit.ensureCursorVisible()
+			self.atprogdialog.textEdit.insertPlainText(text)
 			QtCore.QCoreApplication.processEvents()
 			QtCore.QCoreApplication.processEvents()
 			QtCore.QCoreApplication.processEvents()
 			
+		if dontUseYear:
+			md.year = None
 		ii.setAdditionalMetadata( md )
 		ii.onlyUseAdditionalMetaData = True
 		ii.setOutputFunction( myoutput )
 		ii.cover_page_index = md.getCoverPageIndexList()[0]
+		ii.setCoverURLCallback( self.atprogdialog.setTestImage )			
+
 		matches = ii.search()
 		
 		result = ii.search_result
@@ -1569,41 +1575,66 @@ class TaggerWindow( QtGui.QMainWindow):
 		dlg.setModal( True )
 		if not dlg.exec_():
 			return
-		
-		progdialog = QtGui.QProgressDialog("", "Cancel", 0, len(ca_list), self)
-		progdialog.setWindowTitle( "Auto-Tagging" )
-		progdialog.setWindowModality(QtCore.Qt.WindowModal)
-		progdialog.show()				
+
+
+		self.atprogdialog = AutoTagProgressWindow( self)
+		self.atprogdialog.setModal(True)
+		#self.progdialog.rejected.connect( self.identifyCancel )
+		self.atprogdialog.show()
+		self.atprogdialog.progressBar.setMaximum( len(ca_list) )
+		self.atprogdialog.setWindowTitle( "Auto-Tagging" )
+					
 		prog_idx = 0
 		
 		match_results = OnlineMatchResults()
 		for ca in ca_list:
+			cover_idx = ca.readMetadata(style).getCoverPageIndexList()[0]
+			image_data = ca.getPage( cover_idx )	
+			self.atprogdialog.setArchiveImage( image_data )				
+			self.atprogdialog.setTestImage( None )				
+			
 			QtCore.QCoreApplication.processEvents()
-			if progdialog.wasCanceled():
+			if self.atprogdialog.isdone:
 				break
-			progdialog.setValue(prog_idx)
+			self.atprogdialog.progressBar.setValue( prog_idx )
 			prog_idx += 1
-			progdialog.setLabelText( ca.path )
-			progdialog.setAutoClose( False )
+			self.atprogdialog.label.setText( ca.path )
 			QtCore.QCoreApplication.processEvents()
 			
 			if ca.isWritable():
-				success, match_results = self.identifyAndTagSingleArchive( ca, match_results, dlg.noAutoSaveOnLow )
+				success, match_results = self.identifyAndTagSingleArchive( ca, match_results, dlg.noAutoSaveOnLow, dlg.dontUseYear )
 
-				#if not success:
-				#	QtGui.QMessageBox.warning(self, self.tr("Auto-Tag failed"),
-				#							  self.tr("The tagging operation seemed to fail for {0}  Operation aborted!".format(ca.path)))
-				#	break
-		
-		print 	"Good", match_results.goodMatches
-		print 	"multipleMatches", match_results.multipleMatches
-		print 	"noMatches", match_results.noMatches
-		print 	"fetchDataFailures", match_results.fetchDataFailures
-		print 	"writeFailures", match_results.writeFailures
-		
-		progdialog.close()		
+		self.atprogdialog.close()		
 		self.fileSelectionList.updateSelectedRows()
 		self.loadArchive( self.fileSelectionList.getCurrentArchive() )
+		self.atprogdialog = None				
+		
+		summary = ""		
+		summary += "Successfully tagged archives: {0}\n".format( len(match_results.goodMatches))
+		
+		if len ( match_results.multipleMatches ) > 0:
+			summary += "Archives with multiple matches: {0}\n".format( len(match_results.multipleMatches))
+		if len ( match_results.noMatches ) > 0:
+			summary += "Archives with no matches: {0}\n".format( len(match_results.noMatches))
+		if len ( match_results.fetchDataFailures ) > 0:
+			summary += "Archives that failed due to data fetch errors: {0}\n".format( len(match_results.fetchDataFailures))
+		if len ( match_results.writeFailures ) > 0:
+			summary += "Archives that failed due to file writing errors: {0}\n".format( len(match_results.writeFailures))
+
+		if len ( match_results.multipleMatches ) > 0:
+			summary += "\n\nDo you want to manually select the ones with multiple matches now?"
+		
+			reply = QtGui.QMessageBox.question(self, 
+			     self.tr("Auto-Tag Summary"), 
+			     self.tr(summary),
+			     QtGui.QMessageBox.Yes, QtGui.QMessageBox.No )
+			     
+			if reply == QtGui.QMessageBox.Yes:
+				print "TBD"
+		else:
+				QtGui.QMessageBox.information(self, self.tr("Auto-Tag Summary"), self.tr(summary))
+
+		
 
 
 

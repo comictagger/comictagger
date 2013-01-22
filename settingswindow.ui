@@ -334,7 +334,7 @@
          <item row="1" column="0">
           <widget class="QCheckBox" name="cbxApplyCBLTransformOnBatchOperation">
            <property name="text">
-            <string>Apply CBL Transforms on Batch/CLI Operations</string>
+            <string>Apply CBL Transforms on Batch Copy Operations to CBL Tags</string>
            </property>
           </widget>
          </item>

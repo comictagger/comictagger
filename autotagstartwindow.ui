@@ -50,6 +50,13 @@
          </property>
         </widget>
        </item>
+       <item row="1" column="0">
+        <widget class="QCheckBox" name="cbxDontUseYear">
+         <property name="text">
+          <string>Don't use publication year in indentification process</string>
+         </property>
+        </widget>
+       </item>
       </layout>
      </item>
      <item>

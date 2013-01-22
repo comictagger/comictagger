@@ -38,12 +38,15 @@ class AutoTagStartWindow(QtGui.QDialog):
 		self.settings = settings
 		
 		self.cbxNoAutoSaveOnLow.setCheckState( QtCore.Qt.Unchecked )
+		self.cbxDontUseYear.setCheckState( QtCore.Qt.Unchecked )
 		
 		self.noAutoSaveOnLow = False
+		self.dontUseYear = False
 
 
 	def accept( self ):
 		QtGui.QDialog.accept(self)		
 
 		self.noAutoSaveOnLow = self.cbxNoAutoSaveOnLow.isChecked()
+		self.dontUseYear = self.cbxDontUseYear.isChecked()
 	

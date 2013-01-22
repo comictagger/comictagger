@@ -2,35 +2,33 @@
 Features
 -----------------------------------------------------
 
+Re-arrange main form layout
+
+New menu graphics
+		auto tag
+		open folder vs file
+		
 Multi-file:
 
 		File list:
-		
 				Delete archive function??
+				change menu order
+				
 				
 		Batch Functions:
-
-				Batch Auto-Select
-						Start/Options Dialog
-						Progress Dialog - maybe reuse
-								-Show compared images to show progress in a sexy way
+				Auto-Tag
 						Interactive dialog at end
 						Summary Dialog
 								
 				Rename
 						check-box for rows?
-
-				Batch Tag Copy
-						Disallow overwrites?
-						
+						manual edit the preview?						
 
 -----------------------------------------------------
 Bugs
 -----------------------------------------------------
-Ultimate Spider-Man files can't be read
-		square bracket in folder name
-
 (python:4401): GLib-ERROR **: Creating pipes for GWakeup: Too many open files
+
 
 -----------------------------------------------------
 Big  Future Features
