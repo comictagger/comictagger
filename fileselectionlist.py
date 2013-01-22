@@ -114,12 +114,18 @@ class FileSelectionList(QWidget):
 		self.twList.setSortingEnabled(False)
 		for ca in ca_list:
 			for row in range(self.twList.rowCount()):
-				fi = self.twList.item(row, FileSelectionList.dataColNum).data( Qt.UserRole ).toPyObject()
-				if fi.ca == ca:
+				row_ca = self.getArchiveByRow( row )
+				if row_ca == ca:
 					self.twList.removeRow(row)
 					break
 		self.twList.setSortingEnabled(True)
 				
+	def getArchiveByRow( self, row):
+		fi = self.twList.item(row, FileSelectionList.dataColNum).data( Qt.UserRole ).toPyObject()
+		return fi.ca
+	
+	def getCurrentArchive( self ):
+		return self.getArchiveByRow( self.twList.currentRow() )
 	
 	def removeSelection( self ):
 		row_list = []
@@ -203,8 +209,8 @@ class FileSelectionList(QWidget):
 	def isListDupe( self, path ):
 		r = 0
 		while r < self.twList.rowCount():
-			fi = self.twList.item(r, FileSelectionList.dataColNum).data( Qt.UserRole ).toPyObject()
-			if fi.ca.path == path:
+			ca = self.getArchiveByRow( r )
+			if ca.path == path:
 				return True
 			r = r + 1
 			

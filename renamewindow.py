@@ -128,8 +128,8 @@ class RenameWindow(QtGui.QDialog):
 			QtCore.QCoreApplication.processEvents()
 			if progdialog.wasCanceled():
 				break
-			idx += 1
 			progdialog.setValue(idx)
+			idx += 1
 			progdialog.setLabelText( item['new_name'] )
 			
 			if item['new_name'] == os.path.basename( item['archive'].path ):
@@ -142,7 +142,7 @@ class RenameWindow(QtGui.QDialog):
 			folder = os.path.dirname( os.path.abspath( item['archive'].path ) )
 			new_abs_path = utils.unique_file( os.path.join( folder, item['new_name'] ) )
 	
-			os.rename( item['archive'].path, new_abs_path )
+			os.rename( item['archive'].path, new_abs_path)
 	
 			item['archive'].rename( new_abs_path )
 			

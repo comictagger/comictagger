@@ -263,6 +263,9 @@ class RarArchiver:
 			
 	def readArchiveFile( self, archive_file ):
 
+		# Make sure to escape brackets, since some funky stuff is going on
+		# underneath with "fnmatch"
+		archive_file = archive_file.replace("[", '[[]')
 		entries = UnRAR2.RarFile( self.path ).read_files( archive_file )
 
 		#entries is a list of of tuples:  ( rarinfo, filedata)

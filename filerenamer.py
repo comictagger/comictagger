@@ -106,6 +106,7 @@ class FileRenamer:
 
 		new_name += ext
 		
+		new_name = new_name.replace("/", "-")
 		return new_name
 	
 	

@@ -49,10 +49,24 @@ from cbltransformer import CBLTransformer
 from renamewindow import RenameWindow
 from exportwindow import ExportWindow, ExportConflictOpts
 from pageloader import PageLoader
+from issueidentifier import IssueIdentifier
+from autotagstartwindow import AutoTagStartWindow
 import utils
 import ctversion
 
-
+class OnlineMatchResults():
+	def __init__(self):
+		self.goodMatches = []  
+		self.noMatches = []    
+		self.multipleMatches = []  
+		self.writeFailures = []
+		self.fetchDataFailures = []
+		
+class MultipleMatch():
+	def __init__( self, filename, match_list):
+		self.filename = filename  
+		self.matches = match_list  		
+		
 # this reads the environment and inits the right locale
 locale.setlocale(locale.LC_ALL, "")
 
@@ -345,7 +359,7 @@ class TaggerWindow( QtGui.QMainWindow):
 			return
 
 		if not self.dirtyFlagVerification( "Export as Zip Archive",
-								"If export archives as Zip now, unsaved data in the form may be lost.  Are you sure?"):			
+								"If you export archives as Zip now, unsaved data in the form may be lost.  Are you sure?"):			
 			return
 
 		if rar_count != 0:
@@ -369,8 +383,8 @@ class TaggerWindow( QtGui.QMainWindow):
 					QtCore.QCoreApplication.processEvents()
 					if progdialog.wasCanceled():
 						break
-					prog_idx += 1
 					progdialog.setValue(prog_idx)
+					prog_idx += 1
 					progdialog.setLabelText( ca.path )
 					QtCore.QCoreApplication.processEvents()
 
@@ -967,7 +981,7 @@ class TaggerWindow( QtGui.QMainWindow):
 
 	def setLoadDataStyle(self, s):
 		if self.dirtyFlagVerification( "Change Tag Read Style",
-										"If you change tag style now, data in the form will be lost.  Are you sure?"):
+										"If you change read tag style now, data in the form will be lost.  Are you sure?"):
 			self.load_data_style, b = self.cbLoadDataStyle.itemData(s).toInt()
 			self.settings.last_selected_load_data_style = self.load_data_style
 			self.updateMenus()
@@ -1322,7 +1336,6 @@ class TaggerWindow( QtGui.QMainWindow):
 			
 	def removeTags( self, style):
 		# remove the indicated tags from the archive
-		#ATB
 		ca_list = self.fileSelectionList.getSelectedArchiveList()
 		has_md_count = 0
 		for ca in ca_list:
@@ -1335,7 +1348,7 @@ class TaggerWindow( QtGui.QMainWindow):
 			return
 				
 		if has_md_count != 0 and not self.dirtyFlagVerification( "Remove Tags",
-						"If remove tags now, unsaved data in the form will be lost.  Are you sure?"):			
+						"If you remove tags now, unsaved data in the form will be lost.  Are you sure?"):			
 			return
 		
 		if has_md_count != 0:
@@ -1356,8 +1369,8 @@ class TaggerWindow( QtGui.QMainWindow):
 						QtCore.QCoreApplication.processEvents()
 						if progdialog.wasCanceled():
 							break
-						prog_idx += 1
 						progdialog.setValue(prog_idx)
+						prog_idx += 1
 						progdialog.setLabelText( ca.path )
 						QtCore.QCoreApplication.processEvents()
 					
@@ -1398,16 +1411,16 @@ class TaggerWindow( QtGui.QMainWindow):
 			return
 			
 		if has_src_count != 0 and not self.dirtyFlagVerification( "Copy Tags",
-						"If copy tags now, unsaved data in the form may be lost.  Are you sure?"):			
+						"If you copy tags now, unsaved data in the form may be lost.  Are you sure?"):			
 			return
 		
 		if has_src_count != 0:
 			reply = QtGui.QMessageBox.question(self, 
-			     self.tr("Copy Tags"), 
-			     self.tr("Are you sure you wish to copy the {0} tags to {1} tags in {2} archive(s)?".format(
+					self.tr("Copy Tags"), 
+					self.tr("Are you sure you wish to copy the {0} tags to {1} tags in {2} archive(s)?".format(
 					MetaDataStyle.name[src_style], MetaDataStyle.name[dest_style], has_src_count)),
-			     QtGui.QMessageBox.Yes, QtGui.QMessageBox.No )
-			     
+					QtGui.QMessageBox.Yes, QtGui.QMessageBox.No )
+
 			if reply == QtGui.QMessageBox.Yes:
 				progdialog = QtGui.QProgressDialog("", "Cancel", 0, has_src_count, self)
 				progdialog.setWindowTitle( "Copying Tags" )
@@ -1420,8 +1433,8 @@ class TaggerWindow( QtGui.QMainWindow):
 						QtCore.QCoreApplication.processEvents()
 						if progdialog.wasCanceled():
 							break
-						prog_idx += 1
 						progdialog.setValue(prog_idx)
+						prog_idx += 1
 						progdialog.setLabelText( ca.path )
 						QtCore.QCoreApplication.processEvents()
 					
@@ -1442,9 +1455,157 @@ class TaggerWindow( QtGui.QMainWindow):
 				self.fileSelectionList.updateSelectedRows()
 				self.updateInfoBox()
 				self.updateMenus()
+
+	def actualIssueDataFetch( self, match ):
+	
+		# now get the particular issue data
+		cv_md = None
+		QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+		
+		try:
+			cv_md = ComicVineTalker().fetchIssueData( match['volume_id'],  match['issue_number'], self.settings )
+		except ComicVineTalkerException:
+			print "Network error while getting issue details.  Save aborted"
+		
+		if cv_md is not None:
+			if self.settings.apply_cbl_transform_on_bulk_operation:
+				cv_md = CBLTransformer( cv_md, self.settings ).apply()
+
+		QtGui.QApplication.restoreOverrideCursor()		
+	
+		return cv_md
+
+								
+	def identifyAndTagSingleArchive( self, ca, match_results, abortOnLowConfidence ):
+		success = False
+		ii = IssueIdentifier( ca, self.settings )
+	
+		# read in metadata, and parse file name if not there
+		md = ca.readMetadata( self.save_data_style )
+		if md.isEmpty:
+			md = ca.metadataFromFilename()		
+		
+		if md is None or md.isEmpty:
+			print "!!!!No metadata given to search online with!"
+			return False, match_results
+	
+		def myoutput( text ):
+			IssueIdentifier.defaultWriteOutput( text )
+			QtCore.QCoreApplication.processEvents()
+			QtCore.QCoreApplication.processEvents()
+			QtCore.QCoreApplication.processEvents()
+			
+		ii.setAdditionalMetadata( md )
+		ii.onlyUseAdditionalMetaData = True
+		ii.setOutputFunction( myoutput )
+		ii.cover_page_index = md.getCoverPageIndexList()[0]
+		matches = ii.search()
+		
+		result = ii.search_result
+		
+		found_match = False
+		choices = False
+		low_confidence = False
+		
+		if result == ii.ResultNoMatches:
+			pass
+		elif result == ii.ResultFoundMatchButBadCoverScore:
+			low_confidence = True
+			found_match = True
+		elif result == ii.ResultFoundMatchButNotFirstPage :
+			found_match = True
+		elif result == ii.ResultMultipleMatchesWithBadImageScores:
+			low_confidence = True
+			choices = True
+		elif result == ii.ResultOneGoodMatch:
+			found_match = True
+		elif result == ii.ResultMultipleGoodMatches:
+			choices = True
+	
+		if choices:
+			print "Online search: Multiple matches.  Save aborted"
+			match_results.multipleMatches.append(MultipleMatch(ca.path,matches))
+		elif low_confidence and abortOnLowConfidence:
+			print "Online search: Low confidence match.  Save aborted"
+			match_results.noMatches.append(ca.path)
+		elif not found_match:
+			print "Online search: No match found.  Save aborted"
+			match_results.noMatches.append(ca.path)
+		else:
+
+			#  a single match!
+			
+			# now get the particular issue data
+			cv_md = self.actualIssueDataFetch( matches[0] )
+			if cv_md is None:
+				match_results.fetchDataFailures.append(ca.path)
+				
+			if cv_md is not None:
+			
+				md.overlay( cv_md )
+			
+				if not ca.writeMetadata( md, self.save_data_style ):
+						match_results.writeFailures.append(ca.path)
+				else:
+						match_results.goodMatches.append(ca.path)
+						success = True
+		return success, match_results
 				
 	def autoTag( self ):
-		print "TBD"
+		ca_list = self.fileSelectionList.getSelectedArchiveList()
+		style = self.save_data_style
+
+		if len(ca_list) == 0:
+			QtGui.QMessageBox.information(self, self.tr("Auto-Tag"), self.tr("No archives selected!"))
+			return
+						
+		if not self.dirtyFlagVerification( "Auto-Tag",
+						"If you auto-tag now, unsaved data in the form will be lost.  Are you sure?"):			
+			return
+
+		dlg = AutoTagStartWindow( self, self.settings,
+					self.tr("You have selected {0} archive(s) to automatically identify and write {1} tags to.\n\n".format(len(ca_list), MetaDataStyle.name[style]) +
+							"Please choose options below, and select OK.\n" ))
+		dlg.setModal( True )
+		if not dlg.exec_():
+			return
+		
+		progdialog = QtGui.QProgressDialog("", "Cancel", 0, len(ca_list), self)
+		progdialog.setWindowTitle( "Auto-Tagging" )
+		progdialog.setWindowModality(QtCore.Qt.WindowModal)
+		progdialog.show()				
+		prog_idx = 0
+		
+		match_results = OnlineMatchResults()
+		for ca in ca_list:
+			QtCore.QCoreApplication.processEvents()
+			if progdialog.wasCanceled():
+				break
+			progdialog.setValue(prog_idx)
+			prog_idx += 1
+			progdialog.setLabelText( ca.path )
+			progdialog.setAutoClose( False )
+			QtCore.QCoreApplication.processEvents()
+			
+			if ca.isWritable():
+				success, match_results = self.identifyAndTagSingleArchive( ca, match_results, dlg.noAutoSaveOnLow )
+
+				#if not success:
+				#	QtGui.QMessageBox.warning(self, self.tr("Auto-Tag failed"),
+				#							  self.tr("The tagging operation seemed to fail for {0}  Operation aborted!".format(ca.path)))
+				#	break
+		
+		print 	"Good", match_results.goodMatches
+		print 	"multipleMatches", match_results.multipleMatches
+		print 	"noMatches", match_results.noMatches
+		print 	"fetchDataFailures", match_results.fetchDataFailures
+		print 	"writeFailures", match_results.writeFailures
+		
+		progdialog.close()		
+		self.fileSelectionList.updateSelectedRows()
+		self.loadArchive( self.fileSelectionList.getCurrentArchive() )
+
+
 
 	def dirtyFlagVerification( self, title, desc):
 		if self.dirtyFlag:
@@ -1520,7 +1681,7 @@ class TaggerWindow( QtGui.QMainWindow):
 	def renameArchive(self):
 		if self.comic_archive is not None:
 			if self.dirtyFlagVerification( "File Rename",
-									"If rename files now, unsaved data in the form will be lost.  Are you sure?"):			
+									"If you rename files now, unsaved data in the form will be lost.  Are you sure?"):			
 				#get list of archives from filelist
 				ca_list = self.fileSelectionList.getSelectedArchiveList()
 				dlg = RenameWindow( self, ca_list, self.load_data_style, self.settings )
