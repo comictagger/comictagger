@@ -69,6 +69,8 @@ class ZipArchiver:
 			data = zf.read( archive_file )
 		except zipfile.BadZipfile:
 			print "bad zipfile: {0} :: {1}".format(self.path, archive_file)
+		except Exception:
+			print "bad zipfile: {0} :: {1}".format(self.path, archive_file)
 		finally:
 			zf.close()
 		return data
@@ -288,6 +290,9 @@ class RarArchiver:
 			except (OSError, IOError) as e:
 				print e, "in readArchiveFile! try %s" % tries
 				time.sleep(1)
+			except Exception as e:
+				print "Unexpected exception in readArchiveFile! {0}".format( e )  
+				break
 
 			else:
 				#Success"
@@ -295,9 +300,9 @@ class RarArchiver:
 				if (len(entries) == 1):
 					return entries[0][1]
 				else:
-					return ""
+					return None
 			
-		return ""
+		return None
 		
 
 		
@@ -884,13 +889,17 @@ class ComicArchive:
 				if pil_available:
 					if 'ImageSize' not in p or 'ImageHeight' not in p or 'ImageWidth' not in p:
 						data = self.getPage( idx )
-						
-						im = Image.open(StringIO.StringIO(data))
-						w,h = im.size
-						
-						p['ImageSize'] = str(len(data))
-						p['ImageHeight'] = str(h)
-						p['ImageWidth'] = str(w)
+						if data is not None:
+							try:
+								im = Image.open(StringIO.StringIO(data))
+								w,h = im.size
+								
+								p['ImageSize'] = str(len(data))
+								p['ImageHeight'] = str(h)
+								p['ImageWidth'] = str(w)
+							except IOError:
+								p['ImageSize'] = str(len(data))
+									
 				else:
 					if 'ImageSize' not in p:
 						data = self.getPage( idx )
