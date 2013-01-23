@@ -1,5 +1,6 @@
 
 import StringIO
+import sys
 
 try: 
 	import Image
@@ -29,7 +30,13 @@ class ImageHasher(object):
 				self.image = Image.new( "L", (1,1))
 
 	def average_hash(self):
-		image = self.image.resize((self.width, self.height), Image.ANTIALIAS).convert("L")
+		try:
+			image = self.image.resize((self.width, self.height), Image.ANTIALIAS).convert("L")
+		except Exception as e:
+			sys.exc_clear()
+			print "average_hash:", e.strerror
+			return long(0)
+		
 		pixels = list(image.getdata())
 		avg = sum(pixels) / len(pixels)
 		
