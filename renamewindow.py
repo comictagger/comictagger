@@ -119,7 +119,6 @@ class RenameWindow(QtGui.QDialog):
 			self.doPreview()
 				
 	def accept( self ):
-		QtGui.QDialog.accept(self)		
 
 		progdialog = QtGui.QProgressDialog("", "Cancel", 0, len(self.rename_list), self)
 		progdialog.setWindowTitle( "Renaming Archives" )
@@ -150,3 +149,5 @@ class RenameWindow(QtGui.QDialog):
 			item['archive'].rename( new_abs_path )
 			
 		progdialog.close()		
+
+		QtGui.QDialog.accept(self)		
