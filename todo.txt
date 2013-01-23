@@ -14,6 +14,7 @@ Multi-file:
 		Batch Functions:
 				Auto-Tag
 						Interactive dialog at end
+								Change cover image on left??
 								
 				Rename
 						check-box for rows?

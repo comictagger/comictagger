@@ -52,6 +52,7 @@ from pageloader import PageLoader
 from issueidentifier import IssueIdentifier
 from autotagstartwindow import AutoTagStartWindow
 from autotagprogresswindow import AutoTagProgressWindow
+from autotagmatchwindow import AutoTagMatchWindow
 import utils
 import ctversion
 
@@ -64,8 +65,8 @@ class OnlineMatchResults():
 		self.fetchDataFailures = []
 		
 class MultipleMatch():
-	def __init__( self, filename, match_list):
-		self.filename = filename  
+	def __init__( self, ca, match_list):
+		self.ca = ca  
 		self.matches = match_list  		
 		
 # this reads the environment and inits the right locale
@@ -1532,7 +1533,7 @@ class TaggerWindow( QtGui.QMainWindow):
 	
 		if choices:
 			print "Online search: Multiple matches.  Save aborted"
-			match_results.multipleMatches.append(MultipleMatch(ca.path,matches))
+			match_results.multipleMatches.append(MultipleMatch(ca,matches))
 		elif low_confidence and not dlg.autoSaveOnLow:
 			print "Online search: Low confidence match.  Save aborted"
 			match_results.noMatches.append(ca.path)
@@ -1632,7 +1633,12 @@ class TaggerWindow( QtGui.QMainWindow):
 			     QtGui.QMessageBox.Yes, QtGui.QMessageBox.No )
 			     
 			if reply == QtGui.QMessageBox.Yes:
-				print "TBD"
+				matchdlg = AutoTagMatchWindow( self, match_results.multipleMatches, style, self.actualIssueDataFetch)
+				matchdlg.setModal( True )
+				matchdlg.exec_()
+				self.fileSelectionList.updateSelectedRows()
+				self.loadArchive( self.fileSelectionList.getCurrentArchive() )
+
 		else:
 				QtGui.QMessageBox.information(self, self.tr("Auto-Tag Summary"), self.tr(summary))
 
