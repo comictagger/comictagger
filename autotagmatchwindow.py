@@ -192,7 +192,11 @@ class AutoTagMatchWindow(QtGui.QDialog):
 		if cv_md is None:
 			QtGui.QMessageBox.critical(self, self.tr("Network Issue"), self.tr("Could not connect to ComicVine to get issue details!"))
 			return
-			
+
+		QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))			
 		md.overlay( cv_md )
-		if not ca.writeMetadata( md, self.style ):
+		success = ca.writeMetadata( md, self.style )
+		QtGui.QApplication.restoreOverrideCursor()
+		
+		if not success:		
 			QtGui.QMessageBox.warning(self, self.tr("Write Error"), self.tr("Saving the tags to the archive seemed to fail!"))
