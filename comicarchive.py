@@ -63,9 +63,14 @@ class ZipArchiver:
 		return self.writeZipComment( self.path, comment )
 
 	def readArchiveFile( self, archive_file ):
+		data = ""
 		zf = zipfile.ZipFile( self.path, 'r' )
-		data = zf.read( archive_file )
-		zf.close()
+		try:
+			data = zf.read( archive_file )
+		except zipfile.BadZipfile:
+			print "bad zipfile: {0} :: {1}".format(self.path, archive_file)
+		finally:
+			zf.close()
 		return data
 
 	def removeArchiveFile( self, archive_file ):
@@ -213,10 +218,13 @@ class ZipArchiver:
 	
 class RarArchiver:
 	
+	devnull = None
 	def __init__( self, path ):
 		self.path = path
 		self.rar_exe_path = None
-		self.devnull = open(os.devnull, "w")
+
+		if RarArchiver.devnull is None:
+			RarArchiver.devnull = open(os.devnull, "w")
 
 		# windows only, keeps the cmd.exe from popping up
 		if platform.system() == "Windows":
@@ -226,11 +234,12 @@ class RarArchiver:
 			self.startupinfo = None
 
 	def __del__(self):
-		self.devnull.close()
-		
+		#RarArchiver.devnull.close()
+		pass
+
 	def getArchiveComment( self ):
 		
-		rarc = UnRAR2.RarFile( self.path )
+		rarc = self.getRARObj()
 		return rarc.comment		
 
 	def setArchiveComment( self, comment ):
@@ -248,7 +257,7 @@ class RarArchiver:
 				# use external program to write comment to Rar archive
 				subprocess.call([self.rar_exe_path, 'c', '-w' + working_dir , '-c-', '-z' + tmp_name, self.path], 
 					startupinfo=self.startupinfo, 
-					stdout=self.devnull)
+					stdout=RarArchiver.devnull)
 				
 				if platform.system() == "Darwin":
 					time.sleep(1)
@@ -266,14 +275,32 @@ class RarArchiver:
 		# Make sure to escape brackets, since some funky stuff is going on
 		# underneath with "fnmatch"
 		archive_file = archive_file.replace("[", '[[]')
-		entries = UnRAR2.RarFile( self.path ).read_files( archive_file )
+		entries = []
 
-		#entries is a list of of tuples:  ( rarinfo, filedata)
-		if (len(entries) == 1):
-			return entries[0][1]
-		else:
-			return ""
+		rarc = self.getRARObj()
 
+		tries = 0
+		while tries < 10:
+			try:
+				tries = tries+1
+				entries = rarc.read_files( archive_file )
+			
+			except (OSError, IOError) as e:
+				print e, "in readArchiveFile! try %s" % tries
+				time.sleep(1)
+
+			else:
+				#Success"
+				#entries is a list of of tuples:  ( rarinfo, filedata)
+				if (len(entries) == 1):
+					return entries[0][1]
+				else:
+					return ""
+			
+		return ""
+		
+
+		
 	def writeArchiveFile( self, archive_file, data ):
 
 		if self.rar_exe_path is not None:
@@ -293,7 +320,7 @@ class RarArchiver:
 				# use external program to write file to Rar archive
 				subprocess.call([self.rar_exe_path, 'a', '-w' + working_dir ,'-c-', '-ep', self.path, tmp_file], 
 					startupinfo=self.startupinfo,
-					stdout=self.devnull)
+					stdout=RarArchiver.devnull)
 
 				if platform.system() == "Darwin":
 					time.sleep(1)
@@ -312,7 +339,7 @@ class RarArchiver:
 				# use external program to remove file from Rar archive
 				subprocess.call([self.rar_exe_path, 'd','-c-', self.path, archive_file], 
 					startupinfo=self.startupinfo, 				   
-					stdout=self.devnull)
+					stdout=RarArchiver.devnull)
 
 				if platform.system() == "Darwin":
 					time.sleep(1)
@@ -325,10 +352,44 @@ class RarArchiver:
 			
 	def getArchiveFilenameList( self ):
 
-		rarc = UnRAR2.RarFile( self.path )
+		rarc = self.getRARObj()
+		#namelist = [ item.filename for item in rarc.infolist() ]
+		#return namelist
 
-		return [ item.filename for item in rarc.infolist() ]
+		tries = 0
+		while tries < 10:
+			try:
+				tries = tries+1
+				namelist = [ item.filename for item in rarc.infolist() ]
+			
+			except (OSError, IOError) as e:
+				print e, "in getArchiveFilenameList! try %s" % tries
+				time.sleep(1)
 
+			else:
+				#Success"
+				return namelist
+			
+		raise e
+			
+		
+	def getRARObj( self ):
+		tries = 0
+		while tries < 10:
+			try:
+				tries = tries+1
+				rarc = UnRAR2.RarFile( self.path )
+			
+			except (OSError, IOError) as e:
+				print e, "in getRARObj! try %s" % tries
+				time.sleep(1)
+
+			else:
+				#Success"
+				return rarc
+			
+		raise e
+		
 #------------------------------------------
 # Folder implementation
 class FolderArchiver:
