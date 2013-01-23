@@ -58,6 +58,8 @@ class ComicTaggerSettings:
 		self.last_main_window_height = 0
 		self.last_main_window_x = 0
 		self.last_main_window_y = 0
+		self.last_form_side_width = -1
+		self.last_list_side_width = -1
 		
 		# identifier settings
 		self.id_length_delta_thresh = 5
@@ -155,6 +157,10 @@ class ComicTaggerSettings:
 			self.last_main_window_x =   self.config.getint( 'auto', 'last_main_window_x' )
 		if self.config.has_option('auto', 'last_main_window_y'):
 			self.last_main_window_y =   self.config.getint( 'auto', 'last_main_window_y' )
+		if self.config.has_option('auto', 'last_form_side_width'):
+			self.last_form_side_width =   self.config.getint( 'auto', 'last_form_side_width' )
+		if self.config.has_option('auto', 'last_list_side_width'):
+			self.last_list_side_width =   self.config.getint( 'auto', 'last_list_side_width' )
 
 		if self.config.has_option('identifier', 'id_length_delta_thresh'):
 			self.id_length_delta_thresh =   self.config.getint( 'identifier', 'id_length_delta_thresh' )
@@ -213,6 +219,8 @@ class ComicTaggerSettings:
 		self.config.set( 'auto', 'last_main_window_height', self.last_main_window_height )
 		self.config.set( 'auto', 'last_main_window_x', self.last_main_window_x )
 		self.config.set( 'auto', 'last_main_window_y', self.last_main_window_y )
+		self.config.set( 'auto', 'last_form_side_width', self.last_form_side_width )
+		self.config.set( 'auto', 'last_list_side_width', self.last_list_side_width )
 
 		if not self.config.has_section( 'identifier' ):
 			self.config.add_section( 'identifier' )

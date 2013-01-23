@@ -116,12 +116,30 @@ class TaggerWindow( QtGui.QMainWindow):
 		
 		self.fileSelectionList.selectionChanged.connect( self.fileListSelectionChanged )
 		self.fileSelectionList.listCleared.connect( self.fileListCleared )
-		self.splitter.setSizes([500,200])
-		# ATB: Disable the list for now...
+			
+		# ATB: Disable the list...
 		#self.splitter.setSizes([100,0])
 		#self.splitter.setHandleWidth(0)
 		#self.splitter.handle(1).setDisabled(True)
-		
+
+		# This is ugly, and should probably be done in a resource file
+		if platform.system() == "Linux":
+			self.scrollAreaWidgetContents.resize( self.scrollAreaWidgetContents.width(), 630)
+		#if platform.system() == "Darwin":
+		#	self.scrollAreaWidgetContents.resize( 550, self.scrollAreaWidgetContents.height())
+
+
+		# we can't specify relative font sizes in the UI designer, so
+		# walk through all the lablels in the main form, and make them
+		# a smidge smaller
+		for child in self.scrollAreaWidgetContents.children():
+			if ( isinstance(child, QtGui.QLabel) ):
+				f = child.font()
+				if f.pointSize() > 10:
+					f.setPointSize( f.pointSize() - 2 )
+				f.setItalic( True )
+				child.setFont( f )
+						
 		#---------------------------		
 
 		
@@ -179,6 +197,8 @@ class TaggerWindow( QtGui.QMainWindow):
 
 		self.show()
 		self.setAppPosition()
+		if self.settings.last_form_side_width != -1:
+			self.splitter.setSizes([ self.settings.last_form_side_width , self.settings.last_list_side_width])
 		self.raise_()
 		QtCore.QCoreApplication.processEvents()
 
@@ -1666,7 +1686,11 @@ class TaggerWindow( QtGui.QMainWindow):
 			self.settings.last_main_window_height = appsize.height()
 			self.settings.last_main_window_x = self.x()
 			self.settings.last_main_window_y = self.y()
+			self.settings.last_form_side_width = self.splitter.sizes()[0]
+			self.settings.last_list_side_width = self.splitter.sizes()[1]
 			self.settings.save()
+
+			
 			event.accept()
 		else:
 			event.ignore()
@@ -1718,16 +1742,20 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.metadataToForm()
 	
 	def renameArchive(self):
-		if self.comic_archive is not None:
-			if self.dirtyFlagVerification( "File Rename",
-									"If you rename files now, unsaved data in the form will be lost.  Are you sure?"):			
-				#get list of archives from filelist
-				ca_list = self.fileSelectionList.getSelectedArchiveList()
-				dlg = RenameWindow( self, ca_list, self.load_data_style, self.settings )
-				dlg.setModal( True )
-				if dlg.exec_():
-					self.fileSelectionList.updateSelectedRows()
-					self.loadArchive( self.comic_archive )
+		ca_list = self.fileSelectionList.getSelectedArchiveList()
+
+		if len(ca_list) == 0:
+			QtGui.QMessageBox.information(self, self.tr("Rename"), self.tr("No archives selected!"))	
+			return
+		
+		if self.dirtyFlagVerification( "File Rename",
+								"If you rename files now, unsaved data in the form will be lost.  Are you sure?"):			
+
+			dlg = RenameWindow( self, ca_list, self.load_data_style, self.settings )
+			dlg.setModal( True )
+			if dlg.exec_():
+				self.fileSelectionList.updateSelectedRows()
+				self.loadArchive( self.comic_archive )
 
 
 		
