@@ -77,17 +77,6 @@
     </widget>
    </item>
   </layout>
-  <widget class="QWidget" name="layoutWidget">
-   <property name="geometry">
-    <rect>
-     <x>140</x>
-     <y>10</y>
-     <width>133</width>
-     <height>29</height>
-    </rect>
-   </property>
-   <layout class="QHBoxLayout" name="horizontalLayout"/>
-  </widget>
  </widget>
  <resources/>
  <connections>

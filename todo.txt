@@ -4,31 +4,33 @@ Features
 
 Re-arrange main form layout
 
+
 New menu graphics
 		auto tag
 		open folder vs file
 		
 Multi-file:
-
-		File list:
-				Delete archive function??
-				change menu order
-				
 				
 		Batch Functions:
 				Auto-Tag
 						Interactive dialog at end
-						Summary Dialog
 								
 				Rename
 						check-box for rows?
-						manual edit the preview?						
+						manual edit the preview?
+
+Docs:
+		Explain the style comboboxes
+		Basics of Batch operations
+		Define Manual Search  - Manual
+				vs Auto-Identify - Uses form, doesn't save
+				vs Auto-Tag - Doesn't use form, saves
+		
 
 -----------------------------------------------------
 Bugs
 -----------------------------------------------------
-(python:4401): GLib-ERROR **: Creating pipes for GWakeup: Too many open files
-
+RAR Password --  childrens crusade 3
 
 -----------------------------------------------------
 Big  Future Features
@@ -39,6 +41,8 @@ GCD scraper or DB reader
 
 Auto search:
 	Searching w/o issue #
+	
+Form Mode:  Single vs Batch
 	
 -----------------------------------------------------
 Small(er) Future Feature

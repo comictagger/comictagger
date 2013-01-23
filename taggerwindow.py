@@ -1476,10 +1476,10 @@ class TaggerWindow( QtGui.QMainWindow):
 		return cv_md
 
 								
-	def identifyAndTagSingleArchive( self, ca, match_results, abortOnLowConfidence, dontUseYear ):
+	def identifyAndTagSingleArchive( self, ca, match_results, dlg):
 		success = False
 		ii = IssueIdentifier( ca, self.settings )
-	
+
 		# read in metadata, and parse file name if not there
 		md = ca.readMetadata( self.save_data_style )
 		if md.isEmpty:
@@ -1497,8 +1497,10 @@ class TaggerWindow( QtGui.QMainWindow):
 			QtCore.QCoreApplication.processEvents()
 			QtCore.QCoreApplication.processEvents()
 			
-		if dontUseYear:
+		if dlg.dontUseYear:
 			md.year = None
+		if dlg.assumeIssueOne and ( md.issue is None or md.issue == ""):
+			md.issue = "1"
 		ii.setAdditionalMetadata( md )
 		ii.onlyUseAdditionalMetaData = True
 		ii.setOutputFunction( myoutput )
@@ -1531,7 +1533,7 @@ class TaggerWindow( QtGui.QMainWindow):
 		if choices:
 			print "Online search: Multiple matches.  Save aborted"
 			match_results.multipleMatches.append(MultipleMatch(ca.path,matches))
-		elif low_confidence and abortOnLowConfidence:
+		elif low_confidence and not dlg.autoSaveOnLow:
 			print "Online search: Low confidence match.  Save aborted"
 			match_results.noMatches.append(ca.path)
 		elif not found_match:
@@ -1569,11 +1571,11 @@ class TaggerWindow( QtGui.QMainWindow):
 						"If you auto-tag now, unsaved data in the form will be lost.  Are you sure?"):			
 			return
 
-		dlg = AutoTagStartWindow( self, self.settings,
+		atstartdlg = AutoTagStartWindow( self, self.settings,
 					self.tr("You have selected {0} archive(s) to automatically identify and write {1} tags to.\n\n".format(len(ca_list), MetaDataStyle.name[style]) +
 							"Please choose options below, and select OK.\n" ))
-		dlg.setModal( True )
-		if not dlg.exec_():
+		atstartdlg.setModal( True )
+		if not atstartdlg.exec_():
 			return
 
 
@@ -1602,7 +1604,7 @@ class TaggerWindow( QtGui.QMainWindow):
 			QtCore.QCoreApplication.processEvents()
 			
 			if ca.isWritable():
-				success, match_results = self.identifyAndTagSingleArchive( ca, match_results, dlg.noAutoSaveOnLow, dlg.dontUseYear )
+				success, match_results = self.identifyAndTagSingleArchive( ca, match_results, atstartdlg )
 
 		self.atprogdialog.close()		
 		self.fileSelectionList.updateSelectedRows()

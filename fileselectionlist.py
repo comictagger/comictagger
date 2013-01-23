@@ -94,12 +94,12 @@ class FileSelectionList(QWidget):
 		selectAllAction.triggered.connect(self.selectAll)
 		removeAction.triggered.connect(self.removeSelection)
 
-		self.addAction(self.separator)
 		self.addAction(selectAllAction)			
 		self.addAction(removeAction)
+		self.addAction(self.separator)
 
 	def addAppAction( self, action ):
-		self.insertAction( self.separator , action )
+		self.insertAction( None , action )
 	
 	def setModifiedFlag( self, modified ):
 		self.modifiedFlag = modified

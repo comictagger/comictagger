@@ -212,3 +212,6 @@ class FileNameParser:
 			self.issue = self.issue.lstrip("0")
 			if self.issue == "":
 				self.issue = "0"
+			if self.issue[0] == ".":
+				self.issue = "0" + self.issue
+

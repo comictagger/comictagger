@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>513</width>
-    <height>189</height>
+    <width>524</width>
+    <height>248</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -43,17 +43,30 @@
        <property name="fieldGrowthPolicy">
         <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
        </property>
-       <item row="0" column="0">
-        <widget class="QCheckBox" name="cbxNoAutoSaveOnLow">
-         <property name="text">
-          <string>Don't save on low confidence match</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
+       <item row="1" column="1">
         <widget class="QCheckBox" name="cbxDontUseYear">
          <property name="text">
           <string>Don't use publication year in indentification process</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QCheckBox" name="cbxSaveOnLowConfidence">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Save on low confidence match</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QCheckBox" name="cbxAssumeIssueOne">
+         <property name="text">
+          <string>If no issue number, assume &quot;1&quot;</string>
          </property>
         </widget>
        </item>
