@@ -354,18 +354,21 @@ class TaggerWindow( QtGui.QMainWindow):
 		# ToolBar
 	
 		self.actionLoad.setIcon( QtGui.QIcon(os.path.join(ComicTaggerSettings.baseDir(),'graphics/open.png')) )
+		self.actionLoadFolder.setIcon( QtGui.QIcon(os.path.join(ComicTaggerSettings.baseDir(),'graphics/longbox.png')) )
 		self.actionWrite_Tags.setIcon( QtGui.QIcon(os.path.join(ComicTaggerSettings.baseDir(),'graphics/save.png')) )
 		self.actionParse_Filename.setIcon( QtGui.QIcon(os.path.join(ComicTaggerSettings.baseDir(),'graphics/parse.png')) )
 		self.actionSearchOnline.setIcon( QtGui.QIcon(os.path.join(ComicTaggerSettings.baseDir(),'graphics/search.png')) )
 		self.actionAutoIdentify.setIcon( QtGui.QIcon(os.path.join(ComicTaggerSettings.baseDir(),'graphics/auto.png')) )
+		self.actionAutoTag.setIcon( QtGui.QIcon(os.path.join(ComicTaggerSettings.baseDir(),'graphics/autotag.png')) )
 		self.actionClearEntryForm.setIcon( QtGui.QIcon(os.path.join(ComicTaggerSettings.baseDir(),'graphics/clear.png')) )
 		self.actionPageBrowser.setIcon( QtGui.QIcon(os.path.join(ComicTaggerSettings.baseDir(),'graphics/browse.png') ))
 		
 		self.toolBar.addAction( self.actionLoad )
+		self.toolBar.addAction( self.actionLoadFolder )
 		self.toolBar.addAction( self.actionWrite_Tags )
-		self.toolBar.addAction( self.actionParse_Filename )
 		self.toolBar.addAction( self.actionSearchOnline )
 		self.toolBar.addAction( self.actionAutoIdentify )
+		self.toolBar.addAction( self.actionAutoTag )
 		self.toolBar.addAction( self.actionClearEntryForm )
 		self.toolBar.addAction( self.actionPageBrowser )
 
@@ -514,11 +517,13 @@ class TaggerWindow( QtGui.QMainWindow):
 	def updateMenus( self ):
 		
 		# First just disable all the questionable items
-		self.actionRemoveAuto.setEnabled( True )
-		self.actionRemoveCRTags.setEnabled( True )
-		self.actionRemoveCBLTags.setEnabled( True )
+		self.actionAutoTag.setEnabled( False )
+		self.actionCopyTags.setEnabled( False )		
+		self.actionRemoveAuto.setEnabled( False )
+		self.actionRemoveCRTags.setEnabled( False )
+		self.actionRemoveCBLTags.setEnabled( False )
 		self.actionWrite_Tags.setEnabled( False )
-		#self.actionRepackage.setEnabled(False)
+		self.actionRepackage.setEnabled(False)
 		self.actionViewRawCBLTags.setEnabled( False )
 		self.actionViewRawCRTags.setEnabled( False )
 		self.actionParse_Filename.setEnabled( False )
@@ -533,11 +538,14 @@ class TaggerWindow( QtGui.QMainWindow):
 			
 			self.actionParse_Filename.setEnabled( True )
 			self.actionAutoIdentify.setEnabled( True )
+			self.actionAutoTag.setEnabled( True )
 			self.actionRename.setEnabled( True )
 			self.actionApplyCBLTransform.setEnabled( True )
-			
-			if not self.comic_archive.isZip():
-				self.actionRepackage.setEnabled(True)
+			self.actionRepackage.setEnabled(True)
+			self.actionRemoveAuto.setEnabled( True )
+			self.actionRemoveCRTags.setEnabled( True )
+			self.actionRemoveCBLTags.setEnabled( True )
+			self.actionCopyTags.setEnabled( True )		
 			
 			if has_cix:
 				self.actionViewRawCRTags.setEnabled( True )
@@ -546,12 +554,7 @@ class TaggerWindow( QtGui.QMainWindow):
 				
 			if self.comic_archive.isWritable():
 				self.actionWrite_Tags.setEnabled( True )
-				if has_cix or has_cbi:
-					self.actionRemoveAuto.setEnabled( True )
-				if has_cix:
-					self.actionRemoveCRTags.setEnabled( True )
-				if has_cbi:
-					self.actionRemoveCBLTags.setEnabled( True )
+
 
 	def updateInfoBox( self ):
 		

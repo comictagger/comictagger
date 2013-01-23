@@ -35,6 +35,13 @@ class AutoTagProgressWindow(QtGui.QDialog):
 		self.lblArchive.setPixmap(QtGui.QPixmap(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/nocover.png' )))
 		self.isdone = False
 		
+		# we can't specify relative font sizes in the UI designer, so
+		# make font for scroll window a smidge smaller
+		f = self.textEdit.font()
+		if f.pointSize() > 10:
+			f.setPointSize( f.pointSize() - 2 )
+		self.textEdit.setFont( f )		
+		
 	def setArchiveImage( self, img_data):
 		self.setCoverImage( img_data, self.lblArchive )
 

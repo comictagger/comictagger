@@ -32,7 +32,12 @@ class IDProgressWindow(QtGui.QDialog):
 		
 		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'progresswindow.ui' ), self)
 		
-
+		# we can't specify relative font sizes in the UI designer, so
+		# make font for scroll window a smidge smaller
+		f = self.textEdit.font()
+		if f.pointSize() > 10:
+			f.setPointSize( f.pointSize() - 2 )
+		self.textEdit.setFont( f )	
 
 
 		

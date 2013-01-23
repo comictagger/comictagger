@@ -256,7 +256,7 @@ class IssueIdentifier:
 		if keys['month'] is not None:
 			self.log_msg( "\tMonth : " + str(keys['month']) )
 		
-		self.log_msg("Publisher Blacklist: " + str(self.publisher_blacklist))
+		#self.log_msg("Publisher Blacklist: " + str(self.publisher_blacklist))
 		
 		comicVine = ComicVineTalker( )
 
@@ -424,7 +424,7 @@ class IssueIdentifier:
 		if len(self.match_list) == 1:
 			self.search_result = self.ResultOneGoodMatch
 			if best_score > self.min_score_thresh:
-				self.log_msg( "!!!! Very weak score for the cover.  Maybe it's not the cover?" )
+				self.log_msg( "Very weak score for the cover.  Maybe it's not the cover..." )
 
 				self.log_msg( "Comparing to some other archive pages now..." )
 				found = False
@@ -433,11 +433,11 @@ class IssueIdentifier:
 					page_hash = self.calculateHash( image_data )
 					distance = ImageHasher.hamming_distance(page_hash, self.match_list[0]['url_image_hash'])
 					if distance <= self.strong_score_thresh:
-						self.log_msg(  "Found a great match d={0} on page {1}!".format(distance, i+1) )
+						self.log_msg(  "Found a great match (distance = {0}) on page {1}!".format(distance, i+1) )
 						found = True
 						break
 					elif distance < self.min_score_thresh:
-						self.log_msg( "Found a good match d={0} on page {1}".format(distance, i) )
+						self.log_msg( "Found a good match (distance = {0}) on page {1}".format(distance, i) )
 						found = True
 					self.log_msg( ".", newline=False )
 				self.log_msg( "" )
@@ -445,7 +445,9 @@ class IssueIdentifier:
 					self.log_msg( "No matching pages in the issue.  Bummer" )
 					self.search_result = self.ResultFoundMatchButBadCoverScore
 
+			self.log_msg( u"--------------------------------------------------")
 			print_match(self.match_list[0])
+			self.log_msg( u"--------------------------------------------------")
 			return self.match_list
 
 		elif best_score > self.min_score_thresh and len(self.match_list) > 1:
@@ -460,7 +462,9 @@ class IssueIdentifier:
 				self.match_list.remove(item)
 
 		if len(self.match_list) == 1:
+			self.log_msg( u"--------------------------------------------------")
 			print_match(self.match_list[0])
+			self.log_msg( u"--------------------------------------------------")
 			self.search_result = self.ResultOneGoodMatch
 			
 		elif len(self.match_list) == 0:
@@ -470,8 +474,10 @@ class IssueIdentifier:
 			print 
 			self.log_msg( "More than one likley candiate." )
 			self.search_result = self.ResultMultipleGoodMatches
+			self.log_msg( u"--------------------------------------------------")
 			for item in self.match_list:
 				print_match(item)
+			self.log_msg( u"--------------------------------------------------")
 
 		return self.match_list
 
