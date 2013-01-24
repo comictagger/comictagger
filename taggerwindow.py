@@ -1515,8 +1515,8 @@ class TaggerWindow( QtGui.QMainWindow):
 	
 		def myoutput( text ):
 			IssueIdentifier.defaultWriteOutput( text )
-			self.atprogdialog.textEdit.ensureCursorVisible()
 			self.atprogdialog.textEdit.insertPlainText(text)
+			self.atprogdialog.textEdit.ensureCursorVisible()
 			QtCore.QCoreApplication.processEvents()
 			QtCore.QCoreApplication.processEvents()
 			QtCore.QCoreApplication.processEvents()

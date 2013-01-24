@@ -202,7 +202,7 @@ class IssueIdentifier:
 
 	@staticmethod
 	def defaultWriteOutput( text ):
-		sys.stdout.write(text)
+		sys.stdout.write(text.encode( errors='replace') )
 		sys.stdout.flush()
 		
 	def log_msg( self, msg , newline=True ):

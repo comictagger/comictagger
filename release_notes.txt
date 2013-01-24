@@ -1,5 +1,12 @@
 
 ---------------------------------  
+1.0.1-beta - 24-Jan-2013
+---------------------------------
+
+Bug Fix:
+	Fixed an issue where unicode strings can't be printed to OS Console
+
+---------------------------------  
 1.0.0-beta - 23-Jan-2013
 ---------------------------------
 Version 1!  New multi-file processing in GUI!

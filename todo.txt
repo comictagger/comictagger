@@ -1,10 +1,6 @@
 -----------------------------------------------------
 Features
 -----------------------------------------------------
-
-
-New menu graphics
-		open folder vs file
 		
 Multi-file:
 				
@@ -17,17 +13,12 @@ Multi-file:
 						check-box for rows?
 						manual edit the preview?
 
-Docs:
-		Explain the style comboboxes
-		Basics of Batch operations
-		Define Manual Search  - Manual
-				vs Auto-Identify - Uses form, doesn't save
-				vs Auto-Tag - Doesn't use form, saves
-		Screen shots
+
 		
 
 -----------------------------------------------------
 Bugs
+spider-man 678 ....  ascii print problem. grrrr
 -----------------------------------------------------
 RAR Password --  childrens crusade 3
 
