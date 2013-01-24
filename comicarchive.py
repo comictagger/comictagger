@@ -201,7 +201,8 @@ class ZipArchiver:
 			zout = zipfile.ZipFile (self.path, 'w')
 			for fname in otherArchive.getArchiveFilenameList():
 				data = otherArchive.readArchiveFile( fname )
-				zout.writestr( fname, data )
+				if data is not None:
+					zout.writestr( fname, data )
 			zout.close()
 			
 			#preserve the old comment
@@ -209,7 +210,8 @@ class ZipArchiver:
 			if comment is not None:
 				if not self.writeZipComment( self.path, comment ):
 					return False
-		except:
+		except  Exception as e:
+			print "Error while copying to {0}: {1}".format(self.path, e)
 			return False
 		else:
 			return True
