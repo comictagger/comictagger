@@ -6,8 +6,9 @@ all: clean
 clean:
 	rm -f *~ *.pyc *.pyo
 	rm -f logdict*.log
-	
-	
+	make -C mac clean
+	make -C windows clean
+
 zip:
 	cd release; \
 		rm -rf *zip comictagger-src-$(VERSION_STR) ;  \
