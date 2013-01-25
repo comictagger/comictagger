@@ -63,7 +63,7 @@ class ComicTaggerSettings:
 		
 		# identifier settings
 		self.id_length_delta_thresh = 5
-		self.id_publisher_blacklist = "Panini Comics, Abril, Scholastic Book Services"
+		self.id_publisher_blacklist = "Panini Comics, Abril, Scholastic Book Services, Editorial Televisa"
 		
 		# Show/ask dialog flags
 		self.ask_about_cbi_in_rar = True

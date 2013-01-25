@@ -46,7 +46,7 @@ from comicbookinfo import ComicBookInfo
 from comet import CoMet
 from genericmetadata import GenericMetadata, PageType
 from filenameparser import FileNameParser
-
+from settings import ComicTaggerSettings
 
 class ZipArchiver:
 	
@@ -69,8 +69,10 @@ class ZipArchiver:
 			data = zf.read( archive_file )
 		except zipfile.BadZipfile:
 			print "bad zipfile: {0} :: {1}".format(self.path, archive_file)
+			raise IOError
 		except Exception:
 			print "bad zipfile: {0} :: {1}".format(self.path, archive_file)
+			raise IOError
 		finally:
 			zf.close()
 		return data
@@ -200,7 +202,7 @@ class ZipArchiver:
 		try:		
 			zout = zipfile.ZipFile (self.path, 'w')
 			for fname in otherArchive.getArchiveFilenameList():
-				data = otherArchive.readArchiveFile( fname )
+				data = otherArchive.readArchiveFile( fname )	
 				if data is not None:
 					zout.writestr( fname, data )
 			zout.close()
@@ -288,23 +290,30 @@ class RarArchiver:
 			try:
 				tries = tries+1
 				entries = rarc.read_files( archive_file )
-			
+
+				if entries[0][0].size != len(entries[0][1]):
+					print "readArchiveFile(): [file is not expected size: {0} vs {1}]  {2}:{3} [attempt # {4}]".format(
+								entries[0][0].size,len(entries[0][1]), self.path, archive_file, tries)
+					continue
+				
 			except (OSError, IOError) as e:
-				print e, "in readArchiveFile! try %s" % tries
+				print "readArchiveFile(): [{0}]  {1}:{2} attempt#{3}".format(str(e), self.path, archive_file, tries)
 				time.sleep(1)
 			except Exception as e:
-				print "Unexpected exception in readArchiveFile! {0}".format( e )  
+				print "Unexpected exception in readArchiveFile(): [{0}] for {1}:{2} attempt#{3}".format(str(e), self.path, archive_file, tries)
 				break
 
 			else:
 				#Success"
 				#entries is a list of of tuples:  ( rarinfo, filedata)
+				if tries > 1:
+					print "Attempted read_files() {0} times".format(tries)
 				if (len(entries) == 1):
 					return entries[0][1]
 				else:
-					return None
+					raise IOError
 			
-		return None
+		raise IOError
 		
 
 		
@@ -370,7 +379,7 @@ class RarArchiver:
 				namelist = [ item.filename for item in rarc.infolist() ]
 			
 			except (OSError, IOError) as e:
-				print e, "in getArchiveFilenameList! try %s" % tries
+				print "getArchiveFilenameList(): [{0}] {1} attempt#{2}".format(str(e), self.path, tries)
 				time.sleep(1)
 
 			else:
@@ -388,7 +397,7 @@ class RarArchiver:
 				rarc = UnRAR2.RarFile( self.path )
 			
 			except (OSError, IOError) as e:
-				print e, "in getRARObj! try %s" % tries
+				print "getRARObj(): [{0}] {1} attempt#{2}".format(str(e), self.path, tries)
 				time.sleep(1)
 
 			else:
@@ -471,7 +480,7 @@ class UnknownArchiver:
 		return ""
 	def setArchiveComment( self, comment ):
 		return False
-	def readArchiveFilen( self ):
+	def readArchiveFile( self ):
 		return ""
 	def writeArchiveFile( self, archive_file, data ):
 		return False
@@ -637,7 +646,13 @@ class ComicArchive:
 		filename = self.getPageName( index )
 
 		if filename is not None:
-			image_data = self.archiver.readArchiveFile( filename )
+			try:
+				image_data = self.archiver.readArchiveFile( filename )
+			except IOError:
+				print "Error reading in page.  Substituting logo page."
+				fname = os.path.join(ComicTaggerSettings.baseDir(), 'graphics/nocover.png' )
+				with open(fname) as x:
+					image_data = x.read()				
 
 		return image_data
 
@@ -733,7 +748,7 @@ class ComicArchive:
 	def readCIX( self ):
 		if self.cix_md is None:
 			raw_cix = self.readRawCIX()
-			if raw_cix is None:
+			if raw_cix is None or raw_cix == "":
 				self.cix_md = GenericMetadata()
 			else:
 				self.cix_md = ComicInfoXml().metadataFromString( raw_cix )
@@ -753,8 +768,12 @@ class ComicArchive:
 	def readRawCIX( self ):
 		if not self.hasCIX():
 			return None
-
-		return  self.archiver.readArchiveFile( self.ci_xml_filename )
+		try:
+			raw_cix = self.archiver.readArchiveFile( self.ci_xml_filename )
+		except IOError:
+			print "Error reading in raw CIX!"
+			raw_cix = ""
+		return  raw_cix
 		
 	def writeCIX(self, metadata):
 
@@ -798,7 +817,7 @@ class ComicArchive:
 	def readCoMet( self ):
 		if self.comet_md is None:
 			raw_comet = self.readRawCoMet()
-			if raw_comet is None:
+			if raw_comet is None or raw_comet == "":
 				self.comet_md = GenericMetadata()
 			else:
 				self.comet_md = CoMet().metadataFromString( raw_comet )
@@ -824,7 +843,12 @@ class ComicArchive:
 			print self.path, "doesn't have CoMet data!"
 			return None
 
-		return self.archiver.readArchiveFile( self.comet_filename )
+		try:
+			raw_comet = self.archiver.readArchiveFile( self.comet_filename )
+		except IOError:
+			print "Error reading in raw CoMet!"
+			raw_comet = ""
+		return  raw_comet
 		
 	def writeCoMet(self, metadata):
 
@@ -871,7 +895,11 @@ class ComicArchive:
 				if ( os.path.dirname(n) == "" and
 					os.path.splitext(n)[1].lower() == '.xml'):
 					# read in XML file, and validate it
-					data = self.archiver.readArchiveFile( n )
+					try:
+						data = self.archiver.readArchiveFile( n )
+					except:
+						data = ""
+						print "Error reading in Comet XML for validation!"
 					if CoMet().validateString( data ):
 						# since we found it, save it!
 						self.comet_filename = n

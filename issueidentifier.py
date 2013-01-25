@@ -119,8 +119,14 @@ class IssueIdentifier:
 		
 		im = Image.open(StringIO.StringIO(image_data))
 		w,h = im.size
-		
-		cropped_im = im.crop( (int(w/2), 0, w, h) )
+
+		try:
+			cropped_im = im.crop( (int(w/2), 0, w, h) )
+		except Exception as e:
+			sys.exc_clear()
+			print "cropCover() error:", e
+			return None
+
 		output = StringIO.StringIO()
 		cropped_im.save(output, format="JPEG")
 		cropped_image_data = output.getvalue()
@@ -202,7 +208,7 @@ class IssueIdentifier:
 
 	@staticmethod
 	def defaultWriteOutput( text ):
-		sys.stdout.write(text.encode( errors='replace') )
+		sys.stdout.write( text )
 		sys.stdout.flush()
 		
 	def log_msg( self, msg , newline=True ):
@@ -235,9 +241,10 @@ class IssueIdentifier:
 		aspect_ratio = self.getAspectRatio( cover_image_data )
 		if aspect_ratio < 1.0:
 			right_side_image_data = self.cropCover( cover_image_data )
-			narrow_cover_hash = self.calculateHash( right_side_image_data )
-			print "narrow_cover_hash", narrow_cover_hash
-
+			if right_side_image_data is not None:
+				narrow_cover_hash = self.calculateHash( right_side_image_data )
+				self.log_msg(unicode(str(narrow_cover_hash)))
+				
 		#self.log_msg( "Cover hash = {0:016x}".format(cover_hash) )
 
 		keys = self.getSearchKeys()
@@ -259,6 +266,7 @@ class IssueIdentifier:
 		#self.log_msg("Publisher Blacklist: " + str(self.publisher_blacklist))
 		
 		comicVine = ComicVineTalker( )
+		comicVine.setLogFunc( self.output_function )
 
 		#self.log_msg( ( "Searching for " + keys['series'] + "...")
 		self.log_msg( u"Searching for  {0} #{1} ...".format( keys['series'], keys['issue_number']) )
@@ -433,16 +441,16 @@ class IssueIdentifier:
 					page_hash = self.calculateHash( image_data )
 					distance = ImageHasher.hamming_distance(page_hash, self.match_list[0]['url_image_hash'])
 					if distance <= self.strong_score_thresh:
-						self.log_msg(  "Found a great match (distance = {0}) on page {1}!".format(distance, i+1) )
+						self.log_msg(  "Found a great match (score = {0}) on page {1}!".format(distance, i+1) )
 						found = True
 						break
 					elif distance < self.min_score_thresh:
-						self.log_msg( "Found a good match (distance = {0}) on page {1}".format(distance, i) )
+						self.log_msg( "Found a good match (score = {0}) on page {1}".format(distance, i) )
 						found = True
 					self.log_msg( ".", newline=False )
 				self.log_msg( "" )
 				if not found:
-					self.log_msg( "No matching pages in the issue.  Bummer" )
+					self.log_msg( "No matching pages in the issue." )
 					self.search_result = self.ResultFoundMatchButBadCoverScore
 
 			self.log_msg( u"--------------------------------------------------")
@@ -451,7 +459,9 @@ class IssueIdentifier:
 			return self.match_list
 
 		elif best_score > self.min_score_thresh and len(self.match_list) > 1:
-			self.log_msg( "No good image matches!  Need to use other info..." )
+			self.log_msg( u"--------------------------------------------------")
+			self.log_msg( u"Multiple bad cover matches!  Need to use other info..." )
+			self.log_msg( u"--------------------------------------------------")
 			self.search_result = self.ResultMultipleMatchesWithBadImageScores
 					
 			return self.match_list
@@ -468,7 +478,9 @@ class IssueIdentifier:
 			self.search_result = self.ResultOneGoodMatch
 			
 		elif len(self.match_list) == 0:
+			self.log_msg( u"--------------------------------------------------")
 			self.log_msg( "No matches found :(" )
+			self.log_msg( u"--------------------------------------------------")
 			self.search_result = self.ResultNoMatches
 		else:
 			print 

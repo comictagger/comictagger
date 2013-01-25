@@ -26,6 +26,7 @@ import math
 import re
 import datetime
 import ctversion
+import sys
 
 try:
 	from PyQt4.QtNetwork import QNetworkAccessManager, QNetworkRequest
@@ -59,6 +60,17 @@ class ComicVineTalker(QObject):
 		# key that is registered to comictagger
 		self.api_key = '27431e6787042105bd3e47e169a624521f89f3a4'
 
+		self.log_func = None
+
+	def setLogFunc( self , log_func ):
+		self.log_func = log_func
+				
+	def writeLog( self , text ):
+		if self.log_func is None:
+			sys.stdout.write(text.encode( errors='replace') )
+			sys.stdout.flush()
+		else:
+			self.log_func( text )
 
 	def testKey( self ):
 	
@@ -76,7 +88,7 @@ class ComicVineTalker(QObject):
 			resp = urllib2.urlopen( url ) 
 			return resp.read()
 		except Exception as e:
-			print e
+			self.writeLog( str(e) )
 			raise ComicVineTalkerException("Network Error!")
 
 	def searchForSeries( self, series_name , callback=None, refresh_cache=False ):
@@ -104,7 +116,7 @@ class ComicVineTalker(QObject):
 		cv_response = json.loads(content)
 	
 		if cv_response[ 'status_code' ] != 1:
-			print ( "Comic Vine query failed with error:  [{0}]. ".format( cv_response[ 'error' ] ))
+			self.writeLog( "Comic Vine query failed with error:  [{0}]. \n".format( cv_response[ 'error' ] ))
 			return None
 
 		search_results = list()
@@ -116,7 +128,7 @@ class ComicVineTalker(QObject):
 		total_result_count = cv_response['number_of_total_results']
 		
 		if callback is None:
-			print ("Found {0} of {1} results".format( cv_response['number_of_page_results'], cv_response['number_of_total_results']))
+			self.writeLog( "Found {0} of {1} results\n".format( cv_response['number_of_page_results'], cv_response['number_of_total_results']))
 		search_results.extend( cv_response['results'])
 		offset = 0
 		
@@ -126,14 +138,14 @@ class ComicVineTalker(QObject):
 		# see if we need to keep asking for more pages...
 		while ( current_result_count < total_result_count ):
 			if callback is None:
-				print ("getting another page of results {0} of {1}...".format( current_result_count, total_result_count))
+				self.writeLog("getting another page of results {0} of {1}...\n".format( current_result_count, total_result_count))
 			offset += limit
 			content = self.getUrlContent(search_url + "&offset="+str(offset)) 
 		
 			cv_response = json.loads(content)
 		
 			if cv_response[ 'status_code' ] != 1:
-				print ( "Comic Vine query failed with error:  [{0}]. ".format( cv_response[ 'error' ] ))
+				self.writeLog( "Comic Vine query failed with error:  [{0}]. \n".format( cv_response[ 'error' ] ))
 				return None
 			search_results.extend( cv_response['results'])
 			current_result_count += cv_response['number_of_page_results']

@@ -1499,7 +1499,15 @@ class TaggerWindow( QtGui.QMainWindow):
 	
 		return cv_md
 
-								
+	def autoTagLog( self, text ):
+		IssueIdentifier.defaultWriteOutput( text )
+		if self.atprogdialog is not None:
+			self.atprogdialog.textEdit.insertPlainText(text)
+			self.atprogdialog.textEdit.ensureCursorVisible()
+			QtCore.QCoreApplication.processEvents()
+			QtCore.QCoreApplication.processEvents()
+			QtCore.QCoreApplication.processEvents()
+		
 	def identifyAndTagSingleArchive( self, ca, match_results, dlg):
 		success = False
 		ii = IssueIdentifier( ca, self.settings )
@@ -1513,13 +1521,7 @@ class TaggerWindow( QtGui.QMainWindow):
 			print "!!!!No metadata given to search online with!"
 			return False, match_results
 	
-		def myoutput( text ):
-			IssueIdentifier.defaultWriteOutput( text )
-			self.atprogdialog.textEdit.insertPlainText(text)
-			self.atprogdialog.textEdit.ensureCursorVisible()
-			QtCore.QCoreApplication.processEvents()
-			QtCore.QCoreApplication.processEvents()
-			QtCore.QCoreApplication.processEvents()
+
 			
 		if dlg.dontUseYear:
 			md.year = None
@@ -1527,7 +1529,7 @@ class TaggerWindow( QtGui.QMainWindow):
 			md.issue = "1"
 		ii.setAdditionalMetadata( md )
 		ii.onlyUseAdditionalMetaData = True
-		ii.setOutputFunction( myoutput )
+		ii.setOutputFunction( self.autoTagLog )
 		ii.cover_page_index = md.getCoverPageIndexList()[0]
 		ii.setCoverURLCallback( self.atprogdialog.setTestImage )			
 
@@ -1555,13 +1557,16 @@ class TaggerWindow( QtGui.QMainWindow):
 			choices = True
 	
 		if choices:
-			print "Online search: Multiple matches.  Save aborted"
+			self.autoTagLog( "Online search: Multiple matches.  Save aborted\n" ) 
 			match_results.multipleMatches.append(MultipleMatch(ca,matches))
-		elif low_confidence and not dlg.autoSaveOnLow:
-			print "Online search: Low confidence match.  Save aborted"
-			match_results.noMatches.append(ca.path)
+		elif low_confidence:
+			if dlg.autoSaveOnLow:
+				self.autoTagLog(  "Online search: Low confidence match, but saving anyways...\n" )				
+			else:
+				self.autoTagLog(  "Online search: Low confidence match.  Save aborted\n" )
+				match_results.noMatches.append(ca.path)
 		elif not found_match:
-			print "Online search: No match found.  Save aborted"
+			self.autoTagLog(  "Online search: No match found.  Save aborted\n" )
 			match_results.noMatches.append(ca.path)
 		else:
 
@@ -1609,11 +1614,17 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.atprogdialog.show()
 		self.atprogdialog.progressBar.setMaximum( len(ca_list) )
 		self.atprogdialog.setWindowTitle( "Auto-Tagging" )
-					
+
+		self.autoTagLog( u"========================================================================\n" )			
+		self.autoTagLog( u"Auto-Tagging Started for {0} items\n".format(len(ca_list)))
+		
 		prog_idx = 0
 		
 		match_results = OnlineMatchResults()
 		for ca in ca_list:
+			self.autoTagLog( u"============================================================\n" )			
+			self.autoTagLog( u"Auto-Tagging {0} of {1}\n".format(prog_idx+1, len(ca_list)))
+			self.autoTagLog( u"{0}\n".format(ca.path) )
 			cover_idx = ca.readMetadata(style).getCoverPageIndexList()[0]
 			image_data = ca.getPage( cover_idx )	
 			self.atprogdialog.setArchiveImage( image_data )				
@@ -1635,23 +1646,25 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.loadArchive( self.fileSelectionList.getCurrentArchive() )
 		self.atprogdialog = None				
 		
-		summary = ""		
-		summary += "Successfully tagged archives: {0}\n".format( len(match_results.goodMatches))
-		
-		if len ( match_results.multipleMatches ) > 0:
-			summary += "Archives with multiple matches: {0}\n".format( len(match_results.multipleMatches))
-		if len ( match_results.noMatches ) > 0:
-			summary += "Archives with no matches: {0}\n".format( len(match_results.noMatches))
-		if len ( match_results.fetchDataFailures ) > 0:
-			summary += "Archives that failed due to data fetch errors: {0}\n".format( len(match_results.fetchDataFailures))
-		if len ( match_results.writeFailures ) > 0:
-			summary += "Archives that failed due to file writing errors: {0}\n".format( len(match_results.writeFailures))
+		summary = u""		
+		summary += u"Successfully tagged archives: {0}\n".format( len(match_results.goodMatches))
 
 		if len ( match_results.multipleMatches ) > 0:
-			summary += "\n\nDo you want to manually select the ones with multiple matches now?"
+			summary += u"Archives with multiple matches: {0}\n".format( len(match_results.multipleMatches))
+		if len ( match_results.noMatches ) > 0:
+			summary += u"Archives with no matches: {0}\n".format( len(match_results.noMatches))
+		if len ( match_results.fetchDataFailures ) > 0:
+			summary += u"Archives that failed due to data fetch errors: {0}\n".format( len(match_results.fetchDataFailures))
+		if len ( match_results.writeFailures ) > 0:
+			summary += u"Archives that failed due to file writing errors: {0}\n".format( len(match_results.writeFailures))
+
+		self.autoTagLog( summary )			
+				
+		if len ( match_results.multipleMatches ) > 0:
+			summary += u"\n\nDo you want to manually select the ones with multiple matches now?"
 		
 			reply = QtGui.QMessageBox.question(self, 
-			     self.tr("Auto-Tag Summary"), 
+			     self.tr(u"Auto-Tag Summary"), 
 			     self.tr(summary),
 			     QtGui.QMessageBox.Yes, QtGui.QMessageBox.No )
 			     
