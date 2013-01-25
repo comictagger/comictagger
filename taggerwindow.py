@@ -1521,8 +1521,6 @@ class TaggerWindow( QtGui.QMainWindow):
 			print "!!!!No metadata given to search online with!"
 			return False, match_results
 	
-
-			
 		if dlg.dontUseYear:
 			md.year = None
 		if dlg.assumeIssueOne and ( md.issue is None or md.issue == ""):
@@ -1559,18 +1557,16 @@ class TaggerWindow( QtGui.QMainWindow):
 		if choices:
 			self.autoTagLog( "Online search: Multiple matches.  Save aborted\n" ) 
 			match_results.multipleMatches.append(MultipleMatch(ca,matches))
-		elif low_confidence:
-			if dlg.autoSaveOnLow:
-				self.autoTagLog(  "Online search: Low confidence match, but saving anyways...\n" )				
-			else:
-				self.autoTagLog(  "Online search: Low confidence match.  Save aborted\n" )
-				match_results.noMatches.append(ca.path)
+		elif low_confidence and not dlg.autoSaveOnLow:
+			self.autoTagLog(  "Online search: Low confidence match.  Save aborted\n" )
+			match_results.noMatches.append(ca.path)
 		elif not found_match:
 			self.autoTagLog(  "Online search: No match found.  Save aborted\n" )
 			match_results.noMatches.append(ca.path)
 		else:
-
 			#  a single match!
+			if low_confidence:
+				self.autoTagLog(  "Online search: Low confidence match, but saving anyways, as incdicated...\n" )				
 			
 			# now get the particular issue data
 			cv_md = self.actualIssueDataFetch( matches[0] )
@@ -1583,9 +1579,12 @@ class TaggerWindow( QtGui.QMainWindow):
 			
 				if not ca.writeMetadata( md, self.save_data_style ):
 						match_results.writeFailures.append(ca.path)
+						self.autoTagLog(  "Save failed ;-(\n" )				
 				else:
 						match_results.goodMatches.append(ca.path)
 						success = True
+						self.autoTagLog(  "Save complete!\n" )				
+
 		return success, match_results
 				
 	def autoTag( self ):
@@ -1607,10 +1606,8 @@ class TaggerWindow( QtGui.QMainWindow):
 		if not atstartdlg.exec_():
 			return
 
-
 		self.atprogdialog = AutoTagProgressWindow( self)
 		self.atprogdialog.setModal(True)
-		#self.progdialog.rejected.connect( self.identifyCancel )
 		self.atprogdialog.show()
 		self.atprogdialog.progressBar.setMaximum( len(ca_list) )
 		self.atprogdialog.setWindowTitle( "Auto-Tagging" )
