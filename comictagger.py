@@ -449,15 +449,16 @@ def process_file_cli( filename, opts, settings, match_results ):
 
 		print u"renamed '{0}' -> '{1}' {2}".format(os.path.basename(filename), new_name, suffix)
 
-
-			
-		
 #-----------------------------
 
 def main():
 	
 	# try to make stdout encodings happy for unicode
-	sys.stdout = codecs.getwriter(locale.getpreferredencoding())(sys.stdout)
+	if platform.system() == "Darwin":
+		preferred_encoding = "utf-8"
+	else:
+		preferred_encoding = locale.getpreferredencoding()
+	sys.stdout = codecs.getwriter(preferred_encoding)(sys.stdout)
 
 	opts = Options()
 	opts.parseCmdLineArgs()
