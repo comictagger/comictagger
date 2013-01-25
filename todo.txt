@@ -1,26 +1,24 @@
 -----------------------------------------------------
 Features
 -----------------------------------------------------
-		
-Multi-file:
-				
-		Batch Functions:
-				Auto-Tag
-						Interactive dialog at end
-								Manually change cover image on left??
-								
-				Rename
-						check-box for rows?
-						manual edit the preview?
+	
+Rename dialog:
+	check-box for rows?
+	manual edit the preview?
 
+Docs:
+	Auto-Tagging Tips:
+		Multiple Passes with different options
 
-		
+Look into using libarchive
 
 -----------------------------------------------------
-Bugs
-spider-man 678 ....  ascii print problem. grrrr
+Bugs	
 -----------------------------------------------------
-RAR Password --  childrens crusade 3
+Auto-Tag doesn't save page list info!
+
+Rar flakes out when a space is at the front of the subfolder in the archive.
+Zip flakes out when filename differs from index (or whatever)  i.e "\" vs "/". Python issue
 
 -----------------------------------------------------
 Big  Future Features

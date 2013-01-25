@@ -1,10 +1,20 @@
-
+---------------------------------  
+1.0.2-beta - 25-Jan-2013
+---------------------------------
+Changes:
+	More verbose logging during auto-tag
+	Added %month% and %month_name% for renaming
+	Better parsing of volume numbers in file name
+Bugs:
+	Better exception handling with corrupted image data
+	Fixed issues with RAR reading on OS X
+	Other minor bug fixes
+	
 ---------------------------------  
 1.0.1-beta - 24-Jan-2013
 ---------------------------------
-
 Bug Fix:
-	Fixed an issue where unicode strings can't be printed to OS Console
+	Fixed an issue where unicode strings can't be printed to OS X Console
 
 ---------------------------------  
 1.0.0-beta - 23-Jan-2013
