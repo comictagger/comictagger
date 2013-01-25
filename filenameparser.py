@@ -103,7 +103,7 @@ class FileNameParser:
 				
 		# assume the last number in the filename that is under 4 digits is the issue number
 		for word in reversed(word_list):
-			if word[0] == "#":
+			if len(word) > 0 and word[0] == "#":
 				word = word[1:]
 			if ( 
 				 (word.isdigit() and len(word) < 4) or
@@ -154,13 +154,11 @@ class FileNameParser:
 		
 		series = series.rstrip("#")
 			
-		# search for volume number	
-		match = re.search('(?<= [vV])(\d+)\s*$', series)
+		# search for volume number
+		match = re.search('(.+)([vV]|[Vv][oO][Ll]\.?\s?)(\d+)\s*$', series)
 		if match:
-			volume = match.group()
-			series = series.replace(" V"+ volume, " v"+ volume)
-			series = series.split("v"+volume)[0]
-			volume = volume.lstrip("0")
+			series = match.group(1)
+			volume = match.group(3)
 		
 		return series.strip(), volume.strip()
 
