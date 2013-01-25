@@ -67,11 +67,13 @@ class ZipArchiver:
 		zf = zipfile.ZipFile( self.path, 'r' )
 		try:
 			data = zf.read( archive_file )
-		except zipfile.BadZipfile:
-			print "bad zipfile: {0} :: {1}".format(self.path, archive_file)
+		except zipfile.BadZipfile as e:
+			print "bad zipfile [{0}]: {1} :: {2}".format(e, self.path, archive_file)
+			zf.close()	
 			raise IOError
-		except Exception:
-			print "bad zipfile: {0} :: {1}".format(self.path, archive_file)
+		except Exception as e:
+			zf.close()	
+			print "bad zipfile [{0}]: {1} :: {2}".format(e, self.path, archive_file)
 			raise IOError
 		finally:
 			zf.close()
@@ -491,7 +493,9 @@ class UnknownArchiver:
 
 #------------------------------------------------------------------
 class ComicArchive:
-	
+
+	logo_data = None
+
 	class ArchiveType:
 		Zip, Rar, Folder, Unknown = range(4)
     
@@ -515,6 +519,12 @@ class ComicArchive:
 		else:
 			self.archive_type =  self.ArchiveType.Unknown
 			self.archiver = UnknownArchiver( self.path )
+
+		if ComicArchive.logo_data is None:
+			fname = os.path.join(ComicTaggerSettings.baseDir(), 'graphics','nocover.png' )
+			with open(fname, 'rb') as fd:
+				ComicArchive.logo_data = fd.read()				
+				print len(ComicArchive.logo_data)
 
 	# Clears the cached data
 	def resetCache( self ):
@@ -650,9 +660,7 @@ class ComicArchive:
 				image_data = self.archiver.readArchiveFile( filename )
 			except IOError:
 				print "Error reading in page.  Substituting logo page."
-				fname = os.path.join(ComicTaggerSettings.baseDir(), 'graphics/nocover.png' )
-				with open(fname) as x:
-					image_data = x.read()				
+				image_data = ComicArchive.logo_data				
 
 		return image_data
 
