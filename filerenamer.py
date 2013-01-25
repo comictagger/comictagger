@@ -20,6 +20,7 @@ limitations under the License.
 
 import os
 import re
+import datetime
 from issuestring import IssueString
 
 class FileRenamer:
@@ -86,6 +87,14 @@ class FileRenamer:
 		new_name = self.replaceToken( new_name, md.year, '%year%')
 		new_name = self.replaceToken( new_name, md.publisher, '%publisher%')
 		new_name = self.replaceToken( new_name, md.title, '%title%')
+		new_name = self.replaceToken( new_name, md.month, '%month%')
+		month_name = None
+		if md.month is not None:
+			if (type(md.month) == str and md.month.isdigit()) or type(md.month) == int:
+				if int(md.month) in range(1,13):
+					dt = datetime.datetime( 1970, int(md.month), 1, 0, 0)
+					month_name = dt.strftime("%B")
+		new_name = self.replaceToken( new_name, month_name, '%month_name%')
 			
 		if self.smart_cleanup:
 			
