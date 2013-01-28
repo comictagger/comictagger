@@ -288,7 +288,7 @@ class RarArchiver:
 		rarc = self.getRARObj()
 
 		tries = 0
-		while tries < 10:
+		while tries < 5:
 			try:
 				tries = tries+1
 				entries = rarc.read_files( archive_file )
@@ -375,7 +375,7 @@ class RarArchiver:
 		#return namelist
 
 		tries = 0
-		while tries < 10:
+		while tries < 5:
 			try:
 				tries = tries+1
 				namelist = [ item.filename for item in rarc.infolist() ]
@@ -393,7 +393,7 @@ class RarArchiver:
 		
 	def getRARObj( self ):
 		tries = 0
-		while tries < 10:
+		while tries < 5:
 			try:
 				tries = tries+1
 				rarc = UnRAR2.RarFile( self.path )
@@ -524,7 +524,6 @@ class ComicArchive:
 			fname = os.path.join(ComicTaggerSettings.baseDir(), 'graphics','nocover.png' )
 			with open(fname, 'rb') as fd:
 				ComicArchive.logo_data = fd.read()				
-				print len(ComicArchive.logo_data)
 
 	# Clears the cached data
 	def resetCache( self ):
