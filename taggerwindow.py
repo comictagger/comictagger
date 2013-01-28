@@ -485,6 +485,7 @@ class TaggerWindow( QtGui.QMainWindow):
 	def actualLoadCurrentArchive( self ):
 		if self.metadata.isEmpty:
 			self.metadata = self.comic_archive.metadataFromFilename( )
+		if len(self.metadata.pages) == 0:
 			self.metadata.setDefaultPageList( self.comic_archive.getNumberOfPages() )
 
 		self.updateCoverImage()

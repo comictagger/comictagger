@@ -15,7 +15,6 @@ Look into using libarchive
 -----------------------------------------------------
 Bugs	
 -----------------------------------------------------
-Auto-Tag doesn't save page list info!
 
 Rar flakes out when a space is at the front of the subfolder in the archive.
 Zip flakes out when filename differs from index (or whatever)  i.e "\" vs "/". Python issue
