@@ -1573,8 +1573,7 @@ class TaggerWindow( QtGui.QMainWindow):
 			if cv_md is None:
 				match_results.fetchDataFailures.append(ca.path)
 				
-			if cv_md is not None:
-			
+			if cv_md is not None:				
 				md.overlay( cv_md )
 			
 				if not ca.writeMetadata( md, self.save_data_style ):

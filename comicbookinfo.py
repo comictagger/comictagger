@@ -115,7 +115,7 @@ class ComicBookInfo:
 		#helper func
 		def toInt(s):
 			i = None
-			if type(s) == str or type(s) == int:
+			if type(s) in [ str, unicode, int ]:
 				try:
 					i = int(s)
 				except ValueError:
