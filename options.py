@@ -234,7 +234,8 @@ If no options are given, {0} will run in windowed mode
 			if o  == "--nooverwrite":
 				self.no_overwrite = True
 			if o  == "--version":
-				print "ComicTagger version: ", ctversion.version
+				print "ComicTagger {0}:  Copyright (c) 2012-2013 Anthony Beville".format(ctversion.version)
+				print "Distributed under Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)"	
 				sys.exit(0)
 			if o in ("-t", "--type"):
 				if a.lower() == "cr":
