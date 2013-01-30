@@ -161,10 +161,11 @@ class FileSelectionList(QWidget):
 	
 	def addPathList( self, pathlist ):
 		filelist = []
-		filename_encoding = sys.getfilesystemencoding()
 		for p in pathlist:
 			# if path is a folder, walk it recursivly, and all files underneath
-			if type(p) != QString:
+			if type(p) == str:
+				#make sure string is unicode
+				filename_encoding = sys.getfilesystemencoding()
 				p = p.decode(filename_encoding, 'replace')
 			
 			if os.path.isdir( unicode(p)):
