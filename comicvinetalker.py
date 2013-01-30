@@ -200,7 +200,7 @@ class ComicVineTalker(QObject):
 		for record in volume_results['issues']:
 			if IssueString(issue_number).asFloat() is None:
 				issue_number = 1
-			if float(record['issue_number']) == float(issue_number):
+			if float(record['issue_number']) == IssueString(issue_number).asFloat():
 				found = True
 				break
 			
