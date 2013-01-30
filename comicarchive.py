@@ -378,7 +378,11 @@ class RarArchiver:
 		while tries < 5:
 			try:
 				tries = tries+1
-				namelist = [ item.filename for item in rarc.infolist() ]
+				#namelist = [ item.filename for item in rarc.infolist() ]
+				namelist = []
+				for item in rarc.infolist():
+					if item.size != 0:
+						namelist.append( item.filename )
 			
 			except (OSError, IOError) as e:
 				print "getArchiveFilenameList(): [{0}] {1} attempt#{2}".format(str(e), self.path, tries)
@@ -536,7 +540,11 @@ class ComicArchive:
 		self.cix_md  = None
 		self.cbi_md  = None
 		self.comet_md  = None
-	
+
+	def loadCache( self, style_list ):
+		for style in style_list:
+			self.readMetadata(style)
+			
 	def rename( self, path ):
 		self.path = path
 		self.archiver.path = path
@@ -735,8 +743,7 @@ class ComicArchive:
 			if write_success:
 				self.has_cbi = True
 				self.cbi_md = metadata
-			else:
-				self.resetCache()
+			self.resetCache()
 			return write_success
 		else:
 			return False
@@ -747,8 +754,7 @@ class ComicArchive:
 			if write_success:
 				self.has_cbi = False
 				self.cbi_md = None
-			else:
-				self.resetCache()
+			self.resetCache()
 			return write_success
 		return True	
 		
@@ -791,8 +797,7 @@ class ComicArchive:
 			if write_success:
 				self.has_cix = True
 				self.cix_md = metadata
-			else:
-				self.resetCache()
+			self.resetCache()
 			return write_success
 		else:
 			return False
@@ -803,8 +808,7 @@ class ComicArchive:
 			if write_success:
 				self.has_cix = False
 				self.cix_md = None
-			else:
-				self.resetCache()
+			self.resetCache()
 			return write_success
 		return True
 		
@@ -874,8 +878,7 @@ class ComicArchive:
 			if write_success:
 				self.has_comet = True
 				self.comet_md = metadata
-			else:
-				self.resetCache()
+			self.resetCache()
 			return write_success
 		else:
 			return False
@@ -886,8 +889,7 @@ class ComicArchive:
 			if write_success:
 				self.has_comet = False
 				self.comet_md = None
-			else:
-				self.resetCache()
+			self.resetCache()
 			return write_success
 		return True
 		
