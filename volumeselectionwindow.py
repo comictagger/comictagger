@@ -304,23 +304,27 @@ class VolumeSelectionWindow(QtGui.QDialog):
 
 			item_text = record['name']
 			item = QtGui.QTableWidgetItem( item_text )			
+			item.setData( QtCore.Qt.ToolTipRole, item_text )
 			item.setData( QtCore.Qt.UserRole ,record['id'])
 			item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
 			self.twList.setItem(row, 0, item)
 			
 			item_text = str(record['start_year'])  
 			item = QtGui.QTableWidgetItem(item_text)			
+			item.setData( QtCore.Qt.ToolTipRole, item_text )
 			item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
 			self.twList.setItem(row, 1, item)
 
 			item_text = record['count_of_issues']  
 			item = QtGui.QTableWidgetItem(item_text)			
+			item.setData( QtCore.Qt.ToolTipRole, item_text )
 			item.setData(QtCore.Qt.DisplayRole, record['count_of_issues'])
 			item.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
 			self.twList.setItem(row, 2, item)
 			
 			if record['publisher'] is not None:
 				item_text = record['publisher']['name']
+				item.setData( QtCore.Qt.ToolTipRole, item_text )
 				item = QtGui.QTableWidgetItem(item_text)			
 				item.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
 				self.twList.setItem(row, 3, item)
