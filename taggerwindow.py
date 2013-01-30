@@ -29,6 +29,7 @@ import os
 import pprint
 import json
 import webbrowser
+import re
 
 from volumeselectionwindow import VolumeSelectionWindow
 from options import MetaDataStyle
@@ -1565,7 +1566,10 @@ class TaggerWindow( QtGui.QMainWindow):
 		# read in metadata, and parse file name if not there
 		md = ca.readMetadata( self.save_data_style )
 		if md.isEmpty:
-			md = ca.metadataFromFilename()		
+			md = ca.metadataFromFilename()
+			if dlg.ignoreLeadingDigitsInFilename and md.series is not None:
+				#remove all leading numbers
+				md.series = re.sub( "([\d.]*)(.*)", "\\2", md.series)
 		
 		if md is None or md.isEmpty:
 			print "!!!!No metadata given to search online with!"
@@ -1668,6 +1672,7 @@ class TaggerWindow( QtGui.QMainWindow):
 		prog_idx = 0
 		
 		match_results = OnlineMatchResults()
+		archives_to_remove = []
 		for ca in ca_list:
 			self.autoTagLog( u"============================================================\n" )			
 			self.autoTagLog( u"Auto-Tagging {0} of {1}\n".format(prog_idx+1, len(ca_list)))
@@ -1688,8 +1693,15 @@ class TaggerWindow( QtGui.QMainWindow):
 			if ca.isWritable():
 				success, match_results = self.identifyAndTagSingleArchive( ca, match_results, atstartdlg )
 
-		self.atprogdialog.close()		
+				if success and atstartdlg.removeAfterSuccess:
+					archives_to_remove.append( ca )
+
+		self.atprogdialog.close()
+		
+		if atstartdlg.removeAfterSuccess:
+			self.fileSelectionList.removeArchiveList( archives_to_remove )
 		self.fileSelectionList.updateSelectedRows()
+
 		self.loadArchive( self.fileSelectionList.getCurrentArchive() )
 		self.atprogdialog = None				
 		
