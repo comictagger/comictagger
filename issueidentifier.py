@@ -66,7 +66,6 @@ class IssueIdentifier:
 		self.length_delta_thresh = settings.id_length_delta_thresh
 
 		# used to eliminate unlikely publishers
-		#self.publisher_blacklist = [ 'panini comics', 'abril', 'scholastic book services' ]
 		self.publisher_blacklist = [ s.strip().lower() for s in settings.id_publisher_blacklist.split(',') ]
 		
 		self.additional_metadata = GenericMetadata()
