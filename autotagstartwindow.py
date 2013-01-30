@@ -40,11 +40,14 @@ class AutoTagStartWindow(QtGui.QDialog):
 		self.cbxSaveOnLowConfidence.setCheckState( QtCore.Qt.Unchecked )
 		self.cbxDontUseYear.setCheckState( QtCore.Qt.Unchecked )
 		self.cbxAssumeIssueOne.setCheckState( QtCore.Qt.Unchecked )
+		self.cbxIgnoreLeadingDigitsInFilename.setCheckState( QtCore.Qt.Unchecked )
+		self.cbxRemoveAfterSuccess.setCheckState( QtCore.Qt.Unchecked )
 		
 		self.autoSaveOnLow = False
 		self.dontUseYear = False
 		self.assumeIssueOne = False
-
+		self.ignoreLeadingDigitsInFilename = False
+		self.removeAfterSuccess = False
 
 	def accept( self ):
 		QtGui.QDialog.accept(self)		
@@ -52,4 +55,6 @@ class AutoTagStartWindow(QtGui.QDialog):
 		self.autoSaveOnLow = self.cbxSaveOnLowConfidence.isChecked()
 		self.dontUseYear = self.cbxDontUseYear.isChecked()
 		self.assumeIssueOne = self.cbxAssumeIssueOne.isChecked()
+		self.ignoreLeadingDigitsInFilename = self.cbxIgnoreLeadingDigitsInFilename.isChecked()
+		self.removeAfterSuccess = self.cbxRemoveAfterSuccess.isChecked()
 	

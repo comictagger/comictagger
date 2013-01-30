@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>524</width>
-    <height>248</height>
+    <width>530</width>
+    <height>299</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -67,6 +67,20 @@
         <widget class="QCheckBox" name="cbxAssumeIssueOne">
          <property name="text">
           <string>If no issue number, assume &quot;1&quot;</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QCheckBox" name="cbxIgnoreLeadingDigitsInFilename">
+         <property name="text">
+          <string>Ignore leading (sequence) numbers in filename</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="QCheckBox" name="cbxRemoveAfterSuccess">
+         <property name="text">
+          <string>Remove archives from list after successful tagging</string>
          </property>
         </widget>
        </item>
