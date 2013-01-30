@@ -20,6 +20,7 @@ limitations under the License.
 """
 
 import os
+import sys
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
@@ -160,8 +161,12 @@ class FileSelectionList(QWidget):
 	
 	def addPathList( self, pathlist ):
 		filelist = []
+		filename_encoding = sys.getfilesystemencoding()
 		for p in pathlist:
 			# if path is a folder, walk it recursivly, and all files underneath
+			if type(p) != QString:
+				p = p.decode(filename_encoding, 'replace')
+			
 			if os.path.isdir( unicode(p)):
 				for root,dirs,files in os.walk( unicode(p) ):
 					for f in files:
