@@ -59,6 +59,7 @@ class MatchSelectionWindow(QtGui.QDialog):
 			
 			item_text = match['series']  
 			item = QtGui.QTableWidgetItem(item_text)			
+			item.setData( QtCore.Qt.ToolTipRole, item_text )
 			item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
 			self.twList.setItem(row, 0, item)
 			
@@ -73,6 +74,7 @@ class MatchSelectionWindow(QtGui.QDialog):
 			else:
 				item_text = u"Unknown"
 			item = QtGui.QTableWidgetItem(item_text)
+			item.setData( QtCore.Qt.ToolTipRole, item_text )
 			item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
 			self.twList.setItem(row, 1, item)
 			
@@ -84,6 +86,7 @@ class MatchSelectionWindow(QtGui.QDialog):
 			else:
 				item_text += u"????"
 			item = QtGui.QTableWidgetItem(item_text)			
+			item.setData( QtCore.Qt.ToolTipRole, item_text )
 			item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
 			self.twList.setItem(row, 2, item)
 			

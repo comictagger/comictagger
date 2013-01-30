@@ -90,6 +90,7 @@ class IssueSelectionWindow(QtGui.QDialog):
 			
 			item_text = record['issue_number']  
 			item = QtGui.QTableWidgetItem(item_text)			
+			item.setData( QtCore.Qt.ToolTipRole, item_text )
 			item.setData( QtCore.Qt.UserRole ,record['id'])
 			item.setData(QtCore.Qt.DisplayRole, float(item_text))
 			item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
@@ -97,6 +98,7 @@ class IssueSelectionWindow(QtGui.QDialog):
 			
 			item_text = record['name']
 			item = QtGui.QTableWidgetItem(item_text)			
+			item.setData( QtCore.Qt.ToolTipRole, item_text )
 			item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
 			self.twList.setItem(row, 1, item)
 			
