@@ -85,7 +85,13 @@ class FileNameParser:
 		elif "___" in filename:
 			# the pattern seems to be that anything to left of the first "__" is the series name followed by issue
 			filename = filename.split("__")[0]
+
+		filename = filename.replace("+", " ")
 			
+		# remove parenthetical phrases
+		filename = re.sub( "\(.*\)", "", filename)
+		filename = re.sub( "\[.*\]", "", filename)
+		
 		# guess based on position
 
 		# replace any name seperators with spaces
@@ -133,7 +139,7 @@ class FileNameParser:
 		# TODO:  we really should pass in the *INDEX* of the issue, that makes 
 		# finding it easier
 		
-		
+		filename = filename.replace("+", " ")
 		tmpstr = self.fixSpaces(filename)
 		
 		#remove pound signs.  this might mess up the series name if there is a# in it.
@@ -195,9 +201,9 @@ class FileNameParser:
 		# remove the first word that word is a 3 digit number.
 		# some story arcs collection packs do this, but it's ugly
 		# this will probably break something, i.e. "100 bullets"
-		word = filename.split(' ')[0]
-		if len(word) == 3 and word[0] =='0' and word.isdigit():
-			filename = filename[4:]
+		#word = filename.split(' ')[0]
+		#if len(word) == 3 and word[0] =='0' and word.isdigit():
+		#	filename = filename[4:]
 		# ----HACK  -
 					
 		self.issue = self.getIssueNumber(filename)
