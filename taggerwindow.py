@@ -402,6 +402,9 @@ class TaggerWindow( QtGui.QMainWindow):
 		
 			new_archives_to_add = []
 			archives_to_remove = []
+			skipped_list = []
+			failed_list = []
+			success_count = 0
 			
 			for ca in ca_list:
 				if ca.isRar():
@@ -419,11 +422,13 @@ class TaggerWindow( QtGui.QMainWindow):
 					if os.path.lexists( export_name ):
 						if dlg.fileConflictBehavior == ExportConflictOpts.dontCreate:
 							export_name = None
+							skipped_list.append( ca.path )
 						elif dlg.fileConflictBehavior == ExportConflictOpts.createUnique:
 							export_name = utils.unique_file( export_name )
 								
 					if export_name is not None:
 						if ca.exportAsZip( export_name ):
+							success_count += 1
 							if dlg.addToList:
 								new_archives_to_add.append( export_name )
 							if dlg.deleteOriginal:
@@ -431,15 +436,31 @@ class TaggerWindow( QtGui.QMainWindow):
 								os.unlink( ca.path )
 								
 						else:
-							QtGui.QMessageBox.information(self, self.tr("Export as Zip Archive"),
-														  self.tr("An error occured while exporting {0} to {1}. Batch operation aborted!".format(original_path, export_name)))
-							break
+							# last export failed, so remove the zip, if it exists
+							failed_list.append( ca.path )
+							if os.path.lexists( export_name ):
+								os.remove( export_name )
 						
 			progdialog.close()
 			
 			self.fileSelectionList.addPathList( new_archives_to_add )
 			self.fileSelectionList.removeArchiveList( archives_to_remove )
-			# ATB maybe show a summary of files created here...?
+			
+			summary = u"Successfully created {0} Zip archive(s).".format( success_count )
+			if len( skipped_list ) > 0:
+				summary += u"\n\nThe following {0} RAR archive(s) were skipped due to file name conflicts:\n".format( len( skipped_list ) )
+				for f in skipped_list:
+					summary += u"\t{0}\n".format( f )
+			if len( failed_list ) > 0:
+				summary += u"\n\nThe following {0} RAR archive(s) failed to export due to read/write errors:\n".format( len( failed_list ) )
+				for f in failed_list:
+					summary += u"\t{0}\n".format( f )
+				
+			dlg = LogWindow( self )
+			dlg.setText( summary )
+			dlg.setWindowTitle( "Archive Export to Zip Summary" )
+			dlg.exec_()
+			
 
 	def aboutApp( self ):
 		
@@ -755,10 +776,13 @@ class TaggerWindow( QtGui.QMainWindow):
 		item_text = role
 		item = QtGui.QTableWidgetItem(item_text)			
 		item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
+		item.setData( QtCore.Qt.ToolTipRole, item_text )
 		self.twCredits.setItem(row, 1, item)
+
 		
 		item_text = name
 		item = QtGui.QTableWidgetItem(item_text)			
+		item.setData( QtCore.Qt.ToolTipRole, item_text )
 		item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
 		self.twCredits.setItem(row, 2, item)
 		
@@ -989,6 +1013,7 @@ class TaggerWindow( QtGui.QMainWindow):
 				self.formToMetadata()
 				
 				success = self.comic_archive.writeMetadata( self.metadata, self.save_data_style )
+				self.comic_archive.loadCache( [ MetaDataStyle.CBI, MetaDataStyle.CIX ] )
 				QtGui.QApplication.restoreOverrideCursor()
 				
 				if not success:
@@ -1389,6 +1414,8 @@ class TaggerWindow( QtGui.QMainWindow):
 				progdialog.show()				
 				prog_idx = 0
 				
+				failed_list = []
+				success_count = 0
 				for ca in ca_list:
 					if ca.hasMetadata( style ):
 						QtCore.QCoreApplication.processEvents()
@@ -1401,17 +1428,26 @@ class TaggerWindow( QtGui.QMainWindow):
 					
 					if ca.hasMetadata( style ) and ca.isWritable():
 						if not ca.removeMetadata( style ):
-							if has_md_count == 1:
-								QtGui.QMessageBox.warning(self, self.tr("Remove failed"), self.tr("The tag removal operation seemed to fail!"))
-							else:
-								QtGui.QMessageBox.warning(self, self.tr("Remove failed"),
-														  self.tr("The tag removal operation seemed to fail for {0}  Operation aborted!".format(ca.path)))
-							break
+							failed_list.append( ca.path )
+						else:
+							success_count += 1
+						ca.loadCache( [ MetaDataStyle.CBI, MetaDataStyle.CIX ] )
+	
 				progdialog.close()		
 				self.fileSelectionList.updateSelectedRows()
 				self.updateInfoBox()
 				self.updateMenus()
 
+				summary = u"Successfully removed tags in {0} archive(s).".format( success_count )
+				if len( failed_list ) > 0:
+					summary += u"\n\nThe remove operation failed in the following {0} archive(s):\n".format( len( failed_list ) )
+					for f in failed_list:
+						summary += u"\t{0}\n".format( f )
+					
+				dlg = LogWindow( self )
+				dlg.setText( summary )
+				dlg.setWindowTitle( "Tag Remove Summary" )
+				dlg.exec_()			
 				
 	def copyTags( self ):
 		# copy the indicated tags in the archive
@@ -1453,6 +1489,8 @@ class TaggerWindow( QtGui.QMainWindow):
 				progdialog.show()
 				prog_idx = 0
 				
+				failed_list = []
+				success_count = 0
 				for ca in ca_list:
 					if ca.hasMetadata( src_style ):
 						QtCore.QCoreApplication.processEvents()
@@ -1470,16 +1508,27 @@ class TaggerWindow( QtGui.QMainWindow):
 							md = CBLTransformer( md, self.settings ).apply()
 												
 						if not ca.writeMetadata( md, dest_style ):
-							if has_md_count == 1:
-								QtGui.QMessageBox.warning(self, self.tr("Remove failed"), self.tr("The tag removal operation seemed to fail!"))
-							else:
-								QtGui.QMessageBox.warning(self, self.tr("Remove failed"),
-														  self.tr("The tag removal operation seemed to fail for {0}  Operation aborted!".format(ca.path)))
-							break
+							failed_list.append( ca.path )
+						else:
+							success_count += 1
+
+						ca.loadCache( [ MetaDataStyle.CBI, MetaDataStyle.CIX ] )
+
 				progdialog.close()		
 				self.fileSelectionList.updateSelectedRows()
 				self.updateInfoBox()
 				self.updateMenus()
+				
+				summary = u"Successfully copied tags in {0} archive(s).".format( success_count )
+				if len( failed_list ) > 0:
+					summary += u"\n\nThe copy operation failed in the following {0} archive(s):\n".format( len( failed_list ) )
+					for f in failed_list:
+						summary += u"\t{0}\n".format( f )
+					
+				dlg = LogWindow( self )
+				dlg.setText( summary )
+				dlg.setWindowTitle( "Tag Copy Summary" )
+				dlg.exec_()				
 
 	def actualIssueDataFetch( self, match ):
 	
@@ -1583,7 +1632,8 @@ class TaggerWindow( QtGui.QMainWindow):
 				else:
 						match_results.goodMatches.append(ca.path)
 						success = True
-						self.autoTagLog(  "Save complete!\n" )				
+						self.autoTagLog(  "Save complete!\n" )
+				ca.loadCache( [ MetaDataStyle.CBI, MetaDataStyle.CIX ] )
 
 		return success, match_results
 				
