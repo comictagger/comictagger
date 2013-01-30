@@ -26,6 +26,7 @@ from PyQt4.QtCore import QUrl, pyqtSignal, QByteArray
 
 from imagefetcher import  ImageFetcher
 from settings import ComicTaggerSettings
+from options import MetaDataStyle
 
 class AutoTagMatchWindow(QtGui.QDialog):
 	
@@ -67,7 +68,7 @@ class AutoTagMatchWindow(QtGui.QDialog):
 		self.twList.selectRow( 0 )
 		
 		path = self.current_match_set.ca.path
-		self.setWindowTitle( "Select correct match ({0} of {1}): {2}".format(
+		self.setWindowTitle( u"Select correct match ({0} of {1}): {2}".format(
 						self.current_match_set_idx+1,
 						len( self.match_set_list ),
 						os.path.split(path)[1] ))
@@ -85,6 +86,7 @@ class AutoTagMatchWindow(QtGui.QDialog):
 			
 			item_text = match['series']  
 			item = QtGui.QTableWidgetItem(item_text)			
+			item.setData( QtCore.Qt.ToolTipRole, item_text )
 			item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
 			self.twList.setItem(row, 0, item)
 
@@ -93,6 +95,7 @@ class AutoTagMatchWindow(QtGui.QDialog):
 			else:
 				item_text = u"Unknown"
 			item = QtGui.QTableWidgetItem(item_text)
+			item.setData( QtCore.Qt.ToolTipRole, item_text )
 			item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
 			self.twList.setItem(row, 1, item)
 			
@@ -104,6 +107,7 @@ class AutoTagMatchWindow(QtGui.QDialog):
 			else:
 				item_text += u"????"
 			item = QtGui.QTableWidgetItem(item_text)			
+			item.setData( QtCore.Qt.ToolTipRole, item_text )
 			item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
 			self.twList.setItem(row, 2, item)
 			
@@ -196,6 +200,8 @@ class AutoTagMatchWindow(QtGui.QDialog):
 		QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))			
 		md.overlay( cv_md )
 		success = ca.writeMetadata( md, self.style )
+		ca.loadCache( [ MetaDataStyle.CBI, MetaDataStyle.CIX ] )
+	
 		QtGui.QApplication.restoreOverrideCursor()
 		
 		if not success:		
