@@ -107,18 +107,29 @@ class FileNameParser:
 				word_list[i+2] ="XXX"
 				
 				
+		# first look for the last "#" followed by a digit in the filename. this is almost certainly the issue number
+		#issnum = re.search('#\d+', filename)
+		matchlist = re.findall("#\d+", filename)
+		if len(matchlist) > 0:
+			#get the last item
+			issue = matchlist[ len(matchlist) - 1]
+			issue = issue[1:]
+			found = True
+
+		
 		# assume the last number in the filename that is under 4 digits is the issue number
-		for word in reversed(word_list):
-			if len(word) > 0 and word[0] == "#":
-				word = word[1:]
-			if ( 
-				 (word.isdigit() and len(word) < 4) or
-				 (self.isPointIssue(word))
-				):
-				issue = word
-				found = True
-				#print 'Assuming issue number is ' + str(issue) + ' based on the position.'
-				break
+		if not found:
+			for word in reversed(word_list):
+				if len(word) > 0 and word[0] == "#":
+					word = word[1:]
+				if ( 
+					 (word.isdigit() and len(word) < 4) or
+					 (self.isPointIssue(word))
+					):
+					issue = word
+					found = True
+					#print 'Assuming issue number is ' + str(issue) + ' based on the position.'
+					break
 
 		if not found:
 			# try a regex
