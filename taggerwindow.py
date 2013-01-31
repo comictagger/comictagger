@@ -123,13 +123,6 @@ class TaggerWindow( QtGui.QMainWindow):
 		#self.splitter.setHandleWidth(0)
 		#self.splitter.handle(1).setDisabled(True)
 
-		# This is ugly, and should probably be done in a resource file
-		if platform.system() == "Linux":
-			self.scrollAreaWidgetContents.resize( self.scrollAreaWidgetContents.width(), 630)
-		#if platform.system() == "Darwin":
-		#	self.scrollAreaWidgetContents.resize( 550, self.scrollAreaWidgetContents.height())
-
-
 		# we can't specify relative font sizes in the UI designer, so
 		# walk through all the lablels in the main form, and make them
 		# a smidge smaller
@@ -141,8 +134,8 @@ class TaggerWindow( QtGui.QMainWindow):
 				f.setItalic( True )
 				child.setFont( f )
 						
-		#---------------------------		
 
+		self.scrollAreaWidgetContents.adjustSize()
 		
 		self.setWindowIcon(QtGui.QIcon(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/app.png' )))
 		
@@ -202,6 +195,9 @@ class TaggerWindow( QtGui.QMainWindow):
 			self.splitter.setSizes([ self.settings.last_form_side_width , self.settings.last_list_side_width])
 		self.raise_()
 		QtCore.QCoreApplication.processEvents()
+		self.resizeEvent( None )
+
+		self.splitter.splitterMoved.connect( self.splitterMovedEvent )
 
 		self.fileSelectionList.addAppAction( self.actionAutoIdentify )
 		self.fileSelectionList.addAppAction( self.actionAutoTag )
@@ -391,6 +387,7 @@ class TaggerWindow( QtGui.QMainWindow):
 		if rar_count != 0:
 			dlg = ExportWindow( self, self.settings,
 						self.tr("You have selected {0} archive(s) to export  to Zip format.  New archives will be created in the same folder as the original.\n\nPlease choose options below, and select OK.\n".format(rar_count) ))
+			dlg.adjustSize( )
 			dlg.setModal( True )
 			if not dlg.exec_():
 				return
@@ -1661,6 +1658,7 @@ class TaggerWindow( QtGui.QMainWindow):
 		atstartdlg = AutoTagStartWindow( self, self.settings,
 					self.tr("You have selected {0} archive(s) to automatically identify and write {1} tags to.\n\n".format(len(ca_list), MetaDataStyle.name[style]) +
 							"Please choose options below, and select OK to Auto-Tag.\n" ))
+		atstartdlg.adjustSize( )
 		atstartdlg.setModal( True )
 		if not atstartdlg.exec_():
 			return
@@ -1857,3 +1855,15 @@ class TaggerWindow( QtGui.QMainWindow):
 	
 	def fileListCleared( self ):
 		self.resetApp()
+
+	def splitterMovedEvent( self, w1, w2 ):
+		scrollbar_w = 0
+		if self.scrollArea.verticalScrollBar().isVisible():
+			scrollbar_w = self.scrollArea.verticalScrollBar().width()
+		
+		new_w = self.scrollArea.width() - scrollbar_w - 3
+		self.scrollAreaWidgetContents.resize( new_w, self.scrollAreaWidgetContents.height())
+
+	def resizeEvent( self, ev ):
+		self.splitterMovedEvent( 0, 0)
+
