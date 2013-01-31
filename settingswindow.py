@@ -79,7 +79,7 @@ class SettingsWindow(QtGui.QDialog):
 			
 			
 		nldtTip = (
-			""" <html>The <b>Name Length Delta Threshold</b> is for eliminating automatic
+			""" <html>The <b>Default Name Length Match Tolerance</b> is for eliminating automatic
 			    search matches that are too long compared to your series name search. The higher
 			    it is, the more likely to have a good match, but each search will take longer and
 				use more bandwidth. Too low, and only the very closest lexical matches will be

@@ -74,7 +74,7 @@ class IssueIdentifier:
 		self.coverUrlCallback = None
 		self.search_result = self.ResultNoMatches
 		self.cover_page_index = 0
-
+		
 	def setScoreMinThreshold( self, thresh ):
 		self.min_score_thresh = thresh
 
@@ -85,7 +85,7 @@ class IssueIdentifier:
 		self.additional_metadata = md
 
 	def setNameLengthDeltaThreshold( self, delta ):
-		self.length_delta_thresh = md
+		self.length_delta_thresh = delta
 
 	def setPublisherBlackList( self, blacklist ):
 		self.publisher_blacklist = blacklist

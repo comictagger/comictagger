@@ -263,7 +263,7 @@
               <string/>
              </property>
              <property name="text">
-              <string>Name Length Delta Threshold:</string>
+              <string>Default Name Length Match Tolerance:</string>
              </property>
             </widget>
            </item>
@@ -274,6 +274,12 @@
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>50</width>
+               <height>16777215</height>
+              </size>
              </property>
              <property name="toolTip">
               <string/>

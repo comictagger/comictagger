@@ -42,13 +42,48 @@ class AutoTagStartWindow(QtGui.QDialog):
 		self.cbxAssumeIssueOne.setCheckState( QtCore.Qt.Unchecked )
 		self.cbxIgnoreLeadingDigitsInFilename.setCheckState( QtCore.Qt.Unchecked )
 		self.cbxRemoveAfterSuccess.setCheckState( QtCore.Qt.Unchecked )
+		self.cbxSpecifySearchString.setCheckState( QtCore.Qt.Unchecked )
+		self.leNameLengthMatchTolerance.setText( str(self.settings.id_length_delta_thresh) )
+		self.leSearchString.setEnabled( False )
+
+		nlmtTip = (
+			""" <html>The <b>Name Length Match Tolerance</b> is for eliminating automatic
+			    search matches that are too long compared to your series name search. The higher
+			    it is, the more likely to have a good match, but each search will take longer and
+				use more bandwidth. Too low, and only the very closest lexical matches will be
+				explored.</html>""" )
+		
+		self.leNameLengthMatchTolerance.setToolTip(nlmtTip)
+			
+		ssTip = (
+			"""<html>
+			The <b>series search string</b> specifies the search string to be used for all selected archives.
+			Use this only when trying to match archives with hard-to-parse filenames.  All archives selected
+			should be from the same series.
+			</html>"""
+		)
+		self.leSearchString.setToolTip(ssTip)
+		self.cbxSpecifySearchString.setToolTip(ssTip)
+		
+				
+		validator = QtGui.QIntValidator(0, 99, self)
+		self.leNameLengthMatchTolerance.setValidator(validator)
+				
+		self.cbxSpecifySearchString.stateChanged.connect(self.searchStringToggle)
 		
 		self.autoSaveOnLow = False
 		self.dontUseYear = False
 		self.assumeIssueOne = False
 		self.ignoreLeadingDigitsInFilename = False
 		self.removeAfterSuccess = False
+		self.searchString = None
+		self.nameLengthMatchTolerance =  self.settings.id_length_delta_thresh
 
+	def searchStringToggle(self):
+		enable = self.cbxSpecifySearchString.isChecked()
+		self.leSearchString.setEnabled( enable )
+
+	
 	def accept( self ):
 		QtGui.QDialog.accept(self)		
 
@@ -57,4 +92,10 @@ class AutoTagStartWindow(QtGui.QDialog):
 		self.assumeIssueOne = self.cbxAssumeIssueOne.isChecked()
 		self.ignoreLeadingDigitsInFilename = self.cbxIgnoreLeadingDigitsInFilename.isChecked()
 		self.removeAfterSuccess = self.cbxRemoveAfterSuccess.isChecked()
-	
+		self.nameLengthMatchTolerance = int(self.leNameLengthMatchTolerance.text())
+		
+		if self.cbxSpecifySearchString.isChecked():
+			self.searchString = unicode(self.leSearchString.text())
+			if len(self.searchString) == 0:
+				self.searchString = None
+			
