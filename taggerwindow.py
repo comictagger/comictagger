@@ -1861,7 +1861,7 @@ class TaggerWindow( QtGui.QMainWindow):
 		if self.scrollArea.verticalScrollBar().isVisible():
 			scrollbar_w = self.scrollArea.verticalScrollBar().width()
 		
-		new_w = self.scrollArea.width() - scrollbar_w - 3
+		new_w = self.scrollArea.width() - scrollbar_w - 5
 		self.scrollAreaWidgetContents.resize( new_w, self.scrollAreaWidgetContents.height())
 
 	def resizeEvent( self, ev ):
