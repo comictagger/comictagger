@@ -1570,7 +1570,11 @@ class TaggerWindow( QtGui.QMainWindow):
 			if dlg.ignoreLeadingDigitsInFilename and md.series is not None:
 				#remove all leading numbers
 				md.series = re.sub( "([\d.]*)(.*)", "\\2", md.series)
-		
+
+		# use the dialog specified search string
+		if dlg.searchString is not None:
+			md.series = dlg.searchString
+			
 		if md is None or md.isEmpty:
 			print "!!!!No metadata given to search online with!"
 			return False, match_results
@@ -1583,7 +1587,8 @@ class TaggerWindow( QtGui.QMainWindow):
 		ii.onlyUseAdditionalMetaData = True
 		ii.setOutputFunction( self.autoTagLog )
 		ii.cover_page_index = md.getCoverPageIndexList()[0]
-		ii.setCoverURLCallback( self.atprogdialog.setTestImage )			
+		ii.setCoverURLCallback( self.atprogdialog.setTestImage )
+		ii.setNameLengthDeltaThreshold( dlg.nameLengthMatchTolerance )
 
 		matches = ii.search()
 		
@@ -1655,7 +1660,7 @@ class TaggerWindow( QtGui.QMainWindow):
 
 		atstartdlg = AutoTagStartWindow( self, self.settings,
 					self.tr("You have selected {0} archive(s) to automatically identify and write {1} tags to.\n\n".format(len(ca_list), MetaDataStyle.name[style]) +
-							"Please choose options below, and select OK.\n" ))
+							"Please choose options below, and select OK to Auto-Tag.\n" ))
 		atstartdlg.setModal( True )
 		if not atstartdlg.exec_():
 			return
@@ -1668,7 +1673,7 @@ class TaggerWindow( QtGui.QMainWindow):
 
 		self.autoTagLog( u"========================================================================\n" )			
 		self.autoTagLog( u"Auto-Tagging Started for {0} items\n".format(len(ca_list)))
-		
+
 		prog_idx = 0
 		
 		match_results = OnlineMatchResults()
