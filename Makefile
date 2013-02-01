@@ -12,7 +12,7 @@ clean:
 zip:
 	cd release; \
 		rm -rf *zip comictagger-src-$(VERSION_STR) ;  \
-		svn checkout https://comictagger.googlecode.com/svn/trunk/ comictagger-src-$(VERSION_STR); \
+		svn export https://comictagger.googlecode.com/svn/trunk/ comictagger-src-$(VERSION_STR); \
 		zip -r comictagger-src-$(VERSION_STR).zip comictagger-src-$(VERSION_STR); \
 		rm -rf comictagger-src-$(VERSION_STR)
 	
