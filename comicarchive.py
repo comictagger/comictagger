@@ -288,7 +288,7 @@ class RarArchiver:
 		rarc = self.getRARObj()
 
 		tries = 0
-		while tries < 5:
+		while tries < 7:
 			try:
 				tries = tries+1
 				entries = rarc.read_files( archive_file )
@@ -375,7 +375,7 @@ class RarArchiver:
 		#return namelist
 
 		tries = 0
-		while tries < 5:
+		while tries < 7:
 			try:
 				tries = tries+1
 				#namelist = [ item.filename for item in rarc.infolist() ]
@@ -397,7 +397,7 @@ class RarArchiver:
 		
 	def getRARObj( self ):
 		tries = 0
-		while tries < 5:
+		while tries < 7:
 			try:
 				tries = tries+1
 				rarc = UnRAR2.RarFile( self.path )
