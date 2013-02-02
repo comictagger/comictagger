@@ -59,7 +59,10 @@ class IssueIdentifier:
 		self.onlyUseAdditionalMetaData = False
 
 		# a decent hamming score, good enough to call it a match
-		self.min_score_thresh = 20
+		self.min_score_thresh = 16
+
+		# for alternate covers, be more stringent, since we're a bit more scattershot in comparisons
+		self.min_alternate_score_thresh = 14
 		
 		# the min distance a hamming score must be to separate itself from closest neighbor
 		self.min_score_distance = 4
@@ -411,7 +414,7 @@ class IssueIdentifier:
 				series_second_round_list.append(item)
 		
 		# if we don't think it's an issue number 1, remove any series' that are one-shots
-		if keys['issue_number'] != '1':
+		if keys['issue_number'] not in [ '1', '0' ]:
 			#self.log_msg( "Removing one-shots" )
 			series_second_round_list[:] = [x for x in series_second_round_list if not x['count_of_issues'] == 1]	
 
@@ -567,7 +570,7 @@ class IssueIdentifier:
 				self.log_msg("--->{0}".format(score_item['score']))
 				self.log_msg( "" )
 
-				if score_item['score'] < self.min_score_thresh:
+				if score_item['score'] < self.min_alternate_score_thresh:
 					second_match_list.append(m)
 					m['distance'] = score_item['score']
 					
