@@ -27,6 +27,7 @@ import datetime
 
 import ctversion
 from settings import ComicTaggerSettings
+import utils
 
 class ComicVineCacher:
 
@@ -97,6 +98,13 @@ class ComicVineCacher:
 							"PRIMARY KEY (id) )" 
 						)
 
+			cur.execute("CREATE TABLE AltCovers(" +
+							"issue_id INT," +
+							"url_list TEXT," +
+							"timestamp DATE DEFAULT (datetime('now','localtime')), " + 
+							"PRIMARY KEY (issue_id) )" 
+						)
+
 			cur.execute("CREATE TABLE Issues(" +
 							"id INT," +
 							"volume_id INT," +
@@ -150,7 +158,7 @@ class ComicVineCacher:
 								url,
 								record['description']) 
 							)
-							
+			
 	def get_search_results( self, search_term ):
 		
 		results = list()
@@ -185,7 +193,47 @@ class ComicVineCacher:
 				
 		return results
 
+	def add_alt_covers( self, issue_id, url_list ):
+		
+		con = lite.connect( self.db_file )
 
+		with con:
+			con.text_factory = unicode					
+			cur = con.cursor()    
+			
+			# remove all previous entries with this search term
+			cur.execute("DELETE FROM AltCovers WHERE issue_id = ?", [ issue_id ])
+			
+			url_list_str = utils.listToString(url_list)
+			# now add in new record				
+			cur.execute("INSERT INTO AltCovers " +
+						"(issue_id, url_list ) " +
+						"VALUES( ?, ? )" ,
+							( issue_id,
+							url_list_str) 
+						)
+
+
+	def get_alt_covers( self, issue_id ):
+		
+		con = lite.connect( self.db_file )
+		with con:
+			cur = con.cursor() 
+			con.text_factory = unicode					
+			
+			# purge stale issue info - probably issue data won't change much....
+			a_month_ago = datetime.datetime.today()-datetime.timedelta(days=30)
+			cur.execute( "DELETE FROM AltCovers WHERE timestamp  < ?", [ str(a_month_ago) ] )
+			
+			cur.execute("SELECT url_list FROM AltCovers WHERE issue_id=?", [ issue_id ])
+			row = cur.fetchone()
+			if row is None :
+				return None
+			else:
+				url_list_str = row[0]
+				url_list = url_list_str.split(",")
+				return url_list
+			
 	def add_volume_info( self, cv_volume_record ):
 		
 		con = lite.connect( self.db_file )

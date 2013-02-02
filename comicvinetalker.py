@@ -386,6 +386,14 @@ class ComicVineTalker(QObject):
 		cvc.add_issue_select_details( issue_id, image_url, thumb_url, month, year, page_url )
 		
 	def fetchAlternateCoverURLs(self, issue_id):
+
+		# before we search online, look in our cache, since we might already
+		# have this info
+		cvc = ComicVineCacher( )
+		url_list = cvc.get_alt_covers( issue_id )
+		if url_list is not None:
+			return url_list
+
 		issue_page_url = self.fetchIssuePageURL( issue_id )
 		
 		# scrape the CV issue page URL to get the alternate cover URLs 
@@ -403,6 +411,10 @@ class ComicVineTalker(QObject):
 				c = d['class']
 				if 'content-pod' in c and 'alt-cover' in c:
 					alt_cover_url_list.append( d.img['src'] )
+					
+		# cache this alt cover URL list
+		cvc.add_alt_covers( issue_id, alt_cover_url_list )
+					
 		return alt_cover_url_list
 					
 	#---------------------------------------------------------------------------
