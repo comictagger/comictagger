@@ -112,6 +112,12 @@ class AutoTagMatchWindow(QtGui.QDialog):
 			self.twList.setItem(row, 2, item)
 			
 			row += 1
+
+		self.twList.resizeColumnsToContents()
+		self.twList.setSortingEnabled(True)
+		self.twList.sortItems( 2 , QtCore.Qt.DescendingOrder )
+		self.twList.selectRow(0)
+		self.twList.resizeColumnsToContents()
 			
 
 	def cellDoubleClicked( self, r, c ):

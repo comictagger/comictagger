@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>831</width>
-    <height>506</height>
+    <width>907</width>
+    <height>507</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -31,6 +31,12 @@
            <width>200</width>
            <height>300</height>
           </size>
+         </property>
+         <property name="frameShape">
+          <enum>QFrame::Panel</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Sunken</enum>
          </property>
          <property name="text">
           <string>TextLabel</string>
