@@ -1,11 +1,16 @@
 
 ---------------------------------  
-1.0.3-beta - ??-Jan-2013
+1.0.4-beta - 06-Fab-2013
+---------------------------------
+Changes:
+	Enhanced identification process to use alternate covers from ComicVine
+
+---------------------------------  
+1.0.3-beta - 31-Jan-2013
 ---------------------------------
 Changes:
 	Misc bug fixes and enhancements
-
-
+	
 ---------------------------------  
 1.0.2-beta - 25-Jan-2013
 ---------------------------------

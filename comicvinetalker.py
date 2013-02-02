@@ -27,6 +27,7 @@ import re
 import datetime
 import ctversion
 import sys
+from bs4 import BeautifulSoup
 
 try:
 	from PyQt4.QtNetwork import QNetworkAccessManager, QNetworkRequest
@@ -323,36 +324,55 @@ class ComicVineTalker(QObject):
 		return newstring
 
 	def fetchIssueDate( self, issue_id ):
-		image_url, thumb_url, month,year = self.fetchIssueSelectDetails( issue_id )
-		return month, year
+		details = self.fetchIssueSelectDetails( issue_id )
+		return details['publish_month'], details['publish_year']
 
 	def fetchIssueCoverURLs( self, issue_id ):
-		image_url, thumb_url, month,year = self.fetchIssueSelectDetails( issue_id )
-		return image_url, thumb_url
-		
+		details = self.fetchIssueSelectDetails( issue_id )
+		return details['image_url'], details['thumb_image_url']
+
+	def fetchIssuePageURL( self, issue_id ):
+		details = self.fetchIssueSelectDetails( issue_id )
+		return details['site_detail_url']
+				
 	def fetchIssueSelectDetails( self, issue_id ):
 
-		cached_image_url,cached_thumb_url,cached_month,cached_year = self.fetchCachedIssueSelectDetails( issue_id )
-		if cached_image_url is not None:
-			return cached_image_url,cached_thumb_url, cached_month, cached_year
+		#cached_image_url,cached_thumb_url,cached_month,cached_year = self.fetchCachedIssueSelectDetails( issue_id )
+		cached_details = self.fetchCachedIssueSelectDetails( issue_id )
+		if cached_details['image_url'] is not None:
+			return cached_details
 
-		issue_url = "http://api.comicvine.com/issue/" + str(issue_id) + "/?api_key=" + self.api_key + "&format=json&field_list=image,publish_month,publish_year"
+		issue_url = "http://api.comicvine.com/issue/" + str(issue_id) + "/?api_key=" + self.api_key + "&format=json&field_list=image,publish_month,publish_year,site_detail_url"
 
 		content = self.getUrlContent(issue_url) 
+		
+		details = dict()
+		details['image_url'] = None
+		details['thumb_image_url'] = None
+		details['publish_month'] = None
+		details['publish_year'] = None
+		details['site_detail_url'] = None
 		
 		cv_response = json.loads(content)
 		if cv_response[ 'status_code' ] != 1:
 			print ( "Comic Vine query failed with error:  [{0}]. ".format( cv_response[ 'error' ] ))
-			return None, None,None,None
+			return details
 		
-		image_url = cv_response['results']['image']['super_url']
-		thumb_url = cv_response['results']['image']['thumb_url']
-		year = cv_response['results']['publish_year']
-		month = cv_response['results']['publish_month']
+		details['image_url'] =       cv_response['results']['image']['super_url']
+		details['thumb_image_url'] = cv_response['results']['image']['thumb_url']
+		details['publish_year'] =    cv_response['results']['publish_year']
+		details['publish_month'] =   cv_response['results']['publish_month']
+		details['site_detail_url'] = cv_response['results']['site_detail_url']
 				
-		if image_url is not None:
-			self.cacheIssueSelectDetails( issue_id, image_url,thumb_url, month, year )
-		return image_url,thumb_url,month,year
+		if details['image_url'] is not None:
+			self.cacheIssueSelectDetails( issue_id,
+										details['image_url'],
+										details['thumb_image_url'],
+										details['publish_month'],
+										details['publish_year'],
+										details['site_detail_url'] )
+		#print details['site_detail_url']
+		return details
 		
 	def fetchCachedIssueSelectDetails( self, issue_id ):
 
@@ -361,23 +381,42 @@ class ComicVineTalker(QObject):
 		cvc = ComicVineCacher( )
 		return  cvc.get_issue_select_details( issue_id )
 
-	def cacheIssueSelectDetails( self, issue_id, image_url, thumb_url, month, year ):
+	def cacheIssueSelectDetails( self, issue_id, image_url, thumb_url, month, year, page_url ):
 		cvc = ComicVineCacher( )
-		cvc.add_issue_select_details( issue_id, image_url, thumb_url, month, year )
+		cvc.add_issue_select_details( issue_id, image_url, thumb_url, month, year, page_url )
 		
+	def fetchAlternateCoverURLs(self, issue_id):
+		issue_page_url = self.fetchIssuePageURL( issue_id )
 		
-#---------------------------------------------------------------------------
+		# scrape the CV issue page URL to get the alternate cover URLs 
+		resp = urllib2.urlopen( issue_page_url ) 
+		content = resp.read()
+		soup = BeautifulSoup( content )
+		
+		alt_cover_url_list = []
+		
+		# Using knowledge of the layout of the ComicVine issue page here:
+		#  look for the divs that are in the classes 'content-pod' and 'alt-cover'
+		div_list = soup.find_all( 'div')
+		for d in div_list:
+			if d.has_key('class'):
+				c = d['class']
+				if 'content-pod' in c and 'alt-cover' in c:
+					alt_cover_url_list.append( d.img['src'] )
+		return alt_cover_url_list
+					
+	#---------------------------------------------------------------------------
 	urlFetchComplete = pyqtSignal( str , str, int)
 
 	def asyncFetchIssueCoverURLs( self, issue_id ):
 		
 		self.issue_id = issue_id
-		cached_image_url,cached_thumb_url,month,year = self.fetchCachedIssueSelectDetails( issue_id )
-		if cached_image_url is not None:
-			self.urlFetchComplete.emit( cached_image_url,cached_thumb_url, self.issue_id )
+		details = self.fetchCachedIssueSelectDetails( issue_id )
+		if details['image_url'] is not None:
+			self.urlFetchComplete.emit( details['image_url'],details['thumb_image_url'], self.issue_id )
 			return
 
-		issue_url = "http://api.comicvine.com/issue/" + str(issue_id) + "/?api_key=" + self.api_key + "&format=json&field_list=image,publish_month,publish_year"
+		issue_url = "http://api.comicvine.com/issue/" + str(issue_id) + "/?api_key=" + self.api_key + "&format=json&field_list=image,publish_month,publish_year,site_detail_url"
 		self.nam = QNetworkAccessManager()
 		self.nam.finished.connect( self.asyncFetchIssueCoverURLComplete )
 		self.nam.get(QNetworkRequest(QUrl(issue_url)))
@@ -395,8 +434,9 @@ class ComicVineTalker(QObject):
 		thumb_url = cv_response['results']['image']['thumb_url']
 		year = cv_response['results']['publish_year']
 		month = cv_response['results']['publish_month']
+		page_url = cv_response['results']['site_detail_url']
 
-		self.cacheIssueSelectDetails(  self.issue_id, image_url, thumb_url, month, year )
+		self.cacheIssueSelectDetails(  self.issue_id, image_url, thumb_url, month, year, page_url )
 
 		self.urlFetchComplete.emit( image_url, thumb_url, self.issue_id ) 
 

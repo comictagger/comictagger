@@ -1445,6 +1445,7 @@ class TaggerWindow( QtGui.QMainWindow):
 				dlg = LogWindow( self )
 				dlg.setText( summary )
 				dlg.setWindowTitle( "Tag Remove Summary" )
+				#dlg.adjustSize()
 				dlg.exec_()			
 				
 	def copyTags( self ):

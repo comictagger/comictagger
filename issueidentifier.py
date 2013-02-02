@@ -38,6 +38,11 @@ from issuestring import IssueString
 
 import utils 
 
+class IssueIdentifierNetworkError(Exception):
+	pass
+class IssueIdentifierCancelled(Exception):
+	pass
+
 class IssueIdentifier:
 	
 	ResultNoMatches                         = 0
@@ -215,6 +220,104 @@ class IssueIdentifier:
 		if newline:
 			self.output_function("\n")
 	
+	def getIssueCoverMatchScore( self, comicVine, issue_id, localCoverHashList, useRemoteAlternates = False , use_log=True):
+
+		# localHashes is a list of pre-calculated hashs.
+		# useRemoteAlternates - indicates to use alternate covers from CV
+		
+		# first get the primary cover image
+		primary_img_url, primary_thumb_url = comicVine.fetchIssueCoverURLs( issue_id )
+				
+		try:
+			url_image_data = ImageFetcher().fetch(primary_thumb_url, blocking=True)
+		except ImageFetcherException:
+			self.log_msg( "Network issue while fetching cover image from ComicVine.  Aborting...")
+			raise IssueIdentifierNetworkError
+
+		if self.cancel == True:
+			raise IssueIdentifierCancelled
+			
+		# alert the GUI, if needed
+		if self.coverUrlCallback is not None:
+			self.coverUrlCallback( url_image_data )
+
+		remote_cover_list = []
+		item = dict()
+		item['url'] = primary_img_url
+
+		item['hash'] = self.calculateHash( url_image_data )
+		remote_cover_list.append( item )
+
+		if self.cancel == True:
+			raise IssueIdentifierCancelled
+		
+		if useRemoteAlternates:
+			alt_img_url_list = comicVine.fetchAlternateCoverURLs( issue_id )
+			
+			for alt_url in alt_img_url_list:
+				try:
+					alt_url_image_data = ImageFetcher().fetch(alt_url, blocking=True)
+				except ImageFetcherException:
+					self.log_msg( "Network issue while fetching alt. cover image from ComicVine.  Aborting...")
+					raise IssueIdentifierNetworkError
+
+				if self.cancel == True:
+					raise IssueIdentifierCancelled
+					
+				# alert the GUI, if needed
+				if self.coverUrlCallback is not None:
+					self.coverUrlCallback( alt_url_image_data )
+
+				item = dict()
+				item['url'] = alt_url
+				item['hash'] = self.calculateHash( alt_url_image_data )
+				remote_cover_list.append( item )
+				
+				if self.cancel == True:
+					raise IssueIdentifierCancelled
+				
+		if use_log and useRemoteAlternates:
+			self.log_msg( "[{0} alt. covers]".format(len(remote_cover_list)-1), False )
+		if use_log:
+			self.log_msg( "[ ", False )
+			
+		score_list = []
+		done = False
+		for local_cover_hash in localCoverHashList:
+			for remote_cover_item in remote_cover_list:
+				score = ImageHasher.hamming_distance(local_cover_hash, remote_cover_item['hash'] )
+				score_item = dict()
+				score_item['score'] = score
+				score_item['url'] = remote_cover_item['url']
+				score_item['hash'] = remote_cover_item['hash']
+				score_list.append( score_item )
+				if use_log:
+					self.log_msg( "{0} ".format(score), False )
+				
+				if score <= self.strong_score_thresh:
+					# such a good score, we can quit now, since for sure we have a winner
+					done = True
+					break
+			if done:
+				break
+				
+		if use_log:
+			self.log_msg( " ]", False )
+
+		best_score_item = min(score_list, key=lambda x:x['score'])
+
+		return best_score_item	
+
+	"""
+	def validate( self, issue_id ):
+		# create hash list
+		score = self.getIssueMatchScore( issue_id, hash_list, useRemoteAlternates = True )
+		if score < 20:
+			return True
+		else:
+			return False
+	"""
+	
 	def search( self ):
 	
 		ca = self.comic_archive
@@ -279,7 +382,7 @@ class IssueIdentifier:
 		if self.cancel == True:
 			return []
 		
-		series_shortlist = []
+		series_second_round_list = []
 		
 		#self.log_msg( "Removing results with too long names, banned publishers, or future start dates" )
 		for item in cv_search_results:
@@ -305,34 +408,33 @@ class IssueIdentifier:
 					publisher_approved = False
 
 			if length_approved and publisher_approved and date_approved:
-				series_shortlist.append(item)
+				series_second_round_list.append(item)
 		
 		# if we don't think it's an issue number 1, remove any series' that are one-shots
 		if keys['issue_number'] != '1':
 			#self.log_msg( "Removing one-shots" )
-			series_shortlist[:] = [x for x in series_shortlist if not x['count_of_issues'] == 1]	
+			series_second_round_list[:] = [x for x in series_second_round_list if not x['count_of_issues'] == 1]	
 
-		self.log_msg( "Searching in " + str(len(series_shortlist)) +" series" )
+		self.log_msg( "Searching in " + str(len(series_second_round_list)) +" series" )
 		
 		if self.callback is not None:
-			self.callback( 0, len(series_shortlist))
+			self.callback( 0, len(series_second_round_list))
 			
 		# now sort the list by name length
-		series_shortlist.sort(key=lambda x: len(x['name']), reverse=False)
+		series_second_round_list.sort(key=lambda x: len(x['name']), reverse=False)
 		
-		# Now we've got a list of series that we can dig into, 
-		# and look for matching issue number, date, and cover image
-		
+		# Now we've got a list of series that we can dig into look for matching issue number
 		counter = 0
-		for series in series_shortlist:
+		shortlist = []
+		for series in series_second_round_list:
 			if self.callback is not None:
+				self.callback( counter, len(series_second_round_list)*3)
 				counter += 1
-				self.callback( counter, len(series_shortlist))
 				
 			self.log_msg( u"Fetching info for  ID: {0} {1} ({2}) ...".format(
 			               series['id'], 
 			               series['name'], 
-			               series['start_year']), newline=False )
+			               series['start_year']), newline=True )
 
 			try:
 				cv_series_results = comicVine.fetchVolumeData( series['id'] )
@@ -346,59 +448,67 @@ class IssueIdentifier:
 				
 				# look for a matching issue number
 				if num_s == keys['issue_number']:
-					# found a matching issue number!  now get the issue data 
-					img_url, thumb_url = comicVine.fetchIssueCoverURLs( issue['id'] )
-					month, year = comicVine.fetchIssueDate( issue['id'] )
 
-					if self.cancel == True:
-						self.match_list = []
-						return self.match_list
-							
 					# now, if we have an issue year key given, reject this one if not a match
+					month, year = comicVine.fetchIssueDate( issue['id'] )					
 					if keys['year'] is not None:
-						if keys['year'] != year:
+						if unicode(keys['year']) != unicode(year):
 							break
-					try:
-						url_image_data = ImageFetcher().fetch(thumb_url, blocking=True)
-					except ImageFetcherException:
-						self.log_msg( "Network issue while fetching cover image from ComicVine.  Aborting...")
-						return []
-						
-					if self.cancel == True:
-						self.match_list = []
-						return self.match_list
-
-					if self.coverUrlCallback is not None:
-						self.coverUrlCallback( url_image_data )
-
-					url_image_hash = self.calculateHash( url_image_data )
-					score = ImageHasher.hamming_distance(cover_hash, url_image_hash)
+				
+					# found a matching issue number!  add it to short list
+					shortlist.append( (series, cv_series_results, issue) )
 					
-					# if we have a cropped version of the cover, check that one also, and use the best score
-					if narrow_cover_hash is not None:
-						score2 = ImageHasher.hamming_distance(narrow_cover_hash, url_image_hash)
-						score = min( score, score2 )
+		if keys['year'] is None:
+			self.log_msg( "Found {0} series that have an issue #{1}".format(len(shortlist), keys['issue_number']) )
+		else:
+			self.log_msg( "Found {0} series that have an issue #{1} from {2}".format(len(shortlist), keys['issue_number'], keys['year'] ))
+		
+			
+		# now we have a shortlist of volumes with the desired issue number
+		# Do first round of cover matching
+		counter = len(shortlist)
+		for series, cv_series_results, issue in  shortlist:		
+			if self.callback is not None:
+				self.callback( counter, len(shortlist)*3)
+				counter += 1
+			
+			self.log_msg( u"Examining covers for  ID: {0} {1} ({2}) ...".format(
+			               series['id'], 
+			               series['name'], 
+			               series['start_year']), newline=False )
+			
+			# now, if we have an issue year key given, reject this one if not a match
+			month, year = comicVine.fetchIssueDate( issue['id'] )					
 
-					match = dict()
-					match['series'] = u"{0} ({1})".format(series['name'], series['start_year'])
-					match['distance'] = score
-					match['issue_number'] = num_s
-					match['url_image_hash'] = url_image_hash
-					match['issue_title'] = issue['name']
-					match['img_url'] = img_url
-					match['issue_id'] = issue['id']
-					match['volume_id'] = series['id']
-					match['month'] = month
-					match['year'] = year
-					match['publisher'] = None
-					if series['publisher'] is not None:
-						match['publisher'] = series['publisher']['name']
-						
-					self.match_list.append(match)
+			# Now check the cover match against the primary image
+			hash_list = [ cover_hash ]
+			if narrow_cover_hash is not None:
+				hash_list.append(narrow_cover_hash)
+			try:	
+				score_item = self.getIssueCoverMatchScore( comicVine, issue['id'], hash_list, useRemoteAlternates = False )
+			except:
+				self.match_list = []
+				return self.match_list
 
-					self.log_msg( " --> {0}".format(match['distance']), newline=False )
-					
-					break
+			match = dict()
+			match['series'] = u"{0} ({1})".format(series['name'], series['start_year'])
+			match['distance'] = score_item['score']
+			match['issue_number'] = keys['issue_number']
+			match['url_image_hash'] = score_item['hash']
+			match['issue_title'] = issue['name']
+			match['img_url'] = score_item['url']
+			match['issue_id'] = issue['id']
+			match['volume_id'] = series['id']
+			match['month'] = month
+			match['year'] = year
+			match['publisher'] = None
+			if series['publisher'] is not None:
+				match['publisher'] = series['publisher']['name']
+				
+			self.match_list.append(match)
+
+			self.log_msg( " --> {0}".format(match['distance']), newline=False )
+
 			self.log_msg( "" )
 		
 		if len(self.match_list) == 0:
@@ -414,7 +524,7 @@ class IssueIdentifier:
 		for i in self.match_list:
 			l.append( i['distance'] )
 
-		self.log_msg( "Compared {0} covers".format(len(self.match_list)), newline=False)
+		self.log_msg( "Compared to covers in {0} issue(s):".format(len(self.match_list)), newline=False)
 		self.log_msg( str(l))
 
 		def print_match(item):
@@ -428,43 +538,66 @@ class IssueIdentifier:
 		
 		best_score = self.match_list[0]['distance']
 
-		if len(self.match_list) == 1:
-			self.search_result = self.ResultOneGoodMatch
-			if best_score > self.min_score_thresh:
-				self.log_msg( "Very weak score for the cover.  Maybe it's not the cover..." )
-
-				self.log_msg( "Comparing to some other archive pages now..." )
-				found = False
-				for i in range( min(3, ca.getNumberOfPages())):
-					image_data = ca.getPage(i)
-					page_hash = self.calculateHash( image_data )
-					distance = ImageHasher.hamming_distance(page_hash, self.match_list[0]['url_image_hash'])
-					if distance <= self.strong_score_thresh:
-						self.log_msg(  "Found a great match (score = {0}) on page {1}!".format(distance, i+1) )
-						found = True
-						break
-					elif distance < self.min_score_thresh:
-						self.log_msg( "Found a good match (score = {0}) on page {1}".format(distance, i) )
-						found = True
-					self.log_msg( ".", newline=False )
+		if best_score >= self.min_score_thresh:
+			# we have 1 or more low-confidence matches (all bad cover scores)
+			# look at a few more pages in the archive, and also alternate covers online
+			self.log_msg( "Very weak scores for the cover.  Analyzing alternate pages and covers..." )
+			hash_list = [ cover_hash ]
+			if narrow_cover_hash is not None:
+				hash_list.append(narrow_cover_hash)
+			for i in range( 1, min(3, ca.getNumberOfPages())):
+				image_data = ca.getPage(i)
+				page_hash = self.calculateHash( image_data )
+				hash_list.append( page_hash )
+				
+			second_match_list = []
+			counter = 2*len(self.match_list)
+			for m in self.match_list:
+				if self.callback is not None:
+					self.callback( counter, len(self.match_list)*3)
+					counter += 1
+				self.log_msg( u"Examining alternate covers for ID: {0} {1} ...".format(
+							   m['volume_id'], 
+							   m['series']), newline=False )
+				try:	
+					score_item = self.getIssueCoverMatchScore( comicVine, m['issue_id'], hash_list, useRemoteAlternates = True )
+				except:
+					self.match_list = []
+					return self.match_list
+				self.log_msg("--->{0}".format(score_item['score']))
 				self.log_msg( "" )
-				if not found:
-					self.log_msg( "No matching pages in the issue." )
-					self.search_result = self.ResultFoundMatchButBadCoverScore
 
-			self.log_msg( u"--------------------------------------------------")
-			print_match(self.match_list[0])
-			self.log_msg( u"--------------------------------------------------")
-			return self.match_list
-
-		elif best_score > self.min_score_thresh and len(self.match_list) > 1:
-			self.log_msg( u"--------------------------------------------------")
-			self.log_msg( u"Multiple bad cover matches!  Need to use other info..." )
-			self.log_msg( u"--------------------------------------------------")
-			self.search_result = self.ResultMultipleMatchesWithBadImageScores
+				if score_item['score'] < self.min_score_thresh:
+					second_match_list.append(m)
+					m['distance'] = score_item['score']
 					
-			return self.match_list
-
+			if len(	second_match_list ) == 0:
+				if len( self.match_list) == 1:
+					self.log_msg( "No matching pages in the issue." )
+					self.log_msg( u"--------------------------------------------------")
+					print_match(self.match_list[0])
+					self.log_msg( u"--------------------------------------------------")
+					self.search_result = self.ResultFoundMatchButBadCoverScore
+				else:
+					self.log_msg( u"--------------------------------------------------")
+					self.log_msg( u"Multiple bad cover matches!  Need to use other info..." )
+					self.log_msg( u"--------------------------------------------------")
+					self.search_result = self.ResultMultipleMatchesWithBadImageScores
+				return self.match_list
+			else:
+				# We did good, found something!
+				self.log_msg( "Success in secondary/alternate cover matching!" )
+				
+				self.match_list = second_match_list
+				# sort new list by image match scores
+				self.match_list.sort(key=lambda k: k['distance'])		
+				best_score = self.match_list[0]['distance']
+				self.log_msg("[Second round cover matching: best score = {0}]".format(best_score))
+				# now drop down into the rest of the processing
+				
+		if self.callback is not None:
+			self.callback( 99, 100)
+		
 		#now pare down list, remove any item more than specified distant from the top scores
 		for item in reversed(self.match_list):
 			if item['distance'] > best_score + self.min_score_distance:
