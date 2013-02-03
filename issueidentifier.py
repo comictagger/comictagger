@@ -62,7 +62,7 @@ class IssueIdentifier:
 		self.min_score_thresh = 16
 
 		# for alternate covers, be more stringent, since we're a bit more scattershot in comparisons
-		self.min_alternate_score_thresh = 14
+		self.min_alternate_score_thresh = 12
 		
 		# the min distance a hamming score must be to separate itself from closest neighbor
 		self.min_score_distance = 4
