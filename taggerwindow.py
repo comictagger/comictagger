@@ -62,6 +62,7 @@ class OnlineMatchResults():
 		self.goodMatches = []  
 		self.noMatches = []    
 		self.multipleMatches = []  
+		self.lowConfidenceMatches = []  
 		self.writeFailures = []
 		self.fetchDataFailures = []
 		
@@ -1595,6 +1596,7 @@ class TaggerWindow( QtGui.QMainWindow):
 		found_match = False
 		choices = False
 		low_confidence = False
+		no_match = False
 		
 		if result == ii.ResultNoMatches:
 			pass
@@ -1612,18 +1614,22 @@ class TaggerWindow( QtGui.QMainWindow):
 			choices = True
 	
 		if choices:
-			self.autoTagLog( "Online search: Multiple matches.  Save aborted\n" ) 
-			match_results.multipleMatches.append(MultipleMatch(ca,matches))
+			if low_confidence:
+				self.autoTagLog( "Online search: Multiple low-confidence matches.  Save aborted\n" )
+				match_results.lowConfidenceMatches.append(MultipleMatch(ca,matches))
+			else:
+				self.autoTagLog( "Online search: Multiple matches.  Save aborted\n" ) 
+				match_results.multipleMatches.append(MultipleMatch(ca,matches))
 		elif low_confidence and not dlg.autoSaveOnLow:
 			self.autoTagLog(  "Online search: Low confidence match.  Save aborted\n" )
-			match_results.noMatches.append(ca.path)
+			match_results.lowConfidenceMatches.append(MultipleMatch(ca,matches))
 		elif not found_match:
 			self.autoTagLog(  "Online search: No match found.  Save aborted\n" )
 			match_results.noMatches.append(ca.path)
 		else:
 			#  a single match!
 			if low_confidence:
-				self.autoTagLog(  "Online search: Low confidence match, but saving anyways, as incdicated...\n" )				
+				self.autoTagLog(  "Online search: Low confidence match, but saving anyways, as indicated...\n" )				
 			
 			# now get the particular issue data
 			cv_md = self.actualIssueDataFetch( matches[0] )
@@ -1714,6 +1720,8 @@ class TaggerWindow( QtGui.QMainWindow):
 
 		if len ( match_results.multipleMatches ) > 0:
 			summary += u"Archives with multiple matches: {0}\n".format( len(match_results.multipleMatches))
+		if len ( match_results.lowConfidenceMatches ) > 0:
+			summary += u"Archives with one or more low-confidence matches: {0}\n".format( len(match_results.lowConfidenceMatches))
 		if len ( match_results.noMatches ) > 0:
 			summary += u"Archives with no matches: {0}\n".format( len(match_results.noMatches))
 		if len ( match_results.fetchDataFailures ) > 0:
@@ -1722,15 +1730,17 @@ class TaggerWindow( QtGui.QMainWindow):
 			summary += u"Archives that failed due to file writing errors: {0}\n".format( len(match_results.writeFailures))
 
 		self.autoTagLog( summary )			
-				
-		if len ( match_results.multipleMatches ) > 0:
-			summary += u"\n\nDo you want to manually select the ones with multiple matches now?"
+		
+		sum_selectable = len ( match_results.multipleMatches ) + len(match_results.lowConfidenceMatches)
+		if sum_selectable > 0:
+			summary += u"\n\nDo you want to manually select the ones with multiple matches and/or low-confidence matches now?"
 		
 			reply = QtGui.QMessageBox.question(self, 
 			     self.tr(u"Auto-Tag Summary"), 
 			     self.tr(summary),
 			     QtGui.QMessageBox.Yes, QtGui.QMessageBox.No )
-			     
+			
+			match_results.multipleMatches.extend( match_results.lowConfidenceMatches )
 			if reply == QtGui.QMessageBox.Yes:
 				matchdlg = AutoTagMatchWindow( self, match_results.multipleMatches, style, self.actualIssueDataFetch)
 				matchdlg.setModal( True )
