@@ -231,7 +231,12 @@ class ComicVineCacher:
 				return None
 			else:
 				url_list_str = row[0]
-				url_list = url_list_str.split(",")
+				if len(url_list_str) == 0:
+					return []
+				raw_list = url_list_str.split(",")
+				url_list = []
+				for item in raw_list:
+					url_list.append( str(item).strip())
 				return url_list
 			
 	def add_volume_info( self, cv_volume_record ):
