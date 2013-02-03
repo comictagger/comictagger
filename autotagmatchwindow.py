@@ -27,6 +27,8 @@ from PyQt4.QtCore import QUrl, pyqtSignal, QByteArray
 from imagefetcher import  ImageFetcher
 from settings import ComicTaggerSettings
 from options import MetaDataStyle
+from coverimagewidget import CoverImageWidget
+from comicvinetalker import ComicVineTalker
 
 class AutoTagMatchWindow(QtGui.QDialog):
 	
@@ -37,9 +39,20 @@ class AutoTagMatchWindow(QtGui.QDialog):
 		
 		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'autotagmatchwindow.ui' ), self)
 
-		self.skipButton = QtGui.QPushButton(self.tr("Skip"))
+		self.altCoverWidget = CoverImageWidget( self.altCoverContainer, CoverImageWidget.AltCoverMode )
+		gridlayout = QtGui.QGridLayout( self.altCoverContainer )
+		gridlayout.addWidget( self.altCoverWidget )
+		gridlayout.setContentsMargins(0,0,0,0)
+
+		self.archiveCoverWidget = CoverImageWidget( self.archiveCoverContainer, CoverImageWidget.ArchiveMode )
+		gridlayout = QtGui.QGridLayout( self.archiveCoverContainer )
+		gridlayout.addWidget( self.archiveCoverWidget )
+		gridlayout.setContentsMargins(0,0,0,0)
+		
+				
+		self.skipButton = QtGui.QPushButton(self.tr("Skip to Next"))
 		self.buttonBox.addButton(self.skipButton, QtGui.QDialogButtonBox.ActionRole)		
-		self.buttonBox.button(QtGui.QDialogButtonBox.Ok).setText("Accept and Next")		
+		self.buttonBox.button(QtGui.QDialogButtonBox.Ok).setText("Accept and Write Tags")		
 
 		self.match_set_list = match_set_list
 		self.style = style
@@ -51,20 +64,31 @@ class AutoTagMatchWindow(QtGui.QDialog):
 		self.twList.cellDoubleClicked.connect(self.cellDoubleClicked)
 		self.skipButton.clicked.connect(self.skipToNext)
 		
+		self.show()
 		self.updateData()		
 
 	def updateData( self):
 
 		self.current_match_set = self.match_set_list[ self.current_match_set_idx ]
 
-
 		if self.current_match_set_idx + 1 == len( self.match_set_list ):
-			self.skipButton.setDisabled(True)
+			self.buttonBox.button(QtGui.QDialogButtonBox.Cancel).setDisabled(True)	
+			#self.buttonBox.button(QtGui.QDialogButtonBox.Ok).setText("Accept")		
+			self.skipButton.setText(self.tr("Skip"))
+			
+		# pre-fetch	the alternate cover URL lists
+		QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))			
+		for match in self.current_match_set.matches:
+			comicVine = ComicVineTalker()
+			try:
+				comicVine.fetchAlternateCoverURLs( match['issue_id'] )
+			except:
+				pass
+		QtGui.QApplication.restoreOverrideCursor()
 			
 		self.setCoverImage()
 		self.populateTable()
 		self.twList.resizeColumnsToContents()	
-		self.current_row = 0
 		self.twList.selectRow( 0 )
 		
 		path = self.current_match_set.ca.path
@@ -87,6 +111,7 @@ class AutoTagMatchWindow(QtGui.QDialog):
 			item_text = match['series']  
 			item = QtGui.QTableWidgetItem(item_text)			
 			item.setData( QtCore.Qt.ToolTipRole, item_text )
+			item.setData( QtCore.Qt.UserRole, (match,))
 			item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
 			self.twList.setItem(row, 0, item)
 
@@ -99,25 +124,33 @@ class AutoTagMatchWindow(QtGui.QDialog):
 			item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
 			self.twList.setItem(row, 1, item)
 			
-			item_text = ""
+			month_str = u""
+			year_str = u"????"
 			if match['month'] is not None:
-				item_text = u"{0}/".format(match['month'])
+				month_str = u"-{0:02d}".format(int(match['month']))
 			if match['year'] is not None:
-				item_text += u"{0}".format(match['year'])
-			else:
-				item_text += u"????"
+				year_str = u"{0}".format(match['year'])
+
+			item_text = year_str + month_str			
 			item = QtGui.QTableWidgetItem(item_text)			
 			item.setData( QtCore.Qt.ToolTipRole, item_text )
 			item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
 			self.twList.setItem(row, 2, item)
+
+			item_text = match['issue_title']  
+			item = QtGui.QTableWidgetItem(item_text)			
+			item.setData( QtCore.Qt.ToolTipRole, item_text )
+			item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
+			self.twList.setItem(row, 3, item)
 			
 			row += 1
 
 		self.twList.resizeColumnsToContents()
 		self.twList.setSortingEnabled(True)
-		self.twList.sortItems( 2 , QtCore.Qt.DescendingOrder )
+		self.twList.sortItems( 2 , QtCore.Qt.AscendingOrder )
 		self.twList.selectRow(0)
 		self.twList.resizeColumnsToContents()
+		self.twList.horizontalHeader().setStretchLastSection(True) 
 			
 
 	def cellDoubleClicked( self, r, c ):
@@ -129,34 +162,18 @@ class AutoTagMatchWindow(QtGui.QDialog):
 			return
 		if prev is not None and prev.row() == curr.row():
 				return
-
-		self.current_row = curr.row()
 		
-		# list selection was changed, update the the issue cover				
-		self.labelThumbnail.setPixmap(QtGui.QPixmap(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/nocover.png' )))
-				
-		self.cover_fetcher = ImageFetcher( )
-		self.cover_fetcher.fetchComplete.connect(self.coverFetchComplete)
-		self.cover_fetcher.fetch( self.current_match_set.matches[self.current_row]['img_url'] )
-				
-	# called when the image is done loading
-	def coverFetchComplete( self, image_data, issue_id ):
-		img = QtGui.QImage()
-		img.loadFromData( image_data )
-		self.labelThumbnail.setPixmap(QtGui.QPixmap(img))
+		self.altCoverWidget.setIssueID( self.currentMatch()['issue_id'] )
 		
 	def setCoverImage( self ):
 		ca = self.current_match_set.ca
-		cover_idx = ca.readMetadata(self.style).getCoverPageIndexList()[0]
-		image_data = ca.getPage( cover_idx )		
-		self.labelCover.setScaledContents(True)
-		if image_data is not None:
-			img = QtGui.QImage()
-			img.loadFromData( image_data )
-			self.labelCover.setPixmap(QtGui.QPixmap(img))
-		else:
-			self.labelCover.setPixmap(QtGui.QPixmap(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/nocover.png' )))
+		self.archiveCoverWidget.setArchive(ca)
 
+	def currentMatch( self ):
+		row = self.twList.currentRow()
+		match = self.twList.item(row, 0).data( QtCore.Qt.UserRole ).toPyObject()[0]
+		return match
+	
 	def accept(self):
 
 		self.saveMatch()
@@ -190,7 +207,7 @@ class AutoTagMatchWindow(QtGui.QDialog):
 			
 	def saveMatch( self ):
 		
-		match = self.current_match_set.matches[self.current_row]
+		match = self.currentMatch()
 		ca = self.current_match_set.ca
 
 		md = ca.readMetadata( self.style )
