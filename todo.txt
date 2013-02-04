@@ -5,7 +5,7 @@ Features
 Rename dialog:
 	check-box for rows?
 	manual edit the preview?
-
+		
 Docs:
 	Auto-Tagging Tips:
 		Multiple Passes with different options
@@ -23,13 +23,9 @@ Zip flakes out when filename differs from index (or whatever)  i.e "\" vs "/". P
 -----------------------------------------------------
 Big  Future Features
 -----------------------------------------------------
-Scrape alternate Covers from ComicVine issue pages
 
 GCD scraper or DB reader
 
-Auto search:
-	Searching w/o issue #
-	
 Form Mode:  Single vs Batch
 	
 -----------------------------------------------------
