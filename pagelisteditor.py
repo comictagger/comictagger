@@ -256,7 +256,7 @@ class PageListEditor(QWidget):
 		self.listWidget.setCurrentRow ( 0 )
 
 	def listEntryText(self, page_dict):
-		text =  page_dict['Image']
+		text =  str(int(page_dict['Image']) + 1)
 		if 'Type' in page_dict:
 			text += " (" + self.pageTypeNames[page_dict['Type']] + ")"
 		return text
