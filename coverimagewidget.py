@@ -41,72 +41,127 @@ class CoverImageWidget(QWidget):
 		
 		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'coverimagewidget.ui' ), self )
 
+		f = self.label.font()
+		if f.pointSize() > 10:
+			f.setPointSize( f.pointSize() - 2 )
+		self.label.setFont( f )		
+
 		self.mode = mode
-		self.comic_archive = None
-		self.issue_id = None
-		self.url_list = []
 		self.comicVine = ComicVineTalker()
 		self.page_loader = None
-		self.imageIndex = 0
-		self.imageCount = 1
 		
 		self.btnLeft.clicked.connect( self.decrementImage )
 		self.btnRight.clicked.connect( self.incrementImage )
-		
-		self.resetImage()
+		self.resetWidget()
 
+		self.updateContent()
+
+	def resetWidget(self):
+		self.comic_archive = None
+		self.issue_id = None
+		self.comicVine = None
+		self.cover_fetcher = None
+		self.url_list = []
+		if self.page_loader is not None:
+			self.page_loader.abandoned = True
+		self.page_loader = None
+		self.imageIndex = -1
+		self.imageCount = 1
+		
 	def incrementImage( self ):
 		self.imageIndex += 1
 		if self.imageIndex == self.imageCount:
 			self.imageIndex = 0
-		self.updateImage()
+		self.updateContent()
 
 	def decrementImage( self ):
 		self.imageIndex -= 1
 		if self.imageIndex == -1:
 			self.imageIndex = self.imageCount -1
-		self.updateImage()
+		self.updateContent()
 			
 	def setArchive( self, ca ):
 		if self.mode == CoverImageWidget.ArchiveMode:
+			self.resetWidget()
 			self.comic_archive = ca
 			self.imageIndex = 0
 			self.imageCount = ca.getNumberOfPages()
-			self.updateImage()
+			self.updateContent()
 
 	def setIssueID( self, issue_id ):
 		if self.mode == CoverImageWidget.AltCoverMode:
+			self.resetWidget()
+			self.updateContent()
+			
 			self.issue_id = issue_id
-			self.url_list = []
-			self.imageIndex = 0
-			self.imageCount = 1
-	
-			# get the URL list
-			try: 
-				alt_img_url_list = self.comicVine.fetchAlternateCoverURLs( issue_id )	
-				primary_url, thumb_url = self.comicVine.fetchIssueCoverURLs( issue_id  )
-			except:
-				return
 
-			self.url_list.append(primary_url)
-			self.url_list.extend(alt_img_url_list)
-			self.imageIndex = 0
-			self.imageCount = len(self.url_list)
-			self.updateImage()
+			self.comicVine = ComicVineTalker()
+			self.comicVine.urlFetchComplete.connect( self.primaryUrlFetchComplete )	
+			self.comicVine.asyncFetchIssueCoverURLs( int(self.issue_id) )
 	
+	def primaryUrlFetchComplete( self, primary_url, thumb_url, issue_id ):
+		self.url_list.append(str(primary_url))
+		self.imageIndex = 0
+		self.imageCount = len(self.url_list)
+		self.updateContent()
+
+		#defer the alt cover search 		
+		QTimer.singleShot(1, self.startAltCoverSearch)
+
+	def startAltCoverSearch( self ):
+
+		# now we need to get the list of alt cover URLs
+		self.label.setText("Searching for alt. covers...")
+		
+		# page URL should already be cached, so no need to defer
+		self.comicVine = ComicVineTalker()
+		issue_page_url = self.comicVine.fetchIssuePageURL( self.issue_id )
+		self.comicVine.altUrlListFetchComplete.connect( self.altCoverUrlListFetchComplete )	
+		self.comicVine.asyncFetchAlternateCoverURLs( int(self.issue_id),  issue_page_url)
+		
+	def altCoverUrlListFetchComplete( self, url_list, issue_id ):
+		if len(url_list) > 0:
+			self.url_list.extend(url_list)
+			self.imageCount = len(self.url_list)
+		self.updateButtons()
+
+	
+	def updateContent( self ):
+		self.updateImage()
+		self.updateButtons()
+		
 	def updateImage( self ):
-		if self.mode == CoverImageWidget.AltCoverMode:
+		if self.imageIndex == -1:
+			self.loadDefault()
+		elif self.mode == CoverImageWidget.AltCoverMode:
+			self.loadURL()
+		else:
+			self.loadPage()
+	
+	def updateButtons( self ):
+		if self.imageIndex == -1  or self.imageCount == 1:
+			self.btnLeft.setEnabled(False)
+			self.btnRight.setEnabled(False)
+			self.btnLeft.hide()
+			self.btnRight.hide()
+		else:
+			self.btnLeft.setEnabled(True)
+			self.btnRight.setEnabled(True)
+			self.btnLeft.show()
+			self.btnRight.show()
+		
+		if self.imageIndex == -1  or self.imageCount == 1:
+			self.label.setText("")		
+		elif self.mode == CoverImageWidget.AltCoverMode:		
 			if self.imageIndex == 0:
 				self.label.setText("Primary Cover")
 			else:
 				self.label.setText("Alt. Cover {0}".format(self.imageIndex))
-			self.loadURL()
 		else:
 			self.label.setText("Page {0}".format(self.imageIndex+1))
-			self.loadPage()
-			pass
 	
 	def loadURL( self ):
+		self.loadDefault()
 		self.cover_fetcher = ImageFetcher( )
 		self.cover_fetcher.fetchComplete.connect(self.coverRemoteFetchComplete)
 		self.cover_fetcher.fetch( self.url_list[self.imageIndex] )
@@ -117,7 +172,6 @@ class CoverImageWidget(QWidget):
 		img.loadFromData( image_data )
 		self.current_pixmap = QPixmap(img)
 		self.setDisplayPixmap( 0, 0)
-		QCoreApplication.processEvents()
 
 	def loadPage( self ):
 		if self.comic_archive is not None:
@@ -132,7 +186,7 @@ class CoverImageWidget(QWidget):
 		self.current_pixmap = QPixmap(img)
 		self.setDisplayPixmap( 0, 0)
 					
-	def resetImage( self ):
+	def loadDefault( self ):
 		self.current_pixmap = QPixmap(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/nocover.png' ))
 		self.setDisplayPixmap( 0, 0)
 
