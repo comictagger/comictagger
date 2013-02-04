@@ -64,7 +64,6 @@ class AutoTagMatchWindow(QtGui.QDialog):
 		self.twList.cellDoubleClicked.connect(self.cellDoubleClicked)
 		self.skipButton.clicked.connect(self.skipToNext)
 		
-		self.show()
 		self.updateData()		
 
 	def updateData( self):
@@ -82,7 +81,7 @@ class AutoTagMatchWindow(QtGui.QDialog):
 		self.twList.selectRow( 0 )
 		
 		path = self.current_match_set.ca.path
-		self.setWindowTitle( u"Select correct match ({0} of {1}): {2}".format(
+		self.setWindowTitle( u"Select correct match or skip ({0} of {1}): {2}".format(
 						self.current_match_set_idx+1,
 						len( self.match_set_list ),
 						os.path.split(path)[1] ))
