@@ -72,6 +72,7 @@ class CoverImageWidget(QWidget):
 		self.mode = mode
 		self.comicVine = ComicVineTalker()
 		self.page_loader = None
+		self.showControls = True
 		
 		self.btnLeft.clicked.connect( self.decrementImage )
 		self.btnRight.clicked.connect( self.incrementImage )
@@ -161,12 +162,16 @@ class CoverImageWidget(QWidget):
 		if len(url_list) > 0:
 			self.url_list.extend(url_list)
 			self.imageCount = len(self.url_list)
-		self.updateButtons()
+		self.updateControls()
 
+	def setPage( self, pagenum ):
+		if self.mode == CoverImageWidget.ArchiveMode:
+			self.imageIndex = pagenum
+			self.updateContent()
 	
 	def updateContent( self ):
 		self.updateImage()
-		self.updateButtons()
+		self.updateControls()
 		
 	def updateImage( self ):
 		if self.imageIndex == -1:
@@ -176,7 +181,13 @@ class CoverImageWidget(QWidget):
 		else:
 			self.loadPage()
 	
-	def updateButtons( self ):
+	def updateControls( self ):
+		if not self.showControls:
+			self.btnLeft.hide()
+			self.btnRight.hide()
+			self.label.hide()
+			return
+			
 		if self.imageIndex == -1  or self.imageCount == 1:
 			self.btnLeft.setEnabled(False)
 			self.btnRight.setEnabled(False)
