@@ -29,6 +29,7 @@ from comicvinetalker import ComicVineTalker, ComicVineTalkerException
 from  imagefetcher import  ImageFetcher
 from settings import ComicTaggerSettings
 from issuestring import IssueString
+from coverimagewidget import CoverImageWidget
 
 class IssueSelectionWindow(QtGui.QDialog):
 	
@@ -38,6 +39,11 @@ class IssueSelectionWindow(QtGui.QDialog):
 		super(IssueSelectionWindow, self).__init__(parent)
 		
 		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'issueselectionwindow.ui' ), self)
+
+		self.coverWidget = CoverImageWidget( self.coverImageContainer, CoverImageWidget.AltCoverMode )
+		gridlayout = QtGui.QGridLayout( self.coverImageContainer )
+		gridlayout.addWidget( self.coverWidget )
+		gridlayout.setContentsMargins(0,0,0,0)
 		
 		self.series_id  = series_id
 		self.settings = settings
@@ -54,6 +60,7 @@ class IssueSelectionWindow(QtGui.QDialog):
 		self.twList.resizeColumnsToContents()	
 		self.twList.currentItemChanged.connect(self.currentItemChanged)	
 		self.twList.cellDoubleClicked.connect(self.cellDoubleClicked)
+		self.show()
 		
 		#now that the list has been sorted, find the initial record, and select it
 		if self.initial_id is None:
@@ -121,35 +128,13 @@ class IssueSelectionWindow(QtGui.QDialog):
 			return
 		if prev is not None and prev.row() == curr.row():
 				return
-
 		
 		self.issue_id, b = self.twList.item( curr.row(), 0 ).data( QtCore.Qt.UserRole ).toInt()
 
 		# list selection was changed, update the the issue cover
 		for record in self.issue_list: 
-			if record['id'] == self.issue_id:
-				
+			if record['id'] == self.issue_id:				
 				self.issue_number = record['issue_number']
-
-				self.labelThumbnail.setPixmap(QtGui.QPixmap(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/nocover.png' )))
-
-				self.cv = ComicVineTalker( )
-				self.cv.urlFetchComplete.connect( self.urlFetchComplete )	
-				self.cv.asyncFetchIssueCoverURLs( int(self.issue_id) )
-				
+				self.coverWidget.setIssueID( int(self.issue_id) )
 				break
-
-	# called when the cover URL has been fetched 
-	def urlFetchComplete( self, image_url, thumb_url, issue_id ):
-
-		self.cover_fetcher = ImageFetcher( )
-		self.cover_fetcher.fetchComplete.connect(self.coverFetchComplete)
-		self.cover_fetcher.fetch( str(image_url), user_data=issue_id )
-				
-	# called when the image is done loading
-	def coverFetchComplete( self, image_data, issue_id ):
-		if self.issue_id == issue_id:
-			img = QtGui.QImage()
-			img.loadFromData( image_data )
-			self.labelThumbnail.setPixmap(QtGui.QPixmap(img))
 		
