@@ -30,6 +30,28 @@ from options import MetaDataStyle
 from comicvinetalker import ComicVineTalker, ComicVineTalkerException
 from imagefetcher import  ImageFetcher
 from pageloader import PageLoader
+from imagepopup import ImagePopup
+
+# helper func to allow a label to be clickable
+def clickable(widget):
+
+	class Filter(QObject):
+	
+		dblclicked = pyqtSignal()
+		
+		def eventFilter(self, obj, event):
+		
+			if obj == widget:
+				if event.type() == QEvent.MouseButtonDblClick:
+					self.dblclicked.emit()
+					return True
+			
+			return False
+	
+	filter = Filter(widget)
+	widget.installEventFilter(filter)
+	return filter.dblclicked
+
 
 class CoverImageWidget(QWidget):
 	
@@ -53,6 +75,7 @@ class CoverImageWidget(QWidget):
 		self.btnLeft.clicked.connect( self.decrementImage )
 		self.btnRight.clicked.connect( self.incrementImage )
 		self.resetWidget()
+		clickable(self.lblImage).connect(self.showPopup)
 
 		self.updateContent()
 
@@ -220,3 +243,6 @@ class CoverImageWidget(QWidget):
 			img_h = scaled_pixmap.height()
 			self.lblImage.resize( img_w, img_h )
 			self.lblImage.move( (frame_w - img_w)/2, (frame_h - img_h)/2 )
+			
+	def showPopup( self ):
+		self.popup = ImagePopup(self, self.current_pixmap)
