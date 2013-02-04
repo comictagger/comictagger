@@ -384,22 +384,27 @@ class ComicVineTalker(QObject):
 	def cacheIssueSelectDetails( self, issue_id, image_url, thumb_url, month, year, page_url ):
 		cvc = ComicVineCacher( )
 		cvc.add_issue_select_details( issue_id, image_url, thumb_url, month, year, page_url )
-		
-	def fetchAlternateCoverURLs(self, issue_id):
 
-		# before we search online, look in our cache, since we might already
-		# have this info
-		cvc = ComicVineCacher( )
-		url_list = cvc.get_alt_covers( issue_id )
+
+	def fetchAlternateCoverURLs(self, issue_id):
+		url_list = self.fetchCachedAlternateCoverURLs( issue_id )
 		if url_list is not None:
 			return url_list
-
+		
 		issue_page_url = self.fetchIssuePageURL( issue_id )
 		
 		# scrape the CV issue page URL to get the alternate cover URLs 
 		resp = urllib2.urlopen( issue_page_url ) 
 		content = resp.read()
-		soup = BeautifulSoup( content )
+		alt_cover_url_list = self.parseOutAltCoverUrls( content)
+
+		# cache this alt cover URL list
+		self.cacheAlternateCoverURLs( issue_id, alt_cover_url_list )
+
+		return alt_cover_url_list
+	
+	def parseOutAltCoverUrls( self, page_html ):
+		soup = BeautifulSoup( page_html )
 		
 		alt_cover_url_list = []
 		
@@ -412,11 +417,23 @@ class ComicVineTalker(QObject):
 				if 'content-pod' in c and 'alt-cover' in c:
 					alt_cover_url_list.append( d.img['src'] )
 					
-		# cache this alt cover URL list
-		cvc.add_alt_covers( issue_id, alt_cover_url_list )
-					
 		return alt_cover_url_list
-					
+
+	def fetchCachedAlternateCoverURLs( self, issue_id ):
+
+		# before we search online, look in our cache, since we might already
+		# have this info
+		cvc = ComicVineCacher( )
+		url_list = cvc.get_alt_covers( issue_id )
+		if url_list is not None:
+			return url_list
+		else:
+			return None
+
+	def cacheAlternateCoverURLs( self, issue_id, url_list ):
+		cvc = ComicVineCacher( )
+		cvc.add_alt_covers( issue_id, url_list )
+
 	#---------------------------------------------------------------------------
 	urlFetchComplete = pyqtSignal( str , str, int)
 
@@ -452,4 +469,28 @@ class ComicVineTalker(QObject):
 
 		self.urlFetchComplete.emit( image_url, thumb_url, self.issue_id ) 
 
+	altUrlListFetchComplete = pyqtSignal( list, int)
+
+	def asyncFetchAlternateCoverURLs( self, issue_id, issue_page_url ):
+		# This async version requires the issue page url to be provided!
+		self.issue_id = issue_id
+		url_list = self.fetchCachedAlternateCoverURLs( issue_id )
+		if url_list is not None:
+			self.altUrlListFetchComplete.emit( url_list, int(self.issue_id) )
+			return
+			
+		self.nam = QNetworkAccessManager()
+		self.nam.finished.connect( self.asyncFetchAlternateCoverURLsComplete )
+		self.nam.get(QNetworkRequest(QUrl(str(issue_page_url))))
+		
+
+	def asyncFetchAlternateCoverURLsComplete( self, reply ):
+		# read in the response
+		html = str(reply.readAll())
+		alt_cover_url_list = self.parseOutAltCoverUrls( html )
+
+		# cache this alt cover URL list
+		self.cacheAlternateCoverURLs( self.issue_id, alt_cover_url_list )
+
+		self.altUrlListFetchComplete.emit( alt_cover_url_list, int(self.issue_id) ) 		
 
