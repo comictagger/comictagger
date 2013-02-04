@@ -186,47 +186,38 @@ class VolumeSelectionWindow(QtGui.QDialog):
 		result = self.ii.search_result
 		match_index = 0
 		
-		found_match = False
+		found_match = None
 		choices = False
 		if result == self.ii.ResultNoMatches:
 			QtGui.QMessageBox.information(self,"Auto-Select Result", " No matches found :-(")
 		elif result == self.ii.ResultFoundMatchButBadCoverScore:
 			QtGui.QMessageBox.information(self,"Auto-Select Result", " Found a match, but cover doesn't seem the same.  Verify before commiting!")
-			found_match = True
+			found_match = matches[0]
 		elif result == self.ii.ResultFoundMatchButNotFirstPage :
 			QtGui.QMessageBox.information(self,"Auto-Select Result", " Found a match, but not with the first page of the archive.")
-			found_match = True
+			found_match = matches[0]
 		elif result == self.ii.ResultMultipleMatchesWithBadImageScores:
 			QtGui.QMessageBox.information(self,"Auto-Select Result", " Found some possibilities, but no confidence. Proceed manually.")
 			choices = True
 		elif result == self.ii.ResultOneGoodMatch:
-			found_match = True
+			found_match = matches[0]
 		elif result == self.ii.ResultMultipleGoodMatches:
 			QtGui.QMessageBox.information(self,"Auto-Select Result", " Found multiple likely matches.  Please select.")
 			choices = True
 
 		if choices:
-			selector = MatchSelectionWindow( self, matches )
+			selector = MatchSelectionWindow( self, matches, self.comic_archive )
 			selector.setModal(True)
-			
-			title = self.series_name
-			title += " #" + self.issue_number
-			if self.year is not None:
-				title += " (" + str(self.year) + ")"
-			title += " - "
-					
-			selector.setWindowTitle( title + "Select Match")
 			selector.exec_()
 			if selector.result():
 				#we should now have a list index
-				found_match = True
-				match_index = selector.current_row			
+				found_match = selector.currentMatch()			
 		
-		if found_match:
+		if found_match is not None:
 			self.iddialog.accept()
 
-			self.volume_id = matches[match_index]['volume_id']
-			self.issue_number = matches[match_index]['issue_number']
+			self.volume_id = found_match['volume_id']
+			self.issue_number = found_match['issue_number']
 			self.selectByID()
 			self.showIssues()
 

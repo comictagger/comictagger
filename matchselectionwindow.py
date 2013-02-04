@@ -26,26 +26,48 @@ from PyQt4.QtCore import QUrl, pyqtSignal, QByteArray
 
 from imagefetcher import  ImageFetcher
 from settings import ComicTaggerSettings
+from options import MetaDataStyle
+from coverimagewidget import CoverImageWidget
+from comicvinetalker import ComicVineTalker
 
 class MatchSelectionWindow(QtGui.QDialog):
 	
 	volume_id = 0
 	
-	def __init__(self, parent, matches):
+	def __init__(self, parent, matches, comic_archive):
 		super(MatchSelectionWindow, self).__init__(parent)
 		
 		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'matchselectionwindow.ui' ), self)
+
+		self.altCoverWidget = CoverImageWidget( self.altCoverContainer, CoverImageWidget.AltCoverMode )
+		gridlayout = QtGui.QGridLayout( self.altCoverContainer )
+		gridlayout.addWidget( self.altCoverWidget )
+		gridlayout.setContentsMargins(0,0,0,0)
+
+		self.archiveCoverWidget = CoverImageWidget( self.archiveCoverContainer, CoverImageWidget.ArchiveMode )
+		gridlayout = QtGui.QGridLayout( self.archiveCoverContainer )
+		gridlayout.addWidget( self.archiveCoverWidget )
+		gridlayout.setContentsMargins(0,0,0,0)
 		
 		self.matches = matches
-		self.populateTable( )
-		self.twList.resizeColumnsToContents()	
+		self.comic_archive = comic_archive
+		
 		self.twList.currentItemChanged.connect(self.currentItemChanged)	
 		self.twList.cellDoubleClicked.connect(self.cellDoubleClicked)
-		
-		self.current_row = 0
-		self.twList.selectRow( 0 )
 
-					
+		self.updateData()		
+
+	def updateData( self):
+			
+		self.setCoverImage()
+		self.populateTable()
+		self.twList.resizeColumnsToContents()	
+		self.twList.selectRow( 0 )
+		
+		path = self.comic_archive.path
+		self.setWindowTitle( u"Select correct match: {0}".format(
+						os.path.split(path)[1] ))
+		
 	def populateTable( self  ):
 
 		while self.twList.rowCount() > 0:
@@ -60,15 +82,10 @@ class MatchSelectionWindow(QtGui.QDialog):
 			item_text = match['series']  
 			item = QtGui.QTableWidgetItem(item_text)			
 			item.setData( QtCore.Qt.ToolTipRole, item_text )
+			item.setData( QtCore.Qt.UserRole, (match,))
 			item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
 			self.twList.setItem(row, 0, item)
-			
-			"""
-			item_text = u"{0}".format(match['issue_number'])  
-			item = QtGui.QTableWidgetItem(item_text)			
-			item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
-			self.twList.setItem(row, 1, item)
-			"""
+
 			if match['publisher'] is not None:
 				item_text = u"{0}".format(match['publisher'])
 			else:
@@ -78,19 +95,33 @@ class MatchSelectionWindow(QtGui.QDialog):
 			item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
 			self.twList.setItem(row, 1, item)
 			
-			item_text = ""
+			month_str = u""
+			year_str = u"????"
 			if match['month'] is not None:
-				item_text = u"{0}/".format(match['month'])
+				month_str = u"-{0:02d}".format(int(match['month']))
 			if match['year'] is not None:
-				item_text += u"{0}".format(match['year'])
-			else:
-				item_text += u"????"
+				year_str = u"{0}".format(match['year'])
+
+			item_text = year_str + month_str			
 			item = QtGui.QTableWidgetItem(item_text)			
 			item.setData( QtCore.Qt.ToolTipRole, item_text )
 			item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
 			self.twList.setItem(row, 2, item)
+
+			item_text = match['issue_title']  
+			item = QtGui.QTableWidgetItem(item_text)			
+			item.setData( QtCore.Qt.ToolTipRole, item_text )
+			item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
+			self.twList.setItem(row, 3, item)
 			
 			row += 1
+
+		self.twList.resizeColumnsToContents()
+		self.twList.setSortingEnabled(True)
+		self.twList.sortItems( 2 , QtCore.Qt.AscendingOrder )
+		self.twList.selectRow(0)
+		self.twList.resizeColumnsToContents()
+		self.twList.horizontalHeader().setStretchLastSection(True) 
 			
 
 	def cellDoubleClicked( self, r, c ):
@@ -102,19 +133,14 @@ class MatchSelectionWindow(QtGui.QDialog):
 			return
 		if prev is not None and prev.row() == curr.row():
 				return
+		
+		self.altCoverWidget.setIssueID( self.currentMatch()['issue_id'] )
+		
+	def setCoverImage( self ):
+		self.archiveCoverWidget.setArchive( self.comic_archive)
 
-		self.current_row = curr.row()
-		
-		# list selection was changed, update the the issue cover				
-		self.labelThumbnail.setPixmap(QtGui.QPixmap(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/nocover.png' )))
-				
-		self.cover_fetcher = ImageFetcher( )
-		self.cover_fetcher.fetchComplete.connect(self.coverFetchComplete)
-		self.cover_fetcher.fetch( self.matches[self.current_row]['img_url'] )
-				
-	# called when the image is done loading
-	def coverFetchComplete( self, image_data, issue_id ):
-		img = QtGui.QImage()
-		img.loadFromData( image_data )
-		self.labelThumbnail.setPixmap(QtGui.QPixmap(img))
-		
+	def currentMatch( self ):
+		row = self.twList.currentRow()
+		match = self.twList.item(row, 0).data( QtCore.Qt.UserRole ).toPyObject()[0]
+		return match
+
