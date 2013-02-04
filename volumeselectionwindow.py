@@ -34,6 +34,7 @@ from imagefetcher import  ImageFetcher
 from progresswindow import IDProgressWindow
 from settings import ComicTaggerSettings
 from matchselectionwindow import MatchSelectionWindow
+from coverimagewidget import CoverImageWidget
 
 class SearchThread( QtCore.QThread):
 
@@ -90,6 +91,11 @@ class VolumeSelectionWindow(QtGui.QDialog):
 		
 		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'volumeselectionwindow.ui' ), self)
 		
+		self.imageWidget = CoverImageWidget( self.imageContainer, CoverImageWidget.URLMode )
+		gridlayout = QtGui.QGridLayout( self.imageContainer )
+		gridlayout.addWidget( self.imageWidget )
+		gridlayout.setContentsMargins(0,0,0,0)
+		
 		self.settings = settings
 		self.series_name = series_name
 		self.issue_number = issue_number
@@ -108,7 +114,7 @@ class VolumeSelectionWindow(QtGui.QDialog):
 		self.btnAutoSelect.clicked.connect(self.autoSelect)	
 		
 		self.updateButtons()
-		self.performQuery()		
+		self.performQuery()
 		self.twList.selectRow(0)
 
 	def updateButtons( self ):
@@ -367,21 +373,5 @@ class VolumeSelectionWindow(QtGui.QDialog):
 			if record['id'] == self.volume_id:
 
 				self.teDetails.setText ( record['description'] )
-
-				self.labelThumbnail.setPixmap(QtGui.QPixmap(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/nocover.png' )))
-				
-				url = record['image']['super_url']
-				self.fetcher = ImageFetcher( )
-				self.fetcher.fetchComplete.connect(self.finishRequest)
-				self.fetcher.fetch( url, user_data=record['id'] )
-
-
-	def finishRequest(self, image_data, user_data):
-		# called when the image is done loading
-		img = QtGui.QImage()
-		img.loadFromData( image_data )	
-		self.setCover( img )	
-
-
-	def setCover( self, img ):
-		self.labelThumbnail.setPixmap(QtGui.QPixmap(img))
+				self.imageWidget.setURL( record['image']['super_url'] )
+				break
