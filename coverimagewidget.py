@@ -92,6 +92,10 @@ class CoverImageWidget(QWidget):
 		self.imageIndex = -1
 		self.imageCount = 1
 		
+	def clear( self ):
+		self.resetWidget()
+		self.updateContent()
+			
 	def incrementImage( self ):
 		self.imageIndex += 1
 		if self.imageIndex == self.imageCount:
@@ -104,11 +108,11 @@ class CoverImageWidget(QWidget):
 			self.imageIndex = self.imageCount -1
 		self.updateContent()
 			
-	def setArchive( self, ca ):
+	def setArchive( self, ca, page=0 ):
 		if self.mode == CoverImageWidget.ArchiveMode:
 			self.resetWidget()
 			self.comic_archive = ca
-			self.imageIndex = 0
+			self.imageIndex = page
 			self.imageCount = ca.getNumberOfPages()
 			self.updateContent()
 

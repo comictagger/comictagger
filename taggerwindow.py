@@ -54,6 +54,8 @@ from issueidentifier import IssueIdentifier
 from autotagstartwindow import AutoTagStartWindow
 from autotagprogresswindow import AutoTagProgressWindow
 from autotagmatchwindow import AutoTagMatchWindow
+from coverimagewidget import CoverImageWidget
+
 import utils
 import ctversion
 
@@ -106,7 +108,12 @@ class TaggerWindow( QtGui.QMainWindow):
 
 		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'taggerwindow.ui' ), self)
 		self.settings = settings
-		
+
+		self.archiveCoverWidget = CoverImageWidget( self.coverImageContainer, CoverImageWidget.ArchiveMode )
+		gridlayout = QtGui.QGridLayout( self.coverImageContainer )
+		gridlayout.addWidget( self.archiveCoverWidget )
+		gridlayout.setContentsMargins(0,0,0,0)
+					
 		self.pageListEditor = PageListEditor( self.tabPages )
 		gridlayout = QtGui.QGridLayout( self.tabPages )
 		gridlayout.addWidget( self.pageListEditor ) 
@@ -139,8 +146,6 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.scrollAreaWidgetContents.adjustSize()
 		
 		self.setWindowIcon(QtGui.QIcon(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/app.png' )))
-		
-		self.lblCover.setPixmap(QtGui.QPixmap(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/nocover.png' )))
 		
 		self.save_data_style = settings.last_selected_save_data_style
 		self.load_data_style = settings.last_selected_load_data_style
@@ -180,11 +185,6 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.btnAddCredit.clicked.connect(self.addCredit)	
 		self.btnRemoveCredit.clicked.connect(self.removeCredit)	
 		self.twCredits.cellDoubleClicked.connect(self.editCredit)
-		clickable(self.lblCover).connect(self.showPageBrowser)
-
-		self.connectDirtyFlagSignals()
-		self.pageListEditor.modified.connect(self.setDirtyFlag)
-
 		self.pageListEditor.firstFrontCoverChanged.connect( self.frontCoverChanged )
 		self.pageListEditor.listOrderChanged.connect( self.pageListOrderChanged )
 		
@@ -231,8 +231,7 @@ class TaggerWindow( QtGui.QMainWindow):
 
 	def resetApp( self ):
 
-		self.lblCover.setPixmap(QtGui.QPixmap(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/nocover.png' )))
-
+		self.archiveCoverWidget.clear()
 		self.comic_archive = None
 		self.dirtyFlag = False
 		self.clearForm()
@@ -521,19 +520,8 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.updateMenus()
 
 	def updateCoverImage( self ):
-		if self.page_loader is not None:
-			self.page_loader.abandoned = True
-			
 		cover_idx = self.metadata.getCoverPageIndexList()[0]
-			
-		self.page_loader = PageLoader( self.comic_archive, cover_idx )
-		self.page_loader.loadComplete.connect( self.actualUpdateCoverImage )	
-		self.page_loader.start()
-		
-	def actualUpdateCoverImage( self, img ):
-		self.page_loader = None
-		self.lblCover.setPixmap(QtGui.QPixmap(img))
-		self.lblCover.setScaledContents(True)
+		self.archiveCoverWidget.setArchive( self.comic_archive, cover_idx)
 
 	def updateMenus( self ):
 		
