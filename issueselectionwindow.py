@@ -45,6 +45,7 @@ class IssueSelectionWindow(QtGui.QDialog):
 		gridlayout.addWidget( self.coverWidget )
 		gridlayout.setContentsMargins(0,0,0,0)
 		
+		self.setWindowModality(QtCore.Qt.WindowModal)
 		self.series_id  = series_id
 		self.settings = settings
 		self.url_fetch_thread = None
