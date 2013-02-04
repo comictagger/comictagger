@@ -95,6 +95,9 @@
         <height>61</height>
        </rect>
       </property>
+      <property name="toolTip">
+       <string>Double-click to expand</string>
+      </property>
       <property name="text">
        <string>TextLabel</string>
       </property>
