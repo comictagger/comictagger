@@ -57,6 +57,7 @@ class CoverImageWidget(QWidget):
 	
 	ArchiveMode = 0
 	AltCoverMode = 1
+	URLMode = 1
 	
 	def __init__(self, parent, mode ):
 		super(CoverImageWidget, self).__init__(parent)
@@ -111,6 +112,16 @@ class CoverImageWidget(QWidget):
 			self.imageCount = ca.getNumberOfPages()
 			self.updateContent()
 
+	def setURL( self, url ):
+		if self.mode == CoverImageWidget.URLMode:
+			self.resetWidget()
+			self.updateContent()
+			
+			self.url_list = [ url ] 
+			self.imageIndex = 0
+			self.imageCount = 1
+			self.updateContent()
+
 	def setIssueID( self, issue_id ):
 		if self.mode == CoverImageWidget.AltCoverMode:
 			self.resetWidget()
@@ -156,7 +167,7 @@ class CoverImageWidget(QWidget):
 	def updateImage( self ):
 		if self.imageIndex == -1:
 			self.loadDefault()
-		elif self.mode == CoverImageWidget.AltCoverMode:
+		elif self.mode in [ CoverImageWidget.AltCoverMode,  CoverImageWidget.URLMode ]:
 			self.loadURL()
 		else:
 			self.loadPage()
@@ -188,6 +199,7 @@ class CoverImageWidget(QWidget):
 		self.cover_fetcher = ImageFetcher( )
 		self.cover_fetcher.fetchComplete.connect(self.coverRemoteFetchComplete)
 		self.cover_fetcher.fetch( self.url_list[self.imageIndex] )
+		#print "ATB cover fetch started...."
 				
 	# called when the image is done loading from internet
 	def coverRemoteFetchComplete( self, image_data, issue_id ):
@@ -195,36 +207,49 @@ class CoverImageWidget(QWidget):
 		img.loadFromData( image_data )
 		self.current_pixmap = QPixmap(img)
 		self.setDisplayPixmap( 0, 0)
+		#print "ATB cover fetch complete!"
 
 	def loadPage( self ):
 		if self.comic_archive is not None:
 			if self.page_loader is not None:
 				self.page_loader.abandoned = True
 			self.page_loader = PageLoader( self.comic_archive, self.imageIndex )
-			self.page_loader.loadComplete.connect( self.actualChangePageImage )	
+			self.page_loader.loadComplete.connect( self.pageLoadComplete )	
 			self.page_loader.start()
 
-	def actualChangePageImage( self, img ):
-		self.page_loader = None
+	def pageLoadComplete( self, img ):
 		self.current_pixmap = QPixmap(img)
 		self.setDisplayPixmap( 0, 0)
+		self.page_loader = None
 					
 	def loadDefault( self ):
 		self.current_pixmap = QPixmap(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/nocover.png' ))
+		#print "loadDefault called"
 		self.setDisplayPixmap( 0, 0)
 
 	def resizeEvent( self, resize_event ):
 		if self.current_pixmap is not None:
 			delta_w = resize_event.size().width() - resize_event.oldSize().width()
 			delta_h = resize_event.size().height() - resize_event.oldSize().height()
+			#print "ATB resizeEvent deltas", resize_event.size().width(), resize_event.size().height()
 			self.setDisplayPixmap( delta_w , delta_h )
 							
 	def setDisplayPixmap( self, delta_w , delta_h ):
 			# the deltas let us know what the new width and height of the label will be
+			"""
 			new_h = self.frame.height() + delta_h
 			new_w = self.frame.width() + delta_w
+			print "ATB setDisplayPixmap deltas", delta_w , delta_h
+			print "ATB self.frame", self.frame.width(), self.frame.height()
+			print "ATB self.", self.width(), self.height()
+			
 			frame_w = new_w
 			frame_h = new_h
+			"""
+			new_h = self.frame.height() 
+			new_w = self.frame.width() 
+			frame_w = self.frame.width() 
+			frame_h = self.frame.height() 
 
 			new_h -= 4
 			new_w -= 4
@@ -233,7 +258,11 @@ class CoverImageWidget(QWidget):
 				new_h = 0;
 			if new_w < 0:
 				new_w = 0;
-					
+
+			#print "ATB setDisplayPixmap deltas", delta_w , delta_h
+			#print "ATB self.frame", frame_w, frame_h
+			#print "ATB new size", new_w, new_h
+			
 			# scale the pixmap to fit in the frame
 			scaled_pixmap = self.current_pixmap.scaled(new_w, new_h, Qt.KeepAspectRatio)			
 			self.lblImage.setPixmap( scaled_pixmap )
