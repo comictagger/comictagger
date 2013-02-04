@@ -76,16 +76,6 @@ class AutoTagMatchWindow(QtGui.QDialog):
 			#self.buttonBox.button(QtGui.QDialogButtonBox.Ok).setText("Accept")		
 			self.skipButton.setText(self.tr("Skip"))
 			
-		# pre-fetch	the alternate cover URL lists
-		QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))			
-		for match in self.current_match_set.matches:
-			comicVine = ComicVineTalker()
-			try:
-				comicVine.fetchAlternateCoverURLs( match['issue_id'] )
-			except:
-				pass
-		QtGui.QApplication.restoreOverrideCursor()
-			
 		self.setCoverImage()
 		self.populateTable()
 		self.twList.resizeColumnsToContents()	
