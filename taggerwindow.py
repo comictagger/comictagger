@@ -155,6 +155,7 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.statusBar()	
 		self.populateComboBoxes()	
 
+		self.page_browser = None
 		self.resetApp()
 		
 		# set up some basic field validators
@@ -236,13 +237,13 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.dirtyFlag = False
 		self.clearForm()
 		self.pageListEditor.resetPage()
-
+		if self.page_browser is not None:
+			self.page_browser.reset()
 		self.updateAppTitle()
 		self.updateMenus()
 		self.updateInfoBox()
 		
 		self.droppedFile = None
-		self.page_browser = None
 		self.page_loader = None
 
 		

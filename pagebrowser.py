@@ -22,7 +22,7 @@ import sys
 from PyQt4 import QtCore, QtGui, uic
 import os
 from settings import ComicTaggerSettings
-
+from coverimagewidget import CoverImageWidget
 
 class PageBrowserWindow(QtGui.QDialog):
 	
@@ -31,10 +31,13 @@ class PageBrowserWindow(QtGui.QDialog):
 		
 		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'pagebrowser.ui' ), self)
 		
-		self.lblPage.setPixmap(QtGui.QPixmap(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/nocover.png' )))
-		self.lblPage.setSizePolicy(QtGui.QSizePolicy.Ignored, QtGui.QSizePolicy.Ignored)
+		self.pageWidget = CoverImageWidget( self.pageContainer, CoverImageWidget.ArchiveMode )
+		gridlayout = QtGui.QGridLayout( self.pageContainer )
+		gridlayout.addWidget( self.pageWidget )
+		gridlayout.setContentsMargins(0,0,0,0)
+		self.pageWidget.showControls = False
+		
 		self.comic_archive = None
-		self.current_pixmap = None
 		self.page_count = 0
 		self.current_page_num = 0
 		self.metadata = metadata
@@ -46,72 +49,49 @@ class PageBrowserWindow(QtGui.QDialog):
 		self.btnNext.setEnabled( False )
 		self.btnPrev.setEnabled( False )
 		
+	def reset( self ):
+		self.comic_archive = None
+		self.page_count = 0
+		self.current_page_num = 0
+		self.metadata = None
+		
+		self.btnNext.setEnabled( False )
+		self.btnPrev.setEnabled( False )
+		self.pageWidget.clear()
+
 	def setComicArchive(self, ca):
 
 		self.comic_archive = ca
 		self.page_count = ca.getNumberOfPages()
 		self.current_page_num = 0
-		
+		self.pageWidget.setArchive( self.comic_archive )
 		self.setPage()
+	
+		if 	self.page_count > 1:
+			self.btnNext.setEnabled( True )
+			self.btnPrev.setEnabled( True )
 
 	def nextPage(self):
 		
 		if self.current_page_num + 1 < self.page_count:
 			self.current_page_num += 1
+		else:
+			self.current_page_num = 0
 		self.setPage()
 
 	def prevPage(self):
 		
 		if self.current_page_num - 1 >= 0:
 			self.current_page_num -= 1
+		else:
+			self.current_page_num = self.page_count - 1
 		self.setPage()
 			
 	def setPage( self ):
-		archive_page_index = self.metadata.getArchivePageIndex( self.current_page_num )
-		image_data = self.comic_archive.getPage( archive_page_index )
-
-		if  image_data is not None:
-			self.setCurrentPixmap( image_data )
-			self.setDisplayPixmap( 0, 0)
+		if self.metadata is not None:
+			archive_page_index = self.metadata.getArchivePageIndex( self.current_page_num )
+		else:
+			archive_page_index =  self.current_page_num
+			
+		self.pageWidget.setPage( archive_page_index )
 		self.setWindowTitle("Page Browser - Page {0} (of {1}) ".format(self.current_page_num+1, self.page_count ) )
-		
-		if self.current_page_num + 1 < self.page_count:
-			self.btnNext.setEnabled( True )
-		else:
-			self.btnNext.setEnabled( False )
-
-		if self.current_page_num - 1 >= 0:
-			self.btnPrev.setEnabled( True )
-		else:
-			self.btnPrev.setEnabled( False )
-
-		
-	def setCurrentPixmap( self, image_data ):
-		if image_data is not None:
-			img = QtGui.QImage()
-			img.loadFromData( image_data )
-			self.current_pixmap = QtGui.QPixmap(QtGui.QPixmap(img))
-		
-	def resizeEvent( self, resize_event ):
-		if self.current_pixmap is not None:
-			delta_w = resize_event.size().width() - resize_event.oldSize().width()
-			delta_h = resize_event.size().height() - resize_event.oldSize().height()
-			
-			self.setDisplayPixmap( delta_w , delta_h )
-
-	def setDisplayPixmap( self, delta_w , delta_h ):
-			# the deltas let us know what the new width and height of the label will be
-			new_h = self.lblPage.height() + delta_h
-			new_w = self.lblPage.width() + delta_w
-			
-			if new_h < 0:
-				new_h = 0;
-			if new_w < 0:
-				new_w = 0;
-			scaled_pixmap = self.current_pixmap.scaled(new_w, new_h, QtCore.Qt.KeepAspectRatio)			
-			self.lblPage.setPixmap( scaled_pixmap )
-			#QtCore.QCoreApplication.processEvents()
-
-			
-
-			
