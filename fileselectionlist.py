@@ -73,11 +73,14 @@ class FileSelectionList(QWidget):
 		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'fileselectionlist.ui' ), self)
 		
 		self.settings = settings
-		#self.twList = FileTableWidget( self )
-		#gridlayout = QGridLayout( self )
-		#gridlayout.addWidget( self.twList )
+
+		# we can't specify relative font sizes in the UI designer, so
+		# make font a smidge smaller
+		f = self.twList.font()
+		if f.pointSize() > 10:
+			f.setPointSize( f.pointSize() - 2 )
+		self.twList.setFont( f )	
 		
-		#self.twList.itemSelectionChanged.connect( self.itemSelectionChangedCB )
 		self.twList.currentItemChanged.connect( self.currentItemChangedCB )
 		
 		self.currentItem = None
