@@ -120,7 +120,9 @@ class RarFileImplementation(object):
             if len(accum)==2:
                 data = {}
                 data['index'] = i
-                data['filename'] = accum[0].strip()
+                #!!!ATB - changed this because it was choking when a folder or file started with a space.
+                #!!!      now, just strip off the first char in the string
+                data['filename'] = accum[0].rstrip()[1:]
                 info = re_spaces.split(accum[1].strip())
                 data['size'] = int(info[0])
                 attr = info[5]
