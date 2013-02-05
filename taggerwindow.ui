@@ -211,14 +211,14 @@
             </property>
             <property name="minimumSize">
              <size>
-              <width>220</width>
-              <height>330</height>
+              <width>230</width>
+              <height>380</height>
              </size>
             </property>
             <property name="maximumSize">
              <size>
-              <width>220</width>
-              <height>330</height>
+              <width>230</width>
+              <height>380</height>
              </size>
             </property>
            </widget>
@@ -1092,7 +1092,7 @@
      <x>0</x>
      <y>0</y>
      <width>1096</width>
-     <height>28</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuComicTagger">

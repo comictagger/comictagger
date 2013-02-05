@@ -1,6 +1,6 @@
 # coding=utf-8
 """
-The main window of the comictagger app
+The main window of the ComicTagger app
 """
 
 """
@@ -76,28 +76,6 @@ class MultipleMatch():
 # this reads the environment and inits the right locale
 locale.setlocale(locale.LC_ALL, "")
 
-# helper func to allow a label to be clickable
-def clickable(widget):
-
-	class Filter(QtCore.QObject):
-	
-		dblclicked = pyqtSignal()
-		
-		def eventFilter(self, obj, event):
-		
-			if obj == widget:
-				if event.type() == QtCore.QEvent.MouseButtonDblClick:
-					self.dblclicked.emit()
-					return True
-			
-			return False
-	
-	filter = Filter(widget)
-	widget.installEventFilter(filter)
-	return filter.dblclicked
-
-
-
 class TaggerWindow( QtGui.QMainWindow):
 	
 	appName = "ComicTagger"
@@ -141,7 +119,6 @@ class TaggerWindow( QtGui.QMainWindow):
 					f.setPointSize( f.pointSize() - 2 )
 				f.setItalic( True )
 				child.setFont( f )
-						
 
 		self.scrollAreaWidgetContents.adjustSize()
 		

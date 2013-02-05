@@ -39,11 +39,6 @@
        </item>
        <item>
         <widget class="QTableWidget" name="twList">
-         <property name="font">
-          <font>
-           <pointsize>9</pointsize>
-          </font>
-         </property>
          <property name="selectionMode">
           <enum>QAbstractItemView::SingleSelection</enum>
          </property>

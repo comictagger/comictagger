@@ -35,6 +35,7 @@ from progresswindow import IDProgressWindow
 from settings import ComicTaggerSettings
 from matchselectionwindow import MatchSelectionWindow
 from coverimagewidget import CoverImageWidget
+import utils
 
 class SearchThread( QtCore.QThread):
 
@@ -95,6 +96,9 @@ class VolumeSelectionWindow(QtGui.QDialog):
 		gridlayout = QtGui.QGridLayout( self.imageContainer )
 		gridlayout.addWidget( self.imageWidget )
 		gridlayout.setContentsMargins(0,0,0,0)
+
+		utils.reduceWidgetFontSize( self.teDetails, 1 )
+		utils.reduceWidgetFontSize( self.twList )		
 		
 		self.setWindowFlags(self.windowFlags() |
 									  QtCore.Qt.WindowSystemMenuHint |

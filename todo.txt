@@ -12,6 +12,7 @@ Docs:
 
 Look into using libarchive
 
+Page left and right icons
 
 -----------------------------------------------------
 Bugs	
@@ -26,7 +27,8 @@ Big  Future Features
 
 GCD scraper or DB reader
 
-Form Mode:  Single vs Batch
+Batch Edit
+	Form Mode:  Single vs Batch
 	
 -----------------------------------------------------
 Small(er) Future Feature

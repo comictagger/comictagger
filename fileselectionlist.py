@@ -31,6 +31,7 @@ from settings import ComicTaggerSettings
 from comicarchive import ComicArchive
 from genericmetadata import GenericMetadata, PageType
 from options import MetaDataStyle
+import utils
 
 class FileTableWidget( QTableWidget ):
 
@@ -74,12 +75,7 @@ class FileSelectionList(QWidget):
 		
 		self.settings = settings
 
-		# we can't specify relative font sizes in the UI designer, so
-		# make font a smidge smaller
-		f = self.twList.font()
-		if f.pointSize() > 10:
-			f.setPointSize( f.pointSize() - 2 )
-		self.twList.setFont( f )	
+		utils.reduceWidgetFontSize( self.twList )
 		
 		self.twList.currentItemChanged.connect( self.currentItemChangedCB )
 		

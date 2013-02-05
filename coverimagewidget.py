@@ -31,6 +31,7 @@ from comicvinetalker import ComicVineTalker, ComicVineTalkerException
 from imagefetcher import  ImageFetcher
 from pageloader import PageLoader
 from imagepopup import ImagePopup
+import utils
 
 # helper func to allow a label to be clickable
 def clickable(widget):
@@ -64,10 +65,7 @@ class CoverImageWidget(QWidget):
 		
 		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'coverimagewidget.ui' ), self )
 
-		f = self.label.font()
-		if f.pointSize() > 10:
-			f.setPointSize( f.pointSize() - 2 )
-		self.label.setFont( f )		
+		utils.reduceWidgetFontSize( self.label )
 
 		self.mode = mode
 		self.comicVine = ComicVineTalker()
@@ -202,12 +200,9 @@ class CoverImageWidget(QWidget):
 		if self.imageIndex == -1  or self.imageCount == 1:
 			self.label.setText("")		
 		elif self.mode == CoverImageWidget.AltCoverMode:		
-			if self.imageIndex == 0:
-				self.label.setText("Primary Cover")
-			else:
-				self.label.setText("Alt. Cover {0}".format(self.imageIndex))
+			self.label.setText("Cover {0} ( of {1} )".format(self.imageIndex+1, self.imageCount))
 		else:
-			self.label.setText("Page {0}".format(self.imageIndex+1))
+			self.label.setText("Page {0} ( of {1} )".format(self.imageIndex+1, self.imageCount))
 	
 	def loadURL( self ):
 		self.loadDefault()

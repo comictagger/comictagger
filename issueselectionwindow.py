@@ -30,6 +30,7 @@ from  imagefetcher import  ImageFetcher
 from settings import ComicTaggerSettings
 from issuestring import IssueString
 from coverimagewidget import CoverImageWidget
+import utils
 
 class IssueSelectionWindow(QtGui.QDialog):
 	
@@ -44,6 +45,8 @@ class IssueSelectionWindow(QtGui.QDialog):
 		gridlayout = QtGui.QGridLayout( self.coverImageContainer )
 		gridlayout.addWidget( self.coverWidget )
 		gridlayout.setContentsMargins(0,0,0,0)
+
+		utils.reduceWidgetFontSize( self.twList )		
 
 		self.setWindowFlags(self.windowFlags() |
 									  QtCore.Qt.WindowSystemMenuHint |

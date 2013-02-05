@@ -22,7 +22,7 @@ import sys
 from PyQt4 import QtCore, QtGui, uic
 import os
 from settings import ComicTaggerSettings
-
+import utils
 
 class AutoTagProgressWindow(QtGui.QDialog):
 	
@@ -39,12 +39,7 @@ class AutoTagProgressWindow(QtGui.QDialog):
 									  QtCore.Qt.WindowSystemMenuHint |
 									  QtCore.Qt.WindowMaximizeButtonHint)
 
-		# we can't specify relative font sizes in the UI designer, so
-		# make font for scroll window a smidge smaller
-		f = self.textEdit.font()
-		if f.pointSize() > 10:
-			f.setPointSize( f.pointSize() - 2 )
-		self.textEdit.setFont( f )		
+		utils.reduceWidgetFontSize( self.textEdit )	
 		
 	def setArchiveImage( self, img_data):
 		self.setCoverImage( img_data, self.lblArchive )

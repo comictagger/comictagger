@@ -520,3 +520,17 @@ def getLanguageFromISO( iso ):
 	else:
 		return lang_dict[ iso ]
 
+
+try: 
+	from PyQt4 import QtGui
+	qt_available = True
+except ImportError:
+	qt_available = False
+	
+if qt_available:
+	def reduceWidgetFontSize( widget , delta = 2):
+		f = widget.font()
+		if f.pointSize() > 10:
+			f.setPointSize( f.pointSize() - delta )
+		widget.setFont( f )		
+

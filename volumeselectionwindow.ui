@@ -55,11 +55,6 @@
             <height>250</height>
            </size>
           </property>
-          <property name="font">
-           <font>
-            <pointsize>9</pointsize>
-           </font>
-          </property>
           <property name="selectionMode">
            <enum>QAbstractItemView::SingleSelection</enum>
           </property>
@@ -117,11 +112,6 @@
             <width>16777215</width>
             <height>200</height>
            </size>
-          </property>
-          <property name="font">
-           <font>
-            <pointsize>9</pointsize>
-           </font>
           </property>
           <property name="readOnly">
            <bool>true</bool>

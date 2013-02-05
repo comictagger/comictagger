@@ -29,6 +29,7 @@ from settings import ComicTaggerSettings
 from options import MetaDataStyle
 from coverimagewidget import CoverImageWidget
 from comicvinetalker import ComicVineTalker
+import utils
 
 class AutoTagMatchWindow(QtGui.QDialog):
 	
@@ -48,6 +49,8 @@ class AutoTagMatchWindow(QtGui.QDialog):
 		gridlayout = QtGui.QGridLayout( self.archiveCoverContainer )
 		gridlayout.addWidget( self.archiveCoverWidget )
 		gridlayout.setContentsMargins(0,0,0,0)
+
+		utils.reduceWidgetFontSize( self.twList )		
 
 		self.setWindowFlags(self.windowFlags() |
 									  QtCore.Qt.WindowSystemMenuHint |
