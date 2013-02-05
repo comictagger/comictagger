@@ -32,7 +32,9 @@ class LogWindow(QtGui.QDialog):
 		
 		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'logwindow.ui' ), self)
 		
-
+		self.setWindowFlags(self.windowFlags() |
+									  QtCore.Qt.WindowSystemMenuHint |
+									  QtCore.Qt.WindowMaximizeButtonHint)
 
 	def setText( self, text ):
 		self.textEdit.setPlainText( text ) 

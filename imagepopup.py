@@ -57,16 +57,11 @@ class ImagePopup(QtGui.QDialog):
 		self.raise_(  )
 		QtGui.QApplication.restoreOverrideCursor()		
 
-
-	def closeme( self ):
-		self.close()
-
 	def paintEvent (self, event):
 		self.painter = QtGui.QPainter(self)
 		self.painter.setRenderHint(QtGui.QPainter.Antialiasing)
 		self.painter.drawPixmap(0, 0, self.desktopBg)
 		self.painter.drawPixmap(0, 0, self.clientBgPixmap)
-
 		self.painter.end()		
 
 	def applyImagePixmap( self ):

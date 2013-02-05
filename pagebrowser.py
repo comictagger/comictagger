@@ -36,6 +36,10 @@ class PageBrowserWindow(QtGui.QDialog):
 		gridlayout.addWidget( self.pageWidget )
 		gridlayout.setContentsMargins(0,0,0,0)
 		self.pageWidget.showControls = False
+
+		self.setWindowFlags(self.windowFlags() |
+									  QtCore.Qt.WindowSystemMenuHint |
+									  QtCore.Qt.WindowMaximizeButtonHint)
 		
 		self.comic_archive = None
 		self.page_count = 0

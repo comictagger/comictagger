@@ -39,6 +39,9 @@ class ExportWindow(QtGui.QDialog):
 		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'exportwindow.ui' ), self)
 		self.label.setText( msg )
 
+		self.setWindowFlags(self.windowFlags() &
+									  ~QtCore.Qt.WindowContextHelpButtonHint )
+
 		self.settings = settings
 		
 		self.cbxDeleteOriginal.setCheckState( QtCore.Qt.Unchecked )

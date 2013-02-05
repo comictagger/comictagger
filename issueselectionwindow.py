@@ -44,7 +44,11 @@ class IssueSelectionWindow(QtGui.QDialog):
 		gridlayout = QtGui.QGridLayout( self.coverImageContainer )
 		gridlayout.addWidget( self.coverWidget )
 		gridlayout.setContentsMargins(0,0,0,0)
-		
+
+		self.setWindowFlags(self.windowFlags() |
+									  QtCore.Qt.WindowSystemMenuHint |
+									  QtCore.Qt.WindowMaximizeButtonHint)		
+
 		self.setWindowModality(QtCore.Qt.WindowModal)
 		self.series_id  = series_id
 		self.settings = settings

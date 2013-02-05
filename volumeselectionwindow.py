@@ -96,6 +96,10 @@ class VolumeSelectionWindow(QtGui.QDialog):
 		gridlayout.addWidget( self.imageWidget )
 		gridlayout.setContentsMargins(0,0,0,0)
 		
+		self.setWindowFlags(self.windowFlags() |
+									  QtCore.Qt.WindowSystemMenuHint |
+									  QtCore.Qt.WindowMaximizeButtonHint)
+
 		self.settings = settings
 		self.series_name = series_name
 		self.issue_number = issue_number

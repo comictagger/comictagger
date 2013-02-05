@@ -48,7 +48,11 @@ class MatchSelectionWindow(QtGui.QDialog):
 		gridlayout = QtGui.QGridLayout( self.archiveCoverContainer )
 		gridlayout.addWidget( self.archiveCoverWidget )
 		gridlayout.setContentsMargins(0,0,0,0)
-		
+
+		self.setWindowFlags(self.windowFlags() |
+									  QtCore.Qt.WindowSystemMenuHint |
+									  QtCore.Qt.WindowMaximizeButtonHint)		
+
 		self.matches = matches
 		self.comic_archive = comic_archive
 		

@@ -56,8 +56,10 @@ class SettingsWindow(QtGui.QDialog):
 		
 		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'settingswindow.ui' ), self)
 
-		self.settings = settings
-		
+		self.setWindowFlags(self.windowFlags() &
+									  ~QtCore.Qt.WindowContextHelpButtonHint )
+
+		self.settings = settings		
 		self.name = "Settings"
 				
 		if platform.system() == "Windows":

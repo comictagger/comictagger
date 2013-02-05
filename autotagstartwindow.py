@@ -35,6 +35,9 @@ class AutoTagStartWindow(QtGui.QDialog):
 		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'autotagstartwindow.ui' ), self)
 		self.label.setText( msg )
 
+		self.setWindowFlags(self.windowFlags() &
+									  ~QtCore.Qt.WindowContextHelpButtonHint )
+
 		self.settings = settings
 		
 		self.cbxSaveOnLowConfidence.setCheckState( QtCore.Qt.Unchecked )
