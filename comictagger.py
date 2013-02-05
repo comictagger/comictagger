@@ -495,6 +495,7 @@ def main():
 	else:
 		preferred_encoding = locale.getpreferredencoding()
 	sys.stdout = codecs.getwriter(preferred_encoding)(sys.stdout)
+	sys.stderr = codecs.getwriter(preferred_encoding)(sys.stderr)
 
 	opts = Options()
 	opts.parseCmdLineArgs()
