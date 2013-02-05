@@ -18,6 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import platform
 import sys
 from PyQt4 import QtCore, QtGui, uic
 import os
@@ -45,6 +46,14 @@ class PageBrowserWindow(QtGui.QDialog):
 		self.page_count = 0
 		self.current_page_num = 0
 		self.metadata = metadata
+		
+		self.buttonBox.button(QtGui.QDialogButtonBox.Close).setDefault(True)	
+		if platform.system() == "Darwin":
+			self.btnPrev.setText("<<")
+			self.btnNext.setText(">>")
+		else:
+			self.btnPrev.setIcon(QtGui.QIcon(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/left.png' )))
+			self.btnNext.setIcon(QtGui.QIcon(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/right.png' )))
 		
 		self.btnNext.clicked.connect( self.nextPage )
 		self.btnPrev.clicked.connect( self.prevPage )

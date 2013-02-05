@@ -71,6 +71,9 @@ class CoverImageWidget(QWidget):
 		self.comicVine = ComicVineTalker()
 		self.page_loader = None
 		self.showControls = True
+
+		self.btnLeft.setIcon(QIcon(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/left.png' )))
+		self.btnRight.setIcon(QIcon(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/right.png' )))
 		
 		self.btnLeft.clicked.connect( self.decrementImage )
 		self.btnRight.clicked.connect( self.incrementImage )
