@@ -28,6 +28,8 @@ from settings import ComicTaggerSettings
 from genericmetadata import GenericMetadata, PageType
 from options import MetaDataStyle
 from pageloader import PageLoader
+from coverimagewidget import CoverImageWidget
+
 
 def itemMoveEvents( widget ):
 
@@ -78,9 +80,11 @@ class PageListEditor(QWidget):
 		
 		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'pagelisteditor.ui' ), self )
 
-		self.comic_archive = None
-		self.pages_list = None
-		self.page_loader = None
+		self.pageWidget = CoverImageWidget( self.pageContainer, CoverImageWidget.ArchiveMode )
+		gridlayout = QGridLayout( self.pageContainer )
+		gridlayout.addWidget( self.pageWidget )
+		gridlayout.setContentsMargins(0,0,0,0)
+		self.pageWidget.showControls = False
 
 		self.resetPage()
 	
@@ -107,8 +111,10 @@ class PageListEditor(QWidget):
 		self.first_front_page = None
 
 	def resetPage( self ):
-		self.current_pixmap = QPixmap(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/nocover.png' ))
-		self.setDisplayPixmap( 0, 0)
+		self.pageWidget.clear()
+		self.comboBox.setDisabled(True)
+		self.comic_archive = None
+		self.pages_list = None
 		
 	def moveCurrentUp( self ):
 		row = self.listWidget.currentRow()
@@ -157,18 +163,8 @@ class PageListEditor(QWidget):
 		#idx = int(str (self.listWidget.item( row ).text()))
 		idx = int(self.listWidget.item( row ).data(Qt.UserRole).toPyObject()[0]['Image'])
 
-		if self.page_loader is not None:
-			self.page_loader.abandoned = True
-
 		if self.comic_archive is not None:
-			self.page_loader = PageLoader( self.comic_archive, idx )
-			self.page_loader.loadComplete.connect( self.actualChangePageImage )	
-			self.page_loader.start()
-
-	def actualChangePageImage( self, img ):
-		self.page_loader = None
-		self.current_pixmap = QPixmap(img)
-		self.setDisplayPixmap( 0, 0)
+			self.pageWidget.setArchive( self.comic_archive, idx )
 
 	def getFirstFrontCover( self ):
 		frontCover = 0
@@ -203,44 +199,13 @@ class PageListEditor(QWidget):
 		# wrap the dict in a tuple to keep from being converted to QStrings
 		item.setData(Qt.UserRole, (page_dict,) )
 		item.setText( self.listEntryText( page_dict ) )
-
-
-	def resizeEvent( self, resize_event ):
-		if self.current_pixmap is not None:
-			delta_w = resize_event.size().width() - resize_event.oldSize().width()
-			delta_h = resize_event.size().height() - resize_event.oldSize().height()
-			self.setDisplayPixmap( delta_w , delta_h )
-			
-	def setDisplayPixmap( self, delta_w , delta_h ):
-			# the deltas let us know what the new width and height of the label will be
-			new_h = self.frame.height() + delta_h
-			new_w = self.frame.width() + delta_w
-
-			frame_w = new_w
-			frame_h = new_h
-
-			new_h -= 4
-			new_w -= 4
-			
-			if new_h < 0:
-				new_h = 0;
-			if new_w < 0:
-				new_w = 0;
-				
-			# scale the pixmap to fit in the frame
-			scaled_pixmap = self.current_pixmap.scaled(new_w, new_h, Qt.KeepAspectRatio)			
-			self.label.setPixmap( scaled_pixmap )
-			
-			# ,pve and resize the label to be centered in the fame
-			img_w = scaled_pixmap.width()
-			img_h = scaled_pixmap.height()
-			self.label.resize( img_w, img_h )
-			self.label.move( (frame_w - img_w)/2, (frame_h - img_h)/2 )
 			
 
 	def setData( self, comic_archive, pages_list ):
 		self.comic_archive = comic_archive
 		self.pages_list = pages_list
+		if pages_list is not None and len(pages_list) > 0:
+			self.comboBox.setDisabled(False)
 
 		self.listWidget.itemSelectionChanged.disconnect( self.changePage )
 
@@ -278,9 +243,9 @@ class PageListEditor(QWidget):
 		# depending on the current data style, certain fields are disabled
 		
 		inactive_color = QColor(255, 170, 150)
-		active_palette = self.label.palette()
+		active_palette = self.comboBox.palette()
 		
-		inactive_palette3 = self.label.palette()
+		inactive_palette3 = self.comboBox.palette()
 		inactive_palette3.setColor(QPalette.Base, inactive_color)
 
 
@@ -302,8 +267,7 @@ class PageListEditor(QWidget):
 			
 		elif data_style == MetaDataStyle.CoMet:
 			pass
-			
-	def showEvent( self, event ):
-		# make sure to adjust the size and pos of the pixmap based on frame size
-		self.setDisplayPixmap( 0,0 )
-
+		
+		# make sure combo is disabled when no list
+		if self.comic_archive is None:
+			self.comboBox.setEnabled( False )
