@@ -188,6 +188,7 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.twCredits.cellDoubleClicked.connect(self.editCredit)
 		self.pageListEditor.firstFrontCoverChanged.connect( self.frontCoverChanged )
 		self.pageListEditor.listOrderChanged.connect( self.pageListOrderChanged )
+		self.tabWidget.currentChanged.connect( self.tabChanged )
 		
 		self.updateStyleTweaks()
 
@@ -314,6 +315,7 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.actionRename.setStatusTip( 'Rename archive based on tags' )
 		self.actionRename.triggered.connect( self.renameArchive )
 		
+		self.actionSettings.setShortcut( 'Ctrl+Shift+S' )
 		self.actionSettings.setStatusTip( 'Configure ComicTagger' )
 		self.actionSettings.triggered.connect( self.showSettings )
 		
@@ -519,6 +521,7 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.clearDirtyFlag()  # also updates the app title
 		self.updateInfoBox()
 		self.updateMenus()
+		self.updateAppTitle()
 
 	def updateCoverImage( self ):
 		cover_idx = self.metadata.getCoverPageIndexList()[0]
@@ -1866,4 +1869,8 @@ class TaggerWindow( QtGui.QMainWindow):
 
 	def resizeEvent( self, ev ):
 		self.splitterMovedEvent( 0, 0)
+
+	def tabChanged( self, idx ):
+		if idx == 0:
+			self.splitterMovedEvent( 0, 0)
 
