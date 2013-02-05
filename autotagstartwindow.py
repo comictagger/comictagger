@@ -61,7 +61,7 @@ class AutoTagStartWindow(QtGui.QDialog):
 		ssTip = (
 			"""<html>
 			The <b>series search string</b> specifies the search string to be used for all selected archives.
-			Use this only when trying to match archives with hard-to-parse filenames.  All archives selected
+			Use this when trying to match archives with hard-to-parse or incorrect filenames.  All archives selected
 			should be from the same series.
 			</html>"""
 		)
