@@ -62,8 +62,10 @@ class OnlineMatchResults():
 		self.goodMatches = []  
 		self.noMatches = []    
 		self.multipleMatches = []  
-		self.writeFailures = []  
-
+		self.lowConfidenceMatches = []  
+		self.writeFailures = []
+		self.fetchDataFailures = []
+		
 #-----------------------------
 
 def actual_issue_data_fetch( match, settings ):
@@ -72,7 +74,7 @@ def actual_issue_data_fetch( match, settings ):
 	try:
 		cv_md = ComicVineTalker().fetchIssueData( match['volume_id'],  match['issue_number'], settings )
 	except ComicVineTalkerException:
-		print "Network error while getting issue details.  Save aborted"
+		print >> sys.stderr, "Network error while getting issue details.  Save aborted"
 		return None
 
 	if settings.apply_cbl_transform_on_cv_import:
@@ -85,18 +87,50 @@ def actual_metadata_save( ca, opts, md ):
 	if not opts.dryrun:
 		# write out the new data
 		if not ca.writeMetadata( md, opts.data_style ):
-			print "The tag save seemed to fail!"
+			print >> sys.stderr,"The tag save seemed to fail!"
 			return False
 		else:
-			print "Save complete."				
+			print >> sys.stderr,"Save complete."				
 	else:
 		if opts.terse:
-			print "dry-run option was set, so nothing was written"
+			print >> sys.stderr,"dry-run option was set, so nothing was written"
 		else:
-			print "dry-run option was set, so nothing was written, but here is the final set of tags:"
+			print >> sys.stderr,"dry-run option was set, so nothing was written, but here is the final set of tags:"
 			print u"{0}".format(md)
 	return True
-		
+
+def display_match_set_for_choice( label, match_set, opts, settings ):
+	print "{0} -- {1}:".format(match_set.filename, label )
+
+	# sort match list by year
+	match_set.matches.sort(key=lambda k: k['year'])			
+	
+	for (counter,m) in enumerate(match_set.matches):
+		counter += 1
+		print u"    {0}. {1} #{2} [{3}] ({4}/{5}) - {6}".format(counter,
+									   m['series'],
+									   m['issue_number'],
+									   m['publisher'],
+									   m['month'],
+									   m['year'],
+									   m['issue_title'])
+	if opts.interactive:
+		while True:
+			i = raw_input("Choose a match #, or 's' to skip: ")
+			if (i.isdigit() and int(i) in range(1,len(match_set.matches)+1)) or i == 's':
+				break
+		if i != 's':
+			i = int(i) - 1
+			# save the data!
+			# we know at this point, that the file is all good to go
+			ca = ComicArchive( match_set.filename )
+			if settings.rar_exe_path != "":
+				ca.setExternalRarProgram( settings.rar_exe_path )	
+			md = create_local_metadata( opts, ca, ca.hasMetadata(opts.data_style) )
+			cv_md = actual_issue_data_fetch(match_set.matches[int(i)], settings)
+			md.overlay( cv_md )
+			actual_metadata_save( ca, opts, md )
+	
 
 def post_process_matches( match_results, opts, settings ):
 	# now go through the match results
@@ -119,44 +153,37 @@ def post_process_matches( match_results, opts, settings ):
 			for f in match_results.writeFailures:
 				print f
 
+		if len( match_results.fetchDataFailures ) > 0:
+			print "\nNetwork Data Fetch Failures:"
+			print "------------------"
+			for f in match_results.fetchDataFailures:
+				print f
+
 	if not opts.show_save_summary and not opts.interactive:
-		#jusr quit if we're not interactive or showing the summary
+		#just quit if we're not interactive or showing the summary
 		return
 	
 	if len( match_results.multipleMatches ) > 0:
-		print "\nMultiple matches:"
+		print "\nArchives with multiple high-confidence matches:"
 		print "------------------"
-		for mm in match_results.multipleMatches:
-			print mm.filename
-			for (counter,m) in enumerate(mm.matches):
-				print u"  {0}. {1} #{2} [{3}] ({4}/{5}) - {6}".format(counter,
-											   m['series'],
-											   m['issue_number'],
-											   m['publisher'],
-											   m['month'],
-											   m['year'],
-											   m['issue_title'])
-			if opts.interactive:
-				while True:
-					i = raw_input("Choose a match #, or 's' to skip: ")
-					if (i.isdigit() and int(i) in range(len(mm.matches))) or i == 's':
-						break
-				if i != 's':
-					# save the data!
-					# we know at this point, that the file is all good to go
-					ca = ComicArchive( mm.filename )
-					md = create_local_metadata( opts, ca, ca.hasMetadata(opts.data_style) )
-					cv_md = actual_issue_data_fetch(mm.matches[int(i)], settings)
-					md.overlay( cv_md )
-					actual_metadata_save( ca, opts, md )
-					
-					
-			print
+		for match_set in match_results.multipleMatches:
+			display_match_set_for_choice( "Multiple high-confidence matches", match_set, opts, settings )
+
+	if len( match_results.lowConfidenceMatches ) > 0:
+		print "\nArchives with low-confidence matches:"
+		print "------------------"
+		for match_set in match_results.lowConfidenceMatches:
+			if len( match_set.matches) == 1:
+				label = "Single low-confidence match"
+			else:
+				label = "Multiple low-confidence matches"
+				
+			display_match_set_for_choice( label, match_set, opts, settings )
 
 
 def cli_mode( opts, settings ):
 	if len( opts.file_list ) < 1:
-		print "You must specify at least one filename.  Use the -h option for more info"
+		print >> sys.stderr,"You must specify at least one filename.  Use the -h option for more info"
 		return
 	
 	match_results = OnlineMatchResults()
@@ -196,12 +223,12 @@ def process_file_cli( filename, opts, settings, match_results ):
 		ca.setExternalRarProgram( settings.rar_exe_path )	
 	
 	if not ca.seemsToBeAComicArchive():
-		print "Sorry, but "+ filename + "  is not a comic archive!"
+		print >> sys.stderr,"Sorry, but "+ filename + "  is not a comic archive!"
 		return
 	
 	#if not ca.isWritableForStyle( opts.data_style ) and ( opts.delete_tags or opts.save_tags or opts.rename_file ):
 	if not ca.isWritable(  ) and ( opts.delete_tags or opts.copy_tags or opts.save_tags or opts.rename_file ):
-		print "This archive is not writable for that tag type"
+		print >> sys.stderr,"This archive is not writable for that tag type"
 		return
 
 	has = [ False, False, False ]
@@ -314,7 +341,7 @@ def process_file_cli( filename, opts, settings, match_results ):
 			return
 		
 		if batch_mode:
-			print u"Processing {0}: ".format(filename)
+			print u"Processing {0}...".format(filename)
 			
 		md = create_local_metadata( opts, ca, has[ opts.data_style ] )
 
@@ -325,12 +352,14 @@ def process_file_cli( filename, opts, settings, match_results ):
 				try:
 					cv_md = ComicVineTalker().fetchIssueDataByIssueID( opts.issue_id, settings )
 				except ComicVineTalkerException:
-					print "Network error while getting issue details.  Save aborted"
-					return None
+					print >> sys.stderr,"Network error while getting issue details.  Save aborted"
+					match_results.fetchDataFailures.append(filename)
+					return
 				
 				if cv_md is None:
-					print "No match for ID {0} was found.".format(opts.issue_id)
-					return None
+					print >> sys.stderr,"No match for ID {0} was found.".format(opts.issue_id)
+					match_results.noMatches.append(filename)
+					return
 				
 				if settings.apply_cbl_transform_on_cv_import:
 					cv_md = CBLTransformer( cv_md, settings ).apply()
@@ -338,7 +367,8 @@ def process_file_cli( filename, opts, settings, match_results ):
 				ii = IssueIdentifier( ca, settings )
 	
 				if md is None or md.isEmpty:
-					print "No metadata given to search online with!"
+					print >> sys.stderr,"No metadata given to search online with!"
+					match_results.noMatches.append(filename)
 					return
 	
 				def myoutput( text ):
@@ -374,15 +404,20 @@ def process_file_cli( filename, opts, settings, match_results ):
 					choices = True
 	
 				if choices:
-					print "Online search: Multiple matches.  Save aborted"
-					match_results.multipleMatches.append(MultipleMatch(filename,matches))
-					return
+					if low_confidence:
+						print >> sys.stderr,"Online search: Multiple low confidence matches.  Save aborted"
+						match_results.lowConfidenceMatches.append(MultipleMatch(filename,matches))
+						return
+					else:
+						print >> sys.stderr,"Online search: Multiple good matches.  Save aborted"
+						match_results.multipleMatches.append(MultipleMatch(filename,matches))
+						return
 				if low_confidence and opts.abortOnLowConfidence:
-					print "Online search: Low confidence match.  Save aborted"
-					match_results.noMatches.append(filename)
+					print >> sys.stderr,"Online search: Low confidence match.  Save aborted"
+					match_results.lowConfidenceMatches.append(MultipleMatch(filename,matches))
 					return
 				if not found_match:
-					print "Online search: No match found.  Save aborted"
+					print >> sys.stderr,"Online search: No match found.  Save aborted"
 					match_results.noMatches.append(filename)
 					return
 	
@@ -392,6 +427,7 @@ def process_file_cli( filename, opts, settings, match_results ):
 				# now get the particular issue data
 				cv_md = actual_issue_data_fetch(matches[0], settings)
 				if cv_md is None:
+					match_results.fetchDataFailures.append(filename)
 					return
 			
 			md.overlay( cv_md )
@@ -416,7 +452,7 @@ def process_file_cli( filename, opts, settings, match_results ):
 		md = create_local_metadata( opts, ca, use_tags )
 		
 		if md.series is None:
-			print msg_hdr + "Can't rename without series name"
+			print >> sys.stderr, msg_hdr + "Can't rename without series name"
 			return
 
 		new_ext = None  # default
@@ -434,7 +470,7 @@ def process_file_cli( filename, opts, settings, match_results ):
 		new_name = renamer.determineName( filename, ext=new_ext )
 			
 		if new_name == os.path.basename(filename):
-			print msg_hdr + "Filename is already good!"
+			print >> sys.stderr, msg_hdr + "Filename is already good!"
 			return
 		
 		folder = os.path.dirname( os.path.abspath( filename ) )
@@ -471,7 +507,7 @@ def main():
 	
 	if not qt_available and not opts.no_gui:
 		opts.no_gui = True
-		print "QT is not available."
+		print >> sys.stderr, "QT is not available."
 	
 	if opts.no_gui:
 		cli_mode( opts, settings )

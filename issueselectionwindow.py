@@ -52,7 +52,6 @@ class IssueSelectionWindow(QtGui.QDialog):
 									  QtCore.Qt.WindowSystemMenuHint |
 									  QtCore.Qt.WindowMaximizeButtonHint)		
 
-		self.setWindowModality(QtCore.Qt.WindowModal)
 		self.series_id  = series_id
 		self.settings = settings
 		self.url_fetch_thread = None
@@ -68,7 +67,6 @@ class IssueSelectionWindow(QtGui.QDialog):
 		self.twList.resizeColumnsToContents()	
 		self.twList.currentItemChanged.connect(self.currentItemChanged)	
 		self.twList.cellDoubleClicked.connect(self.cellDoubleClicked)
-		self.show()
 		
 		#now that the list has been sorted, find the initial record, and select it
 		if self.initial_id is None:

@@ -550,3 +550,19 @@ if qt_available:
 		# And the move call repositions the window
 		window.move(hpos, vpos)		
 
+	def centerWindowOnParent( window ):
+
+		top_level = window
+		while top_level.parent() is not None:
+			top_level = top_level.parent()
+			
+		# Get the current screens' dimensions...
+		main_window_size = top_level.geometry()
+		# ... and get this windows' dimensions
+		mysize = window.geometry()
+		# The horizontal position is calulated as screenwidth - windowwidth /2
+		hpos = ( main_window_size.width() - window.width() ) / 2
+		# And vertical position the same, but with the height dimensions
+		vpos = ( main_window_size.height() - window.height() ) / 2
+		# And the move call repositions the window
+		window.move(hpos + main_window_size.left(), vpos + main_window_size.top())	

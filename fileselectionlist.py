@@ -178,7 +178,8 @@ class FileSelectionList(QWidget):
 
 		progdialog = QProgressDialog("", "Cancel", 0, len(filelist), self)
 		progdialog.setWindowTitle( "Adding Files" )
-		progdialog.setWindowModality(Qt.WindowModal)
+		#progdialog.setWindowModality(Qt.WindowModal)
+		progdialog.setWindowModality(Qt.ApplicationModal)		
 		progdialog.show()
 		
 		firstAdded = None
@@ -189,7 +190,7 @@ class FileSelectionList(QWidget):
 				break
 			progdialog.setValue(idx)
 			progdialog.setLabelText(f)
-			utils.centerWindowOnScreen( progdialog )
+			utils.centerWindowOnParent( progdialog )
 			QCoreApplication.processEvents()
 			row = self.addPathItem( f )
 			if firstAdded is None and row is not None:

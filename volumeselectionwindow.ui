@@ -127,7 +127,7 @@
          <item>
           <widget class="QPushButton" name="btnAutoSelect">
            <property name="text">
-            <string>Auto-Select</string>
+            <string>Auto-Identify</string>
            </property>
           </widget>
          </item>

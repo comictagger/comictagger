@@ -68,8 +68,9 @@ class ComicVineTalker(QObject):
 				
 	def writeLog( self , text ):
 		if self.log_func is None:
-			sys.stdout.write(text.encode( errors='replace') )
-			sys.stdout.flush()
+			#sys.stdout.write(text.encode( errors='replace') )
+			#sys.stdout.flush()
+			print >> sys.stderr, text
 		else:
 			self.log_func( text )
 
@@ -183,7 +184,7 @@ class ComicVineTalker(QObject):
 		cv_response = json.loads(content)
 
 		if cv_response[ 'status_code' ] != 1:
-			print ( "Comic Vine query failed with error:  [{0}]. ".format( cv_response[ 'error' ] ))
+			print >> sys.stderr, "Comic Vine query failed with error:  [{0}]. ".format( cv_response[ 'error' ] )
 			return None
 
 		volume_results = cv_response['results']
@@ -211,7 +212,7 @@ class ComicVineTalker(QObject):
 			content = self.getUrlContent(issue_url) 
 			cv_response = json.loads(content)
 			if cv_response[ 'status_code' ] != 1:
-				print ( "Comic Vine query failed with error:  [{0}]. ".format( cv_response[ 'error' ] ))
+				print >> sys.stderr,  "Comic Vine query failed with error:  [{0}]. ".format( cv_response[ 'error' ] )
 				return None
 			issue_results = cv_response['results']
 
@@ -227,7 +228,7 @@ class ComicVineTalker(QObject):
 		content = self.getUrlContent(issue_url)
 		cv_response = json.loads(content)
 		if cv_response[ 'status_code' ] != 1:
-			print ( "Comic Vine query failed with error:  [{0}]. ".format( cv_response[ 'error' ] ))
+			print >> sys.stderr,  "Comic Vine query failed with error:  [{0}]. ".format( cv_response[ 'error' ] )
 			return None
 		
 		issue_results = cv_response['results']
@@ -355,7 +356,7 @@ class ComicVineTalker(QObject):
 		
 		cv_response = json.loads(content)
 		if cv_response[ 'status_code' ] != 1:
-			print ( "Comic Vine query failed with error:  [{0}]. ".format( cv_response[ 'error' ] ))
+			print >> sys.stderr, "Comic Vine query failed with error:  [{0}]. ".format( cv_response[ 'error' ] )
 			return details
 		
 		details['image_url'] =       cv_response['results']['image']['super_url']
@@ -456,7 +457,7 @@ class ComicVineTalker(QObject):
 		data = reply.readAll()
 		cv_response = json.loads(str(data))
 		if cv_response[ 'status_code' ] != 1:
-			print ( "Comic Vine query failed with error:  [{0}]. ".format( cv_response[ 'error' ] ))
+			print >> sys.stderr,  "Comic Vine query failed with error:  [{0}]. ".format( cv_response[ 'error' ] )
 			return 
 		
 		image_url = cv_response['results']['image']['super_url']

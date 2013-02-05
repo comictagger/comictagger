@@ -618,7 +618,6 @@ class IssueIdentifier:
 			self.log_msg( u"--------------------------------------------------")
 			self.search_result = self.ResultNoMatches
 		else:
-			print 
 			self.log_msg( "More than one likley candiate." )
 			self.search_result = self.ResultMultipleGoodMatches
 			self.log_msg( u"--------------------------------------------------")

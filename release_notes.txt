@@ -4,9 +4,10 @@
 ---------------------------------
 Changes:
 	* Enhanced identification process to use alternate covers from ComicVine
+	* Post auto-tag manual matching now includes single low-confidence matches (CLI & GUI)
 	* Page and cover view mini-browser available throughout app.  Most images can be
          double-clicked for embiggened view	
-	* Misc GUI Tweaks
+	* Misc GUI & CLI Tweaks
 
 ---------------------------------  
 1.0.3-beta - 31-Jan-2013

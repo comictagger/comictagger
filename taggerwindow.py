@@ -374,7 +374,7 @@ class TaggerWindow( QtGui.QMainWindow):
 					
 			progdialog = QtGui.QProgressDialog("", "Cancel", 0, rar_count, self)
 			progdialog.setWindowTitle( "Exporting as ZIP" )
-			progdialog.setWindowModality(QtCore.Qt.WindowModal)
+			progdialog.setWindowModality(QtCore.Qt.ApplicationModal)
 			progdialog.show()
 			prog_idx = 0
 		
@@ -392,7 +392,7 @@ class TaggerWindow( QtGui.QMainWindow):
 					progdialog.setValue(prog_idx)
 					prog_idx += 1
 					progdialog.setLabelText( ca.path )
-					utils.centerWindowOnScreen( progdialog )
+					utils.centerWindowOnParent( progdialog )
 					QtCore.QCoreApplication.processEvents()
 
 					original_path = os.path.abspath( ca.path )
@@ -1379,7 +1379,7 @@ class TaggerWindow( QtGui.QMainWindow):
 			if reply == QtGui.QMessageBox.Yes:
 				progdialog = QtGui.QProgressDialog("", "Cancel", 0, has_md_count, self)
 				progdialog.setWindowTitle( "Removing Tags" )
-				progdialog.setWindowModality(QtCore.Qt.WindowModal)
+				progdialog.setWindowModality(QtCore.Qt.ApplicationModal)
 				progdialog.show()				
 				prog_idx = 0
 				
@@ -1393,7 +1393,7 @@ class TaggerWindow( QtGui.QMainWindow):
 						progdialog.setValue(prog_idx)
 						prog_idx += 1
 						progdialog.setLabelText( ca.path )
-						utils.centerWindowOnScreen( progdialog )
+						utils.centerWindowOnParent( progdialog )
 						QtCore.QCoreApplication.processEvents()
 					
 					if ca.hasMetadata( style ) and ca.isWritable():
@@ -1456,7 +1456,7 @@ class TaggerWindow( QtGui.QMainWindow):
 			if reply == QtGui.QMessageBox.Yes:
 				progdialog = QtGui.QProgressDialog("", "Cancel", 0, has_src_count, self)
 				progdialog.setWindowTitle( "Copying Tags" )
-				progdialog.setWindowModality(QtCore.Qt.WindowModal)
+				progdialog.setWindowModality(QtCore.Qt.ApplicationModal)
 				progdialog.show()
 				prog_idx = 0
 				
@@ -1470,7 +1470,7 @@ class TaggerWindow( QtGui.QMainWindow):
 						progdialog.setValue(prog_idx)
 						prog_idx += 1
 						progdialog.setLabelText( ca.path )
-						utils.centerWindowOnScreen( progdialog )
+						utils.centerWindowOnParent( progdialog )
 						QtCore.QCoreApplication.processEvents()
 					
 					if ca.hasMetadata( src_style ) and ca.isWritable():
@@ -1670,7 +1670,7 @@ class TaggerWindow( QtGui.QMainWindow):
 			self.atprogdialog.progressBar.setValue( prog_idx )
 			prog_idx += 1
 			self.atprogdialog.label.setText( ca.path )
-			utils.centerWindowOnScreen( self.atprogdialog )
+			utils.centerWindowOnParent( self.atprogdialog )
 			QtCore.QCoreApplication.processEvents()
 			
 			if ca.isWritable():

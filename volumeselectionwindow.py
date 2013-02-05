@@ -231,8 +231,6 @@ class VolumeSelectionWindow(QtGui.QDialog):
 
 	def showIssues( self ):
 		selector = IssueSelectionWindow( self, self.settings, self.volume_id, self.issue_number )
-		selector.setModal(True)
-		
 		title = ""
 		for record in self.cv_search_results:
 			if record['id'] ==  self.volume_id:
@@ -242,6 +240,7 @@ class VolumeSelectionWindow(QtGui.QDialog):
 				break
 				
 		selector.setWindowTitle( title + "Select Issue")
+		selector.setModal( True )
 		selector.exec_()
 		if selector.result():
 			#we should now have a volume ID

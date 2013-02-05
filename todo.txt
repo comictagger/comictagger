@@ -10,6 +10,13 @@ Docs:
 	Auto-Tagging Tips:
 		Multiple Passes with different options
 
+CLI export:
+	-z, --export-to-zip                  export RAR archive to Zip format
+	    --delete-rar-after-export        delete original RAR archive after successful export to Zip
+	    --delete-rar-after-export        delete original RAR archive after successful export to Zip
+		--no-export-if-name-conflict     about export to Zip if intended filename exists
+		
+Add beautiful soup (python-bs4) to wiki requirements
 -----------------------------------------------------
 Bugs	
 -----------------------------------------------------
