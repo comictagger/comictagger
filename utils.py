@@ -532,5 +532,21 @@ if qt_available:
 		f = widget.font()
 		if f.pointSize() > 10:
 			f.setPointSize( f.pointSize() - delta )
-		widget.setFont( f )		
+		widget.setFont( f )
+		
+	def centerWindowOnScreen( window ):
+		"""
+		Center the window on screen. This implemention will handle the window
+		being resized or the screen resolution changing.
+		"""
+		# Get the current screens' dimensions...
+		screen = QtGui.QDesktopWidget().screenGeometry()
+		# ... and get this windows' dimensions
+		mysize = window.geometry()
+		# The horizontal position is calulated as screenwidth - windowwidth /2
+		hpos = ( screen.width() - window.width() ) / 2
+		# And vertical position the same, but with the height dimensions
+		vpos = ( screen.height() - window.height() ) / 2
+		# And the move call repositions the window
+		window.move(hpos, vpos)		
 

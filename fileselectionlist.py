@@ -189,6 +189,7 @@ class FileSelectionList(QWidget):
 				break
 			progdialog.setValue(idx)
 			progdialog.setLabelText(f)
+			utils.centerWindowOnScreen( progdialog )
 			QCoreApplication.processEvents()
 			row = self.addPathItem( f )
 			if firstAdded is None and row is not None:

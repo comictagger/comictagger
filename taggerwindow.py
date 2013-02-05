@@ -392,6 +392,7 @@ class TaggerWindow( QtGui.QMainWindow):
 					progdialog.setValue(prog_idx)
 					prog_idx += 1
 					progdialog.setLabelText( ca.path )
+					utils.centerWindowOnScreen( progdialog )
 					QtCore.QCoreApplication.processEvents()
 
 					original_path = os.path.abspath( ca.path )
@@ -1392,6 +1393,7 @@ class TaggerWindow( QtGui.QMainWindow):
 						progdialog.setValue(prog_idx)
 						prog_idx += 1
 						progdialog.setLabelText( ca.path )
+						utils.centerWindowOnScreen( progdialog )
 						QtCore.QCoreApplication.processEvents()
 					
 					if ca.hasMetadata( style ) and ca.isWritable():
@@ -1468,6 +1470,7 @@ class TaggerWindow( QtGui.QMainWindow):
 						progdialog.setValue(prog_idx)
 						prog_idx += 1
 						progdialog.setLabelText( ca.path )
+						utils.centerWindowOnScreen( progdialog )
 						QtCore.QCoreApplication.processEvents()
 					
 					if ca.hasMetadata( src_style ) and ca.isWritable():
@@ -1667,6 +1670,7 @@ class TaggerWindow( QtGui.QMainWindow):
 			self.atprogdialog.progressBar.setValue( prog_idx )
 			prog_idx += 1
 			self.atprogdialog.label.setText( ca.path )
+			utils.centerWindowOnScreen( self.atprogdialog )
 			QtCore.QCoreApplication.processEvents()
 			
 			if ca.isWritable():
