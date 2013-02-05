@@ -10,10 +10,6 @@ Docs:
 	Auto-Tagging Tips:
 		Multiple Passes with different options
 
-Look into using libarchive
-
-Page left and right icons
-
 -----------------------------------------------------
 Bugs	
 -----------------------------------------------------

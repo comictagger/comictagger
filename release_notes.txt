@@ -1,9 +1,12 @@
 
 ---------------------------------  
-1.0.4-beta - 06-Fab-2013
+1.0.4-beta - 06-Feb-2013
 ---------------------------------
 Changes:
-	Enhanced identification process to use alternate covers from ComicVine
+	* Enhanced identification process to use alternate covers from ComicVine
+	* Page and cover view mini-browser available throughout app.  Most images can be
+         double-clicked for embiggened view	
+	* Misc GUI Tweaks
 
 ---------------------------------  
 1.0.3-beta - 31-Jan-2013
