@@ -1,7 +1,8 @@
 TAGGER_BASE := $(HOME)/Dropbox/tagger/comictagger
-VERSION_STR := $(shell grep version $(TAGGER_BASE)/ctversion.py| cut -d= -f2 | sed 's/\"//g')
+TAGGER_SRC := $(TAGGER_BASE)/src
+VERSION_STR := $(shell grep version $(TAGGER_SRC)/ctversion.py| cut -d= -f2 | sed 's/\"//g')
 PASSWORD    := $(shell cat $(TAGGER_BASE)/project_password.txt)  
-UPLOAD_TOOL := $(TAGGER_BASE)/googlecode_upload.py
+UPLOAD_TOOL := $(TAGGER_BASE)/google/googlecode_upload.py
 all: clean
 
 clean:
