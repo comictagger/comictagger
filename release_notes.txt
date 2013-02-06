@@ -1,13 +1,14 @@
-
 ---------------------------------  
-1.0.4-beta - 06-Feb-2013
+1.1.0-beta - 06-Feb-2013
 ---------------------------------
 Changes:
-	* Enhanced identification process to use alternate covers from ComicVine
+	* Enhanced identification process to use alternative covers from ComicVine
 	* Post auto-tag manual matching now includes single low-confidence matches (CLI & GUI)
 	* Page and cover view mini-browser available throughout app.  Most images can be
-         double-clicked for embiggened view	
-	* Misc GUI & CLI Tweaks
+         double-clicked for embiggened view
+	* Export-to-zip in CLI (very handy in scripts!)
+	* More rename template variables
+	* Misc GUI & CLI Tweaks 
 
 ---------------------------------  
 1.0.3-beta - 31-Jan-2013
