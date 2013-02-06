@@ -78,12 +78,16 @@ If no options are given, {0} will run in windowed mode
                              Some names that can be used:
                                  series, issue, issueCount, year, publisher, title
   -r, --rename               Rename the file based on specified tag style.
-      --noabort              Don't abort save operation when online match is of low confidence  
+      --noabort              Don't abort save operation when online match is of low confidence
+  -e, --export-to-zip        Export RAR archive to Zip format
+      --delete-rar           Delete original RAR archive after successful export to Zip
+      --abort-on-conflict    Don't export to zip if intended new filename exists (Otherwise, creates
+                             a new unique filename)	  
   -v, --verbose              Be noisy when doing what it does                            
       --terse                Don't say much (for print mode)                            
       --version              Display version                            
   -h, --help                 Display this message                            
-		"""
+	"""
 
 
 	def __init__(self):
@@ -96,6 +100,9 @@ If no options are given, {0} will run in windowed mode
 		self.print_tags = False
 		self.copy_tags = False
 		self.delete_tags = False
+		self.export_to_zip = False
+		self.abort_export_on_conflict = False
+		self.delete_rar_after_export = False
 		self.search_online = False
 		self.dryrun = False
 		self.abortOnLowConfidence = True
@@ -179,14 +186,15 @@ If no options are given, {0} will run in windowed mode
 		# parse command line options
 		try:
 			opts, args = getopt.getopt( input_args, 
-			           "hpdt:fm:vonsrc:i", 
+			           "hpdt:fm:vonsrc:ie", 
 			           [ "help", "print", "delete", "type=", "copy=", "parsefilename", "metadata=", "verbose",
 			            "online", "dryrun", "save", "rename" , "raw", "noabort", "terse", "nooverwrite",
-			            "interactive", "nosummary", "version", "id=" ])
-			           
+			            "interactive", "nosummary", "version", "id=" 
+			            "export-to-zip", "delete-rar", "abort-on-conflict" ] )
+
 		except getopt.GetoptError as err:
 			self.display_msg_and_quit( str(err), 2 )
-			
+		
 		# process options
 		for o, a in opts:
 			if o in ("-h", "--help"):
@@ -219,6 +227,12 @@ If no options are given, {0} will run in windowed mode
 				self.save_tags = True
 			if o in ("-r", "--rename"):
 				self.rename_file = True
+			if o in ("-e", "--export_to_zip"):
+				self.export_to_zip = True
+			if o  == "--delete-rar":
+				self.delete_rar_after_export = True
+			if o  == "--abort-on-conflict":
+				self.abort_export_on_conflict = True				
 			if o in ("-f", "--parsefilename"):
 				self.parse_filename = True
 			if o == "--id":
@@ -247,7 +261,7 @@ If no options are given, {0} will run in windowed mode
 				else:
 					self.display_msg_and_quit( "Invalid tag type", 1 )
 			
-		if self.print_tags or self.delete_tags or self.save_tags or self.copy_tags or self.rename_file:
+		if self.print_tags or self.delete_tags or self.save_tags or self.copy_tags or self.rename_file or self.export_to_zip:
 			self.no_gui = True
 
 		count = 0
@@ -256,9 +270,10 @@ If no options are given, {0} will run in windowed mode
 		if self.save_tags: count += 1
 		if self.copy_tags: count += 1
 		if self.rename_file: count += 1
+		if self.export_to_zip: count +=1
 		
 		if count > 1:
-			self.display_msg_and_quit( "Must choose only one action of print, delete, save, copy, or rename", 1 )
+			self.display_msg_and_quit( "Must choose only one action of print, delete, save, copy, rename, or export", 1 )
 		
 		if len(args) > 0:
 			if platform.system() == "Windows":
@@ -273,7 +288,7 @@ If no options are given, {0} will run in windowed mode
 				self.file_list = args
 
 		if self.no_gui and self.filename is None:
-			self.display_msg_and_quit( "Command requires a filename!", 1 )
+			self.display_msg_and_quit( "Command requires at least one filename!", 1 )
 			
 		if self.delete_tags and self.data_style is None:
 			self.display_msg_and_quit( "Please specify the type to delete with -t", 1 )

@@ -222,6 +222,10 @@ def process_file_cli( filename, opts, settings, match_results ):
 	if settings.rar_exe_path != "":
 		ca.setExternalRarProgram( settings.rar_exe_path )	
 	
+	if not os.path.lexists( filename ):
+		print >> sys.stderr,"Cannot find "+ filename
+		return
+		
 	if not ca.seemsToBeAComicArchive():
 		print >> sys.stderr,"Sorry, but "+ filename + "  is not a comic archive!"
 		return
@@ -484,6 +488,59 @@ def process_file_cli( filename, opts, settings, match_results ):
 			suffix = " (dry-run, no change)"
 
 		print u"renamed '{0}' -> '{1}' {2}".format(os.path.basename(filename), new_name, suffix)
+
+	elif opts.export_to_zip:
+		msg_hdr = ""
+		if batch_mode:
+			msg_hdr = u"{0}: ".format(filename)
+
+		if not ca.isRar():
+			print >> sys.stderr, msg_hdr + "Archive is not a RAR."
+			return
+		
+		rar_file = os.path.abspath( os.path.abspath( filename ) )
+		new_file = os.path.splitext(rar_file)[0] + ".cbz"
+		
+		if opts.abort_export_on_conflict and os.path.lexists( new_file ):
+			print  msg_hdr + "{0} already exists in the that folder.".format(os.path.split(new_file)[1])
+			return
+		
+		new_file = utils.unique_file( os.path.join( new_file ) )
+	
+		delete_success = False
+		export_success = False
+		if not opts.dryrun:
+			if ca.exportAsZip( new_file ):
+				export_success = True
+				if opts.delete_rar_after_export:
+					try:
+						os.unlink( rar_file )
+					except:
+						print >> sys.stderr, msg_hdr + "Error deleting original RAR after export"
+						delete_success = False
+					else:
+						delete_success = True
+			else:
+				# last export failed, so remove the zip, if it exists
+				if os.path.lexists( new_file ):
+					os.remove( new_file )
+		else:
+			msg = msg_hdr + u"Dry-run:  Would try to create {0}".format(os.path.split(new_file)[1])
+			if opts.delete_rar_after_export:
+				msg += u" and delete orginal."
+			print msg
+			return
+			
+		msg = msg_hdr
+		if export_success:
+			msg += u"Archive exported successfully to: {0}".format( os.path.split(new_file)[1] )
+			if opts.delete_rar_after_export and delete_success:
+				msg += u" (Original deleted) "
+		else:
+			msg += u"Archive failed to export!"
+			
+		print msg
+
 
 #-----------------------------
 
