@@ -30,9 +30,9 @@ class AutoTagProgressWindow(QtGui.QDialog):
 	def __init__(self, parent):
 		super(AutoTagProgressWindow, self).__init__(parent)
 		
-		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'autotagprogresswindow.ui' ), self)
-		self.lblTest.setPixmap(QtGui.QPixmap(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/nocover.png' )))
-		self.lblArchive.setPixmap(QtGui.QPixmap(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/nocover.png' )))
+		uic.loadUi(ComicTaggerSettings.getUIFile('autotagprogresswindow.ui' ), self)
+		self.lblTest.setPixmap(QtGui.QPixmap(ComicTaggerSettings.getGraphic('nocover.png')))
+		self.lblArchive.setPixmap(QtGui.QPixmap(ComicTaggerSettings.getGraphic('nocover.png')))
 		self.isdone = False
 
 		self.setWindowFlags(self.windowFlags() |
@@ -54,7 +54,7 @@ class AutoTagProgressWindow(QtGui.QDialog):
 			label.setPixmap(QtGui.QPixmap(img))
 			label.setScaledContents(True)
 		else:
-			label.setPixmap(QtGui.QPixmap(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/nocover.png' )))
+			label.setPixmap(QtGui.QPixmap(ComicTaggerSettings.getGraphic('nocover.png')))
 			label.setScaledContents(True)
 		QtCore.QCoreApplication.processEvents()
 		QtCore.QCoreApplication.processEvents()

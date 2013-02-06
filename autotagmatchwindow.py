@@ -38,7 +38,7 @@ class AutoTagMatchWindow(QtGui.QDialog):
 	def __init__(self, parent, match_set_list, style, fetch_func):
 		super(AutoTagMatchWindow, self).__init__(parent)
 		
-		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'autotagmatchwindow.ui' ), self)
+		uic.loadUi(ComicTaggerSettings.getUIFile('autotagmatchwindow.ui' ), self)
 
 		self.altCoverWidget = CoverImageWidget( self.altCoverContainer, CoverImageWidget.AltCoverMode )
 		gridlayout = QtGui.QGridLayout( self.altCoverContainer )

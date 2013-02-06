@@ -30,7 +30,7 @@ class PageBrowserWindow(QtGui.QDialog):
 	def __init__(self, parent, metadata):
 		super(PageBrowserWindow, self).__init__(parent)
 		
-		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'pagebrowser.ui' ), self)
+		uic.loadUi(ComicTaggerSettings.getUIFile('pagebrowser.ui' ), self)
 		
 		self.pageWidget = CoverImageWidget( self.pageContainer, CoverImageWidget.ArchiveMode )
 		gridlayout = QtGui.QGridLayout( self.pageContainer )
@@ -52,8 +52,8 @@ class PageBrowserWindow(QtGui.QDialog):
 			self.btnPrev.setText("<<")
 			self.btnNext.setText(">>")
 		else:
-			self.btnPrev.setIcon(QtGui.QIcon(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/left.png' )))
-			self.btnNext.setIcon(QtGui.QIcon(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/right.png' )))
+			self.btnPrev.setIcon(QtGui.QIcon( ComicTaggerSettings.getGraphic('left.png' )))
+			self.btnNext.setIcon(QtGui.QIcon( ComicTaggerSettings.getGraphic('right.png')))
 		
 		self.btnNext.clicked.connect( self.nextPage )
 		self.btnPrev.clicked.connect( self.prevPage )

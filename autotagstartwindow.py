@@ -32,7 +32,7 @@ class AutoTagStartWindow(QtGui.QDialog):
 	def __init__( self, parent,  settings, msg ):
 		super(AutoTagStartWindow, self).__init__(parent)
 		
-		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'autotagstartwindow.ui' ), self)
+		uic.loadUi(ComicTaggerSettings.getUIFile('autotagstartwindow.ui' ), self)
 		self.label.setText( msg )
 
 		self.setWindowFlags(self.windowFlags() &

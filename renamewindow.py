@@ -33,7 +33,7 @@ class RenameWindow(QtGui.QDialog):
 	def __init__( self, parent, comic_archive_list, data_style, settings ):
 		super(RenameWindow, self).__init__(parent)
 		
-		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'renamewindow.ui' ), self)
+		uic.loadUi(ComicTaggerSettings.getUIFile('renamewindow.ui' ), self)
 		self.label.setText("Preview (based on {0} tags):".format(MetaDataStyle.name[data_style]))
 
 		self.setWindowFlags(self.windowFlags() |

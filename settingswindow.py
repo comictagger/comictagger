@@ -54,7 +54,7 @@ class SettingsWindow(QtGui.QDialog):
 	def __init__(self, parent, settings ):
 		super(SettingsWindow, self).__init__(parent)
 		
-		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'settingswindow.ui' ), self)
+		uic.loadUi(ComicTaggerSettings.getUIFile('settingswindow.ui' ), self)
 
 		self.setWindowFlags(self.windowFlags() &
 									  ~QtCore.Qt.WindowContextHelpButtonHint )

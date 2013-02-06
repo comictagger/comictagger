@@ -90,7 +90,7 @@ class VolumeSelectionWindow(QtGui.QDialog):
 	def __init__(self, parent, series_name, issue_number, year, cover_index_list, comic_archive, settings, autoselect=False):
 		super(VolumeSelectionWindow, self).__init__(parent)
 		
-		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'volumeselectionwindow.ui' ), self)
+		uic.loadUi(ComicTaggerSettings.getUIFile('volumeselectionwindow.ui' ), self)
 		
 		self.imageWidget = CoverImageWidget( self.imageContainer, CoverImageWidget.URLMode )
 		gridlayout = QtGui.QGridLayout( self.imageContainer )

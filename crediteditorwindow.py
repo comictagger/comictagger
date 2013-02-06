@@ -33,7 +33,7 @@ class CreditEditorWindow(QtGui.QDialog):
 	def __init__(self, parent, mode, role, name, primary ):
 		super(CreditEditorWindow, self).__init__(parent)
 		
-		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'crediteditorwindow.ui' ), self)
+		uic.loadUi(ComicTaggerSettings.getUIFile('crediteditorwindow.ui' ), self)
 		
 		self.mode = mode
 		

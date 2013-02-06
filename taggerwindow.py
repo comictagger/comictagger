@@ -84,7 +84,7 @@ class TaggerWindow( QtGui.QMainWindow):
 	def __init__(self, file_list, settings, parent = None):
 		super(TaggerWindow, self).__init__(parent)
 
-		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'taggerwindow.ui' ), self)
+		uic.loadUi(ComicTaggerSettings.getUIFile('taggerwindow.ui' ), self)
 		self.settings = settings
 
 		self.archiveCoverWidget = CoverImageWidget( self.coverImageContainer, CoverImageWidget.ArchiveMode )
@@ -122,8 +122,8 @@ class TaggerWindow( QtGui.QMainWindow):
 
 		self.scrollAreaWidgetContents.adjustSize()
 		
-		self.setWindowIcon(QtGui.QIcon(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/app.png' )))
-		
+		self.setWindowIcon(QtGui.QIcon( ComicTaggerSettings.getGraphic('app.png')))
+
 		self.save_data_style = settings.last_selected_save_data_style
 		self.load_data_style = settings.last_selected_load_data_style
 
@@ -329,16 +329,16 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.actionComicTaggerForum.triggered.connect( self.showForum )
 	
 		# ToolBar
-	
-		self.actionLoad.setIcon( QtGui.QIcon(os.path.join(ComicTaggerSettings.baseDir(),'graphics/open.png')) )
-		self.actionLoadFolder.setIcon( QtGui.QIcon(os.path.join(ComicTaggerSettings.baseDir(),'graphics/longbox.png')) )
-		self.actionWrite_Tags.setIcon( QtGui.QIcon(os.path.join(ComicTaggerSettings.baseDir(),'graphics/save.png')) )
-		self.actionParse_Filename.setIcon( QtGui.QIcon(os.path.join(ComicTaggerSettings.baseDir(),'graphics/parse.png')) )
-		self.actionSearchOnline.setIcon( QtGui.QIcon(os.path.join(ComicTaggerSettings.baseDir(),'graphics/search.png')) )
-		self.actionAutoIdentify.setIcon( QtGui.QIcon(os.path.join(ComicTaggerSettings.baseDir(),'graphics/auto.png')) )
-		self.actionAutoTag.setIcon( QtGui.QIcon(os.path.join(ComicTaggerSettings.baseDir(),'graphics/autotag.png')) )
-		self.actionClearEntryForm.setIcon( QtGui.QIcon(os.path.join(ComicTaggerSettings.baseDir(),'graphics/clear.png')) )
-		self.actionPageBrowser.setIcon( QtGui.QIcon(os.path.join(ComicTaggerSettings.baseDir(),'graphics/browse.png') ))
+
+		self.actionLoad.setIcon(QtGui.QIcon( ComicTaggerSettings.getGraphic('open.png')))
+		self.actionLoadFolder.setIcon(QtGui.QIcon( ComicTaggerSettings.getGraphic('longbox.png')))
+		self.actionWrite_Tags.setIcon(QtGui.QIcon( ComicTaggerSettings.getGraphic('save.png')))
+		self.actionParse_Filename.setIcon(QtGui.QIcon( ComicTaggerSettings.getGraphic('parse.png')))
+		self.actionSearchOnline.setIcon(QtGui.QIcon( ComicTaggerSettings.getGraphic('search.png')))
+		self.actionAutoIdentify.setIcon(QtGui.QIcon( ComicTaggerSettings.getGraphic('auto.png')))
+		self.actionAutoTag.setIcon(QtGui.QIcon( ComicTaggerSettings.getGraphic('autotag.png')))
+		self.actionClearEntryForm.setIcon(QtGui.QIcon( ComicTaggerSettings.getGraphic('clear.png')))
+		self.actionPageBrowser.setIcon(QtGui.QIcon( ComicTaggerSettings.getGraphic('browse.png')))
 		
 		self.toolBar.addAction( self.actionLoad )
 		self.toolBar.addAction( self.actionLoadFolder )
@@ -451,7 +451,7 @@ class TaggerWindow( QtGui.QMainWindow):
 		msgBox = QtGui.QMessageBox()
 		msgBox.setWindowTitle( self.tr("About " + self.appName ) )
 		msgBox.setTextFormat( QtCore.Qt.RichText )
-		msgBox.setIconPixmap( QtGui.QPixmap(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/about.png' )) )
+		msgBox.setIconPixmap( QtGui.QPixmap(ComicTaggerSettings.getGraphic('about.png')) )
 		msgBox.setText( "<br><br><br>" 
 		               + self.appName + " v" + self.version + "<br>" 
 		               + "(c)2012 Anthony Beville<br><br>"

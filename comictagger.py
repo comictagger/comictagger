@@ -575,7 +575,8 @@ def main():
 		app = QtGui.QApplication(sys.argv)
 		
 		if platform.system() != "Linux":
-			img =  QtGui.QPixmap(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/tags.png' ))
+			img =  QtGui.QPixmap(ComicTaggerSettings.getGraphic('tags.png'))
+			
 			splash = QtGui.QSplashScreen(img)
 			splash.show()
 			splash.raise_()

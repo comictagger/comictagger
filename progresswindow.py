@@ -30,7 +30,7 @@ class IDProgressWindow(QtGui.QDialog):
 	def __init__(self, parent):
 		super(IDProgressWindow, self).__init__(parent)
 		
-		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'progresswindow.ui' ), self)
+		uic.loadUi(ComicTaggerSettings.getUIFile('progresswindow.ui' ), self)
 
 		self.setWindowFlags(self.windowFlags() |
 									  QtCore.Qt.WindowSystemMenuHint |

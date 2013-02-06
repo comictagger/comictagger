@@ -63,7 +63,7 @@ class CoverImageWidget(QWidget):
 	def __init__(self, parent, mode ):
 		super(CoverImageWidget, self).__init__(parent)
 		
-		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'coverimagewidget.ui' ), self )
+		uic.loadUi(ComicTaggerSettings.getUIFile('coverimagewidget.ui' ), self)
 
 		utils.reduceWidgetFontSize( self.label )
 
@@ -72,8 +72,8 @@ class CoverImageWidget(QWidget):
 		self.page_loader = None
 		self.showControls = True
 
-		self.btnLeft.setIcon(QIcon(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/left.png' )))
-		self.btnRight.setIcon(QIcon(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/right.png' )))
+		self.btnLeft.setIcon(QIcon(ComicTaggerSettings.getGraphic('left.png')))
+		self.btnRight.setIcon(QIcon(ComicTaggerSettings.getGraphic('right.png')))
 		
 		self.btnLeft.clicked.connect( self.decrementImage )
 		self.btnRight.clicked.connect( self.incrementImage )
@@ -236,7 +236,7 @@ class CoverImageWidget(QWidget):
 		self.page_loader = None
 					
 	def loadDefault( self ):
-		self.current_pixmap = QPixmap(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/nocover.png' ))
+		self.current_pixmap = QPixmap(ComicTaggerSettings.getGraphic('nocover.png'))
 		#print "loadDefault called"
 		self.setDisplayPixmap( 0, 0)
 

@@ -38,7 +38,7 @@ class MatchSelectionWindow(QtGui.QDialog):
 	def __init__(self, parent, matches, comic_archive):
 		super(MatchSelectionWindow, self).__init__(parent)
 		
-		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'matchselectionwindow.ui' ), self)
+		uic.loadUi(ComicTaggerSettings.getUIFile('matchselectionwindow.ui' ), self)
 
 		self.altCoverWidget = CoverImageWidget( self.altCoverContainer, CoverImageWidget.AltCoverMode )
 		gridlayout = QtGui.QGridLayout( self.altCoverContainer )

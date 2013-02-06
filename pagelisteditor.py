@@ -78,7 +78,7 @@ class PageListEditor(QWidget):
 	def __init__(self, parent ):
 		super(PageListEditor, self).__init__(parent)
 		
-		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'pagelisteditor.ui' ), self )
+		uic.loadUi(ComicTaggerSettings.getUIFile('pagelisteditor.ui' ), self)
 
 		self.pageWidget = CoverImageWidget( self.pageContainer, CoverImageWidget.ArchiveMode )
 		gridlayout = QGridLayout( self.pageContainer )

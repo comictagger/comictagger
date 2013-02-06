@@ -525,7 +525,7 @@ class ComicArchive:
 			self.archiver = UnknownArchiver( self.path )
 
 		if ComicArchive.logo_data is None:
-			fname = os.path.join(ComicTaggerSettings.baseDir(), 'graphics','nocover.png' )
+			fname = ComicTaggerSettings.getGraphic('nocover.png')
 			with open(fname, 'rb') as fd:
 				ComicArchive.logo_data = fd.read()				
 

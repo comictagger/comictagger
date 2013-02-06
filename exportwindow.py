@@ -36,7 +36,7 @@ class ExportWindow(QtGui.QDialog):
 	def __init__( self, parent,  settings, msg ):
 		super(ExportWindow, self).__init__(parent)
 		
-		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'exportwindow.ui' ), self)
+		uic.loadUi(ComicTaggerSettings.getUIFile('exportwindow.ui' ), self)
 		self.label.setText( msg )
 
 		self.setWindowFlags(self.windowFlags() &

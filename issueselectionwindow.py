@@ -39,7 +39,7 @@ class IssueSelectionWindow(QtGui.QDialog):
 	def __init__(self, parent, settings, series_id, issue_number):
 		super(IssueSelectionWindow, self).__init__(parent)
 		
-		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'issueselectionwindow.ui' ), self)
+		uic.loadUi(ComicTaggerSettings.getUIFile('issueselectionwindow.ui' ), self)
 
 		self.coverWidget = CoverImageWidget( self.coverImageContainer, CoverImageWidget.AltCoverMode )
 		gridlayout = QtGui.QGridLayout( self.coverImageContainer )

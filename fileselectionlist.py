@@ -71,7 +71,7 @@ class FileSelectionList(QWidget):
 	def __init__(self, parent , settings ):
 		super(FileSelectionList, self).__init__(parent)
 
-		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'fileselectionlist.ui' ), self)
+		uic.loadUi(ComicTaggerSettings.getUIFile('fileselectionlist.ui' ), self)
 		
 		self.settings = settings
 

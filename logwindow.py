@@ -30,7 +30,7 @@ class LogWindow(QtGui.QDialog):
 	def __init__(self, parent):
 		super(LogWindow, self).__init__(parent)
 		
-		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'logwindow.ui' ), self)
+		uic.loadUi(ComicTaggerSettings.getUIFile('logwindow.ui' ), self)
 		
 		self.setWindowFlags(self.windowFlags() |
 									  QtCore.Qt.WindowSystemMenuHint |

@@ -40,9 +40,17 @@ class ComicTaggerSettings:
 		if platform.system() == "Darwin" and getattr(sys, 'frozen', None):
 			return sys._MEIPASS
 		else:
-			#print "ATB basename", os.path.dirname( os.path.abspath( sys.argv[0] ) )
-			return os.path.dirname( os.path.abspath( sys.argv[0] ) )
+			#return os.path.dirname( os.path.abspath( sys.argv[0] ) )
+			return os.path.dirname( os.path.realpath(sys.argv[0] ) )
+
+	@staticmethod
+	def getGraphic( filename ):
+		return os.path.join(ComicTaggerSettings.baseDir(), '..', 'graphics', filename )
 		
+	@staticmethod
+	def getUIFile( filename ):
+		return os.path.join(ComicTaggerSettings.baseDir(), '..', 'ui', filename )
+
 	def setDefaultValues( self ):
 
 		# General Settings

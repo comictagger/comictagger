@@ -29,7 +29,7 @@ class ImagePopup(QtGui.QDialog):
 	def __init__(self, parent, image_pixmap):
 		super(ImagePopup, self).__init__(parent)
 		
-		uic.loadUi(os.path.join(ComicTaggerSettings.baseDir(), 'imagepopup.ui' ), self)
+		uic.loadUi(ComicTaggerSettings.getUIFile('imagepopup.ui' ), self)
 
 		QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
 
@@ -48,7 +48,7 @@ class ImagePopup(QtGui.QDialog):
 		# widget
 		self.desktopBg = QtGui.QPixmap.grabWindow(QtGui.QApplication.desktop ().winId(), 
 			0,0, screen_size.width(), screen_size.height())
-		bg = QtGui.QPixmap(os.path.join(ComicTaggerSettings.baseDir(), 'graphics/popup_bg.png' )) 
+		bg = QtGui.QPixmap(ComicTaggerSettings.getGraphic('popup_bg.png')) 
 		self.clientBgPixmap = bg.scaled(screen_size.width(), screen_size.height())		
 		self.setMask(self.clientBgPixmap.mask())
 
