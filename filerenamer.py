@@ -95,6 +95,19 @@ class FileRenamer:
 					dt = datetime.datetime( 1970, int(md.month), 1, 0, 0)
 					month_name = dt.strftime("%B")
 		new_name = self.replaceToken( new_name, month_name, '%month_name%')
+
+		new_name = self.replaceToken( new_name, md.genre, '%genre%')
+		new_name = self.replaceToken( new_name, md.language, '%language_code%')
+		new_name = self.replaceToken( new_name, md.criticalRating , '%criticalrating%')
+		new_name = self.replaceToken( new_name, md.alternateSeries, '%alternateseries%')
+		new_name = self.replaceToken( new_name, md.alternateNumber, '%alternatenumber%')
+		new_name = self.replaceToken( new_name, md.alternateCount, '%alternatecount%')
+		new_name = self.replaceToken( new_name, md.imprint, '%imprint%')
+		new_name = self.replaceToken( new_name, md.format, '%format%')
+		new_name = self.replaceToken( new_name, md.maturityRating, '%maturityrating%')
+		new_name = self.replaceToken( new_name, md.storyArc, '%storyarc%')
+		new_name = self.replaceToken( new_name, md.seriesGroup, '%seriesgroup%')
+		new_name = self.replaceToken( new_name, md.scanInfo, '%scaninfo%')
 			
 		if self.smart_cleanup:
 			
