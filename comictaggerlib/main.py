@@ -1,5 +1,5 @@
 """
-A python script to tag comic archives
+A python app to (automatically) tag comic archives
 """
 
 """
@@ -59,7 +59,7 @@ def ctmain():
 	
 	if not qt_available and not opts.no_gui:
 		opts.no_gui = True
-		print >> sys.stderr, "QT is not available."
+		print >> sys.stderr, "PyQt4 is not available.  ComicTagger is limited to command-line mode."
 	
 	if opts.no_gui:
 		cli.cli_mode( opts, settings )
@@ -84,11 +84,7 @@ def ctmain():
 			sys.exit(app.exec_())
 		except Exception, e:
 			QtGui.QMessageBox.critical(QtGui.QMainWindow(), "Error", "Unhandled exception in app:\n" + traceback.format_exc() )
-			
-"""			
-if __name__ == "__main__":
-	main()
-"""
+
     
     
     
