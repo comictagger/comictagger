@@ -2,14 +2,14 @@
 
 from distutils.core import setup
 import distutils.command.install_scripts
-import os
-import shutil
+#import os
+#import shutil
 
 # Things are weird if the script has a py.  Will this break things for windows???
-if not os.path.exists('scripts/comictagger'):
-    if not os.path.exists('scripts'):
-        os.makedirs('scripts')
-    shutil.copyfile('comictagger.py', 'scripts/comictagger')
+#if not os.path.exists('scripts/comictagger'):
+#    if not os.path.exists('scripts'):
+#        os.makedirs('scripts')
+#    shutil.copyfile('comictagger.py', 'scripts/comictagger')
 
 
 setup(name = "comictagger",
@@ -18,11 +18,12 @@ setup(name = "comictagger",
       author = "Anthony Beville",
       author_email = "comictagger@gmail.com",
       url = "http://code.google.com/p/comictagger/",
-      packages =  [ "comictagger", "comictagger/UnRAR2" ] ,
+      packages =  [ "comictaggerlib", "comictaggerlib/UnRAR2" ] ,
       package_data = {
-        'comictagger': ['ui/*.ui', 'graphics/*'] ,
+        'comictaggerlib': ['ui/*.ui', 'graphics/*'] ,
+        'comictaggerlib/UnRAR2': ['UnRARDLL/*.*', 'UnRARDLL/x64/*.*'] ,
       },
-      scripts = ["scripts/comictagger"],
+      scripts = ["comictagger.py"],
       long_description = """
 ComicTagger is a multi-platform app for writing metadata to comic archives, written in Python and PyQt.
 
