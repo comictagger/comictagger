@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
 from distutils.core import setup
-import distutils.command.install_scripts
+import comictaggerlib.ctversion
 
 setup(name = "comictagger",
-      version = "1.1.1",
+      version =  comictaggerlib.ctversion.version,
       description = "A cross-platorm GUI/CLI app for writing metadata to comic archives",
       author = "Anthony Beville",
       author_email = "comictagger@gmail.com",
@@ -15,6 +15,7 @@ setup(name = "comictagger",
         'comictaggerlib/UnRAR2': ['UnRARDLL/*.*', 'UnRARDLL/x64/*.*'] ,
       },
       scripts = ["comictagger.py"],
+      license = "Apache License 2.0",
       long_description = """
 ComicTagger is a multi-platform app for writing metadata to comic archives, written in Python and PyQt.
 

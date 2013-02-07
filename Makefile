@@ -23,8 +23,8 @@ zip:
 	@echo When satisfied with release, do this:
 	@echo make svn_tag
 
-pkg:
-	python setup.py sdist	
+pydist:
+	python setup.py sdist --formats=gztar,zip
 
 svn_tag:
 	svn copy https://comictagger.googlecode.com/svn/trunk \
