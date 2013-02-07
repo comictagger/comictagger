@@ -1,10 +1,9 @@
 PYINSTALLER_CMD := python $(HOME)/pyinstaller-2.0/pyinstaller.py
 TAGGER_BASE := $(HOME)/Dropbox/tagger/comictagger
+TAGGER_SRC := $(TAGGER_BASE)/comictaggerlib
 
 APP_NAME := ComicTagger
-VERSION_STR := $(shell grep version $(TAGGER_BASE)/ctversion.py| cut -d= -f2 | sed 's/\"//g')
-
-
+VERSION_STR := $(shell grep version $(TAGGER_SRC)/ctversion.py| cut -d= -f2 | sed 's/\"//g')
 
 MAC_BASE := $(TAGGER_BASE)/mac
 DIST_DIR := $(MAC_BASE)/dist
@@ -17,8 +16,8 @@ all: clean dist diskimage
 
 dist:
 	$(PYINSTALLER_CMD) $(TAGGER_BASE)/comictagger.py -o $(MAC_BASE) -w -n $(APP_NAME) -s 
-	cp $(TAGGER_BASE)/*.ui $(APP_BUNDLE)/Contents/MacOS
-	cp -a $(TAGGER_BASE)/graphics $(APP_BUNDLE)/Contents/MacOS
+	cp -a $(TAGGER_SRC)/ui $(APP_BUNDLE)/Contents/MacOS
+	cp -a $(TAGGER_SRC)/graphics $(APP_BUNDLE)/Contents/MacOS
 	cp $(MAC_BASE)/app.icns $(APP_BUNDLE)/Contents/Resources/icon-windowed.icns
 	
 clean:
