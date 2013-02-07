@@ -8,11 +8,11 @@ all: clean
 clean:
 	rm -rf *~ *.pyc *.pyo
 	cd comictagger; rm -f *~ *.pyc *.pyo
-	sudo rm -rf MANIFEST dist scripts
+	sudo rm -rf dist MANIFEST
+	rm -rf *.deb
 	rm -rf logdict*.log
 	make -C mac clean
 	make -C windows clean
-	rm -rf *.deb
 
 zip:
 	cd release; \
@@ -38,7 +38,7 @@ deb:
 		--maintainer 'comictagger@gmail.com' \
 		--after-install debian_scripts/after_install.sh \
 		--before-remove debian_scripts/before_remove.sh \
-		-d 'python >= 2.7' \
+		-d 'python >= 2.6' \
 		-d 'python < 2.8' \
 		-d 'python-imaging >= 1.1.7' \
 		-d 'python-bs4 >= 4.1' \

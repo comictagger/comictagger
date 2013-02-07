@@ -86,7 +86,9 @@ If no options are given, {0} will run in windowed mode
   -v, --verbose              Be noisy when doing what it does                            
       --terse                Don't say much (for print mode)                            
       --version              Display version                            
-  -h, --help                 Display this message                            
+  -h, --help                 Display this message
+  
+For more help visit the wiki at: http://code.google.com/p/comictagger/
 	"""
 
 
