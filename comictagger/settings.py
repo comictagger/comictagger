@@ -45,11 +45,17 @@ class ComicTaggerSettings:
 
 	@staticmethod
 	def getGraphic( filename ):
-		return os.path.join(ComicTaggerSettings.baseDir(), '..', 'graphics', filename )
+		graphic_folder = os.path.join(ComicTaggerSettings.baseDir(), '..', 'graphics')
+		if not os.path.exists(graphic_folder):
+			graphic_folder = os.path.join(ComicTaggerSettings.baseDir(), 'graphics')
+		return os.path.join( graphic_folder, filename )
 		
 	@staticmethod
 	def getUIFile( filename ):
-		return os.path.join(ComicTaggerSettings.baseDir(), '..', 'ui', filename )
+		ui_folder = os.path.join(ComicTaggerSettings.baseDir(), '..', 'ui')
+		if not os.path.exists(ui_folder):
+			ui_folder = os.path.join(ComicTaggerSettings.baseDir(), 'ui')
+		return os.path.join( ui_folder, filename )
 
 	def setDefaultValues( self ):
 
