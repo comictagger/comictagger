@@ -37,25 +37,22 @@ class ComicTaggerSettings:
 
 	@staticmethod
 	def baseDir():
-		if platform.system() == "Darwin" and getattr(sys, 'frozen', None):
-			return sys._MEIPASS
+		if getattr(sys, 'frozen', None):
+			if platform.system() == "Darwin":
+				return sys._MEIPASS
+			else: # Windows
+				return os.path.dirname( os.path.abspath( sys.argv[0] ) )
 		else:
-			#return os.path.dirname( os.path.abspath( sys.argv[0] ) )
-			#return os.path.dirname( os.path.realpath(sys.argv[0] ) )
 			return os.path.dirname( os.path.abspath( __file__) )
 
 	@staticmethod
 	def getGraphic( filename ):
-		graphic_folder = os.path.join(ComicTaggerSettings.baseDir(), '..', 'graphics')
-		if not os.path.exists(graphic_folder):
-			graphic_folder = os.path.join(ComicTaggerSettings.baseDir(), 'graphics')
+		graphic_folder = os.path.join(ComicTaggerSettings.baseDir(), 'graphics')
 		return os.path.join( graphic_folder, filename )
 		
 	@staticmethod
 	def getUIFile( filename ):
-		ui_folder = os.path.join(ComicTaggerSettings.baseDir(), '..', 'ui')
-		if not os.path.exists(ui_folder):
-			ui_folder = os.path.join(ComicTaggerSettings.baseDir(), 'ui')
+		ui_folder = os.path.join(ComicTaggerSettings.baseDir(), 'ui')
 		return os.path.join( ui_folder, filename )
 
 	def setDefaultValues( self ):

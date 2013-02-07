@@ -2,15 +2,6 @@
 
 from distutils.core import setup
 import distutils.command.install_scripts
-#import os
-#import shutil
-
-# Things are weird if the script has a py.  Will this break things for windows???
-#if not os.path.exists('scripts/comictagger'):
-#    if not os.path.exists('scripts'):
-#        os.makedirs('scripts')
-#    shutil.copyfile('comictagger.py', 'scripts/comictagger')
-
 
 setup(name = "comictagger",
       version = "1.1.1",
