@@ -13,3 +13,18 @@ Features:
 
 For details, screenshots, release notes, and more, visit http://code.google.com/p/comictagger/
 
+Requires:
+
+* python 2.6 or 2.7
+* python imaging (PIL) >= 1.1.7
+* beautifulsoup > 4.1
+    
+Optional requirement (for GUI):
+
+* pyqt4
+
+Install and run:
+
+* ComicTagger can be run directly from this directory, using the launcher script "comictagger.py"
+
+* To install on your system use:  "python setup.py install".  Make note in the output where comictagger.py goes!
