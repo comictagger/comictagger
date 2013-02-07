@@ -39,7 +39,7 @@ except ImportError as e:
 	qt_available = False
 #---------------------------------------
 
-def main():
+def ctmain():
 	# try to make stdout encodings happy for unicode
 	if platform.system() == "Darwin":
 		preferred_encoding = "utf-8"

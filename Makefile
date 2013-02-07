@@ -7,6 +7,8 @@ all: clean
 
 clean:
 	rm -f *~ *.pyc *.pyo
+	cd comictagger; rm -f *~ *.pyc *.pyo
+	sudo rm -rf MANIFEST dist scripts
 	rm -f logdict*.log
 	make -C mac clean
 	make -C windows clean
@@ -20,7 +22,10 @@ zip:
 	
 	@echo When satisfied with release, do this:
 	@echo make svn_tag
-	
+
+pkg:
+	python setup.py sdist	
+
 svn_tag:
 	svn copy https://comictagger.googlecode.com/svn/trunk \
       https://comictagger.googlecode.com/svn/tags/$(VERSION_STR) -m "Release $(VERSION_STR)"
