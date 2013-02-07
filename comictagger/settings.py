@@ -41,7 +41,8 @@ class ComicTaggerSettings:
 			return sys._MEIPASS
 		else:
 			#return os.path.dirname( os.path.abspath( sys.argv[0] ) )
-			return os.path.dirname( os.path.realpath(sys.argv[0] ) )
+			#return os.path.dirname( os.path.realpath(sys.argv[0] ) )
+			return os.path.dirname( os.path.abspath( __file__) )
 
 	@staticmethod
 	def getGraphic( filename ):
