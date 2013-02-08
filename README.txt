@@ -27,4 +27,4 @@ Install and run:
 
 * ComicTagger can be run directly from this directory, using the launcher script "comictagger.py"
 
-* To install on your system use:  "python setup.py install".  Make note in the output where comictagger.py goes!
+* To install on your system use:  "python setup.py install".  Take note in the output where comictagger.py goes!

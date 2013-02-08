@@ -5,7 +5,7 @@ import comictaggerlib.ctversion
 
 setup(name = "comictagger",
     version =  comictaggerlib.ctversion.version,
-    description = "A cross-platorm GUI/CLI app for writing metadata to comic archives",
+    description = "A cross-platform GUI/CLI app for writing metadata to comic archives",
     author = "Anthony Beville",
     author_email = "comictagger@gmail.com",
     url = "http://code.google.com/p/comictagger/",
