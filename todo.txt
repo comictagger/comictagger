@@ -1,7 +1,6 @@
 -----------------------------------------------------
 Features
 -----------------------------------------------------
-	
 Rename dialog:
 	check-box for rows?
 	manual edit the preview?
@@ -9,7 +8,7 @@ Rename dialog:
 Docs:
 	Auto-Tagging Tips:
 		Multiple Passes with different options
-
+		
 -----------------------------------------------------
 Bugs	
 -----------------------------------------------------

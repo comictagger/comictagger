@@ -1,11 +1,12 @@
 # This Makefile expects that certain GNU utils are available:
 # rm, cp, grep, cut, cat
 
-TAGGER_BASE:= c:\Users\tony\Dropbox\tagger\comictagger
-TAGGER_SRC := $(TAGGER_BASE)\comictaggerlib
+HOMEPATH ?= $(HOME)
+TAGGER_BASE:= $(HOMEPATH)/Dropbox/tagger/comictagger
+TAGGER_SRC := $(TAGGER_BASE)/comictaggerlib
 DIST_DIR := $(TAGGER_BASE)\windows\dist
 NSIS_CMD :=	"C:\Program Files (x86)\NSIS\makensis.exe"
-VERSION := $(shell grep version "$(TAGGER_SRC)\ctversion.py" | cut -d= -f2)
+VERSION := $(shell grep version "$(TAGGER_SRC)/ctversion.py" | cut -d= -f2)
 
 all: clean dist package
 
@@ -28,9 +29,3 @@ package:
 
 clean:
 	-rm -rf dist
-	-rm -f "*~" *.pyc *.pyo
-	-rm -f "$(TAGGER_BASE)\windows\*.exe"
-
-test:
-	echo !define RELEASE_STR $(VERSION) > test.nsh
-	

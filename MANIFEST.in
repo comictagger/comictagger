@@ -1,2 +1,3 @@
-include readme.txt
+include README.txt
 include release_notes.txt
+include requirements.txt

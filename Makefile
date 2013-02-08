@@ -7,12 +7,14 @@ all: clean
 
 clean:
 	rm -rf *~ *.pyc *.pyo
-	cd comictagger; rm -f *~ *.pyc *.pyo
-	sudo rm -rf dist MANIFEST
+	cd comictaggerlib; rm -f *~ *.pyc *.pyo
+	rm -rf dist MANIFEST
 	rm -rf *.deb
 	rm -rf logdict*.log
 	make -C mac clean
 	make -C windows clean
+	rm -rf build
+	mkdir -p release
 
 pydist:
 	rm -f release/*.zip
@@ -23,22 +25,26 @@ remove_test_install:
 	sudo rm -rf /usr/local/bin/comictagger.py
 	sudo rm -rf /usr/local/lib/python2.7/dist-packages/comictagger*
 	
-deb:
-	fpm -s python -t deb \
-		-n 'comictagger' \
-		--category 'utilities' \
-		--maintainer 'comictagger@gmail.com' \
-		--after-install debian_scripts/after_install.sh \
-		--before-remove debian_scripts/before_remove.sh \
-		-d 'python >= 2.6' \
-		-d 'python < 2.8' \
-		-d 'python-imaging >= 1.1.6' \
-		-d 'python-bs4 >= 4.1' \
-		setup.py 
-
-		# For now, don't require PyQt, since command-line is available without it
-		#-d 'python-qt4 >= 4.8' 
-
+#deb:
+#	fpm -s python -t deb \
+#		-n 'comictagger' \
+#		--category 'utilities' \
+#		--maintainer 'comictagger@gmail.com' \
+#		--after-install debian_scripts/after_install.sh \
+#		--before-remove debian_scripts/before_remove.sh \
+#		-d 'python >= 2.6' \
+#		-d 'python < 2.8' \
+#		-d 'python-imaging' \
+#		-d 'python-bs4' \
+#		--deb-suggests 'rar' \
+#		--deb-suggests 'unrar-free' \
+#		--python-install-bin /usr/share/comictagger \
+#		--python-install-lib /usr/share/comictagger \
+#		setup.py 
+#
+#		# For now, don't require PyQt, since command-line is available without it
+#		#-d 'python-qt4 >= 4.8' 
+		
 upload:
 	$(UPLOAD_TOOL) -p comictagger -s "ComicTagger $(VERSION_STR) Source" -l Featured,Type-Source -u beville -w $(PASSWORD) "release/comictagger-$(VERSION_STR).zip"
 	$(UPLOAD_TOOL) -p comictagger -s "ComicTagger $(VERSION_STR)  Mac OS X" -l Featured,Type-Archive -u beville -w $(PASSWORD) "release/ComicTagger-$(VERSION_STR).dmg"
