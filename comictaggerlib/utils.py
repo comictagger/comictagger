@@ -21,6 +21,7 @@ limitations under the License.
 """
 
 import os
+import re
 
 def listToString( l ):
 	string = ""
@@ -31,10 +32,16 @@ def listToString( l ):
 			string += item 
 	return string
 		
-def addtopath( dir ):
-	# TODO only add if not there already
-	if dir is not None and dir != "": 
-		os.environ['PATH'] = dir + os.pathsep + os.environ['PATH']
+def addtopath( dirname ):
+	if dirname is not None and dirname != "":
+		
+		# verify that path doesn't already contain the given dirname
+		tmpdirname = re.escape(dirname)
+		pattern = r"{sep}{dir}$|^{dir}{sep}|{sep}{dir}{sep}|^{dir}$".format( dir=tmpdirname, sep=os.pathsep)
+		
+		match = re.search(pattern, os.environ['PATH'])
+		if not match:	
+			os.environ['PATH'] = dirname + os.pathsep + os.environ['PATH']
 
 # returns executable path, if it exists
 def which(program):
