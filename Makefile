@@ -14,9 +14,9 @@ clean:
 	make -C mac clean
 	make -C windows clean
 	rm -rf build
-	mkdir -p release
 
 pydist:
+	mkdir -p release
 	rm -f release/*.zip
 	python setup.py sdist --formats=zip  #,gztar
 	mv dist/comictagger-$(VERSION_STR).zip release
@@ -58,5 +58,5 @@ upload:
  
 svn_tag:
 	svn copy https://comictagger.googlecode.com/svn/trunk \
-      https://comictagger.googlecode.com/svn/tags/$(VERSION_STR) -m "Release $(VERSION_STR)"
+		https://comictagger.googlecode.com/svn/tags/$(VERSION_STR) -m "Release $(VERSION_STR)"
 
