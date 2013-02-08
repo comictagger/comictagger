@@ -227,9 +227,9 @@ class ZipArchiver:
 class RarArchiver:
 	
 	devnull = None
-	def __init__( self, path ):
+	def __init__( self, path, settings ):
 		self.path = path
-		self.rar_exe_path = None
+		self.settings = settings
 
 		if RarArchiver.devnull is None:
 			RarArchiver.devnull = open(os.devnull, "w")
@@ -252,7 +252,7 @@ class RarArchiver:
 
 	def setArchiveComment( self, comment ):
 
-		if self.rar_exe_path is not None:
+		if self.settings.rar_exe_path is not None:
 			try:
 				# write comment to temp file
 				tmp_fd, tmp_name = tempfile.mkstemp()
@@ -263,7 +263,7 @@ class RarArchiver:
 				working_dir = os.path.dirname( os.path.abspath( self.path ) )
 
 				# use external program to write comment to Rar archive
-				subprocess.call([self.rar_exe_path, 'c', '-w' + working_dir , '-c-', '-z' + tmp_name, self.path], 
+				subprocess.call([self.settings.rar_exe_path, 'c', '-w' + working_dir , '-c-', '-z' + tmp_name, self.path], 
 					startupinfo=self.startupinfo, 
 					stdout=RarArchiver.devnull)
 				
@@ -321,7 +321,7 @@ class RarArchiver:
 		
 	def writeArchiveFile( self, archive_file, data ):
 
-		if self.rar_exe_path is not None:
+		if self.settings.rar_exe_path is not None:
 			try:
 				tmp_folder = tempfile.mkdtemp()
 
@@ -336,7 +336,7 @@ class RarArchiver:
 				f.close()
 				
 				# use external program to write file to Rar archive
-				subprocess.call([self.rar_exe_path, 'a', '-w' + working_dir ,'-c-', '-ep', self.path, tmp_file], 
+				subprocess.call([self.settings.rar_exe_path, 'a', '-w' + working_dir ,'-c-', '-ep', self.path, tmp_file], 
 					startupinfo=self.startupinfo,
 					stdout=RarArchiver.devnull)
 
@@ -352,10 +352,10 @@ class RarArchiver:
 			return False
 			
 	def removeArchiveFile( self, archive_file ):
-		if self.rar_exe_path is not None:
+		if self.settings.rar_exe_path is not None:
 			try:
 				# use external program to remove file from Rar archive
-				subprocess.call([self.rar_exe_path, 'd','-c-', self.path, archive_file], 
+				subprocess.call([self.settings.rar_exe_path, 'd','-c-', self.path, archive_file], 
 					startupinfo=self.startupinfo, 				   
 					stdout=RarArchiver.devnull)
 
@@ -503,11 +503,12 @@ class ComicArchive:
 	class ArchiveType:
 		Zip, Rar, Folder, Unknown = range(4)
     
-	def __init__( self, path ):
+	def __init__( self, path, settings ):
 		self.path = path
 		self.ci_xml_filename = 'ComicInfo.xml'
 		self.comet_default_filename = 'CoMet.xml'
 		self.resetCache()
+		self.settings = settings
 		
 		if self.zipTest():
 			self.archive_type =  self.ArchiveType.Zip
@@ -515,7 +516,7 @@ class ComicArchive:
 			
 		elif self.rarTest(): 
 			self.archive_type =  self.ArchiveType.Rar
-			self.archiver = RarArchiver( self.path )
+			self.archiver = RarArchiver( self.path, settings )
 			
 		elif os.path.isdir( self.path ):
 			self.archive_type =  self.ArchiveType.Folder
@@ -527,7 +528,7 @@ class ComicArchive:
 		if ComicArchive.logo_data is None:
 			fname = ComicTaggerSettings.getGraphic('nocover.png')
 			with open(fname, 'rb') as fd:
-				ComicArchive.logo_data = fd.read()				
+				ComicArchive.logo_data = fd.read()
 
 	# Clears the cached data
 	def resetCache( self ):
@@ -548,10 +549,6 @@ class ComicArchive:
 	def rename( self, path ):
 		self.path = path
 		self.archiver.path = path
-		
-	def setExternalRarProgram( self, rar_exe_path ):
-		if self.isRar():
-			self.archiver.rar_exe_path = rar_exe_path
 
 	def zipTest( self ):
 		return zipfile.is_zipfile( self.path )
@@ -578,7 +575,7 @@ class ComicArchive:
 		if self.archive_type == self.ArchiveType.Unknown :
 			return False
 		
-		elif check_rar_status and self.isRar() and self.archiver.rar_exe_path is None:
+		elif check_rar_status and self.isRar() and self.settings.rar_exe_path is None:
 			return False
 			
 		elif not os.access(self.path, os.W_OK):

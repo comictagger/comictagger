@@ -143,6 +143,10 @@ class ComicTaggerSettings:
 					self.unrar_exe_path = utils.which("unrar")
 			if self.unrar_exe_path != "":
 				self.save()
+				
+		# make sure unrar/rar program is now in the path for the UnRAR class to use
+		utils.addtopath(os.path.dirname(self.unrar_exe_path))
+		utils.addtopath(os.path.dirname(self.rar_exe_path))
 
 	def reset( self ):
 		os.unlink( self.settings_file )

@@ -52,8 +52,6 @@ def ctmain():
 	opts.parseCmdLineArgs()
 
 	settings = ComicTaggerSettings()
-	# make sure unrar program is in the path for the UnRAR class
-	utils.addtopath(os.path.dirname(settings.unrar_exe_path))
 	
 	signal.signal(signal.SIGINT, signal.SIG_DFL)
 	

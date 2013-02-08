@@ -231,12 +231,9 @@ class FileSelectionList(QWidget):
 		if self.isListDupe(path):
 			return None
 		
-		ca = ComicArchive( path )
-		if self.settings.rar_exe_path != "":
-			ca.setExternalRarProgram( self.settings.rar_exe_path )
+		ca = ComicArchive( path, self.settings )
 			
 		if ca.seemsToBeAComicArchive() :
-			
 			row = self.twList.rowCount()
 			self.twList.insertRow( row )
 			

@@ -153,8 +153,9 @@ class SettingsWindow(QtGui.QDialog):
 		self.settings.rar_exe_path = str(self.leRarExePath.text())
 		self.settings.unrar_exe_path = str(self.leUnrarExePath.text())
 		
-		# make sure unrar program is now in the path for the UnRAR class
+		# make sure unrar/rar program is now in the path for the UnRAR class
 		utils.addtopath(os.path.dirname(self.settings.unrar_exe_path))
+		utils.addtopath(os.path.dirname(self.settings.rar_exe_path))
 		
 		if not str(self.leNameLengthDeltaThresh.text()).isdigit():
 			self.leNameLengthDeltaThresh.setText("0")
