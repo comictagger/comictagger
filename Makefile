@@ -14,18 +14,10 @@ clean:
 	make -C mac clean
 	make -C windows clean
 
-zip:
-	cd release; \
-		rm -rf *zip comictagger-src-$(VERSION_STR) ;  \
-		svn export https://comictagger.googlecode.com/svn/trunk/ comictagger-src-$(VERSION_STR); \
-		zip -r comictagger-src-$(VERSION_STR).zip comictagger-src-$(VERSION_STR); \
-		rm -rf comictagger-src-$(VERSION_STR)
-	
-	@echo When satisfied with release, do this:
-	@echo make svn_tag
-
 pydist:
-	python setup.py sdist --formats=gztar,zip
+	rm -f release/*.zip
+	python setup.py sdist --formats=zip  #,gztar
+	mv dist/comictagger-$(VERSION_STR).zip release
 
 remove_test_install:
 	sudo rm -rf /usr/local/bin/comictagger.py
@@ -40,18 +32,25 @@ deb:
 		--before-remove debian_scripts/before_remove.sh \
 		-d 'python >= 2.6' \
 		-d 'python < 2.8' \
-		-d 'python-imaging >= 1.1.7' \
+		-d 'python-imaging >= 1.1.6' \
 		-d 'python-bs4 >= 4.1' \
 		setup.py 
 
 		# For now, don't require PyQt, since command-line is available without it
 		#-d 'python-qt4 >= 4.8' 
 
+upload:
+	$(UPLOAD_TOOL) -p comictagger -s "ComicTagger $(VERSION_STR) Source" -l Featured,Type-Source -u beville -w $(PASSWORD) "release/comictagger-$(VERSION_STR).zip"
+	$(UPLOAD_TOOL) -p comictagger -s "ComicTagger $(VERSION_STR)  Mac OS X" -l Featured,Type-Archive -u beville -w $(PASSWORD) "release/ComicTagger-$(VERSION_STR).dmg"
+	$(UPLOAD_TOOL) -p comictagger -s "ComicTagger $(VERSION_STR)  Windows" -l Featured,Type-Installer -u beville -w $(PASSWORD) "release/ComicTagger v$(VERSION_STR).exe"
+
+	@echo ----------------------------------- 
+	@echo	??? python setup.py register
+	@echo ----------------------------------- 
+	@echo When satisfied with release, do this:
+	@echo make svn_tag
+ 
 svn_tag:
 	svn copy https://comictagger.googlecode.com/svn/trunk \
       https://comictagger.googlecode.com/svn/tags/$(VERSION_STR) -m "Release $(VERSION_STR)"
 
-upload:
-	$(UPLOAD_TOOL) -p comictagger -s "ComicTagger $(VERSION_STR) Source" -l Featured,Type-Source -u beville -w $(PASSWORD) "release/comictagger-src-$(VERSION_STR).zip"
-	$(UPLOAD_TOOL) -p comictagger -s "ComicTagger $(VERSION_STR)  Mac OS X" -l Featured,Type-Archive -u beville -w $(PASSWORD) "release/ComicTagger-$(VERSION_STR).dmg"
-	$(UPLOAD_TOOL) -p comictagger -s "ComicTagger $(VERSION_STR)  Windows" -l Featured,Type-Installer -u beville -w $(PASSWORD) "release/ComicTagger v$(VERSION_STR).exe"

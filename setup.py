@@ -51,7 +51,7 @@ Features:
 Requires:
 
 * python 2.6 or 2.7
-* python imaging (PIL) >= 1.1.7
+* python imaging (PIL) >= 1.1.6
 * beautifulsoup > 4.1
     
 Optional requirement (for GUI):
