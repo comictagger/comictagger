@@ -29,3 +29,4 @@ package:
 
 clean:
 	-rm -rf dist
+	-rm -rf nsis/release.nsh
