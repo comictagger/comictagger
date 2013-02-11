@@ -600,7 +600,7 @@ class ComicArchive:
 		ext = os.path.splitext(self.path)[1].lower()
 
 		if ( 
-		      ( self.isZip() or  self.isRar() or self.isFolder() )
+		      ( self.isZip() or  self.isRar() ) #or self.isFolder() )
 		      and
 		      ( self.getNumberOfPages() > 2)
 
