@@ -24,6 +24,7 @@ import platform
 import os
 
 import ctversion
+import utils
 from genericmetadata import GenericMetadata
 
 class Enum(set):
@@ -83,6 +84,7 @@ If no options are given, {0} will run in windowed mode
       --delete-rar           Delete original RAR archive after successful export to Zip
       --abort-on-conflict    Don't export to zip if intended new filename exists (Otherwise, creates
                              a new unique filename)	  
+  -R, --recursive            Recursively include files in sub-folders                            
   -v, --verbose              Be noisy when doing what it does                            
       --terse                Don't say much (for print mode)                            
       --version              Display version                            
@@ -116,6 +118,7 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
 		self.no_overwrite = False
 		self.interactive = False
 		self.issue_id = None
+		self.recursive = False
 		self.file_list = []
 		
 	def display_msg_and_quit( self, msg, code, show_help=False ):
@@ -188,10 +191,10 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
 		# parse command line options
 		try:
 			opts, args = getopt.getopt( input_args, 
-			           "hpdt:fm:vonsrc:ie", 
+			           "hpdt:fm:vonsrc:ieR", 
 			           [ "help", "print", "delete", "type=", "copy=", "parsefilename", "metadata=", "verbose",
 			            "online", "dryrun", "save", "rename" , "raw", "noabort", "terse", "nooverwrite",
-			            "interactive", "nosummary", "version", "id=" 
+			            "interactive", "nosummary", "version", "id=" , "recursive",
 			            "export-to-zip", "delete-rar", "abort-on-conflict" ] )
 
 		except getopt.GetoptError as err:
@@ -203,6 +206,8 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
 				self.display_msg_and_quit( None, 0, show_help=True )
 			if o in ("-v", "--verbose"):
 				self.verbose = True
+			if o in ("-R", "--recursive"):
+				self.recursive = True
 			if o in ("-p", "--print"):
 				self.print_tags = True
 			if o in ("-d", "--delete"):
@@ -304,3 +309,5 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
 		#if self.rename_file and self.data_style is None:
 		#	self.display_msg_and_quit( "Please specify the type to use for renaming with -t", 1 )
 		
+		if self.recursive:
+			self.file_list = utils.get_recursive_filelist( self.file_list )
