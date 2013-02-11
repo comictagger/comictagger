@@ -23,8 +23,6 @@ import signal
 import os
 import traceback
 import platform
-import locale
-import codecs
 
 import utils
 import cli
@@ -40,13 +38,7 @@ except ImportError as e:
 #---------------------------------------
 
 def ctmain():
-	# try to make stdout encodings happy for unicode
-	if platform.system() == "Darwin":
-		preferred_encoding = "utf-8"
-	else:
-		preferred_encoding = locale.getpreferredencoding()
-	sys.stdout = codecs.getwriter(preferred_encoding)(sys.stdout)
-	sys.stderr = codecs.getwriter(preferred_encoding)(sys.stderr)
+	utils.fix_output_encoding()
 
 	opts = Options()
 	opts.parseCmdLineArgs()

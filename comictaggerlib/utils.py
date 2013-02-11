@@ -19,10 +19,45 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
+import sys
 import os
 import re
+import platform
+import locale
+import codecs
 
+def fix_output_encoding( ):
+
+	# try to make stdout/stderr encodings happy for unicode printing
+	if platform.system() == "Darwin":
+		preferred_encoding = "utf-8"
+	else:
+		preferred_encoding = locale.getpreferredencoding()
+	sys.stdout = codecs.getwriter(preferred_encoding)(sys.stdout)
+	sys.stderr = codecs.getwriter(preferred_encoding)(sys.stderr)
+
+def get_recursive_filelist( pathlist ):
+	"""
+	Get a recursive list of of all files under all path items in the list
+	"""
+	
+	filelist = []
+	for p in pathlist:
+		# if path is a folder, walk it recursivly, and all files underneath
+		if type(p) == str:
+			#make sure string is unicode
+			filename_encoding = sys.getfilesystemencoding()
+			p = p.decode(filename_encoding, 'replace')
+		
+		if os.path.isdir( unicode(p)):
+			for root,dirs,files in os.walk( unicode(p) ):
+				for f in files:
+					filelist.append(os.path.join(root,unicode(f)))
+		else:
+			filelist.append(unicode(p))
+	
+	return filelist
+	
 def listToString( l ):
 	string = ""
 	if l is not None:

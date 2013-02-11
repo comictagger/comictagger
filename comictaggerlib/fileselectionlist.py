@@ -159,20 +159,8 @@ class FileSelectionList(QWidget):
 			self.listCleared.emit()
 	
 	def addPathList( self, pathlist ):
-		filelist = []
-		for p in pathlist:
-			# if path is a folder, walk it recursivly, and all files underneath
-			if type(p) == str:
-				#make sure string is unicode
-				filename_encoding = sys.getfilesystemencoding()
-				p = p.decode(filename_encoding, 'replace')
-			
-			if os.path.isdir( unicode(p)):
-				for root,dirs,files in os.walk( unicode(p) ):
-					for f in files:
-						filelist.append(os.path.join(root,unicode(f)))
-			else:
-				filelist.append(unicode(p))
+		
+		filelist = utils.get_recursive_filelist( pathlist )
 			
 		# we now have a list of files to add
 
