@@ -361,7 +361,7 @@ class ComicVineCacher:
 			row = cur.fetchone()
 
 			details = dict()
-			if row[0] is None :
+			if row is None or row[0] is None :
 				details['image_url'] = None
 				details['thumb_image_url'] = None
 				details['publish_month'] = None

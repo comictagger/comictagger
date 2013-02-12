@@ -82,6 +82,7 @@ class IssueIdentifier:
 		self.coverUrlCallback = None
 		self.search_result = self.ResultNoMatches
 		self.cover_page_index = 0
+		self.cancel = False
 		
 	def setScoreMinThreshold( self, thresh ):
 		self.min_score_thresh = thresh
@@ -223,7 +224,7 @@ class IssueIdentifier:
 		if newline:
 			self.output_function("\n")
 	
-	def getIssueCoverMatchScore( self, comicVine, issue_id, localCoverHashList, useRemoteAlternates = False , use_log=True):
+	def getIssueCoverMatchScore( self, comicVine, issue_id, localCoverHashList, useRemoteAlternates = False , useLog=True):
 
 		# localHashes is a list of pre-calculated hashs.
 		# useRemoteAlternates - indicates to use alternate covers from CV
@@ -279,9 +280,9 @@ class IssueIdentifier:
 				if self.cancel == True:
 					raise IssueIdentifierCancelled
 				
-		if use_log and useRemoteAlternates:
+		if useLog and useRemoteAlternates:
 			self.log_msg( "[{0} alt. covers]".format(len(remote_cover_list)-1), False )
-		if use_log:
+		if useLog:
 			self.log_msg( "[ ", False )
 			
 		score_list = []
@@ -294,7 +295,7 @@ class IssueIdentifier:
 				score_item['url'] = remote_cover_item['url']
 				score_item['hash'] = remote_cover_item['hash']
 				score_list.append( score_item )
-				if use_log:
+				if useLog:
 					self.log_msg( "{0} ".format(score), False )
 				
 				if score <= self.strong_score_thresh:
@@ -304,7 +305,7 @@ class IssueIdentifier:
 			if done:
 				break
 				
-		if use_log:
+		if useLog:
 			self.log_msg( " ]", False )
 
 		best_score_item = min(score_list, key=lambda x:x['score'])
