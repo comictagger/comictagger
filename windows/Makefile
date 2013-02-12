@@ -25,7 +25,6 @@ dist:
 package:
 	echo !define RELEASE_STR $(VERSION) > $(TAGGER_BASE)\windows\nsis\release.nsh
 	$(NSIS_CMD) "$(TAGGER_BASE)\windows\nsis\comictagger.nsi"
-	mkdir -p "$(TAGGER_BASE)\release"
 	mv  "$(TAGGER_BASE)\windows\nsis\ComicTagger*.exe" "$(TAGGER_BASE)\release"
 
 clean:
