@@ -289,7 +289,8 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
 				self.file_list = []
 				for item in args:
 					self.file_list.extend(glob.glob(item))
-				self.filename = self.file_list[0]
+				if len(self.file_list) > 0:
+					self.filename = self.file_list[0]
 			else:
 				self.filename = args[0]
 				self.file_list = args
