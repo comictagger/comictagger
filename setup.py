@@ -45,7 +45,7 @@ Features:
 * Uses image processing to automatically match a given archive with the correct issue data
 * Batch processing in the GUI for tagging hundreds or more comics at a time
 * Reads and writes multiple tagging schemes ( ComicBookLover and ComicRack, with more planned).
-* Reads and writes RAR, Zip, and folder archives (external tools needed for writing RAR)
+* Reads and writes RAR and Zip archives (external tools needed for writing RAR)
 * Command line interface (CLI) on all platforms (including Windows), which supports batch operations, and which can be used in native scripts for complex operations. 
 
 Requires:
