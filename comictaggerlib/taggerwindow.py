@@ -32,7 +32,7 @@ import webbrowser
 import re
 
 from volumeselectionwindow import VolumeSelectionWindow
-from options import MetaDataStyle
+from comicarchive import MetaDataStyle
 from comicinfoxml import ComicInfoXml
 from genericmetadata import GenericMetadata
 from comicvinetalker import ComicVineTalker, ComicVineTalkerException
@@ -72,9 +72,6 @@ class MultipleMatch():
 	def __init__( self, ca, match_list):
 		self.ca = ca  
 		self.matches = match_list  		
-		
-# this reads the environment and inits the right locale
-locale.setlocale(locale.LC_ALL, "")
 
 class TaggerWindow( QtGui.QMainWindow):
 	
@@ -103,11 +100,6 @@ class TaggerWindow( QtGui.QMainWindow):
 		
 		self.fileSelectionList.selectionChanged.connect( self.fileListSelectionChanged )
 		self.fileSelectionList.listCleared.connect( self.fileListCleared )
-			
-		# ATB: Disable the list...
-		#self.splitter.setSizes([100,0])
-		#self.splitter.setHandleWidth(0)
-		#self.splitter.handle(1).setDisabled(True)
 
 		# we can't specify relative font sizes in the UI designer, so
 		# walk through all the lablels in the main form, and make them
