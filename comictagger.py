@@ -1,4 +1,4 @@
 #!/usr/bin/python
-from comictaggerlib.main import ctmain
+from comictaggerlib.main import main
 
-ctmain()
+main()

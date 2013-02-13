@@ -37,14 +37,13 @@ except ImportError as e:
 	qt_available = False
 #---------------------------------------
 
-def ctmain():
+def main():
 	utils.fix_output_encoding()
+	settings = ComicTaggerSettings()
 
 	opts = Options()
 	opts.parseCmdLineArgs()
 
-	settings = ComicTaggerSettings()
-	
 	signal.signal(signal.SIGINT, signal.SIG_DFL)
 	
 	if not qt_available and not opts.no_gui:
