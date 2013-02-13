@@ -29,8 +29,8 @@ from PyQt4.QtCore import pyqtSignal
 
 from settings import ComicTaggerSettings
 from comicarchive import ComicArchive
+from comicarchive import MetaDataStyle
 from genericmetadata import GenericMetadata, PageType
-from options import MetaDataStyle
 import utils
 
 class FileTableWidget( QTableWidget ):

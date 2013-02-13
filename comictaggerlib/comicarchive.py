@@ -40,13 +40,18 @@ sys.path.insert(0, os.path.abspath(".") )
 import UnRAR2
 from UnRAR2.rar_exceptions import *
 
-from options import Options, MetaDataStyle
 from comicinfoxml import ComicInfoXml
 from comicbookinfo import ComicBookInfo
 from comet import CoMet
 from genericmetadata import GenericMetadata, PageType
 from filenameparser import FileNameParser
 from settings import ComicTaggerSettings
+
+class MetaDataStyle:
+	CBI = 0
+	CIX = 1
+	COMET = 2
+	name = [ 'ComicBookLover', 'ComicRack', 'CoMet' ]
 
 class ZipArchiver:
 	

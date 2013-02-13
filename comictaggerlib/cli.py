@@ -33,8 +33,8 @@ import locale
 filename_encoding = sys.getfilesystemencoding()
 
 from settings import ComicTaggerSettings
-from options import Options, MetaDataStyle
-from comicarchive import ComicArchive
+from options import Options
+from comicarchive import ComicArchive, MetaDataStyle
 from issueidentifier import IssueIdentifier
 from genericmetadata import GenericMetadata
 from comicvinetalker import ComicVineTalker, ComicVineTalkerException
@@ -179,7 +179,8 @@ def cli_mode( opts, settings ):
 	match_results = OnlineMatchResults()
 	
 	for f in opts.file_list:
-		f = f.decode(filename_encoding, 'replace')
+		if type(f) ==  str:
+			f = f.decode(filename_encoding, 'replace')
 		process_file_cli( f, opts, settings, match_results )
 		sys.stdout.flush()
 		
@@ -237,7 +238,7 @@ def process_file_cli( filename, opts, settings, match_results ):
 			brief = ""
 
 			if batch_mode:
-				brief = "{0}: ".format(filename)
+				brief = u"{0}: ".format(filename)
 
 			if ca.isZip():      brief += "ZIP archive    "
 			elif ca.isRar():    brief += "RAR archive    "
