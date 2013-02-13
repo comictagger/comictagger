@@ -35,13 +35,18 @@ class ComicTaggerSettings:
 		else:
 			return os.path.join( os.path.expanduser('~') , '.ComicTagger')
 
+	frozen_win_exe_path = None
+	
 	@staticmethod
 	def baseDir():
 		if getattr(sys, 'frozen', None):
 			if platform.system() == "Darwin":
 				return sys._MEIPASS
 			else: # Windows
-				return os.path.dirname( os.path.abspath( sys.argv[0] ) )
+				#Preserve this value, in case sys.argv gets changed importing a plugin script
+				if ComicTaggerSettings.frozen_win_exe_path is None:
+					ComicTaggerSettings.frozen_win_exe_path = os.path.dirname( os.path.abspath( sys.argv[0] ) )
+				return ComicTaggerSettings.frozen_win_exe_path
 		else:
 			return os.path.dirname( os.path.abspath( __file__) )
 
@@ -278,3 +283,5 @@ class ComicTaggerSettings:
 		with open( self.settings_file, 'wb') as configfile:
 			self.config.write(configfile)    
 
+#make sure the basedir is cached, in case we're  on windows running a script from frozen binary
+ComicTaggerSettings.baseDir()
