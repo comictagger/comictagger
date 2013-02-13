@@ -26,19 +26,7 @@ import os
 import ctversion
 import utils
 from genericmetadata import GenericMetadata
-
-class Enum(set):
-    def __getattr__(self, name):
-        if name in self:
-            return name
-        raise AttributeError
-
-class MetaDataStyle:
-	CBI = 0
-	CIX = 1
-	COMET = 2
-	name = [ 'ComicBookLover', 'ComicRack', 'CoMet' ]
-
+from comicarchive import MetaDataStyle
 
 class Options:
 	help_text = """	
@@ -119,6 +107,8 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
 		self.interactive = False
 		self.issue_id = None
 		self.recursive = False
+		self.run_script = False
+		self.script = None
 		self.file_list = []
 		
 	def display_msg_and_quit( self, msg, code, show_help=False ):
@@ -191,10 +181,10 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
 		# parse command line options
 		try:
 			opts, args = getopt.getopt( input_args, 
-			           "hpdt:fm:vonsrc:ieR", 
+			           "hpdt:fm:vonsrc:ieRS:", 
 			           [ "help", "print", "delete", "type=", "copy=", "parsefilename", "metadata=", "verbose",
 			            "online", "dryrun", "save", "rename" , "raw", "noabort", "terse", "nooverwrite",
-			            "interactive", "nosummary", "version", "id=" , "recursive",
+			            "interactive", "nosummary", "version", "id=" , "recursive", "script=",
 			            "export-to-zip", "delete-rar", "abort-on-conflict" ] )
 
 		except getopt.GetoptError as err:
@@ -206,6 +196,9 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
 				self.display_msg_and_quit( None, 0, show_help=True )
 			if o in ("-v", "--verbose"):
 				self.verbose = True
+			if o in ("-S", "--script"):
+				self.run_script = True
+				self.script = a
 			if o in ("-R", "--recursive"):
 				self.recursive = True
 			if o in ("-p", "--print"):
@@ -267,11 +260,12 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
 					self.data_style = MetaDataStyle.COMET
 				else:
 					self.display_msg_and_quit( "Invalid tag type", 1 )
-			
+						
 		if self.print_tags or self.delete_tags or self.save_tags or self.copy_tags or self.rename_file or self.export_to_zip:
 			self.no_gui = True
 
 		count = 0
+		if self.run_script: count += 1
 		if self.print_tags: count += 1
 		if self.delete_tags: count += 1
 		if self.save_tags: count += 1
@@ -280,7 +274,37 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
 		if self.export_to_zip: count +=1
 		
 		if count > 1:
-			self.display_msg_and_quit( "Must choose only one action of print, delete, save, copy, rename, or export", 1 )
+			self.display_msg_and_quit( "Must choose only one action of print, delete, save, copy, rename, export, or run script", 1 )
+
+		if self.script is not None:
+			# we were given a script.  special case for the args:
+			#  1. ignore everthing before the -S,
+			#  2. pass all the ones that follow (including script name) to the script 
+			script_args = list()
+			for idx, arg in enumerate(sys.argv):
+				if arg in [ '-S', '--script']:
+					#found script!
+					script_args = sys.argv[idx+1:]
+					break
+			sys.argv = script_args
+			if not os.path.exists(self.script):
+				print "Can't find {0}".format( self.script )
+			else:
+				# I *think* this makes sense:
+				#  assume the base name of the file is the module name
+				#  add the folder of the given file to the python path
+				#  import module
+				dirname = os.path.dirname(self.script)
+				module_name = os.path.splitext(os.path.basename(self.script))[0]
+				sys.path = [dirname] + sys.path
+				script =  __import__(module_name)
+				
+				# Determine if the entry point exists before trying to run it
+				if "main" in dir(script):
+					script.main()
+				else:
+					print "Can't find entry point \"main()\" in module \"{0}\"".format( module_name )
+			sys.exit(0)
 		
 		if len(args) > 0:
 			if platform.system() == "Windows":

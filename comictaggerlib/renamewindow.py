@@ -23,7 +23,7 @@ from PyQt4 import QtCore, QtGui, uic
 from settings import ComicTaggerSettings
 from settingswindow import SettingsWindow
 from filerenamer import FileRenamer
-from options import MetaDataStyle
+from comicarchive import MetaDataStyle
 
 import os
 import utils

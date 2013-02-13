@@ -26,7 +26,7 @@ from PyQt4.QtCore import QUrl, pyqtSignal, QByteArray
 
 from imagefetcher import  ImageFetcher
 from settings import ComicTaggerSettings
-from options import MetaDataStyle
+from comicarchive import MetaDataStyle
 from coverimagewidget import CoverImageWidget
 from comicvinetalker import ComicVineTalker
 import utils

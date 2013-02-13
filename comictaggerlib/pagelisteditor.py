@@ -26,7 +26,7 @@ from PyQt4 import uic
 
 from settings import ComicTaggerSettings
 from genericmetadata import GenericMetadata, PageType
-from options import MetaDataStyle
+from comicarchive import MetaDataStyle
 from pageloader import PageLoader
 from coverimagewidget import CoverImageWidget
 
