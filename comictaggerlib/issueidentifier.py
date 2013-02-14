@@ -349,7 +349,6 @@ class IssueIdentifier:
 			right_side_image_data = self.cropCover( cover_image_data )
 			if right_side_image_data is not None:
 				narrow_cover_hash = self.calculateHash( right_side_image_data )
-				self.log_msg(unicode(str(narrow_cover_hash)))
 				
 		#self.log_msg( "Cover hash = {0:016x}".format(cover_hash) )
 
