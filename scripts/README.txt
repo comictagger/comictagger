@@ -7,7 +7,7 @@ the setup.py file.
 
 To run via the ComicTagger app, invoke:
 
-# ComicTagger -S script.py [script args]
+# comictagger.py -S script.py [script args]
 
 (This will work also for binary distributions on Mac and Windows.  No need for
 an extra python install.)

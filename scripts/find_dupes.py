@@ -18,7 +18,7 @@ def main():
 	style = MetaDataStyle.CIX
 
 	if len(sys.argv) < 2:
-		print "usage:  {0} comic_folder ".format(sys.argv[0])
+		print >> sys.stderr, "usage:  {0} comic_folder ".format(sys.argv[0])
 		return
 		
 	filelist = utils.get_recursive_filelist( sys.argv[1:] )
@@ -31,13 +31,15 @@ def main():
 		ca = ComicArchive(filename, settings )
 		if ca.seemsToBeAComicArchive() and ca.hasMetadata( style ):
 			fmt_str = u"{{0:{0}}}".format(max_name_len)
-			print fmt_str.format( filename ) + "\r",
-			sys.stdout.flush()
+			print >> sys.stderr, fmt_str.format( filename ) + "\r",
+			sys.stderr.flush()
 			comic_list.append((filename, ca.readMetadata( style )))
 			max_name_len = max ( max_name_len, len(filename))
 
-	print fmt_str.format( "" ) + "\r",
-	print "Found {0} tagged comics.".format( len(comic_list))
+	print >> sys.stderr, fmt_str.format( "" ) + "\r",
+	print "-----------------------------------------------"
+	print "Found {0} comics with {1} tags".format( len(comic_list), MetaDataStyle.name[style])
+	print "-----------------------------------------------"
 
 	#sort the list by series+issue+year, to put all the dupes together
 	def makeKey(x):
@@ -49,8 +51,8 @@ def main():
 	dupe_set = list()
 	prev_key = ""
 	for filename, md in comic_list:
-		print fmt_str.format( filename ) + "\r",
-		sys.stdout.flush()
+		print >> sys.stderr, fmt_str.format( filename ) + "\r",
+		sys.stderr.flush()
 		
 		new_key = makeKey((filename, md))
 
@@ -68,7 +70,7 @@ def main():
 			
 		prev_key = new_key
 		
-	print fmt_str.format( "" ) + "\r",
+	print >> sys.stderr, fmt_str.format( "" ) + "\r",
 	print "Found {0} duplicate sets".format( len(dupe_set_list))
 
 	for dupe_set in dupe_set_list:

@@ -2,8 +2,24 @@
 """
 test archive cover against comicvine for a given issue ID
 """
+
+"""
+Copyright 2013  Anthony Beville
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+	http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+"""
+
 import sys
-sys.path.append("..")
 import os
 
 import comictaggerlib.utils
@@ -18,19 +34,19 @@ def main():
 	settings = ComicTaggerSettings()
 	
 	if len(sys.argv) < 3:
-		print "usage:  {0} comicfile issueid".format(sys.argv[0])
+		print >> sys.stderr, "usage:  {0} comicfile issueid".format(sys.argv[0])
 		return
 	
 	filename = sys.argv[1]
 	issue_id = sys.argv[2]
 
 	if not os.path.exists(filename):
-		print opts.filename + ": not found!"
+		print >> sys.stderr, opts.filename + ": not found!"
 		return
 		
 	ca = ComicArchive(filename, settings )
 	if not ca.seemsToBeAComicArchive():
-		print "Sorry, but "+ opts.filename + "  is not a comic archive!"
+		print >> sys.stderr, "Sorry, but "+ opts.filename + "  is not a comic archive!"
 		return
 
 	ii = IssueIdentifier( ca, settings )
