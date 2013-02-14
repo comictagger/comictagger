@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1096</width>
-    <height>575</height>
+    <height>621</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -91,23 +91,26 @@
             </property>
             <property name="minimumSize">
              <size>
-              <width>220</width>
+              <width>230</width>
               <height>0</height>
              </size>
             </property>
             <property name="maximumSize">
              <size>
-              <width>220</width>
+              <width>230</width>
               <height>16777215</height>
              </size>
             </property>
             <property name="frameShape">
-             <enum>QFrame::StyledPanel</enum>
+             <enum>QFrame::Panel</enum>
             </property>
             <property name="frameShadow">
-             <enum>QFrame::Raised</enum>
+             <enum>QFrame::Sunken</enum>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_4">
+             <property name="margin">
+              <number>6</number>
+             </property>
              <item>
               <widget class="QLabel" name="lblFilename">
                <property name="sizePolicy">
@@ -1092,7 +1095,7 @@
      <x>0</x>
      <y>0</y>
      <width>1096</width>
-     <height>21</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuComicTagger">

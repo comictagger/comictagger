@@ -143,7 +143,12 @@ class TaggerWindow( QtGui.QMainWindow):
 		
 		#TODO set up an RE validator for issueNum that allows
 		# for all sorts of wacky things
-		
+
+		# tweak some control fonts	
+		utils.reduceWidgetFontSize( self.lblArchiveType )
+		utils.reduceWidgetFontSize( self.lblTagList )
+		utils.reduceWidgetFontSize( self.lblPageCount )
+
 		#make sure some editable comboboxes don't take drop actions
 		self.cbFormat.lineEdit().setAcceptDrops(False)
 		self.cbMaturityRating.lineEdit().setAcceptDrops(False)
@@ -554,7 +559,7 @@ class TaggerWindow( QtGui.QMainWindow):
 			
 		filename = os.path.basename( ca.path )
 		filename = os.path.splitext(filename)[0]
-		filename = FileNameParser().fixSpaces(filename)
+		filename = FileNameParser().fixSpaces(filename, False)
 
 		self.lblFilename.setText( filename )
 
