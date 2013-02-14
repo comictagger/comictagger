@@ -30,8 +30,11 @@ import os
 from urllib import unquote
 
 class FileNameParser:
-	def fixSpaces( self, string ):
-		placeholders = ['[-_]','  +']
+	def fixSpaces( self, string, remove_dashes=True ):
+		if remove_dashes:
+			placeholders = ['[-_]','  +']
+		else:
+			placeholders = ['[_]','  +']			
 		for ph in placeholders:
 			string = re.sub(ph, ' ', string )
 		return string.strip()
@@ -151,7 +154,7 @@ class FileNameParser:
 		# finding it easier
 		
 		filename = filename.replace("+", " ")
-		tmpstr = self.fixSpaces(filename)
+		tmpstr = self.fixSpaces(filename, remove_dashes=False)
 		
 		#remove pound signs.  this might mess up the series name if there is a# in it.
 		tmpstr = tmpstr.replace("#", " ")
