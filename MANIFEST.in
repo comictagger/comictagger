@@ -1,3 +1,4 @@
 include README.txt
 include release_notes.txt
 include requirements.txt
+recursive-include scripts *.py *.txt

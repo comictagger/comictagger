@@ -1,4 +1,14 @@
 ---------------------------------  
+1.1.2-beta - 15-Feb-2013
+---------------------------------
+Changes:
+	* Source is now packaged using Python distutils
+	* Recursive mode for CLI
+	* Run custom add-on scripts from CLI
+    * Minor UI tweaks
+	* Misc bug fixes
+
+---------------------------------  
 1.1.0-beta - 06-Feb-2013
 ---------------------------------
 Changes:
@@ -8,7 +18,7 @@ Changes:
          double-clicked for embiggened view
 	* Export-to-zip in CLI (very handy in scripts!)
 	* More rename template variables
-	* Misc GUI & CLI Tweaks 
+	* Misc GUI & CLI Tweaks
 
 ---------------------------------  
 1.0.3-beta - 31-Jan-2013
