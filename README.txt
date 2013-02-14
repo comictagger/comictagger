@@ -8,8 +8,8 @@ Features:
 * Batch processing in the GUI for tagging hundreds or more comics at a time
 * Reads and writes multiple tagging schemes ( ComicBookLover and ComicRack, with more planned).
 * Reads and writes RAR and Zip archives (external tools needed for writing RAR)
-* Command line interface (CLI) on all platforms (including Windows), which supports batch operations, and which can be used in native scripts for complex operations. For example, to scrape and tag a folder, just one line
-	ComicTagger -s -o -f -t cr -v -i --nooverwrite *.cb?
+* Command line interface (CLI) on all platforms (including Windows), which supports batch operations, and which can be used in native scripts for complex operations. For example, to recusrively scrape and tag all archives in a folder
+	comictagger.py -R -s -o -f -t cr -v -i --nooverwrite /path/to/comics/
 
 For details, screenshots, release notes, and more, visit http://code.google.com/p/comictagger/
 
