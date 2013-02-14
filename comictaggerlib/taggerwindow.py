@@ -155,6 +155,8 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.btnAddCredit.clicked.connect(self.addCredit)	
 		self.btnRemoveCredit.clicked.connect(self.removeCredit)	
 		self.twCredits.cellDoubleClicked.connect(self.editCredit)
+		self.connectDirtyFlagSignals()
+		self.pageListEditor.modified.connect(self.setDirtyFlag)		
 		self.pageListEditor.firstFrontCoverChanged.connect( self.frontCoverChanged )
 		self.pageListEditor.listOrderChanged.connect( self.pageListOrderChanged )
 		self.tabWidget.currentChanged.connect( self.tabChanged )
