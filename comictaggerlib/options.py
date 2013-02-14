@@ -71,7 +71,9 @@ If no options are given, {0} will run in windowed mode
   -e, --export-to-zip        Export RAR archive to Zip format
       --delete-rar           Delete original RAR archive after successful export to Zip
       --abort-on-conflict    Don't export to zip if intended new filename exists (Otherwise, creates
-                             a new unique filename)	  
+                             a new unique filename)
+  -S, --script=FILE          Run an "add-on" python script that uses the comictagger library for custom
+                             processing.  Script arguments can follow the script name  
   -R, --recursive            Recursively include files in sub-folders                            
   -v, --verbose              Be noisy when doing what it does                            
       --terse                Don't say much (for print mode)                            
