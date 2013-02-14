@@ -27,9 +27,9 @@ import tempfile
 import zipfile
 import shutil
 
-from comictaggerlib.comicarchive import *
+import comictaggerlib.utils
 from comictaggerlib.settings import *
-import comictagger.utils
+from comictaggerlib.comicarchive import *
 
 subfolder_name = "PRE_AD_REMOVAL"
 unwanted_types = [ 'Deleted', 'Advertisment' ]
@@ -70,7 +70,7 @@ def main():
 		#skip any of our generated subfolders...
 		if os.path.basename(curr_folder) == subfolder_name:
 			continue
-		sys.out.write("Removing unwanted pages from " + filename)
+		sys.stdout.write("Removing unwanted pages from " + filename)
 				
 		# verify that we can write to current folder		
 		if not os.access(filename, os.W_OK):
@@ -97,7 +97,6 @@ def main():
 			new_pages = list()
 			for p in md.pages:
 				if p.has_key('Type') and p['Type'] in unwanted_types:
-					
 					continue
 				else:
 					pageNum = int(p['Image'])
@@ -120,7 +119,9 @@ def main():
 					new_num += 1
 			
 			#preserve the old comment
-			zout.comment = ca.archiver.getArchiveComment()
+			comment = ca.archiver.getArchiveComment()
+			if comment is not None:
+				zout.comment = ca.archiver.getArchiveComment()
 
 		except Exception as e:
 			print "Failure creating new archive: {0}!".format(filename)
@@ -141,7 +142,7 @@ def main():
 			# Create a new archive object for the new file, and write the old CIX data, with new page info
 			ca = ComicArchive( filename, settings )
 			md.pages = new_pages
-			ca.writeMetadata( style )
+			ca.writeMetadata( style, md )
 
 
 if __name__ == '__main__':

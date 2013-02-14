@@ -24,7 +24,7 @@ def main():
 	filelist = utils.get_recursive_filelist( sys.argv[1:] )
 	
 	#first find all comics with metadata
-	print "reading in all comics..."
+	print >> sys.stderr, "reading in all comics..."
 	comic_list = []
 	max_name_len = 2
 	for filename in filelist:

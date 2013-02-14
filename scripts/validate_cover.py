@@ -41,12 +41,12 @@ def main():
 	issue_id = sys.argv[2]
 
 	if not os.path.exists(filename):
-		print >> sys.stderr, opts.filename + ": not found!"
+		print >> sys.stderr, filename + ": not found!"
 		return
 		
 	ca = ComicArchive(filename, settings )
 	if not ca.seemsToBeAComicArchive():
-		print >> sys.stderr, "Sorry, but "+ opts.filename + "  is not a comic archive!"
+		print >> sys.stderr, "Sorry, but "+ filename + "  is not a comic archive!"
 		return
 
 	ii = IssueIdentifier( ca, settings )

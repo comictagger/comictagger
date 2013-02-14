@@ -39,7 +39,7 @@ def make_folder( folder ):
 			
 def make_link( source, link ):
 	if not os.path.exists( link ):
-		os.symlink( source , link )
+		os.symlink( os.path.abspath(source) , link )
 
 def main():
 	utils.fix_output_encoding()
@@ -94,7 +94,12 @@ def main():
 		make_link( filename, os.path.join(date_folder, os.path.basename(filename)) )
 		
 		#do publisher/series organizing:
-		series_folder = os.path.join(link_root, "series", str(md.publisher), str(md.series))
+		fixed_series_name = md.series
+		if fixed_series_name is not None:
+			# some tweaks to keep various filesystems happy		
+			fixed_series_name = fixed_series_name.replace("/", "-")
+			fixed_series_name = fixed_series_name.replace("?", "")
+		series_folder = os.path.join(link_root, "series", str(md.publisher), unicode(fixed_series_name))
 		make_folder( series_folder )
 		make_link( filename, os.path.join(series_folder, os.path.basename(filename)) )
 		
