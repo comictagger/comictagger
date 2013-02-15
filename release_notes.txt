@@ -5,7 +5,7 @@ Changes:
 	* Source is now packaged using Python distutils
 	* Recursive mode for CLI
 	* Run custom add-on scripts from CLI
-    * Minor UI tweaks
+	* Minor UI tweaks
 	* Misc bug fixes
 
 ---------------------------------  
