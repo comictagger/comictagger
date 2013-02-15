@@ -7,6 +7,7 @@ all: clean
 
 clean:
 	rm -rf *~ *.pyc *.pyo
+	rm -rf scripts/*.pyc
 	cd comictaggerlib; rm -f *~ *.pyc *.pyo
 	rm -rf dist MANIFEST
 	rm -rf *.deb
@@ -20,6 +21,8 @@ pydist:
 	rm -f release/*.zip
 	python setup.py sdist --formats=zip  #,gztar
 	mv dist/comictagger-$(VERSION_STR).zip release
+	@echo When satisfied with release, do this:
+	@echo make svn_tag
 
 remove_test_install:
 	sudo rm -rf /usr/local/bin/comictagger.py
@@ -53,8 +56,6 @@ upload:
 	@echo ----------------------------------- 
 	@echo	??? python setup.py register
 	@echo ----------------------------------- 
-	@echo When satisfied with release, do this:
-	@echo make svn_tag
  
 svn_tag:
 	svn copy https://comictagger.googlecode.com/svn/trunk \
