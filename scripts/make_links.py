@@ -71,10 +71,10 @@ def main():
 
 			comic_list.append((filename, ca.readMetadata( style )))
 			
+			max_name_len = max ( max_name_len, len(filename))
 			fmt_str = u"{{0:{0}}}".format(max_name_len)
 			print >> sys.stderr, fmt_str.format( filename ) + "\r",
 			sys.stderr.flush()
-			max_name_len = max ( max_name_len, len(filename))
 
 	print >> sys.stderr, fmt_str.format( "" )
 	print "Found {0} tagged comics.".format( len(comic_list))
