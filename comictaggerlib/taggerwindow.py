@@ -145,6 +145,7 @@ class TaggerWindow( QtGui.QMainWindow):
 		# for all sorts of wacky things
 
 		# tweak some control fonts	
+		utils.reduceWidgetFontSize( self.lblFilename, 1 )
 		utils.reduceWidgetFontSize( self.lblArchiveType )
 		utils.reduceWidgetFontSize( self.lblTagList )
 		utils.reduceWidgetFontSize( self.lblPageCount )
