@@ -22,7 +22,7 @@ import sys
 import getopt
 import platform
 import os
-
+import traceback
 import ctversion
 import utils
 from genericmetadata import GenericMetadata
@@ -299,17 +299,18 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
 				dirname = os.path.dirname(self.script)
 				module_name = os.path.splitext(os.path.basename(self.script))[0]
 				sys.path = [dirname] + sys.path
-				script =  __import__(module_name)
+				try:
+					script =  __import__(module_name)
 				
-				# Determine if the entry point exists before trying to run it
-				if "main" in dir(script):
-					try:
+					# Determine if the entry point exists before trying to run it
+					if "main" in dir(script):
 						script.main()
-					except Exception as e:
-						print "Script raised an unhandled exception!"
-						print e, sys.exc_info()[0]	
-				else:
-					print "Can't find entry point \"main()\" in module \"{0}\"".format( module_name )
+					else:
+						print "Can't find entry point \"main()\" in module \"{0}\"".format( module_name )
+				except Exception as e:
+					print "Script raised an unhandled exception: ", e	
+					print traceback.format_exc()
+	
 			sys.exit(0)
 		
 		if len(args) > 0:
