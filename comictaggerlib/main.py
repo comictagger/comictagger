@@ -37,7 +37,7 @@ except ImportError as e:
 	qt_available = False
 #---------------------------------------
 
-def main():
+def ctmain():
 	utils.fix_output_encoding()
 	settings = ComicTaggerSettings()
 
