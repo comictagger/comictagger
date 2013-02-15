@@ -303,7 +303,11 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
 				
 				# Determine if the entry point exists before trying to run it
 				if "main" in dir(script):
-					script.main()
+					try:
+						script.main()
+					except Exception as e:
+						print "Script raised an unhandled exception!"
+						print e, sys.exc_info()[0]	
 				else:
 					print "Can't find entry point \"main()\" in module \"{0}\"".format( module_name )
 			sys.exit(0)
