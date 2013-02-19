@@ -89,36 +89,21 @@ class ComicInfoXml:
 			if md_entry is not None:
 				ET.SubElement(root, cix_entry).text = u"{0}".format(md_entry)
 
+		assign( 'Title', md.title )
 		assign( 'Series', md.series )
 		assign( 'Number', md.issue )
-		assign( 'Title', md.title )
 		assign( 'Count', md.issueCount )
 		assign( 'Volume', md.volume )
 		assign( 'AlternateSeries', md.alternateSeries )
 		assign( 'AlternateNumber', md.alternateNumber )
+		assign( 'StoryArc', md.storyArc )
+		assign( 'SeriesGroup', md.seriesGroup )
 		assign( 'AlternateCount', md.alternateCount )
 		assign( 'Summary', md.comments )
 		assign( 'Notes', md.notes )
 		assign( 'Year', md.year )
 		assign( 'Month', md.month )
-		assign( 'Publisher', md.publisher )
-		assign( 'Imprint', md.imprint )
-		assign( 'Genre', md.genre )
-		assign( 'Web', md.webLink )
-		assign( 'PageCount', md.pageCount )
-		assign( 'Format', md.format )
-		assign( 'LanguageISO', md.language )
-		assign( 'Manga', md.manga )
-		assign( 'Characters', md.characters )
-		assign( 'Teams', md.teams )
-		assign( 'Locations', md.locations )
-		assign( 'ScanInformation', md.scanInfo )
-		assign( 'StoryArc', md.storyArc )
-		assign( 'SeriesGroup', md.seriesGroup )
-		assign( 'AgeRating', md.maturityRating )
-
-		if md.blackAndWhite is not None and md.blackAndWhite:
-			ET.SubElement(root, 'BlackAndWhite').text = "Yes"
+		#assign( 'Day', md.day )
 
 		# need to specially process the credits, since they are structured differently than CIX	
 		credit_writer_list    = list()
@@ -181,7 +166,23 @@ class ComicInfoXml:
 		if len( credit_editor_list ) > 0:
 			node = ET.SubElement(root, 'Editor')
 			node.text = utils.listToString( credit_editor_list )
-		
+
+		assign( 'Publisher', md.publisher )
+		assign( 'Imprint', md.imprint )
+		assign( 'Genre', md.genre )
+		assign( 'Web', md.webLink )
+		assign( 'PageCount', md.pageCount )
+		assign( 'LanguageISO', md.language )
+		assign( 'Format', md.format )
+		assign( 'AgeRating', md.maturityRating )
+		if md.blackAndWhite is not None and md.blackAndWhite:
+			ET.SubElement(root, 'BlackAndWhite').text = "Yes"
+		assign( 'Manga', md.manga )
+		assign( 'Characters', md.characters )
+		assign( 'Teams', md.teams )
+		assign( 'Locations', md.locations )
+		assign( 'ScanInformation', md.scanInfo )
+
 		#  loop and add the page entries under pages node
 		if len( md.pages ) > 0:
 			pages_node = ET.SubElement(root, 'Pages')
