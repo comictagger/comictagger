@@ -103,7 +103,7 @@ class ComicInfoXml:
 		assign( 'Notes', md.notes )
 		assign( 'Year', md.year )
 		assign( 'Month', md.month )
-		#assign( 'Day', md.day )
+		assign( 'Day', md.day )
 
 		# need to specially process the credits, since they are structured differently than CIX	
 		credit_writer_list    = list()
@@ -230,6 +230,7 @@ class ComicInfoXml:
 		md.notes =            xlate( 'Notes' )
 		md.year =             xlate( 'Year' )
 		md.month =            xlate( 'Month' )
+		md.day =              xlate( 'Day' )
 		md.publisher =        xlate( 'Publisher' )
 		md.imprint =          xlate( 'Imprint' )
 		md.genre =            xlate( 'Genre' )

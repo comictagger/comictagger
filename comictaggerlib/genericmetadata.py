@@ -63,6 +63,7 @@ class GenericMetadata:
 		self.publisher          = None
 		self.month              = None
 		self.year               = None
+		self.day                = None
 		self.issueCount         = None
 		self.volume             = None
 		self.genre              = None
@@ -125,6 +126,7 @@ class GenericMetadata:
 		assign( "issueCount",        new_md.issueCount )
 		assign( "title",             new_md.title )
 		assign( "publisher",         new_md.publisher )
+		assign( "day",               new_md.day )
 		assign( "month",             new_md.month )
 		assign( "year",              new_md.year )
 		assign( "volume",            new_md.volume )
@@ -256,8 +258,9 @@ class GenericMetadata:
 		add_attr_string( "issueCount" )
 		add_attr_string( "title" )
 		add_attr_string( "publisher" )
-		add_attr_string( "month" )
 		add_attr_string( "year" )
+		add_attr_string( "month" )
+		add_attr_string( "day" )
 		add_attr_string( "volume" )
 		add_attr_string( "volumeCount" )
 		add_attr_string( "genre" )
