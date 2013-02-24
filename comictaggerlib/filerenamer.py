@@ -21,6 +21,7 @@ limitations under the License.
 import os
 import re
 import datetime
+import utils
 from issuestring import IssueString
 
 class FileRenamer:
@@ -71,6 +72,7 @@ class FileRenamer:
 
 		md = self.metdata
 		new_name = self.template
+		preferred_encoding = utils.get_actual_preferred_encoding()
 
 		#print u"{0}".format(md)
 		
@@ -93,7 +95,7 @@ class FileRenamer:
 			if (type(md.month) == str and md.month.isdigit()) or type(md.month) == int:
 				if int(md.month) in range(1,13):
 					dt = datetime.datetime( 1970, int(md.month), 1, 0, 0)
-					month_name = dt.strftime("%B")
+					month_name = dt.strftime(u"%B".encode(preferred_encoding)).decode(preferred_encoding)
 		new_name = self.replaceToken( new_name, month_name, '%month_name%')
 
 		new_name = self.replaceToken( new_name, md.genre, '%genre%')
