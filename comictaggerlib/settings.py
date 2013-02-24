@@ -21,8 +21,9 @@ limitations under the License.
 #import sys
 import os
 import sys
-import ConfigParser
+import configparser
 import platform
+import codecs
 
 import utils
 
@@ -112,7 +113,7 @@ class ComicTaggerSettings:
 		self.folder = ""
 		self.setDefaultValues()
 
-		self.config = ConfigParser.RawConfigParser()
+		self.config = configparser.RawConfigParser()
 		self.folder = ComicTaggerSettings.getSettingsFolder()
 		
 		if not os.path.exists( self.folder ):
@@ -159,7 +160,7 @@ class ComicTaggerSettings:
 		
 	def load(self):
 		
-		self.config.read( self.settings_file )
+		self.config.readfp(codecs.open(self.settings_file, "r", "utf8"))
 		
 		self.rar_exe_path =    self.config.get( 'settings', 'rar_exe_path' )
 		self.unrar_exe_path =  self.config.get( 'settings', 'unrar_exe_path' )
@@ -280,7 +281,7 @@ class ComicTaggerSettings:
 		self.config.set( 'rename', 'rename_use_smart_string_cleanup', self.rename_use_smart_string_cleanup )
 		self.config.set( 'rename', 'rename_extension_based_on_archive', self.rename_extension_based_on_archive )
 		
-		with open( self.settings_file, 'wb') as configfile:
+		with codecs.open( self.settings_file, 'wb', 'utf8') as configfile:
 			self.config.write(configfile)    
 
 #make sure the basedir is cached, in case we're  on windows running a script from frozen binary
