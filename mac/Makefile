@@ -1,3 +1,4 @@
+#PYINSTALLER_CMD := VERSIONER_PYTHON_PREFER_32_BIT=yes arch -i386 python $(HOME)/pyinstaller-2.0/pyinstaller.py
 PYINSTALLER_CMD := python $(HOME)/pyinstaller-2.0/pyinstaller.py
 TAGGER_BASE := $(HOME)/Dropbox/tagger/comictagger
 TAGGER_SRC := $(TAGGER_BASE)/comictaggerlib
@@ -21,7 +22,15 @@ dist:
 	cp $(MAC_BASE)/app.icns $(APP_BUNDLE)/Contents/Resources/icon-windowed.icns
 	# fix the version string in the Info.plist
 	sed -i -e 's/0\.0\.0/$(VERSION_STR)/' $(MAC_BASE)/dist/ComicTagger.app/Contents/Info.plist
-	
+	# strip out PPC/x64
+	#./make_thin.sh dist/ComicTagger.app/Contents/MacOS
+	#./make_thin.sh dist/ComicTagger.app/Contents/MacOS/qt4_plugins/accessible
+	#./make_thin.sh dist/ComicTagger.app/Contents/MacOS/qt4_plugins/bearer
+	#./make_thin.sh dist/ComicTagger.app/Contents/MacOS/qt4_plugins/codecs
+	#./make_thin.sh dist/ComicTagger.app/Contents/MacOS/qt4_plugins/graphicssystems
+	#./make_thin.sh dist/ComicTagger.app/Contents/MacOS/qt4_plugins/iconengines
+	#./make_thin.sh dist/ComicTagger.app/Contents/MacOS/qt4_plugins/imageformats
+
 clean:
 	rm -rf $(DIST_DIR) $(MAC_BASE)/build
 	rm -f $(MAC_BASE)/*.spec
