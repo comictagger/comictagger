@@ -25,6 +25,8 @@ import sys
 import tempfile
 import subprocess
 import platform
+import locale
+
 if platform.system() == "Windows":
 	import _subprocess
 import time
@@ -675,6 +677,9 @@ class ComicArchive:
 
 	def getPageName( self, index ):
 		
+		if index is None:
+			return None
+		
 		page_list = self.getPageNameList()
 		
 		num_pages = len( page_list )
@@ -683,6 +688,56 @@ class ComicArchive:
 	
 		return  page_list[index]
 
+	def getScannerPageIndex( self ):
+		
+		scanner_page_index = None
+		
+		#make a guess at the scanner page
+		name_list = self.getPageNameList()
+		count = self.getNumberOfPages()
+
+		#too few pages to really know	
+		if count < 5:
+			return None
+
+		# count the length of every filename, and count occurences
+		length_buckets = dict()		
+		for name in name_list:
+			fname =  os.path.split(name)[1]
+			length = len(fname)
+			if length_buckets.has_key( length ):
+				length_buckets[ length ] += 1
+			else:
+				length_buckets[ length ] = 1
+			
+		# sort by most common
+		sorted_buckets = sorted(length_buckets.iteritems(), key=lambda (k,v): (v,k), reverse=True)
+		
+		# statistical mode occurence is first
+		mode_length = sorted_buckets[0][0]
+
+		# we are only going to consider the final image file:
+		final_name = os.path.split(name_list[count-1])[1]
+
+		common_length_list = list()
+		for name in name_list:
+			if len(os.path.split(name)[1]) == mode_length:
+				common_length_list.append( os.path.split(name)[1] )
+
+		prefix = os.path.commonprefix(common_length_list)
+
+		if mode_length <= 7 and prefix == "":
+			#probably all numbers
+			if len(final_name) > mode_length:
+				scanner_page_index = count-1
+
+		# see if the last page doesn't start with the same prefix as most others
+		elif not final_name.startswith(prefix):
+			scanner_page_index = count-1
+
+		return scanner_page_index
+			
+			
 	def getPageNameList( self , sort_list=True):
 		
 		if self.page_list is None:
@@ -691,7 +746,14 @@ class ComicArchive:
 			
 			# seems like some archive creators are on  Windows, and don't know about case-sensitivity!
 			if sort_list:
-				files.sort(key=lambda x: x.lower())
+				def keyfunc(k):
+					#hack to account for some weird scanner ID pages
+					basename=os.path.split(k)[1]
+					if basename < '0':
+						k = os.path.join(os.path.split(k)[0], "z" + basename)
+					return k.lower()
+				
+				files.sort(key=keyfunc)
 			
 			# make a sub-list of image files
 			self.page_list = []
