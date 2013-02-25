@@ -136,7 +136,7 @@ class IssueIdentifier:
 			return None
 
 		output = StringIO.StringIO()
-		cropped_im.save(output, format="JPEG")
+		cropped_im.save(output, format="PNG")
 		cropped_image_data = output.getvalue()
 		output.close()
 		
