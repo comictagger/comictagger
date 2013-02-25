@@ -16,6 +16,7 @@ For details, screenshots, release notes, and more, visit http://code.google.com/
 Requires:
 
 * python 2.6 or 2.7
+* configparser
 * python imaging (PIL) >= 1.1.6
 * beautifulsoup > 4.1
     

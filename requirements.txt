@@ -1,2 +1,3 @@
+configparser
 beautifulsoup4 >= 4.1
 PIL >= 1.1.6
