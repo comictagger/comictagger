@@ -953,25 +953,6 @@ class TaggerWindow( QtGui.QMainWindow):
 	def commitMetadata(self):
 
 		if ( self.metadata is not None and self.comic_archive is not None):	
-		
-			if self.comic_archive.isRar() and self.save_data_style == MetaDataStyle.CBI:
-				if self.settings.ask_about_cbi_in_rar:
-					checked = OptionalMessageDialog.msg(  self, "RAR and ComicBookLover", 
-										"""
-										You are about to write a CBL tag block to a RAR archive! 
-										While technically possible, no known reader can read those tags from RAR
-										yet.<br><br>
-										If you would like this feature in the ComicBookLover apps, please go  to their
-										forums and add your voice to a feature request!
-										<a href=http://forums.comicbooklover.com/categories/ipad-features>
-										http://forums.comicbooklover.com/categories/ipad-features</a><br>
-										<a href=http://forums.comicbooklover.com/categories/mac-features>
-										http://forums.comicbooklover.com/categories/mac-features</a>
-										""",
-										)
-					self.settings.ask_about_cbi_in_rar = not checked
-		
-		
 			reply = QtGui.QMessageBox.question(self, 
 			     self.tr("Save Tags"), 
 			     self.tr("Are you sure you wish to save " +  MetaDataStyle.name[self.save_data_style] + " tags to this archive?"),
