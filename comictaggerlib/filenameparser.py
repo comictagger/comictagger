@@ -112,7 +112,7 @@ class FileNameParser:
 				
 		# first look for the last "#" followed by a digit in the filename. this is almost certainly the issue number
 		#issnum = re.search('#\d+', filename)
-		matchlist = re.findall("#[-+]?(([0-9]*\.[0-9]+|[0-9]+)(\w*))", filename)ssss
+		matchlist = re.findall("#[-+]?(([0-9]*\.[0-9]+|[0-9]+)(\w*))", filename)
 		if len(matchlist) > 0:
 			#get the last item
 			issue = matchlist[ len(matchlist) - 1][0]
