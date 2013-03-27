@@ -32,6 +32,13 @@ from issuestring import IssueString
 from coverimagewidget import CoverImageWidget
 import utils
 
+class IssueNumberTableWidgetItem(QtGui.QTableWidgetItem):
+	def __lt__(self, other):
+		selfStr = self.data(QtCore.Qt.DisplayRole).toString()
+		otherStr = other.data(QtCore.Qt.DisplayRole).toString()
+		return (IssueString(selfStr).asFloat() <
+		        IssueString(otherStr).asFloat())
+
 class IssueSelectionWindow(QtGui.QDialog):
 	
 	volume_id = 0
@@ -102,10 +109,10 @@ class IssueSelectionWindow(QtGui.QDialog):
 			self.twList.insertRow(row)
 			
 			item_text = record['issue_number']  
-			item = QtGui.QTableWidgetItem(item_text)			
+			item = IssueNumberTableWidgetItem(item_text)			
 			item.setData( QtCore.Qt.ToolTipRole, item_text )
 			item.setData( QtCore.Qt.UserRole ,record['id'])
-			item.setData(QtCore.Qt.DisplayRole, float(item_text))
+			item.setData(QtCore.Qt.DisplayRole, item_text)
 			item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
 			self.twList.setItem(row, 0, item)
 			
