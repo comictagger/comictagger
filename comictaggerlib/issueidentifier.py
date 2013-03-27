@@ -450,7 +450,7 @@ class IssueIdentifier:
 				num_s = IssueString(issue['issue_number']).asString()
 				
 				# look for a matching issue number
-				if num_s == keys['issue_number']:
+				if num_s.lower() == keys['issue_number'].lower():
 
 					# now, if we have an issue year key given, reject this one if not a match
 					month, year = comicVine.fetchIssueDate( issue['id'] )					
