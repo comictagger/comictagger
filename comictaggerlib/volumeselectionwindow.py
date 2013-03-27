@@ -369,7 +369,9 @@ class VolumeSelectionWindow(QtGui.QDialog):
 		# list selection was changed, update the info on the volume
 		for record in self.cv_search_results: 
 			if record['id'] == self.volume_id:
-
-				self.teDetails.setText ( record['description'] )
+				if record['description'] is None:
+					self.teDetails.setText ( "" )
+				else:	
+					self.teDetails.setText ( record['description'] )
 				self.imageWidget.setURL( record['image']['super_url'] )
 				break
