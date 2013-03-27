@@ -1,4 +1,10 @@
 ---------------------------------  
+1.1.4-beta - 27-Mar-2013
+---------------------------------
+ * Updated to match the changes to the ComicVine API and result sets
+ * Better handling of weird issue numbers ("0.1", "6au")
+
+---------------------------------  
 1.1.3-beta - 25-Feb-2013
 ---------------------------------
 Bug Fixes:
