@@ -48,10 +48,7 @@ Google App engine to store hashes
 
 Filename parsing:
 	Rework how series name is separated from issue
-	
-Support marvel's "AU" issues...
-	Mostly done, gotta wait and see what CV does
-	
+s
 Internal GenericMetadata - Make Characters, Genre into lists?
 
 -----------------------------------------------------
@@ -68,7 +65,8 @@ Release Process
 		Make zip on Mac or Linux
     Tag the repository
 	Upload packages
-	Announce on Forum and Main Page
+	Announce on Forum and Main Page and Twitter
+	MacUpdate
 	
 ----------------------------------------------
 
