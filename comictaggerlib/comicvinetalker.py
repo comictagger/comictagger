@@ -55,11 +55,9 @@ class ComicVineTalkerException(Exception):
 
 class ComicVineTalker(QObject):
 
-	
 	def __init__(self, api_key=""):
 		QObject.__init__(self)
 
-		#self.api_base_url = "http://api.comicvine.com"
 		self.api_base_url = "http://www.comicvine.com/api"
 		
 		# key that is registered to comictagger
@@ -210,9 +208,6 @@ class ComicVineTalker(QObject):
 			if IssueString(record['issue_number']).asString().lower() == IssueString(issue_number).asString().lower():
 				found = True
 				break
-			#if float(record['issue_number']) == IssueString(issue_number).asFloat():
-			#	found = True
-			#	break
 			
 		if (found):
 			issue_url = self.api_base_url + "/issue/" + str(record['id']) + "/?api_key=" + self.api_key + "&format=json"
