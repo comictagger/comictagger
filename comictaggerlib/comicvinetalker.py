@@ -49,7 +49,10 @@ from comicvinecacher import ComicVineCacher
 from genericmetadata import GenericMetadata
 from issuestring import IssueString
 
-
+class CVTypeID:
+	Volume = "4050"
+	Issue  = "4000"
+	
 class ComicVineTalkerException(Exception):
 	pass
 
@@ -181,7 +184,7 @@ class ComicVineTalker(QObject):
 			return cached_volume_result
 
 	
-		volume_url = self.api_base_url + "/volume/" + str(series_id) + "/?api_key=" + self.api_key + "&format=json"
+		volume_url = self.api_base_url + "/volume/" + CVTypeID.Volume + "-" + str(series_id) + "/?api_key=" + self.api_key + "&format=json"
 
 		content = self.getUrlContent(volume_url) 	
 		cv_response = json.loads(content)
@@ -210,7 +213,7 @@ class ComicVineTalker(QObject):
 				break
 			
 		if (found):
-			issue_url = self.api_base_url + "/issue/" + str(record['id']) + "/?api_key=" + self.api_key + "&format=json"
+			issue_url = self.api_base_url + "/issue/" + CVTypeID.Issue + "-" + str(record['id']) + "/?api_key=" + self.api_key + "&format=json"
 
 			content = self.getUrlContent(issue_url) 
 			cv_response = json.loads(content)
@@ -227,7 +230,7 @@ class ComicVineTalker(QObject):
 
 	def fetchIssueDataByIssueID( self, issue_id, settings ):
 
-		issue_url = self.api_base_url + "/issue/" + str(issue_id) + "/?api_key=" + self.api_key + "&format=json"
+		issue_url = self.api_base_url + "/issue/" + CVTypeID.Issue + "-" + str(issue_id) + "/?api_key=" + self.api_key + "&format=json"
 		content = self.getUrlContent(issue_url)
 		cv_response = json.loads(content)
 		if cv_response[ 'status_code' ] != 1:
@@ -352,7 +355,7 @@ class ComicVineTalker(QObject):
 		if cached_details['image_url'] is not None:
 			return cached_details
 
-		issue_url = self.api_base_url + "/issue/" + str(issue_id) + "/?api_key=" + self.api_key + "&format=json&field_list=image,publish_month,publish_year,site_detail_url"
+		issue_url = self.api_base_url + "/issue/" + CVTypeID.Issue + "-" + str(issue_id) + "/?api_key=" + self.api_key + "&format=json&field_list=image,publish_month,publish_year,site_detail_url"
 
 		content = self.getUrlContent(issue_url) 
 		
@@ -458,7 +461,7 @@ class ComicVineTalker(QObject):
 			self.urlFetchComplete.emit( details['image_url'],details['thumb_image_url'], self.issue_id )
 			return
 
-		issue_url = "http://www.comicvine.com/api/issue/" + str(issue_id) + "/?api_key=" + self.api_key + "&format=json&field_list=image,publish_month,publish_year,site_detail_url"
+		issue_url = "http://www.comicvine.com/api/issue/" + CVTypeID.Issue + "-" + str(issue_id) + "/?api_key=" + self.api_key + "&format=json&field_list=image,publish_month,publish_year,site_detail_url"
 		self.nam = QNetworkAccessManager()
 		self.nam.finished.connect( self.asyncFetchIssueCoverURLComplete )
 		self.nam.get(QNetworkRequest(QUrl(issue_url)))
