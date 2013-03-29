@@ -114,8 +114,7 @@ class ComicVineCacher:
 							"image_hash TEXT," +
 							"thumb_image_url TEXT," +
 							"thumb_image_hash TEXT," +
-							"publish_month TEXT," +
-							"publish_year TEXT," +
+							"cover_date TEXT," +
 							"site_detail_url TEXT," +
 							"timestamp DATE DEFAULT (datetime('now','localtime')), " + 
 							"PRIMARY KEY (id ) )" 
@@ -329,7 +328,7 @@ class ComicVineCacher:
 		return result
 
 
-	def add_issue_select_details( self, issue_id, image_url, thumb_image_url, publish_month, publish_year, site_detail_url ):
+	def add_issue_select_details( self, issue_id, image_url, thumb_image_url, cover_date, site_detail_url ):
 		
 		con = lite.connect( self.db_file )
 
@@ -341,8 +340,7 @@ class ComicVineCacher:
 			data = { 
 			          "image_url": image_url, 
 			          "thumb_image_url": thumb_image_url, 
-			          "publish_month": publish_month, 
-			          "publish_year": publish_year, 
+			          "cover_date": cover_date, 
 			          "site_detail_url": site_detail_url, 
 			          "timestamp": timestamp 
 			       }
@@ -357,23 +355,21 @@ class ComicVineCacher:
 			cur = con.cursor() 
 			con.text_factory = unicode					
 			
-			cur.execute("SELECT image_url,thumb_image_url,publish_month,publish_year,site_detail_url FROM Issues WHERE id=?", [ issue_id ])
+			cur.execute("SELECT image_url,thumb_image_url,cover_date,site_detail_url FROM Issues WHERE id=?", [ issue_id ])
 			row = cur.fetchone()
 
 			details = dict()
 			if row is None or row[0] is None :
 				details['image_url'] = None
 				details['thumb_image_url'] = None
-				details['publish_month'] = None
-				details['publish_year'] = None
+				details['cover_date'] = None
 				details['site_detail_url'] = None
 
 			else:
 				details['image_url'] = row[0]
 				details['thumb_image_url'] = row[1]
-				details['publish_month'] = row[2]
-				details['publish_year'] = row[3]
-				details['site_detail_url'] = row[4]
+				details['cover_date'] = row[2]
+				details['site_detail_url'] = row[3]
 				
 			return details
 			

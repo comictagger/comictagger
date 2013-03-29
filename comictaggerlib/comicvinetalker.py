@@ -263,8 +263,15 @@ class ComicVineTalker(QObject):
 		metadata.title = re.sub( ".* #.+ - ", "", metadata.title )
 
 		metadata.publisher = volume_results['publisher']['name']
-		metadata.month = issue_results['publish_month']
-		metadata.year = issue_results['publish_year']
+
+		metadata.month = None
+		metadata.year = None
+		if  issue_results['cover_date'] is not None:
+			parts = issue_results['cover_date'].split('-')
+			metadata.year = parts[0]
+			if len(parts) > 1:
+				metadata.month = parts[1]
+				
 		#metadata.issueCount = volume_results['count_of_issues']
 		metadata.comments = self.cleanup_html(issue_results['description'])
 		if settings.use_series_start_as_volume:
@@ -280,11 +287,11 @@ class ComicVineTalker(QObject):
 		
 		person_credits = issue_results['person_credits']
 		for person in person_credits:
-			if person.has_key('roles'):
-				for role in person['roles']:
+			if person.has_key('role'):
+				roles = person['role'].split(',')
+				for role in roles:
 					# can we determine 'primary' from CV??
-					role_name = role['role'].title()
-					metadata.addCredit( person['name'], role['role'].title(), False )			
+					metadata.addCredit( person['name'], role.title().strip(), False )			
 
 		character_credits = issue_results['character_credits']
 		character_list = list()
@@ -338,8 +345,15 @@ class ComicVineTalker(QObject):
 
 	def fetchIssueDate( self, issue_id ):
 		details = self.fetchIssueSelectDetails( issue_id )
-		return details['publish_month'], details['publish_year']
-
+		month = None
+		year = None
+		if  details['cover_date'] is not None:
+			parts = details['cover_date'].split('-')
+			year = parts[0]
+			if len(parts) > 1:
+				month = parts[1]
+		return month, year
+		
 	def fetchIssueCoverURLs( self, issue_id ):
 		details = self.fetchIssueSelectDetails( issue_id )
 		return details['image_url'], details['thumb_image_url']
@@ -355,15 +369,14 @@ class ComicVineTalker(QObject):
 		if cached_details['image_url'] is not None:
 			return cached_details
 
-		issue_url = self.api_base_url + "/issue/" + CVTypeID.Issue + "-" + str(issue_id) + "/?api_key=" + self.api_key + "&format=json&field_list=image,publish_month,publish_year,site_detail_url"
+		issue_url = self.api_base_url + "/issue/" + CVTypeID.Issue + "-" + str(issue_id) + "/?api_key=" + self.api_key + "&format=json&field_list=image,cover_date,site_detail_url"
 
 		content = self.getUrlContent(issue_url) 
 		
 		details = dict()
 		details['image_url'] = None
 		details['thumb_image_url'] = None
-		details['publish_month'] = None
-		details['publish_year'] = None
+		details['cover_date'] = None
 		details['site_detail_url'] = None
 		
 		cv_response = json.loads(content)
@@ -373,16 +386,14 @@ class ComicVineTalker(QObject):
 		
 		details['image_url'] =       cv_response['results']['image']['super_url']
 		details['thumb_image_url'] = cv_response['results']['image']['thumb_url']
-		details['publish_year'] =    cv_response['results']['publish_year']
-		details['publish_month'] =   cv_response['results']['publish_month']
+		details['cover_date'] =      cv_response['results']['cover_date']
 		details['site_detail_url'] = cv_response['results']['site_detail_url']
 				
 		if details['image_url'] is not None:
 			self.cacheIssueSelectDetails( issue_id,
 										details['image_url'],
 										details['thumb_image_url'],
-										details['publish_month'],
-										details['publish_year'],
+										details['cover_date'],
 										details['site_detail_url'] )
 		#print details['site_detail_url']
 		return details
@@ -394,9 +405,9 @@ class ComicVineTalker(QObject):
 		cvc = ComicVineCacher( )
 		return  cvc.get_issue_select_details( issue_id )
 
-	def cacheIssueSelectDetails( self, issue_id, image_url, thumb_url, month, year, page_url ):
+	def cacheIssueSelectDetails( self, issue_id, image_url, thumb_url, cover_date, page_url ):
 		cvc = ComicVineCacher( )
-		cvc.add_issue_select_details( issue_id, image_url, thumb_url, month, year, page_url )
+		cvc.add_issue_select_details( issue_id, image_url, thumb_url, cover_date, page_url )
 
 
 	def fetchAlternateCoverURLs(self, issue_id):
@@ -461,7 +472,7 @@ class ComicVineTalker(QObject):
 			self.urlFetchComplete.emit( details['image_url'],details['thumb_image_url'], self.issue_id )
 			return
 
-		issue_url = "http://www.comicvine.com/api/issue/" + CVTypeID.Issue + "-" + str(issue_id) + "/?api_key=" + self.api_key + "&format=json&field_list=image,publish_month,publish_year,site_detail_url"
+		issue_url = "http://www.comicvine.com/api/issue/" + CVTypeID.Issue + "-" + str(issue_id) + "/?api_key=" + self.api_key + "&format=json&field_list=image,cover_date,site_detail_url"
 		self.nam = QNetworkAccessManager()
 		self.nam.finished.connect( self.asyncFetchIssueCoverURLComplete )
 		self.nam.get(QNetworkRequest(QUrl(issue_url)))
@@ -484,11 +495,10 @@ class ComicVineTalker(QObject):
 		
 		image_url = cv_response['results']['image']['super_url']
 		thumb_url = cv_response['results']['image']['thumb_url']
-		year = cv_response['results']['publish_year']
-		month = cv_response['results']['publish_month']
+		cover_date = cv_response['results']['cover_date']
 		page_url = cv_response['results']['site_detail_url']
 
-		self.cacheIssueSelectDetails(  self.issue_id, image_url, thumb_url, month, year, page_url )
+		self.cacheIssueSelectDetails(  self.issue_id, image_url, thumb_url, cover_date, page_url )
 
 		self.urlFetchComplete.emit( image_url, thumb_url, self.issue_id ) 
 
