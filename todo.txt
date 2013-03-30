@@ -9,9 +9,18 @@ Docs:
 	Auto-Tagging Tips:
 		Multiple Passes with different options
 		
+Feature Requests:
+	Remember last sorted column in file list
+	Re-zip (to remove compression)
+	Move CBR to other folder after conversion to ZIP
+	AUto-rename on auto-tag
+	
 -----------------------------------------------------
 Bugs	
 -----------------------------------------------------
+
+Non-numeric issues??  Filename parsing... can we only rely on '#'??
+Unicode search on mac doesn't work
 
 Zip flakes out when filename differs from index (or whatever)  i.e "\" vs "/". Python issue
 

@@ -897,7 +897,7 @@ class TaggerWindow( QtGui.QMainWindow):
 		
 	def queryOnline(self, autoselect=False):
 		
-		issue_number = str(self.leIssueNum.text()).strip()
+		issue_number = unicode(self.leIssueNum.text()).strip()
 
 		if autoselect and issue_number == "":
 			QtGui.QMessageBox.information(self,"Automatic Identify Search", "Can't auto-identify without an issue number (yet!)")

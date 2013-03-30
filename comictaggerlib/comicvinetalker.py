@@ -258,7 +258,7 @@ class ComicVineTalker(QObject):
 	
 		found = False
 		for record in issues_list_results:
-			if IssueString(issue_number).asFloat() is None:
+			if IssueString(issue_number).asString() is None:
 				issue_number = 1
 			if IssueString(record['issue_number']).asString().lower() == IssueString(issue_number).asString().lower():
 				found = True
@@ -306,7 +306,6 @@ class ComicVineTalker(QObject):
 		metadata.series = issue_results['volume']['name']
 		
 		num_s = IssueString(issue_results['issue_number']).asString()
-			
 		metadata.issue = num_s
 		metadata.title = issue_results['name']
 		
@@ -374,6 +373,8 @@ class ComicVineTalker(QObject):
 	
 	def cleanup_html( self, string):
 		
+		if string is None:
+			return ""
 		# remove all newlines first
 		string = string.replace("\n", "")
 		
@@ -391,8 +392,6 @@ class ComicVineTalker(QObject):
 		newstring = newstring.replace('&amp;','&')
 	
 		newstring = newstring.strip()
-
-		
 		return newstring
 
 	def fetchIssueDate( self, issue_id ):

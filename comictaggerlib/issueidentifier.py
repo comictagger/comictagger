@@ -463,9 +463,9 @@ class IssueIdentifier:
 					shortlist.append( (series, cv_series_results, issue) )
 					
 		if keys['year'] is None:
-			self.log_msg( "Found {0} series that have an issue #{1}".format(len(shortlist), keys['issue_number']) )
+			self.log_msg( u"Found {0} series that have an issue #{1}".format(len(shortlist), keys['issue_number']) )
 		else:
-			self.log_msg( "Found {0} series that have an issue #{1} from {2}".format(len(shortlist), keys['issue_number'], keys['year'] ))
+			self.log_msg( u"Found {0} series that have an issue #{1} from {2}".format(len(shortlist), keys['issue_number'], keys['year'] ))
 		
 			
 		# now we have a shortlist of volumes with the desired issue number
