@@ -198,14 +198,66 @@ class ComicVineTalker(QObject):
 		cvc.add_volume_info( volume_results )
 
 		return volume_results
+
+	def fetchIssuesByVolume( self, series_id ):
+		
+		# before we search online, look in our cache, since we might already
+		# have this info
+		cvc = ComicVineCacher( )
+		cached_volume_issues_result = cvc.get_volume_issues_info( series_id )
+
+		if cached_volume_issues_result is not None:		
+			return cached_volume_issues_result
+
+		#---------------------------------	
+		issues_url = self.api_base_url + "/issues/" + "?api_key=" + self.api_key + "&filter=volume:" + str(series_id) + "&field_list=id,volume_id,issue_number,name,image,cover_date,site_detail_url&format=json"
+		content = self.getUrlContent(issues_url) 	
+		cv_response = json.loads(content)
+		
+		if cv_response[ 'status_code' ] != 1:
+			print >> sys.stderr, "Comic Vine query failed with error:  [{0}]. ".format( cv_response[ 'error' ] )
+			return None
+		#------------------------------------
+		
+		limit = cv_response['limit']
+		current_result_count = cv_response['number_of_page_results']
+		total_result_count = cv_response['number_of_total_results']
+		#print "ATB total_result_count", total_result_count
+		
+		#print "ATB Found {0} of {1} results\n".format( cv_response['number_of_page_results'], cv_response['number_of_total_results'])
+		volume_issues_result = cv_response['results']
+		page = 1
+		offset = 0
 				
+		# see if we need to keep asking for more pages...
+		while ( current_result_count < total_result_count ):
+			#print "ATB getting another page of issue results {0} of {1}...\n".format( current_result_count, total_result_count)
+			page += 1
+			offset += cv_response['number_of_page_results']
+
+			#print issues_url+ "&offset="+str(offset)
+			content = self.getUrlContent(issues_url + "&offset="+str(offset)) 
+			cv_response = json.loads(content)
+		
+			if cv_response[ 'status_code' ] != 1:
+				self.writeLog( "Comic Vine query failed with error:  [{0}]. \n".format( cv_response[ 'error' ] ))
+				return None
+			volume_issues_result.extend( cv_response['results'])
+			current_result_count += cv_response['number_of_page_results']				
+				
+		
+		cvc.add_volume_issues_info( series_id, volume_issues_result )
+
+		return volume_issues_result
+						
 
 	def fetchIssueData( self, series_id, issue_number, settings ):
 
 		volume_results = self.fetchVolumeData( series_id )
+		issues_list_results = self.fetchIssuesByVolume( series_id )
 	
 		found = False
-		for record in volume_results['issues']:
+		for record in issues_list_results:
 			if IssueString(issue_number).asFloat() is None:
 				issue_number = 1
 			if IssueString(record['issue_number']).asString().lower() == IssueString(issue_number).asString().lower():

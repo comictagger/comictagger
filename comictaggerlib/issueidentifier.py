@@ -441,11 +441,12 @@ class IssueIdentifier:
 
 			try:
 				cv_series_results = comicVine.fetchVolumeData( series['id'] )
+				issue_list = comicVine.fetchIssuesByVolume( series['id'] )
+
 			except ComicVineTalkerException:
 				self.log_msg( "Network issue while searching for series details.  Aborting...")
 				return []
 			
-			issue_list = cv_series_results['issues']
 			for issue in issue_list:
 				num_s = IssueString(issue['issue_number']).asString()
 				

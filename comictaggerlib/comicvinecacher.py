@@ -110,10 +110,8 @@ class ComicVineCacher:
 							"volume_id INT," +
 							"name TEXT," +
 							"issue_number TEXT," +
-							"image_url TEXT," +
-							"image_hash TEXT," +
-							"thumb_image_url TEXT," +
-							"thumb_image_hash TEXT," +
+							"super_url TEXT," +
+							"thumb_url TEXT," +
 							"cover_date TEXT," +
 							"site_detail_url TEXT," +
 							"timestamp DATE DEFAULT (datetime('now','localtime')), " + 
@@ -262,18 +260,33 @@ class ComicVineCacher:
 					}
 			self.upsert( cur, "volumes", "id", cv_volume_record['id'], data)
 
-			# now add in issues
 
-			for issue in cv_volume_record['issues']:
+	def add_volume_issues_info( self, volume_id, cv_volume_issues ):
+		
+		con = lite.connect( self.db_file )
+
+		with con:
+			
+			cur = con.cursor()    
+			
+			timestamp = datetime.datetime.now()
+
+			# add in issues
+
+			for issue in cv_volume_issues:
 				
 				data = { 
-				         "volume_id":    cv_volume_record['id'], 
-				         "name":         issue['name'], 
-				         "issue_number": issue['issue_number'], 
-				         "timestamp":    timestamp 
+						"volume_id":       volume_id,
+						"name":            issue['name'], 
+						"issue_number":    issue['issue_number'],
+						"site_detail_url": issue['site_detail_url'],
+						"cover_date":      issue['cover_date'],
+						"super_url":       issue['image']['super_url'],
+						"thumb_url":       issue['image']['thumb_url'],
+						"timestamp":    timestamp 
 				       }
 				self.upsert( cur, "issues" , "id", issue['id'], data)
-			
+							
 
 	def get_volume_info( self, volume_id ):
 		
@@ -287,10 +300,6 @@ class ComicVineCacher:
 			# purge stale volume info
 			a_week_ago = datetime.datetime.today()-datetime.timedelta(days=7)
 			cur.execute( "DELETE FROM Volumes WHERE timestamp  < ?", [ str(a_week_ago) ] )	
-
-			# purge stale issue info - probably issue data won't change much....
-			a_month_ago = datetime.datetime.today()-datetime.timedelta(days=30)
-			cur.execute( "DELETE FROM Issues WHERE timestamp  < ?", [ str(a_month_ago) ] )	
 			
 			# fetch
 			cur.execute("SELECT id,name,publisher,count_of_issues,start_year FROM Volumes WHERE id = ?", [ volume_id ] )
@@ -310,23 +319,48 @@ class ComicVineCacher:
 			result['count_of_issues'] =   row[3]
 			result['start_year'] =   row[4]
 			result['issues'] = list()
+		
+		return result
 
-			cur.execute("SELECT id,name,issue_number,image_url,image_hash FROM Issues WHERE volume_id = ?", [ volume_id ] )
+	def get_volume_issues_info( self, volume_id ):
+	
+		result = None
+
+		con = lite.connect( self.db_file )
+		with con:
+			cur = con.cursor() 
+			con.text_factory = unicode					
+			
+			# purge stale issue info - probably issue data won't change much....
+			a_week_ago = datetime.datetime.today()-datetime.timedelta(days=7)
+			cur.execute( "DELETE FROM Issues WHERE timestamp  < ?", [ str(a_week_ago) ] )	
+			
+			# fetch			
+			results = list()
+			
+			cur.execute("SELECT id,name,issue_number,site_detail_url,cover_date,super_url,thumb_url FROM Issues WHERE volume_id = ?", [ volume_id ] )
 			rows = cur.fetchall()
 			
 			# now process the results
 			for row in rows:
 				record = dict()
-				record['id'] =           row[0]
-				record['name'] =         row[1]
-				record['issue_number'] = row[2]
-				record['image_url'] =    row[3]
-				record['image_hash'] =   row[4]
 				
-				result['issues'].append(record)
+				record['id'] =                  row[0]
+				record['name'] =                row[1]
+				record['issue_number'] =        row[2]
+				record['site_detail_url'] =	    row[3]
+				record['cover_date'] =          row[4]
+				record['image'] = dict()
+				record['image']['super_url'] =  row[5]
+				record['image']['thumb_url'] =  row[6]
+				
+				results.append(record)
 		
-		return result
-
+		if len(results) == 0:
+			return None
+			
+		return results
+	
 
 	def add_issue_select_details( self, issue_id, image_url, thumb_image_url, cover_date, site_detail_url ):
 		
@@ -338,8 +372,8 @@ class ComicVineCacher:
 			timestamp = datetime.datetime.now()
 			
 			data = { 
-			          "image_url": image_url, 
-			          "thumb_image_url": thumb_image_url, 
+			          "super_url": image_url, 
+			          "thumb_url": thumb_image_url, 
 			          "cover_date": cover_date, 
 			          "site_detail_url": site_detail_url, 
 			          "timestamp": timestamp 
@@ -355,7 +389,7 @@ class ComicVineCacher:
 			cur = con.cursor() 
 			con.text_factory = unicode					
 			
-			cur.execute("SELECT image_url,thumb_image_url,cover_date,site_detail_url FROM Issues WHERE id=?", [ issue_id ])
+			cur.execute("SELECT super_url,thumb_url,cover_date,site_detail_url FROM Issues WHERE id=?", [ issue_id ])
 			row = cur.fetchone()
 
 			details = dict()
