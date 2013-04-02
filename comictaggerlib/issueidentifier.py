@@ -224,13 +224,9 @@ class IssueIdentifier:
 		if newline:
 			self.output_function("\n")
 	
-	def getIssueCoverMatchScore( self, comicVine, issue_id, localCoverHashList, useRemoteAlternates = False , useLog=True):
-
+	def getIssueCoverMatchScore( self, comicVine, issue_id, primary_img_url, primary_thumb_url, page_url, localCoverHashList, useRemoteAlternates = False , useLog=True):
 		# localHashes is a list of pre-calculated hashs.
 		# useRemoteAlternates - indicates to use alternate covers from CV
-		
-		# first get the primary cover image
-		primary_img_url, primary_thumb_url = comicVine.fetchIssueCoverURLs( issue_id )
 				
 		try:
 			url_image_data = ImageFetcher().fetch(primary_thumb_url, blocking=True)
@@ -256,8 +252,7 @@ class IssueIdentifier:
 			raise IssueIdentifierCancelled
 		
 		if useRemoteAlternates:
-			alt_img_url_list = comicVine.fetchAlternateCoverURLs( issue_id )
-			
+			alt_img_url_list = comicVine.fetchAlternateCoverURLs( issue_id, page_url )
 			for alt_url in alt_img_url_list:
 				try:
 					alt_url_image_data = ImageFetcher().fetch(alt_url, blocking=True)
@@ -323,7 +318,7 @@ class IssueIdentifier:
 	"""
 	
 	def search( self ):
-	
+
 		ca = self.comic_archive
 		self.match_list = []
 		self.cancel = False
@@ -516,8 +511,13 @@ class IssueIdentifier:
 			hash_list = [ cover_hash ]
 			if narrow_cover_hash is not None:
 				hash_list.append(narrow_cover_hash)
+
 			try:	
-				score_item = self.getIssueCoverMatchScore( comicVine, issue['id'], hash_list, useRemoteAlternates = False )
+				image_url = issue['image']['super_url']
+				thumb_url = issue['image']['thumb_url']
+				page_url = issue['site_detail_url']
+
+				score_item = self.getIssueCoverMatchScore( comicVine, issue['id'], image_url, thumb_url, page_url, hash_list, useRemoteAlternates = False )
 			except:
 				self.match_list = []
 				return self.match_list
@@ -528,7 +528,6 @@ class IssueIdentifier:
 			match['issue_number'] = keys['issue_number']
 			match['url_image_hash'] = score_item['hash']
 			match['issue_title'] = issue['name']
-			match['img_url'] = score_item['url']
 			match['issue_id'] = issue['id']
 			match['volume_id'] = series['id']
 			match['month'] = month
@@ -536,6 +535,9 @@ class IssueIdentifier:
 			match['publisher'] = None
 			if series['publisher'] is not None:
 				match['publisher'] = series['publisher']['name']
+			match['image_url'] = image_url
+			match['thumb_url'] = thumb_url
+			match['page_url'] = page_url			
 				
 			self.match_list.append(match)
 
@@ -591,8 +593,8 @@ class IssueIdentifier:
 				self.log_msg( u"Examining alternate covers for ID: {0} {1} ...".format(
 							   m['volume_id'], 
 							   m['series']), newline=False )
-				try:	
-					score_item = self.getIssueCoverMatchScore( comicVine, m['issue_id'], hash_list, useRemoteAlternates = True )
+				try:
+					score_item = self.getIssueCoverMatchScore( comicVine, m['issue_id'], m['image_url'], m['thumb_url'], m['page_url'], hash_list, useRemoteAlternates = True )
 				except:
 					self.match_list = []
 					return self.match_list

@@ -509,12 +509,10 @@ class ComicVineTalker(QObject):
 		cvc.add_issue_select_details( issue_id, image_url, thumb_url, cover_date, page_url )
 
 
-	def fetchAlternateCoverURLs(self, issue_id):
+	def fetchAlternateCoverURLs(self, issue_id, issue_page_url):
 		url_list = self.fetchCachedAlternateCoverURLs( issue_id )
 		if url_list is not None:
 			return url_list
-		
-		issue_page_url = self.fetchIssuePageURL( issue_id )
 		
 		# scrape the CV issue page URL to get the alternate cover URLs 
 		resp = urllib2.urlopen( issue_page_url ) 
