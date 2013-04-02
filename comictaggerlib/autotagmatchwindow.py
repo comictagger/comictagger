@@ -132,7 +132,9 @@ class AutoTagMatchWindow(QtGui.QDialog):
 			item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
 			self.twList.setItem(row, 2, item)
 
-			item_text = match['issue_title']  
+			item_text = match['issue_title']
+			if item_text is None:
+				item_text = ""
 			item = QtGui.QTableWidgetItem(item_text)			
 			item.setData( QtCore.Qt.ToolTipRole, item_text )
 			item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
