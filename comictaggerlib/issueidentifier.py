@@ -426,6 +426,33 @@ class IssueIdentifier:
 		# now sort the list by name length
 		series_second_round_list.sort(key=lambda x: len(x['name']), reverse=False)
 		
+		#--------new way---------------
+		#build a list of volume IDs
+		volume_id_list = list()
+		for series in series_second_round_list:
+			volume_id_list.append( series['id'])
+			
+		try:
+			issue_list = comicVine.fetchIssuesByVolumeIssueNumAndYear( volume_id_list,
+																	keys['issue_number'],
+																	keys['year'])
+
+		except ComicVineTalkerException:
+			self.log_msg( "Network issue while searching for series details.  Aborting...")
+			return []
+			
+		shortlist = list()
+		#now re-associate the issues and volumes
+		for issue in issue_list:
+			for series in series_second_round_list:
+				if series['id'] == issue['volume']['id']:
+					shortlist.append( (series, issue) )
+					break
+		
+		#--------new way---------------
+		
+		"""
+		#--vvvv---old way---------------
 		# Now we've got a list of series that we can dig into look for matching issue number
 		counter = 0
 		shortlist = []
@@ -440,7 +467,6 @@ class IssueIdentifier:
 			               series['start_year']), newline=True )
 
 			try:
-				cv_series_results = comicVine.fetchVolumeData( series['id'] )
 				issue_list = comicVine.fetchIssuesByVolume( series['id'] )
 
 			except ComicVineTalkerException:
@@ -460,8 +486,10 @@ class IssueIdentifier:
 							break
 				
 					# found a matching issue number!  add it to short list
-					shortlist.append( (series, cv_series_results, issue) )
-					
+					shortlist.append( (series, issue) )
+		#--^^^^---old way---------------
+		"""
+		
 		if keys['year'] is None:
 			self.log_msg( u"Found {0} series that have an issue #{1}".format(len(shortlist), keys['issue_number']) )
 		else:
@@ -471,7 +499,7 @@ class IssueIdentifier:
 		# now we have a shortlist of volumes with the desired issue number
 		# Do first round of cover matching
 		counter = len(shortlist)
-		for series, cv_series_results, issue in  shortlist:		
+		for series, issue in  shortlist:		
 			if self.callback is not None:
 				self.callback( counter, len(shortlist)*3)
 				counter += 1

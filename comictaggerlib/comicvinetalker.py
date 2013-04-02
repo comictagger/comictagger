@@ -116,8 +116,7 @@ class ComicVineTalker(QObject):
 	
 		series_name = urllib.quote_plus(series_name.encode("utf-8"))
 		#series_name = urllib.quote_plus(unicode(series_name))
-		search_url = self.api_base_url + "/search/?api_key=" + self.api_key + "&format=json&resources=volume&query=" + series_name + "&field_list=name,id,start_year,publisher,image,description,count_of_issues&sort=start_year"
-
+		search_url = self.api_base_url + "/search/?api_key=" + self.api_key + "&format=json&resources=volume&query=" + series_name + "&field_list=name,id,start_year,publisher,image,description,count_of_issues"
 		content = self.getUrlContent(search_url) 
 	
 		cv_response = json.loads(content)
@@ -208,9 +207,9 @@ class ComicVineTalker(QObject):
 
 		if cached_volume_issues_result is not None:		
 			return cached_volume_issues_result
-
+		
 		#---------------------------------	
-		issues_url = self.api_base_url + "/issues/" + "?api_key=" + self.api_key + "&filter=volume:" + str(series_id) + "&field_list=id,volume_id,issue_number,name,image,cover_date,site_detail_url&format=json"
+		issues_url = self.api_base_url + "/issues/" + "?api_key=" + self.api_key + "&filter=volume:" + str(series_id) + "&field_list=id,volume,issue_number,name,image,cover_date,site_detail_url&format=json"
 		content = self.getUrlContent(issues_url) 	
 		cv_response = json.loads(content)
 		
@@ -249,8 +248,61 @@ class ComicVineTalker(QObject):
 		cvc.add_volume_issues_info( series_id, volume_issues_result )
 
 		return volume_issues_result
-						
+		
+		
+	def fetchIssuesByVolumeIssueNumAndYear( self, volume_id_list, issue_number, year ):
+		volume_filter = "volume:"
+		for vid in volume_id_list:
+			volume_filter += str(vid) + "|"
 
+		year_filter = ""
+		if year is not None and str(year).isdigit():
+			year_filter = ",cover_date:{0}-1-1|{1}-1-1".format(year, int(year)+1)
+
+		issue_number = urllib.quote_plus(unicode(issue_number).encode("utf-8"))
+			
+		filter = "&filter=" + volume_filter + year_filter + ",issue_number:" + issue_number
+		
+		issues_url = self.api_base_url + "/issues/" + "?api_key=" + self.api_key + filter + "&field_list=id,volume,issue_number,name,image,cover_date,site_detail_url&format=json"
+
+		content = self.getUrlContent(issues_url) 	
+		cv_response = json.loads(content)
+		
+		if cv_response[ 'status_code' ] != 1:
+			print >> sys.stderr, "Comic Vine query failed with error:  [{0}]. ".format( cv_response[ 'error' ] )
+			return None
+		#------------------------------------
+		
+		limit = cv_response['limit']
+		current_result_count = cv_response['number_of_page_results']
+		total_result_count = cv_response['number_of_total_results']
+		#print "ATB total_result_count", total_result_count
+		
+		#print "ATB Found {0} of {1} results\n".format( cv_response['number_of_page_results'], cv_response['number_of_total_results'])
+		filtered_issues_result = cv_response['results']
+		page = 1
+		offset = 0
+				
+		# see if we need to keep asking for more pages...
+		while ( current_result_count < total_result_count ):
+			#print "ATB getting another page of issue results {0} of {1}...\n".format( current_result_count, total_result_count)
+			page += 1
+			offset += cv_response['number_of_page_results']
+
+			#print issues_url+ "&offset="+str(offset)
+			content = self.getUrlContent(issues_url + "&offset="+str(offset)) 
+			cv_response = json.loads(content)
+		
+			if cv_response[ 'status_code' ] != 1:
+				self.writeLog( "Comic Vine query failed with error:  [{0}]. \n".format( cv_response[ 'error' ] ))
+				return None
+			filtered_issues_result.extend( cv_response['results'])
+			current_result_count += cv_response['number_of_page_results']				
+
+		return filtered_issues_result
+		
+						
+						
 	def fetchIssueData( self, series_id, issue_number, settings ):
 
 		volume_results = self.fetchVolumeData( series_id )
