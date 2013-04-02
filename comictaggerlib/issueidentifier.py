@@ -509,8 +509,8 @@ class IssueIdentifier:
 			               series['name'], 
 			               series['start_year']), newline=False )
 			
-			# now, if we have an issue year key given, reject this one if not a match
-			month, year = comicVine.fetchIssueDate( issue['id'] )					
+			# parse out the cover date
+			day, month, year = comicVine.parseDateStr( issue['cover_date'] )
 
 			# Now check the cover match against the primary image
 			hash_list = [ cover_hash ]

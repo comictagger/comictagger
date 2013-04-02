@@ -79,6 +79,19 @@ class ComicVineTalker(QObject):
 		else:
 			self.log_func( text )
 
+	def parseDateStr( self, date_str):
+		day = None
+		month = None
+		year = None
+		if  date_str is not None:
+			parts = date_str.split('-')
+			year = parts[0]
+			if len(parts) > 1:
+				month = parts[1]
+				if len(parts) > 2:
+					day = parts[2]
+		return day, month, year
+					
 	def testKey( self ):
 	
 		test_url = self.api_base_url + "/issue/1/?api_key=" + self.api_key + "&format=json&field_list=name"
@@ -362,14 +375,7 @@ class ComicVineTalker(QObject):
 		metadata.title = issue_results['name']
 
 		metadata.publisher = volume_results['publisher']['name']
-
-		metadata.month = None
-		metadata.year = None
-		if  issue_results['cover_date'] is not None:
-			parts = issue_results['cover_date'].split('-')
-			metadata.year = parts[0]
-			if len(parts) > 1:
-				metadata.month = parts[1]
+		metadata.day, metadata.month, metadata.year = self.parseDateStr( issue_results['cover_date'] )
 				
 		#metadata.issueCount = volume_results['count_of_issues']
 		metadata.comments = self.cleanup_html(issue_results['description'])
@@ -444,15 +450,9 @@ class ComicVineTalker(QObject):
 
 	def fetchIssueDate( self, issue_id ):
 		details = self.fetchIssueSelectDetails( issue_id )
-		month = None
-		year = None
-		if  details['cover_date'] is not None:
-			parts = details['cover_date'].split('-')
-			year = parts[0]
-			if len(parts) > 1:
-				month = parts[1]
+		day, month, year = self.parseDateStr( details['cover_date'] )
 		return month, year
-		
+	
 	def fetchIssueCoverURLs( self, issue_id ):
 		details = self.fetchIssueSelectDetails( issue_id )
 		return details['image_url'], details['thumb_image_url']
