@@ -184,7 +184,7 @@ class ComicVineTalker(QObject):
 			return cached_volume_result
 
 	
-		volume_url = self.api_base_url + "/volume/" + CVTypeID.Volume + "-" + str(series_id) + "/?api_key=" + self.api_key + "&format=json"
+		volume_url = self.api_base_url + "/volume/" + CVTypeID.Volume + "-" + str(series_id) + "/?api_key=" + self.api_key + "&field_list=name,id,start_year,publisher,count_of_issues&format=json"
 
 		content = self.getUrlContent(volume_url) 	
 		cv_response = json.loads(content)
@@ -308,10 +308,6 @@ class ComicVineTalker(QObject):
 		num_s = IssueString(issue_results['issue_number']).asString()
 		metadata.issue = num_s
 		metadata.title = issue_results['name']
-		
-		# ComicVine gives redundant info in the title.  Strip out the
-		# volume name and issue number
-		metadata.title = re.sub( ".* #.+ - ", "", metadata.title )
 
 		metadata.publisher = volume_results['publisher']['name']
 

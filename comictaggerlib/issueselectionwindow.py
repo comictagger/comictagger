@@ -117,10 +117,9 @@ class IssueSelectionWindow(QtGui.QDialog):
 			self.twList.setItem(row, 0, item)
 			
 			item_text = record['name']
-			# ComicVine gives redundant info in the title.  Strip out the
-			# volume name and issue number
-			item_text = re.sub( ".* #.+ - ", "", item_text )
-
+			if item_text is None:
+				item_text = ""
+				
 			item = QtGui.QTableWidgetItem(item_text)			
 			item.setData( QtCore.Qt.ToolTipRole, item_text )
 			item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
