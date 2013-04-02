@@ -164,7 +164,7 @@ class VolumeSelectionWindow(QtGui.QDialog):
 
 		self.ii.setAdditionalMetadata( md )
 		self.ii.onlyUseAdditionalMetaData = True
-		print self.cover_index_list
+
 		self.ii.cover_page_index = int(self.cover_index_list[0])
 		
 		self.id_thread = IdentifyThread( self.ii )
