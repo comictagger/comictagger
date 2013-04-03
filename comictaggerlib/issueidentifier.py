@@ -389,8 +389,8 @@ class IssueIdentifier:
 			date_approved = True
 			
 			# remove any series that starts after the issue year
-			if keys['year'] is not None and str(keys['year']).isdigit():
-				if int(keys['year']) < item['start_year']:
+			if keys['year'] is not None and str(keys['year']).isdigit() and item['start_year'] is not None and str(item['start_year']).isdigit():
+				if int(keys['year']) < int(item['start_year']):
 					date_approved = False
 					
 			#assume that our search name is close to the actual name, say within ,e.g. 5 chars
