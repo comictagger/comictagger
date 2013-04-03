@@ -92,7 +92,7 @@ def actual_metadata_save( ca, opts, md ):
 	return True
 
 def display_match_set_for_choice( label, match_set, opts, settings ):
-	print "{0} -- {1}:".format(match_set.filename, label )
+	print u"{0} -- {1}:".format(match_set.filename, label )
 
 	# sort match list by year
 	match_set.matches.sort(key=lambda k: k['year'])			
@@ -292,21 +292,21 @@ def process_file_cli( filename, opts, settings, match_results ):
 		if has[ opts.data_style ]:
 			if not opts.dryrun:
 				if not ca.removeMetadata( opts.data_style ):
-					print "{0}: Tag removal seemed to fail!".format( filename )
+					print u"{0}: Tag removal seemed to fail!".format( filename )
 				else:
-					print "{0}: Removed {1} tags.".format( filename, style_name )
+					print u"{0}: Removed {1} tags.".format( filename, style_name )
 			else:
-				print "{0}: dry-run.  {1} tags not removed".format( filename, style_name )		
+				print u"{0}: dry-run.  {1} tags not removed".format( filename, style_name )		
 		else:
-			print "{0}: This archive doesn't have {1} tags to remove.".format( filename, style_name )
+			print u"{0}: This archive doesn't have {1} tags to remove.".format( filename, style_name )
 
 	elif opts.copy_tags:
 		dst_style_name = MetaDataStyle.name[ opts.data_style ]
 		if opts.no_overwrite and has[ opts.data_style ]:
-			print "{0}: Already has {1} tags.  Not overwriting.".format(filename, dst_style_name)
+			print u"{0}: Already has {1} tags.  Not overwriting.".format(filename, dst_style_name)
 			return
 		if opts.copy_source == opts.data_style:
-			print "{0}: Destination and source are same: {1}.  Nothing to do.".format(filename, dst_style_name)
+			print u"{0}: Destination and source are same: {1}.  Nothing to do.".format(filename, dst_style_name)
 			return
 			
 		src_style_name = MetaDataStyle.name[ opts.copy_source ]
