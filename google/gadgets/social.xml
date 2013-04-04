@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<Module>
+  <ModulePrefs title="mygaget" /> 
+  <Content type="html">
+     <![CDATA[ 
+<a href="https://twitter.com/ComicTagger" class="twitter-follow-button" data-show-count="false" data-size="large">Follow @ComicTagger</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+<iframe allowtransparency="true" frameborder="0" scrolling="no" src="http://www.facebook.com/plugins/likebox.php?href=http%3A%2F%2Fwww.facebook.com%2Fpages%2FComictagger/139615369550787&amp;width=292&amp;colorscheme=light&amp;show_faces =false&amp;border_color&amp;stream=false&amp;header=false&amp;height=62" style="background-color: white; border-bottom-style: none; border-color: initial; border-left-style: none; border-right-style: none; border-top-style: none; border-width: initial; color: #333333; font-family: Verdana; font-size: 12px; height: 62px; line-height: 19px; overflow-x: hidden; overflow-y: hidden; text-align: -webkit-auto; width: 292px;"></iframe>
+     ]]>
+  </Content> 
+</Module>
