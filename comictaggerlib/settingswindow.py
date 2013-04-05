@@ -119,6 +119,9 @@ class SettingsWindow(QtGui.QDialog):
 		self.leNameLengthDeltaThresh.setText( str(self.settings.id_length_delta_thresh) )
 		self.tePublisherBlacklist.setPlainText( self.settings.id_publisher_blacklist )
 
+		if self.settings.check_for_new_version:
+			self.cbxCheckForNewVersion.setCheckState( QtCore.Qt.Checked)
+		
 		if self.settings.use_series_start_as_volume:
 			self.cbxUseSeriesStartAsVolume.setCheckState( QtCore.Qt.Checked)
 	
@@ -162,6 +165,8 @@ class SettingsWindow(QtGui.QDialog):
 
 		if not str(self.leIssueNumPadding.text()).isdigit():
 			self.leIssueNumPadding.setText("0")
+
+		self.settings.check_for_new_version = self.cbxCheckForNewVersion.isChecked()
 		
 		self.settings.id_length_delta_thresh = int(self.leNameLengthDeltaThresh.text())
 		self.settings.id_publisher_blacklist = str(self.tePublisherBlacklist.toPlainText())
@@ -184,7 +189,6 @@ class SettingsWindow(QtGui.QDialog):
 		
 		self.settings.save()
 		QtGui.QDialog.accept(self)
-	
 	
 	def selectRar( self ):
 		self.selectFile(  self.leRarExePath, "RAR" )

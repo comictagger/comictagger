@@ -203,7 +203,10 @@ class TaggerWindow( QtGui.QMainWindow):
 								"""
 								)
 			self.settings.show_disclaimer = not checked
-		
+
+		if  self.settings.check_for_new_version:
+			QtCore.QTimer.singleShot(1, self.checkLatestVersionOnline)
+					
 	def sigint_handler(self, *args):
 		# defer the actual close in the app loop thread
 		QtCore.QTimer.singleShot(200, self.close)
@@ -1835,4 +1838,21 @@ class TaggerWindow( QtGui.QMainWindow):
 	def tabChanged( self, idx ):
 		if idx == 0:
 			self.splitterMovedEvent( 0, 0)
+		
+	def checkLatestVersionOnline( self ):
 
+		new_version = utils.getLatestVersion()
+		if new_version is None:
+			return
+
+		if (  new_version != self.version and
+		      new_version != self.settings.dont_notify_about_this_version):
+			website = "http://code.google.com/p/comictagger"
+			checked = OptionalMessageDialog.msg(  self, "New version available!",
+					"New version ({0}) available!<br>(You are currently running {1})<br><br>".format( new_version, self.version) +
+					"Visit <a href='{0}'>{0}</a> for more info.<br><br>".format(website),
+					QtCore.Qt.Unchecked,
+					"Don't tell me about this version again")
+			if checked:
+				self.settings.dont_notify_about_this_version = new_version
+	

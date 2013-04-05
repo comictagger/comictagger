@@ -25,6 +25,7 @@ import re
 import platform
 import locale
 import codecs
+import urllib,urllib2
 	
 class UtilsVars:
 	already_fixed_encoding = False
@@ -626,3 +627,15 @@ if qt_available:
 		vpos = ( main_window_size.height() - window.height() ) / 2
 		# And the move call repositions the window
 		window.move(hpos + main_window_size.left(), vpos + main_window_size.top())	
+
+	def getLatestVersion():
+		try:
+			resp = urllib2.urlopen( "https://comictagger.googlecode.com/svn/trunk/current_version.txt" ) 
+			new_version = resp.read()
+		except Exception as e:
+			return None
+			
+		if new_version is None or new_version == "":
+			return None
+			
+		return new_version.strip()

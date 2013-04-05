@@ -251,7 +251,12 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
 				self.no_overwrite = True
 			if o  == "--version":
 				print "ComicTagger {0}:  Copyright (c) 2012-2013 Anthony Beville".format(ctversion.version)
-				print "Distributed under Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)"	
+				print "Distributed under Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)"
+				new_version = utils.getLatestVersion()
+				if new_version is not None:
+					print "----------------------------------------"
+					print "New version available online: {0}".format(new_version)
+					print "----------------------------------------"
 				sys.exit(0)
 			if o in ("-t", "--type"):
 				if a.lower() == "cr":
