@@ -348,6 +348,8 @@ class IssueIdentifier:
 		#self.log_msg( "Cover hash = {0:016x}".format(cover_hash) )
 
 		keys = self.getSearchKeys()
+		#normalize the issue number
+		keys['issue_number'] = IssueString(keys['issue_number']).asString()
 		
 		# we need, at minimum, a series and issue number
 		if keys['series'] is None or keys['issue_number'] is None:
