@@ -27,6 +27,7 @@ import ctversion
 import utils
 from genericmetadata import GenericMetadata
 from comicarchive import MetaDataStyle
+from versionchecker import VersionChecker
 
 class Options:
 	help_text = """	
@@ -252,7 +253,7 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
 			if o  == "--version":
 				print "ComicTagger {0}:  Copyright (c) 2012-2013 Anthony Beville".format(ctversion.version)
 				print "Distributed under Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)"
-				new_version = utils.getLatestVersion()
+				new_version = VersionChecker().getLatestVersion("", False)
 				if new_version is not None:
 					print "----------------------------------------"
 					print "New version available online: {0}".format(new_version)

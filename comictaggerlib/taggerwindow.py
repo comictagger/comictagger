@@ -55,6 +55,7 @@ from autotagstartwindow import AutoTagStartWindow
 from autotagprogresswindow import AutoTagProgressWindow
 from autotagmatchwindow import AutoTagMatchWindow
 from coverimagewidget import CoverImageWidget
+from versionchecker import VersionChecker
 
 import utils
 import ctversion
@@ -204,8 +205,20 @@ class TaggerWindow( QtGui.QMainWindow):
 								)
 			self.settings.show_disclaimer = not checked
 
-		if  self.settings.check_for_new_version:
-			QtCore.QTimer.singleShot(1, self.checkLatestVersionOnline)
+		if self.settings.ask_about_usage_stats:
+			reply = QtGui.QMessageBox.question(self, 
+				 self.tr("Anonymous Stats"), 
+				 self.tr(
+						"Is it okay if ComicTagger occasionally sends some anonymous usage statistics?  Nothing nefarious, "
+						"just trying to get a better idea of how the app is being used.\n\nThanks for your support!"
+						),
+				 QtGui.QMessageBox.Yes|QtGui.QMessageBox.Default, QtGui.QMessageBox.No )
+				 
+			if reply == QtGui.QMessageBox.Yes:		
+				self.settings.send_usage_stats = True
+			self.settings.ask_about_usage_stats = False
+				
+		self.checkLatestVersionOnline()
 					
 	def sigint_handler(self, *args):
 		# defer the actual close in the app loop thread
@@ -1840,11 +1853,11 @@ class TaggerWindow( QtGui.QMainWindow):
 			self.splitterMovedEvent( 0, 0)
 		
 	def checkLatestVersionOnline( self ):
-
-		new_version = utils.getLatestVersion()
-		if new_version is None:
-			return
-
+		self.versionChecker = VersionChecker()
+		self.versionChecker.versionRequestComplete.connect( self.versionCheckComplete )
+		self.versionChecker.asyncGetLatestVersion( self.settings.install_id, self.settings.send_usage_stats )
+	
+	def versionCheckComplete( self, new_version ):
 		if (  new_version != self.version and
 		      new_version != self.settings.dont_notify_about_this_version):
 			website = "http://code.google.com/p/comictagger"

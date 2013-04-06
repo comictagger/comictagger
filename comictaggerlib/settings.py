@@ -24,6 +24,7 @@ import sys
 import configparser
 import platform
 import codecs
+import uuid
 
 import utils
 
@@ -68,8 +69,10 @@ class ComicTaggerSettings:
 		self.unrar_exe_path = ""
 		self.allow_cbi_in_rar = True
 		self.check_for_new_version = True
+		self.send_usage_stats = False
 		
 		# automatic settings
+		self.install_id = uuid.uuid4().hex
 		self.last_selected_save_data_style = 0
 		self.last_selected_load_data_style = 0
 		self.last_opened_folder = ""
@@ -88,6 +91,7 @@ class ComicTaggerSettings:
 		self.ask_about_cbi_in_rar = True
 		self.show_disclaimer = True
 		self.dont_notify_about_this_version = ""
+		self.ask_about_usage_stats = True
 		
 		# Comic Vine settings
 		self.use_series_start_as_volume = False
@@ -175,7 +179,11 @@ class ComicTaggerSettings:
 		self.unrar_exe_path =  self.config.get( 'settings', 'unrar_exe_path' )
 		if self.config.has_option('settings', 'check_for_new_version'):
 			self.check_for_new_version =        self.config.getboolean( 'settings', 'check_for_new_version' )		
-
+		if self.config.has_option('settings', 'send_usage_stats'):
+			self.send_usage_stats =        self.config.getboolean( 'settings', 'send_usage_stats' )		
+	
+		if self.config.has_option('auto', 'install_id'):
+			self.install_id =  self.config.get( 'auto', 'install_id' )
 		if self.config.has_option('auto', 'last_selected_load_data_style'):
 			self.last_selected_load_data_style =  self.config.getint( 'auto', 'last_selected_load_data_style' )
 		if self.config.has_option('auto', 'last_selected_save_data_style'):
@@ -206,6 +214,8 @@ class ComicTaggerSettings:
 			self.show_disclaimer =        self.config.getboolean( 'dialogflags', 'show_disclaimer' )
 		if self.config.has_option('dialogflags', 'dont_notify_about_this_version'):
 			self.dont_notify_about_this_version = self.config.get( 'dialogflags', 'dont_notify_about_this_version' )
+		if self.config.has_option('dialogflags', 'ask_about_usage_stats'):
+			self.ask_about_usage_stats =        self.config.getboolean( 'dialogflags', 'ask_about_usage_stats' )		
 						
 		if self.config.has_option('comicvine', 'use_series_start_as_volume'):
 			self.use_series_start_as_volume =        self.config.getboolean( 'comicvine', 'use_series_start_as_volume' )		
@@ -244,10 +254,12 @@ class ComicTaggerSettings:
 		self.config.set( 'settings', 'check_for_new_version',   self.check_for_new_version )
 		self.config.set( 'settings', 'rar_exe_path',   self.rar_exe_path )
 		self.config.set( 'settings', 'unrar_exe_path', self.unrar_exe_path )
+		self.config.set( 'settings', 'send_usage_stats', self.send_usage_stats )	
 
 		if not self.config.has_section( 'auto' ):
 			self.config.add_section( 'auto' )
 
+		self.config.set( 'auto', 'install_id', self.install_id )
 		self.config.set( 'auto', 'last_selected_load_data_style', self.last_selected_load_data_style )
 		self.config.set( 'auto', 'last_selected_save_data_style', self.last_selected_save_data_style )
 		self.config.set( 'auto', 'last_opened_folder', self.last_opened_folder )
@@ -270,6 +282,7 @@ class ComicTaggerSettings:
 		self.config.set( 'dialogflags', 'ask_about_cbi_in_rar', self.ask_about_cbi_in_rar )
 		self.config.set( 'dialogflags', 'show_disclaimer', self.show_disclaimer )
 		self.config.set( 'dialogflags', 'dont_notify_about_this_version', self.dont_notify_about_this_version )
+		self.config.set( 'dialogflags', 'ask_about_usage_stats', self.ask_about_usage_stats )
 	
 		if not self.config.has_section( 'comicvine' ):
 			self.config.add_section( 'comicvine' )
