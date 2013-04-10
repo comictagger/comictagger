@@ -125,6 +125,7 @@ def main():
 			for idx in range(ca.getNumberOfPages()):
 				name = ca.getPageName( idx )
 				in_data = ca.getPage( idx )
+				out_data = in_data
 				if in_data is not None:
 					try:
 						im = Image.open(StringIO.StringIO(in_data))
@@ -143,7 +144,7 @@ def main():
 
 					except IOError:
 						#doesn't appear to be an image
-						out_data = in_data
+						pass
 									
 				else:
 					#page is empty?? nothing to write
@@ -152,7 +153,7 @@ def main():
 				sys.stdout.write('.')
 				sys.stdout.flush()
 				
-				#Generate a new name for the page file
+				#write out the new resized image
 				zout.writestr(name, out_data)
 									
 					
