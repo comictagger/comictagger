@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>657</width>
-    <height>400</height>
+    <width>753</width>
+    <height>525</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -30,7 +30,7 @@
           <number>0</number>
          </property>
          <property name="columnCount">
-          <number>2</number>
+          <number>3</number>
          </property>
          <attribute name="horizontalHeaderStretchLastSection">
           <bool>true</bool>
@@ -41,6 +41,11 @@
          <column>
           <property name="text">
            <string>Issue</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Date</string>
           </property>
          </column>
          <column>

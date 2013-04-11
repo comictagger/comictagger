@@ -116,14 +116,26 @@ class IssueSelectionWindow(QtGui.QDialog):
 			item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
 			self.twList.setItem(row, 0, item)
 			
-			item_text = record['name']
+			item_text = record['cover_date']
 			if item_text is None:
 				item_text = ""
+			#remove the day of "YYYY-MM-DD"
+			parts = item_text.split("-")
+			if len(parts) > 1:
+				item_text = parts[0] + "-" + parts[1]
 				
 			item = QtGui.QTableWidgetItem(item_text)			
 			item.setData( QtCore.Qt.ToolTipRole, item_text )
 			item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
 			self.twList.setItem(row, 1, item)
+
+			item_text = record['name']
+			if item_text is None:
+				item_text = ""				
+			item = QtGui.QTableWidgetItem(item_text)			
+			item.setData( QtCore.Qt.ToolTipRole, item_text )
+			item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
+			self.twList.setItem(row, 2, item)
 			
 			if IssueString(record['issue_number']).asString().lower() == IssueString(self.issue_number).asString().lower():
 				self.initial_id = record['id']
