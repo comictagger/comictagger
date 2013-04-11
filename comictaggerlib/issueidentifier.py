@@ -411,9 +411,9 @@ class IssueIdentifier:
 				series_second_round_list.append(item)
 		
 		# if we don't think it's an issue number 1, remove any series' that are one-shots
-		if keys['issue_number'] not in [ '1', '0', '0.1' ]:
-			#self.log_msg( "Removing one-shots" )
-			series_second_round_list[:] = [x for x in series_second_round_list if not x['count_of_issues'] == 1]	
+		#if keys['issue_number'] not in [ '1', '0', '0.1' ]:
+		#	#self.log_msg( "Removing one-shots" )
+		#	series_second_round_list[:] = [x for x in series_second_round_list if not x['count_of_issues'] == 1]	
 
 		self.log_msg( "Searching in " + str(len(series_second_round_list)) +" series" )
 		
