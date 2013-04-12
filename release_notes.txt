@@ -1,8 +1,18 @@
 ---------------------------------  
+1.1.7-beta - 12-Apr-2013
+---------------------------------
+ * Added description and cover date to issue selection dialogs
+ * Added notification of new version
+ * Added setting to attempt to parse scan info from file name
+ * Last sorted column in the file list is now remembered
+ * Added CLI option ('-1') to assume issue #1 if not found/parsed
+ * Misc bug fixes
+
+---------------------------------  
 1.1.6-beta - 3-Apr-2013
 ---------------------------------
  * More ComicVine API-related fixes
- * More efficent automated search using new CV API issue filters
+ * More efficient automated search using new CV API issue filters
  * Minor bug fixes
  
 ---------------------------------  

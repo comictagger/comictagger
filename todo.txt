@@ -4,23 +4,24 @@ Features
 Rename dialog:
 	check-box for rows?
 	manual edit the preview?
+	
+Feature Requests:
+	Move CBR to other folder after conversion to ZIP
+ 
+	NO - AUto-rename on auto-tag
+	NO- Re-zip (to remove compression)
+	
 		
 Docs:
 	Auto-Tagging Tips:
-		Multiple Passes with different options
-		
-Feature Requests:
-	Remember last sorted column in file list
-	Re-zip (to remove compression)
-	Move CBR to other folder after conversion to ZIP
-	AUto-rename on auto-tag
+		Multiple Passes with different options	
 	
 -----------------------------------------------------
 Bugs	
 -----------------------------------------------------
 
 Non-numeric issues??  Filename parsing... can we only rely on '#'??
-Unicode search on mac doesn't work
+
 
 Zip flakes out when filename differs from index (or whatever)  i.e "\" vs "/". Python issue
 
@@ -57,7 +58,7 @@ Google App engine to store hashes
 
 Filename parsing:
 	Rework how series name is separated from issue
-s
+
 Internal GenericMetadata - Make Characters, Genre into lists?
 
 -----------------------------------------------------
@@ -76,6 +77,7 @@ Release Process
 	Upload packages
 	Announce on Forum and Main Page and Twitter
 	MacUpdate
+	Update appspot value
 	
 ----------------------------------------------
 
