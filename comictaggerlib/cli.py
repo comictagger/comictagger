@@ -337,7 +337,10 @@ def process_file_cli( filename, opts, settings, match_results ):
 			print u"Processing {0}...".format(filename)
 			
 		md = create_local_metadata( opts, ca, has[ opts.data_style ] )
-
+		if md.issue is None or md.issue == "":
+			if opts.assume_issue_is_one_if_not_set:
+				md.issue = "1"
+		
 		# now, search online
 		if opts.search_online:
 			if opts.issue_id is not None:

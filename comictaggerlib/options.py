@@ -47,6 +47,7 @@ If no options are given, {0} will run in windowed mode
   -s, --save                 Save out tags as specified type (via -t)
                              Must specify also at least -o, -p, or -m
       --nooverwrite          Don't modify tag block if it already exists ( relevent for -s or -c )  
+  -1, --assume-issue-one     Assume issue number is 1 if not found ( relevent for -s )  
   -n, --dryrun               Don't actually modify file (only relevent for -d, -s, or -r)
   -t, --type=TYPE            Specify TYPE as either "CR", "CBL", or "COMET" (as either 
                              ComicRack, ComicBookLover, or CoMet style tags, respectivly)
@@ -112,6 +113,7 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
 		self.recursive = False
 		self.run_script = False
 		self.script = None
+		self.assume_issue_is_one_if_not_set = False
 		self.file_list = []
 		
 	def display_msg_and_quit( self, msg, code, show_help=False ):
@@ -184,11 +186,11 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
 		# parse command line options
 		try:
 			opts, args = getopt.getopt( input_args, 
-			           "hpdt:fm:vonsrc:ieRS:", 
+			           "hpdt:fm:vonsrc:ieRS:1", 
 			           [ "help", "print", "delete", "type=", "copy=", "parsefilename", "metadata=", "verbose",
 			            "online", "dryrun", "save", "rename" , "raw", "noabort", "terse", "nooverwrite",
 			            "interactive", "nosummary", "version", "id=" , "recursive", "script=",
-			            "export-to-zip", "delete-rar", "abort-on-conflict" ] )
+			            "export-to-zip", "delete-rar", "abort-on-conflict", "assume-issue-one" ] )
 
 		except getopt.GetoptError as err:
 			self.display_msg_and_quit( str(err), 2 )
@@ -248,6 +250,8 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
 				self.terse = True
 			if o == "--nosummary":
 				self.show_save_summary = False
+			if o in ("-1", "--assume-issue-one"):
+				self.assume_issue_is_one_if_not_set = True
 			if o  == "--nooverwrite":
 				self.no_overwrite = True
 			if o  == "--version":
