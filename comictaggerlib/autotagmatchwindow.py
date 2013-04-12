@@ -51,6 +51,7 @@ class AutoTagMatchWindow(QtGui.QDialog):
 		gridlayout.setContentsMargins(0,0,0,0)
 
 		utils.reduceWidgetFontSize( self.twList )		
+		utils.reduceWidgetFontSize( self.teDescription, 1 )
 
 		self.setWindowFlags(self.windowFlags() |
 									  QtCore.Qt.WindowSystemMenuHint |
