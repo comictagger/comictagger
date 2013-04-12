@@ -96,7 +96,7 @@ class ComicTaggerSettings:
 		self.ask_about_usage_stats = True
 		
 		#filename parsing settings
-		self.parse_scan_info = False
+		self.parse_scan_info = True
 		
 		# Comic Vine settings
 		self.use_series_start_as_volume = False
