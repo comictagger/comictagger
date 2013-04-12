@@ -58,6 +58,8 @@ class ComicVineTalkerException(Exception):
 
 class ComicVineTalker(QObject):
 
+	logo_url = "http://static.comicvine.com/bundles/comicvinesite/images/logo.png"
+
 	def __init__(self, api_key=""):
 		QObject.__init__(self)
 
@@ -257,7 +259,8 @@ class ComicVineTalker(QObject):
 			volume_issues_result.extend( cv_response['results'])
 			current_result_count += cv_response['number_of_page_results']				
 				
-		
+		self.repairUrls( volume_issues_result )
+
 		cvc.add_volume_issues_info( series_id, volume_issues_result )
 
 		return volume_issues_result
@@ -312,6 +315,8 @@ class ComicVineTalker(QObject):
 			filtered_issues_result.extend( cv_response['results'])
 			current_result_count += cv_response['number_of_page_results']				
 
+		self.repairUrls( filtered_issues_result )
+	
 		return filtered_issues_result
 		
 						
@@ -624,3 +629,11 @@ class ComicVineTalker(QObject):
 
 		self.altUrlListFetchComplete.emit( alt_cover_url_list, int(self.issue_id) ) 		
 
+	def repairUrls(self, issue_list):
+		#make sure there are URLs for the image fields
+		for issue in issue_list:
+			if issue['image'] is None:
+				issue['image'] = dict()		
+				issue['image']['super_url'] = ComicVineTalker.logo_url
+				issue['image']['thumb_url'] = ComicVineTalker.logo_url
+		
