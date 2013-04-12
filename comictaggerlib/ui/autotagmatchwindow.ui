@@ -6,21 +6,18 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>907</width>
-    <height>507</height>
+    <width>943</width>
+    <height>467</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Select Match</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="1">
+   <item row="0" column="0">
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout">
-       <property name="spacing">
-        <number>0</number>
-       </property>
        <item>
         <widget class="QWidget" name="archiveCoverContainer" native="true">
          <property name="minimumSize">
@@ -38,45 +35,73 @@
         </widget>
        </item>
        <item>
-        <widget class="QTableWidget" name="twList">
-         <property name="selectionMode">
-          <enum>QAbstractItemView::SingleSelection</enum>
+        <widget class="QSplitter" name="splitter">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
          </property>
-         <property name="selectionBehavior">
-          <enum>QAbstractItemView::SelectRows</enum>
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
          </property>
-         <property name="rowCount">
-          <number>0</number>
-         </property>
-         <property name="columnCount">
-          <number>4</number>
-         </property>
-         <attribute name="horizontalHeaderStretchLastSection">
-          <bool>true</bool>
-         </attribute>
-         <attribute name="verticalHeaderVisible">
+         <property name="childrenCollapsible">
           <bool>false</bool>
-         </attribute>
-         <column>
-          <property name="text">
-           <string>Series</string>
+         </property>
+         <widget class="QTableWidget" name="twList">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>7</verstretch>
+           </sizepolicy>
           </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Publisher</string>
+          <property name="selectionMode">
+           <enum>QAbstractItemView::SingleSelection</enum>
           </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Date</string>
+          <property name="selectionBehavior">
+           <enum>QAbstractItemView::SelectRows</enum>
           </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Title</string>
+          <property name="rowCount">
+           <number>0</number>
           </property>
-         </column>
+          <property name="columnCount">
+           <number>4</number>
+          </property>
+          <attribute name="horizontalHeaderStretchLastSection">
+           <bool>true</bool>
+          </attribute>
+          <attribute name="verticalHeaderVisible">
+           <bool>false</bool>
+          </attribute>
+          <column>
+           <property name="text">
+            <string>Series</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Publisher</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Date</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Title</string>
+           </property>
+          </column>
+         </widget>
+         <widget class="QTextEdit" name="teDescription">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>3</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
         </widget>
        </item>
        <item>

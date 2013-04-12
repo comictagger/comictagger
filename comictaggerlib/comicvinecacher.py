@@ -114,6 +114,7 @@ class ComicVineCacher:
 							"thumb_url TEXT," +
 							"cover_date TEXT," +
 							"site_detail_url TEXT," +
+							"description TEXT," +
 							"timestamp DATE DEFAULT (datetime('now','localtime')), " + 
 							"PRIMARY KEY (id ) )" 
 						)
@@ -283,6 +284,7 @@ class ComicVineCacher:
 						"cover_date":      issue['cover_date'],
 						"super_url":       issue['image']['super_url'],
 						"thumb_url":       issue['image']['thumb_url'],
+						"description":     issue['description'],
 						"timestamp":    timestamp 
 				       }
 				self.upsert( cur, "issues" , "id", issue['id'], data)
@@ -338,7 +340,7 @@ class ComicVineCacher:
 			# fetch			
 			results = list()
 			
-			cur.execute("SELECT id,name,issue_number,site_detail_url,cover_date,super_url,thumb_url FROM Issues WHERE volume_id = ?", [ volume_id ] )
+			cur.execute("SELECT id,name,issue_number,site_detail_url,cover_date,super_url,thumb_url,description FROM Issues WHERE volume_id = ?", [ volume_id ] )
 			rows = cur.fetchall()
 			
 			# now process the results
@@ -353,6 +355,7 @@ class ComicVineCacher:
 				record['image'] = dict()
 				record['image']['super_url'] =  row[5]
 				record['image']['thumb_url'] =  row[6]
+				record['description'] =         row[7]
 				
 				results.append(record)
 		

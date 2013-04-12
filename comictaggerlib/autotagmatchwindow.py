@@ -38,7 +38,7 @@ class AutoTagMatchWindow(QtGui.QDialog):
 	def __init__(self, parent, match_set_list, style, fetch_func):
 		super(AutoTagMatchWindow, self).__init__(parent)
 		
-		uic.loadUi(ComicTaggerSettings.getUIFile('autotagmatchwindow.ui' ), self)
+		uic.loadUi(ComicTaggerSettings.getUIFile('matchselectionwindow.ui' ), self)
 
 		self.altCoverWidget = CoverImageWidget( self.altCoverContainer, CoverImageWidget.AltCoverMode )
 		gridlayout = QtGui.QGridLayout( self.altCoverContainer )
@@ -161,6 +161,10 @@ class AutoTagMatchWindow(QtGui.QDialog):
 				return
 		
 		self.altCoverWidget.setIssueID( self.currentMatch()['issue_id'] )
+		if self.currentMatch()['description'] is None:
+			self.teDescription.setText ( "" )
+		else:	
+			self.teDescription.setText ( self.currentMatch()['description'] )
 		
 	def setCoverImage( self ):
 		ca = self.current_match_set.ca

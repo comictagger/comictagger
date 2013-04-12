@@ -144,7 +144,11 @@ class MatchSelectionWindow(QtGui.QDialog):
 				return
 		
 		self.altCoverWidget.setIssueID( self.currentMatch()['issue_id'] )
-		
+		if self.currentMatch()['description'] is None:
+			self.teDescription.setText ( "" )
+		else:	
+			self.teDescription.setText ( self.currentMatch()['description'] )
+			
 	def setCoverImage( self ):
 		self.archiveCoverWidget.setArchive( self.comic_archive)
 

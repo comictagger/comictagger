@@ -222,7 +222,7 @@ class ComicVineTalker(QObject):
 			return cached_volume_issues_result
 		
 		#---------------------------------	
-		issues_url = self.api_base_url + "/issues/" + "?api_key=" + self.api_key + "&filter=volume:" + str(series_id) + "&field_list=id,volume,issue_number,name,image,cover_date,site_detail_url&format=json"
+		issues_url = self.api_base_url + "/issues/" + "?api_key=" + self.api_key + "&filter=volume:" + str(series_id) + "&field_list=id,volume,issue_number,name,image,cover_date,site_detail_url,description&format=json"
 		content = self.getUrlContent(issues_url) 	
 		cv_response = json.loads(content)
 		
@@ -276,7 +276,7 @@ class ComicVineTalker(QObject):
 			
 		filter = "&filter=" + volume_filter + year_filter + ",issue_number:" + issue_number
 		
-		issues_url = self.api_base_url + "/issues/" + "?api_key=" + self.api_key + filter + "&field_list=id,volume,issue_number,name,image,cover_date,site_detail_url&format=json"
+		issues_url = self.api_base_url + "/issues/" + "?api_key=" + self.api_key + filter + "&field_list=id,volume,issue_number,name,image,cover_date,site_detail_url,description&format=json"
 
 		content = self.getUrlContent(issues_url) 	
 		cv_response = json.loads(content)

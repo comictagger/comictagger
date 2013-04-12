@@ -164,5 +164,10 @@ class IssueSelectionWindow(QtGui.QDialog):
 			if record['id'] == self.issue_id:				
 				self.issue_number = record['issue_number']
 				self.coverWidget.setIssueID( int(self.issue_id) )
+				if record['description'] is None:
+					self.teDescription.setText ( "" )
+				else:	
+					self.teDescription.setText ( record['description'] )
+				
 				break
 		

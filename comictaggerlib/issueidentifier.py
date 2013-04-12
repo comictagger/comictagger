@@ -540,6 +540,7 @@ class IssueIdentifier:
 			match['image_url'] = image_url
 			match['thumb_url'] = thumb_url
 			match['page_url'] = page_url			
+			match['description'] = issue['description']			
 				
 			self.match_list.append(match)
 
