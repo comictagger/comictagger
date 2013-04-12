@@ -101,6 +101,8 @@ class TaggerWindow( QtGui.QMainWindow):
 		
 		self.fileSelectionList.selectionChanged.connect( self.fileListSelectionChanged )
 		self.fileSelectionList.listCleared.connect( self.fileListCleared )
+		self.fileSelectionList.setSorting(self.settings.last_filelist_sorted_column,
+										  self.settings.last_filelist_sorted_order)
 
 		# we can't specify relative font sizes in the UI designer, so
 		# walk through all the lablels in the main form, and make them
@@ -1747,6 +1749,7 @@ class TaggerWindow( QtGui.QMainWindow):
 			self.settings.last_main_window_y = self.y()
 			self.settings.last_form_side_width = self.splitter.sizes()[0]
 			self.settings.last_list_side_width = self.splitter.sizes()[1]
+			self.settings.last_filelist_sorted_column, self.settings.last_filelist_sorted_order = self.fileSelectionList.getSorting()
 			self.settings.save()
 
 			

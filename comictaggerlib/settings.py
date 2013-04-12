@@ -82,6 +82,8 @@ class ComicTaggerSettings:
 		self.last_main_window_y = 0
 		self.last_form_side_width = -1
 		self.last_list_side_width = -1
+		self.last_filelist_sorted_column = -1
+		self.last_filelist_sorted_order = 0
 		
 		# identifier settings
 		self.id_length_delta_thresh = 5
@@ -205,6 +207,10 @@ class ComicTaggerSettings:
 			self.last_form_side_width =   self.config.getint( 'auto', 'last_form_side_width' )
 		if self.config.has_option('auto', 'last_list_side_width'):
 			self.last_list_side_width =   self.config.getint( 'auto', 'last_list_side_width' )
+		if self.config.has_option('auto', 'last_filelist_sorted_column'):
+			self.last_filelist_sorted_column =   self.config.getint( 'auto', 'last_filelist_sorted_column' )
+		if self.config.has_option('auto', 'last_filelist_sorted_order'):
+			self.last_filelist_sorted_order =   self.config.getint( 'auto', 'last_filelist_sorted_order' )
 
 		if self.config.has_option('identifier', 'id_length_delta_thresh'):
 			self.id_length_delta_thresh =   self.config.getint( 'identifier', 'id_length_delta_thresh' )
@@ -275,6 +281,8 @@ class ComicTaggerSettings:
 		self.config.set( 'auto', 'last_main_window_y', self.last_main_window_y )
 		self.config.set( 'auto', 'last_form_side_width', self.last_form_side_width )
 		self.config.set( 'auto', 'last_list_side_width', self.last_list_side_width )
+		self.config.set( 'auto', 'last_filelist_sorted_column', self.last_filelist_sorted_column )
+		self.config.set( 'auto', 'last_filelist_sorted_order', self.last_filelist_sorted_order )
 
 		if not self.config.has_section( 'identifier' ):
 			self.config.add_section( 'identifier' )

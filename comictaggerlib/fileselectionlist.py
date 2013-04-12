@@ -98,6 +98,15 @@ class FileSelectionList(QWidget):
 		self.addAction(removeAction)
 		self.addAction(self.separator)
 
+	def getSorting(self):
+		col = self.twList.horizontalHeader().sortIndicatorSection()
+		order = self.twList.horizontalHeader().sortIndicatorOrder()
+		print col,order
+		return col, order
+
+	def setSorting(self, col, order):
+		col = self.twList.horizontalHeader().setSortIndicator( col, order)
+
 	def addAppAction( self, action ):
 		self.insertAction( None , action )
 	
