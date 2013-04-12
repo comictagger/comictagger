@@ -101,7 +101,6 @@ class FileSelectionList(QWidget):
 	def getSorting(self):
 		col = self.twList.horizontalHeader().sortIndicatorSection()
 		order = self.twList.horizontalHeader().sortIndicatorOrder()
-		print col,order
 		return col, order
 
 	def setSorting(self, col, order):
