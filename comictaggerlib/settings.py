@@ -93,6 +93,9 @@ class ComicTaggerSettings:
 		self.dont_notify_about_this_version = ""
 		self.ask_about_usage_stats = True
 		
+		#filename parsing settings
+		self.parse_scan_info = False
+		
 		# Comic Vine settings
 		self.use_series_start_as_volume = False
 		
@@ -208,6 +211,9 @@ class ComicTaggerSettings:
 		if self.config.has_option('identifier', 'id_publisher_blacklist'):
 			self.id_publisher_blacklist =   self.config.get( 'identifier', 'id_publisher_blacklist' )
 
+		if self.config.has_option('filenameparser', 'parse_scan_info'):
+			self.parse_scan_info =   self.config.getboolean( 'filenameparser', 'parse_scan_info' )
+
 		if self.config.has_option('dialogflags', 'ask_about_cbi_in_rar'):
 			self.ask_about_cbi_in_rar =        self.config.getboolean( 'dialogflags', 'ask_about_cbi_in_rar' )		
 		if self.config.has_option('dialogflags', 'show_disclaimer'):
@@ -283,6 +289,11 @@ class ComicTaggerSettings:
 		self.config.set( 'dialogflags', 'show_disclaimer', self.show_disclaimer )
 		self.config.set( 'dialogflags', 'dont_notify_about_this_version', self.dont_notify_about_this_version )
 		self.config.set( 'dialogflags', 'ask_about_usage_stats', self.ask_about_usage_stats )
+
+		if not self.config.has_section( 'filenameparser' ):
+			self.config.add_section( 'filenameparser' )
+			
+		self.config.set( 'filenameparser', 'parse_scan_info', self.parse_scan_info )
 	
 		if not self.config.has_section( 'comicvine' ):
 			self.config.add_section( 'comicvine' )

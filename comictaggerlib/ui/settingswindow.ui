@@ -314,6 +314,24 @@
          </item>
         </layout>
        </widget>
+       <widget class="QWidget" name="tab_6">
+        <attribute name="title">
+         <string>Filename Parser</string>
+        </attribute>
+        <widget class="QCheckBox" name="cbxParseScanInfo">
+         <property name="geometry">
+          <rect>
+           <x>30</x>
+           <y>30</y>
+           <width>421</width>
+           <height>25</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Parse Scan Info From Filename (Experimental)</string>
+         </property>
+        </widget>
+       </widget>
        <widget class="QWidget" name="tab_3">
         <attribute name="title">
          <string>Comic Vine</string>

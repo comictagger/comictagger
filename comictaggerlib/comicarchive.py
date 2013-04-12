@@ -1027,6 +1027,9 @@ class ComicArchive:
 			metadata.year = fnp.year
 		if fnp.issue_count != "":
 			metadata.issueCount = fnp.issue_count
+		if self.settings.parse_scan_info:
+			if fnp.remainder != "":
+				metadata.scanInfo = fnp.remainder
 
 		metadata.isEmpty = False
 

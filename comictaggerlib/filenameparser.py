@@ -81,7 +81,7 @@ class FileNameParser:
 		found = False
 		issue = ''
 		
-		# first, look for multiple "--", this mean's it's formatted differently from most:
+		# first, look for multiple "--", this means it's formatted differently from most:
 		if "--" in filename:
 			# the pattern seems to be that anything to left of the first "--" is the series name followed by issue
 			filename = filename.split("--")[0]
@@ -191,6 +191,28 @@ class FileNameParser:
 			year = re.sub("[^0-9]", "", year)
 		return year
 
+	def getRemainder( self, filename, year, count ):
+		#make a guess at where the the non-interesting stuff begins
+		
+		remainder = ""
+		
+		if "--" in filename:
+			remainder = filename.split("--",1)[1]
+		elif "__" in filename:
+			remainder = filename.split("__",1)[1]
+		elif "(" in filename:
+			remainder = "(" + filename.split("(",1)[1]
+
+		remainder = self.fixSpaces(remainder, remove_dashes=False)
+		if year != "":
+			remainder = remainder.replace(year,"",1)
+		if count != "":
+			remainder = remainder.replace("of "+count,"",1)
+			
+		remainder = remainder.replace("()","")
+		
+		return remainder.strip()
+		
 	def parseFilename( self, filename ):
 
 		# remove the path
@@ -208,20 +230,12 @@ class FileNameParser:
 		if filename.count("_28") > 1 and filename.count("_29") > 1:
 			filename = filename.replace("_28", "(")
 			filename = filename.replace("_29", ")")
-		
-		# ----HACK  
-		# remove the first word that word is a 3 digit number.
-		# some story arcs collection packs do this, but it's ugly
-		# this will probably break something, i.e. "100 bullets"
-		#word = filename.split(' ')[0]
-		#if len(word) == 3 and word[0] =='0' and word.isdigit():
-		#	filename = filename[4:]
-		# ----HACK  -
 					
 		self.issue = self.getIssueNumber(filename)
 		self.series, self.volume = self.getSeriesName(filename, self.issue)
 		self.year = self.getYear(filename)
 		self.issue_count = self.getIssueCount(filename)
+		self.remainder = self.getRemainder( filename, self.year, self.issue_count )
 	
 		if self.issue != "":
 			# strip off leading zeros

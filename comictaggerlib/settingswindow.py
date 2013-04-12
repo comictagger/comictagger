@@ -122,6 +122,9 @@ class SettingsWindow(QtGui.QDialog):
 		if self.settings.check_for_new_version:
 			self.cbxCheckForNewVersion.setCheckState( QtCore.Qt.Checked)
 		
+		if self.settings.parse_scan_info:
+			self.cbxParseScanInfo.setCheckState( QtCore.Qt.Checked)
+			
 		if self.settings.use_series_start_as_volume:
 			self.cbxUseSeriesStartAsVolume.setCheckState( QtCore.Qt.Checked)
 	
@@ -170,7 +173,9 @@ class SettingsWindow(QtGui.QDialog):
 		
 		self.settings.id_length_delta_thresh = int(self.leNameLengthDeltaThresh.text())
 		self.settings.id_publisher_blacklist = str(self.tePublisherBlacklist.toPlainText())
-		
+			
+		self.settings.parse_scan_info = self.cbxParseScanInfo.isChecked()
+
 		self.settings.use_series_start_as_volume = self.cbxUseSeriesStartAsVolume.isChecked()
 				
 		self.settings.assume_lone_credit_is_primary = self.cbxAssumeLoneCreditIsPrimary.isChecked()
@@ -230,5 +235,5 @@ class SettingsWindow(QtGui.QDialog):
 			control.setText( str(fileList[0]) )
 
 	def showRenameTab( self ):
-		self.tabWidget.setCurrentIndex(4)	
+		self.tabWidget.setCurrentIndex(5)	
 		
