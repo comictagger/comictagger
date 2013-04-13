@@ -238,14 +238,14 @@ class ComicVineTalker(QObject):
 		total_result_count = cv_response['number_of_total_results']
 		#print "ATB total_result_count", total_result_count
 		
-		#print "ATB Found {0} of {1} results\n".format( cv_response['number_of_page_results'], cv_response['number_of_total_results'])
+		#print "ATB Found {0} of {1} results".format( cv_response['number_of_page_results'], cv_response['number_of_total_results'])
 		volume_issues_result = cv_response['results']
 		page = 1
 		offset = 0
 				
 		# see if we need to keep asking for more pages...
 		while ( current_result_count < total_result_count ):
-			#print "ATB getting another page of issue results {0} of {1}...\n".format( current_result_count, total_result_count)
+			#print "ATB getting another page of issue results {0} of {1}...".format( current_result_count, total_result_count)
 			page += 1
 			offset += cv_response['number_of_page_results']
 
