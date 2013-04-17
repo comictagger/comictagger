@@ -106,12 +106,27 @@ class ComicVineTalker(QObject):
 		return cv_response[ 'status_code' ] != 100
 
 	def getUrlContent( self, url ):
-		try:
-			resp = urllib2.urlopen( url ) 
-			return resp.read()
-		except Exception as e:
-			self.writeLog( str(e) )
-			raise ComicVineTalkerException("Network Error!")
+		# connect to server:
+		#  if there is a 500 error, try a few more times before giving up
+		#  any other error, just bail
+		
+		for tries in range(3):
+			try:
+				resp = urllib2.urlopen( url ) 
+				return resp.read()
+			except urllib2.HTTPError as e:
+				if e.getcode() == 500:					
+					self.writeLog( "Try #{0}: ".format(tries+1) )
+				self.writeLog( str(e) + "\n" )
+				
+				if e.getcode() != 500:					
+					break
+				
+			except Exception as e:
+				self.writeLog( str(e)  + "\n" )
+				raise ComicVineTalkerException("Network Error!")
+				
+		raise ComicVineTalkerException("Error on Comic Vine server")
 
 	def searchForSeries( self, series_name , callback=None, refresh_cache=False ):
 		
