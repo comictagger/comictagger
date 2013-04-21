@@ -24,6 +24,7 @@ from pprint import pprint
 import urllib2, urllib 
 import math 
 import re
+import time
 import datetime
 import ctversion
 import sys
@@ -117,6 +118,7 @@ class ComicVineTalker(QObject):
 			except urllib2.HTTPError as e:
 				if e.getcode() == 500:					
 					self.writeLog( "Try #{0}: ".format(tries+1) )
+					time.sleep(1)
 				self.writeLog( str(e) + "\n" )
 				
 				if e.getcode() != 500:					
