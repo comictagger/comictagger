@@ -1,0 +1,9 @@
+{
+	"_comment": "This file contains JSON data.  Any backslashes should be escaped with another backslash",
+	"xforms":
+		[
+			[ "^2000AD$", "2000 AD" ],
+			[ "^G\\.{0,1}I\\.{0,1}Joe$", "G.I. Joe" ],
+			[ "^2000AD$", "2000 AD" ]
+		]
+}
