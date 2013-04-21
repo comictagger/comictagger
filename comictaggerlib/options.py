@@ -25,6 +25,11 @@ import os
 import traceback
 import ctversion
 import utils
+try:
+	import argparse
+except:
+	pass
+
 from genericmetadata import GenericMetadata
 from comicarchive import MetaDataStyle
 from versionchecker import VersionChecker
@@ -175,6 +180,41 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
 		#print md
 		return md
 		
+	def launch_script(self, scriptfile):
+		# we were given a script.  special case for the args:
+		#  1. ignore everthing before the -S,
+		#  2. pass all the ones that follow (including script name) to the script 
+		script_args = list()
+		for idx, arg in enumerate(sys.argv):
+			if arg in [ '-S', '--script']:
+				#found script!
+				script_args = sys.argv[idx+1:]
+				break
+		sys.argv = script_args
+		if not os.path.exists(scriptfile):
+			print "Can't find {0}".format( scriptfile )
+		else:
+			# I *think* this makes sense:
+			#  assume the base name of the file is the module name
+			#  add the folder of the given file to the python path
+			#  import module
+			dirname = os.path.dirname(scriptfile)
+			module_name = os.path.splitext(os.path.basename(scriptfile))[0]
+			sys.path = [dirname] + sys.path
+			try:
+				script =  __import__(module_name)
+			
+				# Determine if the entry point exists before trying to run it
+				if "main" in dir(script):
+					script.main()
+				else:
+					print "Can't find entry point \"main()\" in module \"{0}\"".format( module_name )
+			except Exception as e:
+				print "Script raised an unhandled exception: ", e	
+				print traceback.format_exc()
+	
+		sys.exit(0)		
+
 	def parseCmdLineArgs(self):
 		
 		if platform.system() == "Darwin" and hasattr(sys, "frozen") and sys.frozen == 1:
@@ -183,6 +223,15 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
 		else:
 			input_args = sys.argv[1:]
 			
+		# first check if we're launching a script:	
+		for n in range(len(input_args)):
+			if (  input_args[n] in [ "-S", "--script" ] and
+                  n+1 < len(input_args)):
+				# insert a "--" which will cause getopt to ignore the remaining args
+				# so they will be passed to the script
+				input_args.insert(n+2, "--")
+				break
+	
 		# parse command line options
 		try:
 			opts, args = getopt.getopt( input_args, 
@@ -289,40 +338,8 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
 			self.display_msg_and_quit( "Must choose only one action of print, delete, save, copy, rename, export, or run script", 1 )
 
 		if self.script is not None:
-			# we were given a script.  special case for the args:
-			#  1. ignore everthing before the -S,
-			#  2. pass all the ones that follow (including script name) to the script 
-			script_args = list()
-			for idx, arg in enumerate(sys.argv):
-				if arg in [ '-S', '--script']:
-					#found script!
-					script_args = sys.argv[idx+1:]
-					break
-			sys.argv = script_args
-			if not os.path.exists(self.script):
-				print "Can't find {0}".format( self.script )
-			else:
-				# I *think* this makes sense:
-				#  assume the base name of the file is the module name
-				#  add the folder of the given file to the python path
-				#  import module
-				dirname = os.path.dirname(self.script)
-				module_name = os.path.splitext(os.path.basename(self.script))[0]
-				sys.path = [dirname] + sys.path
-				try:
-					script =  __import__(module_name)
-				
-					# Determine if the entry point exists before trying to run it
-					if "main" in dir(script):
-						script.main()
-					else:
-						print "Can't find entry point \"main()\" in module \"{0}\"".format( module_name )
-				except Exception as e:
-					print "Script raised an unhandled exception: ", e	
-					print traceback.format_exc()
-	
-			sys.exit(0)
-		
+			self.launch_script( self.script )
+
 		if len(args) > 0:
 			if platform.system() == "Windows":
 				# no globbing on windows shell, so do it for them
