@@ -1,4 +1,12 @@
 ---------------------------------  
+1.1.8-beta - 21-Apr-2013
+---------------------------------
+ * Handle occasional error 500 from Comic Vine by retrying a few times
+ * Nicer handling of colon (":") in file rename
+ * Fixed command-line option parsing issue for add-on scripts
+ * Misc bug fixes
+
+---------------------------------  
 1.1.7-beta - 12-Apr-2013
 ---------------------------------
  * Added description and cover date to issue selection dialogs
