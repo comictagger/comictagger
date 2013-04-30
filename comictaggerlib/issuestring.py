@@ -8,6 +8,7 @@ e.g.:
 "0"
 "-1"
 "5AU"
+"100-2"
 
 """
 
@@ -34,31 +35,53 @@ import re
 class IssueString:
 	def __init__(self, text):
 	
-		if text is None:
-			self.num = None
-			self.suffix = ""
-			return
-			
-		self.text = unicode(text)
-		#strip out non float-y stuff
-		tmp_num_str = re.sub('[^0-9.-]',"", self.text )
+		#  break up the issue number string into 2 parts: the numeric and suffix string.
+		# ( assumes that the numeric portion is always first )
+		
+		self.num = None
+		self.suffix = ""
 
-		if tmp_num_str == "":
-			self.num = None
-			self.suffix = self.text
-			
+		if text is None:
+			return
+		
+		text = unicode(text)
+		
+		#skip the minus sign if it's first
+		if text[0] == '-':
+			start = 1
 		else:
-			if tmp_num_str.count(".") > 1:
-				#make sure it's a valid float or int.
-				parts = tmp_num_str.split('.')
-				self.num = float( parts[0] + '.' + parts[1] )
-			else:	
-				self.num = float( tmp_num_str )
-				
-			self.suffix = ""		
-			parts = self.text.split(tmp_num_str)
-			if len( parts ) > 1 :
-				self.suffix = parts[1]
+			start  = 0
+
+		# walk through the string, look for split point (the first non-numeric)
+		decimal_count = 0
+		for idx in range( start, len(text) ):
+			if text[idx] not in "0123456789.":
+				break
+			# special case: also split on second "."
+			if text[idx] == ".":
+				decimal_count += 1
+				if decimal_count > 1:
+					break
+		else:
+			idx = len(text)
+
+		# move trailing numeric decimal to suffix
+		# (only if there is other junk after )
+		if text[idx-1] == "." and len(text) != idx:
+			idx = idx -1
+		
+		# if there is no numeric after the minus, make the minus part of the suffix
+		if idx == 1 and start == 1:
+			idx = 0
+		
+		part1 = text[0:idx]
+		part2 = text[idx:len(text)]
+		
+		if part1 != "":
+			self.num = float( part1 )
+		self.suffix = part2
+		
+		#print "num: {0} suf: {1}".format(self.num, self.suffix)
 
 	def asString( self, pad = 0 ):
 		#return the float, left side zero-padded, with suffix attached
