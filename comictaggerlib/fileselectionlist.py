@@ -162,6 +162,10 @@ class FileSelectionList(QWidget):
 		self.twList.currentItemChanged.connect( self.currentItemChangedCB )
 		
 		if self.twList.rowCount() > 0:
+			# since on a removal, we select row 0, make sure callback occurs if we're already there
+			if self.twList.currentRow() == 0:
+				self.currentItemChangedCB( self.twList.currentItem(), None)
+				print "removing 0"	
 			self.twList.selectRow(0)
 		else:
 			self.listCleared.emit()
