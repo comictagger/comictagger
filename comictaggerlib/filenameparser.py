@@ -80,6 +80,7 @@ class FileNameParser:
 
 		found = False
 		issue = ''
+		original_filename = filename
 		
 		# first, look for multiple "--", this means it's formatted differently from most:
 		if "--" in filename:
@@ -92,8 +93,8 @@ class FileNameParser:
 		filename = filename.replace("+", " ")
 			
 		# remove parenthetical phrases
-		filename = re.sub( "\(.*\)", "", filename)
-		filename = re.sub( "\[.*\]", "", filename)
+		filename = re.sub( "\(.*?\)", "", filename)
+		filename = re.sub( "\[.*?\]", "", filename)
 		
 		# guess based on position
 
@@ -116,6 +117,8 @@ class FileNameParser:
 		if len(matchlist) > 0:
 			#get the last item
 			issue = matchlist[ len(matchlist) - 1][0]
+			print 'Assuming issue number is ' + str(issue) + ' based on first test.'
+
 			found = True
 
 		# assume the last number in the filename that is under 4 digits is the issue number
@@ -129,18 +132,39 @@ class FileNameParser:
 					):
 					issue = word
 					found = True
-					#print 'Assuming issue number is ' + str(issue) + ' based on the position.'
+					print 'Assuming issue number is ' + str(issue) + ' based on the position.'
 					break
 
 		if not found:
 			# try a regex
-			issnum = re.search('(?<=[_#\s-])(\d+[a-zA-Z]+|\d+\.\d|\d+)', filename)
+			#issnum = re.search('(?<=[_#\s-])(\d+[a-zA-Z]+|\d+\.\d|\d+)', filename)
+			issnum = re.search('(?<=[_#\s-])(\d+[^\d]+|\d+\.\d|\d+)', filename)
 			if issnum:
 				issue = issnum.group()
 				found = True
-				#print 'Got the issue using regex. Issue is ' + issue 
+				print 'Got the issue using regex. Issue is ' + issue
+			
 		
-		return issue.strip()
+		# take a stab at working out the span of the issue subtring in the original
+		# (this should really be done which each search, so we're not just always guessing)
+		if found:
+			cnt = 0
+			print "issue str = [{0}], {1}".format(issue, original_filename)
+			span = None
+			pattern = "\()"
+			for g in re.finditer(issue, original_filename):
+				#print g.span()
+				cnt += 1
+				if cnt > 1:
+					break
+			else:
+				if cnt == 1:
+					span = g.span()
+			print span
+			
+		issue = issue.strip()			
+		
+		return issue
 
 	def getSeriesName(self, filename, issue ):
 
@@ -156,7 +180,7 @@ class FileNameParser:
 		
 		#remove pound signs.  this might mess up the series name if there is a# in it.
 		tmpstr = tmpstr.replace("#", " ")
-
+		
 		if issue != "":	
 			# assume that issue substr has at least one space before it
 			issue_str = " " + str(issue)
@@ -164,12 +188,13 @@ class FileNameParser:
 		else:
 			# no issue to work off of
 			#!!! TODO we should look for the year, and split from that
-			# and if that doesn't exist, remove parenthetical phrases
 			series = tmpstr
-			series = re.sub( "\(.*\)", "", tmpstr)
 			
 		volume = ""
 		
+		# remove any parenthetical phrases
+		series = re.sub( "\(.*?\)", "", series)
+
 		series = series.rstrip("#")
 			
 		# search for volume number
