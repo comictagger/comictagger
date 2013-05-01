@@ -110,7 +110,7 @@ class ComicVineTalker(QObject):
 		# connect to server:
 		#  if there is a 500 error, try a few more times before giving up
 		#  any other error, just bail
-		
+		#print "ATB---", url
 		for tries in range(3):
 			try:
 				resp = urllib2.urlopen( url ) 
@@ -149,7 +149,7 @@ class ComicVineTalker(QObject):
 		series_name = urllib.quote_plus(series_name.encode("utf-8"))
 		#series_name = urllib.quote_plus(unicode(series_name))
 		search_url = self.api_base_url + "/search/?api_key=" + self.api_key + "&format=json&resources=volume&query=" + series_name + "&field_list=name,id,start_year,publisher,image,description,count_of_issues"
-		content = self.getUrlContent(search_url) 
+		content = self.getUrlContent(search_url + "&page=1") 
 	
 		cv_response = json.loads(content)
 	
@@ -591,7 +591,7 @@ class ComicVineTalker(QObject):
 			self.urlFetchComplete.emit( details['image_url'],details['thumb_image_url'], self.issue_id )
 			return
 
-		issue_url = "http://www.comicvine.com/api/issue/" + CVTypeID.Issue + "-" + str(issue_id) + "/?api_key=" + self.api_key + "&format=json&field_list=image,cover_date,site_detail_url"
+		issue_url = self.api_base_url + "/issue/" + CVTypeID.Issue + "-" + str(issue_id) + "/?api_key=" + self.api_key + "&format=json&field_list=image,cover_date,site_detail_url"
 		self.nam = QNetworkAccessManager()
 		self.nam.finished.connect( self.asyncFetchIssueCoverURLComplete )
 		self.nam.get(QNetworkRequest(QUrl(issue_url)))
