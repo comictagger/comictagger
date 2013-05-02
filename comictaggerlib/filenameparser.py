@@ -30,14 +30,18 @@ import os
 from urllib import unquote
 
 class FileNameParser:
+
+	def repl(self, m):
+	   return ' ' * len(m.group())
+	
 	def fixSpaces( self, string, remove_dashes=True ):
 		if remove_dashes:
 			placeholders = ['[-_]','  +']
 		else:
 			placeholders = ['[_]','  +']			
 		for ph in placeholders:
-			string = re.sub(ph, ' ', string )
-		return string.strip()
+			string = re.sub(ph, self.repl, string )
+		return string #.strip()
 
 	# check for silly .1 or .5 style issue strings
 	# allow up to 5 chars total
@@ -74,138 +78,118 @@ class FileNameParser:
 		count = count.lstrip("0")
 
 		return count
-		
-		
+	
 	def getIssueNumber( self, filename ):
 
+		# Returns a tuple of issue number string, and start and end indexs in the filename
+		# (The indexes will be used to split the string up for further parsing)
+		
 		found = False
 		issue = ''
-		original_filename = filename
+		start = 0
+		end = 0
 		
 		# first, look for multiple "--", this means it's formatted differently from most:
 		if "--" in filename:
 			# the pattern seems to be that anything to left of the first "--" is the series name followed by issue
-			filename = filename.split("--")[0]
-		elif "___" in filename:
+			filename = re.sub("--.*", self.repl, filename)	
+			
+		elif "__" in filename:
 			# the pattern seems to be that anything to left of the first "__" is the series name followed by issue
-			filename = filename.split("__")[0]
+			filename = re.sub("__.*", self.repl, filename)	
 
 		filename = filename.replace("+", " ")
 			
-		# remove parenthetical phrases
-		filename = re.sub( "\(.*?\)", "", filename)
-		filename = re.sub( "\[.*?\]", "", filename)
-		
-		# guess based on position
+		# replace parenthetical phrases with spaces
+		filename = re.sub( "\(.*?\)", self.repl, filename)
+		filename = re.sub( "\[.*?\]", self.repl, filename)
 
 		# replace any name seperators with spaces
-		tmpstr = self.fixSpaces(filename)
-		word_list = tmpstr.split(' ')
+		filename = self.fixSpaces(filename)
+
+		# remove any "of NN" phrase with spaces (problem: this might break some titles)
+		filename = re.sub( "of [\d]+", self.repl, filename)
+
+		print u"[{0}]".format(filename)
 		
-		#before we search, remove any kind of likely "of X" phrase
-		for i in range(0, len(word_list)-2):
-			if ( word_list[i].isdigit() and
-				word_list[i+1] == "of"  and
-				word_list[i+2].isdigit() ):
-				word_list[i+1] ="XXX"
-				word_list[i+2] ="XXX"
-				
-				
-		# first look for the last "#" followed by a digit in the filename. this is almost certainly the issue number
-		#issnum = re.search('#\d+', filename)
-		matchlist = re.findall("#[-+]?(([0-9]*\.[0-9]+|[0-9]+)(\w*))", filename)
-		if len(matchlist) > 0:
-			#get the last item
-			issue = matchlist[ len(matchlist) - 1][0]
-			print 'Assuming issue number is ' + str(issue) + ' based on first test.'
-
-			found = True
-
-		# assume the last number in the filename that is under 4 digits is the issue number
-		if not found:
-			for word in reversed(word_list):
-				if len(word) > 0 and word[0] == "#":
-					word = word[1:]
-				if ( 
-					 (word.isdigit() and len(word) < 4) or
-					 (self.isPointIssue(word))
-					):
-					issue = word
-					found = True
-					print 'Assuming issue number is ' + str(issue) + ' based on the position.'
-					break
-
-		if not found:
-			# try a regex
-			#issnum = re.search('(?<=[_#\s-])(\d+[a-zA-Z]+|\d+\.\d|\d+)', filename)
-			issnum = re.search('(?<=[_#\s-])(\d+[^\d]+|\d+\.\d|\d+)', filename)
-			if issnum:
-				issue = issnum.group()
+		# we should now have a cleaned up filename version with all the words in
+		# the same positions as original filename
+			
+		# make a list of each word and its position
+		word_list = list()
+		for m in re.finditer("\S+", filename):
+			word_list.append( (m.group(0), m.start(), m.end()) )
+					
+		# Now try to search for the likely issue number word in the list
+		
+		# first look for a word with "#" followed by digits with optional sufix 
+		# this is almost certainly the issue number
+		for w in reversed(word_list):
+			if re.match("#[-]?(([0-9]*\.[0-9]+|[0-9]+)(\w*))", w[0]):
 				found = True
-				print 'Got the issue using regex. Issue is ' + issue
-			
-		
-		# take a stab at working out the span of the issue subtring in the original
-		# (this should really be done which each search, so we're not just always guessing)
-		if found:
-			cnt = 0
-			print "issue str = [{0}], {1}".format(issue, original_filename)
-			span = None
-			pattern = "\()"
-			for g in re.finditer(issue, original_filename):
-				#print g.span()
-				cnt += 1
-				if cnt > 1:
+				break
+
+		# same as above but w/o a '#' 		
+		if not found:
+			for w in reversed(word_list):
+				if re.match("[-]?(([0-9]*\.[0-9]+|[0-9]+)(\w*))", w[0]):
+					found = True
 					break
-			else:
-				if cnt == 1:
-					span = g.span()
-			print span
-			
-		issue = issue.strip()			
+				
+		# now try to look for a # followed by any characters		
+		if not found:
+			for w in reversed(word_list):
+				if re.match("#\w+", w[0]):
+					found = True
+					break
+				
+		if found:
+			issue = w[0]
+			start = w[1]
+			end = w[2]
+			if issue[0] == '#':
+				issue = issue[1:]
+				
+		return issue, start, end
 		
-		return issue
+	def getSeriesName(self, filename, issue_start ):
 
-	def getSeriesName(self, filename, issue ):
-
-		# use the issue number string to split the filename string
-		# assume first element of list is the series name, plus cruft
-		#!!! this could fail in the case of small numerics in the series name!!!
-
-		# TODO:  we really should pass in the *INDEX* of the issue, that makes 
-		# finding it easier
+		# use the issue number string index to split the filename string
+		
+		filename = filename[:issue_start-1]
 		
 		filename = filename.replace("+", " ")
 		tmpstr = self.fixSpaces(filename, remove_dashes=False)
 		
-		#remove pound signs.  this might mess up the series name if there is a# in it.
-		tmpstr = tmpstr.replace("#", " ")
-		
-		if issue != "":	
-			# assume that issue substr has at least one space before it
-			issue_str = " " + str(issue)
-			series = tmpstr.split(issue_str)[0]
-		else:
-			# no issue to work off of
-			#!!! TODO we should look for the year, and split from that
-			series = tmpstr
-			
+		series = tmpstr	
 		volume = ""
+
+		#save the last word		
+		last_word = series.split()[-1]
 		
 		# remove any parenthetical phrases
 		series = re.sub( "\(.*?\)", "", series)
-
-		series = series.rstrip("#")
 			
 		# search for volume number
 		match = re.search('(.+)([vV]|[Vv][oO][Ll]\.?\s?)(\d+)\s*$', series)
 		if match:
 			series = match.group(1)
 			volume = match.group(3)
+			
+		# if a volume wasn't found, see if the last word is a year in parentheses
+		# since that's a common way to designate the volume
+		if volume == "":
+			#match either (YEAR), (YEAR-), or (YEAR-YEAR2)
+			match = re.search("(\()(\d{4})(-(\d{4}|)|)(\))", last_word)
+			if match:
+				volume = match.group(2)
+
 		
 		return series.strip(), volume.strip()
 
-	def getYear( self,filename):
+	def getYear( self,filename, issue_end):
+
+		filename = filename[issue_end:]
 
 		year = ""
 		# look for four digit number with "(" ")" or "--" around it
@@ -256,9 +240,9 @@ class FileNameParser:
 			filename = filename.replace("_28", "(")
 			filename = filename.replace("_29", ")")
 					
-		self.issue = self.getIssueNumber(filename)
-		self.series, self.volume = self.getSeriesName(filename, self.issue)
-		self.year = self.getYear(filename)
+		self.issue, issue_start, issue_end = self.getIssueNumber(filename)
+		self.series, self.volume = self.getSeriesName(filename, issue_start)
+		self.year = self.getYear(filename, issue_end)
 		self.issue_count = self.getIssueCount(filename)
 		self.remainder = self.getRemainder( filename, self.year, self.issue_count )
 	
