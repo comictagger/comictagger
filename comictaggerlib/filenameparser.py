@@ -43,22 +43,12 @@ class FileNameParser:
 			string = re.sub(ph, self.repl, string )
 		return string #.strip()
 
-	# check for silly .1 or .5 style issue strings
-	# allow up to 5 chars total
-	def isPointIssue( self, word ):
-		ret = False
-		try:
-			float(word)
-			if (len(word) < 5 and not word.isdigit()):
-				ret = True
-		except ValueError:
-			pass
-		return ret
 
-
-	def getIssueCount( self,filename ):
+	def getIssueCount( self,filename, issue_end ):
 
 		count = ""
+		filename = filename[issue_end:]
+		
 		# replace any name seperators with spaces
 		tmpstr = self.fixSpaces(filename)
 		found = False
@@ -107,10 +97,10 @@ class FileNameParser:
 		# replace any name seperators with spaces
 		filename = self.fixSpaces(filename)
 
-		# remove any "of NN" phrase with spaces (problem: this might break some titles)
+		# remove any "of NN" phrase with spaces (problem: this could break on some titles)
 		filename = re.sub( "of [\d]+", self.repl, filename)
 
-		print u"[{0}]".format(filename)
+		#print u"[{0}]".format(filename)
 		
 		# we should now have a cleaned up filename version with all the words in
 		# the same positions as original filename
@@ -119,6 +109,13 @@ class FileNameParser:
 		word_list = list()
 		for m in re.finditer("\S+", filename):
 			word_list.append( (m.group(0), m.start(), m.end()) )
+			
+		# remove the first word, since it can't be the issue number
+		if len(word_list) > 1:
+			word_list = word_list[1:]
+		else:
+			#only one word??  just bail.
+			return issue, start, end
 					
 		# Now try to search for the likely issue number word in the list
 		
@@ -129,12 +126,11 @@ class FileNameParser:
 				found = True
 				break
 
-		# same as above but w/o a '#' 		
+		# same as above but w/o a '#', and only look at the last word in the list	
 		if not found:
-			for w in reversed(word_list):
-				if re.match("[-]?(([0-9]*\.[0-9]+|[0-9]+)(\w*))", w[0]):
-					found = True
-					break
+			w  = word_list[-1]
+			if re.match("[-]?(([0-9]*\.[0-9]+|[0-9]+)(\w*))", w[0]):
+				found = True
 				
 		# now try to look for a # followed by any characters		
 		if not found:
@@ -153,11 +149,21 @@ class FileNameParser:
 		return issue, start, end
 		
 	def getSeriesName(self, filename, issue_start ):
-
+		
 		# use the issue number string index to split the filename string
 		
-		filename = filename[:issue_start-1]
-		
+		if issue_start != 0:
+			filename = filename[:issue_start]
+
+		# in case there is no issue number, remove some obvious stuff
+		if "--" in filename:
+			# the pattern seems to be that anything to left of the first "--" is the series name followed by issue
+			filename = re.sub("--.*", self.repl, filename)	
+			
+		elif "__" in filename:
+			# the pattern seems to be that anything to left of the first "__" is the series name followed by issue
+			filename = re.sub("__.*", self.repl, filename)
+			
 		filename = filename.replace("+", " ")
 		tmpstr = self.fixSpaces(filename, remove_dashes=False)
 		
@@ -184,11 +190,21 @@ class FileNameParser:
 			if match:
 				volume = match.group(2)
 
-		
-		return series.strip(), volume.strip()
+		series = series.strip()
+
+		# if we don't have an issue number (issue_start==0), look
+		# for hints i.e. "TPB", "one-shot", "OS", "OGN", etc that might
+		# be removed to help search online		
+		if issue_start == 0:
+			one_shot_words = [ "tpb", "os", "one-shot", "ogn", "gn" ]
+			last_word = series.split()[-1]
+			if last_word.lower() in one_shot_words:
+				series = series.rsplit(' ', 1)[0]
+				
+		return series, volume.strip()
 
 	def getYear( self,filename, issue_end):
-
+		
 		filename = filename[issue_end:]
 
 		year = ""
@@ -200,17 +216,17 @@ class FileNameParser:
 			year = re.sub("[^0-9]", "", year)
 		return year
 
-	def getRemainder( self, filename, year, count ):
-		#make a guess at where the the non-interesting stuff begins
+	def getRemainder( self, filename, year, count, issue_end ):
 		
+		#make a guess at where the the non-interesting stuff begins
 		remainder = ""
 		
 		if "--" in filename:
 			remainder = filename.split("--",1)[1]
 		elif "__" in filename:
 			remainder = filename.split("__",1)[1]
-		elif "(" in filename:
-			remainder = "(" + filename.split("(",1)[1]
+		elif issue_end != 0:
+			remainder = filename[issue_end:]
 
 		remainder = self.fixSpaces(remainder, remove_dashes=False)
 		if year != "":
@@ -243,8 +259,8 @@ class FileNameParser:
 		self.issue, issue_start, issue_end = self.getIssueNumber(filename)
 		self.series, self.volume = self.getSeriesName(filename, issue_start)
 		self.year = self.getYear(filename, issue_end)
-		self.issue_count = self.getIssueCount(filename)
-		self.remainder = self.getRemainder( filename, self.year, self.issue_count )
+		self.issue_count = self.getIssueCount(filename, issue_end)
+		self.remainder = self.getRemainder( filename, self.year, self.issue_count, issue_end )
 	
 		if self.issue != "":
 			# strip off leading zeros
