@@ -135,7 +135,7 @@ class FileNameParser:
 		# now try to look for a # followed by any characters		
 		if not found:
 			for w in reversed(word_list):
-				if re.match("#\w+", w[0]):
+				if re.match("#\S+", w[0]):
 					found = True
 					break
 				
