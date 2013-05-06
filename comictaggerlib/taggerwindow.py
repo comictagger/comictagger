@@ -927,14 +927,17 @@ class TaggerWindow( QtGui.QMainWindow):
 		else:
 			QtGui.QMessageBox.information(self, self.tr("Online Search"), self.tr("Need to enter a series name to search."))
 			return
-			
-
+		
 		year = str(self.lePubYear.text()).strip()
 		if year == "":
 			year = None
 
+		issue_count = str(self.leIssueCount.text()).strip()
+		if issue_count == "":
+			issue_count = None
+			
 		cover_index_list =  self.metadata.getCoverPageIndexList()
-		selector = VolumeSelectionWindow( self, series_name, issue_number, year, cover_index_list, self.comic_archive, self.settings, autoselect )
+		selector = VolumeSelectionWindow( self, series_name, issue_number, year, issue_count, cover_index_list, self.comic_archive, self.settings, autoselect )
 
 		title = "Search: '" + series_name + "' - "
 		selector.setWindowTitle( title + "Select Series")

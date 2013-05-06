@@ -157,6 +157,7 @@ class IssueIdentifier:
 		search_keys['issue_number'] = None
 		search_keys['month'] = None
 		search_keys['year'] = None
+		search_keys['issue_count'] = None
 		
 		if ca is None:
 			return
@@ -166,6 +167,7 @@ class IssueIdentifier:
 			search_keys['issue_number'] = self.additional_metadata.issue
 			search_keys['year'] = self.additional_metadata.year
 			search_keys['month'] = self.additional_metadata.month
+			search_keys['issue_count'] = self.additional_metadata.issueCount
 			return search_keys
 
 		# see if the archive has any useful meta data for searching with
@@ -211,6 +213,13 @@ class IssueIdentifier:
 			search_keys['month'] = internal_metadata.month
 		else:
 			search_keys['month'] = md_from_filename.month
+
+		if self.additional_metadata.issueCount is not None:
+			search_keys['issue_count'] = self.additional_metadata.issueCount
+		elif internal_metadata.issueCount is not None:
+			search_keys['issue_count'] = internal_metadata.issueCount
+		else:
+			search_keys['issue_count'] = md_from_filename.issueCount
 			
 		return search_keys
 
@@ -389,6 +398,7 @@ class IssueIdentifier:
 			length_approved = False
 			publisher_approved = True
 			date_approved = True
+			count_approved = True
 			
 			# remove any series that starts after the issue year
 			if keys['year'] is not None and str(keys['year']).isdigit() and item['start_year'] is not None and str(item['start_year']).isdigit():
@@ -406,8 +416,13 @@ class IssueIdentifier:
 				publisher = item['publisher']['name']
 				if publisher is not None and publisher.lower() in self.publisher_blacklist:
 					publisher_approved = False
+			
+			# if we have a given issue count > 1, and the volume has count==1, remove it
+			# (for the case choosing limited series first issue vs a trade with the same cover)
+			#if item['count_of_issues'] == 1 and keys['issue_count'] is not None and keys['issue_count'] != 1:
+			#	count_approved = False
 
-			if length_approved and publisher_approved and date_approved:
+			if length_approved and publisher_approved and date_approved and count_approved:
 				series_second_round_list.append(item)
 		
 		# if we don't think it's an issue number 1, remove any series' that are one-shots
