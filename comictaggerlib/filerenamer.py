@@ -118,12 +118,20 @@ class FileRenamer:
 			new_name = re.sub("\[\s*[-:]*\s*\]", "", new_name )
 			new_name = re.sub("\{\s*[-:]*\s*\}", "", new_name )
 
-			# remove remove duplicate -, _,
-			new_name = re.sub("[-_]+\s+", "- ", new_name )
-			new_name = re.sub("(\s-)+", " -", new_name )
-
 			# remove duplicate spaces
 			new_name = u" ".join(new_name.split())
+
+			# remove remove duplicate -, _,
+			new_name = re.sub("[-_]{2,}\s+", "-- ", new_name )
+			new_name = re.sub("(\s--)+", " --", new_name )
+			new_name = re.sub("(\s-)+", " -", new_name )
+			
+			# remove dash or double dash at end of line
+			new_name = re.sub("[-]{1,2}\s*$", "", new_name )
+			
+			# remove duplicate spaces (again!)
+			new_name = u" ".join(new_name.split())
+
 		
 		if ext is None:
 			ext = os.path.splitext( filename )[1]
