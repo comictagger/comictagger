@@ -1,5 +1,7 @@
 """
 A PyQt4 widget display cover images from either local archive, or from ComicVine
+
+(TODO: This should be re-factored using subclasses!)
 """
 
 """
@@ -59,8 +61,9 @@ class CoverImageWidget(QWidget):
 	ArchiveMode = 0
 	AltCoverMode = 1
 	URLMode = 1
+	DataMode = 3
 	
-	def __init__(self, parent, mode ):
+	def __init__(self, parent, mode, expand_on_click = True ):
 		super(CoverImageWidget, self).__init__(parent)
 		
 		uic.loadUi(ComicTaggerSettings.getUIFile('coverimagewidget.ui' ), self)
@@ -78,7 +81,8 @@ class CoverImageWidget(QWidget):
 		self.btnLeft.clicked.connect( self.decrementImage )
 		self.btnRight.clicked.connect( self.incrementImage )
 		self.resetWidget()
-		clickable(self.lblImage).connect(self.showPopup)
+		if expand_on_click:
+			clickable(self.lblImage).connect(self.showPopup)
 
 		self.updateContent()
 
@@ -93,6 +97,7 @@ class CoverImageWidget(QWidget):
 		self.page_loader = None
 		self.imageIndex = -1
 		self.imageCount = 1
+		self.imageData = None
 		
 	def clear( self ):
 		self.resetWidget()
@@ -138,7 +143,19 @@ class CoverImageWidget(QWidget):
 			self.comicVine = ComicVineTalker()
 			self.comicVine.urlFetchComplete.connect( self.primaryUrlFetchComplete )	
 			self.comicVine.asyncFetchIssueCoverURLs( int(self.issue_id) )
-	
+
+	def setImageData( self, image_data ):
+		if self.mode == CoverImageWidget.DataMode:
+			self.resetWidget()
+			
+			if image_data is None:
+				self.imageIndex = -1
+			else:
+				self.imageIndex = 0
+				self.imageData = image_data
+				
+			self.updateContent()
+			
 	def primaryUrlFetchComplete( self, primary_url, thumb_url, issue_id ):
 		self.url_list.append(str(primary_url))
 		self.imageIndex = 0
@@ -179,11 +196,13 @@ class CoverImageWidget(QWidget):
 			self.loadDefault()
 		elif self.mode in [ CoverImageWidget.AltCoverMode,  CoverImageWidget.URLMode ]:
 			self.loadURL()
+		elif self.mode == CoverImageWidget.DataMode:
+			self.coverRemoteFetchComplete( self.imageData, 0 )
 		else:
 			self.loadPage()
 	
 	def updateControls( self ):
-		if not self.showControls:
+		if not self.showControls or self.mode == CoverImageWidget.DataMode:
 			self.btnLeft.hide()
 			self.btnRight.hide()
 			self.label.hide()
