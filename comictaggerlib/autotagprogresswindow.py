@@ -22,6 +22,7 @@ import sys
 from PyQt4 import QtCore, QtGui, uic
 import os
 from settings import ComicTaggerSettings
+from coverimagewidget import CoverImageWidget
 import utils
 
 class AutoTagProgressWindow(QtGui.QDialog):
@@ -31,8 +32,17 @@ class AutoTagProgressWindow(QtGui.QDialog):
 		super(AutoTagProgressWindow, self).__init__(parent)
 		
 		uic.loadUi(ComicTaggerSettings.getUIFile('autotagprogresswindow.ui' ), self)
-		self.lblTest.setPixmap(QtGui.QPixmap(ComicTaggerSettings.getGraphic('nocover.png')))
-		self.lblArchive.setPixmap(QtGui.QPixmap(ComicTaggerSettings.getGraphic('nocover.png')))
+		
+		self.archiveCoverWidget = CoverImageWidget( self.archiveCoverContainer, CoverImageWidget.DataMode, False )
+		gridlayout = QtGui.QGridLayout( self.archiveCoverContainer )
+		gridlayout.addWidget( self.archiveCoverWidget )
+		gridlayout.setContentsMargins(0,0,0,0)
+
+		self.testCoverWidget = CoverImageWidget( self.testCoverContainer, CoverImageWidget.DataMode, False )
+		gridlayout = QtGui.QGridLayout( self.testCoverContainer )
+		gridlayout.addWidget( self.testCoverWidget )
+		gridlayout.setContentsMargins(0,0,0,0)
+				
 		self.isdone = False
 
 		self.setWindowFlags(self.windowFlags() |
@@ -42,23 +52,16 @@ class AutoTagProgressWindow(QtGui.QDialog):
 		utils.reduceWidgetFontSize( self.textEdit )	
 		
 	def setArchiveImage( self, img_data):
-		self.setCoverImage( img_data, self.lblArchive )
+		self.setCoverImage( img_data, self.archiveCoverWidget)
 
 	def setTestImage( self, img_data):
-		self.setCoverImage( img_data, self.lblTest )
+		self.setCoverImage( img_data, self.testCoverWidget)
 
-	def setCoverImage( self, img_data , label):
-		if img_data is not None:
-			img = QtGui.QImage()
-			img.loadFromData( img_data )
-			label.setPixmap(QtGui.QPixmap(img))
-			label.setScaledContents(True)
-		else:
-			label.setPixmap(QtGui.QPixmap(ComicTaggerSettings.getGraphic('nocover.png')))
-			label.setScaledContents(True)
+	def setCoverImage( self, img_data , widget):
+		widget.setImageData( img_data )
 		QtCore.QCoreApplication.processEvents()
 		QtCore.QCoreApplication.processEvents()
-			
+	
 	def reject(self):
 		QtGui.QDialog.reject(self)		
 		self.isdone = True

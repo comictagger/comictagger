@@ -21,6 +21,44 @@
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="1">
+    <widget class="QWidget" name="archiveCoverContainer">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>110</width>
+       <height>165</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>110</width>
+       <height>165</height>
+      </size>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="4">
+    <widget class="QWidget" name="testCoverContainer">
+     <property name="minimumSize">
+      <size>
+       <width>110</width>
+       <height>165</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>110</width>
+       <height>165</height>
+      </size>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="2">
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
       <widget class="QProgressBar" name="progressBar">
@@ -65,50 +103,6 @@
       </widget>
      </item>
     </layout>
-   </item>
-   <item row="0" column="0">
-    <widget class="QLabel" name="lblArchive">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>110</width>
-       <height>165</height>
-      </size>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>110</width>
-       <height>165</height>
-      </size>
-     </property>
-     <property name="text">
-      <string>TextLabel</string>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="2">
-    <widget class="QLabel" name="lblTest">
-     <property name="minimumSize">
-      <size>
-       <width>110</width>
-       <height>165</height>
-      </size>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>110</width>
-       <height>165</height>
-      </size>
-     </property>
-     <property name="text">
-      <string>TextLabel</string>
-     </property>
-    </widget>
    </item>
   </layout>
  </widget>
