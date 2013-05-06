@@ -331,7 +331,7 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.actionApplyCBLTransform.setStatusTip( 'Modify tags specifically for CBL format' )
 		self.actionApplyCBLTransform.triggered.connect( self.applyCBLTransform )		
 
-		#self.actionClearEntryForm.setShortcut( 'Ctrl+C' )
+		self.actionClearEntryForm.setShortcut( 'Ctrl+Shift+C' )
 		self.actionClearEntryForm.setStatusTip( 'Clear all the data on the screen' )
 		self.actionClearEntryForm.triggered.connect( self.clearForm )
 
