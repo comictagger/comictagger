@@ -7,10 +7,13 @@ Rename dialog:
 	
 Feature Requests:
 	Move CBR to other folder after conversion to ZIP
- 
-	NO - AUto-rename on auto-tag
-	NO- Re-zip (to remove compression)
+	Pre-process series name before identification
+		(using a list of regex transforms) 
+	NO - Auto-rename on auto-tag
+	NO - Re-zip (to remove compression)
 	
+	
+	Selective fields on CLI print (use -m option.  Maybe internally remove all but specified fields in MD object before print )
 		
 Docs:
 	Auto-Tagging Tips:
@@ -20,14 +23,12 @@ Docs:
 Bugs	
 -----------------------------------------------------
 
-Non-numeric issues??  Filename parsing... can we only rely on '#'??
-
-
 Zip flakes out when filename differs from index (or whatever)  i.e "\" vs "/". Python issue
 
 -----------------------------------------------------
 Big  Future Features
 -----------------------------------------------------
+Support for ACBF metatdata in CBZ
 
 GCD scraper or DB reader
 
