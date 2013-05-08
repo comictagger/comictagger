@@ -83,6 +83,8 @@ class CoverImageWidget(QWidget):
 		self.resetWidget()
 		if expand_on_click:
 			clickable(self.lblImage).connect(self.showPopup)
+		else:
+			self.lblImage.setToolTip( "" )
 
 		self.updateContent()
 
@@ -102,7 +104,7 @@ class CoverImageWidget(QWidget):
 	def clear( self ):
 		self.resetWidget()
 		self.updateContent()
-			
+		
 	def incrementImage( self ):
 		self.imageIndex += 1
 		if self.imageIndex == self.imageCount:
@@ -307,3 +309,4 @@ class CoverImageWidget(QWidget):
 			
 	def showPopup( self ):
 		self.popup = ImagePopup(self, self.current_pixmap)
+
