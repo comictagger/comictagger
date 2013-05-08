@@ -369,6 +369,8 @@ class IssueIdentifier:
 		self.log_msg( "Going to search for:" )
 		self.log_msg( "\tSeries: " + keys['series'] )
 		self.log_msg( "\tIssue : " + keys['issue_number']  )
+		if keys['issue_count'] is not None:
+			self.log_msg( "\tCount : " + str(keys['issue_count']) )
 		if keys['year'] is not None:
 			self.log_msg( "\tYear :  " + str(keys['year']) )
 		if keys['month'] is not None:
@@ -398,7 +400,6 @@ class IssueIdentifier:
 			length_approved = False
 			publisher_approved = True
 			date_approved = True
-			count_approved = True
 			
 			# remove any series that starts after the issue year
 			if keys['year'] is not None and str(keys['year']).isdigit() and item['start_year'] is not None and str(item['start_year']).isdigit():
@@ -416,19 +417,9 @@ class IssueIdentifier:
 				publisher = item['publisher']['name']
 				if publisher is not None and publisher.lower() in self.publisher_blacklist:
 					publisher_approved = False
-			
-			# if we have a given issue count > 1, and the volume has count==1, remove it
-			# (for the case choosing limited series first issue vs a trade with the same cover)
-			#if item['count_of_issues'] == 1 and keys['issue_count'] is not None and keys['issue_count'] != 1:
-			#	count_approved = False
 
-			if length_approved and publisher_approved and date_approved and count_approved:
+			if length_approved and publisher_approved and date_approved:
 				series_second_round_list.append(item)
-		
-		# if we don't think it's an issue number 1, remove any series' that are one-shots
-		#if keys['issue_number'] not in [ '1', '0', '0.1' ]:
-		#	#self.log_msg( "Removing one-shots" )
-		#	series_second_round_list[:] = [x for x in series_second_round_list if not x['count_of_issues'] == 1]	
 
 		self.log_msg( "Searching in " + str(len(series_second_round_list)) +" series" )
 		
@@ -438,7 +429,6 @@ class IssueIdentifier:
 		# now sort the list by name length
 		series_second_round_list.sort(key=lambda x: len(x['name']), reverse=False)
 		
-		#--------new way---------------
 		#build a list of volume IDs
 		volume_id_list = list()
 		for series in series_second_round_list:
@@ -460,47 +450,6 @@ class IssueIdentifier:
 				if series['id'] == issue['volume']['id']:
 					shortlist.append( (series, issue) )
 					break
-		
-		#--------new way---------------
-		
-		"""
-		#--vvvv---old way---------------
-		# Now we've got a list of series that we can dig into look for matching issue number
-		counter = 0
-		shortlist = []
-		for series in series_second_round_list:
-			if self.callback is not None:
-				self.callback( counter, len(series_second_round_list)*3)
-				counter += 1
-				
-			self.log_msg( u"Fetching info for  ID: {0} {1} ({2}) ...".format(
-			               series['id'], 
-			               series['name'], 
-			               series['start_year']), newline=True )
-
-			try:
-				issue_list = comicVine.fetchIssuesByVolume( series['id'] )
-
-			except ComicVineTalkerException:
-				self.log_msg( "Network issue while searching for series details.  Aborting...")
-				return []
-			
-			for issue in issue_list:
-				num_s = IssueString(issue['issue_number']).asString()
-				
-				# look for a matching issue number
-				if num_s.lower() == keys['issue_number'].lower():
-
-					# now, if we have an issue year key given, reject this one if not a match
-					month, year = comicVine.fetchIssueDate( issue['id'] )					
-					if keys['year'] is not None:
-						if unicode(keys['year']) != unicode(year):
-							break
-				
-					# found a matching issue number!  add it to short list
-					shortlist.append( (series, issue) )
-		#--^^^^---old way---------------
-		"""
 		
 		if keys['year'] is None:
 			self.log_msg( u"Found {0} series that have an issue #{1}".format(len(shortlist), keys['issue_number']) )
@@ -543,6 +492,7 @@ class IssueIdentifier:
 			match['series'] = u"{0} ({1})".format(series['name'], series['start_year'])
 			match['distance'] = score_item['score']
 			match['issue_number'] = keys['issue_number']
+			match['cv_issue_count'] = series['count_of_issues']
 			match['url_image_hash'] = score_item['hash']
 			match['issue_title'] = issue['name']
 			match['issue_id'] = issue['id']
@@ -655,6 +605,19 @@ class IssueIdentifier:
 			if item['distance'] > best_score + self.min_score_distance:
 				self.match_list.remove(item)
 
+		# One more test for the case choosing limited series first issue vs a trade with the same cover:
+		# if we have a given issue count > 1 and the volume from CV has count==1, remove it from match list
+		if len(self.match_list) >= 2 and keys['issue_count'] is not None and keys['issue_count'] != 1:
+			new_list = list()
+			for match in self.match_list:
+				if match['cv_issue_count'] != 1:
+					new_list.append(match)
+				else:
+					self.log_msg("Removing volume {0} [{1}] from consideration (only 1 issue)".format(match['series'], match['volume_id']))
+				
+			if len(new_list) > 0:
+				self.match_list = new_list
+		
 		if len(self.match_list) == 1:
 			self.log_msg( u"--------------------------------------------------")
 			print_match(self.match_list[0])
@@ -667,6 +630,7 @@ class IssueIdentifier:
 			self.log_msg( u"--------------------------------------------------")
 			self.search_result = self.ResultNoMatches
 		else:
+			# we've got multiple good matches:
 			self.log_msg( "More than one likley candiate." )
 			self.search_result = self.ResultMultipleGoodMatches
 			self.log_msg( u"--------------------------------------------------")
