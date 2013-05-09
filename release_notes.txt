@@ -1,7 +1,7 @@
 ---------------------------------  
-1.1.9-beta - 9-May-2013
+1.1.9-beta - 8-May-2013
 ---------------------------------
- * Filename parser enhancements
+ * Filename parser and identification enhancements
  * Misc bug fixes
 
 ---------------------------------  
