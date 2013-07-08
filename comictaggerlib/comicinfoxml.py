@@ -260,12 +260,14 @@ class ComicInfoXml:
 				n.tag == 'Letterer' or
 				n.tag == 'Editor' 
 			):
-				for name in n.text.split(','):
-					metadata.addCredit( name.strip(), n.tag )
+				if n.text is not None:
+					for name in n.text.split(','):
+						metadata.addCredit( name.strip(), n.tag )
 
 			if n.tag == 'CoverArtist':
-				for name in n.text.split(','):
-					metadata.addCredit( name.strip(), "Cover" )
+				if n.text is not None:
+					for name in n.text.split(','):
+						metadata.addCredit( name.strip(), "Cover" )
 
 		# parse page data now	
 		pages_node = root.find( "Pages" )
