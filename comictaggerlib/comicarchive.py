@@ -517,13 +517,13 @@ class ComicArchive:
 		self.resetCache()
 		self.settings = settings
 		
-		if self.zipTest():
-			self.archive_type =  self.ArchiveType.Zip
-			self.archiver = ZipArchiver( self.path )
-			
-		elif self.rarTest(): 
+		if self.rarTest(): 
 			self.archive_type =  self.ArchiveType.Rar
 			self.archiver = RarArchiver( self.path, settings )
+			
+		elif self.zipTest():
+			self.archive_type =  self.ArchiveType.Zip
+			self.archiver = ZipArchiver( self.path )
 			
 		elif os.path.isdir( self.path ):
 			self.archive_type =  self.ArchiveType.Folder
