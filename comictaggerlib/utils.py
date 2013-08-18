@@ -126,9 +126,13 @@ def removearticles( text ):
 	
 	# now get rid of some other junk
 	newText = newText.replace(":", "")
-	newText = newText.replace(".", "")
 	newText = newText.replace(",", "")
 	newText = newText.replace("-", " ")
+
+	# since the CV api changed, searches for series names with periods
+	# now explicity require the period to be in the search key,
+	# so the line below is removed (for now)
+	#newText = newText.replace(".", "")
 	
 	return newText
 
