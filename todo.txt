@@ -4,13 +4,22 @@ Features
 Rename dialog:
 	check-box for rows?
 	manual edit the preview?
-	
+
+Maybe replace configparser  -- seems to be causing all sorts of problems
+Maybe add a warning if nothing viable could be imported.
+Allow 1 image comic archives?
+
 Feature Requests:
 	Move CBR to other folder after conversion to ZIP
 	Pre-process series name before identification
 		(using a list of regex transforms) 
-	NO - Auto-rename on auto-tag
-	NO - Re-zip (to remove compression)
+	(GC #28) Save auto-tag options
+	(GC #24) Multiple options for -t i.e. "-t cr,cbl"
+	(GC #18 ) Option for handling colon in rename
+	Re-org - move to new folder based on template
+	
+	WONTDO - Auto-rename on auto-tag
+	WONTDO - Re-zip (to remove compression)
 	
 	
 	Selective fields on CLI print (use -m option.  Maybe internally remove all but specified fields in MD object before print )
@@ -24,6 +33,8 @@ Bugs
 -----------------------------------------------------
 
 Zip flakes out when filename differs from index (or whatever)  i.e "\" vs "/". Python issue
+(GC #30) searches fail with periods/initials in name  (Avengers A.I.)
+
 
 -----------------------------------------------------
 Big  Future Features
@@ -32,7 +43,7 @@ Support for ACBF metatdata in CBZ
 
 GCD scraper or DB reader
 
-Batch Edit
+(GC #29) Batch Edit
 	Form Mode:  Single vs Batch
 	
 -----------------------------------------------------
