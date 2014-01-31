@@ -1,4 +1,4 @@
-TAGGER_BASE := $(HOME)/Dropbox/tagger/comictagger
+TAGGER_BASE ?:= $(HOME)/Dropbox/tagger/comictagger
 TAGGER_SRC := $(TAGGER_BASE)/comictaggerlib
 VERSION_STR := $(shell grep version $(TAGGER_SRC)/ctversion.py| cut -d= -f2 | sed 's/\"//g')
 PASSWORD    := $(shell cat $(TAGGER_BASE)/project_password.txt)  

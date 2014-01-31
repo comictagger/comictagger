@@ -1,6 +1,6 @@
 #PYINSTALLER_CMD := VERSIONER_PYTHON_PREFER_32_BIT=yes arch -i386 python $(HOME)/pyinstaller-2.0/pyinstaller.py
 PYINSTALLER_CMD := python $(HOME)/pyinstaller-2.0/pyinstaller.py
-TAGGER_BASE := $(HOME)/Dropbox/tagger/comictagger
+TAGGER_BASE ?= $(HOME)/Dropbox/tagger/comictagger
 TAGGER_SRC := $(TAGGER_BASE)/comictaggerlib
 
 APP_NAME := ComicTagger

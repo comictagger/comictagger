@@ -2,7 +2,7 @@
 # rm, cp, grep, cut, cat
 
 HOMEPATH ?= $(HOME)
-TAGGER_BASE:= $(HOMEPATH)/Dropbox/tagger/comictagger
+TAGGER_BASE?= $(HOMEPATH)/Dropbox/tagger/comictagger
 TAGGER_SRC := $(TAGGER_BASE)/comictaggerlib
 DIST_DIR := $(TAGGER_BASE)\windows\dist
 NSIS_CMD :=	"C:\Program Files (x86)\NSIS\makensis.exe"
