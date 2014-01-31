@@ -1,4 +1,12 @@
 ---------------------------------  
+1.1.10-beta - 30-Jan-2014
+---------------------------------
+ * Updated series query to match changes on Comic Vine side
+ * Added a message when not able to open a file or folder
+ * Fixed an issue where series names with periods would fail on search 
+ * Other misc bug fixes
+
+---------------------------------  
 1.1.9-beta - 8-May-2013
 ---------------------------------
  * Filename parser and identification enhancements
