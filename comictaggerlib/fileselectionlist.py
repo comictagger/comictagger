@@ -198,7 +198,13 @@ class FileSelectionList(QWidget):
 		progdialog.close()
 		if firstAdded is not None:
 			self.twList.selectRow(firstAdded)
+		else:
+			if len(pathlist) == 1 and os.path.isfile(pathlist[0]):
+				QMessageBox.information(self, self.tr("File Open"), self.tr("Selected file doesn't seem to be a comic archive."))
+			else:
+				QMessageBox.information(self, self.tr("File/Folder Open"), self.tr("No comic archives were found."))
 			
+		
 		self.twList.setSortingEnabled(True)
 		
 		# Adjust column size
