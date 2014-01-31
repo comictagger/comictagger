@@ -145,10 +145,22 @@ class ComicVineTalker(QObject):
 				return cached_search_results
 		
 		original_series_name = series_name
-	
-		series_name = urllib.quote_plus(series_name.encode("utf-8"))
-		#series_name = urllib.quote_plus(unicode(series_name))
-		search_url = self.api_base_url + "/search/?api_key=" + self.api_key + "&format=json&resources=volume&query=" + series_name + "&field_list=name,id,start_year,publisher,image,description,count_of_issues"
+		
+		# We need to make the series name into an "AND"ed query list
+		query_word_list = series_name.split()
+		and_list =  ['AND'] * (len(query_word_list)-1)
+		and_list.append('')
+		# zipper up the two lists
+		query_list = zip(query_word_list, and_list)
+		# flatten the list
+		query_list = [ item for sublist in query_list for item in sublist]
+		# convert back to a string
+		query_string = " ".join( query_list ).strip()
+		#print "Query string = ", query_string
+		
+		query_string = urllib.quote_plus(query_string.encode("utf-8"))
+
+		search_url = self.api_base_url + "/search/?api_key=" + self.api_key + "&format=json&resources=volume&query=" + query_string + "&field_list=name,id,start_year,publisher,image,description,count_of_issues"
 		content = self.getUrlContent(search_url + "&page=1") 
 	
 		cv_response = json.loads(content)
