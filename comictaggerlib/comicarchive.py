@@ -609,7 +609,7 @@ class ComicArchive:
 		if ( 
 		      ( self.isZip() or  self.isRar() ) #or self.isFolder() )
 		      and
-		      ( self.getNumberOfPages() > 2)
+		      ( self.getNumberOfPages() > 0)
 
 			):
 			return True
