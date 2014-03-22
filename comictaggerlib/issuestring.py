@@ -52,35 +52,39 @@ class IssueString:
 		else:
 			start  = 0
 
-		# walk through the string, look for split point (the first non-numeric)
-		decimal_count = 0
-		for idx in range( start, len(text) ):
-			if text[idx] not in "0123456789.":
-				break
-			# special case: also split on second "."
-			if text[idx] == ".":
-				decimal_count += 1
-				if decimal_count > 1:
+		# if it's still not numeric at start skip it
+		if text[start].isdigit() or text[start] == ".":
+			# walk through the string, look for split point (the first non-numeric)
+			decimal_count = 0
+			for idx in range( start, len(text) ):
+				if text[idx] not in "0123456789.":
 					break
+				# special case: also split on second "."
+				if text[idx] == ".":
+					decimal_count += 1
+					if decimal_count > 1:
+						break
+			else:
+				idx = len(text)
+	
+			# move trailing numeric decimal to suffix
+			# (only if there is other junk after )
+			if text[idx-1] == "." and len(text) != idx:
+				idx = idx -1
+			
+			# if there is no numeric after the minus, make the minus part of the suffix
+			if idx == 1 and start == 1:
+				idx = 0
+			
+			part1 = text[0:idx]
+			part2 = text[idx:len(text)]
+			
+			if part1 != "":
+				self.num = float( part1 )
+			self.suffix = part2
 		else:
-			idx = len(text)
-
-		# move trailing numeric decimal to suffix
-		# (only if there is other junk after )
-		if text[idx-1] == "." and len(text) != idx:
-			idx = idx -1
-		
-		# if there is no numeric after the minus, make the minus part of the suffix
-		if idx == 1 and start == 1:
-			idx = 0
-		
-		part1 = text[0:idx]
-		part2 = text[idx:len(text)]
-		
-		if part1 != "":
-			self.num = float( part1 )
-		self.suffix = part2
-		
+			self.suffix = text
+					
 		#print "num: {0} suf: {1}".format(self.num, self.suffix)
 
 	def asString( self, pad = 0 ):
