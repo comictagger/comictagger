@@ -24,7 +24,7 @@ import urllib,urllib2
 import ctversion
 
 try:
-	from PyQt4.QtNetwork import QNetworkAccessManager, QNetworkRequest
+	from PyQt4.QtNetwork import QNetworkAccessManager, QNetworkRequest, QNetworkReply
 	from PyQt4.QtCore import QUrl, pyqtSignal, QObject, QByteArray
 except ImportError:
 	# No Qt, so define a few dummy QObjects to help us compile
@@ -82,6 +82,9 @@ class VersionChecker(QObject):
 		self.nam.get(QNetworkRequest(QUrl(str(url))))
 		
 	def asyncGetLatestVersionComplete( self, reply ):
+		if (reply.error() != QNetworkReply.NoError):
+			return
+			
 		# read in the response
 		new_version = str(reply.readAll())
 
