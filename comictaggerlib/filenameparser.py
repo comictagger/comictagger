@@ -170,8 +170,11 @@ class FileNameParser:
 		series = tmpstr	
 		volume = ""
 
-		#save the last word		
-		last_word = series.split()[-1]
+		#save the last word
+		try: 
+			last_word = series.split()[-1]
+		except:
+			last_word = ""			
 		
 		# remove any parenthetical phrases
 		series = re.sub( "\(.*?\)", "", series)
@@ -197,10 +200,13 @@ class FileNameParser:
 		# be removed to help search online		
 		if issue_start == 0:
 			one_shot_words = [ "tpb", "os", "one-shot", "ogn", "gn" ]
-			last_word = series.split()[-1]
-			if last_word.lower() in one_shot_words:
-				series = series.rsplit(' ', 1)[0]
-				
+			try:
+				last_word = series.split()[-1]
+				if last_word.lower() in one_shot_words:
+					series = series.rsplit(' ', 1)[0]
+			except:
+				pass
+							
 		return series, volume.strip()
 
 	def getYear( self,filename, issue_end):
@@ -269,4 +275,3 @@ class FileNameParser:
 				self.issue = "0"
 			if self.issue[0] == ".":
 				self.issue = "0" + self.issue
-
