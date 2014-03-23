@@ -16,6 +16,7 @@ Feature Requests:
 	(GC #18 ) Option for handling colon in rename
 	(GC #31 ) Specify CV Series ID for auto-tag
 	Re-org - move to new folder based on template
+	repair incorrect extension
 	
 	Denied Requests (for now):
 		Auto-rename on auto-tag
