@@ -9,8 +9,7 @@ setup(name = "comictagger",
     author = "Anthony Beville",
     author_email = "comictagger@gmail.com",
     url = "http://code.google.com/p/comictagger/",
-    #download_url = "http://comictagger.googlecode.com/files/comictagger-{0}.zip".format(comictaggerlib.ctversion.version),
-    download_url = "https://drive.google.com/uc?export=download&id=0Bw4IursaqWhhTjZ6UDB1aEx1am8",
+    download_url = "https://pypi.python.org/packages/source/c/comictagger/comictagger-{0}.zip".format(comictaggerlib.ctversion.version),
     packages =  [ "comictaggerlib", "comictaggerlib/UnRAR2" ] ,
     package_data = {
       'comictaggerlib': ['ui/*.ui', 'graphics/*'] ,
@@ -37,7 +36,7 @@ setup(name = "comictagger",
     license = "Apache License 2.0",
     
     long_description = """
-ComicTagger is a multi-platform app for writing metadata to comic archives, written in Python and PyQt.
+ComicTagger is a multi-platform app for writing metadata to digital comics, written in Python and PyQt.
 
 Features:
 
