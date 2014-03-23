@@ -6,7 +6,7 @@ This should probably be re-written, but, well, it mostly works!
 """
 
 """
-Copyright 2012  Anthony Beville
+Copyright 2012-2014  Anthony Beville
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

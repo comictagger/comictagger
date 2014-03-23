@@ -3,7 +3,7 @@ CLI options class for comictagger app
 """
 
 """
-Copyright 2012  Anthony Beville
+Copyright 2012-2014  Anthony Beville
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -304,7 +304,7 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
 			if o  == "--nooverwrite":
 				self.no_overwrite = True
 			if o  == "--version":
-				print "ComicTagger {0}:  Copyright (c) 2012-2013 Anthony Beville".format(ctversion.version)
+				print "ComicTagger {0}:  Copyright (c) 2012-2014 Anthony Beville".format(ctversion.version)
 				print "Distributed under Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)"
 				new_version = VersionChecker().getLatestVersion("", False)
 				if new_version is not None and new_version != ctversion.version:

@@ -4,7 +4,7 @@ The main window of the ComicTagger app
 """
 
 """
-Copyright 2012  Anthony Beville
+Copyright 2012-2014  Anthony Beville
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -473,7 +473,7 @@ class TaggerWindow( QtGui.QMainWindow):
 		msgBox.setIconPixmap( QtGui.QPixmap(ComicTaggerSettings.getGraphic('about.png')) )
 		msgBox.setText( "<br><br><br>" 
 		               + self.appName + " v" + self.version + "<br>" 
-		               + "(c)2012 Anthony Beville<br><br>"
+		               + "(c)2014 Anthony Beville<br><br>"
 		               + "<a href='{0}'>{0}</a><br><br>".format(website)
 		               + "<a href='mailto:{0}'>{0}</a><br><br>".format(email) 
 		               + "License: <a href='{0}'>{1}</a>".format(license_link, license_name) )
