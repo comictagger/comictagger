@@ -49,9 +49,9 @@ remove_test_install:
 #		#-d 'python-qt4 >= 4.8' 
 		
 upload:
-	$(UPLOAD_TOOL) -p comictagger -s "ComicTagger $(VERSION_STR) Source" -l Featured,Type-Source -u beville -w $(PASSWORD) "release/comictagger-$(VERSION_STR).zip"
-	$(UPLOAD_TOOL) -p comictagger -s "ComicTagger $(VERSION_STR)  Mac OS X" -l Featured,Type-Archive -u beville -w $(PASSWORD) "release/ComicTagger-$(VERSION_STR).dmg"
-	$(UPLOAD_TOOL) -p comictagger -s "ComicTagger $(VERSION_STR)  Windows" -l Featured,Type-Installer -u beville -w $(PASSWORD) "release/ComicTagger v$(VERSION_STR).exe"
+	#$(UPLOAD_TOOL) -p comictagger -s "ComicTagger $(VERSION_STR) Source" -l Featured,Type-Source -u beville -w $(PASSWORD) "release/comictagger-$(VERSION_STR).zip"
+	#$(UPLOAD_TOOL) -p comictagger -s "ComicTagger $(VERSION_STR)  Mac OS X" -l Featured,Type-Archive -u beville -w $(PASSWORD) "release/ComicTagger-$(VERSION_STR).dmg"
+	#$(UPLOAD_TOOL) -p comictagger -s "ComicTagger $(VERSION_STR)  Windows" -l Featured,Type-Installer -u beville -w $(PASSWORD) "release/ComicTagger v$(VERSION_STR).exe"
 	python setup.py register
  
 svn_tag:
