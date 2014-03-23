@@ -1,4 +1,9 @@
 ---------------------------------  
+1.1.12-beta - 23-Mar-2014
+---------------------------------
+ * Fixed noisy version update error
+
+---------------------------------  
 1.1.11-beta - 23-Mar-2014
 ---------------------------------
  * Updated unrar library to hand Rar tools 5.0 and greater
