@@ -87,7 +87,10 @@ Release Process
 		Make dmg on Mac
 		Make zip on Mac or Linux
     Tag the repository
-	Upload packages
+	Manually upload release packages to Google Drive
+	Update the Downloads wiki page with direct links
+		Edit setup.py to add direct link to zip
+		"make upload"	 
 	Announce on Forum and Main Page and Twitter
 	MacUpdate
 	Update appspot value
