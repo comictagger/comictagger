@@ -89,9 +89,8 @@ Release Process
     Tag the repository
 	Manually upload release packages to Google Drive
 	Update the Downloads wiki page with direct links
-		Edit setup.py to add direct link to zip
-		"make upload"	 
-	Announce on Forum and Main Page and Twitter
+	"make upload" to the pypi site 
+	Announce on Forum and Main Page and Twitter and Facebook
 	MacUpdate
 	Update appspot value
 	
