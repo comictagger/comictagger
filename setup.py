@@ -1,9 +1,13 @@
 #!/usr/bin/env python
 
-from distutils.core import setup
+from setuptools import setup
 import comictaggerlib.ctversion
 
+with open('requirements.txt') as f:
+    required = f.read().splitlines()
+    
 setup(name = "comictagger",
+    install_requires=required,
     version =  comictaggerlib.ctversion.version,
     description = "A cross-platform GUI/CLI app for writing metadata to comic archives",
     author = "Anthony Beville",
