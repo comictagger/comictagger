@@ -31,7 +31,7 @@ class PageType:
 	InnerCover   = "InnerCover"
 	Roundup      = "Roundup"
 	Story        = "Story"
-	Advertisment = "Advertisement"
+	Advertisement = "Advertisement"
 	Editorial    = "Editorial"
 	Letters      = "Letters"
 	Preview      = "Preview"

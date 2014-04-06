@@ -64,7 +64,7 @@ class PageListEditor(QWidget):
 	pageTypeNames = {
 		PageType.FrontCover: "Front Cover",
 		PageType.InnerCover: "Inner Cover",
-		PageType.Advertisment: "Advertisment",
+		PageType.Advertisement: "Advertisement",
 		PageType.Roundup: "Roundup",
 		PageType.Story: "Story",
 		PageType.Editorial: "Editorial",
@@ -92,7 +92,7 @@ class PageListEditor(QWidget):
 		self.comboBox.addItem( "", "" )
 		self.comboBox.addItem( self.pageTypeNames[ PageType.FrontCover], PageType.FrontCover )
 		self.comboBox.addItem( self.pageTypeNames[ PageType.InnerCover], PageType.InnerCover )
-		self.comboBox.addItem( self.pageTypeNames[ PageType.Advertisment], PageType.Advertisment )
+		self.comboBox.addItem( self.pageTypeNames[ PageType.Advertisement], PageType.Advertisement )
 		self.comboBox.addItem( self.pageTypeNames[ PageType.Roundup], PageType.Roundup )
 		self.comboBox.addItem( self.pageTypeNames[ PageType.Story], PageType.Story )
 		self.comboBox.addItem( self.pageTypeNames[ PageType.Editorial], PageType.Editorial )
