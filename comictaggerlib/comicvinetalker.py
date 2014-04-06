@@ -458,11 +458,25 @@ class ComicVineTalker(QObject):
 			metadata.storyArc =  utils.listToString(arc_list)
 
 		return metadata
-	
 	def cleanup_html( self, string):
+		"""
+		converter = html2text.HTML2Text()
+		#converter.emphasis_mark = '*'
+		#converter.ignore_links = True
+		converter.body_width = 0
+		
+		print html2text.html2text(string)
+		return string
+		#return converter.handle(string)
+		"""	
+
 		
 		if string is None:
 			return ""
+		# find any tables
+		soup = BeautifulSoup(string)
+		tables = soup.findAll('table')
+
 		# remove all newlines first
 		string = string.replace("\n", "")
 		
@@ -471,6 +485,10 @@ class ComicVineTalker(QObject):
 		string = string.replace("</p>", "\n\n")
 		string = string.replace("<h4>", "*")
 		string = string.replace("</h4>", "*\n")
+
+		#remove the tables
+		p = re.compile(r'<table[^<]*?>.*?<\/table>')
+		string = p.sub('{}',string)
 		
 		# now strip all other tags
 		p = re.compile(r'<[^<]*?>')
@@ -480,6 +498,57 @@ class ComicVineTalker(QObject):
 		newstring = newstring.replace('&amp;','&')
 	
 		newstring = newstring.strip()
+
+		# now rebuild the tables into text from BSoup
+		try:
+			table_strings = []
+			for table in tables:		
+				rows = []
+				hdrs = []
+				col_widths = []
+				for hdr in table.findAll('th'):
+					item = hdr.string.strip()
+					hdrs.append(item)
+					col_widths.append(len(item))
+				rows.append(hdrs)
+				
+				for row in table.findAll('tr'):
+					cols = []
+					col = row.findAll('td')
+					i = 0
+					for c in col:
+						item = c.string.strip()
+						cols.append(item)
+						if len(item) > col_widths[i]:
+							col_widths[i] = len(item)
+						i += 1
+					if len(cols) != 0:
+						rows.append(cols)	
+				# now we have the data, make it into text
+				fmtstr =""
+				for w in col_widths:
+					fmtstr += " {{:{}}}|".format(w+1)
+				width = sum(col_widths) + len(col_widths)*2 
+				print "width=" , width
+				table_text = ""
+				counter = 0
+				for row in rows:	
+					table_text += fmtstr.format(*row) + "\n"
+					if counter == 0 and len(hdrs)!= 0:
+						table_text += "-" * width + "\n"
+					counter += 1
+				
+				table_strings.append(table_text)
+				
+			newstring = newstring.format(*table_strings)	
+		except:
+			# we caught an error rebuilding the table.
+			# just bail and remove the formatting
+			print "table pare error"
+			newstring.replace("{}", "")
+
+		
+			
 		return newstring
 
 	def fetchIssueDate( self, issue_id ):
