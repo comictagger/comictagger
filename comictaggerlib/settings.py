@@ -32,11 +32,15 @@ class ComicTaggerSettings:
 
 	@staticmethod
 	def getSettingsFolder():
+		filename_encoding = sys.getfilesystemencoding()
 		if platform.system() == "Windows":
-			return os.path.join( os.environ['APPDATA'], 'ComicTagger' )
+			folder = os.path.join( os.environ['APPDATA'], 'ComicTagger' )
 		else:
-			return os.path.join( os.path.expanduser('~') , '.ComicTagger')
-
+			folder = os.path.join( os.path.expanduser('~') , '.ComicTagger')
+		if folder is not None:
+			folder = folder.decode(filename_encoding)
+		return folder
+		
 	frozen_win_exe_path = None
 	
 	@staticmethod
