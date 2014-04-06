@@ -79,7 +79,7 @@ class TaggerWindow( QtGui.QMainWindow):
 	appName = "ComicTagger"
 	version = ctversion.version
 	
-	def __init__(self, file_list, settings, parent = None):
+	def __init__(self, file_list, settings, parent = None, opts=None):
 		super(TaggerWindow, self).__init__(parent)
 
 		uic.loadUi(ComicTaggerSettings.getUIFile('taggerwindow.ui' ), self)
@@ -118,6 +118,11 @@ class TaggerWindow( QtGui.QMainWindow):
 		self.scrollAreaWidgetContents.adjustSize()
 		
 		self.setWindowIcon(QtGui.QIcon( ComicTaggerSettings.getGraphic('app.png')))
+
+		if opts is not None and opts.data_style is not None and opts.data_style != MetaDataStyle.COMET:
+			#respect the command line option tag type
+			settings.last_selected_save_data_style = opts.data_style
+			settings.last_selected_load_data_style = opts.data_style
 
 		self.save_data_style = settings.last_selected_save_data_style
 		self.load_data_style = settings.last_selected_load_data_style

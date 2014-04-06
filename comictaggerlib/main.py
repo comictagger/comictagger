@@ -64,7 +64,7 @@ def ctmain():
 			app.processEvents()
 	
 		try:			
-			tagger_window = TaggerWindow( opts.file_list, settings )
+			tagger_window = TaggerWindow( opts.file_list, settings, opts=opts )
 			tagger_window.show()
 
 			if platform.system() != "Linux":
