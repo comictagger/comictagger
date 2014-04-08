@@ -42,12 +42,12 @@ sys.path.insert(0, os.path.abspath(".") )
 import UnRAR2
 from UnRAR2.rar_exceptions import *
 
+from settings import ComicTaggerSettings
 from comicinfoxml import ComicInfoXml
 from comicbookinfo import ComicBookInfo
 from comet import CoMet
 from genericmetadata import GenericMetadata, PageType
 from filenameparser import FileNameParser
-from settings import ComicTaggerSettings
 
 class MetaDataStyle:
 	CBI = 0
@@ -239,9 +239,9 @@ class ZipArchiver:
 class RarArchiver:
 	
 	devnull = None
-	def __init__( self, path, settings ):
+	def __init__( self, path, rar_exe_path ):
 		self.path = path
-		self.settings = settings
+		self.rar_exe_path = rar_exe_path
 
 		if RarArchiver.devnull is None:
 			RarArchiver.devnull = open(os.devnull, "w")
@@ -264,7 +264,7 @@ class RarArchiver:
 
 	def setArchiveComment( self, comment ):
 
-		if self.settings.rar_exe_path is not None:
+		if self.rar_exe_path is not None:
 			try:
 				# write comment to temp file
 				tmp_fd, tmp_name = tempfile.mkstemp()
@@ -275,7 +275,7 @@ class RarArchiver:
 				working_dir = os.path.dirname( os.path.abspath( self.path ) )
 
 				# use external program to write comment to Rar archive
-				subprocess.call([self.settings.rar_exe_path, 'c', '-w' + working_dir , '-c-', '-z' + tmp_name, self.path], 
+				subprocess.call([self.rar_exe_path, 'c', '-w' + working_dir , '-c-', '-z' + tmp_name, self.path], 
 					startupinfo=self.startupinfo, 
 					stdout=RarArchiver.devnull)
 				
@@ -333,7 +333,7 @@ class RarArchiver:
 		
 	def writeArchiveFile( self, archive_file, data ):
 
-		if self.settings.rar_exe_path is not None:
+		if self.rar_exe_path is not None:
 			try:
 				tmp_folder = tempfile.mkdtemp()
 
@@ -348,7 +348,7 @@ class RarArchiver:
 				f.close()
 				
 				# use external program to write file to Rar archive
-				subprocess.call([self.settings.rar_exe_path, 'a', '-w' + working_dir ,'-c-', '-ep', self.path, tmp_file], 
+				subprocess.call([self.rar_exe_path, 'a', '-w' + working_dir ,'-c-', '-ep', self.path, tmp_file], 
 					startupinfo=self.startupinfo,
 					stdout=RarArchiver.devnull)
 
@@ -364,10 +364,10 @@ class RarArchiver:
 			return False
 			
 	def removeArchiveFile( self, archive_file ):
-		if self.settings.rar_exe_path is not None:
+		if self.rar_exe_path is not None:
 			try:
 				# use external program to remove file from Rar archive
-				subprocess.call([self.settings.rar_exe_path, 'd','-c-', self.path, archive_file], 
+				subprocess.call([self.rar_exe_path, 'd','-c-', self.path, archive_file], 
 					startupinfo=self.startupinfo, 				   
 					stdout=RarArchiver.devnull)
 
@@ -515,17 +515,17 @@ class ComicArchive:
 	class ArchiveType:
 		Zip, Rar, Folder, Unknown = range(4)
     
-	def __init__( self, path, settings ):
+	def __init__( self, path, rar_exe_path=None ):
 		self.path = path
 		
+		self.rar_exe_path = rar_exe_path
 		self.ci_xml_filename = 'ComicInfo.xml'
 		self.comet_default_filename = 'CoMet.xml'
 		self.resetCache()
-		self.settings = settings
 		
 		if self.rarTest(): 
 			self.archive_type =  self.ArchiveType.Rar
-			self.archiver = RarArchiver( self.path, settings )
+			self.archiver = RarArchiver( self.path, rar_exe_path=self.rar_exe_path )
 			
 		elif self.zipTest():
 			self.archive_type =  self.ArchiveType.Zip
@@ -588,7 +588,7 @@ class ComicArchive:
 		if self.archive_type == self.ArchiveType.Unknown :
 			return False
 		
-		elif check_rar_status and self.isRar() and self.settings.rar_exe_path is None:
+		elif check_rar_status and self.isRar() and self.rar_exe_path is None:
 			return False
 			
 		elif not os.access(self.path, os.W_OK):
@@ -1016,7 +1016,7 @@ class ComicArchive:
 
 
 			
-	def metadataFromFilename( self ):
+	def metadataFromFilename( self , parse_scan_info=True):
 		 
 		metadata = GenericMetadata()
 		
@@ -1033,7 +1033,7 @@ class ComicArchive:
 			metadata.year = fnp.year
 		if fnp.issue_count != "":
 			metadata.issueCount = fnp.issue_count
-		if self.settings.parse_scan_info:
+		if parse_scan_info:
 			if fnp.remainder != "":
 				metadata.scanInfo = fnp.remainder
 
