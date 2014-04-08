@@ -44,7 +44,7 @@ def main():
 		print >> sys.stderr, filename + ": not found!"
 		return
 		
-	ca = ComicArchive(filename, settings )
+	ca = ComicArchive(filename, settings.rar_exe_path )
 	if not ca.seemsToBeAComicArchive():
 		print >> sys.stderr, "Sorry, but "+ filename + "  is not a comic archive!"
 		return

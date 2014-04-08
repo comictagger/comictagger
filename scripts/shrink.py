@@ -52,7 +52,7 @@ def main():
 	fmt_str = u"{{0:{0}}}".format(max_name_len)	
 	for filename in filelist:
 			
-		ca = ComicArchive(filename, settings )
+		ca = ComicArchive(filename, settings.rar_exe_path )
 		if (ca.seemsToBeAComicArchive()):
 			# Check the images in the file, see if we need to reduce any
 			
@@ -180,7 +180,7 @@ def main():
 			
 			# Create a new archive object for the new file, and write the old CIX data, w/o page info
 			if cix_md is not None:
-				ca = ComicArchive( filename, settings )
+				ca = ComicArchive( filename, settings.rar_exe_path )
 				cix_md.pages = []
 				ca.writeCIX( cix_md )
 

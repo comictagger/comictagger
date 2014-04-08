@@ -51,7 +51,7 @@ def main():
 	modify_list = []	
 	for filename in filelist:
 			
-		ca = ComicArchive(filename, settings )
+		ca = ComicArchive(filename, settings.rar_exe_path )
 		if (ca.isZip or ca.isRar()) and ca.hasMetadata( style ):
 			md = ca.readMetadata( style )
 			if len(md.pages) != 0:
@@ -63,7 +63,7 @@ def main():
 		
 	#now actually process those files
 	for filename,md in modify_list:
-		ca = ComicArchive(filename, settings )
+		ca = ComicArchive(filename, settings.rar_exe_path )
 		curr_folder = os.path.dirname( filename )
 		curr_subfolder = os.path.join( curr_folder, subfolder_name )
 
@@ -140,7 +140,7 @@ def main():
 			print "Done!".format(filename)
 			
 			# Create a new archive object for the new file, and write the old CIX data, with new page info
-			ca = ComicArchive( filename, settings )
+			ca = ComicArchive( filename, settings.rar_exe_path )
 			md.pages = new_pages
 			ca.writeMetadata( style, md )
 

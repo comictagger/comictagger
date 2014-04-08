@@ -99,7 +99,7 @@ def main():
 	max_name_len = 2
 	fmt_str = ""
 	for filename in filelist:
-		ca = ComicArchive(filename, settings )
+		ca = ComicArchive(filename, settings.rar_exe_path )
 		# do we care if it already has metadata?
 		if ca.seemsToBeAComicArchive() and not ca.hasMetadata( style ):
 

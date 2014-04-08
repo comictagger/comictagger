@@ -43,7 +43,7 @@ def main():
 	metadata_list = []	
 	max_name_len = 2
 	for filename in filelist:
-		ca = ComicArchive(filename, settings )
+		ca = ComicArchive(filename, settings.rar_exe_path )
 		if ca.hasMetadata( style ):
 			#make a list of paired filenames and metadata objects
 			metadata_list.append((filename, ca.readMetadata( style )))

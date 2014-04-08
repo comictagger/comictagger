@@ -28,7 +28,7 @@ def main():
 	comic_list = []
 	max_name_len = 2
 	for filename in filelist:
-		ca = ComicArchive(filename, settings )
+		ca = ComicArchive(filename, settings.rar_exe_path )
 		if ca.seemsToBeAComicArchive() and ca.hasMetadata( style ):
 			max_name_len = max ( max_name_len, len(filename))
 			fmt_str = u"{{0:{0}}}".format(max_name_len)
@@ -74,7 +74,7 @@ def main():
 	print "Found {0} duplicate sets".format( len(dupe_set_list))
 
 	for dupe_set in dupe_set_list:
-		ca = ComicArchive(dupe_set[0], settings )
+		ca = ComicArchive(dupe_set[0], settings.rar_exe_path )
 		md = ca.readMetadata( style )
 		print "{0} #{1} ({2})".format( md.series, md.issue, md.year )
 		for filename in dupe_set:
