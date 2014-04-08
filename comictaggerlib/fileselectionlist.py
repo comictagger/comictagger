@@ -236,7 +236,7 @@ class FileSelectionList(QWidget):
 		if self.isListDupe(path):
 			return None
 		
-		ca = ComicArchive( path, self.settings )
+		ca = ComicArchive( path, self.settings.rar_exe_path )
 			
 		if ca.seemsToBeAComicArchive() :
 			row = self.twList.rowCount()
