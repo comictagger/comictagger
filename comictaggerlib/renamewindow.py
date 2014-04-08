@@ -72,7 +72,7 @@ class RenameWindow(QtGui.QDialog):
 
 			md = ca.readMetadata(self.data_style)
 			if md.isEmpty:
-				md = ca.metadataFromFilename()
+				md = ca.metadataFromFilename(self.settings.parse_scan_info)
 			self.renamer.setMetadata( md )
 			new_name = self.renamer.determineName( ca.path, ext=new_ext )		
 
