@@ -21,7 +21,9 @@ limitations under the License.
 
 from PyQt4 import QtCore, QtGui, uic
 from PyQt4.QtCore import QUrl,pyqtSignal
+from PyQt4 import QtNetwork       
 
+import sys
 import signal
 import locale
 import platform
@@ -30,6 +32,7 @@ import pprint
 import json
 import webbrowser
 import re
+import pickle
 
 from volumeselectionwindow import VolumeSelectionWindow
 from comicarchive import MetaDataStyle
@@ -84,6 +87,37 @@ class TaggerWindow( QtGui.QMainWindow):
 
 		uic.loadUi(ComicTaggerSettings.getUIFile('taggerwindow.ui' ), self)
 		self.settings = settings
+
+		#----------------------------------
+		# prevent multiple instances
+		socket = QtNetwork.QLocalSocket(self) 
+		socket.connectToServer(settings.install_id)
+		alive = socket.waitForConnected(3000)
+		if alive:
+			print "Another application with key [{}] is already running".format( settings.install_id)
+			# send file list to other instance
+			if len(file_list) > 0:
+				socket.write(pickle.dumps(file_list))
+				if not socket.waitForBytesWritten(3000):
+					print socket.errorString().toLatin1()
+			socket.disconnectFromServer()			
+			sys.exit()
+		else:
+			# listen on a socket to prevent multiple instances
+			self.socketServer = QtNetwork.QLocalServer(self)
+			self.socketServer.newConnection.connect(self.onIncomingSocketConnection)
+			ok = self.socketServer.listen(settings.install_id)
+			if not ok:
+				if self.socketServer.serverError() == QtNetwork.QAbstractSocket.AddressInUseError:
+					#print "Resetting unresponsive socket with key [{}]".format(settings.install_id)
+					self.socketServer.removeServer(settings.install_id)
+					ok = self.socketServer.listen(settings.install_id)
+				if not ok:
+					print "Cannot start local socket with key [{}]. Reason: %s ".format(settings.install_id, self.socketServer.errorString())
+					sys.exit()
+			#print "Registering as single instance with key [{}]".format(settings.install_id)
+		#----------------------------------
+
 
 		self.archiveCoverWidget = CoverImageWidget( self.coverImageContainer, CoverImageWidget.ArchiveMode )
 		gridlayout = QtGui.QGridLayout( self.coverImageContainer )
@@ -482,7 +516,7 @@ class TaggerWindow( QtGui.QMainWindow):
 		               + "<a href='{0}'>{0}</a><br><br>".format(website)
 		               + "<a href='mailto:{0}'>{0}</a><br><br>".format(email) 
 		               + "License: <a href='{0}'>{1}</a>".format(license_link, license_name) )
-							
+
 		msgBox.setStandardButtons( QtGui.QMessageBox.Ok )
 		msgBox.exec_()
 		
@@ -508,7 +542,7 @@ class TaggerWindow( QtGui.QMainWindow):
 
 	def actualLoadCurrentArchive( self ):
 		if self.metadata.isEmpty:
-			self.metadata = self.comic_archive.metadataFromFilename( )
+			self.metadata = self.comic_archive.metadataFromFilename( self.settings.parse_scan_info)
 		if len(self.metadata.pages) == 0:
 			self.metadata.setDefaultPageList( self.comic_archive.getNumberOfPages() )
 
@@ -874,7 +908,7 @@ class TaggerWindow( QtGui.QMainWindow):
 		if self.comic_archive is not None:
 			#copy the form onto metadata object
 			self.formToMetadata()
-			new_metadata = self.comic_archive.metadataFromFilename( )
+			new_metadata = self.comic_archive.metadataFromFilename(self.settings.parse_scan_info)
 			if new_metadata is not None:
 				self.metadata.overlay( new_metadata )				
 				self.metadataToForm()
@@ -1545,7 +1579,7 @@ class TaggerWindow( QtGui.QMainWindow):
 		# read in metadata, and parse file name if not there
 		md = ca.readMetadata( self.save_data_style )
 		if md.isEmpty:
-			md = ca.metadataFromFilename()
+			md = ca.metadataFromFilename(self.settings.parse_scan_info)
 			if dlg.ignoreLeadingDigitsInFilename and md.series is not None:
 				#remove all leading numbers
 				md.series = re.sub( "([\d.]*)(.*)", "\\2", md.series)
@@ -1880,4 +1914,18 @@ class TaggerWindow( QtGui.QMainWindow):
 					"Don't tell me about this version again")
 			if checked:
 				self.settings.dont_notify_about_this_version = new_version
-	
+
+	def onIncomingSocketConnection(self):
+		# accept connection from other instance.
+		# read in the file list if they're giving it,
+		# and add to our own list
+		localSocket = self.socketServer.nextPendingConnection()
+		if not localSocket.waitForReadyRead(3000):
+			print localSocket.errorString().toLatin1()
+			return
+		byteArray = localSocket.readAll()
+		if len(byteArray) > 0:
+			obj = pickle.loads(byteArray)
+			localSocket.disconnectFromServer()
+			if type(obj) is list:
+				self.fileSelectionList.addPathList( obj )
