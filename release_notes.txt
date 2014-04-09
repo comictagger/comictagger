@@ -1,4 +1,15 @@
 ---------------------------------  
+1.1.13-beta - 23-Mar-2014
+---------------------------------
+ * Handle non-ascii usernames properly
+ * better parsing of html table in summary text, and optional removal
+ * Python package should auto-install requirements
+ * Specify default GUI tag style on command-line
+ * enforce single GUI instance
+ * new CBL tranform to copy story arcs to generic tags
+ * Persist some auto-tag settings
+
+---------------------------------  
 1.1.12-beta - 23-Mar-2014
 ---------------------------------
  * Fixed noisy version update error

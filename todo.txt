@@ -1,3 +1,7 @@
+TOP!:
+		Does utils.get_actual_preferred_encoding() work on Mac python source version??
+				(And does it matter?)
+
 -----------------------------------------------------
 Features
 -----------------------------------------------------
@@ -11,12 +15,10 @@ Feature Requests:
 	Move CBR to other folder after conversion to ZIP
 	Pre-process series name before identification
 		(using a list of regex transforms) 
-	(GC #28) Save auto-tag options
 	(GC #24) Multiple options for -t i.e. "-t cr,cbl"
 	(GC #18 ) Option for handling colon in rename
 	(GC #31 ) Specify CV Series ID for auto-tag
 	Re-org - move to new folder based on template
-	repair incorrect extension
 	
 	Denied Requests (for now):
 		Auto-rename on auto-tag
