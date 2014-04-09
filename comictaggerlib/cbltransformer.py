@@ -74,6 +74,9 @@ class CBLTransformer:
 			
 		if self.settings.copy_locations_to_tags:
 			add_string_list_to_tags( self.metadata.locations )
+
+		if self.settings.copy_storyarcs_to_tags:
+			add_string_list_to_tags( self.metadata.storyArc )
 			
 		if self.settings.copy_notes_to_comments:
 			if self.metadata.notes is not None:

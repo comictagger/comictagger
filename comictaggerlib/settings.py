@@ -113,6 +113,7 @@ class ComicTaggerSettings:
 		self.copy_characters_to_tags = False
 		self.copy_teams_to_tags = False
 		self.copy_locations_to_tags = False
+		self.copy_storyarcs_to_tags = False
 		self.copy_notes_to_comments = False
 		self.copy_weblink_to_comments = False
 		self.apply_cbl_transform_on_cv_import = False
@@ -252,7 +253,9 @@ class ComicTaggerSettings:
 		if self.config.has_option('cbl_transform', 'copy_locations_to_tags'):
 			self.copy_locations_to_tags =                self.config.getboolean( 'cbl_transform', 'copy_locations_to_tags' )		
 		if self.config.has_option('cbl_transform', 'copy_notes_to_comments'):
-			self.copy_notes_to_comments =                self.config.getboolean( 'cbl_transform', 'copy_notes_to_comments' )		
+			self.copy_notes_to_comments =                self.config.getboolean( 'cbl_transform', 'copy_notes_to_comments' )
+		if self.config.has_option('cbl_transform', 'copy_storyarcs_to_tags'):
+			self.copy_storyarcs_to_tags =              self.config.getboolean( 'cbl_transform', 'copy_storyarcs_to_tags' )					
 		if self.config.has_option('cbl_transform', 'copy_weblink_to_comments'):
 			self.copy_weblink_to_comments =              self.config.getboolean( 'cbl_transform', 'copy_weblink_to_comments' )		
 		if self.config.has_option('cbl_transform', 'apply_cbl_transform_on_cv_import'):
@@ -328,6 +331,7 @@ class ComicTaggerSettings:
 		self.config.set( 'cbl_transform', 'copy_characters_to_tags', self.copy_characters_to_tags )
 		self.config.set( 'cbl_transform', 'copy_teams_to_tags', self.copy_teams_to_tags )
 		self.config.set( 'cbl_transform', 'copy_locations_to_tags', self.copy_locations_to_tags )
+		self.config.set( 'cbl_transform', 'copy_storyarcs_to_tags', self.copy_storyarcs_to_tags )
 		self.config.set( 'cbl_transform', 'copy_notes_to_comments', self.copy_notes_to_comments )
 		self.config.set( 'cbl_transform', 'copy_weblink_to_comments', self.copy_weblink_to_comments )
 		self.config.set( 'cbl_transform', 'apply_cbl_transform_on_cv_import', self.apply_cbl_transform_on_cv_import )

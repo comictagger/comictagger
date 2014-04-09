@@ -412,10 +412,17 @@
               <x>11</x>
               <y>21</y>
               <width>251</width>
-              <height>182</height>
+              <height>192</height>
              </rect>
             </property>
             <layout class="QGridLayout" name="gridLayout_7">
+             <item row="3" column="0">
+              <widget class="QCheckBox" name="cbxCopyLocationsToTags">
+               <property name="text">
+                <string>Copy Locations to Generic Tags</string>
+               </property>
+              </widget>
+             </item>
              <item row="0" column="0">
               <widget class="QCheckBox" name="cbxAssumeLoneCreditIsPrimary">
                <property name="text">
@@ -437,24 +444,24 @@
                </property>
               </widget>
              </item>
-             <item row="3" column="0">
-              <widget class="QCheckBox" name="cbxCopyLocationsToTags">
-               <property name="text">
-                <string>Copy Locations to Generic Tags</string>
-               </property>
-              </widget>
-             </item>
-             <item row="4" column="0">
+             <item row="5" column="0">
               <widget class="QCheckBox" name="cbxCopyNotesToComments">
                <property name="text">
                 <string>Copy Notes to Comments</string>
                </property>
               </widget>
              </item>
-             <item row="5" column="0">
+             <item row="6" column="0">
               <widget class="QCheckBox" name="cbxCopyWebLinkToComments">
                <property name="text">
                 <string>Copy Web Link to Comments</string>
+               </property>
+              </widget>
+             </item>
+             <item row="4" column="0">
+              <widget class="QCheckBox" name="cbxCopyStoryArcsToTags">
+               <property name="text">
+                <string>Copy Story Arcs to Generic Tags</string>
                </property>
               </widget>
              </item>
