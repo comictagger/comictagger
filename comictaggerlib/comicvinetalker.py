@@ -412,7 +412,7 @@ class ComicVineTalker(QObject):
 		metadata.day, metadata.month, metadata.year = self.parseDateStr( issue_results['cover_date'] )
 				
 		#metadata.issueCount = volume_results['count_of_issues']
-		metadata.comments = self.cleanup_html(issue_results['description'])
+		metadata.comments = self.cleanup_html(issue_results['description'], settings.remove_html_tables)
 		if settings.use_series_start_as_volume:
 			metadata.volume = volume_results['start_year']
 		
@@ -458,7 +458,7 @@ class ComicVineTalker(QObject):
 			metadata.storyArc =  utils.listToString(arc_list)
 
 		return metadata
-	def cleanup_html( self, string):
+	def cleanup_html( self, string, remove_html_tables):
 		"""
 		converter = html2text.HTML2Text()
 		#converter.emphasis_mark = '*'
@@ -488,7 +488,11 @@ class ComicVineTalker(QObject):
 
 		#remove the tables
 		p = re.compile(r'<table[^<]*?>.*?<\/table>')
-		string = p.sub('{}',string)
+		if remove_html_tables:
+			string = p.sub('',string)
+			string = string.replace("*List of covers and their creators:*","")
+		else:
+			string = p.sub('{}',string)
 		
 		# now strip all other tags
 		p = re.compile(r'<[^<]*?>')
@@ -499,54 +503,54 @@ class ComicVineTalker(QObject):
 	
 		newstring = newstring.strip()
 
-		# now rebuild the tables into text from BSoup
-		try:
-			table_strings = []
-			for table in tables:		
-				rows = []
-				hdrs = []
-				col_widths = []
-				for hdr in table.findAll('th'):
-					item = hdr.string.strip()
-					hdrs.append(item)
-					col_widths.append(len(item))
-				rows.append(hdrs)
-				
-				for row in table.findAll('tr'):
-					cols = []
-					col = row.findAll('td')
-					i = 0
-					for c in col:
-						item = c.string.strip()
-						cols.append(item)
-						if len(item) > col_widths[i]:
-							col_widths[i] = len(item)
-						i += 1
-					if len(cols) != 0:
-						rows.append(cols)	
-				# now we have the data, make it into text
-				fmtstr =""
-				for w in col_widths:
-					fmtstr += " {{:{}}}|".format(w+1)
-				width = sum(col_widths) + len(col_widths)*2 
-				print "width=" , width
-				table_text = ""
-				counter = 0
-				for row in rows:	
-					table_text += fmtstr.format(*row) + "\n"
-					if counter == 0 and len(hdrs)!= 0:
-						table_text += "-" * width + "\n"
-					counter += 1
-				
-				table_strings.append(table_text)
-				
-			newstring = newstring.format(*table_strings)	
-		except:
-			# we caught an error rebuilding the table.
-			# just bail and remove the formatting
-			print "table pare error"
-			newstring.replace("{}", "")
-
+		if not remove_html_tables:
+			# now rebuild the tables into text from BSoup
+			try:
+				table_strings = []
+				for table in tables:		
+					rows = []
+					hdrs = []
+					col_widths = []
+					for hdr in table.findAll('th'):
+						item = hdr.string.strip()
+						hdrs.append(item)
+						col_widths.append(len(item))
+					rows.append(hdrs)
+					
+					for row in table.findAll('tr'):
+						cols = []
+						col = row.findAll('td')
+						i = 0
+						for c in col:
+							item = c.string.strip()
+							cols.append(item)
+							if len(item) > col_widths[i]:
+								col_widths[i] = len(item)
+							i += 1
+						if len(cols) != 0:
+							rows.append(cols)	
+					# now we have the data, make it into text
+					fmtstr =""
+					for w in col_widths:
+						fmtstr += " {{:{}}}|".format(w+1)
+					width = sum(col_widths) + len(col_widths)*2 
+					print "width=" , width
+					table_text = ""
+					counter = 0
+					for row in rows:	
+						table_text += fmtstr.format(*row) + "\n"
+						if counter == 0 and len(hdrs)!= 0:
+							table_text += "-" * width + "\n"
+						counter += 1
+					
+					table_strings.append(table_text)
+					
+				newstring = newstring.format(*table_strings)	
+			except:
+				# we caught an error rebuilding the table.
+				# just bail and remove the formatting
+				print "table parse error"
+				newstring.replace("{}", "")
 		
 			
 		return newstring

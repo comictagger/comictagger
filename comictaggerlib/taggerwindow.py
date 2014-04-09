@@ -1003,6 +1003,9 @@ class TaggerWindow( QtGui.QMainWindow):
 				
 					if self.settings.apply_cbl_transform_on_cv_import:
 						new_metadata = CBLTransformer( new_metadata, self.settings ).apply()
+
+					if self.settings.clear_form_before_populating_from_cv:					
+						self.clearForm()
 						
 					self.metadata.overlay( new_metadata )				
 					# Now push the new combined data into the edit controls

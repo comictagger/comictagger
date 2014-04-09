@@ -341,12 +341,38 @@
           <rect>
            <x>30</x>
            <y>30</y>
-           <width>240</width>
+           <width>251</width>
            <height>25</height>
           </rect>
          </property>
          <property name="text">
           <string>Use Series Start Date as Volume</string>
+         </property>
+        </widget>
+        <widget class="QCheckBox" name="cbxClearFormBeforePopulating">
+         <property name="geometry">
+          <rect>
+           <x>30</x>
+           <y>50</y>
+           <width>341</width>
+           <height>25</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Clear Form Before Importing Comic Vine data</string>
+         </property>
+        </widget>
+        <widget class="QCheckBox" name="cbxRemoveHtmlTables">
+         <property name="geometry">
+          <rect>
+           <x>30</x>
+           <y>70</y>
+           <width>351</width>
+           <height>25</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Remove HTML tables from CV summary field</string>
          </property>
         </widget>
        </widget>
@@ -385,7 +411,7 @@
              <rect>
               <x>11</x>
               <y>21</y>
-              <width>246</width>
+              <width>251</width>
               <height>182</height>
              </rect>
             </property>

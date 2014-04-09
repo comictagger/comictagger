@@ -104,6 +104,8 @@ class ComicTaggerSettings:
 		
 		# Comic Vine settings
 		self.use_series_start_as_volume = False
+		self.clear_form_before_populating_from_cv = False
+		self.remove_html_tables = False
 		
 		# CBL Tranform settings
 		
@@ -235,6 +237,11 @@ class ComicTaggerSettings:
 						
 		if self.config.has_option('comicvine', 'use_series_start_as_volume'):
 			self.use_series_start_as_volume =        self.config.getboolean( 'comicvine', 'use_series_start_as_volume' )		
+		if self.config.has_option('comicvine', 'clear_form_before_populating_from_cv'):
+			self.clear_form_before_populating_from_cv =        self.config.getboolean( 'comicvine', 'clear_form_before_populating_from_cv' )		
+		if self.config.has_option('comicvine', 'remove_html_tables'):
+			self.remove_html_tables =        self.config.getboolean( 'comicvine', 'remove_html_tables' )		
+
 
 		if self.config.has_option('cbl_transform', 'assume_lone_credit_is_primary'):
 			self.assume_lone_credit_is_primary =         self.config.getboolean( 'cbl_transform', 'assume_lone_credit_is_primary' )		
@@ -311,6 +318,8 @@ class ComicTaggerSettings:
 			self.config.add_section( 'comicvine' )
 			
 		self.config.set( 'comicvine', 'use_series_start_as_volume', self.use_series_start_as_volume )
+		self.config.set( 'comicvine', 'clear_form_before_populating_from_cv', self.clear_form_before_populating_from_cv )
+		self.config.set( 'comicvine', 'remove_html_tables', self.remove_html_tables )
 
 		if not self.config.has_section( 'cbl_transform' ):
 			self.config.add_section( 'cbl_transform' )

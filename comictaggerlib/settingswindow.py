@@ -127,6 +127,10 @@ class SettingsWindow(QtGui.QDialog):
 			
 		if self.settings.use_series_start_as_volume:
 			self.cbxUseSeriesStartAsVolume.setCheckState( QtCore.Qt.Checked)
+		if self.settings.clear_form_before_populating_from_cv:
+			self.cbxClearFormBeforePopulating.setCheckState( QtCore.Qt.Checked)
+		if self.settings.remove_html_tables:
+			self.cbxRemoveHtmlTables.setCheckState( QtCore.Qt.Checked)
 	
 		if self.settings.assume_lone_credit_is_primary:
 			self.cbxAssumeLoneCreditIsPrimary.setCheckState( QtCore.Qt.Checked)
@@ -177,6 +181,8 @@ class SettingsWindow(QtGui.QDialog):
 		self.settings.parse_scan_info = self.cbxParseScanInfo.isChecked()
 
 		self.settings.use_series_start_as_volume = self.cbxUseSeriesStartAsVolume.isChecked()
+		self.settings.clear_form_before_populating_from_cv = self.cbxClearFormBeforePopulating.isChecked()
+		self.settings.remove_html_tables = self.cbxRemoveHtmlTables.isChecked()
 				
 		self.settings.assume_lone_credit_is_primary = self.cbxAssumeLoneCreditIsPrimary.isChecked()
 		self.settings.copy_characters_to_tags = self.cbxCopyCharactersToTags.isChecked()
