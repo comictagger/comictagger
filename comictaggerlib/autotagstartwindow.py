@@ -48,6 +48,17 @@ class AutoTagStartWindow(QtGui.QDialog):
 		self.cbxSpecifySearchString.setCheckState( QtCore.Qt.Unchecked )
 		self.leNameLengthMatchTolerance.setText( str(self.settings.id_length_delta_thresh) )
 		self.leSearchString.setEnabled( False )
+		
+		if self.settings.save_on_low_confidence:
+			self.cbxSaveOnLowConfidence.setCheckState( QtCore.Qt.Checked)		
+		if self.settings.dont_use_year_when_identifying:
+			self.cbxDontUseYear.setCheckState( QtCore.Qt.Checked)		
+		if self.settings.assume_1_if_no_issue_num:
+			self.cbxAssumeIssueOne.setCheckState( QtCore.Qt.Checked)		
+		if self.settings.ignore_leading_numbers_in_filename:
+			self.cbxIgnoreLeadingDigitsInFilename.setCheckState( QtCore.Qt.Checked)		
+		if self.settings.remove_archive_after_successful_match:
+			self.cbxRemoveAfterSuccess.setCheckState( QtCore.Qt.Checked)		
 
 		nlmtTip = (
 			""" <html>The <b>Name Length Match Tolerance</b> is for eliminating automatic
@@ -96,6 +107,13 @@ class AutoTagStartWindow(QtGui.QDialog):
 		self.ignoreLeadingDigitsInFilename = self.cbxIgnoreLeadingDigitsInFilename.isChecked()
 		self.removeAfterSuccess = self.cbxRemoveAfterSuccess.isChecked()
 		self.nameLengthMatchTolerance = int(self.leNameLengthMatchTolerance.text())
+		
+		#persist some settings
+		self.settings.save_on_low_confidence = self.autoSaveOnLow
+		self.settings.dont_use_year_when_identifying = self.dontUseYear
+		self.settings.assume_1_if_no_issue_num = self.assumeIssueOne
+		self.settings.ignore_leading_numbers_in_filename = self.ignoreLeadingDigitsInFilename
+		self.settings.remove_archive_after_successful_match = self.removeAfterSuccess
 		
 		if self.cbxSpecifySearchString.isChecked():
 			self.searchString = unicode(self.leSearchString.text())

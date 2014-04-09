@@ -124,6 +124,13 @@ class ComicTaggerSettings:
 		self.rename_issue_number_padding = 3
 		self.rename_use_smart_string_cleanup = True
 		self.rename_extension_based_on_archive = True
+		
+		#Auto-tag stickies
+		self.save_on_low_confidence = False
+		self.dont_use_year_when_identifying = False
+		self.assume_1_if_no_issue_num = False
+		self.ignore_leading_numbers_in_filename = False
+		self.remove_archive_after_successful_match = False
 
 	def __init__(self):
 		
@@ -271,7 +278,18 @@ class ComicTaggerSettings:
 			self.rename_use_smart_string_cleanup =  self.config.getboolean( 'rename', 'rename_use_smart_string_cleanup' )		
 		if self.config.has_option('rename', 'rename_extension_based_on_archive'):
 			self.rename_extension_based_on_archive =  self.config.getboolean( 'rename', 'rename_extension_based_on_archive' )		
-			
+
+		if self.config.has_option('autotag', 'save_on_low_confidence'):
+			self.save_on_low_confidence =  self.config.getboolean( 'autotag', 'save_on_low_confidence' )		
+		if self.config.has_option('autotag', 'dont_use_year_when_identifying'):
+			self.dont_use_year_when_identifying =  self.config.getboolean( 'autotag', 'dont_use_year_when_identifying' )		
+		if self.config.has_option('autotag', 'assume_1_if_no_issue_num'):
+			self.assume_1_if_no_issue_num =  self.config.getboolean( 'autotag', 'assume_1_if_no_issue_num' )		
+		if self.config.has_option('autotag', 'ignore_leading_numbers_in_filename'):
+			self.ignore_leading_numbers_in_filename =  self.config.getboolean( 'autotag', 'ignore_leading_numbers_in_filename' )		
+		if self.config.has_option('autotag', 'remove_archive_after_successful_match'):
+			self.remove_archive_after_successful_match =  self.config.getboolean( 'autotag', 'remove_archive_after_successful_match' )		
+		
 	def save( self ):
 
 		if not self.config.has_section( 'settings' ):
@@ -344,6 +362,14 @@ class ComicTaggerSettings:
 		self.config.set( 'rename', 'rename_issue_number_padding', self.rename_issue_number_padding )
 		self.config.set( 'rename', 'rename_use_smart_string_cleanup', self.rename_use_smart_string_cleanup )
 		self.config.set( 'rename', 'rename_extension_based_on_archive', self.rename_extension_based_on_archive )
+
+		if not self.config.has_section( 'autotag' ):
+			self.config.add_section( 'autotag' )
+		self.config.set( 'autotag', 'save_on_low_confidence', self.save_on_low_confidence )
+		self.config.set( 'autotag', 'dont_use_year_when_identifying', self.dont_use_year_when_identifying )
+		self.config.set( 'autotag', 'assume_1_if_no_issue_num', self.assume_1_if_no_issue_num )
+		self.config.set( 'autotag', 'ignore_leading_numbers_in_filename', self.ignore_leading_numbers_in_filename )
+		self.config.set( 'autotag', 'remove_archive_after_successful_match', self.remove_archive_after_successful_match )
 		
 		with codecs.open( self.settings_file, 'wb', 'utf8') as configfile:
 			self.config.write(configfile)    
