@@ -1,5 +1,5 @@
 ---------------------------------  
-1.1.13-beta - 23-Mar-2014
+1.1.13-beta - 9-Apr-2014
 ---------------------------------
  * Handle non-ascii usernames properly
  * better parsing of html table in summary text, and optional removal
