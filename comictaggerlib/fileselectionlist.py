@@ -31,7 +31,10 @@ from settings import ComicTaggerSettings
 from comicarchive import ComicArchive
 from comicarchive import MetaDataStyle
 from genericmetadata import GenericMetadata, PageType
+from optionalmsgdialog import OptionalMessageDialog
 import utils
+import platform
+import os
 
 class FileTableWidget( QTableWidget ):
 
@@ -172,7 +175,6 @@ class FileSelectionList(QWidget):
 	def addPathList( self, pathlist ):
 		
 		filelist = utils.get_recursive_filelist( pathlist )
-			
 		# we now have a list of files to add
 
 		progdialog = QProgressDialog("", "Cancel", 0, len(filelist), self)
@@ -196,6 +198,21 @@ class FileSelectionList(QWidget):
 				firstAdded = row
 			
 		progdialog.close()
+		if self.settings.show_no_unrar_warning and self.settings.unrar_exe_path == "" and platform.system() != "Windows":
+			for f in filelist:
+				ext = os.path.splitext(f)[1].lower()
+				if ext == ".rar" or ext ==".cbr":
+					checked = OptionalMessageDialog.msg(  self, "No unrar tool",
+							"""
+							It looks like you've tried to load at least one CBR or RAR file.<br><br>
+							In order for ComicTagger to read this kind of file, you will have to configure
+							the location of the unrar tool in the settings.  Until then, ComicTagger
+							will not be able recognize these kind of files.
+							"""
+							)
+					self.settings.show_no_unrar_warning = not checked
+					break
+			
 		if firstAdded is not None:
 			self.twList.selectRow(firstAdded)
 		else:
@@ -226,7 +243,17 @@ class FileSelectionList(QWidget):
 				return True
 			r = r + 1
 			
-		return False		
+		return False
+
+	def getCurrentListRow( self, path ):
+		r = 0
+		while r < self.twList.rowCount():
+			ca = self.getArchiveByRow( r )
+			if ca.path == path:
+				return r
+			r = r + 1
+			
+		return -1		
 		
 	def addPathItem( self, path):
 		path = unicode( path )
@@ -234,7 +261,7 @@ class FileSelectionList(QWidget):
 		#print "processing", path
 		
 		if self.isListDupe(path):
-			return None
+			return self.getCurrentListRow(path)
 		
 		ca = ComicArchive( path, self.settings.rar_exe_path )
 			

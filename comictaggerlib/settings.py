@@ -98,6 +98,7 @@ class ComicTaggerSettings:
 		self.show_disclaimer = True
 		self.dont_notify_about_this_version = ""
 		self.ask_about_usage_stats = True
+		self.show_no_unrar_warning = True
 		
 		#filename parsing settings
 		self.parse_scan_info = True
@@ -242,6 +243,8 @@ class ComicTaggerSettings:
 			self.dont_notify_about_this_version = self.config.get( 'dialogflags', 'dont_notify_about_this_version' )
 		if self.config.has_option('dialogflags', 'ask_about_usage_stats'):
 			self.ask_about_usage_stats =        self.config.getboolean( 'dialogflags', 'ask_about_usage_stats' )		
+		if self.config.has_option('dialogflags', 'show_no_unrar_warning'):
+			self.show_no_unrar_warning =        self.config.getboolean( 'dialogflags', 'show_no_unrar_warning' )		
 						
 		if self.config.has_option('comicvine', 'use_series_start_as_volume'):
 			self.use_series_start_as_volume =        self.config.getboolean( 'comicvine', 'use_series_start_as_volume' )		
@@ -329,6 +332,7 @@ class ComicTaggerSettings:
 		self.config.set( 'dialogflags', 'show_disclaimer', self.show_disclaimer )
 		self.config.set( 'dialogflags', 'dont_notify_about_this_version', self.dont_notify_about_this_version )
 		self.config.set( 'dialogflags', 'ask_about_usage_stats', self.ask_about_usage_stats )
+		self.config.set( 'dialogflags', 'show_no_unrar_warning', self.show_no_unrar_warning )
 
 		if not self.config.has_section( 'filenameparser' ):
 			self.config.add_section( 'filenameparser' )
