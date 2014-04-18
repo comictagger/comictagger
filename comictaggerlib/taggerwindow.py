@@ -1923,12 +1923,47 @@ class TaggerWindow( QtGui.QMainWindow):
 		# read in the file list if they're giving it,
 		# and add to our own list
 		localSocket = self.socketServer.nextPendingConnection()
-		if not localSocket.waitForReadyRead(3000):
-			print localSocket.errorString().toLatin1()
-			return
-		byteArray = localSocket.readAll()
-		if len(byteArray) > 0:
-			obj = pickle.loads(byteArray)
-			localSocket.disconnectFromServer()
-			if type(obj) is list:
-				self.fileSelectionList.addPathList( obj )
+		if localSocket.waitForReadyRead(3000):
+			byteArray = localSocket.readAll()
+			if len(byteArray) > 0:
+				obj = pickle.loads(byteArray)
+				localSocket.disconnectFromServer()
+				if type(obj) is list:
+					self.fileSelectionList.addPathList( obj )
+		else:
+			#print localSocket.errorString().toLatin1()
+			pass
+
+		self.bringToTop()
+
+	def bringToTop(self):
+		if platform.system() == "Windows":
+			self.showNormal()
+			self.raise_()
+			self.activateWindow()
+			try:
+				import win32con
+				import win32gui
+				hwnd = self.effectiveWinId()
+				rect = win32gui.GetWindowRect(hwnd)
+				x = rect[0]
+				y = rect[1]
+				w = rect[2] - x
+				h = rect[3] - y
+				# mark it "always on top", just for a moment, to force it to the top
+				win32gui.SetWindowPos(hwnd,win32con.HWND_TOPMOST,   x, y, w, h, 0)
+				win32gui.SetWindowPos(hwnd,win32con.HWND_NOTOPMOST, x, y, w, h, 0)
+			except Exception as e:
+				print "Whoops", e
+		elif platform.system() == "Darwin":
+			self.raise_()
+			self.showNormal()
+			self.activateWindow()
+		else:
+			flags = self.windowFlags() 
+			self.setWindowFlags( flags |  QtCore.Qt.WindowStaysOnTopHint | QtCore.Qt.X11BypassWindowManagerHint)
+			QtCore.QCoreApplication.processEvents()
+			#self.show()
+			self.setWindowFlags( flags )
+			self.show()
+		

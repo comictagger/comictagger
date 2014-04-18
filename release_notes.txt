@@ -1,4 +1,11 @@
 ---------------------------------  
+1.1.14-beta - 13-Apr-2014
+---------------------------------
+ * Make sure app gets raised when enforcing single instance
+ * Added warning dialog for when opening rar files, and no (un)rar tool 
+ * remove pil from python package requirements
+
+---------------------------------  
 1.1.13-beta - 9-Apr-2014
 ---------------------------------
  * Handle non-ascii usernames properly
