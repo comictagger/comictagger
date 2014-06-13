@@ -26,6 +26,7 @@ def main():
 	#first find all comics with metadata
 	print >> sys.stderr, "reading in all comics..."
 	comic_list = []
+	fmt_str = ""
 	max_name_len = 2
 	for filename in filelist:
 		ca = ComicArchive(filename, settings.rar_exe_path )
