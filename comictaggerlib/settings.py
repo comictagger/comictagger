@@ -107,6 +107,7 @@ class ComicTaggerSettings:
 		self.use_series_start_as_volume = False
 		self.clear_form_before_populating_from_cv = False
 		self.remove_html_tables = False
+		self.cv_api_key = ""
 		
 		# CBL Tranform settings
 		
@@ -132,6 +133,7 @@ class ComicTaggerSettings:
 		self.assume_1_if_no_issue_num = False
 		self.ignore_leading_numbers_in_filename = False
 		self.remove_archive_after_successful_match = False
+		self.wait_and_retry_on_rate_limit = False
 
 	def __init__(self):
 		
@@ -252,7 +254,8 @@ class ComicTaggerSettings:
 			self.clear_form_before_populating_from_cv =        self.config.getboolean( 'comicvine', 'clear_form_before_populating_from_cv' )		
 		if self.config.has_option('comicvine', 'remove_html_tables'):
 			self.remove_html_tables =        self.config.getboolean( 'comicvine', 'remove_html_tables' )		
-
+		if self.config.has_option('comicvine', 'cv_api_key'):
+			self.cv_api_key =                self.config.get( 'comicvine', 'cv_api_key' )		
 
 		if self.config.has_option('cbl_transform', 'assume_lone_credit_is_primary'):
 			self.assume_lone_credit_is_primary =         self.config.getboolean( 'cbl_transform', 'assume_lone_credit_is_primary' )		
@@ -292,6 +295,8 @@ class ComicTaggerSettings:
 			self.ignore_leading_numbers_in_filename =  self.config.getboolean( 'autotag', 'ignore_leading_numbers_in_filename' )		
 		if self.config.has_option('autotag', 'remove_archive_after_successful_match'):
 			self.remove_archive_after_successful_match =  self.config.getboolean( 'autotag', 'remove_archive_after_successful_match' )		
+		if self.config.has_option('autotag', 'wait_and_retry_on_rate_limit'):
+			self.wait_and_retry_on_rate_limit =  self.config.getboolean( 'autotag', 'wait_and_retry_on_rate_limit' )		
 		
 	def save( self ):
 
@@ -345,6 +350,7 @@ class ComicTaggerSettings:
 		self.config.set( 'comicvine', 'use_series_start_as_volume', self.use_series_start_as_volume )
 		self.config.set( 'comicvine', 'clear_form_before_populating_from_cv', self.clear_form_before_populating_from_cv )
 		self.config.set( 'comicvine', 'remove_html_tables', self.remove_html_tables )
+		self.config.set( 'comicvine', 'cv_api_key', self.cv_api_key )
 
 		if not self.config.has_section( 'cbl_transform' ):
 			self.config.add_section( 'cbl_transform' )
@@ -374,6 +380,7 @@ class ComicTaggerSettings:
 		self.config.set( 'autotag', 'assume_1_if_no_issue_num', self.assume_1_if_no_issue_num )
 		self.config.set( 'autotag', 'ignore_leading_numbers_in_filename', self.ignore_leading_numbers_in_filename )
 		self.config.set( 'autotag', 'remove_archive_after_successful_match', self.remove_archive_after_successful_match )
+		self.config.set( 'autotag', 'wait_and_retry_on_rate_limit', self.wait_and_retry_on_rate_limit )
 		
 		with codecs.open( self.settings_file, 'wb', 'utf8') as configfile:
 			self.config.write(configfile)    

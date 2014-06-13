@@ -24,6 +24,7 @@ from PyQt4 import QtCore, QtGui, uic
 
 from settings import ComicTaggerSettings
 from comicvinecacher import ComicVineCacher
+from comicvinetalker import ComicVineTalker
 from imagefetcher import ImageFetcher
 import utils
 
@@ -110,6 +111,7 @@ class SettingsWindow(QtGui.QDialog):
 		self.btnBrowseUnrar.clicked.connect(self.selectUnrar)		
 		self.btnClearCache.clicked.connect(self.clearCache)
 		self.btnResetSettings.clicked.connect(self.resetSettings)
+		self.btnTestKey.clicked.connect(self.testAPIKey)
 
 	def settingsToForm( self ):
 			
@@ -131,6 +133,7 @@ class SettingsWindow(QtGui.QDialog):
 			self.cbxClearFormBeforePopulating.setCheckState( QtCore.Qt.Checked)
 		if self.settings.remove_html_tables:
 			self.cbxRemoveHtmlTables.setCheckState( QtCore.Qt.Checked)
+		self.leKey.setText( str(self.settings.cv_api_key) )
 	
 		if self.settings.assume_lone_credit_is_primary:
 			self.cbxAssumeLoneCreditIsPrimary.setCheckState( QtCore.Qt.Checked)
@@ -185,7 +188,8 @@ class SettingsWindow(QtGui.QDialog):
 		self.settings.use_series_start_as_volume = self.cbxUseSeriesStartAsVolume.isChecked()
 		self.settings.clear_form_before_populating_from_cv = self.cbxClearFormBeforePopulating.isChecked()
 		self.settings.remove_html_tables = self.cbxRemoveHtmlTables.isChecked()
-				
+		self.settings.cv_api_key = unicode(self.leKey.text())
+		ComicVineTalker.api_key = self.settings.cv_api_key	
 		self.settings.assume_lone_credit_is_primary = self.cbxAssumeLoneCreditIsPrimary.isChecked()
 		self.settings.copy_characters_to_tags = self.cbxCopyCharactersToTags.isChecked()
 		self.settings.copy_teams_to_tags = self.cbxCopyTeamsToTags.isChecked()
@@ -215,6 +219,12 @@ class SettingsWindow(QtGui.QDialog):
 		ComicVineCacher( ).clearCache()	
 		QtGui.QMessageBox.information(self, self.name, "Cache has been cleared.")
 
+	def testAPIKey( self ):
+		if ComicVineTalker().testKey( unicode(self.leKey.text()) ):
+			QtGui.QMessageBox.information(self, "API Key Test", "Key is valid!")
+		else:
+			QtGui.QMessageBox.warning(self, "API Key Test", "Key is NOT valid.")
+			
 	
 	def resetSettings( self ):
 		self.settings.reset()

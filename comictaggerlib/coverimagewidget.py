@@ -237,8 +237,7 @@ class CoverImageWidget(QWidget):
 				
 	# called when the image is done loading from internet
 	def coverRemoteFetchComplete( self, image_data, issue_id ):
-		img = QImage()
-		img.loadFromData( image_data )
+		img = utils.getQImageFromData( image_data)
 		self.current_pixmap = QPixmap(img)
 		self.setDisplayPixmap( 0, 0)
 		#print "ATB cover fetch complete!"

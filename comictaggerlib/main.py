@@ -28,6 +28,7 @@ import utils
 import cli
 from settings import ComicTaggerSettings
 from options import Options
+from comicvinetalker import ComicVineTalker
 
 try:
 	qt_available = True
@@ -40,9 +41,20 @@ except ImportError as e:
 def ctmain():
 	utils.fix_output_encoding()
 	settings = ComicTaggerSettings()
-
+	
 	opts = Options()
 	opts.parseCmdLineArgs()
+	
+	# manage the CV API key
+	if opts.cv_api_key:
+		if opts.cv_api_key != settings.cv_api_key:
+			settings.cv_api_key = opts.cv_api_key
+			settings.save()
+	if opts.only_set_key:
+		print "Key set"
+		return
+			
+	ComicVineTalker.api_key = settings.cv_api_key
 
 	signal.signal(signal.SIGINT, signal.SIG_DFL)
 	

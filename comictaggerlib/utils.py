@@ -25,13 +25,14 @@ import re
 import platform
 import locale
 import codecs
+from settings import ComicTaggerSettings
 	
 class UtilsVars:
 	already_fixed_encoding = False
 
 def get_actual_preferred_encoding():
 	preferred_encoding = locale.getpreferredencoding()
-	if getattr(sys, 'frozen', None) and platform.system() == "Darwin":	
+	if platform.system() == "Darwin":	
 		preferred_encoding = "utf-8"
 	return preferred_encoding
 	
@@ -629,4 +630,34 @@ if qt_available:
 		# And vertical position the same, but with the height dimensions
 		vpos = ( main_window_size.height() - window.height() ) / 2
 		# And the move call repositions the window
-		window.move(hpos + main_window_size.left(), vpos + main_window_size.top())	
+		window.move(hpos + main_window_size.left(), vpos + main_window_size.top())
+
+	try: 
+		from PIL import Image
+		from PIL import WebPImagePlugin
+		import StringIO
+		pil_available = True
+	except ImportError:
+		pil_available = False
+
+	def getQImageFromData(image_data):
+		img = QtGui.QImage()
+		success = img.loadFromData( image_data )
+		if not success:
+			try:
+				if pil_available:
+					#  Qt doesn't understand the format, but maybe PIL does
+					# so try to convert the image data to uncompressed tiff format
+					im = Image.open(StringIO.StringIO(image_data))
+					output = StringIO.StringIO()
+					im.save(output, format="TIFF")
+					img.loadFromData( output.getvalue() )
+					success = True
+			except Exception as e:
+				pass
+		# if still nothing, go with default image
+		if not success:
+			img.load(ComicTaggerSettings.getGraphic('nocover.png'))
+		return img
+
+    

@@ -58,7 +58,9 @@ class AutoTagStartWindow(QtGui.QDialog):
 		if self.settings.ignore_leading_numbers_in_filename:
 			self.cbxIgnoreLeadingDigitsInFilename.setCheckState( QtCore.Qt.Checked)		
 		if self.settings.remove_archive_after_successful_match:
-			self.cbxRemoveAfterSuccess.setCheckState( QtCore.Qt.Checked)		
+			self.cbxRemoveAfterSuccess.setCheckState( QtCore.Qt.Checked)
+		if self.settings.wait_and_retry_on_rate_limit:
+			self.cbxWaitForRateLimit.setCheckState( QtCore.Qt.Checked)
 
 		nlmtTip = (
 			""" <html>The <b>Name Length Match Tolerance</b> is for eliminating automatic
@@ -90,6 +92,7 @@ class AutoTagStartWindow(QtGui.QDialog):
 		self.assumeIssueOne = False
 		self.ignoreLeadingDigitsInFilename = False
 		self.removeAfterSuccess = False
+		self.waitAndRetryOnRateLimit = False
 		self.searchString = None
 		self.nameLengthMatchTolerance =  self.settings.id_length_delta_thresh
 
@@ -107,6 +110,7 @@ class AutoTagStartWindow(QtGui.QDialog):
 		self.ignoreLeadingDigitsInFilename = self.cbxIgnoreLeadingDigitsInFilename.isChecked()
 		self.removeAfterSuccess = self.cbxRemoveAfterSuccess.isChecked()
 		self.nameLengthMatchTolerance = int(self.leNameLengthMatchTolerance.text())
+		self.waitAndRetryOnRateLimit = self.cbxWaitForRateLimit.isChecked()
 		
 		#persist some settings
 		self.settings.save_on_low_confidence = self.autoSaveOnLow
@@ -114,6 +118,7 @@ class AutoTagStartWindow(QtGui.QDialog):
 		self.settings.assume_1_if_no_issue_num = self.assumeIssueOne
 		self.settings.ignore_leading_numbers_in_filename = self.ignoreLeadingDigitsInFilename
 		self.settings.remove_archive_after_successful_match = self.removeAfterSuccess
+		self.settings.wait_and_retry_on_rate_limit = self.waitAndRetryOnRateLimit
 		
 		if self.cbxSpecifySearchString.isChecked():
 			self.searchString = unicode(self.leSearchString.text())

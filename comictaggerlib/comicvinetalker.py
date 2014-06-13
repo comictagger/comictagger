@@ -55,19 +55,50 @@ class CVTypeID:
 	Issue  = "4000"
 	
 class ComicVineTalkerException(Exception):
-	pass
+	Unknown = -1
+	Network = -2
+	InvalidKey = 100
+	RateLimit = 107
+	
+	def __init__(self, code=-1, desc=""):
+		self.desc = desc
+		self.code = code
+		
+	def __str__(self):
+		if (self.code == ComicVineTalkerException.Unknown or
+			self.code == ComicVineTalkerException.Network):
+			return self.desc
+		else:
+			return "CV error #{0}:  [{1}]. \n".format( self.code, self.desc )
+			
+			
 
 class ComicVineTalker(QObject):
 
 	logo_url = "http://static.comicvine.com/bundles/comicvinesite/images/logo.png"
+	api_key = ""
 
-	def __init__(self, api_key=""):
+	@staticmethod
+	def getRateLimitMessage():
+		if ComicVineTalker.api_key == "":
+			return "Comic Vine rate limit exceeded.  You should configue your own Comic Vine API key."
+		else:
+			return "Comic Vine rate limit exceeded.  Please wait a bit."
+
+
+	def __init__(self):
 		QObject.__init__(self)
 
 		self.api_base_url = "http://www.comicvine.com/api"
+		self.wait_for_rate_limit = False
 		
 		# key that is registered to comictagger
-		self.api_key = '27431e6787042105bd3e47e169a624521f89f3a4'
+		default_api_key = '27431e6787042105bd3e47e169a624521f89f3a4'
+		
+		if ComicVineTalker.api_key == "":
+			self.api_key = default_api_key
+		else:
+			self.api_key = ComicVineTalker.api_key
 
 		self.log_func = None
 
@@ -95,9 +126,9 @@ class ComicVineTalker(QObject):
 					day = parts[2]
 		return day, month, year
 					
-	def testKey( self ):
+	def testKey( self, key ):
 	
-		test_url = self.api_base_url + "/issue/1/?api_key=" + self.api_key + "&format=json&field_list=name"
+		test_url = self.api_base_url + "/issue/1/?api_key=" + key + "&format=json&field_list=name"
 		resp = urllib2.urlopen( test_url ) 
 		content = resp.read()
 	
@@ -106,6 +137,36 @@ class ComicVineTalker(QObject):
 		# Bogus request, but if the key is wrong, you get error 100: "Invalid API Key"
 		return cv_response[ 'status_code' ] != 100
 
+	"""
+	Get the contect from the CV server.  If we're in "wait mode" and status code is a rate limit error
+	sleep for a bit and retry.
+	"""
+	def getCVContent(self, url):
+		total_time_waited = 0
+		limit_wait_time = 1
+		counter = 0
+		wait_times = [1,2,3,4]
+		while True:
+			content = self.getUrlContent(url) 
+			cv_response = json.loads(content)
+			if self.wait_for_rate_limit and cv_response[ 'status_code' ] == ComicVineTalkerException.RateLimit:
+				self.writeLog( "Rate limit encountered.  Waiting for {0} minutes\n".format(limit_wait_time))
+				time.sleep(limit_wait_time * 60)
+				total_time_waited += limit_wait_time
+				limit_wait_time = wait_times[counter]
+				if counter < 3:
+					counter += 1
+				# don't wait much more than 20 minutes
+				if total_time_waited < 20:
+					continue	
+			if cv_response[ 'status_code' ] != 1:
+				self.writeLog( "Comic Vine query failed with error #{0}:  [{1}]. \n".format( cv_response[ 'status_code' ], cv_response[ 'error' ] ))
+				raise ComicVineTalkerException(cv_response[ 'status_code' ], cv_response[ 'error' ] )
+			else:
+				# it's all good
+				break
+		return cv_response
+		
 	def getUrlContent( self, url ):
 		# connect to server:
 		#  if there is a 500 error, try a few more times before giving up
@@ -126,9 +187,9 @@ class ComicVineTalker(QObject):
 				
 			except Exception as e:
 				self.writeLog( str(e)  + "\n" )
-				raise ComicVineTalkerException("Network Error!")
+				raise ComicVineTalkerException(ComicVineTalkerException.Network, "Network Error!")
 				
-		raise ComicVineTalkerException("Error on Comic Vine server")
+		raise ComicVineTalkerException(ComicVineTalkerException.Unknown, "Error on Comic Vine server")
 
 	def searchForSeries( self, series_name , callback=None, refresh_cache=False ):
 		
@@ -161,14 +222,8 @@ class ComicVineTalker(QObject):
 		query_string = urllib.quote_plus(query_string.encode("utf-8"))
 
 		search_url = self.api_base_url + "/search/?api_key=" + self.api_key + "&format=json&resources=volume&query=" + query_string + "&field_list=name,id,start_year,publisher,image,description,count_of_issues"
-		content = self.getUrlContent(search_url + "&page=1") 
-	
-		cv_response = json.loads(content)
-	
-		if cv_response[ 'status_code' ] != 1:
-			self.writeLog( "Comic Vine query failed with error:  [{0}]. \n".format( cv_response[ 'error' ] ))
-			return None
-
+		cv_response = self.getCVContent(search_url + "&page=1")
+		
 		search_results = list()
 			
 		# see http://api.comicvine.com/documentation/#handling_responses		
@@ -190,14 +245,9 @@ class ComicVineTalker(QObject):
 			if callback is None:
 				self.writeLog("getting another page of results {0} of {1}...\n".format( current_result_count, total_result_count))
 			page += 1
+			
+			cv_response = self.getCVContent(search_url + "&page="+str(page))
 
-			content = self.getUrlContent(search_url + "&page="+str(page)) 
-		
-			cv_response = json.loads(content)
-		
-			if cv_response[ 'status_code' ] != 1:
-				self.writeLog( "Comic Vine query failed with error:  [{0}]. \n".format( cv_response[ 'error' ] ))
-				return None
 			search_results.extend( cv_response['results'])
 			current_result_count += cv_response['number_of_page_results']
 			
@@ -229,12 +279,7 @@ class ComicVineTalker(QObject):
 	
 		volume_url = self.api_base_url + "/volume/" + CVTypeID.Volume + "-" + str(series_id) + "/?api_key=" + self.api_key + "&field_list=name,id,start_year,publisher,count_of_issues&format=json"
 
-		content = self.getUrlContent(volume_url) 	
-		cv_response = json.loads(content)
-
-		if cv_response[ 'status_code' ] != 1:
-			print >> sys.stderr, "Comic Vine query failed with error:  [{0}]. ".format( cv_response[ 'error' ] )
-			return None
+		cv_response = self.getCVContent(volume_url)
 
 		volume_results = cv_response['results']
 	
@@ -254,12 +299,8 @@ class ComicVineTalker(QObject):
 		
 		#---------------------------------	
 		issues_url = self.api_base_url + "/issues/" + "?api_key=" + self.api_key + "&filter=volume:" + str(series_id) + "&field_list=id,volume,issue_number,name,image,cover_date,site_detail_url,description&format=json"
-		content = self.getUrlContent(issues_url) 	
-		cv_response = json.loads(content)
-		
-		if cv_response[ 'status_code' ] != 1:
-			print >> sys.stderr, "Comic Vine query failed with error:  [{0}]. ".format( cv_response[ 'error' ] )
-			return None
+		cv_response = self.getCVContent(issues_url)
+
 		#------------------------------------
 		
 		limit = cv_response['limit']
@@ -279,12 +320,8 @@ class ComicVineTalker(QObject):
 			offset += cv_response['number_of_page_results']
 
 			#print issues_url+ "&offset="+str(offset)
-			content = self.getUrlContent(issues_url + "&offset="+str(offset)) 
-			cv_response = json.loads(content)
-		
-			if cv_response[ 'status_code' ] != 1:
-				self.writeLog( "Comic Vine query failed with error:  [{0}]. \n".format( cv_response[ 'error' ] ))
-				return None
+			cv_response = self.getCVContent(issues_url + "&offset="+str(offset))
+
 			volume_issues_result.extend( cv_response['results'])
 			current_result_count += cv_response['number_of_page_results']				
 				
@@ -310,12 +347,8 @@ class ComicVineTalker(QObject):
 		
 		issues_url = self.api_base_url + "/issues/" + "?api_key=" + self.api_key + filter + "&field_list=id,volume,issue_number,name,image,cover_date,site_detail_url,description&format=json"
 
-		content = self.getUrlContent(issues_url) 	
-		cv_response = json.loads(content)
-		
-		if cv_response[ 'status_code' ] != 1:
-			print >> sys.stderr, "Comic Vine query failed with error:  [{0}]. ".format( cv_response[ 'error' ] )
-			return None
+		cv_response = self.getCVContent(issues_url)	
+
 		#------------------------------------
 		
 		limit = cv_response['limit']
@@ -335,12 +368,8 @@ class ComicVineTalker(QObject):
 			offset += cv_response['number_of_page_results']
 
 			#print issues_url+ "&offset="+str(offset)
-			content = self.getUrlContent(issues_url + "&offset="+str(offset)) 
-			cv_response = json.loads(content)
-		
-			if cv_response[ 'status_code' ] != 1:
-				self.writeLog( "Comic Vine query failed with error:  [{0}]. \n".format( cv_response[ 'error' ] ))
-				return None
+			cv_response = self.getCVContent(issues_url + "&offset="+str(offset))	
+
 			filtered_issues_result.extend( cv_response['results'])
 			current_result_count += cv_response['number_of_page_results']				
 
@@ -366,11 +395,7 @@ class ComicVineTalker(QObject):
 		if (found):
 			issue_url = self.api_base_url + "/issue/" + CVTypeID.Issue + "-" + str(record['id']) + "/?api_key=" + self.api_key + "&format=json"
 
-			content = self.getUrlContent(issue_url) 
-			cv_response = json.loads(content)
-			if cv_response[ 'status_code' ] != 1:
-				print >> sys.stderr,  "Comic Vine query failed with error:  [{0}]. ".format( cv_response[ 'error' ] )
-				return None
+			cv_response = self.getCVContent(issue_url)	
 			issue_results = cv_response['results']
 
 		else:
@@ -382,11 +407,7 @@ class ComicVineTalker(QObject):
 	def fetchIssueDataByIssueID( self, issue_id, settings ):
 
 		issue_url = self.api_base_url + "/issue/" + CVTypeID.Issue + "-" + str(issue_id) + "/?api_key=" + self.api_key + "&format=json"
-		content = self.getUrlContent(issue_url)
-		cv_response = json.loads(content)
-		if cv_response[ 'status_code' ] != 1:
-			print >> sys.stderr,  "Comic Vine query failed with error:  [{0}]. ".format( cv_response[ 'error' ] )
-			return None
+		cv_response = self.getCVContent(issue_url)	
 		
 		issue_results = cv_response['results']
 
@@ -577,19 +598,14 @@ class ComicVineTalker(QObject):
 
 		issue_url = self.api_base_url + "/issue/" + CVTypeID.Issue + "-" + str(issue_id) + "/?api_key=" + self.api_key + "&format=json&field_list=image,cover_date,site_detail_url"
 
-		content = self.getUrlContent(issue_url) 
-		
 		details = dict()
 		details['image_url'] = None
 		details['thumb_image_url'] = None
 		details['cover_date'] = None
 		details['site_detail_url'] = None
 		
-		cv_response = json.loads(content)
-		if cv_response[ 'status_code' ] != 1:
-			print >> sys.stderr, "Comic Vine query failed with error:  [{0}]. ".format( cv_response[ 'error' ] )
-			return details
-		
+		cv_response = self.getCVContent(issue_url)	
+				
 		details['image_url'] =       cv_response['results']['image']['super_url']
 		details['thumb_image_url'] = cv_response['results']['image']['thumb_url']
 		details['cover_date'] =      cv_response['results']['cover_date']

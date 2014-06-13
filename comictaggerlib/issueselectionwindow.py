@@ -92,12 +92,15 @@ class IssueSelectionWindow(QtGui.QDialog):
 		QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
 
 		try:
-			comicVine = ComicVineTalker( )
+			comicVine = ComicVineTalker()
 			volume_data = comicVine.fetchVolumeData( self.series_id )
 			self.issue_list = comicVine.fetchIssuesByVolume( self.series_id )
-		except ComicVineTalkerException:
-			QtGui.QApplication.restoreOverrideCursor()		
-			QtGui.QMessageBox.critical(self, self.tr("Network Issue"), self.tr("Could not connect to ComicVine to list issues!"))
+		except ComicVineTalkerException as e:
+			QtGui.QApplication.restoreOverrideCursor()
+			if e.code == ComicVineTalkerException.RateLimit:
+				QtGui.QMessageBox.critical(self, self.tr("Comic Vine Error"), ComicVineTalker.getRateLimitMessage())
+			else:	
+				QtGui.QMessageBox.critical(self, self.tr("Network Issue"), self.tr("Could not connect to ComicVine to list issues!"))
 			return
 
 		while self.twList.rowCount() > 0:

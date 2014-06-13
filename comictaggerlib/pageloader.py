@@ -22,6 +22,7 @@ from PyQt4 import QtCore, QtGui, uic
 from PyQt4.QtCore import pyqtSignal
 
 from comicarchive import ComicArchive
+import utils
 
 """
 This class holds onto a reference of each instance in a list
@@ -66,8 +67,7 @@ class PageLoader( QtCore.QThread ):
 			return
 
 		if image_data is not None:
-			img = QtGui.QImage()
-			img.loadFromData( image_data )
+			img = utils.getQImageFromData( image_data)
 
 			if self.abandoned:
 				return

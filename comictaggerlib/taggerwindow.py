@@ -992,11 +992,14 @@ class TaggerWindow( QtGui.QMainWindow):
 			self.formToMetadata()
 			
 			try:
-				comicVine = ComicVineTalker( )
+				comicVine = ComicVineTalker()
 				new_metadata = comicVine.fetchIssueData( selector.volume_id, selector.issue_number, self.settings )
-			except ComicVineTalkerException:
+			except ComicVineTalkerException as e:
 				QtGui.QApplication.restoreOverrideCursor()		
-				QtGui.QMessageBox.critical(self, self.tr("Network Issue"), self.tr("Could not connect to ComicVine to get issue details!"))
+				if e.code == ComicVineTalkerException.RateLimit:
+					QtGui.QMessageBox.critical(self, self.tr("Comic Vine Error"), ComicVineTalker.getRateLimitMessage())
+				else:	
+					QtGui.QMessageBox.critical(self, self.tr("Network Issue"), self.tr("Could not connect to ComicVine to get issue details.!"))
 			else:
 				QtGui.QApplication.restoreOverrideCursor()		
 				if new_metadata is not None:
@@ -1554,7 +1557,9 @@ class TaggerWindow( QtGui.QMainWindow):
 		QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
 		
 		try:
-			cv_md = ComicVineTalker().fetchIssueData( match['volume_id'],  match['issue_number'], self.settings )
+			comicVine = ComicVineTalker( )
+			comicVine.wait_for_rate_limit = self.settings.wait_and_retry_on_rate_limit
+			cv_md = comicVine.fetchIssueData( match['volume_id'],  match['issue_number'], self.settings )
 		except ComicVineTalkerException:
 			print "Network error while getting issue details.  Save aborted"
 		
@@ -1601,6 +1606,7 @@ class TaggerWindow( QtGui.QMainWindow):
 			md.issue = "1"
 		ii.setAdditionalMetadata( md )
 		ii.onlyUseAdditionalMetaData = True
+		ii.waitAndRetryOnRateLimit = dlg.waitAndRetryOnRateLimit
 		ii.setOutputFunction( self.autoTagLog )
 		ii.cover_page_index = md.getCoverPageIndexList()[0]
 		ii.setCoverURLCallback( self.atprogdialog.setTestImage )
@@ -1682,6 +1688,7 @@ class TaggerWindow( QtGui.QMainWindow):
 		atstartdlg = AutoTagStartWindow( self, self.settings,
 					self.tr("You have selected {0} archive(s) to automatically identify and write {1} tags to.\n\n".format(len(ca_list), MetaDataStyle.name[style]) +
 							"Please choose options below, and select OK to Auto-Tag.\n" ))
+
 		atstartdlg.adjustSize( )
 		atstartdlg.setModal( True )
 		if not atstartdlg.exec_():

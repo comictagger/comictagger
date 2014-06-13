@@ -42,50 +42,53 @@ A utility for reading and writing metadata to comic archives.
 
 If no options are given, {0} will run in windowed mode
 
-  -p, --print                Print out tag info from file.  Specify type
-                             (via -t) to get only info of that tag type
-      --raw                  With -p, will print out the raw tag block(s)
-                             from the file
-  -d, --delete               Deletes the tag block of specified type (via -t)
-  -c, --copy=SOURCE          Copy the specified source tag block to destination style
-                             specified via via -t (potentially lossy operation)
-  -s, --save                 Save out tags as specified type (via -t)
-                             Must specify also at least -o, -p, or -m
-      --nooverwrite          Don't modify tag block if it already exists ( relevent for -s or -c )  
-  -1, --assume-issue-one     Assume issue number is 1 if not found ( relevent for -s )  
-  -n, --dryrun               Don't actually modify file (only relevent for -d, -s, or -r)
-  -t, --type=TYPE            Specify TYPE as either "CR", "CBL", or "COMET" (as either 
-                             ComicRack, ComicBookLover, or CoMet style tags, respectivly)
-  -f, --parsefilename        Parse the filename to get some info, specifically
-                             series name, issue number, volume, and publication 
-                             year
-  -i, --interactive          Interactively query the user when there are multiple matches for
-                             an online search
-      --nosummary            Suppress the default summary after a save operation
-  -o, --online               Search online and attempt to identify file using 
-                             existing metadata and images in archive. May be used
-                             in conjuntion with -f and -m
-      --id=ID                Use the issue ID when searching online.  Overrides all other metadata
-  -m, --metadata=LIST        Explicity define, as a list, some tags to be used                           
-                                e.g. "series=Plastic Man , publisher=Quality Comics"
-                                     "series=Kickers^, Inc., issue=1, year=1986"
-                             Name-Value pairs are comma separated.  Use a "^" to 
-                             escape an "=" or a ",", as shown in the example above
-                             Some names that can be used:
-                                 series, issue, issueCount, year, publisher, title
-  -r, --rename               Rename the file based on specified tag style.
-      --noabort              Don't abort save operation when online match is of low confidence
-  -e, --export-to-zip        Export RAR archive to Zip format
-      --delete-rar           Delete original RAR archive after successful export to Zip
-      --abort-on-conflict    Don't export to zip if intended new filename exists (Otherwise, creates
-                             a new unique filename)
-  -S, --script=FILE          Run an "add-on" python script that uses the comictagger library for custom
-                             processing.  Script arguments can follow the script name  
-  -R, --recursive            Recursively include files in sub-folders                            
-  -v, --verbose              Be noisy when doing what it does                            
-      --terse                Don't say much (for print mode)                            
-      --version              Display version                            
-  -h, --help                 Display this message
+  -p, --print                  Print out tag info from file.  Specify type
+                               (via -t) to get only info of that tag type
+      --raw                    With -p, will print out the raw tag block(s)
+                               from the file
+  -d, --delete                 Deletes the tag block of specified type (via -t)
+  -c, --copy=SOURCE            Copy the specified source tag block to destination style
+                               specified via via -t (potentially lossy operation)
+  -s, --save                   Save out tags as specified type (via -t)
+                               Must specify also at least -o, -p, or -m
+      --nooverwrite            Don't modify tag block if it already exists ( relevent for -s or -c )  
+  -1, --assume-issue-one       Assume issue number is 1 if not found ( relevent for -s )  
+  -n, --dryrun                 Don't actually modify file (only relevent for -d, -s, or -r)
+  -t, --type=TYPE              Specify TYPE as either "CR", "CBL", or "COMET" (as either 
+                               ComicRack, ComicBookLover, or CoMet style tags, respectivly)
+  -f, --parsefilename          Parse the filename to get some info, specifically
+                               series name, issue number, volume, and publication 
+                               year
+  -i, --interactive            Interactively query the user when there are multiple matches for
+                               an online search
+      --nosummary              Suppress the default summary after a save operation
+  -o, --online                 Search online and attempt to identify file using 
+                               existing metadata and images in archive. May be used
+                               in conjuntion with -f and -m
+      --id=ID                  Use the issue ID when searching online.  Overrides all other metadata
+  -m, --metadata=LIST          Explicity define, as a list, some tags to be used                           
+                                  e.g. "series=Plastic Man , publisher=Quality Comics"
+                                       "series=Kickers^, Inc., issue=1, year=1986"
+                               Name-Value pairs are comma separated.  Use a "^" to 
+                               escape an "=" or a ",", as shown in the example above
+                               Some names that can be used:
+                                   series, issue, issueCount, year, publisher, title
+  -r, --rename                 Rename the file based on specified tag style.
+      --noabort                Don't abort save operation when online match is of low confidence
+  -e, --export-to-zip          Export RAR archive to Zip format
+      --delete-rar             Delete original RAR archive after successful export to Zip
+      --abort-on-conflict      Don't export to zip if intended new filename exists (Otherwise, creates
+                               a new unique filename)
+  -S, --script=FILE            Run an "add-on" python script that uses the comictagger library for custom
+                               processing.  Script arguments can follow the script name  
+  -R, --recursive              Recursively include files in sub-folders                            
+      --cv-api-key=KEY         Use the given Comic Vine API Key (persisted in settings)                             
+      --only-set-cv-key        Only set the Comiv Vine API key and quit
+  -w, --wait-on-cv-rate-limit  When encountering a Comic Vine rate limit error, wait and retry query
+  -v, --verbose                Be noisy when doing what it does                            
+      --terse                  Don't say much (for print mode)                            
+      --version                Display version                            
+  -h, --help                   Display this message
   
 For more help visit the wiki at: http://code.google.com/p/comictagger/
 	"""
@@ -111,6 +114,8 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
 		self.parse_filename = False
 		self.show_save_summary = True
 		self.raw = False
+		self.cv_api_key = None
+		self.only_set_key = False
 		self.rename_file = False
 		self.no_overwrite = False
 		self.interactive = False
@@ -118,8 +123,10 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
 		self.recursive = False
 		self.run_script = False
 		self.script = None
+		self.wait_and_retry_on_rate_limit = False
 		self.assume_issue_is_one_if_not_set = False
 		self.file_list = []
+
 		
 	def display_msg_and_quit( self, msg, code, show_help=False ):
 		appname = os.path.basename(sys.argv[0])
@@ -235,11 +242,12 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
 		# parse command line options
 		try:
 			opts, args = getopt.getopt( input_args, 
-			           "hpdt:fm:vonsrc:ieRS:1", 
+			           "hpdt:fm:vownsrc:ieRS:1", 
 			           [ "help", "print", "delete", "type=", "copy=", "parsefilename", "metadata=", "verbose",
 			            "online", "dryrun", "save", "rename" , "raw", "noabort", "terse", "nooverwrite",
 			            "interactive", "nosummary", "version", "id=" , "recursive", "script=",
-			            "export-to-zip", "delete-rar", "abort-on-conflict", "assume-issue-one" ] )
+			            "export-to-zip", "delete-rar", "abort-on-conflict", "assume-issue-one",
+						"cv-api-key=", "only-set-cv-key", "wait-on-cv-rate-limit" ] )
 
 		except getopt.GetoptError as err:
 			self.display_msg_and_quit( str(err), 2 )
@@ -289,6 +297,8 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
 				self.abort_export_on_conflict = True				
 			if o in ("-f", "--parsefilename"):
 				self.parse_filename = True
+			if o in ("-w", "--wait-on-cv-rate-limit"):
+				self.wait_and_retry_on_rate_limit = True
 			if o == "--id":
 				self.issue_id = a
 			if o == "--raw":
@@ -303,6 +313,10 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
 				self.assume_issue_is_one_if_not_set = True
 			if o  == "--nooverwrite":
 				self.no_overwrite = True
+			if o == "--cv-api-key":
+				self.cv_api_key = a
+			if o  == "--only-set-cv-key":
+				self.only_set_key = True
 			if o  == "--version":
 				print "ComicTagger {0}:  Copyright (c) 2012-2014 Anthony Beville".format(ctversion.version)
 				print "Distributed under Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)"
@@ -322,7 +336,7 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
 				else:
 					self.display_msg_and_quit( "Invalid tag type", 1 )
 						
-		if self.print_tags or self.delete_tags or self.save_tags or self.copy_tags or self.rename_file or self.export_to_zip:
+		if self.print_tags or self.delete_tags or self.save_tags or self.copy_tags or self.rename_file or self.export_to_zip or self.only_set_key:
 			self.no_gui = True
 
 		count = 0
@@ -333,9 +347,10 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
 		if self.copy_tags: count += 1
 		if self.rename_file: count += 1
 		if self.export_to_zip: count +=1
+		if self.only_set_key: count +=1
 		
 		if count > 1:
-			self.display_msg_and_quit( "Must choose only one action of print, delete, save, copy, rename, export, or run script", 1 )
+			self.display_msg_and_quit( "Must choose only one action of print, delete, save, copy, rename, export, set key, or run script", 1 )
 
 		if self.script is not None:
 			self.launch_script( self.script )
@@ -352,8 +367,11 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
 			else:
 				self.filename = args[0]
 				self.file_list = args
+				
+		if self.only_set_key and self.cv_api_key == None:
+			self.display_msg_and_quit( "Key not given!", 1 )			
 
-		if self.no_gui and self.filename is None:
+		if (self.only_set_key == False) and self.no_gui and (self.filename is None):
 			self.display_msg_and_quit( "Command requires at least one filename!", 1 )
 			
 		if self.delete_tags and self.data_style is None:

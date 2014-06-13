@@ -23,7 +23,8 @@ import math
 import urllib2, urllib
 import StringIO
 try: 
-	import Image
+	from PIL import Image
+	from PIL import WebPImagePlugin
 	pil_available = True
 except ImportError:
 	pil_available = False
@@ -83,6 +84,7 @@ class IssueIdentifier:
 		self.search_result = self.ResultNoMatches
 		self.cover_page_index = 0
 		self.cancel = False
+		self.waitAndRetryOnRateLimit = False
 		
 	def setScoreMinThreshold( self, thresh ):
 		self.min_score_thresh = thresh
@@ -377,8 +379,9 @@ class IssueIdentifier:
 			self.log_msg( "\tMonth : " + str(keys['month']) )
 		
 		#self.log_msg("Publisher Blacklist: " + str(self.publisher_blacklist))
-		
 		comicVine = ComicVineTalker( )
+		comicVine.wait_for_rate_limit = self.waitAndRetryOnRateLimit
+		
 		comicVine.setLogFunc( self.output_function )
 
 		#self.log_msg( ( "Searching for " + keys['series'] + "...")
@@ -391,6 +394,9 @@ class IssueIdentifier:
 		
 		#self.log_msg( "Found " + str(len(cv_search_results)) + " initial results" )
 		if self.cancel == True:
+			return []
+		
+		if cv_search_results == None:
 			return []
 		
 		series_second_round_list = []
@@ -443,6 +449,9 @@ class IssueIdentifier:
 			self.log_msg( "Network issue while searching for series details.  Aborting...")
 			return []
 			
+		if issue_list is None:
+			return []
+		
 		shortlist = list()
 		#now re-associate the issues and volumes
 		for issue in issue_list:

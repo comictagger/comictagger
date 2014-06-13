@@ -60,11 +60,13 @@ class OnlineMatchResults():
 		
 #-----------------------------
 
-def actual_issue_data_fetch( match, settings ):
+def actual_issue_data_fetch( match, settings, opts ):
 
 	# now get the particular issue data
 	try:
-		cv_md = ComicVineTalker().fetchIssueData( match['volume_id'],  match['issue_number'], settings )
+		comicVine = ComicVineTalker()
+		comicVine.wait_for_rate_limit = opts.wait_and_retry_on_rate_limit
+		cv_md = comicVine.fetchIssueData( match['volume_id'],  match['issue_number'], settings )
 	except ComicVineTalkerException:
 		print >> sys.stderr, "Network error while getting issue details.  Save aborted"
 		return None
@@ -117,7 +119,7 @@ def display_match_set_for_choice( label, match_set, opts, settings ):
 			# we know at this point, that the file is all good to go
 			ca = ComicArchive( match_set.filename, settings.rar_exe_path )
 			md = create_local_metadata( opts, ca, ca.hasMetadata(opts.data_style) )
-			cv_md = actual_issue_data_fetch(match_set.matches[int(i)], settings)
+			cv_md = actual_issue_data_fetch(match_set.matches[int(i)], settings, opts)
 			md.overlay( cv_md )
 			actual_metadata_save( ca, opts, md )
 	
@@ -346,7 +348,9 @@ def process_file_cli( filename, opts, settings, match_results ):
 			if opts.issue_id is not None:
 				# we were given the actual ID to search with
 				try:
-					cv_md = ComicVineTalker().fetchIssueDataByIssueID( opts.issue_id, settings )
+					comicVine = ComicVineTalker()
+					comicVine.wait_for_rate_limit = opts.wait_and_retry_on_rate_limit
+					cv_md = comicVine.fetchIssueDataByIssueID( opts.issue_id, settings )
 				except ComicVineTalkerException:
 					print >> sys.stderr,"Network error while getting issue details.  Save aborted"
 					match_results.fetchDataFailures.append(filename)
@@ -374,6 +378,7 @@ def process_file_cli( filename, opts, settings, match_results ):
 				# use our overlayed MD struct to search
 				ii.setAdditionalMetadata( md )
 				ii.onlyUseAdditionalMetaData = True
+				ii.waitAndRetryOnRateLimit = opts.wait_and_retry_on_rate_limit
 				ii.setOutputFunction( myoutput )
 				ii.cover_page_index = md.getCoverPageIndexList()[0]
 				matches = ii.search()
@@ -421,7 +426,7 @@ def process_file_cli( filename, opts, settings, match_results ):
 				# we got here, so we have a single match
 				
 				# now get the particular issue data
-				cv_md = actual_issue_data_fetch(matches[0], settings)
+				cv_md = actual_issue_data_fetch(matches[0], settings, opts)
 				if cv_md is None:
 					match_results.fetchDataFailures.append(filename)
 					return

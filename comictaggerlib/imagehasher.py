@@ -21,7 +21,8 @@ import StringIO
 import sys
 
 try: 
-	import Image
+	from PIL import Image
+	from PIL import WebPImagePlugin		
 	pil_available = True
 except ImportError:
 	pil_available = False

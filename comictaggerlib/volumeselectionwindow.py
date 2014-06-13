@@ -46,15 +46,18 @@ class SearchThread( QtCore.QThread):
 		QtCore.QThread.__init__(self)
 		self.series_name = series_name
 		self.refresh = refresh
+		self.error_code = None
 		
 	def run(self):
-		comicVine = ComicVineTalker( )
+		comicVine = ComicVineTalker()
 		try:
 			self.cv_error = False
 			self.cv_search_results = comicVine.searchForSeries( self.series_name, callback=self.prog_callback, refresh_cache=self.refresh )
-		except ComicVineTalkerException:
+		except ComicVineTalkerException as e:
 			self.cv_search_results = []
 			self.cv_error = True
+			self.error_code = e.code
+
 		finally:
 			self.searchComplete.emit()
 		
@@ -293,7 +296,10 @@ class VolumeSelectionWindow(QtGui.QDialog):
 	def searchComplete( self ):
 		self.progdialog.accept()
 		if self.search_thread.cv_error:
-			QtGui.QMessageBox.critical(self, self.tr("Network Issue"), self.tr("Could not connect to ComicVine to search for series!"))
+			if self.search_thread.error_code == ComicVineTalkerException.RateLimit:
+				QtGui.QMessageBox.critical(self, self.tr("Comic Vine Error"), ComicVineTalker.getRateLimitMessage())
+			else:
+				QtGui.QMessageBox.critical(self, self.tr("Network Issue"), self.tr("Could not connect to ComicVine to search for series!"))
 			return
 		
 		self.cv_search_results = self.search_thread.cv_search_results		
