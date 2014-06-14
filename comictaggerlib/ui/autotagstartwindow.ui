@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>497</width>
+    <width>519</width>
     <height>378</height>
    </rect>
   </property>
@@ -53,7 +53,7 @@
         </sizepolicy>
        </property>
        <property name="text">
-        <string>Specify series search string for all selected archives</string>
+        <string>Specify series search string for all selected archives:</string>
        </property>
       </widget>
      </item>
@@ -99,7 +99,7 @@
      <item row="3" column="0">
       <widget class="QCheckBox" name="cbxWaitForRateLimit">
        <property name="text">
-        <string>Wait and retry when Comic Vine rate limit is exceeded</string>
+        <string>Wait and retry when Comic Vine rate limit is exceeded (experimental)</string>
        </property>
       </widget>
      </item>
