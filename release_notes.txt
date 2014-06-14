@@ -1,4 +1,11 @@
 ---------------------------------  
+1.1.15-beta - 13-Jun-2014
+---------------------------------
+ * WebP support
+ * Added user-configurable API key for Comic Vine access 
+ * Experimental option to wait and retry after exceeding Comic Vine rate limit
+
+---------------------------------  
 1.1.14-beta - 13-Apr-2014
 ---------------------------------
  * Make sure app gets raised when enforcing single instance
