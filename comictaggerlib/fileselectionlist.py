@@ -36,17 +36,6 @@ import utils
 import platform
 import os
 
-class FileTableWidget( QTableWidget ):
-
-	def __init__(self, parent ):
-		super(FileTableWidget, self).__init__(parent)
-		
-		
-		self.setColumnCount(5)
-		self.setHorizontalHeaderLabels (["File", "Folder", "CR", "CBL", ""])
-		self.horizontalHeader().setStretchLastSection( True )
-
-
 class FileTableWidgetItem(QTableWidgetItem):
    def __lt__(self, other):
         return (self.data(Qt.UserRole).toBool() <
@@ -79,7 +68,10 @@ class FileSelectionList(QWidget):
 		self.settings = settings
 
 		utils.reduceWidgetFontSize( self.twList )
-		
+
+		self.twList.setColumnCount(6)
+		#self.twlist.setHorizontalHeaderLabels (["File", "Folder", "CR", "CBL", ""])
+		#self.twList.horizontalHeader().setStretchLastSection( True )		
 		self.twList.currentItemChanged.connect( self.currentItemChangedCB )
 		
 		self.currentItem = None
