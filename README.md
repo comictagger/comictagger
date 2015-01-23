@@ -1,3 +1,12 @@
+This is a fork derived from google code:
+
+  https://code.google.com/p/comictagger/
+
+I've cloned the full subversion repository (with git-svn).
+Eventually I'll develop some experimental idea for comic tagging...
+
+Follows original readme:
+
 ComicTagger is a multi-platform app for writing metadata to digital comics, written in Python and PyQt.
 
 Features:
