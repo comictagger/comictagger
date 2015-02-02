@@ -1,6 +1,7 @@
 """
 A PyQT4 dialog to show ID log and progress
 """
+from comictaggerlib.ui.qtutils import reduceWidgetFontSize
 
 """
 Copyright 2012-2014  Anthony Beville
@@ -36,7 +37,7 @@ class IDProgressWindow(QtGui.QDialog):
 									  QtCore.Qt.WindowSystemMenuHint |
 									  QtCore.Qt.WindowMaximizeButtonHint)
 
-		utils.reduceWidgetFontSize( self.textEdit )
+		reduceWidgetFontSize( self.textEdit )
 
 
 		

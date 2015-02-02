@@ -117,7 +117,7 @@ def display_match_set_for_choice( label, match_set, opts, settings ):
 			i = int(i) - 1
 			# save the data!
 			# we know at this point, that the file is all good to go
-			ca = ComicArchive( match_set.filename, settings.rar_exe_path )
+			ca = ComicArchive( match_set.filename, settings.rar_exe_path, ComicTaggerSettings.getGraphic('nocover.png') )
 			md = create_local_metadata( opts, ca, ca.hasMetadata(opts.data_style) )
 			cv_md = actual_issue_data_fetch(match_set.matches[int(i)], settings, opts)
 			md.overlay( cv_md )
@@ -211,7 +211,7 @@ def process_file_cli( filename, opts, settings, match_results ):
 
 	batch_mode = len( opts.file_list ) > 1
 		
-	ca = ComicArchive(filename, settings.rar_exe_path)
+	ca = ComicArchive(filename, settings.rar_exe_path, ComicTaggerSettings.getGraphic('nocover.png'))
 	
 	if not os.path.lexists( filename ):
 		print >> sys.stderr,"Cannot find "+ filename

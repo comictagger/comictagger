@@ -2,6 +2,7 @@
 """
 The main window of the ComicTagger app
 """
+from comictaggerlib.ui.qtutils import reduceWidgetFontSize, centerWindowOnParent
 
 """
 Copyright 2012-2014  Anthony Beville
@@ -187,10 +188,10 @@ class TaggerWindow( QtGui.QMainWindow):
 		# for all sorts of wacky things
 
 		# tweak some control fonts	
-		utils.reduceWidgetFontSize( self.lblFilename, 1 )
-		utils.reduceWidgetFontSize( self.lblArchiveType )
-		utils.reduceWidgetFontSize( self.lblTagList )
-		utils.reduceWidgetFontSize( self.lblPageCount )
+		reduceWidgetFontSize( self.lblFilename, 1 )
+		reduceWidgetFontSize( self.lblArchiveType )
+		reduceWidgetFontSize( self.lblTagList )
+		reduceWidgetFontSize( self.lblPageCount )
 
 		#make sure some editable comboboxes don't take drop actions
 		self.cbFormat.lineEdit().setAcceptDrops(False)
@@ -450,7 +451,7 @@ class TaggerWindow( QtGui.QMainWindow):
 					progdialog.setValue(prog_idx)
 					prog_idx += 1
 					progdialog.setLabelText( ca.path )
-					utils.centerWindowOnParent( progdialog )
+					centerWindowOnParent( progdialog )
 					QtCore.QCoreApplication.processEvents()
 
 					original_path = os.path.abspath( ca.path )
@@ -1441,7 +1442,7 @@ class TaggerWindow( QtGui.QMainWindow):
 						progdialog.setValue(prog_idx)
 						prog_idx += 1
 						progdialog.setLabelText( ca.path )
-						utils.centerWindowOnParent( progdialog )
+						centerWindowOnParent( progdialog )
 						QtCore.QCoreApplication.processEvents()
 					
 					if ca.hasMetadata( style ) and ca.isWritable():
@@ -1518,7 +1519,7 @@ class TaggerWindow( QtGui.QMainWindow):
 						progdialog.setValue(prog_idx)
 						prog_idx += 1
 						progdialog.setLabelText( ca.path )
-						utils.centerWindowOnParent( progdialog )
+						centerWindowOnParent( progdialog )
 						QtCore.QCoreApplication.processEvents()
 					
 					if ca.hasMetadata( src_style ) and ca.isWritable():
@@ -1722,7 +1723,7 @@ class TaggerWindow( QtGui.QMainWindow):
 			self.atprogdialog.progressBar.setValue( prog_idx )
 			prog_idx += 1
 			self.atprogdialog.label.setText( ca.path )
-			utils.centerWindowOnParent( self.atprogdialog )
+			centerWindowOnParent( self.atprogdialog )
 			QtCore.QCoreApplication.processEvents()
 			
 			if ca.isWritable():

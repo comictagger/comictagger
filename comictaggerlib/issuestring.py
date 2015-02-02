@@ -1,3 +1,4 @@
+# coding=utf-8
 """
 Class for handling the odd permutations of an 'issue number' that the comics industry throws at us
 
@@ -123,6 +124,11 @@ class IssueString:
 	
 	def asFloat( self ):
 		#return the float, with no suffix
+		if self.suffix == u"½":
+			if self.num is not None:
+				return self.num + .5
+			else:
+				return .5
 		return self.num
 	
 	def asInt( self ):

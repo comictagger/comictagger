@@ -25,7 +25,7 @@ import zipfile
 
 from genericmetadata import GenericMetadata
 import utils
-import ctversion
+#import ctversion
 
 class ComicBookInfo:
 		 
@@ -103,7 +103,7 @@ class ComicBookInfo:
 		
 		# Create the dictionary that we will convert to JSON text
 		cbi = dict()
-		cbi_container = {'appID' : 'ComicTagger/' + ctversion.version, 
+		cbi_container = {'appID' : 'ComicTagger/' + '1.0.0', #ctversion.version, 
 		                 'lastModified' : str(datetime.now()), 
 		                 'ComicBookInfo/1.0' : cbi }
 		

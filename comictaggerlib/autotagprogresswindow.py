@@ -1,6 +1,7 @@
 """
 A PyQT4 dialog to show ID log and progress
 """
+from comictaggerlib.ui.qtutils import reduceWidgetFontSize
 
 """
 Copyright 2012-2014  Anthony Beville
@@ -49,7 +50,7 @@ class AutoTagProgressWindow(QtGui.QDialog):
 									  QtCore.Qt.WindowSystemMenuHint |
 									  QtCore.Qt.WindowMaximizeButtonHint)
 
-		utils.reduceWidgetFontSize( self.textEdit )	
+		reduceWidgetFontSize( self.textEdit )
 		
 	def setArchiveImage( self, img_data):
 		self.setCoverImage( img_data, self.archiveCoverWidget)

@@ -26,6 +26,7 @@ import tempfile
 import subprocess
 import platform
 import locale
+from natsort import natsorted
 
 if platform.system() == "Windows":
 	import _subprocess
@@ -42,12 +43,13 @@ sys.path.insert(0, os.path.abspath(".") )
 import UnRAR2
 from UnRAR2.rar_exceptions import *
 
-from settings import ComicTaggerSettings
+#from settings import ComicTaggerSettings
 from comicinfoxml import ComicInfoXml
 from comicbookinfo import ComicBookInfo
 from comet import CoMet
 from genericmetadata import GenericMetadata, PageType
 from filenameparser import FileNameParser
+from PyPDF2 import PdfFileReader
 
 class MetaDataStyle:
 	CBI = 0
@@ -507,39 +509,73 @@ class UnknownArchiver:
 	def getArchiveFilenameList( self ):
 		return []
 
+class PdfArchiver:
+	def __init__( self, path ):
+		self.path = path
+
+	def getArchiveComment( self ):
+		return ""
+	def setArchiveComment( self, comment ):
+		return False
+	def readArchiveFile( self, page_num ):		
+		return subprocess.check_output(['mudraw', '-o','-', self.path, str(int(os.path.basename(page_num)[:-4]))])
+	def writeArchiveFile( self, archive_file, data ):
+		return False
+	def removeArchiveFile( self, archive_file ):
+		return False
+	def getArchiveFilenameList( self ):	
+		out = []
+		pdf = PdfFileReader(open(self.path, 'rb'))
+		for page in range(1, pdf.getNumPages() + 1):
+			out.append("/%04d.jpg" % (page))
+		return out
+
 #------------------------------------------------------------------
 class ComicArchive:
 
 	logo_data = None
 
 	class ArchiveType:
-		Zip, Rar, Folder, Unknown = range(4)
+		Zip, Rar, Folder, Pdf, Unknown = range(5)
     
-	def __init__( self, path, rar_exe_path=None ):
+	def __init__( self, path, rar_exe_path=None, default_image_path=None ):
 		self.path = path
 		
 		self.rar_exe_path = rar_exe_path
 		self.ci_xml_filename = 'ComicInfo.xml'
 		self.comet_default_filename = 'CoMet.xml'
 		self.resetCache()
+		self.default_image_path = default_image_path
 		
-		if self.rarTest(): 
-			self.archive_type =  self.ArchiveType.Rar
-			self.archiver = RarArchiver( self.path, rar_exe_path=self.rar_exe_path )
-			
-		elif self.zipTest():
-			self.archive_type =  self.ArchiveType.Zip
-			self.archiver = ZipArchiver( self.path )
-			
-		elif os.path.isdir( self.path ):
-			self.archive_type =  self.ArchiveType.Folder
-			self.archiver = FolderArchiver( self.path )			
+		# Use file extension to decide which archive test we do first
+		ext = os.path.splitext(path)[1].lower()
+		
+		self.archive_type =  self.ArchiveType.Unknown
+		self.archiver = UnknownArchiver( self.path )
+
+		if ext == ".cbr" or ext == ".rar":
+			if self.rarTest(): 
+				self.archive_type =  self.ArchiveType.Rar
+				self.archiver = RarArchiver( self.path, rar_exe_path=self.rar_exe_path )
+				
+			elif self.zipTest():
+				self.archive_type =  self.ArchiveType.Zip
+				self.archiver = ZipArchiver( self.path )
 		else:
-			self.archive_type =  self.ArchiveType.Unknown
-			self.archiver = UnknownArchiver( self.path )
+			if self.zipTest():
+				self.archive_type =  self.ArchiveType.Zip
+				self.archiver = ZipArchiver( self.path )
+				
+			elif self.rarTest(): 
+				self.archive_type =  self.ArchiveType.Rar
+				self.archiver = RarArchiver( self.path, rar_exe_path=self.rar_exe_path )
+			elif os.path.basename(self.path)[-3:] == 'pdf':
+				self.archive_type = self.ArchiveType.Pdf
+				self.archiver = PdfArchiver(self.path)
 
 		if ComicArchive.logo_data is None:
-			fname = ComicTaggerSettings.getGraphic('nocover.png')
+			#fname = ComicTaggerSettings.getGraphic('nocover.png')
+			fname = self.default_image_path
 			with open(fname, 'rb') as fd:
 				ComicArchive.logo_data = fd.read()
 
@@ -580,7 +616,8 @@ class ComicArchive:
 		
 	def isRar( self ):
 		return self.archive_type ==  self.ArchiveType.Rar
-	
+	def isPdf(self):
+		return self.archive_type ==  self.ArchiveType.Pdf
 	def isFolder( self ):
 		return self.archive_type ==  self.ArchiveType.Folder
 
@@ -613,7 +650,7 @@ class ComicArchive:
 		ext = os.path.splitext(self.path)[1].lower()
 
 		if ( 
-		      ( self.isZip() or  self.isRar() ) #or self.isFolder() )
+		      ( self.isZip() or  self.isRar() or self.isPdf()) #or self.isFolder() )
 		      and
 		      ( self.getNumberOfPages() > 0)
 
@@ -754,12 +791,12 @@ class ComicArchive:
 			if sort_list:
 				def keyfunc(k):
 					#hack to account for some weird scanner ID pages
-					basename=os.path.split(k)[1]
-					if basename < '0':
-						k = os.path.join(os.path.split(k)[0], "z" + basename)
+					#basename=os.path.split(k)[1]
+					#if basename < '0':
+					#	k = os.path.join(os.path.split(k)[0], "z" + basename)
 					return k.lower()
 				
-				files.sort(key=keyfunc)
+				files = natsorted(files, key=keyfunc,signed=False)
 			
 			# make a sub-list of image files
 			self.page_list = []
