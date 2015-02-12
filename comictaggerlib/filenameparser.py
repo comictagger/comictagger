@@ -222,7 +222,7 @@ class FileNameParser:
 			year = re.sub("[^0-9]", "", year)
 		return year
 
-	def getRemainder( self, filename, year, count, issue_end ):
+	def getRemainder( self, filename, year, count, volume, issue_end ):
 		
 		#make a guess at where the the non-interesting stuff begins
 		remainder = ""
@@ -235,12 +235,15 @@ class FileNameParser:
 			remainder = filename[issue_end:]
 
 		remainder = self.fixSpaces(remainder, remove_dashes=False)
+		if volume != "":
+			remainder = remainder.replace("Vol."+volume,"",1)
 		if year != "":
 			remainder = remainder.replace(year,"",1)
 		if count != "":
 			remainder = remainder.replace("of "+count,"",1)
 			
 		remainder = remainder.replace("()","")
+		remainder = remainder.replace("  "," ")    # cleans some whitespace mess
 		
 		return remainder.strip()
 		
@@ -264,9 +267,14 @@ class FileNameParser:
 					
 		self.issue, issue_start, issue_end = self.getIssueNumber(filename)
 		self.series, self.volume = self.getSeriesName(filename, issue_start)
+
+		# provides proper value when the filename doesn't have a issue number
+		if issue_end == 0:
+			issue_end=len(self.series)
+			
 		self.year = self.getYear(filename, issue_end)
 		self.issue_count = self.getIssueCount(filename, issue_end)
-		self.remainder = self.getRemainder( filename, self.year, self.issue_count, issue_end )
+		self.remainder = self.getRemainder( filename, self.year, self.issue_count, self.volume, issue_end )
 	
 		if self.issue != "":
 			# strip off leading zeros
