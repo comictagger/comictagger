@@ -5,7 +5,7 @@ import comictaggerlib.ctversion
 
 with open('requirements.txt') as f:
     required = f.read().splitlines()
-    
+
 setup(name = "comictagger",
     install_requires=required,
     version =  comictaggerlib.ctversion.version,
@@ -38,7 +38,7 @@ setup(name = "comictagger",
          "Topic :: Multimedia :: Graphics"
     ],
     license = "Apache License 2.0",
-    
+
     long_description = """
 ComicTagger is a multi-platform app for writing metadata to digital comics, written in Python and PyQt.
 
@@ -58,9 +58,9 @@ Requires:
 * configparser 
 * python imaging (PIL) >= 1.1.6
 * beautifulsoup > 4.1
-    
+
 Optional requirement (for GUI):
 
 * pyqt4
-"""          
-      )    
+"""      
+      )
