@@ -17,10 +17,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 import sys
 import os
 import platform
 import urllib,urllib2
+
 import ctversion
 
 try:
@@ -39,7 +41,7 @@ except ImportError:
 
 class VersionChecker(QObject):
 
-    def getRequestUrl( self, uuid, use_stats ):
+    def getRequestUrl(self, uuid, use_stats):
 
         base_url = "http://comictagger1.appspot.com/latest"
         args = ""
@@ -59,10 +61,10 @@ class VersionChecker(QObject):
 
         return base_url+args
 
-    def getLatestVersion( self, uuid, use_stats=True):
+    def getLatestVersion(self, uuid, use_stats=True):
 
         try:
-            resp = urllib2.urlopen( self.getRequestUrl(uuid, use_stats ))
+            resp = urllib2.urlopen(self.getRequestUrl(uuid, use_stats))
             new_version = resp.read()
         except Exception as e:
             return None
@@ -71,17 +73,17 @@ class VersionChecker(QObject):
             return None
         return new_version.strip()
 
-    versionRequestComplete = pyqtSignal( str )
+    versionRequestComplete = pyqtSignal(str)
 
-    def asyncGetLatestVersion( self, uuid, use_stats ):
+    def asyncGetLatestVersion(self, uuid, use_stats):
 
-        url = self.getRequestUrl( uuid, use_stats )
+        url = self.getRequestUrl(uuid, use_stats)
 
         self.nam = QNetworkAccessManager()
-        self.nam.finished.connect( self.asyncGetLatestVersionComplete )
+        self.nam.finished.connect(self.asyncGetLatestVersionComplete)
         self.nam.get(QNetworkRequest(QUrl(str(url))))
 
-    def asyncGetLatestVersionComplete( self, reply ):
+    def asyncGetLatestVersionComplete(self, reply):
         if (reply.error() != QNetworkReply.NoError):
             return
 
@@ -91,4 +93,4 @@ class VersionChecker(QObject):
         if new_version is None or new_version == "":
             return
 
-        self.versionRequestComplete.emit( new_version.strip() )
+        self.versionRequestComplete.emit(new_version.strip())

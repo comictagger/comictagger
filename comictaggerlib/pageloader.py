@@ -24,6 +24,7 @@ from PyQt4.QtCore import pyqtSignal
 from comicarchive import ComicArchive
 import utils
 
+
 """
 This class holds onto a reference of each instance in a list
 since problems occur if the ref count goes to zero and the GC
@@ -32,24 +33,21 @@ tries to reap the object while the thread is going.
 If the client class wants to stop the thread, they should mark
 it as "abandoned", and no signals will be issued
 """
+class PageLoader(QtCore.QThread):
 
-class PageLoader( QtCore.QThread ):
-
-    loadComplete = pyqtSignal( QtGui.QImage )
+    loadComplete = pyqtSignal(QtGui.QImage)
 
     instanceList = []
     mutex = QtCore.QMutex()
 
-    """
-    Remove all finished threads from the list
-    """
+    #Remove all finished threads from the list
     @staticmethod
     def reapInstances():
-        for obj in reversed(PageLoader.instanceList ):
+        for obj in reversed(PageLoader.instanceList):
             if obj.isFinished():
                 PageLoader.instanceList.remove(obj)
 
-    def __init__(self, ca, page_num ):
+    def __init__(self, ca, page_num):
         QtCore.QThread.__init__(self)
         self.ca = ca
         self.page_num = page_num
@@ -58,18 +56,18 @@ class PageLoader( QtCore.QThread ):
         # remove any old instances, and then add ourself
         PageLoader.mutex.lock()
         PageLoader.reapInstances()
-        PageLoader.instanceList.append( self )
+        PageLoader.instanceList.append(self)
         PageLoader.mutex.unlock()
 
     def run(self):
-        image_data = self.ca.getPage( self.page_num )
+        image_data = self.ca.getPage(self.page_num)
         if self.abandoned:
             return
 
         if image_data is not None:
-            img = utils.getQImageFromData( image_data)
+            img = utils.getQImageFromData(image_data)
 
             if self.abandoned:
                 return
 
-            self.loadComplete.emit( img )
+            self.loadComplete.emit(img)

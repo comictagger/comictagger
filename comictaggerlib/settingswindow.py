@@ -20,6 +20,7 @@ limitations under the License.
 
 import platform
 import os
+
 from PyQt4 import QtCore, QtGui, uic
 
 from settings import ComicTaggerSettings
@@ -27,6 +28,7 @@ from comicvinecacher import ComicVineCacher
 from comicvinetalker import ComicVineTalker
 from imagefetcher import ImageFetcher
 import utils
+
 
 windowsRarHelp = """
                  <html><head/><body><p>In order to write to CBR/RAR archives,
@@ -37,28 +39,31 @@ windowsRarHelp = """
                 """
 
 linuxRarHelp = """
-               <html><head/><body><p>In order to read/write to CBR/RAR archives, you will
-               need to have the shareware tools from WinRar installed.  Your package manager
-               should have unrar, and probably rar.  If not, download them <a href="http://www.win-rar.com/download.html">
-               <span style=" text-decoration: underline; color:#0000ff;">here</span></a>, and install in your path.</p>
-               </body></html>
+               <html><head/><body><p>In order to read/write to CBR/RAR archives,
+               you will need to have the shareware tools from WinRar installed.
+               Your package manager should have unrar, and probably rar.
+               If not, download them <a href="http://www.win-rar.com/download.html">
+               <span style=" text-decoration: underline; color:#0000ff;">here</span>
+               </a>, and install in your path. </p></body></html>
                """
 macRarHelp = """
                  <html><head/><body><p>In order to read/write to CBR/RAR archives,
-                 you will need the shareware tools from <a href="http://www.win-rar.com/download.html">
-                 <span style=" text-decoration: underline; color:#0000ff;">WinRAR</span></a>.
-                 </p></body></html>
+                 you will need the shareware tools from
+                 <a href="http://www.win-rar.com/download.html">
+                 <span style=" text-decoration: underline; color:#0000ff;">WinRAR</span>
+                 </a>. </p></body></html>
                 """
+
 
 class SettingsWindow(QtGui.QDialog):
 
-    def __init__(self, parent, settings ):
+    def __init__(self, parent, settings):
         super(SettingsWindow, self).__init__(parent)
 
-        uic.loadUi(ComicTaggerSettings.getUIFile('settingswindow.ui' ), self)
+        uic.loadUi(ComicTaggerSettings.getUIFile('settingswindow.ui'), self)
 
         self.setWindowFlags(self.windowFlags() &
-                                      ~QtCore.Qt.WindowContextHelpButtonHint )
+                                      ~QtCore.Qt.WindowContextHelpButtonHint)
 
         self.settings = settings
         self.name = "Settings"
@@ -67,18 +72,18 @@ class SettingsWindow(QtGui.QDialog):
             self.lblUnrar.hide()
             self.leUnrarExePath.hide()
             self.btnBrowseUnrar.hide()
-            self.lblRarHelp.setText( windowsRarHelp )
+            self.lblRarHelp.setText(windowsRarHelp)
 
         elif platform.system() == "Linux":
-            self.lblRarHelp.setText( linuxRarHelp )
+            self.lblRarHelp.setText(linuxRarHelp)
 
         elif platform.system() == "Darwin":
-            self.lblRarHelp.setText( macRarHelp )
+            self.lblRarHelp.setText(macRarHelp)
             self.name = "Preferences"
 
         self.setWindowTitle("ComicTagger " + self.name)
-        self.lblDefaultSettings.setText( "Revert to default " + self.name.lower())
-        self.btnResetSettings.setText( "Default " + self.name)
+        self.lblDefaultSettings.setText("Revert to default " + self.name.lower())
+        self.btnResetSettings.setText("Default " + self.name)
 
 
         nldtTip = (
@@ -86,7 +91,7 @@ class SettingsWindow(QtGui.QDialog):
                 search matches that are too long compared to your series name search. The higher
                 it is, the more likely to have a good match, but each search will take longer and
                 use more bandwidth. Too low, and only the very closest lexical matches will be
-                explored.</html>""" )
+                explored.</html>""")
 
         self.leNameLengthDeltaThresh.setToolTip(nldtTip)
 
@@ -96,7 +101,7 @@ class SettingsWindow(QtGui.QDialog):
             that you know are incorrect. Useful for avoiding international re-prints with same
             covers or series names. Enter publisher names separated by commas.
             </html>"""
-        )
+     )
         self.tePublisherBlacklist.setToolTip(pblTip)
 
         validator = QtGui.QIntValidator(1, 4, self)
@@ -113,56 +118,56 @@ class SettingsWindow(QtGui.QDialog):
         self.btnResetSettings.clicked.connect(self.resetSettings)
         self.btnTestKey.clicked.connect(self.testAPIKey)
 
-    def settingsToForm( self ):
+    def settingsToForm(self):
 
         # Copy values from settings to form
-        self.leRarExePath.setText( self.settings.rar_exe_path )
-        self.leUnrarExePath.setText( self.settings.unrar_exe_path )
-        self.leNameLengthDeltaThresh.setText( str(self.settings.id_length_delta_thresh) )
-        self.tePublisherBlacklist.setPlainText( self.settings.id_publisher_blacklist )
+        self.leRarExePath.setText(self.settings.rar_exe_path)
+        self.leUnrarExePath.setText(self.settings.unrar_exe_path)
+        self.leNameLengthDeltaThresh.setText(str(self.settings.id_length_delta_thresh))
+        self.tePublisherBlacklist.setPlainText(self.settings.id_publisher_blacklist)
 
         if self.settings.check_for_new_version:
-            self.cbxCheckForNewVersion.setCheckState( QtCore.Qt.Checked)
+            self.cbxCheckForNewVersion.setCheckState(QtCore.Qt.Checked)
 
         if self.settings.parse_scan_info:
-            self.cbxParseScanInfo.setCheckState( QtCore.Qt.Checked)
+            self.cbxParseScanInfo.setCheckState(QtCore.Qt.Checked)
 
         if self.settings.use_series_start_as_volume:
-            self.cbxUseSeriesStartAsVolume.setCheckState( QtCore.Qt.Checked)
+            self.cbxUseSeriesStartAsVolume.setCheckState(QtCore.Qt.Checked)
         if self.settings.clear_form_before_populating_from_cv:
-            self.cbxClearFormBeforePopulating.setCheckState( QtCore.Qt.Checked)
+            self.cbxClearFormBeforePopulating.setCheckState(QtCore.Qt.Checked)
         if self.settings.remove_html_tables:
-            self.cbxRemoveHtmlTables.setCheckState( QtCore.Qt.Checked)
-        self.leKey.setText( str(self.settings.cv_api_key) )
+            self.cbxRemoveHtmlTables.setCheckState(QtCore.Qt.Checked)
+        self.leKey.setText(str(self.settings.cv_api_key))
 
         if self.settings.assume_lone_credit_is_primary:
-            self.cbxAssumeLoneCreditIsPrimary.setCheckState( QtCore.Qt.Checked)
+            self.cbxAssumeLoneCreditIsPrimary.setCheckState(QtCore.Qt.Checked)
         if self.settings.copy_characters_to_tags:
-            self.cbxCopyCharactersToTags.setCheckState( QtCore.Qt.Checked)
+            self.cbxCopyCharactersToTags.setCheckState(QtCore.Qt.Checked)
         if self.settings.copy_teams_to_tags:
-            self.cbxCopyTeamsToTags.setCheckState( QtCore.Qt.Checked)
+            self.cbxCopyTeamsToTags.setCheckState(QtCore.Qt.Checked)
         if self.settings.copy_locations_to_tags:
-            self.cbxCopyLocationsToTags.setCheckState( QtCore.Qt.Checked)
+            self.cbxCopyLocationsToTags.setCheckState(QtCore.Qt.Checked)
         if self.settings.copy_storyarcs_to_tags:
-            self.cbxCopyStoryArcsToTags.setCheckState( QtCore.Qt.Checked)
+            self.cbxCopyStoryArcsToTags.setCheckState(QtCore.Qt.Checked)
         if self.settings.copy_notes_to_comments:
-            self.cbxCopyNotesToComments.setCheckState( QtCore.Qt.Checked)
+            self.cbxCopyNotesToComments.setCheckState(QtCore.Qt.Checked)
         if self.settings.copy_weblink_to_comments:
-            self.cbxCopyWebLinkToComments.setCheckState( QtCore.Qt.Checked)
+            self.cbxCopyWebLinkToComments.setCheckState(QtCore.Qt.Checked)
         if self.settings.apply_cbl_transform_on_cv_import:
-            self.cbxApplyCBLTransformOnCVIMport.setCheckState( QtCore.Qt.Checked)
+            self.cbxApplyCBLTransformOnCVIMport.setCheckState(QtCore.Qt.Checked)
         if self.settings.apply_cbl_transform_on_bulk_operation:
-            self.cbxApplyCBLTransformOnBatchOperation.setCheckState( QtCore.Qt.Checked)
+            self.cbxApplyCBLTransformOnBatchOperation.setCheckState(QtCore.Qt.Checked)
 
-        self.leRenameTemplate.setText( self.settings.rename_template )
-        self.leIssueNumPadding.setText( str(self.settings.rename_issue_number_padding) )
+        self.leRenameTemplate.setText(self.settings.rename_template)
+        self.leIssueNumPadding.setText(str(self.settings.rename_issue_number_padding))
         if self.settings.rename_use_smart_string_cleanup:
-            self.cbxSmartCleanup.setCheckState( QtCore.Qt.Checked )
+            self.cbxSmartCleanup.setCheckState(QtCore.Qt.Checked)
         if self.settings.rename_extension_based_on_archive:
-            self.cbxChangeExtension.setCheckState( QtCore.Qt.Checked )
+            self.cbxChangeExtension.setCheckState(QtCore.Qt.Checked)
 
 
-    def accept( self ):
+    def accept(self):
 
         # Copy values from form to settings and save
         self.settings.rar_exe_path = str(self.leRarExePath.text())
@@ -208,30 +213,30 @@ class SettingsWindow(QtGui.QDialog):
         self.settings.save()
         QtGui.QDialog.accept(self)
 
-    def selectRar( self ):
-        self.selectFile(  self.leRarExePath, "RAR" )
+    def selectRar(self):
+        self.selectFile(self.leRarExePath, "RAR")
 
-    def selectUnrar( self ):
-        self.selectFile( self.leUnrarExePath, "UnRAR" )
+    def selectUnrar(self):
+        self.selectFile(self.leUnrarExePath, "UnRAR")
 
-    def clearCache( self ):
+    def clearCache(self):
         ImageFetcher().clearCache()
-        ComicVineCacher( ).clearCache()
+        ComicVineCacher().clearCache()
         QtGui.QMessageBox.information(self, self.name, "Cache has been cleared.")
 
-    def testAPIKey( self ):
-        if ComicVineTalker().testKey( unicode(self.leKey.text()) ):
+    def testAPIKey(self):
+        if ComicVineTalker().testKey(unicode(self.leKey.text())):
             QtGui.QMessageBox.information(self, "API Key Test", "Key is valid!")
         else:
             QtGui.QMessageBox.warning(self, "API Key Test", "Key is NOT valid.")
 
 
-    def resetSettings( self ):
+    def resetSettings(self):
         self.settings.reset()
         self.settingsToForm()
         QtGui.QMessageBox.information(self, self.name, self.name + " have been returned to default values.")
 
-    def selectFile( self, control, name ):
+    def selectFile(self, control, name):
 
         dialog = QtGui.QFileDialog(self)
         dialog.setFileMode(QtGui.QFileDialog.ExistingFile)
@@ -251,7 +256,7 @@ class SettingsWindow(QtGui.QDialog):
 
         if (dialog.exec_()):
             fileList = dialog.selectedFiles()
-            control.setText( str(fileList[0]) )
+            control.setText(str(fileList[0]))
 
-    def showRenameTab( self ):
+    def showRenameTab(self):
         self.tabWidget.setCurrentIndex(5)

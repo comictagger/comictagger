@@ -19,8 +19,10 @@ limitations under the License.
 """
 
 import sys
-from PyQt4 import QtCore, QtGui, uic
 import os
+
+from PyQt4 import QtCore, QtGui, uic
+
 from settings import ComicTaggerSettings
 
 
@@ -29,7 +31,7 @@ class ImagePopup(QtGui.QDialog):
     def __init__(self, parent, image_pixmap):
         super(ImagePopup, self).__init__(parent)
 
-        uic.loadUi(ComicTaggerSettings.getUIFile('imagepopup.ui' ), self)
+        uic.loadUi(ComicTaggerSettings.getUIFile('imagepopup.ui'), self)
 
         QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
 
@@ -41,7 +43,7 @@ class ImagePopup(QtGui.QDialog):
 
         screen_size = QtGui.QDesktopWidget().screenGeometry()
         self.resize(screen_size.width(), screen_size.height())
-        self.move( 0, 0)
+        self.move(0, 0)
 
         # This is a total hack.  Uses a snapshot of the desktop, and overlays a
         # translucent screen over it.  Probably can do it better by setting opacity of a
@@ -54,7 +56,7 @@ class ImagePopup(QtGui.QDialog):
 
         self.applyImagePixmap()
         self.showFullScreen()
-        self.raise_(  )
+        self.raise_()
         QtGui.QApplication.restoreOverrideCursor()
 
     def paintEvent (self, event):
@@ -64,23 +66,23 @@ class ImagePopup(QtGui.QDialog):
         self.painter.drawPixmap(0, 0, self.clientBgPixmap)
         self.painter.end()
 
-    def applyImagePixmap( self ):
+    def applyImagePixmap(self):
         win_h = self.height()
         win_w = self.width()
 
         if self.imagePixmap.width() >  win_w or self.imagePixmap.height() > win_h:
             # scale the pixmap to fit in the frame
             display_pixmap = self.imagePixmap.scaled(win_w, win_h, QtCore.Qt.KeepAspectRatio)
-            self.lblImage.setPixmap( display_pixmap )
+            self.lblImage.setPixmap(display_pixmap)
         else:
             display_pixmap = self.imagePixmap
-        self.lblImage.setPixmap( display_pixmap )
+        self.lblImage.setPixmap(display_pixmap)
 
         # move and resize the label to be centered in the fame
         img_w = display_pixmap.width()
         img_h = display_pixmap.height()
-        self.lblImage.resize( img_w, img_h )
-        self.lblImage.move( (win_w - img_w)/2, (win_h - img_h)/2 )
+        self.lblImage.resize(img_w, img_h)
+        self.lblImage.move((win_w - img_w)/2, (win_h - img_h)/2)
 
-    def    mousePressEvent( self , event):
+    def    mousePressEvent(self , event):
         self.close()

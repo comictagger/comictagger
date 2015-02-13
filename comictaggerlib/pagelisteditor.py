@@ -31,35 +31,35 @@ from pageloader import PageLoader
 from coverimagewidget import CoverImageWidget
 
 
-def itemMoveEvents( widget ):
+def itemMoveEvents(widget):
 
     class Filter(QObject):
 
-        mysignal = pyqtSignal( str )
+        mysignal = pyqtSignal(str)
 
         def eventFilter(self, obj, event):
 
             if obj == widget:
-                #print event.type()
+                #print(event.type())
                 if event.type() == QEvent.ChildRemoved:
-                    #print "ChildRemoved"
+                    #print("ChildRemoved")
                     self.mysignal.emit("finish")
                 if event.type() == QEvent.ChildAdded:
-                    #print "ChildAdded"
+                    #print("ChildAdded")
                     self.mysignal.emit("start")
                     return True
 
             return False
 
-    filter = Filter( widget )
-    widget.installEventFilter( filter )
+    filter = Filter(widget)
+    widget.installEventFilter(filter)
     return filter.mysignal
 
 class PageListEditor(QWidget):
 
-    firstFrontCoverChanged = pyqtSignal( int )
-    listOrderChanged = pyqtSignal( )
-    modified = pyqtSignal( )
+    firstFrontCoverChanged = pyqtSignal(int)
+    listOrderChanged = pyqtSignal()
+    modified = pyqtSignal()
 
     pageTypeNames = {
         PageType.FrontCover: "Front Cover",
@@ -75,63 +75,63 @@ class PageListEditor(QWidget):
         PageType.Deleted: "Deleted",
     }
 
-    def __init__(self, parent ):
+    def __init__(self, parent):
         super(PageListEditor, self).__init__(parent)
 
-        uic.loadUi(ComicTaggerSettings.getUIFile('pagelisteditor.ui' ), self)
+        uic.loadUi(ComicTaggerSettings.getUIFile('pagelisteditor.ui'), self)
 
-        self.pageWidget = CoverImageWidget( self.pageContainer, CoverImageWidget.ArchiveMode )
-        gridlayout = QGridLayout( self.pageContainer )
-        gridlayout.addWidget( self.pageWidget )
+        self.pageWidget = CoverImageWidget(self.pageContainer, CoverImageWidget.ArchiveMode)
+        gridlayout = QGridLayout(self.pageContainer)
+        gridlayout.addWidget(self.pageWidget)
         gridlayout.setContentsMargins(0,0,0,0)
         self.pageWidget.showControls = False
 
         self.resetPage()
 
         # Add the entries to the manga combobox
-        self.comboBox.addItem( "", "" )
-        self.comboBox.addItem( self.pageTypeNames[ PageType.FrontCover], PageType.FrontCover )
-        self.comboBox.addItem( self.pageTypeNames[ PageType.InnerCover], PageType.InnerCover )
-        self.comboBox.addItem( self.pageTypeNames[ PageType.Advertisement], PageType.Advertisement )
-        self.comboBox.addItem( self.pageTypeNames[ PageType.Roundup], PageType.Roundup )
-        self.comboBox.addItem( self.pageTypeNames[ PageType.Story], PageType.Story )
-        self.comboBox.addItem( self.pageTypeNames[ PageType.Editorial], PageType.Editorial )
-        self.comboBox.addItem( self.pageTypeNames[ PageType.Letters], PageType.Letters )
-        self.comboBox.addItem( self.pageTypeNames[ PageType.Preview], PageType.Preview )
-        self.comboBox.addItem( self.pageTypeNames[ PageType.BackCover], PageType.BackCover )
-        self.comboBox.addItem( self.pageTypeNames[ PageType.Other], PageType.Other )
-        self.comboBox.addItem( self.pageTypeNames[ PageType.Deleted], PageType.Deleted )
+        self.comboBox.addItem("", "")
+        self.comboBox.addItem(self.pageTypeNames[ PageType.FrontCover], PageType.FrontCover)
+        self.comboBox.addItem(self.pageTypeNames[ PageType.InnerCover], PageType.InnerCover)
+        self.comboBox.addItem(self.pageTypeNames[ PageType.Advertisement], PageType.Advertisement)
+        self.comboBox.addItem(self.pageTypeNames[ PageType.Roundup], PageType.Roundup)
+        self.comboBox.addItem(self.pageTypeNames[ PageType.Story], PageType.Story)
+        self.comboBox.addItem(self.pageTypeNames[ PageType.Editorial], PageType.Editorial)
+        self.comboBox.addItem(self.pageTypeNames[ PageType.Letters], PageType.Letters)
+        self.comboBox.addItem(self.pageTypeNames[ PageType.Preview], PageType.Preview)
+        self.comboBox.addItem(self.pageTypeNames[ PageType.BackCover], PageType.BackCover)
+        self.comboBox.addItem(self.pageTypeNames[ PageType.Other], PageType.Other)
+        self.comboBox.addItem(self.pageTypeNames[ PageType.Deleted], PageType.Deleted)
 
-        self.listWidget.itemSelectionChanged.connect( self.changePage )
+        self.listWidget.itemSelectionChanged.connect(self.changePage)
         itemMoveEvents(self.listWidget).connect(self.itemMoveEvent)
-        self.comboBox.activated.connect( self.changePageType )
-        self.btnUp.clicked.connect( self.moveCurrentUp )
-        self.btnDown.clicked.connect( self.moveCurrentDown )
+        self.comboBox.activated.connect(self.changePageType)
+        self.btnUp.clicked.connect(self.moveCurrentUp)
+        self.btnDown.clicked.connect(self.moveCurrentDown)
         self.pre_move_row = -1
         self.first_front_page = None
 
-    def resetPage( self ):
+    def resetPage(self):
         self.pageWidget.clear()
         self.comboBox.setDisabled(True)
         self.comic_archive = None
         self.pages_list = None
 
-    def moveCurrentUp( self ):
+    def moveCurrentUp(self):
         row = self.listWidget.currentRow()
         if row > 0:
-            item = self.listWidget.takeItem ( row )
-            self.listWidget.insertItem( row-1, item )
-            self.listWidget.setCurrentRow( row-1 )
+            item = self.listWidget.takeItem (row)
+            self.listWidget.insertItem(row-1, item)
+            self.listWidget.setCurrentRow(row-1)
             self.listOrderChanged.emit()
             self.emitFrontCoverChange()
             self.modified.emit()
 
-    def moveCurrentDown( self ):
+    def moveCurrentDown(self):
         row = self.listWidget.currentRow()
         if row < self.listWidget.count()-1:
-            item = self.listWidget.takeItem ( row )
-            self.listWidget.insertItem( row+1, item )
-            self.listWidget.setCurrentRow( row+1 )
+            item = self.listWidget.takeItem (row)
+            self.listWidget.insertItem(row+1, item)
+            self.listWidget.setCurrentRow(row+1)
             self.listOrderChanged.emit()
             self.emitFrontCoverChange()
             self.modified.emit()
@@ -146,30 +146,30 @@ class PageListEditor(QWidget):
                 self.emitFrontCoverChange()
                 self.modified.emit()
 
-    def changePageType( self , i):
+    def changePageType(self , i):
         new_type = self.comboBox.itemData(i).toString()
         if self.getCurrentPageType() != new_type:
-            self.setCurrentPageType( new_type )
+            self.setCurrentPageType(new_type)
             self.emitFrontCoverChange()
             self.modified.emit()
 
-    def changePage( self ):
+    def changePage(self):
         row = self.listWidget.currentRow()
         pagetype = self.getCurrentPageType()
 
-        i = self.comboBox.findData( pagetype )
-        self.comboBox.setCurrentIndex( i )
+        i = self.comboBox.findData(pagetype)
+        self.comboBox.setCurrentIndex(i)
 
-        #idx = int(str (self.listWidget.item( row ).text()))
-        idx = int(self.listWidget.item( row ).data(Qt.UserRole).toPyObject()[0]['Image'])
+        #idx = int(str (self.listWidget.item(row).text()))
+        idx = int(self.listWidget.item(row).data(Qt.UserRole).toPyObject()[0]['Image'])
 
         if self.comic_archive is not None:
-            self.pageWidget.setArchive( self.comic_archive, idx )
+            self.pageWidget.setArchive(self.comic_archive, idx)
 
-    def getFirstFrontCover( self ):
+    def getFirstFrontCover(self):
         frontCover = 0
-        for i in range( self.listWidget.count() ):
-            item = self.listWidget.item( i )
+        for i in range(self.listWidget.count()):
+            item = self.listWidget.item(i)
             page_dict = item.data(Qt.UserRole).toPyObject()[0]
             if 'Type' in page_dict and page_dict['Type'] == PageType.FrontCover:
                 frontCover = int(page_dict['Image'])
@@ -177,17 +177,17 @@ class PageListEditor(QWidget):
         return frontCover
 
 
-    def getCurrentPageType( self ):
+    def getCurrentPageType(self):
         row = self.listWidget.currentRow()
-        page_dict = self.listWidget.item( row ).data(Qt.UserRole).toPyObject()[0]
+        page_dict = self.listWidget.item(row).data(Qt.UserRole).toPyObject()[0]
         if 'Type' in page_dict:
             return page_dict['Type']
         else:
             return ""
 
-    def setCurrentPageType( self, t ):
+    def setCurrentPageType(self, t):
         row = self.listWidget.currentRow()
-        page_dict = self.listWidget.item( row ).data(Qt.UserRole).toPyObject()[0]
+        page_dict = self.listWidget.item(row).data(Qt.UserRole).toPyObject()[0]
 
         if t == "":
             if 'Type' in page_dict:
@@ -195,30 +195,30 @@ class PageListEditor(QWidget):
         else:
             page_dict['Type'] = str(t)
 
-        item = self.listWidget.item( row )
+        item = self.listWidget.item(row)
         # wrap the dict in a tuple to keep from being converted to QStrings
-        item.setData(Qt.UserRole, (page_dict,) )
-        item.setText( self.listEntryText( page_dict ) )
+        item.setData(Qt.UserRole, (page_dict,))
+        item.setText(self.listEntryText(page_dict))
 
 
-    def setData( self, comic_archive, pages_list ):
+    def setData(self, comic_archive, pages_list):
         self.comic_archive = comic_archive
         self.pages_list = pages_list
         if pages_list is not None and len(pages_list) > 0:
             self.comboBox.setDisabled(False)
 
-        self.listWidget.itemSelectionChanged.disconnect( self.changePage )
+        self.listWidget.itemSelectionChanged.disconnect(self.changePage)
 
         self.listWidget.clear()
         for p in pages_list:
-            item = QListWidgetItem(  self.listEntryText( p ) )
+            item = QListWidgetItem(self.listEntryText(p))
             # wrap the dict in a tuple to keep from being converted to QStrings
-            item.setData(Qt.UserRole, (p, ))
+            item.setData(Qt.UserRole, (p,))
 
-            self.listWidget.addItem(  item )
+            self.listWidget.addItem(item)
         self.first_front_page = self.getFirstFrontCover()
-        self.listWidget.itemSelectionChanged.connect( self.changePage )
-        self.listWidget.setCurrentRow ( 0 )
+        self.listWidget.itemSelectionChanged.connect(self.changePage)
+        self.listWidget.setCurrentRow (0)
 
     def listEntryText(self, page_dict):
         text =  str(int(page_dict['Image']) + 1)
@@ -226,19 +226,19 @@ class PageListEditor(QWidget):
             text += " (" + self.pageTypeNames[page_dict['Type']] + ")"
         return text
 
-    def getPageList( self ):
+    def getPageList(self):
         page_list = []
-        for i in range( self.listWidget.count() ):
-            item = self.listWidget.item( i )
-            page_list.append(  item.data(Qt.UserRole).toPyObject()[0] )
+        for i in range(self.listWidget.count()):
+            item = self.listWidget.item(i)
+            page_list.append(item.data(Qt.UserRole).toPyObject()[0])
         return page_list
 
-    def emitFrontCoverChange( self ):
+    def emitFrontCoverChange(self):
         if self.first_front_page != self.getFirstFrontCover():
             self.first_front_page = self.getFirstFrontCover()
-            self.firstFrontCoverChanged.emit( self.first_front_page )
+            self.firstFrontCoverChanged.emit(self.first_front_page)
 
-    def setMetadataStyle( self, data_style ):
+    def setMetadataStyle(self, data_style):
 
         # depending on the current data style, certain fields are disabled
 
@@ -250,18 +250,18 @@ class PageListEditor(QWidget):
 
 
         if data_style == MetaDataStyle.CIX:
-            self.btnUp.setEnabled( True )
-            self.btnDown.setEnabled( True )
-            self.comboBox.setEnabled( True )
-            self.listWidget.setEnabled( True )
+            self.btnUp.setEnabled(True)
+            self.btnDown.setEnabled(True)
+            self.comboBox.setEnabled(True)
+            self.listWidget.setEnabled(True)
 
             self.listWidget.setPalette(active_palette)
 
         elif data_style == MetaDataStyle.CBI:
-            self.btnUp.setEnabled( False )
-            self.btnDown.setEnabled( False )
-            self.comboBox.setEnabled( False )
-            self.listWidget.setEnabled( False )
+            self.btnUp.setEnabled(False)
+            self.btnDown.setEnabled(False)
+            self.comboBox.setEnabled(False)
+            self.listWidget.setEnabled(False)
 
             self.listWidget.setPalette(inactive_palette3)
 
@@ -270,4 +270,4 @@ class PageListEditor(QWidget):
 
         # make sure combo is disabled when no list
         if self.comic_archive is None:
-            self.comboBox.setEnabled( False )
+            self.comboBox.setEnabled(False)

@@ -22,6 +22,7 @@ import sys
 import math
 import urllib2, urllib
 import StringIO
+
 try:
     from PIL import Image
     from PIL import WebPImagePlugin
@@ -36,13 +37,16 @@ from comicvinetalker import ComicVineTalker, ComicVineTalkerException
 from imagehasher import ImageHasher
 from imagefetcher import ImageFetcher, ImageFetcherException
 from issuestring import IssueString
-
 import utils
+
 
 class IssueIdentifierNetworkError(Exception):
     pass
+
+
 class IssueIdentifierCancelled(Exception):
     pass
+
 
 class IssueIdentifier:
 
@@ -53,7 +57,7 @@ class IssueIdentifier:
     ResultOneGoodMatch                      = 4
     ResultMultipleGoodMatches               = 5
 
-    def __init__(self, comic_archive, settings ):
+    def __init__(self, comic_archive, settings):
         self.comic_archive = comic_archive
         self.image_hasher = 1
 
@@ -86,38 +90,38 @@ class IssueIdentifier:
         self.cancel = False
         self.waitAndRetryOnRateLimit = False
 
-    def setScoreMinThreshold( self, thresh ):
+    def setScoreMinThreshold(self, thresh):
         self.min_score_thresh = thresh
 
-    def setScoreMinDistance( self, distance ):
+    def setScoreMinDistance(self, distance):
         self.min_score_distance = distance
 
-    def setAdditionalMetadata( self, md ):
+    def setAdditionalMetadata(self, md):
         self.additional_metadata = md
 
-    def setNameLengthDeltaThreshold( self, delta ):
+    def setNameLengthDeltaThreshold(self, delta):
         self.length_delta_thresh = delta
 
-    def setPublisherBlackList( self, blacklist ):
+    def setPublisherBlackList(self, blacklist):
         self.publisher_blacklist = blacklist
 
-    def setHasherAlgorithm( self, algo ):
+    def setHasherAlgorithm(self, algo):
         self.image_hasher = algo
         pass
 
-    def setOutputFunction( self, func ):
+    def setOutputFunction(self, func):
         self.output_function = func
         pass
 
-    def calculateHash( self, image_data ):
+    def calculateHash(self, image_data):
         if self.image_hasher == '3':
-            return ImageHasher( data=image_data ).dct_average_hash()
+            return ImageHasher(data=image_data).dct_average_hash()
         elif self.image_hasher == '2':
-            return ImageHasher( data=image_data ).average_hash2()
+            return ImageHasher(data=image_data).average_hash2()
         else:
-            return ImageHasher( data=image_data ).average_hash()
+            return ImageHasher(data=image_data).average_hash()
 
-    def getAspectRatio( self, image_data ):
+    def getAspectRatio(self, image_data):
         try:
             im = Image.open(StringIO.StringIO(image_data))
             w,h = im.size
@@ -125,13 +129,13 @@ class IssueIdentifier:
         except:
             return 1.5
 
-    def cropCover( self, image_data ):
+    def cropCover(self, image_data):
 
         im = Image.open(StringIO.StringIO(image_data))
         w,h = im.size
 
         try:
-            cropped_im = im.crop( (int(w/2), 0, w, h) )
+            cropped_im = im.crop((int(w/2), 0, w, h))
         except Exception as e:
             sys.exc_clear()
             print "cropCover() error:", e
@@ -145,13 +149,13 @@ class IssueIdentifier:
         return cropped_image_data
 
 
-    def setProgressCallback( self, cb_func ):
+    def setProgressCallback(self, cb_func):
         self.callback = cb_func
 
-    def setCoverURLCallback( self, cb_func ):
+    def setCoverURLCallback(self, cb_func):
         self.coverUrlCallback = cb_func
 
-    def getSearchKeys( self ):
+    def getSearchKeys(self):
 
         ca = self.comic_archive
         search_keys = dict()
@@ -226,23 +230,23 @@ class IssueIdentifier:
         return search_keys
 
     @staticmethod
-    def defaultWriteOutput( text ):
-        sys.stdout.write( text )
+    def defaultWriteOutput(text):
+        sys.stdout.write(text)
         sys.stdout.flush()
 
-    def log_msg( self, msg , newline=True ):
+    def log_msg(self, msg , newline=True):
         self.output_function(msg)
         if newline:
             self.output_function("\n")
 
-    def getIssueCoverMatchScore( self, comicVine, issue_id, primary_img_url, primary_thumb_url, page_url, localCoverHashList, useRemoteAlternates = False , useLog=True):
+    def getIssueCoverMatchScore(self, comicVine, issue_id, primary_img_url, primary_thumb_url, page_url, localCoverHashList, useRemoteAlternates = False , useLog=True):
         # localHashes is a list of pre-calculated hashs.
         # useRemoteAlternates - indicates to use alternate covers from CV
 
         try:
             url_image_data = ImageFetcher().fetch(primary_thumb_url, blocking=True)
         except ImageFetcherException:
-            self.log_msg( "Network issue while fetching cover image from ComicVine.  Aborting...")
+            self.log_msg("Network issue while fetching cover image from ComicVine.  Aborting...")
             raise IssueIdentifierNetworkError
 
         if self.cancel == True:
@@ -250,25 +254,25 @@ class IssueIdentifier:
 
         # alert the GUI, if needed
         if self.coverUrlCallback is not None:
-            self.coverUrlCallback( url_image_data )
+            self.coverUrlCallback(url_image_data)
 
         remote_cover_list = []
         item = dict()
         item['url'] = primary_img_url
 
-        item['hash'] = self.calculateHash( url_image_data )
-        remote_cover_list.append( item )
+        item['hash'] = self.calculateHash(url_image_data)
+        remote_cover_list.append(item)
 
         if self.cancel == True:
             raise IssueIdentifierCancelled
 
         if useRemoteAlternates:
-            alt_img_url_list = comicVine.fetchAlternateCoverURLs( issue_id, page_url )
+            alt_img_url_list = comicVine.fetchAlternateCoverURLs(issue_id, page_url)
             for alt_url in alt_img_url_list:
                 try:
                     alt_url_image_data = ImageFetcher().fetch(alt_url, blocking=True)
                 except ImageFetcherException:
-                    self.log_msg( "Network issue while fetching alt. cover image from ComicVine.  Aborting...")
+                    self.log_msg("Network issue while fetching alt. cover image from ComicVine.  Aborting...")
                     raise IssueIdentifierNetworkError
 
                 if self.cancel == True:
@@ -276,33 +280,33 @@ class IssueIdentifier:
 
                 # alert the GUI, if needed
                 if self.coverUrlCallback is not None:
-                    self.coverUrlCallback( alt_url_image_data )
+                    self.coverUrlCallback(alt_url_image_data)
 
                 item = dict()
                 item['url'] = alt_url
-                item['hash'] = self.calculateHash( alt_url_image_data )
-                remote_cover_list.append( item )
+                item['hash'] = self.calculateHash(alt_url_image_data)
+                remote_cover_list.append(item)
 
                 if self.cancel == True:
                     raise IssueIdentifierCancelled
 
         if useLog and useRemoteAlternates:
-            self.log_msg( "[{0} alt. covers]".format(len(remote_cover_list)-1), False )
+            self.log_msg("[{0} alt. covers]".format(len(remote_cover_list)-1), False)
         if useLog:
-            self.log_msg( "[ ", False )
+            self.log_msg("[ ", False)
 
         score_list = []
         done = False
         for local_cover_hash in localCoverHashList:
             for remote_cover_item in remote_cover_list:
-                score = ImageHasher.hamming_distance(local_cover_hash, remote_cover_item['hash'] )
+                score = ImageHasher.hamming_distance(local_cover_hash, remote_cover_item['hash'])
                 score_item = dict()
                 score_item['score'] = score
                 score_item['url'] = remote_cover_item['url']
                 score_item['hash'] = remote_cover_item['hash']
-                score_list.append( score_item )
+                score_list.append(score_item)
                 if useLog:
-                    self.log_msg( "{0} ".format(score), False )
+                    self.log_msg("{0} ".format(score), False)
 
                 if score <= self.strong_score_thresh:
                     # such a good score, we can quit now, since for sure we have a winner
@@ -312,23 +316,23 @@ class IssueIdentifier:
                 break
 
         if useLog:
-            self.log_msg( " ]", False )
+            self.log_msg(" ]", False)
 
         best_score_item = min(score_list, key=lambda x:x['score'])
 
         return best_score_item
 
     """
-    def validate( self, issue_id ):
+    def validate(self, issue_id):
         # create hash list
-        score = self.getIssueMatchScore( issue_id, hash_list, useRemoteAlternates = True )
+        score = self.getIssueMatchScore(issue_id, hash_list, useRemoteAlternates = True)
         if score < 20:
             return True
         else:
             return False
     """
 
-    def search( self ):
+    def search(self):
 
         ca = self.comic_archive
         self.match_list = []
@@ -336,27 +340,27 @@ class IssueIdentifier:
         self.search_result = self.ResultNoMatches
 
         if not pil_available:
-            self.log_msg( "Python Imaging Library (PIL) is not available and is needed for issue identification." )
+            self.log_msg("Python Imaging Library (PIL) is not available and is needed for issue identification.")
             return self.match_list
 
         if not ca.seemsToBeAComicArchive():
-            self.log_msg( "Sorry, but "+ opts.filename + "  is not a comic archive!")
+            self.log_msg("Sorry, but "+ opts.filename + "  is not a comic archive!")
             return self.match_list
 
-        cover_image_data = ca.getPage( self.cover_page_index )
-        cover_hash = self.calculateHash( cover_image_data )
+        cover_image_data = ca.getPage(self.cover_page_index)
+        cover_hash = self.calculateHash(cover_image_data)
 
         #check the apect ratio
         # if it's wider than it is high, it's probably a two page spread
         # if so, crop it and calculate a second hash
         narrow_cover_hash = None
-        aspect_ratio = self.getAspectRatio( cover_image_data )
+        aspect_ratio = self.getAspectRatio(cover_image_data)
         if aspect_ratio < 1.0:
-            right_side_image_data = self.cropCover( cover_image_data )
+            right_side_image_data = self.cropCover(cover_image_data)
             if right_side_image_data is not None:
-                narrow_cover_hash = self.calculateHash( right_side_image_data )
+                narrow_cover_hash = self.calculateHash(right_side_image_data)
 
-        #self.log_msg( "Cover hash = {0:016x}".format(cover_hash) )
+        #self.log_msg("Cover hash = {0:016x}".format(cover_hash))
 
         keys = self.getSearchKeys()
         #normalize the issue number
@@ -368,31 +372,31 @@ class IssueIdentifier:
             return []
 
 
-        self.log_msg( "Going to search for:" )
-        self.log_msg( "\tSeries: " + keys['series'] )
-        self.log_msg( "\tIssue : " + keys['issue_number']  )
+        self.log_msg("Going to search for:")
+        self.log_msg("\tSeries: " + keys['series'])
+        self.log_msg("\tIssue : " + keys['issue_number'])
         if keys['issue_count'] is not None:
-            self.log_msg( "\tCount : " + str(keys['issue_count']) )
+            self.log_msg("\tCount : " + str(keys['issue_count']))
         if keys['year'] is not None:
-            self.log_msg( "\tYear :  " + str(keys['year']) )
+            self.log_msg("\tYear :  " + str(keys['year']))
         if keys['month'] is not None:
-            self.log_msg( "\tMonth : " + str(keys['month']) )
+            self.log_msg("\tMonth : " + str(keys['month']))
 
         #self.log_msg("Publisher Blacklist: " + str(self.publisher_blacklist))
-        comicVine = ComicVineTalker( )
+        comicVine = ComicVineTalker()
         comicVine.wait_for_rate_limit = self.waitAndRetryOnRateLimit
 
-        comicVine.setLogFunc( self.output_function )
+        comicVine.setLogFunc(self.output_function)
 
-        #self.log_msg( ( "Searching for " + keys['series'] + "...")
-        self.log_msg( u"Searching for  {0} #{1} ...".format( keys['series'], keys['issue_number']) )
+        #self.log_msg(("Searching for " + keys['series'] + "...")
+        self.log_msg(u"Searching for  {0} #{1} ...".format(keys['series'], keys['issue_number']))
         try:
-            cv_search_results = comicVine.searchForSeries( keys['series'] )
+            cv_search_results = comicVine.searchForSeries(keys['series'])
         except ComicVineTalkerException:
-            self.log_msg( "Network issue while searching for series.  Aborting...")
+            self.log_msg("Network issue while searching for series.  Aborting...")
             return []
 
-        #self.log_msg( "Found " + str(len(cv_search_results)) + " initial results" )
+        #self.log_msg("Found " + str(len(cv_search_results)) + " initial results")
         if self.cancel == True:
             return []
 
@@ -401,7 +405,7 @@ class IssueIdentifier:
 
         series_second_round_list = []
 
-        #self.log_msg( "Removing results with too long names, banned publishers, or future start dates" )
+        #self.log_msg("Removing results with too long names, banned publishers, or future start dates")
         for item in cv_search_results:
             length_approved = False
             publisher_approved = True
@@ -415,7 +419,7 @@ class IssueIdentifier:
             #assume that our search name is close to the actual name, say within ,e.g. 5 chars
             shortened_key =       utils.removearticles(keys['series'])
             shortened_item_name = utils.removearticles(item['name'])
-            if len( shortened_item_name ) <  ( len( shortened_key ) + self.length_delta_thresh) :
+            if len(shortened_item_name) <  (len(shortened_key) + self.length_delta_thresh) :
                 length_approved = True
 
             # remove any series from publishers on the blacklist
@@ -427,10 +431,10 @@ class IssueIdentifier:
             if length_approved and publisher_approved and date_approved:
                 series_second_round_list.append(item)
 
-        self.log_msg( "Searching in " + str(len(series_second_round_list)) +" series" )
+        self.log_msg("Searching in " + str(len(series_second_round_list)) +" series")
 
         if self.callback is not None:
-            self.callback( 0, len(series_second_round_list))
+            self.callback(0, len(series_second_round_list))
 
         # now sort the list by name length
         series_second_round_list.sort(key=lambda x: len(x['name']), reverse=False)
@@ -438,15 +442,15 @@ class IssueIdentifier:
         #build a list of volume IDs
         volume_id_list = list()
         for series in series_second_round_list:
-            volume_id_list.append( series['id'])
+            volume_id_list.append(series['id'])
 
         try:
-            issue_list = comicVine.fetchIssuesByVolumeIssueNumAndYear( volume_id_list,
+            issue_list = comicVine.fetchIssuesByVolumeIssueNumAndYear(volume_id_list,
                                                                     keys['issue_number'],
                                                                     keys['year'])
 
         except ComicVineTalkerException:
-            self.log_msg( "Network issue while searching for series details.  Aborting...")
+            self.log_msg("Network issue while searching for series details.  Aborting...")
             return []
 
         if issue_list is None:
@@ -457,13 +461,13 @@ class IssueIdentifier:
         for issue in issue_list:
             for series in series_second_round_list:
                 if series['id'] == issue['volume']['id']:
-                    shortlist.append( (series, issue) )
+                    shortlist.append((series, issue))
                     break
 
         if keys['year'] is None:
-            self.log_msg( u"Found {0} series that have an issue #{1}".format(len(shortlist), keys['issue_number']) )
+            self.log_msg(u"Found {0} series that have an issue #{1}".format(len(shortlist), keys['issue_number']))
         else:
-            self.log_msg( u"Found {0} series that have an issue #{1} from {2}".format(len(shortlist), keys['issue_number'], keys['year'] ))
+            self.log_msg(u"Found {0} series that have an issue #{1} from {2}".format(len(shortlist), keys['issue_number'], keys['year']))
 
 
         # now we have a shortlist of volumes with the desired issue number
@@ -471,16 +475,16 @@ class IssueIdentifier:
         counter = len(shortlist)
         for series, issue in  shortlist:
             if self.callback is not None:
-                self.callback( counter, len(shortlist)*3)
+                self.callback(counter, len(shortlist)*3)
                 counter += 1
 
-            self.log_msg( u"Examining covers for  ID: {0} {1} ({2}) ...".format(
+            self.log_msg(u"Examining covers for  ID: {0} {1} ({2}) ...".format(
                            series['id'],
                            series['name'],
-                           series['start_year']), newline=False )
+                           series['start_year']), newline=False)
 
             # parse out the cover date
-            day, month, year = comicVine.parseDateStr( issue['cover_date'] )
+            day, month, year = comicVine.parseDateStr(issue['cover_date'])
 
             # Now check the cover match against the primary image
             hash_list = [ cover_hash ]
@@ -492,7 +496,7 @@ class IssueIdentifier:
                 thumb_url = issue['image']['thumb_url']
                 page_url = issue['site_detail_url']
 
-                score_item = self.getIssueCoverMatchScore( comicVine, issue['id'], image_url, thumb_url, page_url, hash_list, useRemoteAlternates = False )
+                score_item = self.getIssueCoverMatchScore(comicVine, issue['id'], image_url, thumb_url, page_url, hash_list, useRemoteAlternates = False)
             except:
                 self.match_list = []
                 return self.match_list
@@ -518,12 +522,12 @@ class IssueIdentifier:
 
             self.match_list.append(match)
 
-            self.log_msg( " --> {0}".format(match['distance']), newline=False )
+            self.log_msg(" --> {0}".format(match['distance']), newline=False)
 
-            self.log_msg( "" )
+            self.log_msg("")
 
         if len(self.match_list) == 0:
-            self.log_msg( ":-(  no matches!" )
+            self.log_msg(":-(no matches!")
             self.search_result = self.ResultNoMatches
             return self.match_list
 
@@ -533,71 +537,71 @@ class IssueIdentifier:
 
         l = []
         for i in self.match_list:
-            l.append( i['distance'] )
+            l.append(i['distance'])
 
-        self.log_msg( "Compared to covers in {0} issue(s):".format(len(self.match_list)), newline=False)
-        self.log_msg( str(l))
+        self.log_msg("Compared to covers in {0} issue(s):".format(len(self.match_list)), newline=False)
+        self.log_msg(str(l))
 
         def print_match(item):
-            self.log_msg( u"-----> {0} #{1} {2} ({3}/{4}) -- score: {5}".format(
+            self.log_msg(u"-----> {0} #{1} {2} ({3}/{4}) -- score: {5}".format(
                                     item['series'],
                                     item['issue_number'],
                                     item['issue_title'],
                                     item['month'],
                                     item['year'],
-                                    item['distance']) )
+                                    item['distance']))
 
         best_score = self.match_list[0]['distance']
 
         if best_score >= self.min_score_thresh:
             # we have 1 or more low-confidence matches (all bad cover scores)
             # look at a few more pages in the archive, and also alternate covers online
-            self.log_msg( "Very weak scores for the cover.  Analyzing alternate pages and covers..." )
+            self.log_msg("Very weak scores for the cover.  Analyzing alternate pages and covers...")
             hash_list = [ cover_hash ]
             if narrow_cover_hash is not None:
                 hash_list.append(narrow_cover_hash)
-            for i in range( 1, min(3, ca.getNumberOfPages())):
+            for i in range(1, min(3, ca.getNumberOfPages())):
                 image_data = ca.getPage(i)
-                page_hash = self.calculateHash( image_data )
-                hash_list.append( page_hash )
+                page_hash = self.calculateHash(image_data)
+                hash_list.append(page_hash)
 
             second_match_list = []
             counter = 2*len(self.match_list)
             for m in self.match_list:
                 if self.callback is not None:
-                    self.callback( counter, len(self.match_list)*3)
+                    self.callback(counter, len(self.match_list)*3)
                     counter += 1
-                self.log_msg( u"Examining alternate covers for ID: {0} {1} ...".format(
+                self.log_msg(u"Examining alternate covers for ID: {0} {1} ...".format(
                                m['volume_id'],
-                               m['series']), newline=False )
+                               m['series']), newline=False)
                 try:
-                    score_item = self.getIssueCoverMatchScore( comicVine, m['issue_id'], m['image_url'], m['thumb_url'], m['page_url'], hash_list, useRemoteAlternates = True )
+                    score_item = self.getIssueCoverMatchScore(comicVine, m['issue_id'], m['image_url'], m['thumb_url'], m['page_url'], hash_list, useRemoteAlternates = True)
                 except:
                     self.match_list = []
                     return self.match_list
                 self.log_msg("--->{0}".format(score_item['score']))
-                self.log_msg( "" )
+                self.log_msg("")
 
                 if score_item['score'] < self.min_alternate_score_thresh:
                     second_match_list.append(m)
                     m['distance'] = score_item['score']
 
-            if len(    second_match_list ) == 0:
-                if len( self.match_list) == 1:
-                    self.log_msg( "No matching pages in the issue." )
-                    self.log_msg( u"--------------------------------------------------")
+            if len(second_match_list) == 0:
+                if len(self.match_list) == 1:
+                    self.log_msg("No matching pages in the issue.")
+                    self.log_msg(u"--------------------------------------------------")
                     print_match(self.match_list[0])
-                    self.log_msg( u"--------------------------------------------------")
+                    self.log_msg(u"--------------------------------------------------")
                     self.search_result = self.ResultFoundMatchButBadCoverScore
                 else:
-                    self.log_msg( u"--------------------------------------------------")
-                    self.log_msg( u"Multiple bad cover matches!  Need to use other info..." )
-                    self.log_msg( u"--------------------------------------------------")
+                    self.log_msg(u"--------------------------------------------------")
+                    self.log_msg(u"Multiple bad cover matches!  Need to use other info...")
+                    self.log_msg(u"--------------------------------------------------")
                     self.search_result = self.ResultMultipleMatchesWithBadImageScores
                 return self.match_list
             else:
                 # We did good, found something!
-                self.log_msg( "Success in secondary/alternate cover matching!" )
+                self.log_msg("Success in secondary/alternate cover matching!")
 
                 self.match_list = second_match_list
                 # sort new list by image match scores
@@ -607,7 +611,7 @@ class IssueIdentifier:
                 # now drop down into the rest of the processing
 
         if self.callback is not None:
-            self.callback( 99, 100)
+            self.callback(99, 100)
 
         #now pare down list, remove any item more than specified distant from the top scores
         for item in reversed(self.match_list):
@@ -628,23 +632,23 @@ class IssueIdentifier:
                 self.match_list = new_list
 
         if len(self.match_list) == 1:
-            self.log_msg( u"--------------------------------------------------")
+            self.log_msg(u"--------------------------------------------------")
             print_match(self.match_list[0])
-            self.log_msg( u"--------------------------------------------------")
+            self.log_msg(u"--------------------------------------------------")
             self.search_result = self.ResultOneGoodMatch
 
         elif len(self.match_list) == 0:
-            self.log_msg( u"--------------------------------------------------")
-            self.log_msg( "No matches found :(" )
-            self.log_msg( u"--------------------------------------------------")
+            self.log_msg(u"--------------------------------------------------")
+            self.log_msg("No matches found :(")
+            self.log_msg(u"--------------------------------------------------")
             self.search_result = self.ResultNoMatches
         else:
             # we've got multiple good matches:
-            self.log_msg( "More than one likley candiate." )
+            self.log_msg("More than one likley candiate.")
             self.search_result = self.ResultMultipleGoodMatches
-            self.log_msg( u"--------------------------------------------------")
+            self.log_msg(u"--------------------------------------------------")
             for item in self.match_list:
                 print_match(item)
-            self.log_msg( u"--------------------------------------------------")
+            self.log_msg(u"--------------------------------------------------")
 
         return self.match_list

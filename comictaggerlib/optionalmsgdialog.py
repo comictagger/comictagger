@@ -21,40 +21,41 @@ limitations under the License.
 """
 example usage:
 
-checked = OptionalMessageDialog.msg(  self, "Disclaimer",
+checked = OptionalMessageDialog.msg(self, "Disclaimer",
                             "This is beta software, and you are using it at your own risk!",
-                            )
+                         )
 
-said_yes, checked =  OptionalMessageDialog.question( self,  "Question",
+said_yes, checked =  OptionalMessageDialog.question(self,  "Question",
                             "Are you sure you wish to do this?",
-                            )
+                         )
 """
-
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
+
 StyleMessage = 0
 StyleQuestion = 1
 
+
 class OptionalMessageDialog(QDialog):
 
-    def __init__(self, parent, style, title, msg, check_state=Qt.Unchecked, check_text=None ):
+    def __init__(self, parent, style, title, msg, check_state=Qt.Unchecked, check_text=None):
         QDialog.__init__(self, parent)
 
-        self.setWindowTitle( title )
+        self.setWindowTitle(title)
         self.was_accepted = False
 
-        l = QVBoxLayout( self )
+        l = QVBoxLayout(self)
 
-        self.theLabel = QLabel( msg )
+        self.theLabel = QLabel(msg)
         self.theLabel.setWordWrap(True)
-        self.theLabel.setTextFormat( Qt.RichText )
+        self.theLabel.setTextFormat(Qt.RichText)
         self.theLabel.setOpenExternalLinks(True)
-        self.theLabel.setTextInteractionFlags( Qt.TextSelectableByMouse | Qt.LinksAccessibleByMouse | Qt.LinksAccessibleByKeyboard )
+        self.theLabel.setTextInteractionFlags(Qt.TextSelectableByMouse | Qt.LinksAccessibleByMouse | Qt.LinksAccessibleByKeyboard)
 
-        l.addWidget( self.theLabel )
-        l.insertSpacing ( -1, 10 )
+        l.addWidget(self.theLabel)
+        l.insertSpacing (-1, 10)
 
         if check_text is None:
             if style == StyleQuestion:
@@ -64,9 +65,9 @@ class OptionalMessageDialog(QDialog):
 
         self.theCheckBox = QCheckBox(check_text)
 
-        self.theCheckBox.setCheckState( check_state )
+        self.theCheckBox.setCheckState(check_state)
 
-        l.addWidget( self.theCheckBox )
+        l.addWidget(self.theCheckBox)
 
         btnbox_style = QDialogButtonBox.Ok
         if style == StyleQuestion:
@@ -78,28 +79,28 @@ class OptionalMessageDialog(QDialog):
                         accepted=self.accept,
                         rejected=self.reject)
 
-        l.addWidget( self.theButtonBox )
+        l.addWidget(self.theButtonBox)
 
-    def accept( self ):
+    def accept(self):
         self.was_accepted = True
         QDialog.accept(self)
 
-    def reject( self ):
+    def reject(self):
         self.was_accepted = False
         QDialog.reject(self)
 
     @staticmethod
-    def msg( parent, title, msg, check_state=Qt.Unchecked, check_text=None):
+    def msg(parent, title, msg, check_state=Qt.Unchecked, check_text=None):
 
-        d = OptionalMessageDialog( parent, StyleMessage, title, msg, check_state=check_state, check_text=check_text )
+        d = OptionalMessageDialog(parent, StyleMessage, title, msg, check_state=check_state, check_text=check_text)
 
         d.exec_()
         return  d.theCheckBox.isChecked()
 
     @staticmethod
-    def question( parent, title, msg, check_state=Qt.Unchecked, check_text=None ):
+    def question(parent, title, msg, check_state=Qt.Unchecked, check_text=None):
 
-        d = OptionalMessageDialog( parent, StyleQuestion, title, msg, check_state=check_state, check_text=check_text )
+        d = OptionalMessageDialog(parent, StyleQuestion, title, msg, check_state=check_state, check_text=check_text)
 
         d.exec_()
 

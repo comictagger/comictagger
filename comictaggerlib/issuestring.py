@@ -32,11 +32,12 @@ import utils
 import math
 import re
 
+
 class IssueString:
     def __init__(self, text):
 
         #  break up the issue number string into 2 parts: the numeric and suffix string.
-        # ( assumes that the numeric portion is always first )
+        # (assumes that the numeric portion is always first)
 
         self.num = None
         self.suffix = ""
@@ -62,7 +63,7 @@ class IssueString:
         if text[start].isdigit() or text[start] == ".":
             # walk through the string, look for split point (the first non-numeric)
             decimal_count = 0
-            for idx in range( start, len(text) ):
+            for idx in range(start, len(text)):
                 if text[idx] not in "0123456789.":
                     break
                 # special case: also split on second "."
@@ -74,7 +75,7 @@ class IssueString:
                 idx = len(text)
 
             # move trailing numeric decimal to suffix
-            # (only if there is other junk after )
+            # (only if there is other junk after)
             if text[idx-1] == "." and len(text) != idx:
                 idx = idx -1
 
@@ -86,14 +87,14 @@ class IssueString:
             part2 = text[idx:len(text)]
 
             if part1 != "":
-                self.num = float( part1 )
+                self.num = float(part1)
             self.suffix = part2
         else:
             self.suffix = text
 
-        #print "num: {0} suf: {1}".format(self.num, self.suffix)
+        #print("num: {0} suf: {1}".format(self.num, self.suffix))
 
-    def asString( self, pad = 0 ):
+    def asString(self, pad = 0):
         #return the float, left side zero-padded, with suffix attached
         if self.num is None:
             return self.suffix
@@ -102,16 +103,16 @@ class IssueString:
 
         num_f = abs(self.num)
 
-        num_int = int( num_f )
-        num_s = str( num_int )
-        if float( num_int ) != num_f:
-            num_s = str( num_f )
+        num_int = int(num_f)
+        num_s = str(num_int)
+        if float(num_int) != num_f:
+            num_s = str(num_f)
 
         num_s += self.suffix
 
         # create padding
         padding = ""
-        l = len( str(num_int))
+        l = len(str(num_int))
         if l < pad :
             padding = "0" * (pad - l)
 
@@ -121,12 +122,12 @@ class IssueString:
 
         return num_s
 
-    def asFloat( self ):
+    def asFloat(self):
         #return the float, with no suffix
         return self.num
 
-    def asInt( self ):
+    def asInt(self):
         #return the int version of the float
         if self.num is None:
             return None
-        return  int( self.num )
+        return  int(self.num)

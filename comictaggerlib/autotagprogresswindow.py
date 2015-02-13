@@ -19,11 +19,14 @@ limitations under the License.
 """
 
 import sys
-from PyQt4 import QtCore, QtGui, uic
 import os
+
+from PyQt4 import QtCore, QtGui, uic
+
 from settings import ComicTaggerSettings
 from coverimagewidget import CoverImageWidget
 import utils
+
 
 class AutoTagProgressWindow(QtGui.QDialog):
 
@@ -31,16 +34,16 @@ class AutoTagProgressWindow(QtGui.QDialog):
     def __init__(self, parent):
         super(AutoTagProgressWindow, self).__init__(parent)
 
-        uic.loadUi(ComicTaggerSettings.getUIFile('autotagprogresswindow.ui' ), self)
+        uic.loadUi(ComicTaggerSettings.getUIFile('autotagprogresswindow.ui'), self)
 
-        self.archiveCoverWidget = CoverImageWidget( self.archiveCoverContainer, CoverImageWidget.DataMode, False )
-        gridlayout = QtGui.QGridLayout( self.archiveCoverContainer )
-        gridlayout.addWidget( self.archiveCoverWidget )
+        self.archiveCoverWidget = CoverImageWidget(self.archiveCoverContainer, CoverImageWidget.DataMode, False)
+        gridlayout = QtGui.QGridLayout(self.archiveCoverContainer)
+        gridlayout.addWidget(self.archiveCoverWidget)
         gridlayout.setContentsMargins(0,0,0,0)
 
-        self.testCoverWidget = CoverImageWidget( self.testCoverContainer, CoverImageWidget.DataMode, False )
-        gridlayout = QtGui.QGridLayout( self.testCoverContainer )
-        gridlayout.addWidget( self.testCoverWidget )
+        self.testCoverWidget = CoverImageWidget(self.testCoverContainer, CoverImageWidget.DataMode, False)
+        gridlayout = QtGui.QGridLayout(self.testCoverContainer)
+        gridlayout.addWidget(self.testCoverWidget)
         gridlayout.setContentsMargins(0,0,0,0)
 
         self.isdone = False
@@ -49,16 +52,16 @@ class AutoTagProgressWindow(QtGui.QDialog):
                                       QtCore.Qt.WindowSystemMenuHint |
                                       QtCore.Qt.WindowMaximizeButtonHint)
 
-        utils.reduceWidgetFontSize( self.textEdit )
+        utils.reduceWidgetFontSize(self.textEdit)
 
-    def setArchiveImage( self, img_data):
-        self.setCoverImage( img_data, self.archiveCoverWidget)
+    def setArchiveImage(self, img_data):
+        self.setCoverImage(img_data, self.archiveCoverWidget)
 
-    def setTestImage( self, img_data):
-        self.setCoverImage( img_data, self.testCoverWidget)
+    def setTestImage(self, img_data):
+        self.setCoverImage(img_data, self.testCoverWidget)
 
-    def setCoverImage( self, img_data , widget):
-        widget.setImageData( img_data )
+    def setCoverImage(self, img_data , widget):
+        widget.setImageData(img_data)
         QtCore.QCoreApplication.processEvents()
         QtCore.QCoreApplication.processEvents()
 

@@ -24,19 +24,19 @@ import os
 import traceback
 import platform
 
-import utils
-import cli
-from settings import ComicTaggerSettings
-from options import Options
-from comicvinetalker import ComicVineTalker
-
 try:
     qt_available = True
     from PyQt4 import QtCore, QtGui
     from taggerwindow import TaggerWindow
 except ImportError as e:
     qt_available = False
-#---------------------------------------
+
+import utils
+import cli
+from settings import ComicTaggerSettings
+from options import Options
+from comicvinetalker import ComicVineTalker
+
 
 def ctmain():
     utils.fix_output_encoding()
@@ -51,7 +51,7 @@ def ctmain():
             settings.cv_api_key = opts.cv_api_key
             settings.save()
     if opts.only_set_key:
-        print "Key set"
+        print("Key set")
         return
 
     ComicVineTalker.api_key = settings.cv_api_key
@@ -63,7 +63,7 @@ def ctmain():
         print >> sys.stderr, "PyQt4 is not available.  ComicTagger is limited to command-line mode."
 
     if opts.no_gui:
-        cli.cli_mode( opts, settings )
+        cli.cli_mode(opts, settings)
     else:
         app = QtGui.QApplication(sys.argv)
 
@@ -76,12 +76,12 @@ def ctmain():
             app.processEvents()
 
         try:
-            tagger_window = TaggerWindow( opts.file_list, settings, opts=opts )
+            tagger_window = TaggerWindow(opts.file_list, settings, opts=opts)
             tagger_window.show()
 
             if platform.system() != "Linux":
-                splash.finish( tagger_window )
+                splash.finish(tagger_window)
 
             sys.exit(app.exec_())
-        except Exception, e:
-            QtGui.QMessageBox.critical(QtGui.QMainWindow(), "Error", "Unhandled exception in app:\n" + traceback.format_exc() )
+        except Exception as e:
+            QtGui.QMessageBox.critical(QtGui.QMainWindow(), "Error", "Unhandled exception in app:\n" + traceback.format_exc())

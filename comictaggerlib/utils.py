@@ -1,5 +1,4 @@
 # coding=utf-8
-
 """
 Some generic utilities
 """
@@ -19,13 +18,16 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 import sys
 import os
 import re
 import platform
 import locale
 import codecs
+
 from settings import ComicTaggerSettings
+
 
 class UtilsVars:
     already_fixed_encoding = False
@@ -36,7 +38,7 @@ def get_actual_preferred_encoding():
         preferred_encoding = "utf-8"
     return preferred_encoding
 
-def fix_output_encoding( ):
+def fix_output_encoding():
     if not UtilsVars.already_fixed_encoding:
         # this reads the environment and inits the right locale
         locale.setlocale(locale.LC_ALL, "")
@@ -47,10 +49,8 @@ def fix_output_encoding( ):
         sys.stderr = codecs.getwriter(preferred_encoding)(sys.stderr)
         UtilsVars.already_fixed_encoding = True
 
-def get_recursive_filelist( pathlist ):
-    """
-    Get a recursive list of of all files under all path items in the list
-    """
+def get_recursive_filelist(pathlist):
+    """Get a recursive list of of all files under all path items in the list"""
     filename_encoding = sys.getfilesystemencoding()
     filelist = []
     for p in pathlist:
@@ -62,8 +62,8 @@ def get_recursive_filelist( pathlist ):
             #it's probably a QString
             p = unicode(p)
 
-        if os.path.isdir( p ):
-            for root,dirs,files in os.walk( p ):
+        if os.path.isdir(p):
+            for root,dirs,files in os.walk(p):
                 for f in files:
                     if type(f) == str:
                         #make sure string is unicode
@@ -77,7 +77,7 @@ def get_recursive_filelist( pathlist ):
 
     return filelist
 
-def listToString( l ):
+def listToString(l):
     string = ""
     if l is not None:
         for item in l:
@@ -86,12 +86,12 @@ def listToString( l ):
             string += item
     return string
 
-def addtopath( dirname ):
+def addtopath(dirname):
     if dirname is not None and dirname != "":
 
         # verify that path doesn't already contain the given dirname
         tmpdirname = re.escape(dirname)
-        pattern = r"{sep}{dir}$|^{dir}{sep}|{sep}{dir}{sep}|^{dir}$".format( dir=tmpdirname, sep=os.pathsep)
+        pattern = r"{sep}{dir}$|^{dir}{sep}|{sep}{dir}{sep}|^{dir}$".format(dir=tmpdirname, sep=os.pathsep)
 
         match = re.search(pattern, os.environ['PATH'])
         if not match:
@@ -115,7 +115,7 @@ def which(program):
 
     return None
 
-def removearticles( text ):
+def removearticles(text):
     text = text.lower()
     articles = ['and', 'the', 'a', '&', 'issue' ]
     newText = ''
@@ -142,7 +142,7 @@ def unique_file(file_name):
     counter = 1
     file_name_parts = os.path.splitext(file_name) # returns ('/path/file', '.ext')
     while 1:
-        if not os.path.lexists( file_name):
+        if not os.path.lexists(file_name):
             return file_name
         file_name = file_name_parts[0] + ' (' + str(counter) + ')' + file_name_parts[1]
         counter += 1
@@ -579,7 +579,7 @@ countries = [
 def getLanguageDict():
     return lang_dict
 
-def getLanguageFromISO( iso ):
+def getLanguageFromISO(iso):
     if iso == None:
         return None
     else:
@@ -593,13 +593,13 @@ except ImportError:
     qt_available = False
 
 if qt_available:
-    def reduceWidgetFontSize( widget , delta = 2):
+    def reduceWidgetFontSize(widget , delta = 2):
         f = widget.font()
         if f.pointSize() > 10:
-            f.setPointSize( f.pointSize() - delta )
-        widget.setFont( f )
+            f.setPointSize(f.pointSize() - delta)
+        widget.setFont(f)
 
-    def centerWindowOnScreen( window ):
+    def centerWindowOnScreen(window):
         """
         Center the window on screen. This implemention will handle the window
         being resized or the screen resolution changing.
@@ -609,13 +609,13 @@ if qt_available:
         # ... and get this windows' dimensions
         mysize = window.geometry()
         # The horizontal position is calulated as screenwidth - windowwidth /2
-        hpos = ( screen.width() - window.width() ) / 2
+        hpos = (screen.width() - window.width()) / 2
         # And vertical position the same, but with the height dimensions
-        vpos = ( screen.height() - window.height() ) / 2
+        vpos = (screen.height() - window.height()) / 2
         # And the move call repositions the window
         window.move(hpos, vpos)
 
-    def centerWindowOnParent( window ):
+    def centerWindowOnParent(window):
 
         top_level = window
         while top_level.parent() is not None:
@@ -626,9 +626,9 @@ if qt_available:
         # ... and get this windows' dimensions
         mysize = window.geometry()
         # The horizontal position is calulated as screenwidth - windowwidth /2
-        hpos = ( main_window_size.width() - window.width() ) / 2
+        hpos = (main_window_size.width() - window.width()) / 2
         # And vertical position the same, but with the height dimensions
-        vpos = ( main_window_size.height() - window.height() ) / 2
+        vpos = (main_window_size.height() - window.height()) / 2
         # And the move call repositions the window
         window.move(hpos + main_window_size.left(), vpos + main_window_size.top())
 
@@ -642,7 +642,7 @@ if qt_available:
 
     def getQImageFromData(image_data):
         img = QtGui.QImage()
-        success = img.loadFromData( image_data )
+        success = img.loadFromData(image_data)
         if not success:
             try:
                 if pil_available:
@@ -651,7 +651,7 @@ if qt_available:
                     im = Image.open(StringIO.StringIO(image_data))
                     output = StringIO.StringIO()
                     im.save(output, format="TIFF")
-                    img.loadFromData( output.getvalue() )
+                    img.loadFromData(output.getvalue())
                     success = True
             except Exception as e:
                 pass

@@ -19,7 +19,6 @@ limitations under the License.
 """
 
 from pprint import pprint
-
 import sqlite3 as lite
 import sys
 import os
@@ -29,17 +28,18 @@ import ctversion
 from settings import ComicTaggerSettings
 import utils
 
+
 class ComicVineCacher:
 
-    def __init__(self ):
+    def __init__(self):
         self.settings_folder = ComicTaggerSettings.getSettingsFolder()
-        self.db_file = os.path.join( self.settings_folder, "cv_cache.db")
-        self.version_file = os.path.join( self.settings_folder, "cache_version.txt")
+        self.db_file = os.path.join(self.settings_folder, "cv_cache.db")
+        self.version_file = os.path.join(self.settings_folder, "cache_version.txt")
 
         #verify that cache is from same version as this one
         data = ""
         try:
-            with open( self.version_file, 'rb' ) as f:
+            with open(self.version_file, 'rb') as f:
                 data = f.read()
                 f.close()
         except:
@@ -47,29 +47,29 @@ class ComicVineCacher:
         if data != ctversion.version:
             self.clearCache()
 
-        if not os.path.exists( self.db_file ):
+        if not os.path.exists(self.db_file):
             self.create_cache_db()
 
-    def clearCache( self ):
+    def clearCache(self):
         try:
-            os.unlink( self.db_file )
+            os.unlink(self.db_file)
         except:
             pass
         try:
-            os.unlink( self.version_file )
+            os.unlink(self.version_file)
         except:
             pass
 
-    def create_cache_db( self ):
+    def create_cache_db(self):
 
         #create the version file
-        with open( self.version_file, 'w' ) as f:
-            f.write( ctversion.version )
+        with open(self.version_file, 'w') as f:
+            f.write(ctversion.version)
 
         # this will wipe out any existing version
-        open( self.db_file, 'w').close()
+        open(self.db_file, 'w').close()
 
-        con = lite.connect( self.db_file )
+        con = lite.connect(self.db_file)
 
         # create tables
         with con:
@@ -85,8 +85,8 @@ class ComicVineCacher:
                             "count_of_issues INT," +
                             "image_url TEXT," +
                             "description TEXT," +
-                            "timestamp DATE DEFAULT (datetime('now','localtime')) ) "
-                        )
+                            "timestamp DATE DEFAULT (datetime('now','localtime'))) "
+                     )
 
             cur.execute("CREATE TABLE Volumes(" +
                             "id INT," +
@@ -95,15 +95,15 @@ class ComicVineCacher:
                             "count_of_issues INT," +
                             "start_year INT," +
                             "timestamp DATE DEFAULT (datetime('now','localtime')), " +
-                            "PRIMARY KEY (id) )"
-                        )
+                            "PRIMARY KEY (id))"
+                     )
 
             cur.execute("CREATE TABLE AltCovers(" +
                             "issue_id INT," +
                             "url_list TEXT," +
                             "timestamp DATE DEFAULT (datetime('now','localtime')), " +
-                            "PRIMARY KEY (issue_id) )"
-                        )
+                            "PRIMARY KEY (issue_id))"
+                     )
 
             cur.execute("CREATE TABLE Issues(" +
                             "id INT," +
@@ -116,12 +116,12 @@ class ComicVineCacher:
                             "site_detail_url TEXT," +
                             "description TEXT," +
                             "timestamp DATE DEFAULT (datetime('now','localtime')), " +
-                            "PRIMARY KEY (id ) )"
-                        )
+                            "PRIMARY KEY (id))"
+                     )
 
-    def add_search_results( self, search_term, cv_search_results ):
+    def add_search_results(self, search_term, cv_search_results):
 
-        con = lite.connect( self.db_file )
+        con = lite.connect(self.db_file)
 
         with con:
             con.text_factory = unicode
@@ -145,9 +145,9 @@ class ComicVineCacher:
                     url = record['image']['super_url']
 
                 cur.execute("INSERT INTO VolumeSearchCache " +
-                            "(search_term, id, name, start_year, publisher, count_of_issues, image_url, description ) " +
-                            "VALUES( ?, ?, ?, ?, ?, ?, ?, ? )" ,
-                                ( search_term.lower(),
+                            "(search_term, id, name, start_year, publisher, count_of_issues, image_url, description) " +
+                            "VALUES(?, ?, ?, ?, ?, ?, ?, ?)" ,
+                                (search_term.lower(),
                                 record['id'],
                                 record['name'],
                                 record['start_year'],
@@ -155,12 +155,12 @@ class ComicVineCacher:
                                 record['count_of_issues'],
                                 url,
                                 record['description'])
-                            )
+                         )
 
-    def get_search_results( self, search_term ):
+    def get_search_results(self, search_term):
 
         results = list()
-        con = lite.connect( self.db_file )
+        con = lite.connect(self.db_file)
         with con:
             con.text_factory = unicode
             cur = con.cursor()
@@ -168,10 +168,10 @@ class ComicVineCacher:
 
             # purge stale search results
             a_day_ago = datetime.datetime.today()-datetime.timedelta(days=1)
-            cur.execute( "DELETE FROM VolumeSearchCache WHERE timestamp  < ?", [ str(a_day_ago) ] )
+            cur.execute("DELETE FROM VolumeSearchCache WHERE timestamp  < ?", [ str(a_day_ago) ])
 
             # fetch
-            cur.execute("SELECT * FROM VolumeSearchCache WHERE search_term=?", [ search_term.lower() ] )
+            cur.execute("SELECT * FROM VolumeSearchCache WHERE search_term=?", [ search_term.lower() ])
             rows = cur.fetchall()
             # now process the results
             for record in rows:
@@ -191,9 +191,9 @@ class ComicVineCacher:
 
         return results
 
-    def add_alt_covers( self, issue_id, url_list ):
+    def add_alt_covers(self, issue_id, url_list):
 
-        con = lite.connect( self.db_file )
+        con = lite.connect(self.db_file)
 
         with con:
             con.text_factory = unicode
@@ -205,23 +205,23 @@ class ComicVineCacher:
             url_list_str = utils.listToString(url_list)
             # now add in new record
             cur.execute("INSERT INTO AltCovers " +
-                        "(issue_id, url_list ) " +
-                        "VALUES( ?, ? )" ,
-                            ( issue_id,
+                        "(issue_id, url_list) " +
+                        "VALUES(?, ?)" ,
+                            (issue_id,
                             url_list_str)
-                        )
+                     )
 
 
-    def get_alt_covers( self, issue_id ):
+    def get_alt_covers(self, issue_id):
 
-        con = lite.connect( self.db_file )
+        con = lite.connect(self.db_file)
         with con:
             cur = con.cursor()
             con.text_factory = unicode
 
             # purge stale issue info - probably issue data won't change much....
             a_month_ago = datetime.datetime.today()-datetime.timedelta(days=30)
-            cur.execute( "DELETE FROM AltCovers WHERE timestamp  < ?", [ str(a_month_ago) ] )
+            cur.execute("DELETE FROM AltCovers WHERE timestamp  < ?", [ str(a_month_ago) ])
 
             cur.execute("SELECT url_list FROM AltCovers WHERE issue_id=?", [ issue_id ])
             row = cur.fetchone()
@@ -234,12 +234,12 @@ class ComicVineCacher:
                 raw_list = url_list_str.split(",")
                 url_list = []
                 for item in raw_list:
-                    url_list.append( str(item).strip())
+                    url_list.append(str(item).strip())
                 return url_list
 
-    def add_volume_info( self, cv_volume_record ):
+    def add_volume_info(self, cv_volume_record):
 
-        con = lite.connect( self.db_file )
+        con = lite.connect(self.db_file)
 
         with con:
 
@@ -259,12 +259,12 @@ class ComicVineCacher:
                         "start_year":      cv_volume_record['start_year'],
                         "timestamp":       timestamp
                     }
-            self.upsert( cur, "volumes", "id", cv_volume_record['id'], data)
+            self.upsert(cur, "volumes", "id", cv_volume_record['id'], data)
 
 
-    def add_volume_issues_info( self, volume_id, cv_volume_issues ):
+    def add_volume_issues_info(self, volume_id, cv_volume_issues):
 
-        con = lite.connect( self.db_file )
+        con = lite.connect(self.db_file)
 
         with con:
 
@@ -287,24 +287,24 @@ class ComicVineCacher:
                         "description":     issue['description'],
                         "timestamp":    timestamp
                        }
-                self.upsert( cur, "issues" , "id", issue['id'], data)
+                self.upsert(cur, "issues" , "id", issue['id'], data)
 
 
-    def get_volume_info( self, volume_id ):
+    def get_volume_info(self, volume_id):
 
         result = None
 
-        con = lite.connect( self.db_file )
+        con = lite.connect(self.db_file)
         with con:
             cur = con.cursor()
             con.text_factory = unicode
 
             # purge stale volume info
             a_week_ago = datetime.datetime.today()-datetime.timedelta(days=7)
-            cur.execute( "DELETE FROM Volumes WHERE timestamp  < ?", [ str(a_week_ago) ] )
+            cur.execute("DELETE FROM Volumes WHERE timestamp  < ?", [ str(a_week_ago) ])
 
             # fetch
-            cur.execute("SELECT id,name,publisher,count_of_issues,start_year FROM Volumes WHERE id = ?", [ volume_id ] )
+            cur.execute("SELECT id,name,publisher,count_of_issues,start_year FROM Volumes WHERE id = ?", [ volume_id ])
 
             row = cur.fetchone()
 
@@ -324,23 +324,23 @@ class ComicVineCacher:
 
         return result
 
-    def get_volume_issues_info( self, volume_id ):
+    def get_volume_issues_info(self, volume_id):
 
         result = None
 
-        con = lite.connect( self.db_file )
+        con = lite.connect(self.db_file)
         with con:
             cur = con.cursor()
             con.text_factory = unicode
 
             # purge stale issue info - probably issue data won't change much....
             a_week_ago = datetime.datetime.today()-datetime.timedelta(days=7)
-            cur.execute( "DELETE FROM Issues WHERE timestamp  < ?", [ str(a_week_ago) ] )
+            cur.execute("DELETE FROM Issues WHERE timestamp  < ?", [ str(a_week_ago) ])
 
             # fetch
             results = list()
 
-            cur.execute("SELECT id,name,issue_number,site_detail_url,cover_date,super_url,thumb_url,description FROM Issues WHERE volume_id = ?", [ volume_id ] )
+            cur.execute("SELECT id,name,issue_number,site_detail_url,cover_date,super_url,thumb_url,description FROM Issues WHERE volume_id = ?", [ volume_id ])
             rows = cur.fetchall()
 
             # now process the results
@@ -365,9 +365,9 @@ class ComicVineCacher:
         return results
 
 
-    def add_issue_select_details( self, issue_id, image_url, thumb_image_url, cover_date, site_detail_url ):
+    def add_issue_select_details(self, issue_id, image_url, thumb_image_url, cover_date, site_detail_url):
 
-        con = lite.connect( self.db_file )
+        con = lite.connect(self.db_file)
 
         with con:
             cur = con.cursor()
@@ -381,13 +381,13 @@ class ComicVineCacher:
                       "site_detail_url": site_detail_url,
                       "timestamp": timestamp
                    }
-            self.upsert( cur, "issues" , "id", issue_id, data)
+            self.upsert(cur, "issues" , "id", issue_id, data)
 
 
 
-    def get_issue_select_details( self, issue_id ):
+    def get_issue_select_details(self, issue_id):
 
-        con = lite.connect( self.db_file )
+        con = lite.connect(self.db_file)
         with con:
             cur = con.cursor()
             con.text_factory = unicode
@@ -411,7 +411,7 @@ class ComicVineCacher:
             return details
 
 
-    def upsert( self, cur, tablename, pkname, pkval, data):
+    def upsert(self, cur, tablename, pkname, pkval, data):
         """
         This does an insert if the given PK doesn't exist, and an update it if does
         """
@@ -436,20 +436,20 @@ class ComicVineCacher:
                 set_slots += ", "
 
             keys += key
-            vals.append( data[key] )
+            vals.append(data[key])
             ins_slots += "?"
             set_slots += key + " = ?"
 
         keys += ", " + pkname
-        vals.append( pkval )
+        vals.append(pkval)
         ins_slots += ", ?"
         condition = pkname + " = ?"
 
-        sql_ins = ( "INSERT OR IGNORE INTO " + tablename  +
-            " ( " + keys  + " ) " +
-            " VALUES ( " +  ins_slots + " )"  )
-        cur.execute( sql_ins , vals )
+        sql_ins = ("INSERT OR IGNORE INTO " + tablename  +
+            " (" + keys  + ") " +
+            " VALUES (" +  ins_slots + ")")
+        cur.execute(sql_ins , vals)
 
-        sql_upd =  ( "UPDATE " + tablename  +
-            " SET " + set_slots + " WHERE " + condition )
-        cur.execute( sql_upd , vals )
+        sql_upd =  ("UPDATE " + tablename  +
+            " SET " + set_slots + " WHERE " + condition)
+        cur.execute(sql_upd , vals)

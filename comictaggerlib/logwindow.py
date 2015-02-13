@@ -19,22 +19,23 @@ limitations under the License.
 """
 
 import sys
-from PyQt4 import QtCore, QtGui, uic
 import os
+
+from PyQt4 import QtCore, QtGui, uic
+
 from settings import ComicTaggerSettings
 
 
 class LogWindow(QtGui.QDialog):
 
-
     def __init__(self, parent):
         super(LogWindow, self).__init__(parent)
 
-        uic.loadUi(ComicTaggerSettings.getUIFile('logwindow.ui' ), self)
+        uic.loadUi(ComicTaggerSettings.getUIFile('logwindow.ui'), self)
 
         self.setWindowFlags(self.windowFlags() |
                                       QtCore.Qt.WindowSystemMenuHint |
                                       QtCore.Qt.WindowMaximizeButtonHint)
 
-    def setText( self, text ):
-        self.textEdit.setPlainText( text )
+    def setText(self, text):
+        self.textEdit.setPlainText(text)

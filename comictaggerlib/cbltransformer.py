@@ -19,31 +19,32 @@ limitations under the License.
 """
 
 import os
+
 import utils
 
 
 class CBLTransformer:
-    def __init__( self, metadata, settings ):
+    def __init__(self, metadata, settings):
         self.metadata = metadata
         self.settings = settings
 
 
-    def apply( self ):
+    def apply(self):
         # helper funcs
-        def append_to_tags_if_unique( item ):
+        def append_to_tags_if_unique(item):
             if item.lower() not in (tag.lower() for tag in self.metadata.tags):
-                self.metadata.tags.append( item )
+                self.metadata.tags.append(item)
 
-        def add_string_list_to_tags( str_list ):
+        def add_string_list_to_tags(str_list):
             if str_list is not None and str_list != "":
                 items = [ s.strip() for s in str_list.split(',') ]
                 for item in items:
-                    append_to_tags_if_unique( item )
+                    append_to_tags_if_unique(item)
 
         if self.settings.assume_lone_credit_is_primary:
 
             # helper
-            def setLonePrimary( role_list ):
+            def setLonePrimary(role_list):
                 lone_credit = None
                 count = 0
                 for c in self.metadata.credits:
@@ -58,25 +59,25 @@ class CBLTransformer:
                 return lone_credit, count
 
             #need to loop three times, once for 'writer', 'artist', and then 'penciler' if no artist
-            setLonePrimary( ['writer'] )
-            c, count = setLonePrimary( ['artist'] )
+            setLonePrimary(['writer'])
+            c, count = setLonePrimary(['artist'])
             if c is None and count == 0:
-                c, count = setLonePrimary( ['penciler', 'penciller'] )
+                c, count = setLonePrimary(['penciler', 'penciller'])
                 if c is not None:
                     c['primary'] = False
-                    self.metadata.addCredit( c['person'], 'Artist', True )
+                    self.metadata.addCredit(c['person'], 'Artist', True)
 
         if self.settings.copy_characters_to_tags:
-            add_string_list_to_tags( self.metadata.characters )
+            add_string_list_to_tags(self.metadata.characters)
 
         if self.settings.copy_teams_to_tags:
-            add_string_list_to_tags( self.metadata.teams )
+            add_string_list_to_tags(self.metadata.teams)
 
         if self.settings.copy_locations_to_tags:
-            add_string_list_to_tags( self.metadata.locations )
+            add_string_list_to_tags(self.metadata.locations)
 
         if self.settings.copy_storyarcs_to_tags:
-            add_string_list_to_tags( self.metadata.storyArc )
+            add_string_list_to_tags(self.metadata.storyArc)
 
         if self.settings.copy_notes_to_comments:
             if self.metadata.notes is not None:

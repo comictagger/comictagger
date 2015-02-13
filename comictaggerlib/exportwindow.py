@@ -18,41 +18,44 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import os
 
 from PyQt4 import QtCore, QtGui, uic
+
 from settings import ComicTaggerSettings
 from settingswindow import SettingsWindow
 from filerenamer import FileRenamer
-import os
 import utils
+
 
 class ExportConflictOpts:
     dontCreate = 1
     overwrite = 2
     createUnique = 3
 
+
 class ExportWindow(QtGui.QDialog):
 
-    def __init__( self, parent,  settings, msg ):
+    def __init__(self, parent,  settings, msg):
         super(ExportWindow, self).__init__(parent)
 
-        uic.loadUi(ComicTaggerSettings.getUIFile('exportwindow.ui' ), self)
-        self.label.setText( msg )
+        uic.loadUi(ComicTaggerSettings.getUIFile('exportwindow.ui'), self)
+        self.label.setText(msg)
 
         self.setWindowFlags(self.windowFlags() &
-                                      ~QtCore.Qt.WindowContextHelpButtonHint )
+                                      ~QtCore.Qt.WindowContextHelpButtonHint)
 
         self.settings = settings
 
-        self.cbxDeleteOriginal.setCheckState( QtCore.Qt.Unchecked )
-        self.cbxAddToList.setCheckState( QtCore.Qt.Checked )
-        self.radioDontCreate.setChecked( True )
+        self.cbxDeleteOriginal.setCheckState(QtCore.Qt.Unchecked)
+        self.cbxAddToList.setCheckState(QtCore.Qt.Checked)
+        self.radioDontCreate.setChecked(True)
 
         self.deleteOriginal = False
         self.addToList = True
         self.fileConflictBehavior = ExportConflictOpts.dontCreate
 
-    def accept( self ):
+    def accept(self):
         QtGui.QDialog.accept(self)
 
         self.deleteOriginal = self.cbxDeleteOriginal.isChecked()

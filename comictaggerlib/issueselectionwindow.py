@@ -21,17 +21,18 @@ limitations under the License.
 import sys
 import os
 import re
-from PyQt4 import QtCore, QtGui, uic
 
+from PyQt4 import QtCore, QtGui, uic
 from PyQt4.QtCore import QUrl, pyqtSignal, QByteArray
 from PyQt4.QtNetwork import QNetworkAccessManager, QNetworkRequest
 
 from comicvinetalker import ComicVineTalker, ComicVineTalkerException
-from  imagefetcher import  ImageFetcher
+from imagefetcher import ImageFetcher
 from settings import ComicTaggerSettings
 from issuestring import IssueString
 from coverimagewidget import CoverImageWidget
 import utils
+
 
 class IssueNumberTableWidgetItem(QtGui.QTableWidgetItem):
     def __lt__(self, other):
@@ -40,6 +41,7 @@ class IssueNumberTableWidgetItem(QtGui.QTableWidgetItem):
         return (IssueString(selfStr).asFloat() <
                 IssueString(otherStr).asFloat())
 
+
 class IssueSelectionWindow(QtGui.QDialog):
 
     volume_id = 0
@@ -47,15 +49,15 @@ class IssueSelectionWindow(QtGui.QDialog):
     def __init__(self, parent, settings, series_id, issue_number):
         super(IssueSelectionWindow, self).__init__(parent)
 
-        uic.loadUi(ComicTaggerSettings.getUIFile('issueselectionwindow.ui' ), self)
+        uic.loadUi(ComicTaggerSettings.getUIFile('issueselectionwindow.ui'), self)
 
-        self.coverWidget = CoverImageWidget( self.coverImageContainer, CoverImageWidget.AltCoverMode )
-        gridlayout = QtGui.QGridLayout( self.coverImageContainer )
-        gridlayout.addWidget( self.coverWidget )
+        self.coverWidget = CoverImageWidget(self.coverImageContainer, CoverImageWidget.AltCoverMode)
+        gridlayout = QtGui.QGridLayout(self.coverImageContainer)
+        gridlayout.addWidget(self.coverWidget)
         gridlayout.setContentsMargins(0,0,0,0)
 
-        utils.reduceWidgetFontSize( self.twList )
-        utils.reduceWidgetFontSize( self.teDescription, 1 )
+        utils.reduceWidgetFontSize(self.twList)
+        utils.reduceWidgetFontSize(self.teDescription, 1)
 
         self.setWindowFlags(self.windowFlags() |
                                       QtCore.Qt.WindowSystemMenuHint |
@@ -79,22 +81,22 @@ class IssueSelectionWindow(QtGui.QDialog):
 
         #now that the list has been sorted, find the initial record, and select it
         if self.initial_id is None:
-            self.twList.selectRow( 0 )
+            self.twList.selectRow(0)
         else:
             for r in range(0, self.twList.rowCount()):
-                issue_id, b = self.twList.item( r, 0 ).data( QtCore.Qt.UserRole ).toInt()
+                issue_id, b = self.twList.item(r, 0).data(QtCore.Qt.UserRole).toInt()
                 if (issue_id == self.initial_id):
-                    self.twList.selectRow( r )
+                    self.twList.selectRow(r)
                     break
 
-    def performQuery( self ):
+    def performQuery(self):
 
         QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
 
         try:
             comicVine = ComicVineTalker()
-            volume_data = comicVine.fetchVolumeData( self.series_id )
-            self.issue_list = comicVine.fetchIssuesByVolume( self.series_id )
+            volume_data = comicVine.fetchVolumeData(self.series_id)
+            self.issue_list = comicVine.fetchIssuesByVolume(self.series_id)
         except ComicVineTalkerException as e:
             QtGui.QApplication.restoreOverrideCursor()
             if e.code == ComicVineTalkerException.RateLimit:
@@ -114,8 +116,8 @@ class IssueSelectionWindow(QtGui.QDialog):
 
             item_text = record['issue_number']
             item = IssueNumberTableWidgetItem(item_text)
-            item.setData( QtCore.Qt.ToolTipRole, item_text )
-            item.setData( QtCore.Qt.UserRole ,record['id'])
+            item.setData(QtCore.Qt.ToolTipRole, item_text)
+            item.setData(QtCore.Qt.UserRole ,record['id'])
             item.setData(QtCore.Qt.DisplayRole, item_text)
             item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
             self.twList.setItem(row, 0, item)
@@ -129,7 +131,7 @@ class IssueSelectionWindow(QtGui.QDialog):
                 item_text = parts[0] + "-" + parts[1]
 
             item = QtGui.QTableWidgetItem(item_text)
-            item.setData( QtCore.Qt.ToolTipRole, item_text )
+            item.setData(QtCore.Qt.ToolTipRole, item_text)
             item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
             self.twList.setItem(row, 1, item)
 
@@ -137,7 +139,7 @@ class IssueSelectionWindow(QtGui.QDialog):
             if item_text is None:
                 item_text = ""
             item = QtGui.QTableWidgetItem(item_text)
-            item.setData( QtCore.Qt.ToolTipRole, item_text )
+            item.setData(QtCore.Qt.ToolTipRole, item_text)
             item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
             self.twList.setItem(row, 2, item)
 
@@ -147,30 +149,30 @@ class IssueSelectionWindow(QtGui.QDialog):
             row += 1
 
         self.twList.setSortingEnabled(True)
-        self.twList.sortItems( 0 , QtCore.Qt.AscendingOrder )
+        self.twList.sortItems(0 , QtCore.Qt.AscendingOrder)
 
         QtGui.QApplication.restoreOverrideCursor()
 
-    def cellDoubleClicked( self, r, c ):
+    def cellDoubleClicked(self, r, c):
         self.accept()
 
-    def currentItemChanged( self, curr, prev ):
+    def currentItemChanged(self, curr, prev):
 
         if curr is None:
             return
         if prev is not None and prev.row() == curr.row():
                 return
 
-        self.issue_id, b = self.twList.item( curr.row(), 0 ).data( QtCore.Qt.UserRole ).toInt()
+        self.issue_id, b = self.twList.item(curr.row(), 0).data(QtCore.Qt.UserRole).toInt()
 
         # list selection was changed, update the the issue cover
         for record in self.issue_list:
             if record['id'] == self.issue_id:
                 self.issue_number = record['issue_number']
-                self.coverWidget.setIssueID( int(self.issue_id) )
+                self.coverWidget.setIssueID(int(self.issue_id))
                 if record['description'] is None:
-                    self.teDescription.setText ( "" )
+                    self.teDescription.setText ("")
                 else:
-                    self.teDescription.setText ( record['description'] )
+                    self.teDescription.setText (record['description'])
 
                 break

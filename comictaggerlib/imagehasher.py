@@ -17,6 +17,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 import StringIO
 import sys
 
@@ -26,7 +27,6 @@ try:
     pil_available = True
 except ImportError:
     pil_available = False
-
 
 
 class ImageHasher(object):
@@ -44,9 +44,9 @@ class ImageHasher(object):
                 else:
                     self.image = Image.open(StringIO.StringIO(data))
             except:
-                print "Image data seems corrupted!"
+                print("Image data seems corrupted!")
                 # just generate a bogus image
-                self.image = Image.new( "L", (1,1))
+                self.image = Image.new("L", (1,1))
 
     def average_hash(self):
         try:
@@ -60,20 +60,20 @@ class ImageHasher(object):
         avg = sum(pixels) / len(pixels)
 
         def compare_value_to_avg(i):
-            return ( 1 if i > avg else 0 )
+            return (1 if i > avg else 0)
 
         bitlist = map(compare_value_to_avg, pixels)
 
         # build up an int value from the bit list, one bit at a time
-        def set_bit( x, (idx, val) ):
+        def set_bit(x, (idx, val)):
             return (x | (val << idx))
 
         result = reduce(set_bit, enumerate(bitlist), 0)
 
-        #print "{0:016x}".format(result)
+        #print("{0:016x}".format(result))
         return result
 
-    def average_hash2( self ):
+    def average_hash2(self):
         pass
         """
         # Got this one from somewhere on the net.  Not a clue how the 'convolve2d'
@@ -91,7 +91,7 @@ class ImageHasher(object):
         result = reduce(lambda x, (y, z): x | (z << y),
                          enumerate(map(lambda i: 0 if i < 0 else 1, filt_data)),
                          0)
-        #print "{0:016x}".format(result)
+        #print("{0:016x}".format(result))
         return result
         """
 
@@ -145,32 +145,32 @@ class ImageHasher(object):
         in_data = numpy.asarray(im)
 
         # Step 3
-        dct = scipy.fftpack.dct( in_data.astype(float) )
+        dct = scipy.fftpack.dct(in_data.astype(float))
 
         # Step 4
         # Just skip the top and left rows when slicing, as suggested somewhere else...
         lofreq_dct = dct[1:9, 1:9].flatten()
 
         # Step 5
-        avg = ( lofreq_dct.sum() ) / ( lofreq_dct.size  )
-        median = numpy.median( lofreq_dct )
+        avg = (lofreq_dct.sum()) / (lofreq_dct.size)
+        median = numpy.median(lofreq_dct)
 
         thresh = avg
 
         # Step 6
         def compare_value_to_thresh(i):
-            return ( 1 if i > thresh else 0 )
+            return (1 if i > thresh else 0)
 
         bitlist = map(compare_value_to_thresh, lofreq_dct)
 
         #Step 7
-        def set_bit( x, (idx, val) ):
+        def set_bit(x, (idx, val)):
             return (x | (val << idx))
 
         result = reduce(set_bit, enumerate(bitlist), long(0))
 
 
-        #print "{0:016x}".format(result)
+        #print("{0:016x}".format(result))
         return result
         """
 
@@ -183,11 +183,11 @@ class ImageHasher(object):
             n2 = h2
         else:
             # convert hex strings to ints
-            n1 = long( h1, 16)
-            n2 = long( h2, 16)
+            n1 = long(h1, 16)
+            n2 = long(h2, 16)
 
         # xor the two numbers
         n = n1 ^ n2
 
         #count up the 1's in the binary string
-        return sum( b == '1' for b in bin(n)[2:] )
+        return sum(b == '1' for b in bin(n)[2:])

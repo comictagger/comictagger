@@ -49,26 +49,26 @@ class ImageFetcherException(Exception):
 
 class ImageFetcher(QObject):
 
-    fetchComplete = pyqtSignal( QByteArray , int)
+    fetchComplete = pyqtSignal(QByteArray , int)
 
 
-    def __init__(self ):
+    def __init__(self):
         QObject.__init__(self)
 
         self.settings_folder = ComicTaggerSettings.getSettingsFolder()
-        self.db_file = os.path.join( self.settings_folder, "image_url_cache.db" )
-        self.cache_folder = os.path.join( self.settings_folder, "image_cache" )
+        self.db_file = os.path.join(self.settings_folder, "image_url_cache.db")
+        self.cache_folder = os.path.join(self.settings_folder, "image_cache")
 
-        if not os.path.exists( self.db_file ):
+        if not os.path.exists(self.db_file):
             self.create_image_db()
 
-    def clearCache( self ):
-        os.unlink( self.db_file )
-        if os.path.isdir( self.cache_folder ):
-            shutil.rmtree( self.cache_folder )
+    def clearCache(self):
+        os.unlink(self.db_file)
+        if os.path.isdir(self.cache_folder):
+            shutil.rmtree(self.cache_folder)
 
 
-    def fetch( self, url, user_data=None, blocking=False  ):
+    def fetch(self, url, user_data=None, blocking=False):
         """
         If called with blocking=True, this will block until the image is
         fetched.
@@ -81,25 +81,25 @@ class ImageFetcher(QObject):
         self.fetched_url = url
 
         # first look in the DB
-        image_data = self.get_image_from_cache( url )
+        image_data = self.get_image_from_cache(url)
 
         if blocking:
             if image_data is None:
                 try:
                     image_data = urllib.urlopen(url).read()
                 except Exception as e:
-                    print e
+                    print(e)
                     raise ImageFetcherException("Network Error!")
 
             # save the image to the cache
-            self.add_image_to_cache( self.fetched_url, image_data )
+            self.add_image_to_cache(self.fetched_url, image_data)
             return image_data
 
         else:
 
             # if we found it, just emit the signal asap
             if image_data is not None:
-                self.fetchComplete.emit( QByteArray(image_data), self.user_data )
+                self.fetchComplete.emit(QByteArray(image_data), self.user_data)
                 return
 
             # didn't find it.  look online
@@ -117,23 +117,23 @@ class ImageFetcher(QObject):
         image_data = reply.readAll()
 
         # save the image to the cache
-        self.add_image_to_cache( self.fetched_url, image_data )
+        self.add_image_to_cache(self.fetched_url, image_data)
 
-        self.fetchComplete.emit( QByteArray(image_data), self.user_data )
+        self.fetchComplete.emit(QByteArray(image_data), self.user_data)
 
 
 
-    def create_image_db( self ):
+    def create_image_db(self):
 
         # this will wipe out any existing version
-        open( self.db_file, 'w').close()
+        open(self.db_file, 'w').close()
 
         # wipe any existing image cache folder too
-        if os.path.isdir( self.cache_folder ):
-            shutil.rmtree( self.cache_folder )
-        os.makedirs( self.cache_folder )
+        if os.path.isdir(self.cache_folder):
+            shutil.rmtree(self.cache_folder)
+        os.makedirs(self.cache_folder)
 
-        con = lite.connect( self.db_file )
+        con = lite.connect(self.db_file)
 
         # create tables
         with con:
@@ -144,13 +144,13 @@ class ImageFetcher(QObject):
                             "url TEXT," +
                             "filename TEXT," +
                             "timestamp TEXT," +
-                            "PRIMARY KEY (url) )"
-                        )
+                            "PRIMARY KEY (url))"
+                     )
 
 
-    def add_image_to_cache( self, url, image_data ):
+    def add_image_to_cache(self, url, image_data):
 
-        con = lite.connect( self.db_file )
+        con = lite.connect(self.db_file)
 
         with con:
 
@@ -160,18 +160,18 @@ class ImageFetcher(QObject):
 
             tmp_fd, filename = tempfile.mkstemp(dir=self.cache_folder, prefix="img")
             f = os.fdopen(tmp_fd, 'w+b')
-            f.write( image_data )
+            f.write(image_data)
             f.close()
 
-            cur.execute("INSERT or REPLACE INTO Images VALUES( ?, ?, ? )" ,
+            cur.execute("INSERT or REPLACE INTO Images VALUES(?, ?, ?)" ,
                             (url,
                             filename,
-                            timestamp )
-                        )
+                            timestamp)
+                     )
 
-    def get_image_from_cache( self, url ):
+    def get_image_from_cache(self, url):
 
-        con = lite.connect( self.db_file )
+        con = lite.connect(self.db_file)
         with con:
             cur = con.cursor()
 
@@ -185,7 +185,7 @@ class ImageFetcher(QObject):
                 image_data = None
 
                 try:
-                    with open( filename, 'rb' ) as f:
+                    with open(filename, 'rb') as f:
                         image_data = f.read()
                         f.close()
                 except IOError as e:

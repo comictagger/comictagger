@@ -21,7 +21,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-
 # Some portions of this code were modified from pyComicMetaThis project
 # http://code.google.com/p/pycomicmetathis/
 
@@ -29,22 +28,23 @@ import re
 import os
 from urllib import unquote
 
+
 class FileNameParser:
 
     def repl(self, m):
        return ' ' * len(m.group())
 
-    def fixSpaces( self, string, remove_dashes=True ):
+    def fixSpaces(self, string, remove_dashes=True):
         if remove_dashes:
             placeholders = ['[-_]','  +']
         else:
             placeholders = ['[_]','  +']
         for ph in placeholders:
-            string = re.sub(ph, self.repl, string )
+            string = re.sub(ph, self.repl, string)
         return string #.strip()
 
 
-    def getIssueCount( self,filename, issue_end ):
+    def getIssueCount(self,filename, issue_end):
 
         count = ""
         filename = filename[issue_end:]
@@ -69,7 +69,7 @@ class FileNameParser:
 
         return count
 
-    def getIssueNumber( self, filename ):
+    def getIssueNumber(self, filename):
 
         # Returns a tuple of issue number string, and start and end indexs in the filename
         # (The indexes will be used to split the string up for further parsing)
@@ -91,16 +91,16 @@ class FileNameParser:
         filename = filename.replace("+", " ")
 
         # replace parenthetical phrases with spaces
-        filename = re.sub( "\(.*?\)", self.repl, filename)
-        filename = re.sub( "\[.*?\]", self.repl, filename)
+        filename = re.sub("\(.*?\)", self.repl, filename)
+        filename = re.sub("\[.*?\]", self.repl, filename)
 
         # replace any name seperators with spaces
         filename = self.fixSpaces(filename)
 
         # remove any "of NN" phrase with spaces (problem: this could break on some titles)
-        filename = re.sub( "of [\d]+", self.repl, filename)
+        filename = re.sub("of [\d]+", self.repl, filename)
 
-        #print u"[{0}]".format(filename)
+        #print(u"[{0}]".format(filename))
 
         # we should now have a cleaned up filename version with all the words in
         # the same positions as original filename
@@ -108,7 +108,7 @@ class FileNameParser:
         # make a list of each word and its position
         word_list = list()
         for m in re.finditer("\S+", filename):
-            word_list.append( (m.group(0), m.start(), m.end()) )
+            word_list.append((m.group(0), m.start(), m.end()))
 
         # remove the first word, since it can't be the issue number
         if len(word_list) > 1:
@@ -148,7 +148,7 @@ class FileNameParser:
 
         return issue, start, end
 
-    def getSeriesName(self, filename, issue_start ):
+    def getSeriesName(self, filename, issue_start):
 
         # use the issue number string index to split the filename string
 
@@ -177,7 +177,7 @@ class FileNameParser:
             last_word = ""
 
         # remove any parenthetical phrases
-        series = re.sub( "\(.*?\)", "", series)
+        series = re.sub("\(.*?\)", "", series)
 
         # search for volume number
         match = re.search('(.+)([vV]|[Vv][oO][Ll]\.?\s?)(\d+)\s*$', series)
@@ -209,7 +209,7 @@ class FileNameParser:
 
         return series, volume.strip()
 
-    def getYear( self,filename, issue_end):
+    def getYear(self,filename, issue_end):
 
         filename = filename[issue_end:]
 
@@ -222,7 +222,7 @@ class FileNameParser:
             year = re.sub("[^0-9]", "", year)
         return year
 
-    def getRemainder( self, filename, year, count, volume, issue_end ):
+    def getRemainder(self, filename, year, count, volume, issue_end):
 
         #make a guess at where the the non-interesting stuff begins
         remainder = ""
@@ -247,7 +247,7 @@ class FileNameParser:
 
         return remainder.strip()
 
-    def parseFilename( self, filename ):
+    def parseFilename(self, filename):
 
         # remove the path
         filename = os.path.basename(filename)
@@ -274,7 +274,7 @@ class FileNameParser:
 
         self.year = self.getYear(filename, issue_end)
         self.issue_count = self.getIssueCount(filename, issue_end)
-        self.remainder = self.getRemainder( filename, self.year, self.issue_count, self.volume, issue_end )
+        self.remainder = self.getRemainder(filename, self.year, self.issue_count, self.volume, issue_end)
 
         if self.issue != "":
             # strip off leading zeros

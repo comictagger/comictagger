@@ -35,6 +35,7 @@ from pageloader import PageLoader
 from imagepopup import ImagePopup
 import utils
 
+
 # helper func to allow a label to be clickable
 def clickable(widget):
 
@@ -63,12 +64,12 @@ class CoverImageWidget(QWidget):
     URLMode = 1
     DataMode = 3
 
-    def __init__(self, parent, mode, expand_on_click = True ):
+    def __init__(self, parent, mode, expand_on_click = True):
         super(CoverImageWidget, self).__init__(parent)
 
-        uic.loadUi(ComicTaggerSettings.getUIFile('coverimagewidget.ui' ), self)
+        uic.loadUi(ComicTaggerSettings.getUIFile('coverimagewidget.ui'), self)
 
-        utils.reduceWidgetFontSize( self.label )
+        utils.reduceWidgetFontSize(self.label)
 
         self.mode = mode
         self.comicVine = ComicVineTalker()
@@ -78,13 +79,13 @@ class CoverImageWidget(QWidget):
         self.btnLeft.setIcon(QIcon(ComicTaggerSettings.getGraphic('left.png')))
         self.btnRight.setIcon(QIcon(ComicTaggerSettings.getGraphic('right.png')))
 
-        self.btnLeft.clicked.connect( self.decrementImage )
-        self.btnRight.clicked.connect( self.incrementImage )
+        self.btnLeft.clicked.connect(self.decrementImage)
+        self.btnRight.clicked.connect(self.incrementImage)
         self.resetWidget()
         if expand_on_click:
             clickable(self.lblImage).connect(self.showPopup)
         else:
-            self.lblImage.setToolTip( "" )
+            self.lblImage.setToolTip("")
 
         self.updateContent()
 
@@ -101,23 +102,23 @@ class CoverImageWidget(QWidget):
         self.imageCount = 1
         self.imageData = None
 
-    def clear( self ):
+    def clear(self):
         self.resetWidget()
         self.updateContent()
 
-    def incrementImage( self ):
+    def incrementImage(self):
         self.imageIndex += 1
         if self.imageIndex == self.imageCount:
             self.imageIndex = 0
         self.updateContent()
 
-    def decrementImage( self ):
+    def decrementImage(self):
         self.imageIndex -= 1
         if self.imageIndex == -1:
             self.imageIndex = self.imageCount -1
         self.updateContent()
 
-    def setArchive( self, ca, page=0 ):
+    def setArchive(self, ca, page=0):
         if self.mode == CoverImageWidget.ArchiveMode:
             self.resetWidget()
             self.comic_archive = ca
@@ -125,7 +126,7 @@ class CoverImageWidget(QWidget):
             self.imageCount = ca.getNumberOfPages()
             self.updateContent()
 
-    def setURL( self, url ):
+    def setURL(self, url):
         if self.mode == CoverImageWidget.URLMode:
             self.resetWidget()
             self.updateContent()
@@ -135,7 +136,7 @@ class CoverImageWidget(QWidget):
             self.imageCount = 1
             self.updateContent()
 
-    def setIssueID( self, issue_id ):
+    def setIssueID(self, issue_id):
         if self.mode == CoverImageWidget.AltCoverMode:
             self.resetWidget()
             self.updateContent()
@@ -143,10 +144,10 @@ class CoverImageWidget(QWidget):
             self.issue_id = issue_id
 
             self.comicVine = ComicVineTalker()
-            self.comicVine.urlFetchComplete.connect( self.primaryUrlFetchComplete )
-            self.comicVine.asyncFetchIssueCoverURLs( int(self.issue_id) )
+            self.comicVine.urlFetchComplete.connect(self.primaryUrlFetchComplete)
+            self.comicVine.asyncFetchIssueCoverURLs(int(self.issue_id))
 
-    def setImageData( self, image_data ):
+    def setImageData(self, image_data):
         if self.mode == CoverImageWidget.DataMode:
             self.resetWidget()
 
@@ -158,7 +159,7 @@ class CoverImageWidget(QWidget):
 
             self.updateContent()
 
-    def primaryUrlFetchComplete( self, primary_url, thumb_url, issue_id ):
+    def primaryUrlFetchComplete(self, primary_url, thumb_url, issue_id):
         self.url_list.append(str(primary_url))
         self.imageIndex = 0
         self.imageCount = len(self.url_list)
@@ -167,43 +168,43 @@ class CoverImageWidget(QWidget):
         #defer the alt cover search
         QTimer.singleShot(1, self.startAltCoverSearch)
 
-    def startAltCoverSearch( self ):
+    def startAltCoverSearch(self):
 
         # now we need to get the list of alt cover URLs
         self.label.setText("Searching for alt. covers...")
 
         # page URL should already be cached, so no need to defer
         self.comicVine = ComicVineTalker()
-        issue_page_url = self.comicVine.fetchIssuePageURL( self.issue_id )
-        self.comicVine.altUrlListFetchComplete.connect( self.altCoverUrlListFetchComplete )
-        self.comicVine.asyncFetchAlternateCoverURLs( int(self.issue_id),  issue_page_url)
+        issue_page_url = self.comicVine.fetchIssuePageURL(self.issue_id)
+        self.comicVine.altUrlListFetchComplete.connect(self.altCoverUrlListFetchComplete)
+        self.comicVine.asyncFetchAlternateCoverURLs(int(self.issue_id),  issue_page_url)
 
-    def altCoverUrlListFetchComplete( self, url_list, issue_id ):
+    def altCoverUrlListFetchComplete(self, url_list, issue_id):
         if len(url_list) > 0:
             self.url_list.extend(url_list)
             self.imageCount = len(self.url_list)
         self.updateControls()
 
-    def setPage( self, pagenum ):
+    def setPage(self, pagenum):
         if self.mode == CoverImageWidget.ArchiveMode:
             self.imageIndex = pagenum
             self.updateContent()
 
-    def updateContent( self ):
+    def updateContent(self):
         self.updateImage()
         self.updateControls()
 
-    def updateImage( self ):
+    def updateImage(self):
         if self.imageIndex == -1:
             self.loadDefault()
         elif self.mode in [ CoverImageWidget.AltCoverMode,  CoverImageWidget.URLMode ]:
             self.loadURL()
         elif self.mode == CoverImageWidget.DataMode:
-            self.coverRemoteFetchComplete( self.imageData, 0 )
+            self.coverRemoteFetchComplete(self.imageData, 0)
         else:
             self.loadPage()
 
-    def updateControls( self ):
+    def updateControls(self):
         if not self.showControls or self.mode == CoverImageWidget.DataMode:
             self.btnLeft.hide()
             self.btnRight.hide()
@@ -224,50 +225,50 @@ class CoverImageWidget(QWidget):
         if self.imageIndex == -1  or self.imageCount == 1:
             self.label.setText("")
         elif self.mode == CoverImageWidget.AltCoverMode:
-            self.label.setText("Cover {0} ( of {1} )".format(self.imageIndex+1, self.imageCount))
+            self.label.setText("Cover {0} (of {1})".format(self.imageIndex+1, self.imageCount))
         else:
-            self.label.setText("Page {0} ( of {1} )".format(self.imageIndex+1, self.imageCount))
+            self.label.setText("Page {0} (of {1})".format(self.imageIndex+1, self.imageCount))
 
-    def loadURL( self ):
+    def loadURL(self):
         self.loadDefault()
-        self.cover_fetcher = ImageFetcher( )
+        self.cover_fetcher = ImageFetcher()
         self.cover_fetcher.fetchComplete.connect(self.coverRemoteFetchComplete)
-        self.cover_fetcher.fetch( self.url_list[self.imageIndex] )
-        #print "ATB cover fetch started...."
+        self.cover_fetcher.fetch(self.url_list[self.imageIndex])
+        #print("ATB cover fetch started...")
 
     # called when the image is done loading from internet
-    def coverRemoteFetchComplete( self, image_data, issue_id ):
-        img = utils.getQImageFromData( image_data)
+    def coverRemoteFetchComplete(self, image_data, issue_id):
+        img = utils.getQImageFromData(image_data)
         self.current_pixmap = QPixmap(img)
-        self.setDisplayPixmap( 0, 0)
-        #print "ATB cover fetch complete!"
+        self.setDisplayPixmap(0, 0)
+        #print("ATB cover fetch complete!")
 
-    def loadPage( self ):
+    def loadPage(self):
         if self.comic_archive is not None:
             if self.page_loader is not None:
                 self.page_loader.abandoned = True
-            self.page_loader = PageLoader( self.comic_archive, self.imageIndex )
-            self.page_loader.loadComplete.connect( self.pageLoadComplete )
+            self.page_loader = PageLoader(self.comic_archive, self.imageIndex)
+            self.page_loader.loadComplete.connect(self.pageLoadComplete)
             self.page_loader.start()
 
-    def pageLoadComplete( self, img ):
+    def pageLoadComplete(self, img):
         self.current_pixmap = QPixmap(img)
-        self.setDisplayPixmap( 0, 0)
+        self.setDisplayPixmap(0, 0)
         self.page_loader = None
 
-    def loadDefault( self ):
+    def loadDefault(self):
         self.current_pixmap = QPixmap(ComicTaggerSettings.getGraphic('nocover.png'))
-        #print "loadDefault called"
-        self.setDisplayPixmap( 0, 0)
+        #print("loadDefault called")
+        self.setDisplayPixmap(0, 0)
 
-    def resizeEvent( self, resize_event ):
+    def resizeEvent(self, resize_event):
         if self.current_pixmap is not None:
             delta_w = resize_event.size().width() - resize_event.oldSize().width()
             delta_h = resize_event.size().height() - resize_event.oldSize().height()
             #print "ATB resizeEvent deltas", resize_event.size().width(), resize_event.size().height()
-            self.setDisplayPixmap( delta_w , delta_h )
+            self.setDisplayPixmap(delta_w , delta_h)
 
-    def setDisplayPixmap( self, delta_w , delta_h ):
+    def setDisplayPixmap(self, delta_w , delta_h):
             # the deltas let us know what the new width and height of the label will be
             """
             new_h = self.frame.height() + delta_h
@@ -298,13 +299,13 @@ class CoverImageWidget(QWidget):
 
             # scale the pixmap to fit in the frame
             scaled_pixmap = self.current_pixmap.scaled(new_w, new_h, Qt.KeepAspectRatio)
-            self.lblImage.setPixmap( scaled_pixmap )
+            self.lblImage.setPixmap(scaled_pixmap)
 
             # move and resize the label to be centered in the fame
             img_w = scaled_pixmap.width()
             img_h = scaled_pixmap.height()
-            self.lblImage.resize( img_w, img_h )
-            self.lblImage.move( (frame_w - img_w)/2, (frame_h - img_h)/2 )
+            self.lblImage.resize(img_w, img_h)
+            self.lblImage.move((frame_w - img_w)/2, (frame_h - img_h)/2)
 
-    def showPopup( self ):
+    def showPopup(self):
         self.popup = ImagePopup(self, self.current_pixmap)

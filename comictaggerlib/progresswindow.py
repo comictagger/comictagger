@@ -19,21 +19,23 @@ limitations under the License.
 """
 
 import sys
-from PyQt4 import QtCore, QtGui, uic
 import os
+
+from PyQt4 import QtCore, QtGui, uic
+
 from settings import ComicTaggerSettings
 import utils
 
-class IDProgressWindow(QtGui.QDialog):
 
+class IDProgressWindow(QtGui.QDialog):
 
     def __init__(self, parent):
         super(IDProgressWindow, self).__init__(parent)
 
-        uic.loadUi(ComicTaggerSettings.getUIFile('progresswindow.ui' ), self)
+        uic.loadUi(ComicTaggerSettings.getUIFile('progresswindow.ui'), self)
 
         self.setWindowFlags(self.windowFlags() |
                                       QtCore.Qt.WindowSystemMenuHint |
                                       QtCore.Qt.WindowMaximizeButtonHint)
 
-        utils.reduceWidgetFontSize( self.textEdit )
+        utils.reduceWidgetFontSize(self.textEdit)
