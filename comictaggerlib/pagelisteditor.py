@@ -185,7 +185,8 @@ class PageListEditor(QWidget):
         for i in range(self.listWidget.count()):
             item = self.listWidget.item(i)
             page_dict = item.data(Qt.UserRole).toPyObject()[0]
-            if 'Type' in page_dict and page_dict['Type'] == PageType.FrontCover:
+            if 'Type' in page_dict and page_dict[
+                    'Type'] == PageType.FrontCover:
                 frontCover = int(page_dict['Image'])
                 break
         return frontCover

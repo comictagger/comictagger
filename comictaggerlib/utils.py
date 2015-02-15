@@ -58,20 +58,20 @@ def get_recursive_filelist(pathlist):
     filelist = []
     for p in pathlist:
         # if path is a folder, walk it recursivly, and all files underneath
-        if type(p) == str:
+        if isinstance(p, str):
             # make sure string is unicode
             p = p.decode(filename_encoding)  # , 'replace')
-        elif type(p) != unicode:
+        elif not isinstance(p, unicode):
             # it's probably a QString
             p = unicode(p)
 
         if os.path.isdir(p):
             for root, dirs, files in os.walk(p):
                 for f in files:
-                    if type(f) == str:
+                    if isinstance(f, str):
                         # make sure string is unicode
                         f = f.decode(filename_encoding, 'replace')
-                    elif type(f) != unicode:
+                    elif not isinstance(f, unicode):
                         # it's probably a QString
                         f = unicode(f)
                     filelist.append(os.path.join(root, f))
@@ -151,7 +151,7 @@ def unique_file(file_name):
     counter = 1
     # returns ('/path/file', '.ext')
     file_name_parts = os.path.splitext(file_name)
-    while 1:
+    while True:
         if not os.path.lexists(file_name):
             return file_name
         file_name = file_name_parts[
@@ -591,7 +591,7 @@ def getLanguageDict():
 
 
 def getLanguageFromISO(iso):
-    if iso == None:
+    if iso is None:
         return None
     else:
         return lang_dict[iso]

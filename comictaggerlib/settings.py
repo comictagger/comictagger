@@ -264,7 +264,8 @@ class ComicTaggerSettings:
         if self.config.has_option('dialogflags', 'show_disclaimer'):
             self.show_disclaimer = self.config.getboolean(
                 'dialogflags', 'show_disclaimer')
-        if self.config.has_option('dialogflags', 'dont_notify_about_this_version'):
+        if self.config.has_option(
+                'dialogflags', 'dont_notify_about_this_version'):
             self.dont_notify_about_this_version = self.config.get(
                 'dialogflags', 'dont_notify_about_this_version')
         if self.config.has_option('dialogflags', 'ask_about_usage_stats'):
@@ -277,7 +278,8 @@ class ComicTaggerSettings:
         if self.config.has_option('comicvine', 'use_series_start_as_volume'):
             self.use_series_start_as_volume = self.config.getboolean(
                 'comicvine', 'use_series_start_as_volume')
-        if self.config.has_option('comicvine', 'clear_form_before_populating_from_cv'):
+        if self.config.has_option(
+                'comicvine', 'clear_form_before_populating_from_cv'):
             self.clear_form_before_populating_from_cv = self.config.getboolean(
                 'comicvine', 'clear_form_before_populating_from_cv')
         if self.config.has_option('comicvine', 'remove_html_tables'):
@@ -286,7 +288,8 @@ class ComicTaggerSettings:
         if self.config.has_option('comicvine', 'cv_api_key'):
             self.cv_api_key = self.config.get('comicvine', 'cv_api_key')
 
-        if self.config.has_option('cbl_transform', 'assume_lone_credit_is_primary'):
+        if self.config.has_option(
+                'cbl_transform', 'assume_lone_credit_is_primary'):
             self.assume_lone_credit_is_primary = self.config.getboolean(
                 'cbl_transform', 'assume_lone_credit_is_primary')
         if self.config.has_option('cbl_transform', 'copy_characters_to_tags'):
@@ -307,10 +310,12 @@ class ComicTaggerSettings:
         if self.config.has_option('cbl_transform', 'copy_weblink_to_comments'):
             self.copy_weblink_to_comments = self.config.getboolean(
                 'cbl_transform', 'copy_weblink_to_comments')
-        if self.config.has_option('cbl_transform', 'apply_cbl_transform_on_cv_import'):
+        if self.config.has_option(
+                'cbl_transform', 'apply_cbl_transform_on_cv_import'):
             self.apply_cbl_transform_on_cv_import = self.config.getboolean(
                 'cbl_transform', 'apply_cbl_transform_on_cv_import')
-        if self.config.has_option('cbl_transform', 'apply_cbl_transform_on_bulk_operation'):
+        if self.config.has_option(
+                'cbl_transform', 'apply_cbl_transform_on_bulk_operation'):
             self.apply_cbl_transform_on_bulk_operation = self.config.getboolean(
                 'cbl_transform', 'apply_cbl_transform_on_bulk_operation')
 
@@ -322,7 +327,8 @@ class ComicTaggerSettings:
         if self.config.has_option('rename', 'rename_use_smart_string_cleanup'):
             self.rename_use_smart_string_cleanup = self.config.getboolean(
                 'rename', 'rename_use_smart_string_cleanup')
-        if self.config.has_option('rename', 'rename_extension_based_on_archive'):
+        if self.config.has_option(
+                'rename', 'rename_extension_based_on_archive'):
             self.rename_extension_based_on_archive = self.config.getboolean(
                 'rename', 'rename_extension_based_on_archive')
 
@@ -335,10 +341,12 @@ class ComicTaggerSettings:
         if self.config.has_option('autotag', 'assume_1_if_no_issue_num'):
             self.assume_1_if_no_issue_num = self.config.getboolean(
                 'autotag', 'assume_1_if_no_issue_num')
-        if self.config.has_option('autotag', 'ignore_leading_numbers_in_filename'):
+        if self.config.has_option(
+                'autotag', 'ignore_leading_numbers_in_filename'):
             self.ignore_leading_numbers_in_filename = self.config.getboolean(
                 'autotag', 'ignore_leading_numbers_in_filename')
-        if self.config.has_option('autotag', 'remove_archive_after_successful_match'):
+        if self.config.has_option(
+                'autotag', 'remove_archive_after_successful_match'):
             self.remove_archive_after_successful_match = self.config.getboolean(
                 'autotag', 'remove_archive_after_successful_match')
         if self.config.has_option('autotag', 'wait_and_retry_on_rate_limit'):
@@ -351,8 +359,8 @@ class ComicTaggerSettings:
             self.config.add_section('settings')
 
         self.config.set(
-            'settings', 'check_for_new_version',   self.check_for_new_version)
-        self.config.set('settings', 'rar_exe_path',   self.rar_exe_path)
+            'settings', 'check_for_new_version', self.check_for_new_version)
+        self.config.set('settings', 'rar_exe_path', self.rar_exe_path)
         self.config.set('settings', 'unrar_exe_path', self.unrar_exe_path)
         self.config.set('settings', 'send_usage_stats', self.send_usage_stats)
 

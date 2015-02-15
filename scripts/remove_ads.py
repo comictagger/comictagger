@@ -57,7 +57,7 @@ def main():
             md = ca.readMetadata(style)
             if len(md.pages) != 0:
                 for p in md.pages:
-                    if p.has_key('Type') and p['Type'] in unwanted_types:
+                    if 'Type' in p and p['Type'] in unwanted_types:
                         # This one has pages to remove.  add to list!
                         modify_list.append((filename, md))
                         break
@@ -77,7 +77,8 @@ def main():
         if not os.access(filename, os.W_OK):
             print "Can't move: {0}: skipped!".format(filename)
             continue
-        if not os.path.exists(curr_subfolder) and not os.access(curr_folder, os.W_OK):
+        if not os.path.exists(curr_subfolder) and not os.access(
+                curr_folder, os.W_OK):
             print "Can't create subfolder here: {0}: skipped!".format(filename)
             continue
         if not os.path.exists(curr_subfolder):
@@ -98,7 +99,7 @@ def main():
             new_num = 0
             new_pages = list()
             for p in md.pages:
-                if p.has_key('Type') and p['Type'] in unwanted_types:
+                if 'Type' in p and p['Type'] in unwanted_types:
                     continue
                 else:
                     pageNum = int(p['Image'])
@@ -115,7 +116,7 @@ def main():
                     # create new page entry
                     new_p = dict()
                     new_p['Image'] = str(new_num)
-                    if p.has_key('Type'):
+                    if 'Type' in p:
                         new_p['Type'] = p['Type']
                     new_pages.append(new_p)
                     new_num += 1

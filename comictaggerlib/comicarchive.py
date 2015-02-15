@@ -182,7 +182,7 @@ class ZipArchiver:
             # walk backwards to find the "End of Central Directory" record
             while (not found) and (-pos != file_length):
                 # seek, relative to EOF
-                fo.seek(pos,  2)
+                fo.seek(pos, 2)
 
                 value = fo.read(4)
 
@@ -198,7 +198,7 @@ class ZipArchiver:
 
                 # now skip forward 20 bytes to the comment length word
                 pos += 20
-                fo.seek(pos,  2)
+                fo.seek(pos, 2)
 
                 # Pack the length of the comment string
                 format = "H"                   # one 2-byte integer
@@ -207,7 +207,7 @@ class ZipArchiver:
 
                 # write out the length
                 fo.write(comment_length)
-                fo.seek(pos + 2,  2)
+                fo.seek(pos + 2, 2)
 
                 # write out the comment itself
                 fo.write(comment)
@@ -734,14 +734,14 @@ class ComicArchive:
         for name in name_list:
             fname = os.path.split(name)[1]
             length = len(fname)
-            if length_buckets.has_key(length):
+            if length in length_buckets:
                 length_buckets[length] += 1
             else:
                 length_buckets[length] = 1
 
         # sort by most common
         sorted_buckets = sorted(
-            length_buckets.iteritems(), key=lambda (k, v): (v, k), reverse=True)
+            length_buckets.iteritems(), key=lambda k_v: (k_v[1], k_v[0]), reverse=True)
 
         # statistical mode occurence is first
         mode_length = sorted_buckets[0][0]
@@ -789,7 +789,8 @@ class ComicArchive:
             # make a sub-list of image files
             self.page_list = []
             for name in files:
-                if (name[-4:].lower() in [".jpg", "jpeg", ".png", ".gif", "webp"] and os.path.basename(name)[0] != "."):
+                if (name[-4:].lower() in [".jpg", "jpeg", ".png",
+                                          ".gif", "webp"] and os.path.basename(name)[0] != "."):
                     self.page_list.append(name)
 
         return self.page_list

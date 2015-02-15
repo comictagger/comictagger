@@ -232,7 +232,8 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
 
     def parseCmdLineArgs(self):
 
-        if platform.system() == "Darwin" and hasattr(sys, "frozen") and sys.frozen == 1:
+        if platform.system() == "Darwin" and hasattr(
+                sys, "frozen") and sys.frozen == 1:
             # remove the PSN ("process serial number") argument from OS/X
             input_args = [a for a in sys.argv[1:] if "-psn_0_" not in a]
         else:
@@ -391,10 +392,11 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
                 self.filename = args[0]
                 self.file_list = args
 
-        if self.only_set_key and self.cv_api_key == None:
+        if self.only_set_key and self.cv_api_key is None:
             self.display_msg_and_quit("Key not given!", 1)
 
-        if (self.only_set_key == False) and self.no_gui and (self.filename is None):
+        if (self.only_set_key == False) and self.no_gui and (
+                self.filename is None):
             self.display_msg_and_quit(
                 "Command requires at least one filename!", 1)
 

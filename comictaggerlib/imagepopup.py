@@ -72,7 +72,8 @@ class ImagePopup(QtGui.QDialog):
         win_h = self.height()
         win_w = self.width()
 
-        if self.imagePixmap.width() > win_w or self.imagePixmap.height() > win_h:
+        if self.imagePixmap.width(
+        ) > win_w or self.imagePixmap.height() > win_h:
             # scale the pixmap to fit in the frame
             display_pixmap = self.imagePixmap.scaled(
                 win_w, win_h, QtCore.Qt.KeepAspectRatio)

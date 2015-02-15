@@ -181,7 +181,7 @@ class CoverImageWidget(QWidget):
         self.comicVine.altUrlListFetchComplete.connect(
             self.altCoverUrlListFetchComplete)
         self.comicVine.asyncFetchAlternateCoverURLs(
-            int(self.issue_id),  issue_page_url)
+            int(self.issue_id), issue_page_url)
 
     def altCoverUrlListFetchComplete(self, url_list, issue_id):
         if len(url_list) > 0:
@@ -201,7 +201,7 @@ class CoverImageWidget(QWidget):
     def updateImage(self):
         if self.imageIndex == -1:
             self.loadDefault()
-        elif self.mode in [CoverImageWidget.AltCoverMode,  CoverImageWidget.URLMode]:
+        elif self.mode in [CoverImageWidget.AltCoverMode, CoverImageWidget.URLMode]:
             self.loadURL()
         elif self.mode == CoverImageWidget.DataMode:
             self.coverRemoteFetchComplete(self.imageData, 0)

@@ -157,7 +157,8 @@ class ComicVineTalker(QObject):
         while True:
             content = self.getUrlContent(url)
             cv_response = json.loads(content)
-            if self.wait_for_rate_limit and cv_response['status_code'] == ComicVineTalkerException.RateLimit:
+            if self.wait_for_rate_limit and cv_response[
+                    'status_code'] == ComicVineTalkerException.RateLimit:
                 self.writeLog(
                     "Rate limit encountered.  Waiting for {0} minutes\n".format(limit_wait_time))
                 time.sleep(limit_wait_time * 60)
@@ -351,7 +352,8 @@ class ComicVineTalker(QObject):
 
         return volume_issues_result
 
-    def fetchIssuesByVolumeIssueNumAndYear(self, volume_id_list, issue_number, year):
+    def fetchIssuesByVolumeIssueNumAndYear(
+            self, volume_id_list, issue_number, year):
         volume_filter = "volume:"
         for vid in volume_id_list:
             volume_filter += str(vid) + "|"
@@ -409,7 +411,8 @@ class ComicVineTalker(QObject):
         for record in issues_list_results:
             if IssueString(issue_number).asString() is None:
                 issue_number = 1
-            if IssueString(record['issue_number']).asString().lower() == IssueString(issue_number).asString().lower():
+            if IssueString(record['issue_number']).asString().lower() == IssueString(
+                    issue_number).asString().lower():
                 found = True
                 break
 
@@ -425,7 +428,8 @@ class ComicVineTalker(QObject):
             return None
 
         # now, map the comicvine data to generic metadata
-        return self.mapCVDataToMetadata(volume_results, issue_results, settings)
+        return self.mapCVDataToMetadata(
+            volume_results, issue_results, settings)
 
     def fetchIssueDataByIssueID(self, issue_id, settings):
 
@@ -473,7 +477,7 @@ class ComicVineTalker(QObject):
 
         person_credits = issue_results['person_credits']
         for person in person_credits:
-            if person.has_key('role'):
+            if 'role' in person:
                 roles = person['role'].split(',')
                 for role in roles:
                     # can we determine 'primary' from CV??
@@ -656,7 +660,8 @@ class ComicVineTalker(QObject):
         cvc = ComicVineCacher()
         return cvc.get_issue_select_details(issue_id)
 
-    def cacheIssueSelectDetails(self, issue_id, image_url, thumb_url, cover_date, page_url):
+    def cacheIssueSelectDetails(
+            self, issue_id, image_url, thumb_url, cover_date, page_url):
         cvc = ComicVineCacher()
         cvc.add_issue_select_details(
             issue_id, image_url, thumb_url, cover_date, page_url)
@@ -687,7 +692,7 @@ class ComicVineTalker(QObject):
         div_list = soup.find_all('div')
         covers_found = 0
         for d in div_list:
-            if d.has_key('class'):
+            if 'class' in d:
                 c = d['class']
                 if 'imgboxart' in c and 'issue-cover' in c:
                     covers_found += 1
@@ -738,12 +743,12 @@ class ComicVineTalker(QObject):
         try:
             cv_response = json.loads(str(data))
         except:
-            print >> sys.stderr,  "Comic Vine query failed to get JSON data"
+            print >> sys.stderr, "Comic Vine query failed to get JSON data"
             print >> sys.stderr, str(data)
             return
 
         if cv_response['status_code'] != 1:
-            print >> sys.stderr,  "Comic Vine query failed with error:  [{0}]. ".format(
+            print >> sys.stderr, "Comic Vine query failed with error:  [{0}]. ".format(
                 cv_response['error'])
             return
 

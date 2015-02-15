@@ -140,7 +140,7 @@ class ComicBookInfo:
 
         return cbi_container
 
-    def writeToExternalFile(self, filename,  metadata):
+    def writeToExternalFile(self, filename, metadata):
 
         cbi_container = self.createJSONDictionary(metadata)
 

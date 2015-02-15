@@ -101,7 +101,8 @@ def main():
         if not os.access(filename, os.W_OK):
             print "Can't move: {0}: skipped!".format(filename)
             continue
-        if not os.path.exists(curr_subfolder) and not os.access(curr_folder, os.W_OK):
+        if not os.path.exists(curr_subfolder) and not os.access(
+                curr_folder, os.W_OK):
             print "Can't create subfolder here: {0}: skipped!".format(filename)
             continue
         if not os.path.exists(curr_subfolder):

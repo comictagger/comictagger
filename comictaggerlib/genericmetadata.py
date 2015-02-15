@@ -116,7 +116,7 @@ class GenericMetadata:
 
         def assign(cur, new):
             if new is not None:
-                if type(new) == str and len(new) == 0:
+                if isinstance(new, str) and len(new) == 0:
                     setattr(self, cur, None)
                 else:
                     setattr(self, cur, new)
@@ -171,14 +171,14 @@ class GenericMetadata:
         # For now, go the easy route, where any overlay
         # value wipes out the whole list
         if len(new_md.tags) > 0:
-            assign("tags",  new_md.tags)
+            assign("tags", new_md.tags)
 
         if len(new_md.pages) > 0:
-            assign("pages",           new_md.pages)
+            assign("pages", new_md.pages)
 
     def overlayCredits(self, new_credits):
         for c in new_credits:
-            if c.has_key('primary') and c['primary']:
+            if 'primary' in c and c['primary']:
                 primary = True
             else:
                 primary = False
@@ -295,13 +295,13 @@ class GenericMetadata:
         add_attr_string("comments")
         add_attr_string("notes")
 
-        add_string("tags",  utils.listToString(self.tags))
+        add_string("tags", utils.listToString(self.tags))
 
         for c in self.credits:
             primary = ""
-            if c.has_key('primary') and c['primary']:
+            if 'primary' in c and c['primary']:
                 primary = " [P]"
-            add_string("credit",  c['role'] + ": " + c['person'] + primary)
+            add_string("credit", c['role'] + ": " + c['person'] + primary)
 
         # find the longest field name
         flen = 0

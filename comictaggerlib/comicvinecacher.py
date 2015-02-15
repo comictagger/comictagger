@@ -259,11 +259,11 @@ class ComicVineCacher:
                 pub_name = cv_volume_record['publisher']['name']
 
             data = {
-                "name":            cv_volume_record['name'],
-                "publisher":       pub_name,
+                "name": cv_volume_record['name'],
+                "publisher": pub_name,
                 "count_of_issues": cv_volume_record['count_of_issues'],
-                "start_year":      cv_volume_record['start_year'],
-                "timestamp":       timestamp
+                "start_year": cv_volume_record['start_year'],
+                "timestamp": timestamp
             }
             self.upsert(cur, "volumes", "id", cv_volume_record['id'], data)
 
@@ -282,15 +282,15 @@ class ComicVineCacher:
             for issue in cv_volume_issues:
 
                 data = {
-                    "volume_id":       volume_id,
-                    "name":            issue['name'],
-                    "issue_number":    issue['issue_number'],
+                    "volume_id": volume_id,
+                    "name": issue['name'],
+                    "issue_number": issue['issue_number'],
                     "site_detail_url": issue['site_detail_url'],
-                    "cover_date":      issue['cover_date'],
-                    "super_url":       issue['image']['super_url'],
-                    "thumb_url":       issue['image']['thumb_url'],
-                    "description":     issue['description'],
-                    "timestamp":    timestamp
+                    "cover_date": issue['cover_date'],
+                    "super_url": issue['image']['super_url'],
+                    "thumb_url": issue['image']['thumb_url'],
+                    "description": issue['description'],
+                    "timestamp": timestamp
                 }
                 self.upsert(cur, "issues", "id", issue['id'], data)
 
@@ -373,7 +373,8 @@ class ComicVineCacher:
 
         return results
 
-    def add_issue_select_details(self, issue_id, image_url, thumb_image_url, cover_date, site_detail_url):
+    def add_issue_select_details(
+            self, issue_id, image_url, thumb_image_url, cover_date, site_detail_url):
 
         con = lite.connect(self.db_file)
 

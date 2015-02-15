@@ -36,7 +36,7 @@ class ExportConflictOpts:
 
 class ExportWindow(QtGui.QDialog):
 
-    def __init__(self, parent,  settings, msg):
+    def __init__(self, parent, settings, msg):
         super(ExportWindow, self).__init__(parent)
 
         uic.loadUi(ComicTaggerSettings.getUIFile('exportwindow.ui'), self)

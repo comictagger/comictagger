@@ -93,7 +93,8 @@ class IdentifyThread(QtCore.QThread):
 
 class VolumeSelectionWindow(QtGui.QDialog):
 
-    def __init__(self, parent, series_name, issue_number, year, issue_count, cover_index_list, comic_archive, settings, autoselect=False):
+    def __init__(self, parent, series_name, issue_number, year, issue_count,
+                 cover_index_list, comic_archive, settings, autoselect=False):
         super(VolumeSelectionWindow, self).__init__(parent)
 
         uic.loadUi(
@@ -135,7 +136,8 @@ class VolumeSelectionWindow(QtGui.QDialog):
         self.twList.selectRow(0)
 
     def updateButtons(self):
-        if self.cv_search_results is not None and len(self.cv_search_results) > 0:
+        if self.cv_search_results is not None and len(
+                self.cv_search_results) > 0:
             enabled = True
         else:
             enabled = False

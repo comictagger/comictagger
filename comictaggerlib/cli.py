@@ -71,7 +71,7 @@ def actual_issue_data_fetch(match, settings, opts):
         comicVine = ComicVineTalker()
         comicVine.wait_for_rate_limit = opts.wait_and_retry_on_rate_limit
         cv_md = comicVine.fetchIssueData(
-            match['volume_id'],  match['issue_number'], settings)
+            match['volume_id'], match['issue_number'], settings)
     except ComicVineTalkerException:
         print >> sys.stderr, "Network error while getting issue details.  Save aborted"
         return None
@@ -119,7 +119,8 @@ def display_match_set_for_choice(label, match_set, opts, settings):
     if opts.interactive:
         while True:
             i = raw_input("Choose a match #, or 's' to skip: ")
-            if (i.isdigit() and int(i) in range(1, len(match_set.matches) + 1)) or i == 's':
+            if (i.isdigit() and int(i) in range(
+                    1, len(match_set.matches) + 1)) or i == 's':
                 break
         if i != 's':
             i = int(i) - 1
@@ -187,7 +188,7 @@ def cli_mode(opts, settings):
     match_results = OnlineMatchResults()
 
     for f in opts.file_list:
-        if type(f) == str:
+        if isinstance(f, str):
             f = f.decode(filename_encoding, 'replace')
         process_file_cli(f, opts, settings, match_results)
         sys.stdout.flush()
@@ -231,7 +232,8 @@ def process_file_cli(filename, opts, settings, match_results):
 
     # if not ca.isWritableForStyle(opts.data_style) and (opts.delete_tags or
     # opts.save_tags or opts.rename_file):
-    if not ca.isWritable() and (opts.delete_tags or opts.copy_tags or opts.save_tags or opts.rename_file):
+    if not ca.isWritable() and (
+            opts.delete_tags or opts.copy_tags or opts.save_tags or opts.rename_file):
         print >> sys.stderr, "This archive is not writable for that tag type"
         return
 
@@ -263,7 +265,8 @@ def process_file_cli(filename, opts, settings, match_results):
             brief += "({0: >3} pages)".format(page_count)
             brief += "  tags:[ "
 
-            if not (has[MetaDataStyle.CBI] or has[MetaDataStyle.CIX] or has[MetaDataStyle.COMET]):
+            if not (has[MetaDataStyle.CBI] or has[
+                    MetaDataStyle.CIX] or has[MetaDataStyle.COMET]):
                 brief += "none "
             else:
                 if has[MetaDataStyle.CBI]:

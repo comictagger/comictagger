@@ -114,7 +114,8 @@ class TaggerWindow(QtGui.QMainWindow):
                 self.onIncomingSocketConnection)
             ok = self.socketServer.listen(settings.install_id)
             if not ok:
-                if self.socketServer.serverError() == QtNetwork.QAbstractSocket.AddressInUseError:
+                if self.socketServer.serverError(
+                ) == QtNetwork.QAbstractSocket.AddressInUseError:
                     #print("Resetting unresponsive socket with key [{}]".format(settings.install_id))
                     self.socketServer.removeServer(settings.install_id)
                     ok = self.socketServer.listen(settings.install_id)
@@ -755,30 +756,30 @@ class TaggerWindow(QtGui.QMainWindow):
 
         md = self.metadata
 
-        assignText(self.leSeries,       md.series)
-        assignText(self.leIssueNum,     md.issue)
-        assignText(self.leIssueCount,   md.issueCount)
-        assignText(self.leVolumeNum,    md.volume)
-        assignText(self.leVolumeCount,  md.volumeCount)
-        assignText(self.leTitle,        md.title)
-        assignText(self.lePublisher,    md.publisher)
-        assignText(self.lePubMonth,     md.month)
-        assignText(self.lePubYear,      md.year)
-        assignText(self.leGenre,        md.genre)
-        assignText(self.leImprint,      md.imprint)
-        assignText(self.teComments,     md.comments)
-        assignText(self.teNotes,        md.notes)
+        assignText(self.leSeries, md.series)
+        assignText(self.leIssueNum, md.issue)
+        assignText(self.leIssueCount, md.issueCount)
+        assignText(self.leVolumeNum, md.volume)
+        assignText(self.leVolumeCount, md.volumeCount)
+        assignText(self.leTitle, md.title)
+        assignText(self.lePublisher, md.publisher)
+        assignText(self.lePubMonth, md.month)
+        assignText(self.lePubYear, md.year)
+        assignText(self.leGenre, md.genre)
+        assignText(self.leImprint, md.imprint)
+        assignText(self.teComments, md.comments)
+        assignText(self.teNotes, md.notes)
         assignText(self.leCriticalRating, md.criticalRating)
-        assignText(self.leStoryArc,      md.storyArc)
-        assignText(self.leScanInfo,      md.scanInfo)
-        assignText(self.leSeriesGroup,   md.seriesGroup)
-        assignText(self.leAltSeries,     md.alternateSeries)
-        assignText(self.leAltIssueNum,   md.alternateNumber)
+        assignText(self.leStoryArc, md.storyArc)
+        assignText(self.leScanInfo, md.scanInfo)
+        assignText(self.leSeriesGroup, md.seriesGroup)
+        assignText(self.leAltSeries, md.alternateSeries)
+        assignText(self.leAltIssueNum, md.alternateNumber)
         assignText(self.leAltIssueCount, md.alternateCount)
-        assignText(self.leWebLink,       md.webLink)
-        assignText(self.teCharacters,    md.characters)
-        assignText(self.teTeams,         md.teams)
-        assignText(self.teLocations,     md.locations)
+        assignText(self.leWebLink, md.webLink)
+        assignText(self.teCharacters, md.characters)
+        assignText(self.teTeams, md.teams)
+        assignText(self.teLocations, md.locations)
 
         if md.format is not None and md.format != "":
             i = self.cbFormat.findText(md.format)
@@ -827,7 +828,7 @@ class TaggerWindow(QtGui.QMainWindow):
                     continue
 
                 self.addNewCreditEntry(row, credit['role'].title(), credit[
-                                       'person'], (credit['primary'] if credit.has_key('primary') else False))
+                                       'person'], (credit['primary'] if 'primary' in credit else False))
 
                 row += 1
 
@@ -918,7 +919,7 @@ class TaggerWindow(QtGui.QMainWindow):
 
         # Make a list from the coma delimited tags string
         tmp = xlate(self.teTags.toPlainText(), "str")
-        if tmp != None:
+        if tmp is not None:
             def striplist(l):
                 return([x.strip() for x in l])
 
@@ -1131,7 +1132,8 @@ class TaggerWindow(QtGui.QMainWindow):
             # loop over credit table, mark selected rows
             r = 0
             while r < self.twCredits.rowCount():
-                if str(self.twCredits.item(r, 1).text()).lower() not in cix_credits:
+                if str(self.twCredits.item(r, 1).text()
+                       ).lower() not in cix_credits:
                     self.twCredits.item(
                         r, 1).setBackgroundColor(inactive_color)
                 else:
@@ -1174,18 +1176,18 @@ class TaggerWindow(QtGui.QMainWindow):
             if enable:
                 item.setPalette(active_palette)
                 item.setAutoFillBackground(False)
-                if type(item) == QtGui.QCheckBox:
+                if isinstance(item, QtGui.QCheckBox):
                     item.setEnabled(True)
-                elif type(item) == QtGui.QComboBox:
+                elif isinstance(item, QtGui.QComboBox):
                     item.setEnabled(True)
                 else:
                     item.setReadOnly(False)
             else:
                 item.setAutoFillBackground(True)
-                if type(item) == QtGui.QCheckBox:
+                if isinstance(item, QtGui.QCheckBox):
                     item.setPalette(inactive_palette2)
                     item.setEnabled(False)
-                elif type(item) == QtGui.QComboBox:
+                elif isinstance(item, QtGui.QComboBox):
                     item.setPalette(inactive_palette3)
                     item.setEnabled(False)
                 else:
@@ -1628,7 +1630,7 @@ class TaggerWindow(QtGui.QMainWindow):
             comicVine = ComicVineTalker()
             comicVine.wait_for_rate_limit = self.settings.wait_and_retry_on_rate_limit
             cv_md = comicVine.fetchIssueData(
-                match['volume_id'],  match['issue_number'], self.settings)
+                match['volume_id'], match['issue_number'], self.settings)
         except ComicVineTalkerException:
             print("Network error while getting issue details. Save aborted")
 
@@ -2028,7 +2030,7 @@ class TaggerWindow(QtGui.QMainWindow):
             if len(byteArray) > 0:
                 obj = pickle.loads(byteArray)
                 localSocket.disconnectFromServer()
-                if type(obj) is list:
+                if isinstance(obj, list):
                     self.fileSelectionList.addPathList(obj)
         else:
             # print(localSocket.errorString().toLatin1())
@@ -2053,7 +2055,7 @@ class TaggerWindow(QtGui.QMainWindow):
                 # mark it "always on top", just for a moment, to force it to
                 # the top
                 win32gui.SetWindowPos(
-                    hwnd, win32con.HWND_TOPMOST,   x, y, w, h, 0)
+                    hwnd, win32con.HWND_TOPMOST, x, y, w, h, 0)
                 win32gui.SetWindowPos(
                     hwnd, win32con.HWND_NOTOPMOST, x, y, w, h, 0)
             except Exception as e:

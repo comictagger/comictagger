@@ -98,7 +98,8 @@ class FileRenamer:
         new_name = self.replaceToken(new_name, md.month, '%month%')
         month_name = None
         if md.month is not None:
-            if (type(md.month) == str and md.month.isdigit()) or type(md.month) == int:
+            if (isinstance(md.month, str) and md.month.isdigit()) or isinstance(
+                    md.month, int):
                 if int(md.month) in range(1, 13):
                     dt = datetime.datetime(1970, int(md.month), 1, 0, 0)
                     month_name = dt.strftime(
@@ -152,8 +153,8 @@ class FileRenamer:
         # some tweaks to keep various filesystems happy
         new_name = new_name.replace("/", "-")
         new_name = new_name.replace(" :", " -")
-        new_name = new_name.replace(": ",  " - ")
-        new_name = new_name.replace(":",  "-")
+        new_name = new_name.replace(": ", " - ")
+        new_name = new_name.replace(":", "-")
         new_name = new_name.replace("?", "")
 
         return new_name

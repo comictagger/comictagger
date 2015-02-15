@@ -151,7 +151,8 @@ class IssueSelectionWindow(QtGui.QDialog):
             item.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
             self.twList.setItem(row, 2, item)
 
-            if IssueString(record['issue_number']).asString().lower() == IssueString(self.issue_number).asString().lower():
+            if IssueString(record['issue_number']).asString().lower() == IssueString(
+                    self.issue_number).asString().lower():
                 self.initial_id = record['id']
 
             row += 1

@@ -46,7 +46,7 @@ class IssueString:
         if text is None:
             return
 
-        if type(text) == int:
+        if isinstance(text, int):
             text = str(text)
 
         if len(text) == 0:

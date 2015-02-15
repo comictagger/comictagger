@@ -243,7 +243,8 @@ class IssueIdentifier:
         if newline:
             self.output_function("\n")
 
-    def getIssueCoverMatchScore(self, comicVine, issue_id, primary_img_url, primary_thumb_url, page_url, localCoverHashList, useRemoteAlternates=False, useLog=True):
+    def getIssueCoverMatchScore(self, comicVine, issue_id, primary_img_url, primary_thumb_url,
+                                page_url, localCoverHashList, useRemoteAlternates=False, useLog=True):
         # localHashes is a list of pre-calculated hashs.
         # useRemoteAlternates - indicates to use alternate covers from CV
 
@@ -415,7 +416,7 @@ class IssueIdentifier:
         if self.cancel == True:
             return []
 
-        if cv_search_results == None:
+        if cv_search_results is None:
             return []
 
         series_second_round_list = []
@@ -427,7 +428,8 @@ class IssueIdentifier:
             date_approved = True
 
             # remove any series that starts after the issue year
-            if keys['year'] is not None and str(keys['year']).isdigit() and item['start_year'] is not None and str(item['start_year']).isdigit():
+            if keys['year'] is not None and str(keys['year']).isdigit() and item[
+                    'start_year'] is not None and str(item['start_year']).isdigit():
                 if int(keys['year']) < int(item['start_year']):
                     date_approved = False
 
@@ -435,13 +437,15 @@ class IssueIdentifier:
             # within ,e.g. 5 chars
             shortened_key = utils.removearticles(keys['series'])
             shortened_item_name = utils.removearticles(item['name'])
-            if len(shortened_item_name) < (len(shortened_key) + self.length_delta_thresh):
+            if len(shortened_item_name) < (
+                    len(shortened_key) + self.length_delta_thresh):
                 length_approved = True
 
             # remove any series from publishers on the blacklist
             if item['publisher'] is not None:
                 publisher = item['publisher']['name']
-                if publisher is not None and publisher.lower() in self.publisher_blacklist:
+                if publisher is not None and publisher.lower(
+                ) in self.publisher_blacklist:
                     publisher_approved = False
 
             if length_approved and publisher_approved and date_approved:
@@ -654,7 +658,8 @@ class IssueIdentifier:
         # One more test for the case choosing limited series first issue vs a trade with the same cover:
         # if we have a given issue count > 1 and the volume from CV has
         # count==1, remove it from match list
-        if len(self.match_list) >= 2 and keys['issue_count'] is not None and keys['issue_count'] != 1:
+        if len(self.match_list) >= 2 and keys[
+                'issue_count'] is not None and keys['issue_count'] != 1:
             new_list = list()
             for match in self.match_list:
                 if match['cv_issue_count'] != 1:

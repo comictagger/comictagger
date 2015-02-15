@@ -44,7 +44,8 @@ def main():
 
     # sort the list by series+issue+year, to put all the dupes together
     def makeKey(x):
-        return "<" + unicode(x[1].series) + u" #" + unicode(x[1].issue) + u" - " + unicode(x[1].year) + ">"
+        return "<" + unicode(x[1].series) + u" #" + \
+            unicode(x[1].issue) + u" - " + unicode(x[1].year) + ">"
     comic_list.sort(key=makeKey, reverse=False)
 
     # look for duplicate blocks

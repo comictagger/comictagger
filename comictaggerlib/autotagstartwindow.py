@@ -30,7 +30,7 @@ import utils
 
 class AutoTagStartWindow(QtGui.QDialog):
 
-    def __init__(self, parent,  settings, msg):
+    def __init__(self, parent, settings, msg):
         super(AutoTagStartWindow, self).__init__(parent)
 
         uic.loadUi(

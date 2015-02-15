@@ -40,7 +40,8 @@ StyleQuestion = 1
 
 class OptionalMessageDialog(QDialog):
 
-    def __init__(self, parent, style, title, msg, check_state=Qt.Unchecked, check_text=None):
+    def __init__(self, parent, style, title, msg,
+                 check_state=Qt.Unchecked, check_text=None):
         QDialog.__init__(self, parent)
 
         self.setWindowTitle(title)
@@ -100,7 +101,8 @@ class OptionalMessageDialog(QDialog):
         return d.theCheckBox.isChecked()
 
     @staticmethod
-    def question(parent, title, msg, check_state=Qt.Unchecked, check_text=None):
+    def question(
+            parent, title, msg, check_state=Qt.Unchecked, check_text=None):
 
         d = OptionalMessageDialog(
             parent, StyleQuestion, title, msg, check_state=check_state, check_text=check_text)

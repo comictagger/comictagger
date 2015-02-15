@@ -20,6 +20,7 @@ limitations under the License.
 
 import StringIO
 import sys
+from functools import reduce
 
 try:
     from PIL import Image
@@ -67,7 +68,8 @@ class ImageHasher(object):
         bitlist = map(compare_value_to_avg, pixels)
 
         # build up an int value from the bit list, one bit at a time
-        def set_bit(x, (idx, val)):
+        def set_bit(x, idx_val):
+            (idx, val) = idx_val
             return (x | (val << idx))
 
         result = reduce(set_bit, enumerate(bitlist), 0)
@@ -180,7 +182,7 @@ class ImageHasher(object):
 
     @staticmethod
     def hamming_distance(h1, h2):
-        if type(h1) == long or type(h1) == int:
+        if isinstance(h1, long) or isinstance(h1, int):
             n1 = h1
             n2 = h2
         else:
