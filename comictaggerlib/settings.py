@@ -317,7 +317,8 @@ class ComicTaggerSettings:
         if self.config.has_option(
                 'cbl_transform', 'apply_cbl_transform_on_bulk_operation'):
             self.apply_cbl_transform_on_bulk_operation = self.config.getboolean(
-                'cbl_transform', 'apply_cbl_transform_on_bulk_operation')
+                'cbl_transform',
+                'apply_cbl_transform_on_bulk_operation')
 
         if self.config.has_option('rename', 'rename_template'):
             self.rename_template = self.config.get('rename', 'rename_template')
@@ -348,7 +349,8 @@ class ComicTaggerSettings:
         if self.config.has_option(
                 'autotag', 'remove_archive_after_successful_match'):
             self.remove_archive_after_successful_match = self.config.getboolean(
-                'autotag', 'remove_archive_after_successful_match')
+                'autotag',
+                'remove_archive_after_successful_match')
         if self.config.has_option('autotag', 'wait_and_retry_on_rate_limit'):
             self.wait_and_retry_on_rate_limit = self.config.getboolean(
                 'autotag', 'wait_and_retry_on_rate_limit')
@@ -369,9 +371,13 @@ class ComicTaggerSettings:
 
         self.config.set('auto', 'install_id', self.install_id)
         self.config.set(
-            'auto', 'last_selected_load_data_style', self.last_selected_load_data_style)
+            'auto',
+            'last_selected_load_data_style',
+            self.last_selected_load_data_style)
         self.config.set(
-            'auto', 'last_selected_save_data_style', self.last_selected_save_data_style)
+            'auto',
+            'last_selected_save_data_style',
+            self.last_selected_save_data_style)
         self.config.set('auto', 'last_opened_folder', self.last_opened_folder)
         self.config.set(
             'auto', 'last_main_window_width', self.last_main_window_width)
@@ -384,17 +390,25 @@ class ComicTaggerSettings:
         self.config.set(
             'auto', 'last_list_side_width', self.last_list_side_width)
         self.config.set(
-            'auto', 'last_filelist_sorted_column', self.last_filelist_sorted_column)
+            'auto',
+            'last_filelist_sorted_column',
+            self.last_filelist_sorted_column)
         self.config.set(
-            'auto', 'last_filelist_sorted_order', self.last_filelist_sorted_order)
+            'auto',
+            'last_filelist_sorted_order',
+            self.last_filelist_sorted_order)
 
         if not self.config.has_section('identifier'):
             self.config.add_section('identifier')
 
         self.config.set(
-            'identifier', 'id_length_delta_thresh', self.id_length_delta_thresh)
+            'identifier',
+            'id_length_delta_thresh',
+            self.id_length_delta_thresh)
         self.config.set(
-            'identifier', 'id_publisher_blacklist', self.id_publisher_blacklist)
+            'identifier',
+            'id_publisher_blacklist',
+            self.id_publisher_blacklist)
 
         if not self.config.has_section('dialogflags'):
             self.config.add_section('dialogflags')
@@ -403,7 +417,9 @@ class ComicTaggerSettings:
             'dialogflags', 'ask_about_cbi_in_rar', self.ask_about_cbi_in_rar)
         self.config.set('dialogflags', 'show_disclaimer', self.show_disclaimer)
         self.config.set(
-            'dialogflags', 'dont_notify_about_this_version', self.dont_notify_about_this_version)
+            'dialogflags',
+            'dont_notify_about_this_version',
+            self.dont_notify_about_this_version)
         self.config.set(
             'dialogflags', 'ask_about_usage_stats', self.ask_about_usage_stats)
         self.config.set(
@@ -419,7 +435,9 @@ class ComicTaggerSettings:
             self.config.add_section('comicvine')
 
         self.config.set(
-            'comicvine', 'use_series_start_as_volume', self.use_series_start_as_volume)
+            'comicvine',
+            'use_series_start_as_volume',
+            self.use_series_start_as_volume)
         self.config.set('comicvine', 'clear_form_before_populating_from_cv',
                         self.clear_form_before_populating_from_cv)
         self.config.set(
@@ -430,32 +448,52 @@ class ComicTaggerSettings:
             self.config.add_section('cbl_transform')
 
         self.config.set(
-            'cbl_transform', 'assume_lone_credit_is_primary', self.assume_lone_credit_is_primary)
+            'cbl_transform',
+            'assume_lone_credit_is_primary',
+            self.assume_lone_credit_is_primary)
         self.config.set(
-            'cbl_transform', 'copy_characters_to_tags', self.copy_characters_to_tags)
+            'cbl_transform',
+            'copy_characters_to_tags',
+            self.copy_characters_to_tags)
         self.config.set(
             'cbl_transform', 'copy_teams_to_tags', self.copy_teams_to_tags)
         self.config.set(
-            'cbl_transform', 'copy_locations_to_tags', self.copy_locations_to_tags)
+            'cbl_transform',
+            'copy_locations_to_tags',
+            self.copy_locations_to_tags)
         self.config.set(
-            'cbl_transform', 'copy_storyarcs_to_tags', self.copy_storyarcs_to_tags)
+            'cbl_transform',
+            'copy_storyarcs_to_tags',
+            self.copy_storyarcs_to_tags)
         self.config.set(
-            'cbl_transform', 'copy_notes_to_comments', self.copy_notes_to_comments)
+            'cbl_transform',
+            'copy_notes_to_comments',
+            self.copy_notes_to_comments)
         self.config.set(
-            'cbl_transform', 'copy_weblink_to_comments', self.copy_weblink_to_comments)
+            'cbl_transform',
+            'copy_weblink_to_comments',
+            self.copy_weblink_to_comments)
         self.config.set(
-            'cbl_transform', 'apply_cbl_transform_on_cv_import', self.apply_cbl_transform_on_cv_import)
-        self.config.set('cbl_transform', 'apply_cbl_transform_on_bulk_operation',
-                        self.apply_cbl_transform_on_bulk_operation)
+            'cbl_transform',
+            'apply_cbl_transform_on_cv_import',
+            self.apply_cbl_transform_on_cv_import)
+        self.config.set(
+            'cbl_transform',
+            'apply_cbl_transform_on_bulk_operation',
+            self.apply_cbl_transform_on_bulk_operation)
 
         if not self.config.has_section('rename'):
             self.config.add_section('rename')
 
         self.config.set('rename', 'rename_template', self.rename_template)
         self.config.set(
-            'rename', 'rename_issue_number_padding', self.rename_issue_number_padding)
+            'rename',
+            'rename_issue_number_padding',
+            self.rename_issue_number_padding)
         self.config.set(
-            'rename', 'rename_use_smart_string_cleanup', self.rename_use_smart_string_cleanup)
+            'rename',
+            'rename_use_smart_string_cleanup',
+            self.rename_use_smart_string_cleanup)
         self.config.set('rename', 'rename_extension_based_on_archive',
                         self.rename_extension_based_on_archive)
 
@@ -464,15 +502,21 @@ class ComicTaggerSettings:
         self.config.set(
             'autotag', 'save_on_low_confidence', self.save_on_low_confidence)
         self.config.set(
-            'autotag', 'dont_use_year_when_identifying', self.dont_use_year_when_identifying)
+            'autotag',
+            'dont_use_year_when_identifying',
+            self.dont_use_year_when_identifying)
         self.config.set(
-            'autotag', 'assume_1_if_no_issue_num', self.assume_1_if_no_issue_num)
+            'autotag',
+            'assume_1_if_no_issue_num',
+            self.assume_1_if_no_issue_num)
         self.config.set('autotag', 'ignore_leading_numbers_in_filename',
                         self.ignore_leading_numbers_in_filename)
         self.config.set('autotag', 'remove_archive_after_successful_match',
                         self.remove_archive_after_successful_match)
         self.config.set(
-            'autotag', 'wait_and_retry_on_rate_limit', self.wait_and_retry_on_rate_limit)
+            'autotag',
+            'wait_and_retry_on_rate_limit',
+            self.wait_and_retry_on_rate_limit)
 
         with codecs.open(self.settings_file, 'wb', 'utf8') as configfile:
             self.config.write(configfile)

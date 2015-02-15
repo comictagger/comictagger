@@ -108,14 +108,15 @@ def display_match_set_for_choice(label, match_set, opts, settings):
 
     for (counter, m) in enumerate(match_set.matches):
         counter += 1
-        print(u"    {0}. {1} #{2} [{3}] ({4}/{5}) - {6}".format(counter,
-                                                                m['series'],
-                                                                m['issue_number'],
-                                                                m['publisher'],
-                                                                m['month'],
-                                                                m['year'],
-                                                                m['issue_title'])
-              )
+        print(
+            u"    {0}. {1} #{2} [{3}] ({4}/{5}) - {6}".format(
+                counter,
+                m['series'],
+                m['issue_number'],
+                m['publisher'],
+                m['month'],
+                m['year'],
+                m['issue_title']))
     if opts.interactive:
         while True:
             i = raw_input("Choose a match #, or 's' to skip: ")
@@ -289,7 +290,10 @@ def process_file_cli(filename, opts, settings, match_results):
                 print("--------- ComicRack tags ---------")
                 if opts.raw:
                     print(
-                        u"{0}".format(unicode(ca.readRawCIX(), errors='ignore')))
+                        u"{0}".format(
+                            unicode(
+                                ca.readRawCIX(),
+                                errors='ignore')))
                 else:
                     print(u"{0}".format(ca.readCIX()))
 
@@ -332,8 +336,10 @@ def process_file_cli(filename, opts, settings, match_results):
                 filename, dst_style_name))
             return
         if opts.copy_source == opts.data_style:
-            print(u"{0}: Destination and source are same: {1}. Nothing to do.".format(
-                filename, dst_style_name))
+            print(
+                u"{0}: Destination and source are same: {1}. Nothing to do.".format(
+                    filename,
+                    dst_style_name))
             return
 
         src_style_name = MetaDataStyle.name[opts.copy_source]

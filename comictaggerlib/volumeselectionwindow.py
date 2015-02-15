@@ -55,7 +55,9 @@ class SearchThread(QtCore.QThread):
         try:
             self.cv_error = False
             self.cv_search_results = comicVine.searchForSeries(
-                self.series_name, callback=self.prog_callback, refresh_cache=self.refresh)
+                self.series_name,
+                callback=self.prog_callback,
+                refresh_cache=self.refresh)
         except ComicVineTalkerException as e:
             self.cv_search_results = []
             self.cv_error = True
@@ -160,7 +162,9 @@ class VolumeSelectionWindow(QtGui.QDialog):
 
         if self.issue_number is None or self.issue_number == "":
             QtGui.QMessageBox.information(
-                self, "Auto-Select", "Can't auto-select without an issue number (yet!)")
+                self,
+                "Auto-Select",
+                "Can't auto-select without an issue number (yet!)")
             return
 
         self.iddialog = IDProgressWindow(self)
@@ -215,21 +219,29 @@ class VolumeSelectionWindow(QtGui.QDialog):
                 self, "Auto-Select Result", " No matches found :-(")
         elif result == self.ii.ResultFoundMatchButBadCoverScore:
             QtGui.QMessageBox.information(
-                self, "Auto-Select Result", " Found a match, but cover doesn't seem the same.  Verify before commiting!")
+                self,
+                "Auto-Select Result",
+                " Found a match, but cover doesn't seem the same.  Verify before commiting!")
             found_match = matches[0]
         elif result == self.ii.ResultFoundMatchButNotFirstPage:
             QtGui.QMessageBox.information(
-                self, "Auto-Select Result", " Found a match, but not with the first page of the archive.")
+                self,
+                "Auto-Select Result",
+                " Found a match, but not with the first page of the archive.")
             found_match = matches[0]
         elif result == self.ii.ResultMultipleMatchesWithBadImageScores:
             QtGui.QMessageBox.information(
-                self, "Auto-Select Result", " Found some possibilities, but no confidence. Proceed manually.")
+                self,
+                "Auto-Select Result",
+                " Found some possibilities, but no confidence. Proceed manually.")
             choices = True
         elif result == self.ii.ResultOneGoodMatch:
             found_match = matches[0]
         elif result == self.ii.ResultMultipleGoodMatches:
             QtGui.QMessageBox.information(
-                self, "Auto-Select Result", " Found multiple likely matches.  Please select.")
+                self,
+                "Auto-Select Result",
+                " Found multiple likely matches.  Please select.")
             choices = True
 
         if choices:
@@ -313,10 +325,14 @@ class VolumeSelectionWindow(QtGui.QDialog):
         if self.search_thread.cv_error:
             if self.search_thread.error_code == ComicVineTalkerException.RateLimit:
                 QtGui.QMessageBox.critical(
-                    self, self.tr("Comic Vine Error"), ComicVineTalker.getRateLimitMessage())
+                    self,
+                    self.tr("Comic Vine Error"),
+                    ComicVineTalker.getRateLimitMessage())
             else:
-                QtGui.QMessageBox.critical(self, self.tr("Network Issue"), self.tr(
-                    "Could not connect to ComicVine to search for series!"))
+                QtGui.QMessageBox.critical(
+                    self,
+                    self.tr("Network Issue"),
+                    self.tr("Could not connect to ComicVine to search for series!"))
             return
 
         self.cv_search_results = self.search_thread.cv_search_results

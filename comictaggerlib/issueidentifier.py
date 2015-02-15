@@ -243,8 +243,16 @@ class IssueIdentifier:
         if newline:
             self.output_function("\n")
 
-    def getIssueCoverMatchScore(self, comicVine, issue_id, primary_img_url, primary_thumb_url,
-                                page_url, localCoverHashList, useRemoteAlternates=False, useLog=True):
+    def getIssueCoverMatchScore(
+            self,
+            comicVine,
+            issue_id,
+            primary_img_url,
+            primary_thumb_url,
+            page_url,
+            localCoverHashList,
+            useRemoteAlternates=False,
+            useLog=True):
         # localHashes is a list of pre-calculated hashs.
         # useRemoteAlternates - indicates to use alternate covers from CV
 
@@ -256,7 +264,7 @@ class IssueIdentifier:
                 "Network issue while fetching cover image from ComicVine.  Aborting...")
             raise IssueIdentifierNetworkError
 
-        if self.cancel == True:
+        if self.cancel:
             raise IssueIdentifierCancelled
 
         # alert the GUI, if needed
@@ -270,7 +278,7 @@ class IssueIdentifier:
         item['hash'] = self.calculateHash(url_image_data)
         remote_cover_list.append(item)
 
-        if self.cancel == True:
+        if self.cancel:
             raise IssueIdentifierCancelled
 
         if useRemoteAlternates:
@@ -285,7 +293,7 @@ class IssueIdentifier:
                         "Network issue while fetching alt. cover image from ComicVine.  Aborting...")
                     raise IssueIdentifierNetworkError
 
-                if self.cancel == True:
+                if self.cancel:
                     raise IssueIdentifierCancelled
 
                 # alert the GUI, if needed
@@ -297,7 +305,7 @@ class IssueIdentifier:
                 item['hash'] = self.calculateHash(alt_url_image_data)
                 remote_cover_list.append(item)
 
-                if self.cancel == True:
+                if self.cancel:
                     raise IssueIdentifierCancelled
 
         if useLog and useRemoteAlternates:
@@ -413,7 +421,7 @@ class IssueIdentifier:
             return []
 
         #self.log_msg("Found " + str(len(cv_search_results)) + " initial results")
-        if self.cancel == True:
+        if self.cancel:
             return []
 
         if cv_search_results is None:
@@ -428,8 +436,9 @@ class IssueIdentifier:
             date_approved = True
 
             # remove any series that starts after the issue year
-            if keys['year'] is not None and str(keys['year']).isdigit() and item[
-                    'start_year'] is not None and str(item['start_year']).isdigit():
+            if keys['year'] is not None and str(
+                    keys['year']).isdigit() and item['start_year'] is not None and str(
+                    item['start_year']).isdigit():
                 if int(keys['year']) < int(item['start_year']):
                     date_approved = False
 
@@ -467,10 +476,10 @@ class IssueIdentifier:
             volume_id_list.append(series['id'])
 
         try:
-            issue_list = comicVine.fetchIssuesByVolumeIssueNumAndYear(volume_id_list,
-                                                                      keys[
-                                                                          'issue_number'],
-                                                                      keys['year'])
+            issue_list = comicVine.fetchIssuesByVolumeIssueNumAndYear(
+                volume_id_list,
+                keys['issue_number'],
+                keys['year'])
 
         except ComicVineTalkerException:
             self.log_msg(
@@ -492,8 +501,11 @@ class IssueIdentifier:
             self.log_msg(u"Found {0} series that have an issue #{1}".format(
                 len(shortlist), keys['issue_number']))
         else:
-            self.log_msg(u"Found {0} series that have an issue #{1} from {2}".format(
-                len(shortlist), keys['issue_number'], keys['year']))
+            self.log_msg(
+                u"Found {0} series that have an issue #{1} from {2}".format(
+                    len(shortlist),
+                    keys['issue_number'],
+                    keys['year']))
 
         # now we have a shortlist of volumes with the desired issue number
         # Do first round of cover matching
@@ -521,8 +533,14 @@ class IssueIdentifier:
                 thumb_url = issue['image']['thumb_url']
                 page_url = issue['site_detail_url']
 
-                score_item = self.getIssueCoverMatchScore(comicVine, issue[
-                                                          'id'], image_url, thumb_url, page_url, hash_list, useRemoteAlternates=False)
+                score_item = self.getIssueCoverMatchScore(
+                    comicVine,
+                    issue['id'],
+                    image_url,
+                    thumb_url,
+                    page_url,
+                    hash_list,
+                    useRemoteAlternates=False)
             except:
                 self.match_list = []
                 return self.match_list
@@ -600,12 +618,20 @@ class IssueIdentifier:
                 if self.callback is not None:
                     self.callback(counter, len(self.match_list) * 3)
                     counter += 1
-                self.log_msg(u"Examining alternate covers for ID: {0} {1} ...".format(
-                    m['volume_id'],
-                    m['series']), newline=False)
+                self.log_msg(
+                    u"Examining alternate covers for ID: {0} {1} ...".format(
+                        m['volume_id'],
+                        m['series']),
+                    newline=False)
                 try:
-                    score_item = self.getIssueCoverMatchScore(comicVine, m['issue_id'], m[
-                                                              'image_url'], m['thumb_url'], m['page_url'], hash_list, useRemoteAlternates=True)
+                    score_item = self.getIssueCoverMatchScore(
+                        comicVine,
+                        m['issue_id'],
+                        m['image_url'],
+                        m['thumb_url'],
+                        m['page_url'],
+                        hash_list,
+                        useRemoteAlternates=True)
                 except:
                     self.match_list = []
                     return self.match_list
@@ -665,8 +691,10 @@ class IssueIdentifier:
                 if match['cv_issue_count'] != 1:
                     new_list.append(match)
                 else:
-                    self.log_msg("Removing volume {0} [{1}] from consideration (only 1 issue)".format(
-                        match['series'], match['volume_id']))
+                    self.log_msg(
+                        "Removing volume {0} [{1}] from consideration (only 1 issue)".format(
+                            match['series'],
+                            match['volume_id']))
 
             if len(new_list) > 0:
                 self.match_list = new_list

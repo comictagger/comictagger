@@ -109,8 +109,10 @@ def main():
             series_name = series_name.replace(":", " -")
             series_name = series_name.replace("/", "-")
             series_name = series_name.replace("?", "")
-        series_folder = os.path.join(tree_root, unicode(publisher_name), unicode(
-            series_name) + " (" + unicode(start_year) + ")")
+        series_folder = os.path.join(
+            tree_root,
+            unicode(publisher_name),
+            unicode(series_name) + " (" + unicode(start_year) + ")")
         make_folder(series_folder)
         move_file(filename, os.path.join(
             series_folder, os.path.basename(filename)))

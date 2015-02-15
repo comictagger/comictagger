@@ -230,10 +230,14 @@ class CoverImageWidget(QWidget):
             self.label.setText("")
         elif self.mode == CoverImageWidget.AltCoverMode:
             self.label.setText(
-                "Cover {0} (of {1})".format(self.imageIndex + 1, self.imageCount))
+                "Cover {0} (of {1})".format(
+                    self.imageIndex + 1,
+                    self.imageCount))
         else:
             self.label.setText(
-                "Page {0} (of {1})".format(self.imageIndex + 1, self.imageCount))
+                "Page {0} (of {1})".format(
+                    self.imageIndex + 1,
+                    self.imageCount))
 
     def loadURL(self):
         self.loadDefault()

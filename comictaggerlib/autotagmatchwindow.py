@@ -207,11 +207,12 @@ class AutoTagMatchWindow(QtGui.QDialog):
             self.updateData()
 
     def reject(self):
-        reply = QtGui.QMessageBox.question(self,
-                                           self.tr("Cancel Matching"),
-                                           self.tr(
-                                               "Are you sure you wish to cancel the matching process?"),
-                                           QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
+        reply = QtGui.QMessageBox.question(
+            self,
+            self.tr("Cancel Matching"),
+            self.tr("Are you sure you wish to cancel the matching process?"),
+            QtGui.QMessageBox.Yes,
+            QtGui.QMessageBox.No)
 
         if reply == QtGui.QMessageBox.No:
             return

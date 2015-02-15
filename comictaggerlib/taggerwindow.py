@@ -98,8 +98,9 @@ class TaggerWindow(QtGui.QMainWindow):
         socket.connectToServer(settings.install_id)
         alive = socket.waitForConnected(3000)
         if alive:
-            print("Another application with key [{}] is already running".format(
-                settings.install_id))
+            print(
+                "Another application with key [{}] is already running".format(
+                    settings.install_id))
             # send file list to other instance
             if len(file_list) > 0:
                 socket.write(pickle.dumps(file_list))
@@ -120,8 +121,10 @@ class TaggerWindow(QtGui.QMainWindow):
                     self.socketServer.removeServer(settings.install_id)
                     ok = self.socketServer.listen(settings.install_id)
                 if not ok:
-                    print("Cannot start local socket with key [{}]. Reason: %s ".format(
-                        settings.install_id, self.socketServer.errorString()))
+                    print(
+                        "Cannot start local socket with key [{}]. Reason: %s ".format(
+                            settings.install_id,
+                            self.socketServer.errorString()))
                     sys.exit()
             #print("Registering as single instance with key [{}]".format(settings.install_id))
         #----------------------------------
@@ -145,8 +148,9 @@ class TaggerWindow(QtGui.QMainWindow):
         self.fileSelectionList.selectionChanged.connect(
             self.fileListSelectionChanged)
         self.fileSelectionList.listCleared.connect(self.fileListCleared)
-        self.fileSelectionList.setSorting(self.settings.last_filelist_sorted_column,
-                                          self.settings.last_filelist_sorted_order)
+        self.fileSelectionList.setSorting(
+            self.settings.last_filelist_sorted_column,
+            self.settings.last_filelist_sorted_order)
 
         # we can't specify relative font sizes in the UI designer, so
         # walk through all the lablels in the main form, and make them
@@ -260,13 +264,14 @@ class TaggerWindow(QtGui.QMainWindow):
             self.settings.show_disclaimer = not checked
 
         if self.settings.ask_about_usage_stats:
-            reply = QtGui.QMessageBox.question(self,
-                                               self.tr("Anonymous Stats"),
-                                               self.tr(
-                                                   "Is it okay if ComicTagger occasionally sends some anonymous usage statistics?  Nothing nefarious, "
-                                                   "just trying to get a better idea of how the app is being used.\n\nThanks for your support!"
-                                               ),
-                                               QtGui.QMessageBox.Yes | QtGui.QMessageBox.Default, QtGui.QMessageBox.No)
+            reply = QtGui.QMessageBox.question(
+                self,
+                self.tr("Anonymous Stats"),
+                self.tr(
+                    "Is it okay if ComicTagger occasionally sends some anonymous usage statistics?  Nothing nefarious, "
+                    "just trying to get a better idea of how the app is being used.\n\nThanks for your support!"),
+                QtGui.QMessageBox.Yes | QtGui.QMessageBox.Default,
+                QtGui.QMessageBox.No)
 
             if reply == QtGui.QMessageBox.Yes:
                 self.settings.send_usage_stats = True
@@ -310,7 +315,11 @@ class TaggerWindow(QtGui.QMainWindow):
                 ro_str = " [read only]"
 
             self.setWindowTitle(
-                self.appName + " - " + self.comic_archive.path + mod_str + ro_str)
+                self.appName +
+                " - " +
+                self.comic_archive.path +
+                mod_str +
+                ro_str)
 
     def configMenus(self):
 
@@ -446,16 +455,22 @@ class TaggerWindow(QtGui.QMainWindow):
 
         if rar_count == 0:
             QtGui.QMessageBox.information(
-                self, self.tr("Export as Zip Archive"), self.tr("No RAR archives selected!"))
+                self,
+                self.tr("Export as Zip Archive"),
+                self.tr("No RAR archives selected!"))
             return
 
-        if not self.dirtyFlagVerification("Export as Zip Archive",
-                                          "If you export archives as Zip now, unsaved data in the form may be lost.  Are you sure?"):
+        if not self.dirtyFlagVerification(
+                "Export as Zip Archive",
+                "If you export archives as Zip now, unsaved data in the form may be lost.  Are you sure?"):
             return
 
         if rar_count != 0:
-            dlg = ExportWindow(self, self.settings,
-                               self.tr("You have selected {0} archive(s) to export  to Zip format.  New archives will be created in the same folder as the original.\n\nPlease choose options below, and select OK.\n".format(rar_count)))
+            dlg = ExportWindow(
+                self,
+                self.settings,
+                self.tr(
+                    "You have selected {0} archive(s) to export  to Zip format.  New archives will be created in the same folder as the original.\n\nPlease choose options below, and select OK.\n".format(rar_count)))
             dlg.adjustSize()
             dlg.setModal(True)
             if not dlg.exec_():
@@ -546,12 +561,15 @@ class TaggerWindow(QtGui.QMainWindow):
         msgBox.setTextFormat(QtCore.Qt.RichText)
         msgBox.setIconPixmap(
             QtGui.QPixmap(ComicTaggerSettings.getGraphic('about.png')))
-        msgBox.setText("<br><br><br>"
-                       + self.appName + " v" + self.version + "<br>"
-                       + "(c)2014 Anthony Beville<br><br>"
-                       + "<a href='{0}'>{0}</a><br><br>".format(website)
-                       + "<a href='mailto:{0}'>{0}</a><br><br>".format(email)
-                       + "License: <a href='{0}'>{1}</a>".format(license_link, license_name))
+        msgBox.setText("<br><br><br>" +
+                       self.appName +
+                       " v" +
+                       self.version +
+                       "<br>" +
+                       "(c)2014 Anthony Beville<br><br>" +
+                       "<a href='{0}'>{0}</a><br><br>".format(website) +
+                       "<a href='mailto:{0}'>{0}</a><br><br>".format(email) +
+                       "License: <a href='{0}'>{1}</a>".format(license_link, license_name))
 
         msgBox.setStandardButtons(QtGui.QMessageBox.Ok)
         msgBox.exec_()
@@ -827,8 +845,11 @@ class TaggerWindow(QtGui.QMainWindow):
                 if self.isDupeCredit(credit['role'].title(), credit['person']):
                     continue
 
-                self.addNewCreditEntry(row, credit['role'].title(), credit[
-                                       'person'], (credit['primary'] if 'primary' in credit else False))
+                self.addNewCreditEntry(
+                    row,
+                    credit['role'].title(),
+                    credit['person'],
+                    (credit['primary'] if 'primary' in credit else False))
 
                 row += 1
 
@@ -987,8 +1008,10 @@ class TaggerWindow(QtGui.QMainWindow):
 
     def autoIdentifySearch(self):
         if self.comic_archive is None:
-            QtGui.QMessageBox.warning(self, self.tr("Automatic Identify Search"),
-                                      self.tr("You need to load a comic first!"))
+            QtGui.QMessageBox.warning(
+                self,
+                self.tr("Automatic Identify Search"),
+                self.tr("You need to load a comic first!"))
             return
 
         self.queryOnline(autoselect=True)
@@ -999,14 +1022,18 @@ class TaggerWindow(QtGui.QMainWindow):
 
         if autoselect and issue_number == "":
             QtGui.QMessageBox.information(
-                self, "Automatic Identify Search", "Can't auto-identify without an issue number (yet!)")
+                self,
+                "Automatic Identify Search",
+                "Can't auto-identify without an issue number (yet!)")
             return
 
         if unicode(self.leSeries.text()).strip() != "":
             series_name = unicode(self.leSeries.text()).strip()
         else:
-            QtGui.QMessageBox.information(self, self.tr("Online Search"), self.tr(
-                "Need to enter a series name to search."))
+            QtGui.QMessageBox.information(
+                self,
+                self.tr("Online Search"),
+                self.tr("Need to enter a series name to search."))
             return
 
         year = str(self.lePubYear.text()).strip()
@@ -1019,7 +1046,15 @@ class TaggerWindow(QtGui.QMainWindow):
 
         cover_index_list = self.metadata.getCoverPageIndexList()
         selector = VolumeSelectionWindow(
-            self, series_name, issue_number, year, issue_count, cover_index_list, self.comic_archive, self.settings, autoselect)
+            self,
+            series_name,
+            issue_number,
+            year,
+            issue_count,
+            cover_index_list,
+            self.comic_archive,
+            self.settings,
+            autoselect)
 
         title = "Search: '" + series_name + "' - "
         selector.setWindowTitle(title + "Select Series")
@@ -1043,10 +1078,14 @@ class TaggerWindow(QtGui.QMainWindow):
                 QtGui.QApplication.restoreOverrideCursor()
                 if e.code == ComicVineTalkerException.RateLimit:
                     QtGui.QMessageBox.critical(
-                        self, self.tr("Comic Vine Error"), ComicVineTalker.getRateLimitMessage())
+                        self,
+                        self.tr("Comic Vine Error"),
+                        ComicVineTalker.getRateLimitMessage())
                 else:
-                    QtGui.QMessageBox.critical(self, self.tr("Network Issue"), self.tr(
-                        "Could not connect to ComicVine to get issue details.!"))
+                    QtGui.QMessageBox.critical(
+                        self,
+                        self.tr("Network Issue"),
+                        self.tr("Could not connect to ComicVine to get issue details.!"))
             else:
                 QtGui.QApplication.restoreOverrideCursor()
                 if new_metadata is not None:
@@ -1062,17 +1101,24 @@ class TaggerWindow(QtGui.QMainWindow):
                     # Now push the new combined data into the edit controls
                     self.metadataToForm()
                 else:
-                    QtGui.QMessageBox.critical(self, self.tr("Search"), self.tr(
-                        "Could not find an issue {0} for that series".format(selector.issue_number)))
+                    QtGui.QMessageBox.critical(
+                        self, self.tr("Search"), self.tr(
+                            "Could not find an issue {0} for that series".format(
+                                selector.issue_number)))
 
     def commitMetadata(self):
 
         if (self.metadata is not None and self.comic_archive is not None):
-            reply = QtGui.QMessageBox.question(self,
-                                               self.tr("Save Tags"),
-                                               self.tr("Are you sure you wish to save " + MetaDataStyle.name[
-                                                       self.save_data_style] + " tags to this archive?"),
-                                               QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
+            reply = QtGui.QMessageBox.question(
+                self,
+                self.tr("Save Tags"),
+                self.tr(
+                    "Are you sure you wish to save " +
+                    MetaDataStyle.name[
+                        self.save_data_style] +
+                    " tags to this archive?"),
+                QtGui.QMessageBox.Yes,
+                QtGui.QMessageBox.No)
 
             if reply == QtGui.QMessageBox.Yes:
                 QtGui.QApplication.setOverrideCursor(
@@ -1087,7 +1133,9 @@ class TaggerWindow(QtGui.QMainWindow):
 
                 if not success:
                     QtGui.QMessageBox.warning(
-                        self, self.tr("Save failed"), self.tr("The tag save operation seemed to fail!"))
+                        self,
+                        self.tr("Save failed"),
+                        self.tr("The tag save operation seemed to fail!"))
                 else:
                     self.clearDirtyFlag()
                     self.updateInfoBox()
@@ -1100,8 +1148,9 @@ class TaggerWindow(QtGui.QMainWindow):
                 self, self.tr("Whoops!"), self.tr("No data to commit!"))
 
     def setLoadDataStyle(self, s):
-        if self.dirtyFlagVerification("Change Tag Read Style",
-                                      "If you change read tag style now, data in the form will be lost.  Are you sure?"):
+        if self.dirtyFlagVerification(
+                "Change Tag Read Style",
+                "If you change read tag style now, data in the form will be lost.  Are you sure?"):
             self.load_data_style, b = self.cbLoadDataStyle.itemData(s).toInt()
             self.settings.last_selected_load_data_style = self.load_data_style
             self.updateMenus()
@@ -1241,8 +1290,8 @@ class TaggerWindow(QtGui.QMainWindow):
         role = str(self.twCredits.item(row, 1).text())
         r = 0
         while r < self.twCredits.rowCount():
-            if (self.twCredits.item(r, 0).text() != "" and
-                    str(self.twCredits.item(r, 1).text()).lower() == role.lower()):
+            if (self.twCredits.item(r, 0).text() != "" and str(
+                    self.twCredits.item(r, 1).text()).lower() == role.lower()):
                 self.twCredits.item(r, 0).setText("")
             r = r + 1
 
@@ -1281,12 +1330,12 @@ class TaggerWindow(QtGui.QMainWindow):
             ok_to_mod = True
             if self.isDupeCredit(new_role, new_name):
                 # delete the dupe credit from list
-                reply = QtGui.QMessageBox.question(self,
-                                                   self.tr(
-                                                       "Duplicate Credit!"),
-                                                   self.tr(
-                                                       "This will create a duplicate credit entry. Would you like to merge the entries, or create a duplicate?"),
-                                                   self.tr("Merge"), self.tr("Duplicate"))
+                reply = QtGui.QMessageBox.question(
+                    self,
+                    self.tr("Duplicate Credit!"),
+                    self.tr("This will create a duplicate credit entry. Would you like to merge the entries, or create a duplicate?"),
+                    self.tr("Merge"),
+                    self.tr("Duplicate"))
 
                 if reply == 0:
                     # merge
@@ -1330,9 +1379,11 @@ class TaggerWindow(QtGui.QMainWindow):
     def setAppPosition(self):
         if self.settings.last_main_window_width != 0:
             self.move(
-                self.settings.last_main_window_x, self.settings.last_main_window_y)
+                self.settings.last_main_window_x,
+                self.settings.last_main_window_y)
             self.resize(
-                self.settings.last_main_window_width, self.settings.last_main_window_height)
+                self.settings.last_main_window_width,
+                self.settings.last_main_window_height)
         else:
             screen = QtGui.QDesktopWidget().screenGeometry()
             size = self.frameGeometry()
@@ -1472,20 +1523,27 @@ class TaggerWindow(QtGui.QMainWindow):
                 has_md_count += 1
 
         if has_md_count == 0:
-            QtGui.QMessageBox.information(self, self.tr("Remove Tags"),
-                                          self.tr("No archives with {0} tags selected!".format(MetaDataStyle.name[style])))
+            QtGui.QMessageBox.information(
+                self, self.tr("Remove Tags"), self.tr(
+                    "No archives with {0} tags selected!".format(
+                        MetaDataStyle.name[style])))
             return
 
-        if has_md_count != 0 and not self.dirtyFlagVerification("Remove Tags",
-                                                                "If you remove tags now, unsaved data in the form will be lost.  Are you sure?"):
+        if has_md_count != 0 and not self.dirtyFlagVerification(
+                "Remove Tags",
+                "If you remove tags now, unsaved data in the form will be lost.  Are you sure?"):
             return
 
         if has_md_count != 0:
-            reply = QtGui.QMessageBox.question(self,
-                                               self.tr("Remove Tags"),
-                                               self.tr("Are you sure you wish to remove the {0} tags from {1} archive(s)?".format(
-                                                   MetaDataStyle.name[style], has_md_count)),
-                                               QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
+            reply = QtGui.QMessageBox.question(
+                self,
+                self.tr("Remove Tags"),
+                self.tr(
+                    "Are you sure you wish to remove the {0} tags from {1} archive(s)?".format(
+                        MetaDataStyle.name[style],
+                        has_md_count)),
+                QtGui.QMessageBox.Yes,
+                QtGui.QMessageBox.No)
 
             if reply == QtGui.QMessageBox.Yes:
                 progdialog = QtGui.QProgressDialog(
@@ -1543,8 +1601,12 @@ class TaggerWindow(QtGui.QMainWindow):
         dest_style = self.save_data_style
 
         if src_style == dest_style:
-            QtGui.QMessageBox.information(self, self.tr("Copy Tags"), self.tr("Can't copy tag style onto itself." +
-                                                                              "  Read style and modify style must be different."))
+            QtGui.QMessageBox.information(
+                self,
+                self.tr("Copy Tags"),
+                self.tr(
+                    "Can't copy tag style onto itself." +
+                    "  Read style and modify style must be different."))
             return
 
         for ca in ca_list:
@@ -1552,20 +1614,28 @@ class TaggerWindow(QtGui.QMainWindow):
                 has_src_count += 1
 
         if has_src_count == 0:
-            QtGui.QMessageBox.information(self, self.tr("Copy Tags"), self.tr("No archives with {0} tags selected!".format(
-                MetaDataStyle.name[src_style])))
+            QtGui.QMessageBox.information(
+                self, self.tr("Copy Tags"), self.tr(
+                    "No archives with {0} tags selected!".format(
+                        MetaDataStyle.name[src_style])))
             return
 
-        if has_src_count != 0 and not self.dirtyFlagVerification("Copy Tags",
-                                                                 "If you copy tags now, unsaved data in the form may be lost.  Are you sure?"):
+        if has_src_count != 0 and not self.dirtyFlagVerification(
+                "Copy Tags",
+                "If you copy tags now, unsaved data in the form may be lost.  Are you sure?"):
             return
 
         if has_src_count != 0:
-            reply = QtGui.QMessageBox.question(self,
-                                               self.tr("Copy Tags"),
-                                               self.tr("Are you sure you wish to copy the {0} tags to {1} tags in {2} archive(s)?".format(
-                                                   MetaDataStyle.name[src_style], MetaDataStyle.name[dest_style], has_src_count)),
-                                               QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
+            reply = QtGui.QMessageBox.question(
+                self,
+                self.tr("Copy Tags"),
+                self.tr(
+                    "Are you sure you wish to copy the {0} tags to {1} tags in {2} archive(s)?".format(
+                        MetaDataStyle.name[src_style],
+                        MetaDataStyle.name[dest_style],
+                        has_src_count)),
+                QtGui.QMessageBox.Yes,
+                QtGui.QMessageBox.No)
 
             if reply == QtGui.QMessageBox.Yes:
                 progdialog = QtGui.QProgressDialog(
@@ -1760,13 +1830,19 @@ class TaggerWindow(QtGui.QMainWindow):
                 self, self.tr("Auto-Tag"), self.tr("No archives selected!"))
             return
 
-        if not self.dirtyFlagVerification("Auto-Tag",
-                                          "If you auto-tag now, unsaved data in the form will be lost.  Are you sure?"):
+        if not self.dirtyFlagVerification(
+                "Auto-Tag",
+                "If you auto-tag now, unsaved data in the form will be lost.  Are you sure?"):
             return
 
-        atstartdlg = AutoTagStartWindow(self, self.settings,
-                                        self.tr("You have selected {0} archive(s) to automatically identify and write {1} tags to.\n\n".format(len(ca_list), MetaDataStyle.name[style]) +
-                                                "Please choose options below, and select OK to Auto-Tag.\n"))
+        atstartdlg = AutoTagStartWindow(
+            self,
+            self.settings,
+            self.tr(
+                "You have selected {0} archive(s) to automatically identify and write {1} tags to.\n\n".format(
+                    len(ca_list),
+                    MetaDataStyle.name[style]) +
+                "Please choose options below, and select OK to Auto-Tag.\n"))
 
         atstartdlg.adjustSize()
         atstartdlg.setModal(True)
@@ -1851,16 +1927,21 @@ class TaggerWindow(QtGui.QMainWindow):
         if sum_selectable > 0:
             summary += u"\n\nDo you want to manually select the ones with multiple matches and/or low-confidence matches now?"
 
-            reply = QtGui.QMessageBox.question(self,
-                                               self.tr(u"Auto-Tag Summary"),
-                                               self.tr(summary),
-                                               QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
+            reply = QtGui.QMessageBox.question(
+                self,
+                self.tr(u"Auto-Tag Summary"),
+                self.tr(summary),
+                QtGui.QMessageBox.Yes,
+                QtGui.QMessageBox.No)
 
             match_results.multipleMatches.extend(
                 match_results.lowConfidenceMatches)
             if reply == QtGui.QMessageBox.Yes:
                 matchdlg = AutoTagMatchWindow(
-                    self, match_results.multipleMatches, style, self.actualIssueDataFetch)
+                    self,
+                    match_results.multipleMatches,
+                    style,
+                    self.actualIssueDataFetch)
                 matchdlg.setModal(True)
                 matchdlg.exec_()
                 self.fileSelectionList.updateSelectedRows()
@@ -1872,10 +1953,12 @@ class TaggerWindow(QtGui.QMainWindow):
 
     def dirtyFlagVerification(self, title, desc):
         if self.dirtyFlag:
-            reply = QtGui.QMessageBox.question(self,
-                                               self.tr(title),
-                                               self.tr(desc),
-                                               QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
+            reply = QtGui.QMessageBox.question(
+                self,
+                self.tr(title),
+                self.tr(desc),
+                QtGui.QMessageBox.Yes,
+                QtGui.QMessageBox.No)
 
             if reply != QtGui.QMessageBox.Yes:
                 return False
@@ -1883,8 +1966,10 @@ class TaggerWindow(QtGui.QMainWindow):
 
     def closeEvent(self, event):
 
-        if self.dirtyFlagVerification("Exit " + self.appName,
-                                      "If you quit now, data in the form will be lost.  Are you sure?"):
+        if self.dirtyFlagVerification(
+                "Exit " +
+                self.appName,
+                "If you quit now, data in the form will be lost.  Are you sure?"):
             appsize = self.size()
             self.settings.last_main_window_width = appsize.width()
             self.settings.last_main_window_height = appsize.height()
@@ -1954,8 +2039,9 @@ class TaggerWindow(QtGui.QMainWindow):
                 self, self.tr("Rename"), self.tr("No archives selected!"))
             return
 
-        if self.dirtyFlagVerification("File Rename",
-                                      "If you rename files now, unsaved data in the form will be lost.  Are you sure?"):
+        if self.dirtyFlagVerification(
+                "File Rename",
+                "If you rename files now, unsaved data in the form will be lost.  Are you sure?"):
 
             dlg = RenameWindow(
                 self, ca_list, self.load_data_style, self.settings)
@@ -2011,12 +2097,15 @@ class TaggerWindow(QtGui.QMainWindow):
         if (new_version != self.version and
                 new_version != self.settings.dont_notify_about_this_version):
             website = "http://code.google.com/p/comictagger"
-            checked = OptionalMessageDialog.msg(self, "New version available!",
-                                                "New version ({0}) available!<br>(You are currently running {1})<br><br>".format(new_version, self.version) +
-                                                "Visit <a href='{0}'>{0}</a> for more info.<br><br>".format(
-                                                    website),
-                                                QtCore.Qt.Unchecked,
-                                                "Don't tell me about this version again")
+            checked = OptionalMessageDialog.msg(
+                self,
+                "New version available!",
+                "New version ({0}) available!<br>(You are currently running {1})<br><br>".format(
+                    new_version,
+                    self.version) +
+                "Visit <a href='{0}'>{0}</a> for more info.<br><br>".format(website),
+                QtCore.Qt.Unchecked,
+                "Don't tell me about this version again")
             if checked:
                 self.settings.dont_notify_about_this_version = new_version
 

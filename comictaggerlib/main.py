@@ -84,5 +84,8 @@ def ctmain():
 
             sys.exit(app.exec_())
         except Exception as e:
-            QtGui.QMessageBox.critical(QtGui.QMainWindow(
-            ), "Error", "Unhandled exception in app:\n" + traceback.format_exc())
+            QtGui.QMessageBox.critical(
+                QtGui.QMainWindow(),
+                "Error",
+                "Unhandled exception in app:\n" +
+                traceback.format_exc())

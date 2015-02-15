@@ -286,7 +286,12 @@ class RarArchiver:
                 working_dir = os.path.dirname(os.path.abspath(self.path))
 
                 # use external program to write comment to Rar archive
-                subprocess.call([self.rar_exe_path, 'c', '-w' + working_dir, '-c-', '-z' + tmp_name, self.path],
+                subprocess.call([self.rar_exe_path,
+                                 'c',
+                                 '-w' + working_dir,
+                                 '-c-',
+                                 '-z' + tmp_name,
+                                 self.path],
                                 startupinfo=self.startupinfo,
                                 stdout=RarArchiver.devnull)
 
@@ -318,7 +323,8 @@ class RarArchiver:
 
                 if entries[0][0].size != len(entries[0][1]):
                     print >> sys.stderr, u"readArchiveFile(): [file is not expected size: {0} vs {1}]  {2}:{3} [attempt # {4}]".format(
-                        entries[0][0].size, len(entries[0][1]), self.path, archive_file, tries)
+                        entries[0][0].size, len(
+                            entries[0][1]), self.path, archive_file, tries)
                     continue
 
             except (OSError, IOError) as e:
@@ -360,7 +366,13 @@ class RarArchiver:
                 f.close()
 
                 # use external program to write file to Rar archive
-                subprocess.call([self.rar_exe_path, 'a', '-w' + working_dir, '-c-', '-ep', self.path, tmp_file],
+                subprocess.call([self.rar_exe_path,
+                                 'a',
+                                 '-w' + working_dir,
+                                 '-c-',
+                                 '-ep',
+                                 self.path,
+                                 tmp_file],
                                 startupinfo=self.startupinfo,
                                 stdout=RarArchiver.devnull)
 
@@ -379,7 +391,11 @@ class RarArchiver:
         if self.rar_exe_path is not None:
             try:
                 # use external program to remove file from Rar archive
-                subprocess.call([self.rar_exe_path, 'd', '-c-', self.path, archive_file],
+                subprocess.call([self.rar_exe_path,
+                                 'd',
+                                 '-c-',
+                                 self.path,
+                                 archive_file],
                                 startupinfo=self.startupinfo,
                                 stdout=RarArchiver.devnull)
 
@@ -741,7 +757,11 @@ class ComicArchive:
 
         # sort by most common
         sorted_buckets = sorted(
-            length_buckets.iteritems(), key=lambda k_v: (k_v[1], k_v[0]), reverse=True)
+            length_buckets.iteritems(),
+            key=lambda k_v: (
+                k_v[1],
+                k_v[0]),
+            reverse=True)
 
         # statistical mode occurence is first
         mode_length = sorted_buckets[0][0]
@@ -789,8 +809,11 @@ class ComicArchive:
             # make a sub-list of image files
             self.page_list = []
             for name in files:
-                if (name[-4:].lower() in [".jpg", "jpeg", ".png",
-                                          ".gif", "webp"] and os.path.basename(name)[0] != "."):
+                if (name[-4:].lower() in [".jpg",
+                                          "jpeg",
+                                          ".png",
+                                          ".gif",
+                                          "webp"] and os.path.basename(name)[0] != "."):
                     self.page_list.append(name)
 
         return self.page_list

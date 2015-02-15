@@ -179,7 +179,9 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
                 person = (cred_attribs[1] if len(cred_attribs) > 1 else "")
                 primary = (cred_attribs[2] if len(cred_attribs) > 2 else None)
                 md.addCredit(
-                    person.strip(), role.strip(), True if primary is not None else False)
+                    person.strip(),
+                    role.strip(),
+                    True if primary is not None else False)
             else:
                 md_dict[key] = value
 
@@ -374,7 +376,8 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
 
         if count > 1:
             self.display_msg_and_quit(
-                "Must choose only one action of print, delete, save, copy, rename, export, set key, or run script", 1)
+                "Must choose only one action of print, delete, save, copy, rename, export, set key, or run script",
+                1)
 
         if self.script is not None:
             self.launch_script(self.script)

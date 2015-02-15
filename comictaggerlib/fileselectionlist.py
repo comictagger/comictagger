@@ -112,11 +112,23 @@ class FileSelectionList(QWidget):
 
     def selectAll(self):
         self.twList.setRangeSelected(
-            QTableWidgetSelectionRange(0, 0, self.twList.rowCount() - 1, 5), True)
+            QTableWidgetSelectionRange(
+                0,
+                0,
+                self.twList.rowCount() -
+                1,
+                5),
+            True)
 
     def deselectAll(self):
         self.twList.setRangeSelected(
-            QTableWidgetSelectionRange(0, 0, self.twList.rowCount() - 1, 5), False)
+            QTableWidgetSelectionRange(
+                0,
+                0,
+                self.twList.rowCount() -
+                1,
+                5),
+            False)
 
     def removeArchiveList(self, ca_list):
         self.twList.setSortingEnabled(False)
@@ -146,8 +158,9 @@ class FileSelectionList(QWidget):
             return
 
         if self.twList.currentRow() in row_list:
-            if not self.modifiedFlagVerification("Remove Archive",
-                                                 "If you close this archive, data in the form will be lost.  Are you sure?"):
+            if not self.modifiedFlagVerification(
+                    "Remove Archive",
+                    "If you close this archive, data in the form will be lost.  Are you sure?"):
                 return
 
         row_list.sort()
@@ -223,7 +236,9 @@ class FileSelectionList(QWidget):
                     "Selected file doesn't seem to be a comic archive."))
             else:
                 QMessageBox.information(
-                    self, self.tr("File/Folder Open"), self.tr("No comic archives were found."))
+                    self,
+                    self.tr("File/Folder Open"),
+                    self.tr("No comic archives were found."))
 
         self.twList.setSortingEnabled(True)
 
@@ -397,8 +412,9 @@ class FileSelectionList(QWidget):
 
         # don't allow change if modified
         if prev is not None and new_idx != old_idx:
-            if not self.modifiedFlagVerification("Change Archive",
-                                                 "If you change archives now, data in the form will be lost.  Are you sure?"):
+            if not self.modifiedFlagVerification(
+                    "Change Archive",
+                    "If you change archives now, data in the form will be lost.  Are you sure?"):
                 self.twList.currentItemChanged.disconnect(
                     self.currentItemChangedCB)
                 self.twList.setCurrentItem(prev)

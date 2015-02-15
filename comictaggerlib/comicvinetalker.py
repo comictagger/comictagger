@@ -170,8 +170,10 @@ class ComicVineTalker(QObject):
                 if total_time_waited < 20:
                     continue
             if cv_response['status_code'] != 1:
-                self.writeLog("Comic Vine query failed with error #{0}:  [{1}]. \n".format(
-                    cv_response['status_code'], cv_response['error']))
+                self.writeLog(
+                    "Comic Vine query failed with error #{0}:  [{1}]. \n".format(
+                        cv_response['status_code'],
+                        cv_response['error']))
                 raise ComicVineTalkerException(
                     cv_response['status_code'], cv_response['error'])
             else:
@@ -249,8 +251,10 @@ class ComicVineTalker(QObject):
         total_result_count = cv_response['number_of_total_results']
 
         if callback is None:
-            self.writeLog("Found {0} of {1} results\n".format(
-                cv_response['number_of_page_results'], cv_response['number_of_total_results']))
+            self.writeLog(
+                "Found {0} of {1} results\n".format(
+                    cv_response['number_of_page_results'],
+                    cv_response['number_of_total_results']))
         search_results.extend(cv_response['results'])
         page = 1
 
@@ -260,8 +264,10 @@ class ComicVineTalker(QObject):
         # see if we need to keep asking for more pages...
         while (current_result_count < total_result_count):
             if callback is None:
-                self.writeLog("getting another page of results {0} of {1}...\n".format(
-                    current_result_count, total_result_count))
+                self.writeLog(
+                    "getting another page of results {0} of {1}...\n".format(
+                        current_result_count,
+                        total_result_count))
             page += 1
 
             cv_response = self.getCVContent(search_url + "&page=" + str(page))
@@ -725,7 +731,9 @@ class ComicVineTalker(QObject):
         details = self.fetchCachedIssueSelectDetails(issue_id)
         if details['image_url'] is not None:
             self.urlFetchComplete.emit(
-                details['image_url'], details['thumb_image_url'], self.issue_id)
+                details['image_url'],
+                details['thumb_image_url'],
+                self.issue_id)
             return
 
         issue_url = self.api_base_url + "/issue/" + CVTypeID.Issue + "-" + \

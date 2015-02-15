@@ -244,7 +244,10 @@ class SettingsWindow(QtGui.QDialog):
         self.settings.reset()
         self.settingsToForm()
         QtGui.QMessageBox.information(
-            self, self.name, self.name + " have been returned to default values.")
+            self,
+            self.name,
+            self.name +
+            " have been returned to default values.")
 
     def selectFile(self, control, name):
 

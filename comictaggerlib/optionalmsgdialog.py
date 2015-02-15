@@ -95,7 +95,12 @@ class OptionalMessageDialog(QDialog):
     def msg(parent, title, msg, check_state=Qt.Unchecked, check_text=None):
 
         d = OptionalMessageDialog(
-            parent, StyleMessage, title, msg, check_state=check_state, check_text=check_text)
+            parent,
+            StyleMessage,
+            title,
+            msg,
+            check_state=check_state,
+            check_text=check_text)
 
         d.exec_()
         return d.theCheckBox.isChecked()
@@ -105,7 +110,12 @@ class OptionalMessageDialog(QDialog):
             parent, title, msg, check_state=Qt.Unchecked, check_text=None):
 
         d = OptionalMessageDialog(
-            parent, StyleQuestion, title, msg, check_state=check_state, check_text=check_text)
+            parent,
+            StyleQuestion,
+            title,
+            msg,
+            check_state=check_state,
+            check_text=check_text)
 
         d.exec_()
 

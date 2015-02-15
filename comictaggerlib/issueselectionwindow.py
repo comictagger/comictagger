@@ -107,10 +107,14 @@ class IssueSelectionWindow(QtGui.QDialog):
             QtGui.QApplication.restoreOverrideCursor()
             if e.code == ComicVineTalkerException.RateLimit:
                 QtGui.QMessageBox.critical(
-                    self, self.tr("Comic Vine Error"), ComicVineTalker.getRateLimitMessage())
+                    self,
+                    self.tr("Comic Vine Error"),
+                    ComicVineTalker.getRateLimitMessage())
             else:
-                QtGui.QMessageBox.critical(self, self.tr("Network Issue"), self.tr(
-                    "Could not connect to ComicVine to list issues!"))
+                QtGui.QMessageBox.critical(
+                    self,
+                    self.tr("Network Issue"),
+                    self.tr("Could not connect to ComicVine to list issues!"))
             return
 
         while self.twList.rowCount() > 0:
@@ -151,7 +155,8 @@ class IssueSelectionWindow(QtGui.QDialog):
             item.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
             self.twList.setItem(row, 2, item)
 
-            if IssueString(record['issue_number']).asString().lower() == IssueString(
+            if IssueString(
+                    record['issue_number']).asString().lower() == IssueString(
                     self.issue_number).asString().lower():
                 self.initial_id = record['id']
 

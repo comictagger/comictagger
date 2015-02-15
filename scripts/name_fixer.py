@@ -38,9 +38,15 @@ def parse_args():
     parser = argparse.ArgumentParser(
         description='a script to rename comic files')
     parser.add_argument(
-        '-t', '--transforms', metavar='xformfile', help="the file with transforms")
+        '-t',
+        '--transforms',
+        metavar='xformfile',
+        help="the file with transforms")
     parser.add_argument(
-        '-n', '--noconfirm', action='store_true', help="don't confirm before rename")
+        '-n',
+        '--noconfirm',
+        action='store_true',
+        help="don't confirm before rename")
     parser.add_argument('paths', metavar='PATH', type=str,
                         nargs='+', help='path to look for comic files')
     parsed_args = parser.parse_args(input_args)

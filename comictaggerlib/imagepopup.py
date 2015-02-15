@@ -49,8 +49,12 @@ class ImagePopup(QtGui.QDialog):
         # This is a total hack.  Uses a snapshot of the desktop, and overlays a
         # translucent screen over it.  Probably can do it better by setting opacity of a
         # widget
-        self.desktopBg = QtGui.QPixmap.grabWindow(QtGui.QApplication.desktop().winId(),
-                                                  0, 0, screen_size.width(), screen_size.height())
+        self.desktopBg = QtGui.QPixmap.grabWindow(
+            QtGui.QApplication.desktop().winId(),
+            0,
+            0,
+            screen_size.width(),
+            screen_size.height())
         bg = QtGui.QPixmap(ComicTaggerSettings.getGraphic('popup_bg.png'))
         self.clientBgPixmap = bg.scaled(
             screen_size.width(), screen_size.height())

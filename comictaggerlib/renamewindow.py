@@ -36,7 +36,8 @@ class RenameWindow(QtGui.QDialog):
 
         uic.loadUi(ComicTaggerSettings.getUIFile('renamewindow.ui'), self)
         self.label.setText(
-            "Preview (based on {0} tags):".format(MetaDataStyle.name[data_style]))
+            "Preview (based on {0} tags):".format(
+                MetaDataStyle.name[data_style]))
 
         self.setWindowFlags(self.windowFlags() |
                             QtCore.Qt.WindowSystemMenuHint |

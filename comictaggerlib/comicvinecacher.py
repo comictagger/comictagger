@@ -77,48 +77,48 @@ class ComicVineCacher:
 
             cur = con.cursor()
             # name,id,start_year,publisher,image,description,count_of_issues
-            cur.execute("CREATE TABLE VolumeSearchCache(" +
-                        "search_term TEXT," +
-                        "id INT," +
-                        "name TEXT," +
-                        "start_year INT," +
-                        "publisher TEXT," +
-                        "count_of_issues INT," +
-                        "image_url TEXT," +
-                        "description TEXT," +
-                        "timestamp DATE DEFAULT (datetime('now','localtime'))) "
-                        )
+            cur.execute(
+                "CREATE TABLE VolumeSearchCache(" +
+                "search_term TEXT," +
+                "id INT," +
+                "name TEXT," +
+                "start_year INT," +
+                "publisher TEXT," +
+                "count_of_issues INT," +
+                "image_url TEXT," +
+                "description TEXT," +
+                "timestamp DATE DEFAULT (datetime('now','localtime'))) ")
 
-            cur.execute("CREATE TABLE Volumes(" +
-                        "id INT," +
-                        "name TEXT," +
-                        "publisher TEXT," +
-                        "count_of_issues INT," +
-                        "start_year INT," +
-                        "timestamp DATE DEFAULT (datetime('now','localtime')), " +
-                        "PRIMARY KEY (id))"
-                        )
+            cur.execute(
+                "CREATE TABLE Volumes(" +
+                "id INT," +
+                "name TEXT," +
+                "publisher TEXT," +
+                "count_of_issues INT," +
+                "start_year INT," +
+                "timestamp DATE DEFAULT (datetime('now','localtime')), " +
+                "PRIMARY KEY (id))")
 
-            cur.execute("CREATE TABLE AltCovers(" +
-                        "issue_id INT," +
-                        "url_list TEXT," +
-                        "timestamp DATE DEFAULT (datetime('now','localtime')), " +
-                        "PRIMARY KEY (issue_id))"
-                        )
+            cur.execute(
+                "CREATE TABLE AltCovers(" +
+                "issue_id INT," +
+                "url_list TEXT," +
+                "timestamp DATE DEFAULT (datetime('now','localtime')), " +
+                "PRIMARY KEY (issue_id))")
 
-            cur.execute("CREATE TABLE Issues(" +
-                        "id INT," +
-                        "volume_id INT," +
-                        "name TEXT," +
-                        "issue_number TEXT," +
-                        "super_url TEXT," +
-                        "thumb_url TEXT," +
-                        "cover_date TEXT," +
-                        "site_detail_url TEXT," +
-                        "description TEXT," +
-                        "timestamp DATE DEFAULT (datetime('now','localtime')), " +
-                        "PRIMARY KEY (id))"
-                        )
+            cur.execute(
+                "CREATE TABLE Issues(" +
+                "id INT," +
+                "volume_id INT," +
+                "name TEXT," +
+                "issue_number TEXT," +
+                "super_url TEXT," +
+                "thumb_url TEXT," +
+                "cover_date TEXT," +
+                "site_detail_url TEXT," +
+                "description TEXT," +
+                "timestamp DATE DEFAULT (datetime('now','localtime')), " +
+                "PRIMARY KEY (id))")
 
     def add_search_results(self, search_term, cv_search_results):
 
@@ -130,7 +130,8 @@ class ComicVineCacher:
 
             # remove all previous entries with this search term
             cur.execute(
-                "DELETE FROM VolumeSearchCache WHERE search_term = ?", [search_term.lower()])
+                "DELETE FROM VolumeSearchCache WHERE search_term = ?", [
+                    search_term.lower()])
 
             # now add in new results
             for record in cv_search_results:
@@ -146,18 +147,18 @@ class ComicVineCacher:
                 else:
                     url = record['image']['super_url']
 
-                cur.execute("INSERT INTO VolumeSearchCache " +
-                            "(search_term, id, name, start_year, publisher, count_of_issues, image_url, description) " +
-                            "VALUES(?, ?, ?, ?, ?, ?, ?, ?)",
-                            (search_term.lower(),
-                             record['id'],
-                             record['name'],
-                             record['start_year'],
-                             pub_name,
-                             record['count_of_issues'],
-                             url,
-                             record['description'])
-                            )
+                cur.execute(
+                    "INSERT INTO VolumeSearchCache " +
+                    "(search_term, id, name, start_year, publisher, count_of_issues, image_url, description) " +
+                    "VALUES(?, ?, ?, ?, ?, ?, ?, ?)",
+                    (search_term.lower(),
+                     record['id'],
+                        record['name'],
+                        record['start_year'],
+                        pub_name,
+                        record['count_of_issues'],
+                        url,
+                        record['description']))
 
     def get_search_results(self, search_term):
 
@@ -170,7 +171,8 @@ class ComicVineCacher:
             # purge stale search results
             a_day_ago = datetime.datetime.today() - datetime.timedelta(days=1)
             cur.execute(
-                "DELETE FROM VolumeSearchCache WHERE timestamp  < ?", [str(a_day_ago)])
+                "DELETE FROM VolumeSearchCache WHERE timestamp  < ?", [
+                    str(a_day_ago)])
 
             # fetch
             cur.execute(
@@ -226,7 +228,8 @@ class ComicVineCacher:
             a_month_ago = datetime.datetime.today() - \
                 datetime.timedelta(days=30)
             cur.execute(
-                "DELETE FROM AltCovers WHERE timestamp  < ?", [str(a_month_ago)])
+                "DELETE FROM AltCovers WHERE timestamp  < ?", [
+                    str(a_month_ago)])
 
             cur.execute(
                 "SELECT url_list FROM AltCovers WHERE issue_id=?", [issue_id])
@@ -310,7 +313,8 @@ class ComicVineCacher:
 
             # fetch
             cur.execute(
-                "SELECT id,name,publisher,count_of_issues,start_year FROM Volumes WHERE id = ?", [volume_id])
+                "SELECT id,name,publisher,count_of_issues,start_year FROM Volumes WHERE id = ?",
+                [volume_id])
 
             row = cur.fetchone()
 
@@ -349,7 +353,8 @@ class ComicVineCacher:
             results = list()
 
             cur.execute(
-                "SELECT id,name,issue_number,site_detail_url,cover_date,super_url,thumb_url,description FROM Issues WHERE volume_id = ?", [volume_id])
+                "SELECT id,name,issue_number,site_detail_url,cover_date,super_url,thumb_url,description FROM Issues WHERE volume_id = ?",
+                [volume_id])
             rows = cur.fetchall()
 
             # now process the results
@@ -374,7 +379,12 @@ class ComicVineCacher:
         return results
 
     def add_issue_select_details(
-            self, issue_id, image_url, thumb_image_url, cover_date, site_detail_url):
+            self,
+            issue_id,
+            image_url,
+            thumb_image_url,
+            cover_date,
+            site_detail_url):
 
         con = lite.connect(self.db_file)
 
@@ -400,7 +410,8 @@ class ComicVineCacher:
             con.text_factory = unicode
 
             cur.execute(
-                "SELECT super_url,thumb_url,cover_date,site_detail_url FROM Issues WHERE id=?", [issue_id])
+                "SELECT super_url,thumb_url,cover_date,site_detail_url FROM Issues WHERE id=?",
+                [issue_id])
             row = cur.fetchone()
 
             details = dict()
