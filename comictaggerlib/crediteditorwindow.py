@@ -27,15 +27,14 @@ from settings import ComicTaggerSettings
 
 class CreditEditorWindow(QtGui.QDialog):
 
-
     ModeEdit = 0
     ModeNew = 1
-
 
     def __init__(self, parent, mode, role, name, primary):
         super(CreditEditorWindow, self).__init__(parent)
 
-        uic.loadUi(ComicTaggerSettings.getUIFile('crediteditorwindow.ui'), self)
+        uic.loadUi(
+            ComicTaggerSettings.getUIFile('crediteditorwindow.ui'), self)
 
         self.mode = mode
 
@@ -76,11 +75,11 @@ class CreditEditorWindow(QtGui.QDialog):
         self.updatePrimaryButton()
 
     def updatePrimaryButton(self):
-        enabled =self.currentRoleCanBePrimary()
+        enabled = self.currentRoleCanBePrimary()
         self.cbPrimary.setEnabled(enabled)
 
     def currentRoleCanBePrimary(self):
-        role =  self.cbRole.currentText()
+        role = self.cbRole.currentText()
         if str(role).lower() == "writer" or str(role).lower() == "artist":
             return True
         else:
@@ -93,9 +92,9 @@ class CreditEditorWindow(QtGui.QDialog):
         primary = self.currentRoleCanBePrimary() and self.cbPrimary.isChecked()
         return self.cbRole.currentText(), self.leName.text(), primary
 
-
     def accept(self):
         if self.cbRole.currentText() == "" or self.leName.text() == "":
-            QtGui.QMessageBox.warning(self, self.tr("Whoops"), self.tr("You need to enter both role and name for a credit."))
+            QtGui.QMessageBox.warning(self, self.tr("Whoops"), self.tr(
+                "You need to enter both role and name for a credit."))
         else:
             QtGui.QDialog.accept(self)

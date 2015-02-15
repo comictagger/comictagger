@@ -30,16 +30,15 @@ import utils
 class ComicInfoXml:
 
     writer_synonyms = ['writer', 'plotter', 'scripter']
-    penciller_synonyms = [ 'artist', 'penciller', 'penciler', 'breakdowns' ]
-    inker_synonyms = [ 'inker', 'artist', 'finishes' ]
-    colorist_synonyms = [ 'colorist', 'colourist', 'colorer', 'colourer' ]
-    letterer_synonyms = [ 'letterer']
-    cover_synonyms = [ 'cover', 'covers', 'coverartist', 'cover artist' ]
-    editor_synonyms = [ 'editor']
-
+    penciller_synonyms = ['artist', 'penciller', 'penciler', 'breakdowns']
+    inker_synonyms = ['inker', 'artist', 'finishes']
+    colorist_synonyms = ['colorist', 'colourist', 'colorer', 'colourer']
+    letterer_synonyms = ['letterer']
+    cover_synonyms = ['cover', 'covers', 'coverartist', 'cover artist']
+    editor_synonyms = ['editor']
 
     def getParseableCredits(self):
-        parsable_credits =  []
+        parsable_credits = []
         parsable_credits.extend(self.writer_synonyms)
         parsable_credits.extend(self.penciller_synonyms)
         parsable_credits.extend(self.inker_synonyms)
@@ -63,14 +62,14 @@ class ComicInfoXml:
 
     def indent(self, elem, level=0):
         # for making the XML output readable
-        i = "\n" + level*"  "
+        i = "\n" + level * "  "
         if len(elem):
             if not elem.text or not elem.text.strip():
                 elem.text = i + "  "
             if not elem.tail or not elem.tail.strip():
                 elem.tail = i
             for elem in elem:
-                self.indent(elem, level+1)
+                self.indent(elem, level + 1)
             if not elem.tail or not elem.tail.strip():
                 elem.tail = i
         else:
@@ -79,14 +78,15 @@ class ComicInfoXml:
 
     def convertMetadataToXML(self, filename, metadata):
 
-        #shorthand for the metadata
+        # shorthand for the metadata
         md = metadata
 
         # build a tree structure
         root = ET.Element("ComicInfo")
-        root.attrib['xmlns:xsi']="http://www.w3.org/2001/XMLSchema-instance"
-        root.attrib['xmlns:xsd']="http://www.w3.org/2001/XMLSchema"
-        #helper func
+        root.attrib['xmlns:xsi'] = "http://www.w3.org/2001/XMLSchema-instance"
+        root.attrib['xmlns:xsd'] = "http://www.w3.org/2001/XMLSchema"
+        # helper func
+
         def assign(cix_entry, md_entry):
             if md_entry is not None:
                 ET.SubElement(root, cix_entry).text = u"{0}".format(md_entry)
@@ -107,38 +107,40 @@ class ComicInfoXml:
         assign('Month', md.month)
         assign('Day', md.day)
 
-        # need to specially process the credits, since they are structured differently than CIX
-        credit_writer_list    = list()
+        # need to specially process the credits, since they are structured
+        # differently than CIX
+        credit_writer_list = list()
         credit_penciller_list = list()
-        credit_inker_list     = list()
-        credit_colorist_list  = list()
-        credit_letterer_list  = list()
-        credit_cover_list     = list()
-        credit_editor_list    = list()
+        credit_inker_list = list()
+        credit_colorist_list = list()
+        credit_letterer_list = list()
+        credit_cover_list = list()
+        credit_editor_list = list()
 
-        # first, loop thru credits, and build a list for each role that CIX supports
+        # first, loop thru credits, and build a list for each role that CIX
+        # supports
         for credit in metadata.credits:
 
             if credit['role'].lower() in set(self.writer_synonyms):
-                credit_writer_list.append(credit['person'].replace(",",""))
+                credit_writer_list.append(credit['person'].replace(",", ""))
 
             if credit['role'].lower() in set(self.penciller_synonyms):
-                credit_penciller_list.append(credit['person'].replace(",",""))
+                credit_penciller_list.append(credit['person'].replace(",", ""))
 
             if credit['role'].lower() in set(self.inker_synonyms):
-                credit_inker_list.append(credit['person'].replace(",",""))
+                credit_inker_list.append(credit['person'].replace(",", ""))
 
             if credit['role'].lower() in set(self.colorist_synonyms):
-                credit_colorist_list.append(credit['person'].replace(",",""))
+                credit_colorist_list.append(credit['person'].replace(",", ""))
 
             if credit['role'].lower() in set(self.letterer_synonyms):
-                credit_letterer_list.append(credit['person'].replace(",",""))
+                credit_letterer_list.append(credit['person'].replace(",", ""))
 
             if credit['role'].lower() in set(self.cover_synonyms):
-                credit_cover_list.append(credit['person'].replace(",",""))
+                credit_cover_list.append(credit['person'].replace(",", ""))
 
             if credit['role'].lower() in set(self.editor_synonyms):
-                credit_editor_list.append(credit['person'].replace(",",""))
+                credit_editor_list.append(credit['person'].replace(",", ""))
 
         # second, convert each list to string, and add to XML struct
         if len(credit_writer_list) > 0:
@@ -199,7 +201,6 @@ class ComicInfoXml:
         tree = ET.ElementTree(root)
         return tree
 
-
     def convertXMLToMetadata(self, tree):
 
         root = tree.getroot()
@@ -211,7 +212,6 @@ class ComicInfoXml:
         metadata = GenericMetadata()
         md = metadata
 
-
         # Helper function
         def xlate(tag):
             node = root.find(tag)
@@ -220,48 +220,48 @@ class ComicInfoXml:
             else:
                 return None
 
-        md.series =           xlate('Series')
-        md.title =            xlate('Title')
-        md.issue =            xlate('Number')
-        md.issueCount =       xlate('Count')
-        md.volume =           xlate('Volume')
-        md.alternateSeries =  xlate('AlternateSeries')
-        md.alternateNumber =  xlate('AlternateNumber')
-        md.alternateCount =   xlate('AlternateCount')
-        md.comments =         xlate('Summary')
-        md.notes =            xlate('Notes')
-        md.year =             xlate('Year')
-        md.month =            xlate('Month')
-        md.day =              xlate('Day')
-        md.publisher =        xlate('Publisher')
-        md.imprint =          xlate('Imprint')
-        md.genre =            xlate('Genre')
-        md.webLink =          xlate('Web')
-        md.language =         xlate('LanguageISO')
-        md.format =           xlate('Format')
-        md.manga =            xlate('Manga')
-        md.characters =       xlate('Characters')
-        md.teams =            xlate('Teams')
-        md.locations =        xlate('Locations')
-        md.pageCount =        xlate('PageCount')
-        md.scanInfo =         xlate('ScanInformation')
-        md.storyArc =         xlate('StoryArc')
-        md.seriesGroup =      xlate('SeriesGroup')
-        md.maturityRating =   xlate('AgeRating')
+        md.series = xlate('Series')
+        md.title = xlate('Title')
+        md.issue = xlate('Number')
+        md.issueCount = xlate('Count')
+        md.volume = xlate('Volume')
+        md.alternateSeries = xlate('AlternateSeries')
+        md.alternateNumber = xlate('AlternateNumber')
+        md.alternateCount = xlate('AlternateCount')
+        md.comments = xlate('Summary')
+        md.notes = xlate('Notes')
+        md.year = xlate('Year')
+        md.month = xlate('Month')
+        md.day = xlate('Day')
+        md.publisher = xlate('Publisher')
+        md.imprint = xlate('Imprint')
+        md.genre = xlate('Genre')
+        md.webLink = xlate('Web')
+        md.language = xlate('LanguageISO')
+        md.format = xlate('Format')
+        md.manga = xlate('Manga')
+        md.characters = xlate('Characters')
+        md.teams = xlate('Teams')
+        md.locations = xlate('Locations')
+        md.pageCount = xlate('PageCount')
+        md.scanInfo = xlate('ScanInformation')
+        md.storyArc = xlate('StoryArc')
+        md.seriesGroup = xlate('SeriesGroup')
+        md.maturityRating = xlate('AgeRating')
 
         tmp = xlate('BlackAndWhite')
         md.blackAndWhite = False
-        if tmp is not None and tmp.lower() in [ "yes", "true", "1" ]:
+        if tmp is not None and tmp.lower() in ["yes", "true", "1"]:
             md.blackAndWhite = True
         # Now extract the credit info
         for n in root:
             if (n.tag == 'Writer' or
-                n.tag == 'Penciller' or
-                n.tag == 'Inker' or
-                n.tag == 'Colorist' or
-                n.tag == 'Letterer' or
-                n.tag == 'Editor'
-         ):
+                    n.tag == 'Penciller' or
+                    n.tag == 'Inker' or
+                    n.tag == 'Colorist' or
+                    n.tag == 'Letterer' or
+                    n.tag == 'Editor'
+                    ):
                 if n.text is not None:
                     for name in n.text.split(','):
                         metadata.addCredit(name.strip(), n.tag)
@@ -276,7 +276,7 @@ class ComicInfoXml:
         if pages_node is not None:
             for page in pages_node:
                 metadata.pages.append(page.attrib)
-                #print(page.attrib)
+                # print(page.attrib)
 
         metadata.isEmpty = False
 
@@ -285,7 +285,7 @@ class ComicInfoXml:
     def writeToExternalFile(self, filename, metadata):
 
         tree = self.convertMetadataToXML(self, metadata)
-        #ET.dump(tree)
+        # ET.dump(tree)
         tree.write(filename, encoding='utf-8')
 
     def readFromExternalFile(self, filename):

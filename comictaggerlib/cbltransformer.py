@@ -24,10 +24,10 @@ import utils
 
 
 class CBLTransformer:
+
     def __init__(self, metadata, settings):
         self.metadata = metadata
         self.settings = settings
-
 
     def apply(self):
         # helper funcs
@@ -37,7 +37,7 @@ class CBLTransformer:
 
         def add_string_list_to_tags(str_list):
             if str_list is not None and str_list != "":
-                items = [ s.strip() for s in str_list.split(',') ]
+                items = [s.strip() for s in str_list.split(',')]
                 for item in items:
                     append_to_tags_if_unique(item)
 
@@ -58,7 +58,8 @@ class CBLTransformer:
                     lone_credit['primary'] = True
                 return lone_credit, count
 
-            #need to loop three times, once for 'writer', 'artist', and then 'penciler' if no artist
+            # need to loop three times, once for 'writer', 'artist', and then
+            # 'penciler' if no artist
             setLonePrimary(['writer'])
             c, count = setLonePrimary(['artist'])
             if c is None and count == 0:

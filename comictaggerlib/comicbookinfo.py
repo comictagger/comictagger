@@ -36,9 +36,9 @@ class ComicBookInfo:
 
         metadata = GenericMetadata()
 
-        cbi = cbi_container[ 'ComicBookInfo/1.0' ]
+        cbi = cbi_container['ComicBookInfo/1.0']
 
-        #helper func
+        # helper func
         # If item is not in CBI, return None
         def xlate(cbi_entry):
             if cbi_entry in cbi:
@@ -46,22 +46,22 @@ class ComicBookInfo:
             else:
                 return None
 
-        metadata.series =            xlate('series')
-        metadata.title =             xlate('title')
-        metadata.issue =             xlate('issue')
-        metadata.publisher =         xlate('publisher')
-        metadata.month =             xlate('publicationMonth')
-        metadata.year =              xlate('publicationYear')
-        metadata.issueCount =        xlate('numberOfIssues')
-        metadata.comments =          xlate('comments')
-        metadata.credits =           xlate('credits')
-        metadata.genre =             xlate('genre')
-        metadata.volume =            xlate('volume')
-        metadata.volumeCount =       xlate('numberOfVolumes')
-        metadata.language =          xlate('language')
-        metadata.country =           xlate('country')
-        metadata.criticalRating =    xlate('rating')
-        metadata.tags =              xlate('tags')
+        metadata.series = xlate('series')
+        metadata.title = xlate('title')
+        metadata.issue = xlate('issue')
+        metadata.publisher = xlate('publisher')
+        metadata.month = xlate('publicationMonth')
+        metadata.year = xlate('publicationYear')
+        metadata.issueCount = xlate('numberOfIssues')
+        metadata.comments = xlate('comments')
+        metadata.credits = xlate('credits')
+        metadata.genre = xlate('genre')
+        metadata.volume = xlate('volume')
+        metadata.volumeCount = xlate('numberOfVolumes')
+        metadata.language = xlate('language')
+        metadata.country = xlate('country')
+        metadata.criticalRating = xlate('rating')
+        metadata.tags = xlate('tags')
 
         # make sure credits and tags are at least empty lists and not None
         if metadata.credits is None:
@@ -69,13 +69,13 @@ class ComicBookInfo:
         if metadata.tags is None:
             metadata.tags = []
 
-        #need to massage the language string to be ISO
+        # need to massage the language string to be ISO
         if metadata.language is not None:
             # reverse look-up
             pattern = metadata.language
             metadata.language = None
             for key in utils.getLanguageDict():
-                if utils.getLanguageDict()[ key ] == pattern.encode('utf-8'):
+                if utils.getLanguageDict()[key] == pattern.encode('utf-8'):
                     metadata.language = key
                     break
 
@@ -88,7 +88,7 @@ class ComicBookInfo:
         cbi_container = self.createJSONDictionary(metadata)
         return json.dumps(cbi_container)
 
-    #verify that the string actually contains CBI data in JSON format
+    # verify that the string actually contains CBI data in JSON format
     def validateString(self, string):
 
         try:
@@ -98,24 +98,23 @@ class ComicBookInfo:
 
         return ('ComicBookInfo/1.0' in cbi_container)
 
-
     def createJSONDictionary(self, metadata):
 
         # Create the dictionary that we will convert to JSON text
         cbi = dict()
-        cbi_container = {'appID' : 'ComicTagger/' + ctversion.version,
-                         'lastModified' : str(datetime.now()),
-                         'ComicBookInfo/1.0' : cbi }
+        cbi_container = {'appID': 'ComicTagger/' + ctversion.version,
+                         'lastModified': str(datetime.now()),
+                         'ComicBookInfo/1.0': cbi}
 
-        #helper func
+        # helper func
         def assign(cbi_entry, md_entry):
             if md_entry is not None:
                 cbi[cbi_entry] = md_entry
 
-        #helper func
+        # helper func
         def toInt(s):
             i = None
-            if type(s) in [ str, unicode, int ]:
+            if type(s) in [str, unicode, int]:
                 try:
                     i = int(s)
                 except ValueError:
@@ -140,7 +139,6 @@ class ComicBookInfo:
         assign('tags', metadata.tags)
 
         return cbi_container
-
 
     def writeToExternalFile(self, filename,  metadata):
 

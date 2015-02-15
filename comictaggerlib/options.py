@@ -99,7 +99,6 @@ If no options are given, {0} will run in windowed mode
 For more help visit the wiki at: http://code.google.com/p/comictagger/
     """
 
-
     def __init__(self):
         self.data_style = None
         self.no_gui = False
@@ -133,7 +132,6 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
         self.assume_issue_is_one_if_not_set = False
         self.file_list = []
 
-
     def display_msg_and_quit(self, msg, code, show_help=False):
         appname = os.path.basename(sys.argv[0])
         if msg is not None:
@@ -158,7 +156,8 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
 
         md = GenericMetadata()
 
-        # First, replace escaped commas with with a unique token (to be changed back later)
+        # First, replace escaped commas with with a unique token (to be changed
+        # back later)
         mdstr = mdstr.replace(escaped_comma, replacement_token)
         tmp_list = mdstr.split(",")
         md_list = []
@@ -171,15 +170,16 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
         for item in md_list:
             # Make sure to fix any escaped equal signs
             i = item.replace(escaped_equals, replacement_token)
-            key,value = i.split("=")
+            key, value = i.split("=")
             value = value.replace(replacement_token, "=").strip()
             key = key.strip()
             if key.lower() == "credit":
                 cred_attribs = value.split(":")
                 role = cred_attribs[0]
-                person = (cred_attribs[1] if len(cred_attribs) > 1 else  "")
+                person = (cred_attribs[1] if len(cred_attribs) > 1 else "")
                 primary = (cred_attribs[2] if len(cred_attribs) > 2 else None)
-                md.addCredit(person.strip(), role.strip(), True if primary is not None else False)
+                md.addCredit(
+                    person.strip(), role.strip(), True if primary is not None else False)
             else:
                 md_dict[key] = value
 
@@ -190,18 +190,19 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
             else:
                 md.isEmpty = False
                 setattr(md, key, md_dict[key])
-        #print(md)
+        # print(md)
         return md
 
     def launch_script(self, scriptfile):
         # we were given a script.  special case for the args:
         #  1. ignore everthing before the -S,
-        #  2. pass all the ones that follow (including script name) to the script
+        # 2. pass all the ones that follow (including script name) to the
+        # script
         script_args = list()
         for idx, arg in enumerate(sys.argv):
             if arg in ['-S', '--script']:
-                #found script!
-                script_args = sys.argv[idx+1:]
+                # found script!
+                script_args = sys.argv[idx + 1:]
                 break
         sys.argv = script_args
         if not os.path.exists(scriptfile):
@@ -221,7 +222,8 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
                 if "main" in dir(script):
                     script.main()
                 else:
-                    print("Can't find entry point \"main()\" in module \"{0}\"".format(module_name))
+                    print(
+                        "Can't find entry point \"main()\" in module \"{0}\"".format(module_name))
             except Exception as e:
                 print "Script raised an unhandled exception: ", e
                 print(traceback.format_exc())
@@ -232,30 +234,30 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
 
         if platform.system() == "Darwin" and hasattr(sys, "frozen") and sys.frozen == 1:
             # remove the PSN ("process serial number") argument from OS/X
-            input_args = [a for a in sys.argv[1:] if "-psn_0_" not in  a ]
+            input_args = [a for a in sys.argv[1:] if "-psn_0_" not in a]
         else:
             input_args = sys.argv[1:]
 
         # first check if we're launching a script:
         for n in range(len(input_args)):
-            if (input_args[n] in [ "-S", "--script" ] and
-                  n+1 < len(input_args)):
+            if (input_args[n] in ["-S", "--script"] and
+                    n + 1 < len(input_args)):
                 # insert a "--" which will cause getopt to ignore the remaining args
                 # so they will be passed to the script
-                input_args.insert(n+2, "--")
+                input_args.insert(n + 2, "--")
                 break
 
         # parse command line options
         try:
             opts, args = getopt.getopt(input_args,
-                       "hpdt:fm:vownsrc:ieRS:1",
-                       ["help", "print", "delete", "type=", "copy=", "parsefilename",
-                       "metadata=", "verbose", "online", "dryrun", "save", "rename" ,
-                       "raw", "noabort", "terse", "nooverwrite", "interactive",
-                       "nosummary", "version", "id=" , "recursive", "script=",
-                       "export-to-zip", "delete-rar", "abort-on-conflict",
-                       "assume-issue-one", "cv-api-key=", "only-set-cv-key",
-                       "wait-on-cv-rate-limit"])
+                                       "hpdt:fm:vownsrc:ieRS:1",
+                                       ["help", "print", "delete", "type=", "copy=", "parsefilename",
+                                        "metadata=", "verbose", "online", "dryrun", "save", "rename",
+                                        "raw", "noabort", "terse", "nooverwrite", "interactive",
+                                        "nosummary", "version", "id=", "recursive", "script=",
+                                        "export-to-zip", "delete-rar", "abort-on-conflict",
+                                        "assume-issue-one", "cv-api-key=", "only-set-cv-key",
+                                        "wait-on-cv-rate-limit"])
 
         except getopt.GetoptError as err:
             self.display_msg_and_quit(str(err), 2)
@@ -286,7 +288,8 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
                 elif a.lower() == "comet":
                     self.copy_source = MetaDataStyle.COMET
                 else:
-                    self.display_msg_and_quit("Invalid copy tag source type", 1)
+                    self.display_msg_and_quit(
+                        "Invalid copy tag source type", 1)
             if o in ("-o", "--online"):
                 self.search_online = True
             if o in ("-n", "--dryrun"):
@@ -299,9 +302,9 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
                 self.rename_file = True
             if o in ("-e", "--export_to_zip"):
                 self.export_to_zip = True
-            if o  == "--delete-rar":
+            if o == "--delete-rar":
                 self.delete_rar_after_export = True
-            if o  == "--abort-on-conflict":
+            if o == "--abort-on-conflict":
                 self.abort_export_on_conflict = True
             if o in ("-f", "--parsefilename"):
                 self.parse_filename = True
@@ -311,7 +314,7 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
                 self.issue_id = a
             if o == "--raw":
                 self.raw = True
-            if o  == "--noabort":
+            if o == "--noabort":
                 self.abortOnLowConfidence = False
             if o == "--terse":
                 self.terse = True
@@ -319,19 +322,22 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
                 self.show_save_summary = False
             if o in ("-1", "--assume-issue-one"):
                 self.assume_issue_is_one_if_not_set = True
-            if o  == "--nooverwrite":
+            if o == "--nooverwrite":
                 self.no_overwrite = True
             if o == "--cv-api-key":
                 self.cv_api_key = a
-            if o  == "--only-set-cv-key":
+            if o == "--only-set-cv-key":
                 self.only_set_key = True
-            if o  == "--version":
-                print("ComicTagger {0}:  Copyright (c) 2012-2014 Anthony Beville".format(ctversion.version))
-                print("Distributed under Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)")
+            if o == "--version":
+                print(
+                    "ComicTagger {0}:  Copyright (c) 2012-2014 Anthony Beville".format(ctversion.version))
+                print(
+                    "Distributed under Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)")
                 new_version = VersionChecker().getLatestVersion("", False)
                 if new_version is not None and new_version != ctversion.version:
                     print("----------------------------------------")
-                    print("New version available online: {0}".format(new_version))
+                    print(
+                        "New version available online: {0}".format(new_version))
                     print("----------------------------------------")
                 sys.exit(0)
             if o in ("-t", "--type"):
@@ -348,17 +354,26 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
             self.no_gui = True
 
         count = 0
-        if self.run_script: count += 1
-        if self.print_tags: count += 1
-        if self.delete_tags: count += 1
-        if self.save_tags: count += 1
-        if self.copy_tags: count += 1
-        if self.rename_file: count += 1
-        if self.export_to_zip: count +=1
-        if self.only_set_key: count +=1
+        if self.run_script:
+            count += 1
+        if self.print_tags:
+            count += 1
+        if self.delete_tags:
+            count += 1
+        if self.save_tags:
+            count += 1
+        if self.copy_tags:
+            count += 1
+        if self.rename_file:
+            count += 1
+        if self.export_to_zip:
+            count += 1
+        if self.only_set_key:
+            count += 1
 
         if count > 1:
-            self.display_msg_and_quit("Must choose only one action of print, delete, save, copy, rename, export, set key, or run script", 1)
+            self.display_msg_and_quit(
+                "Must choose only one action of print, delete, save, copy, rename, export, set key, or run script", 1)
 
         if self.script is not None:
             self.launch_script(self.script)
@@ -380,18 +395,22 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
             self.display_msg_and_quit("Key not given!", 1)
 
         if (self.only_set_key == False) and self.no_gui and (self.filename is None):
-            self.display_msg_and_quit("Command requires at least one filename!", 1)
+            self.display_msg_and_quit(
+                "Command requires at least one filename!", 1)
 
         if self.delete_tags and self.data_style is None:
-            self.display_msg_and_quit("Please specify the type to delete with -t", 1)
+            self.display_msg_and_quit(
+                "Please specify the type to delete with -t", 1)
 
         if self.save_tags and self.data_style is None:
-            self.display_msg_and_quit("Please specify the type to save with -t", 1)
+            self.display_msg_and_quit(
+                "Please specify the type to save with -t", 1)
 
         if self.copy_tags and self.data_style is None:
-            self.display_msg_and_quit("Please specify the type to copy to with -t", 1)
+            self.display_msg_and_quit(
+                "Please specify the type to copy to with -t", 1)
 
-        #if self.rename_file and self.data_style is None:
+        # if self.rename_file and self.data_style is None:
         #    self.display_msg_and_quit("Please specify the type to use for renaming with -t", 1)
 
         if self.recursive:

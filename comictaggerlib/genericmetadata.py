@@ -26,7 +26,8 @@ limitations under the License.
 import utils
 
 
-# These page info classes are exactly the same as the CIX scheme, since it's unique
+# These page info classes are exactly the same as the CIX scheme, since
+# it's unique
 class PageType:
     FrontCover = "FrontCover"
     InnerCover = "InnerCover"
@@ -50,6 +51,7 @@ class PageInfo:
     ImageWidth = 0
     ImageHeight = 0
 """
+
 
 class GenericMetadata:
 
@@ -174,7 +176,6 @@ class GenericMetadata:
         if len(new_md.pages) > 0:
             assign("pages",           new_md.pages)
 
-
     def overlayCredits(self, new_credits):
         for c in new_credits:
             if c.has_key('primary') and c['primary']:
@@ -201,7 +202,8 @@ class GenericMetadata:
             self.pages.append(page_dict)
 
     def getArchivePageIndex(self, pagenum):
-        # convert the displayed page number to the page index of the file in the archive
+        # convert the displayed page number to the page index of the file in
+        # the archive
         if pagenum < len(self.pages):
             return int(self.pages[pagenum]['Image'])
         else:
@@ -219,7 +221,7 @@ class GenericMetadata:
 
         return coverlist
 
-    def addCredit(self, person, role, primary = False):
+    def addCredit(self, person, role, primary=False):
 
         credit = dict()
         credit['person'] = person
@@ -231,7 +233,7 @@ class GenericMetadata:
         found = False
         for c in self.credits:
             if (c['person'].lower() == person.lower() and
-                   c['role'].lower() == role.lower()):
+                    c['role'].lower() == role.lower()):
                 # no need to add it. just adjust the "primary" flag as needed
                 c['primary'] = primary
                 found = True
@@ -239,7 +241,6 @@ class GenericMetadata:
 
         if not found:
             self.credits.append(credit)
-
 
     def __str__(self):
         vals = []
@@ -251,8 +252,8 @@ class GenericMetadata:
                 vals.append((tag, val))
 
         def add_attr_string(tag):
-            val = getattr(self,tag)
-            add_string(tag, getattr(self,tag))
+            val = getattr(self, tag)
+            add_string(tag, getattr(self, tag))
 
         add_attr_string("series")
         add_attr_string("issue")
@@ -300,7 +301,7 @@ class GenericMetadata:
             primary = ""
             if c.has_key('primary') and c['primary']:
                 primary = " [P]"
-            add_string("credit",  c['role']+": "+c['person'] + primary)
+            add_string("credit",  c['role'] + ": " + c['person'] + primary)
 
         # find the longest field name
         flen = 0
@@ -308,10 +309,10 @@ class GenericMetadata:
             flen = max(flen, len(i[0]))
         flen += 1
 
-        #format the data nicely
+        # format the data nicely
         outstr = ""
         fmt_str = u"{0: <" + str(flen) + "} {1}\n"
         for i in vals:
-            outstr += fmt_str.format(i[0]+":", i[1])
+            outstr += fmt_str.format(i[0] + ":", i[1])
 
         return outstr

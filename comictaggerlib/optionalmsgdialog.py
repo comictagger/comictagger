@@ -52,10 +52,11 @@ class OptionalMessageDialog(QDialog):
         self.theLabel.setWordWrap(True)
         self.theLabel.setTextFormat(Qt.RichText)
         self.theLabel.setOpenExternalLinks(True)
-        self.theLabel.setTextInteractionFlags(Qt.TextSelectableByMouse | Qt.LinksAccessibleByMouse | Qt.LinksAccessibleByKeyboard)
+        self.theLabel.setTextInteractionFlags(
+            Qt.TextSelectableByMouse | Qt.LinksAccessibleByMouse | Qt.LinksAccessibleByKeyboard)
 
         l.addWidget(self.theLabel)
-        l.insertSpacing (-1, 10)
+        l.insertSpacing(-1, 10)
 
         if check_text is None:
             if style == StyleQuestion:
@@ -71,13 +72,13 @@ class OptionalMessageDialog(QDialog):
 
         btnbox_style = QDialogButtonBox.Ok
         if style == StyleQuestion:
-            btnbox_style = QDialogButtonBox.Yes|QDialogButtonBox.No
+            btnbox_style = QDialogButtonBox.Yes | QDialogButtonBox.No
 
         self.theButtonBox = QDialogButtonBox(
-                        btnbox_style,
-                        parent=self,
-                        accepted=self.accept,
-                        rejected=self.reject)
+            btnbox_style,
+            parent=self,
+            accepted=self.accept,
+            rejected=self.reject)
 
         l.addWidget(self.theButtonBox)
 
@@ -92,15 +93,17 @@ class OptionalMessageDialog(QDialog):
     @staticmethod
     def msg(parent, title, msg, check_state=Qt.Unchecked, check_text=None):
 
-        d = OptionalMessageDialog(parent, StyleMessage, title, msg, check_state=check_state, check_text=check_text)
+        d = OptionalMessageDialog(
+            parent, StyleMessage, title, msg, check_state=check_state, check_text=check_text)
 
         d.exec_()
-        return  d.theCheckBox.isChecked()
+        return d.theCheckBox.isChecked()
 
     @staticmethod
     def question(parent, title, msg, check_state=Qt.Unchecked, check_text=None):
 
-        d = OptionalMessageDialog(parent, StyleQuestion, title, msg, check_state=check_state, check_text=check_text)
+        d = OptionalMessageDialog(
+            parent, StyleQuestion, title, msg, check_state=check_state, check_text=check_text)
 
         d.exec_()
 

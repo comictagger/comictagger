@@ -34,9 +34,10 @@ class ComicVineCacher:
     def __init__(self):
         self.settings_folder = ComicTaggerSettings.getSettingsFolder()
         self.db_file = os.path.join(self.settings_folder, "cv_cache.db")
-        self.version_file = os.path.join(self.settings_folder, "cache_version.txt")
+        self.version_file = os.path.join(
+            self.settings_folder, "cache_version.txt")
 
-        #verify that cache is from same version as this one
+        # verify that cache is from same version as this one
         data = ""
         try:
             with open(self.version_file, 'rb') as f:
@@ -62,7 +63,7 @@ class ComicVineCacher:
 
     def create_cache_db(self):
 
-        #create the version file
+        # create the version file
         with open(self.version_file, 'w') as f:
             f.write(ctversion.version)
 
@@ -75,49 +76,49 @@ class ComicVineCacher:
         with con:
 
             cur = con.cursor()
-            #name,id,start_year,publisher,image,description,count_of_issues
+            # name,id,start_year,publisher,image,description,count_of_issues
             cur.execute("CREATE TABLE VolumeSearchCache(" +
-                            "search_term TEXT," +
-                            "id INT," +
-                            "name TEXT," +
-                            "start_year INT," +
-                            "publisher TEXT," +
-                            "count_of_issues INT," +
-                            "image_url TEXT," +
-                            "description TEXT," +
-                            "timestamp DATE DEFAULT (datetime('now','localtime'))) "
-                     )
+                        "search_term TEXT," +
+                        "id INT," +
+                        "name TEXT," +
+                        "start_year INT," +
+                        "publisher TEXT," +
+                        "count_of_issues INT," +
+                        "image_url TEXT," +
+                        "description TEXT," +
+                        "timestamp DATE DEFAULT (datetime('now','localtime'))) "
+                        )
 
             cur.execute("CREATE TABLE Volumes(" +
-                            "id INT," +
-                            "name TEXT," +
-                            "publisher TEXT," +
-                            "count_of_issues INT," +
-                            "start_year INT," +
-                            "timestamp DATE DEFAULT (datetime('now','localtime')), " +
-                            "PRIMARY KEY (id))"
-                     )
+                        "id INT," +
+                        "name TEXT," +
+                        "publisher TEXT," +
+                        "count_of_issues INT," +
+                        "start_year INT," +
+                        "timestamp DATE DEFAULT (datetime('now','localtime')), " +
+                        "PRIMARY KEY (id))"
+                        )
 
             cur.execute("CREATE TABLE AltCovers(" +
-                            "issue_id INT," +
-                            "url_list TEXT," +
-                            "timestamp DATE DEFAULT (datetime('now','localtime')), " +
-                            "PRIMARY KEY (issue_id))"
-                     )
+                        "issue_id INT," +
+                        "url_list TEXT," +
+                        "timestamp DATE DEFAULT (datetime('now','localtime')), " +
+                        "PRIMARY KEY (issue_id))"
+                        )
 
             cur.execute("CREATE TABLE Issues(" +
-                            "id INT," +
-                            "volume_id INT," +
-                            "name TEXT," +
-                            "issue_number TEXT," +
-                            "super_url TEXT," +
-                            "thumb_url TEXT," +
-                            "cover_date TEXT," +
-                            "site_detail_url TEXT," +
-                            "description TEXT," +
-                            "timestamp DATE DEFAULT (datetime('now','localtime')), " +
-                            "PRIMARY KEY (id))"
-                     )
+                        "id INT," +
+                        "volume_id INT," +
+                        "name TEXT," +
+                        "issue_number TEXT," +
+                        "super_url TEXT," +
+                        "thumb_url TEXT," +
+                        "cover_date TEXT," +
+                        "site_detail_url TEXT," +
+                        "description TEXT," +
+                        "timestamp DATE DEFAULT (datetime('now','localtime')), " +
+                        "PRIMARY KEY (id))"
+                        )
 
     def add_search_results(self, search_term, cv_search_results):
 
@@ -128,7 +129,8 @@ class ComicVineCacher:
             cur = con.cursor()
 
             # remove all previous entries with this search term
-            cur.execute("DELETE FROM VolumeSearchCache WHERE search_term = ?", [ search_term.lower() ])
+            cur.execute(
+                "DELETE FROM VolumeSearchCache WHERE search_term = ?", [search_term.lower()])
 
             # now add in new results
             for record in cv_search_results:
@@ -146,16 +148,16 @@ class ComicVineCacher:
 
                 cur.execute("INSERT INTO VolumeSearchCache " +
                             "(search_term, id, name, start_year, publisher, count_of_issues, image_url, description) " +
-                            "VALUES(?, ?, ?, ?, ?, ?, ?, ?)" ,
-                                (search_term.lower(),
-                                record['id'],
-                                record['name'],
-                                record['start_year'],
-                                pub_name,
-                                record['count_of_issues'],
-                                url,
-                                record['description'])
-                         )
+                            "VALUES(?, ?, ?, ?, ?, ?, ?, ?)",
+                            (search_term.lower(),
+                             record['id'],
+                             record['name'],
+                             record['start_year'],
+                             pub_name,
+                             record['count_of_issues'],
+                             url,
+                             record['description'])
+                            )
 
     def get_search_results(self, search_term):
 
@@ -165,13 +167,14 @@ class ComicVineCacher:
             con.text_factory = unicode
             cur = con.cursor()
 
-
             # purge stale search results
-            a_day_ago = datetime.datetime.today()-datetime.timedelta(days=1)
-            cur.execute("DELETE FROM VolumeSearchCache WHERE timestamp  < ?", [ str(a_day_ago) ])
+            a_day_ago = datetime.datetime.today() - datetime.timedelta(days=1)
+            cur.execute(
+                "DELETE FROM VolumeSearchCache WHERE timestamp  < ?", [str(a_day_ago)])
 
             # fetch
-            cur.execute("SELECT * FROM VolumeSearchCache WHERE search_term=?", [ search_term.lower() ])
+            cur.execute(
+                "SELECT * FROM VolumeSearchCache WHERE search_term=?", [search_term.lower()])
             rows = cur.fetchall()
             # now process the results
             for record in rows:
@@ -200,17 +203,16 @@ class ComicVineCacher:
             cur = con.cursor()
 
             # remove all previous entries with this search term
-            cur.execute("DELETE FROM AltCovers WHERE issue_id = ?", [ issue_id ])
+            cur.execute("DELETE FROM AltCovers WHERE issue_id = ?", [issue_id])
 
             url_list_str = utils.listToString(url_list)
             # now add in new record
             cur.execute("INSERT INTO AltCovers " +
                         "(issue_id, url_list) " +
-                        "VALUES(?, ?)" ,
-                            (issue_id,
-                            url_list_str)
-                     )
-
+                        "VALUES(?, ?)",
+                        (issue_id,
+                         url_list_str)
+                        )
 
     def get_alt_covers(self, issue_id):
 
@@ -219,13 +221,17 @@ class ComicVineCacher:
             cur = con.cursor()
             con.text_factory = unicode
 
-            # purge stale issue info - probably issue data won't change much....
-            a_month_ago = datetime.datetime.today()-datetime.timedelta(days=30)
-            cur.execute("DELETE FROM AltCovers WHERE timestamp  < ?", [ str(a_month_ago) ])
+            # purge stale issue info - probably issue data won't change
+            # much....
+            a_month_ago = datetime.datetime.today() - \
+                datetime.timedelta(days=30)
+            cur.execute(
+                "DELETE FROM AltCovers WHERE timestamp  < ?", [str(a_month_ago)])
 
-            cur.execute("SELECT url_list FROM AltCovers WHERE issue_id=?", [ issue_id ])
+            cur.execute(
+                "SELECT url_list FROM AltCovers WHERE issue_id=?", [issue_id])
             row = cur.fetchone()
-            if row is None :
+            if row is None:
                 return None
             else:
                 url_list_str = row[0]
@@ -253,14 +259,13 @@ class ComicVineCacher:
                 pub_name = cv_volume_record['publisher']['name']
 
             data = {
-                        "name":            cv_volume_record['name'],
-                        "publisher":       pub_name,
-                        "count_of_issues": cv_volume_record['count_of_issues'],
-                        "start_year":      cv_volume_record['start_year'],
-                        "timestamp":       timestamp
-                    }
+                "name":            cv_volume_record['name'],
+                "publisher":       pub_name,
+                "count_of_issues": cv_volume_record['count_of_issues'],
+                "start_year":      cv_volume_record['start_year'],
+                "timestamp":       timestamp
+            }
             self.upsert(cur, "volumes", "id", cv_volume_record['id'], data)
-
 
     def add_volume_issues_info(self, volume_id, cv_volume_issues):
 
@@ -277,18 +282,17 @@ class ComicVineCacher:
             for issue in cv_volume_issues:
 
                 data = {
-                        "volume_id":       volume_id,
-                        "name":            issue['name'],
-                        "issue_number":    issue['issue_number'],
-                        "site_detail_url": issue['site_detail_url'],
-                        "cover_date":      issue['cover_date'],
-                        "super_url":       issue['image']['super_url'],
-                        "thumb_url":       issue['image']['thumb_url'],
-                        "description":     issue['description'],
-                        "timestamp":    timestamp
-                       }
-                self.upsert(cur, "issues" , "id", issue['id'], data)
-
+                    "volume_id":       volume_id,
+                    "name":            issue['name'],
+                    "issue_number":    issue['issue_number'],
+                    "site_detail_url": issue['site_detail_url'],
+                    "cover_date":      issue['cover_date'],
+                    "super_url":       issue['image']['super_url'],
+                    "thumb_url":       issue['image']['thumb_url'],
+                    "description":     issue['description'],
+                    "timestamp":    timestamp
+                }
+                self.upsert(cur, "issues", "id", issue['id'], data)
 
     def get_volume_info(self, volume_id):
 
@@ -300,26 +304,28 @@ class ComicVineCacher:
             con.text_factory = unicode
 
             # purge stale volume info
-            a_week_ago = datetime.datetime.today()-datetime.timedelta(days=7)
-            cur.execute("DELETE FROM Volumes WHERE timestamp  < ?", [ str(a_week_ago) ])
+            a_week_ago = datetime.datetime.today() - datetime.timedelta(days=7)
+            cur.execute(
+                "DELETE FROM Volumes WHERE timestamp  < ?", [str(a_week_ago)])
 
             # fetch
-            cur.execute("SELECT id,name,publisher,count_of_issues,start_year FROM Volumes WHERE id = ?", [ volume_id ])
+            cur.execute(
+                "SELECT id,name,publisher,count_of_issues,start_year FROM Volumes WHERE id = ?", [volume_id])
 
             row = cur.fetchone()
 
-            if row is None :
+            if row is None:
                 return result
 
             result = dict()
 
-            #since ID is primary key, there is only one row
-            result['id'] =                row[0]
-            result['name'] =              row[1]
+            # since ID is primary key, there is only one row
+            result['id'] = row[0]
+            result['name'] = row[1]
             result['publisher'] = dict()
             result['publisher']['name'] = row[2]
-            result['count_of_issues'] =   row[3]
-            result['start_year'] =   row[4]
+            result['count_of_issues'] = row[3]
+            result['start_year'] = row[4]
             result['issues'] = list()
 
         return result
@@ -333,29 +339,32 @@ class ComicVineCacher:
             cur = con.cursor()
             con.text_factory = unicode
 
-            # purge stale issue info - probably issue data won't change much....
-            a_week_ago = datetime.datetime.today()-datetime.timedelta(days=7)
-            cur.execute("DELETE FROM Issues WHERE timestamp  < ?", [ str(a_week_ago) ])
+            # purge stale issue info - probably issue data won't change
+            # much....
+            a_week_ago = datetime.datetime.today() - datetime.timedelta(days=7)
+            cur.execute(
+                "DELETE FROM Issues WHERE timestamp  < ?", [str(a_week_ago)])
 
             # fetch
             results = list()
 
-            cur.execute("SELECT id,name,issue_number,site_detail_url,cover_date,super_url,thumb_url,description FROM Issues WHERE volume_id = ?", [ volume_id ])
+            cur.execute(
+                "SELECT id,name,issue_number,site_detail_url,cover_date,super_url,thumb_url,description FROM Issues WHERE volume_id = ?", [volume_id])
             rows = cur.fetchall()
 
             # now process the results
             for row in rows:
                 record = dict()
 
-                record['id'] =                  row[0]
-                record['name'] =                row[1]
-                record['issue_number'] =        row[2]
-                record['site_detail_url'] =        row[3]
-                record['cover_date'] =          row[4]
+                record['id'] = row[0]
+                record['name'] = row[1]
+                record['issue_number'] = row[2]
+                record['site_detail_url'] = row[3]
+                record['cover_date'] = row[4]
                 record['image'] = dict()
-                record['image']['super_url'] =  row[5]
-                record['image']['thumb_url'] =  row[6]
-                record['description'] =         row[7]
+                record['image']['super_url'] = row[5]
+                record['image']['thumb_url'] = row[6]
+                record['description'] = row[7]
 
                 results.append(record)
 
@@ -363,7 +372,6 @@ class ComicVineCacher:
             return None
 
         return results
-
 
     def add_issue_select_details(self, issue_id, image_url, thumb_image_url, cover_date, site_detail_url):
 
@@ -375,15 +383,13 @@ class ComicVineCacher:
             timestamp = datetime.datetime.now()
 
             data = {
-                      "super_url": image_url,
-                      "thumb_url": thumb_image_url,
-                      "cover_date": cover_date,
-                      "site_detail_url": site_detail_url,
-                      "timestamp": timestamp
-                   }
-            self.upsert(cur, "issues" , "id", issue_id, data)
-
-
+                "super_url": image_url,
+                "thumb_url": thumb_image_url,
+                "cover_date": cover_date,
+                "site_detail_url": site_detail_url,
+                "timestamp": timestamp
+            }
+            self.upsert(cur, "issues", "id", issue_id, data)
 
     def get_issue_select_details(self, issue_id):
 
@@ -392,11 +398,12 @@ class ComicVineCacher:
             cur = con.cursor()
             con.text_factory = unicode
 
-            cur.execute("SELECT super_url,thumb_url,cover_date,site_detail_url FROM Issues WHERE id=?", [ issue_id ])
+            cur.execute(
+                "SELECT super_url,thumb_url,cover_date,site_detail_url FROM Issues WHERE id=?", [issue_id])
             row = cur.fetchone()
 
             details = dict()
-            if row is None or row[0] is None :
+            if row is None or row[0] is None:
                 details['image_url'] = None
                 details['thumb_image_url'] = None
                 details['cover_date'] = None
@@ -409,7 +416,6 @@ class ComicVineCacher:
                 details['site_detail_url'] = row[3]
 
             return details
-
 
     def upsert(self, cur, tablename, pkname, pkval, data):
         """
@@ -428,11 +434,11 @@ class ComicVineCacher:
 
         for key in data:
 
-            if keys !=  "":
+            if keys != "":
                 keys += ", "
-            if ins_slots !=  "":
+            if ins_slots != "":
                 ins_slots += ", "
-            if set_slots !=  "":
+            if set_slots != "":
                 set_slots += ", "
 
             keys += key
@@ -445,11 +451,11 @@ class ComicVineCacher:
         ins_slots += ", ?"
         condition = pkname + " = ?"
 
-        sql_ins = ("INSERT OR IGNORE INTO " + tablename  +
-            " (" + keys  + ") " +
-            " VALUES (" +  ins_slots + ")")
-        cur.execute(sql_ins , vals)
+        sql_ins = ("INSERT OR IGNORE INTO " + tablename +
+                   " (" + keys + ") " +
+                   " VALUES (" + ins_slots + ")")
+        cur.execute(sql_ins, vals)
 
-        sql_upd =  ("UPDATE " + tablename  +
-            " SET " + set_slots + " WHERE " + condition)
-        cur.execute(sql_upd , vals)
+        sql_upd = ("UPDATE " + tablename +
+                   " SET " + set_slots + " WHERE " + condition)
+        cur.execute(sql_upd, vals)

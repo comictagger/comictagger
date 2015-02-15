@@ -34,6 +34,7 @@ import re
 
 
 class IssueString:
+
     def __init__(self, text):
 
         #  break up the issue number string into 2 parts: the numeric and suffix string.
@@ -53,15 +54,16 @@ class IssueString:
 
         text = unicode(text)
 
-        #skip the minus sign if it's first
+        # skip the minus sign if it's first
         if text[0] == '-':
             start = 1
         else:
-            start  = 0
+            start = 0
 
         # if it's still not numeric at start skip it
         if text[start].isdigit() or text[start] == ".":
-            # walk through the string, look for split point (the first non-numeric)
+            # walk through the string, look for split point (the first
+            # non-numeric)
             decimal_count = 0
             for idx in range(start, len(text)):
                 if text[idx] not in "0123456789.":
@@ -76,10 +78,11 @@ class IssueString:
 
             # move trailing numeric decimal to suffix
             # (only if there is other junk after)
-            if text[idx-1] == "." and len(text) != idx:
-                idx = idx -1
+            if text[idx - 1] == "." and len(text) != idx:
+                idx = idx - 1
 
-            # if there is no numeric after the minus, make the minus part of the suffix
+            # if there is no numeric after the minus, make the minus part of
+            # the suffix
             if idx == 1 and start == 1:
                 idx = 0
 
@@ -94,8 +97,8 @@ class IssueString:
 
         #print("num: {0} suf: {1}".format(self.num, self.suffix))
 
-    def asString(self, pad = 0):
-        #return the float, left side zero-padded, with suffix attached
+    def asString(self, pad=0):
+        # return the float, left side zero-padded, with suffix attached
         if self.num is None:
             return self.suffix
 
@@ -113,7 +116,7 @@ class IssueString:
         # create padding
         padding = ""
         l = len(str(num_int))
-        if l < pad :
+        if l < pad:
             padding = "0" * (pad - l)
 
         num_s = padding + num_s
@@ -123,11 +126,11 @@ class IssueString:
         return num_s
 
     def asFloat(self):
-        #return the float, with no suffix
+        # return the float, with no suffix
         return self.num
 
     def asInt(self):
-        #return the int version of the float
+        # return the int version of the float
         if self.num is None:
             return None
-        return  int(self.num)
+        return int(self.num)

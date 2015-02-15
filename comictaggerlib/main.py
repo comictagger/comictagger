@@ -68,7 +68,7 @@ def ctmain():
         app = QtGui.QApplication(sys.argv)
 
         if platform.system() != "Linux":
-            img =  QtGui.QPixmap(ComicTaggerSettings.getGraphic('tags.png'))
+            img = QtGui.QPixmap(ComicTaggerSettings.getGraphic('tags.png'))
 
             splash = QtGui.QSplashScreen(img)
             splash.show()
@@ -84,4 +84,5 @@ def ctmain():
 
             sys.exit(app.exec_())
         except Exception as e:
-            QtGui.QMessageBox.critical(QtGui.QMainWindow(), "Error", "Unhandled exception in app:\n" + traceback.format_exc())
+            QtGui.QMessageBox.critical(QtGui.QMainWindow(
+            ), "Error", "Unhandled exception in app:\n" + traceback.format_exc())

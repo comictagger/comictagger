@@ -30,6 +30,7 @@ except ImportError:
 
 
 class ImageHasher(object):
+
     def __init__(self, path=None, data=None, width=8, height=8):
         #self.hash_size = size
         self.width = width
@@ -46,11 +47,12 @@ class ImageHasher(object):
             except:
                 print("Image data seems corrupted!")
                 # just generate a bogus image
-                self.image = Image.new("L", (1,1))
+                self.image = Image.new("L", (1, 1))
 
     def average_hash(self):
         try:
-            image = self.image.resize((self.width, self.height), Image.ANTIALIAS).convert("L")
+            image = self.image.resize(
+                (self.width, self.height), Image.ANTIALIAS).convert("L")
         except Exception as e:
             sys.exc_clear()
             print "average_hash error:", e
@@ -70,7 +72,7 @@ class ImageHasher(object):
 
         result = reduce(set_bit, enumerate(bitlist), 0)
 
-        #print("{0:016x}".format(result))
+        # print("{0:016x}".format(result))
         return result
 
     def average_hash2(self):
@@ -174,7 +176,7 @@ class ImageHasher(object):
         return result
         """
 
-    #accepts 2 hashes (longs or hex strings) and returns the hamming distance
+    # accepts 2 hashes (longs or hex strings) and returns the hamming distance
 
     @staticmethod
     def hamming_distance(h1, h2):
@@ -189,5 +191,5 @@ class ImageHasher(object):
         # xor the two numbers
         n = n1 ^ n2
 
-        #count up the 1's in the binary string
+        # count up the 1's in the binary string
         return sum(b == '1' for b in bin(n)[2:])

@@ -33,6 +33,8 @@ tries to reap the object while the thread is going.
 If the client class wants to stop the thread, they should mark
 it as "abandoned", and no signals will be issued
 """
+
+
 class PageLoader(QtCore.QThread):
 
     loadComplete = pyqtSignal(QtGui.QImage)
@@ -40,7 +42,7 @@ class PageLoader(QtCore.QThread):
     instanceList = []
     mutex = QtCore.QMutex()
 
-    #Remove all finished threads from the list
+    # Remove all finished threads from the list
     @staticmethod
     def reapInstances():
         for obj in reversed(PageLoader.instanceList):

@@ -30,27 +30,29 @@ import utils
 
 class AutoTagProgressWindow(QtGui.QDialog):
 
-
     def __init__(self, parent):
         super(AutoTagProgressWindow, self).__init__(parent)
 
-        uic.loadUi(ComicTaggerSettings.getUIFile('autotagprogresswindow.ui'), self)
+        uic.loadUi(
+            ComicTaggerSettings.getUIFile('autotagprogresswindow.ui'), self)
 
-        self.archiveCoverWidget = CoverImageWidget(self.archiveCoverContainer, CoverImageWidget.DataMode, False)
+        self.archiveCoverWidget = CoverImageWidget(
+            self.archiveCoverContainer, CoverImageWidget.DataMode, False)
         gridlayout = QtGui.QGridLayout(self.archiveCoverContainer)
         gridlayout.addWidget(self.archiveCoverWidget)
-        gridlayout.setContentsMargins(0,0,0,0)
+        gridlayout.setContentsMargins(0, 0, 0, 0)
 
-        self.testCoverWidget = CoverImageWidget(self.testCoverContainer, CoverImageWidget.DataMode, False)
+        self.testCoverWidget = CoverImageWidget(
+            self.testCoverContainer, CoverImageWidget.DataMode, False)
         gridlayout = QtGui.QGridLayout(self.testCoverContainer)
         gridlayout.addWidget(self.testCoverWidget)
-        gridlayout.setContentsMargins(0,0,0,0)
+        gridlayout.setContentsMargins(0, 0, 0, 0)
 
         self.isdone = False
 
         self.setWindowFlags(self.windowFlags() |
-                                      QtCore.Qt.WindowSystemMenuHint |
-                                      QtCore.Qt.WindowMaximizeButtonHint)
+                            QtCore.Qt.WindowSystemMenuHint |
+                            QtCore.Qt.WindowMaximizeButtonHint)
 
         utils.reduceWidgetFontSize(self.textEdit)
 
@@ -60,7 +62,7 @@ class AutoTagProgressWindow(QtGui.QDialog):
     def setTestImage(self, img_data):
         self.setCoverImage(img_data, self.testCoverWidget)
 
-    def setCoverImage(self, img_data , widget):
+    def setCoverImage(self, img_data, widget):
         widget.setImageData(img_data)
         QtCore.QCoreApplication.processEvents()
         QtCore.QCoreApplication.processEvents()

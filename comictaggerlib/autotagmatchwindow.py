@@ -24,7 +24,7 @@ import os
 from PyQt4 import QtCore, QtGui, uic
 from PyQt4.QtCore import QUrl, pyqtSignal, QByteArray
 
-from imagefetcher import  ImageFetcher
+from imagefetcher import ImageFetcher
 from settings import ComicTaggerSettings
 from comicarchive import MetaDataStyle
 from coverimagewidget import CoverImageWidget
@@ -39,28 +39,33 @@ class AutoTagMatchWindow(QtGui.QDialog):
     def __init__(self, parent, match_set_list, style, fetch_func):
         super(AutoTagMatchWindow, self).__init__(parent)
 
-        uic.loadUi(ComicTaggerSettings.getUIFile('matchselectionwindow.ui'), self)
+        uic.loadUi(
+            ComicTaggerSettings.getUIFile('matchselectionwindow.ui'), self)
 
-        self.altCoverWidget = CoverImageWidget(self.altCoverContainer, CoverImageWidget.AltCoverMode)
+        self.altCoverWidget = CoverImageWidget(
+            self.altCoverContainer, CoverImageWidget.AltCoverMode)
         gridlayout = QtGui.QGridLayout(self.altCoverContainer)
         gridlayout.addWidget(self.altCoverWidget)
-        gridlayout.setContentsMargins(0,0,0,0)
+        gridlayout.setContentsMargins(0, 0, 0, 0)
 
-        self.archiveCoverWidget = CoverImageWidget(self.archiveCoverContainer, CoverImageWidget.ArchiveMode)
+        self.archiveCoverWidget = CoverImageWidget(
+            self.archiveCoverContainer, CoverImageWidget.ArchiveMode)
         gridlayout = QtGui.QGridLayout(self.archiveCoverContainer)
         gridlayout.addWidget(self.archiveCoverWidget)
-        gridlayout.setContentsMargins(0,0,0,0)
+        gridlayout.setContentsMargins(0, 0, 0, 0)
 
         utils.reduceWidgetFontSize(self.twList)
         utils.reduceWidgetFontSize(self.teDescription, 1)
 
         self.setWindowFlags(self.windowFlags() |
-                                      QtCore.Qt.WindowSystemMenuHint |
-                                      QtCore.Qt.WindowMaximizeButtonHint)
+                            QtCore.Qt.WindowSystemMenuHint |
+                            QtCore.Qt.WindowMaximizeButtonHint)
 
         self.skipButton = QtGui.QPushButton(self.tr("Skip to Next"))
-        self.buttonBox.addButton(self.skipButton, QtGui.QDialogButtonBox.ActionRole)
-        self.buttonBox.button(QtGui.QDialogButtonBox.Ok).setText("Accept and Write Tags")
+        self.buttonBox.addButton(
+            self.skipButton, QtGui.QDialogButtonBox.ActionRole)
+        self.buttonBox.button(QtGui.QDialogButtonBox.Ok).setText(
+            "Accept and Write Tags")
 
         self.match_set_list = match_set_list
         self.style = style
@@ -76,11 +81,13 @@ class AutoTagMatchWindow(QtGui.QDialog):
 
     def updateData(self):
 
-        self.current_match_set = self.match_set_list[self.current_match_set_idx]
+        self.current_match_set = self.match_set_list[
+            self.current_match_set_idx]
 
         if self.current_match_set_idx + 1 == len(self.match_set_list):
-            self.buttonBox.button(QtGui.QDialogButtonBox.Cancel).setDisabled(True)
-            #self.buttonBox.button(QtGui.QDialogButtonBox.Ok).setText("Accept")
+            self.buttonBox.button(
+                QtGui.QDialogButtonBox.Cancel).setDisabled(True)
+            # self.buttonBox.button(QtGui.QDialogButtonBox.Ok).setText("Accept")
             self.skipButton.setText(self.tr("Skip"))
 
         self.setCoverImage()
@@ -91,10 +98,10 @@ class AutoTagMatchWindow(QtGui.QDialog):
         path = self.current_match_set.ca.path
         self.setWindowTitle(
             u"Select correct match or skip ({0} of {1}): {2}".format(
-                    self.current_match_set_idx+1, 
-                    len(self.match_set_list), 
-                    os.path.split(path)[1])
-     )
+                self.current_match_set_idx + 1,
+                len(self.match_set_list),
+                os.path.split(path)[1])
+        )
 
     def populateTable(self):
 
@@ -111,7 +118,7 @@ class AutoTagMatchWindow(QtGui.QDialog):
             item = QtGui.QTableWidgetItem(item_text)
             item.setData(QtCore.Qt.ToolTipRole, item_text)
             item.setData(QtCore.Qt.UserRole, (match,))
-            item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
+            item.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
             self.twList.setItem(row, 0, item)
 
             if match['publisher'] is not None:
@@ -120,7 +127,7 @@ class AutoTagMatchWindow(QtGui.QDialog):
                 item_text = u"Unknown"
             item = QtGui.QTableWidgetItem(item_text)
             item.setData(QtCore.Qt.ToolTipRole, item_text)
-            item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
+            item.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
             self.twList.setItem(row, 1, item)
 
             month_str = u""
@@ -133,7 +140,7 @@ class AutoTagMatchWindow(QtGui.QDialog):
             item_text = year_str + month_str
             item = QtGui.QTableWidgetItem(item_text)
             item.setData(QtCore.Qt.ToolTipRole, item_text)
-            item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
+            item.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
             self.twList.setItem(row, 2, item)
 
             item_text = match['issue_title']
@@ -141,18 +148,17 @@ class AutoTagMatchWindow(QtGui.QDialog):
                 item_text = ""
             item = QtGui.QTableWidgetItem(item_text)
             item.setData(QtCore.Qt.ToolTipRole, item_text)
-            item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
+            item.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
             self.twList.setItem(row, 3, item)
 
             row += 1
 
         self.twList.resizeColumnsToContents()
         self.twList.setSortingEnabled(True)
-        self.twList.sortItems(2 , QtCore.Qt.AscendingOrder)
+        self.twList.sortItems(2, QtCore.Qt.AscendingOrder)
         self.twList.selectRow(0)
         self.twList.resizeColumnsToContents()
         self.twList.horizontalHeader().setStretchLastSection(True)
-
 
     def cellDoubleClicked(self, r, c):
         self.accept()
@@ -162,13 +168,13 @@ class AutoTagMatchWindow(QtGui.QDialog):
         if curr is None:
             return
         if prev is not None and prev.row() == curr.row():
-                return
+            return
 
         self.altCoverWidget.setIssueID(self.currentMatch()['issue_id'])
         if self.currentMatch()['description'] is None:
-            self.teDescription.setText ("")
+            self.teDescription.setText("")
         else:
-            self.teDescription.setText (self.currentMatch()['description'])
+            self.teDescription.setText(self.currentMatch()['description'])
 
     def setCoverImage(self):
         ca = self.current_match_set.ca
@@ -176,7 +182,8 @@ class AutoTagMatchWindow(QtGui.QDialog):
 
     def currentMatch(self):
         row = self.twList.currentRow()
-        match = self.twList.item(row, 0).data(QtCore.Qt.UserRole).toPyObject()[0]
+        match = self.twList.item(row, 0).data(
+            QtCore.Qt.UserRole).toPyObject()[0]
         return match
 
     def accept(self):
@@ -201,9 +208,10 @@ class AutoTagMatchWindow(QtGui.QDialog):
 
     def reject(self):
         reply = QtGui.QMessageBox.question(self,
-             self.tr("Cancel Matching"),
-             self.tr("Are you sure you wish to cancel the matching process?"),
-             QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
+                                           self.tr("Cancel Matching"),
+                                           self.tr(
+                                               "Are you sure you wish to cancel the matching process?"),
+                                           QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
 
         if reply == QtGui.QMessageBox.No:
             return
@@ -222,15 +230,18 @@ class AutoTagMatchWindow(QtGui.QDialog):
         # now get the particular issue data
         cv_md = self.fetch_func(match)
         if cv_md is None:
-            QtGui.QMessageBox.critical(self, self.tr("Network Issue"), self.tr("Could not connect to ComicVine to get issue details!"))
+            QtGui.QMessageBox.critical(self, self.tr("Network Issue"), self.tr(
+                "Could not connect to ComicVine to get issue details!"))
             return
 
-        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+        QtGui.QApplication.setOverrideCursor(
+            QtGui.QCursor(QtCore.Qt.WaitCursor))
         md.overlay(cv_md)
         success = ca.writeMetadata(md, self.style)
-        ca.loadCache([ MetaDataStyle.CBI, MetaDataStyle.CIX ])
+        ca.loadCache([MetaDataStyle.CBI, MetaDataStyle.CIX])
 
         QtGui.QApplication.restoreOverrideCursor()
 
         if not success:
-            QtGui.QMessageBox.warning(self, self.tr("Write Error"), self.tr("Saving the tags to the archive seemed to fail!"))
+            QtGui.QMessageBox.warning(self, self.tr("Write Error"), self.tr(
+                "Saving the tags to the archive seemed to fail!"))

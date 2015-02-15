@@ -35,6 +35,7 @@ import utils
 
 
 class IssueNumberTableWidgetItem(QtGui.QTableWidgetItem):
+
     def __lt__(self, other):
         selfStr = self.data(QtCore.Qt.DisplayRole).toString()
         otherStr = other.data(QtCore.Qt.DisplayRole).toString()
@@ -49,21 +50,23 @@ class IssueSelectionWindow(QtGui.QDialog):
     def __init__(self, parent, settings, series_id, issue_number):
         super(IssueSelectionWindow, self).__init__(parent)
 
-        uic.loadUi(ComicTaggerSettings.getUIFile('issueselectionwindow.ui'), self)
+        uic.loadUi(
+            ComicTaggerSettings.getUIFile('issueselectionwindow.ui'), self)
 
-        self.coverWidget = CoverImageWidget(self.coverImageContainer, CoverImageWidget.AltCoverMode)
+        self.coverWidget = CoverImageWidget(
+            self.coverImageContainer, CoverImageWidget.AltCoverMode)
         gridlayout = QtGui.QGridLayout(self.coverImageContainer)
         gridlayout.addWidget(self.coverWidget)
-        gridlayout.setContentsMargins(0,0,0,0)
+        gridlayout.setContentsMargins(0, 0, 0, 0)
 
         utils.reduceWidgetFontSize(self.twList)
         utils.reduceWidgetFontSize(self.teDescription, 1)
 
         self.setWindowFlags(self.windowFlags() |
-                                      QtCore.Qt.WindowSystemMenuHint |
-                                      QtCore.Qt.WindowMaximizeButtonHint)
+                            QtCore.Qt.WindowSystemMenuHint |
+                            QtCore.Qt.WindowMaximizeButtonHint)
 
-        self.series_id  = series_id
+        self.series_id = series_id
         self.settings = settings
         self.url_fetch_thread = None
 
@@ -79,19 +82,22 @@ class IssueSelectionWindow(QtGui.QDialog):
         self.twList.currentItemChanged.connect(self.currentItemChanged)
         self.twList.cellDoubleClicked.connect(self.cellDoubleClicked)
 
-        #now that the list has been sorted, find the initial record, and select it
+        # now that the list has been sorted, find the initial record, and
+        # select it
         if self.initial_id is None:
             self.twList.selectRow(0)
         else:
             for r in range(0, self.twList.rowCount()):
-                issue_id, b = self.twList.item(r, 0).data(QtCore.Qt.UserRole).toInt()
+                issue_id, b = self.twList.item(
+                    r, 0).data(QtCore.Qt.UserRole).toInt()
                 if (issue_id == self.initial_id):
                     self.twList.selectRow(r)
                     break
 
     def performQuery(self):
 
-        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+        QtGui.QApplication.setOverrideCursor(
+            QtGui.QCursor(QtCore.Qt.WaitCursor))
 
         try:
             comicVine = ComicVineTalker()
@@ -100,9 +106,11 @@ class IssueSelectionWindow(QtGui.QDialog):
         except ComicVineTalkerException as e:
             QtGui.QApplication.restoreOverrideCursor()
             if e.code == ComicVineTalkerException.RateLimit:
-                QtGui.QMessageBox.critical(self, self.tr("Comic Vine Error"), ComicVineTalker.getRateLimitMessage())
+                QtGui.QMessageBox.critical(
+                    self, self.tr("Comic Vine Error"), ComicVineTalker.getRateLimitMessage())
             else:
-                QtGui.QMessageBox.critical(self, self.tr("Network Issue"), self.tr("Could not connect to ComicVine to list issues!"))
+                QtGui.QMessageBox.critical(self, self.tr("Network Issue"), self.tr(
+                    "Could not connect to ComicVine to list issues!"))
             return
 
         while self.twList.rowCount() > 0:
@@ -117,22 +125,22 @@ class IssueSelectionWindow(QtGui.QDialog):
             item_text = record['issue_number']
             item = IssueNumberTableWidgetItem(item_text)
             item.setData(QtCore.Qt.ToolTipRole, item_text)
-            item.setData(QtCore.Qt.UserRole ,record['id'])
+            item.setData(QtCore.Qt.UserRole, record['id'])
             item.setData(QtCore.Qt.DisplayRole, item_text)
-            item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
+            item.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
             self.twList.setItem(row, 0, item)
 
             item_text = record['cover_date']
             if item_text is None:
                 item_text = ""
-            #remove the day of "YYYY-MM-DD"
+            # remove the day of "YYYY-MM-DD"
             parts = item_text.split("-")
             if len(parts) > 1:
                 item_text = parts[0] + "-" + parts[1]
 
             item = QtGui.QTableWidgetItem(item_text)
             item.setData(QtCore.Qt.ToolTipRole, item_text)
-            item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
+            item.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
             self.twList.setItem(row, 1, item)
 
             item_text = record['name']
@@ -140,7 +148,7 @@ class IssueSelectionWindow(QtGui.QDialog):
                 item_text = ""
             item = QtGui.QTableWidgetItem(item_text)
             item.setData(QtCore.Qt.ToolTipRole, item_text)
-            item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
+            item.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
             self.twList.setItem(row, 2, item)
 
             if IssueString(record['issue_number']).asString().lower() == IssueString(self.issue_number).asString().lower():
@@ -149,7 +157,7 @@ class IssueSelectionWindow(QtGui.QDialog):
             row += 1
 
         self.twList.setSortingEnabled(True)
-        self.twList.sortItems(0 , QtCore.Qt.AscendingOrder)
+        self.twList.sortItems(0, QtCore.Qt.AscendingOrder)
 
         QtGui.QApplication.restoreOverrideCursor()
 
@@ -161,9 +169,10 @@ class IssueSelectionWindow(QtGui.QDialog):
         if curr is None:
             return
         if prev is not None and prev.row() == curr.row():
-                return
+            return
 
-        self.issue_id, b = self.twList.item(curr.row(), 0).data(QtCore.Qt.UserRole).toInt()
+        self.issue_id, b = self.twList.item(
+            curr.row(), 0).data(QtCore.Qt.UserRole).toInt()
 
         # list selection was changed, update the the issue cover
         for record in self.issue_list:
@@ -171,8 +180,8 @@ class IssueSelectionWindow(QtGui.QDialog):
                 self.issue_number = record['issue_number']
                 self.coverWidget.setIssueID(int(self.issue_id))
                 if record['description'] is None:
-                    self.teDescription.setText ("")
+                    self.teDescription.setText("")
                 else:
-                    self.teDescription.setText (record['description'])
+                    self.teDescription.setText(record['description'])
 
                 break

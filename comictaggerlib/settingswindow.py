@@ -63,7 +63,7 @@ class SettingsWindow(QtGui.QDialog):
         uic.loadUi(ComicTaggerSettings.getUIFile('settingswindow.ui'), self)
 
         self.setWindowFlags(self.windowFlags() &
-                                      ~QtCore.Qt.WindowContextHelpButtonHint)
+                            ~QtCore.Qt.WindowContextHelpButtonHint)
 
         self.settings = settings
         self.name = "Settings"
@@ -82,9 +82,9 @@ class SettingsWindow(QtGui.QDialog):
             self.name = "Preferences"
 
         self.setWindowTitle("ComicTagger " + self.name)
-        self.lblDefaultSettings.setText("Revert to default " + self.name.lower())
+        self.lblDefaultSettings.setText(
+            "Revert to default " + self.name.lower())
         self.btnResetSettings.setText("Default " + self.name)
-
 
         nldtTip = (
             """ <html>The <b>Default Name Length Match Tolerance</b> is for eliminating automatic
@@ -101,7 +101,7 @@ class SettingsWindow(QtGui.QDialog):
             that you know are incorrect. Useful for avoiding international re-prints with same
             covers or series names. Enter publisher names separated by commas.
             </html>"""
-     )
+        )
         self.tePublisherBlacklist.setToolTip(pblTip)
 
         validator = QtGui.QIntValidator(1, 4, self)
@@ -123,8 +123,10 @@ class SettingsWindow(QtGui.QDialog):
         # Copy values from settings to form
         self.leRarExePath.setText(self.settings.rar_exe_path)
         self.leUnrarExePath.setText(self.settings.unrar_exe_path)
-        self.leNameLengthDeltaThresh.setText(str(self.settings.id_length_delta_thresh))
-        self.tePublisherBlacklist.setPlainText(self.settings.id_publisher_blacklist)
+        self.leNameLengthDeltaThresh.setText(
+            str(self.settings.id_length_delta_thresh))
+        self.tePublisherBlacklist.setPlainText(
+            self.settings.id_publisher_blacklist)
 
         if self.settings.check_for_new_version:
             self.cbxCheckForNewVersion.setCheckState(QtCore.Qt.Checked)
@@ -155,17 +157,19 @@ class SettingsWindow(QtGui.QDialog):
         if self.settings.copy_weblink_to_comments:
             self.cbxCopyWebLinkToComments.setCheckState(QtCore.Qt.Checked)
         if self.settings.apply_cbl_transform_on_cv_import:
-            self.cbxApplyCBLTransformOnCVIMport.setCheckState(QtCore.Qt.Checked)
+            self.cbxApplyCBLTransformOnCVIMport.setCheckState(
+                QtCore.Qt.Checked)
         if self.settings.apply_cbl_transform_on_bulk_operation:
-            self.cbxApplyCBLTransformOnBatchOperation.setCheckState(QtCore.Qt.Checked)
+            self.cbxApplyCBLTransformOnBatchOperation.setCheckState(
+                QtCore.Qt.Checked)
 
         self.leRenameTemplate.setText(self.settings.rename_template)
-        self.leIssueNumPadding.setText(str(self.settings.rename_issue_number_padding))
+        self.leIssueNumPadding.setText(
+            str(self.settings.rename_issue_number_padding))
         if self.settings.rename_use_smart_string_cleanup:
             self.cbxSmartCleanup.setCheckState(QtCore.Qt.Checked)
         if self.settings.rename_extension_based_on_archive:
             self.cbxChangeExtension.setCheckState(QtCore.Qt.Checked)
-
 
     def accept(self):
 
@@ -185,8 +189,10 @@ class SettingsWindow(QtGui.QDialog):
 
         self.settings.check_for_new_version = self.cbxCheckForNewVersion.isChecked()
 
-        self.settings.id_length_delta_thresh = int(self.leNameLengthDeltaThresh.text())
-        self.settings.id_publisher_blacklist = str(self.tePublisherBlacklist.toPlainText())
+        self.settings.id_length_delta_thresh = int(
+            self.leNameLengthDeltaThresh.text())
+        self.settings.id_publisher_blacklist = str(
+            self.tePublisherBlacklist.toPlainText())
 
         self.settings.parse_scan_info = self.cbxParseScanInfo.isChecked()
 
@@ -206,7 +212,8 @@ class SettingsWindow(QtGui.QDialog):
         self.settings.apply_cbl_transform_on_bulk_operation = self.cbxApplyCBLTransformOnBatchOperation.isChecked()
 
         self.settings.rename_template = str(self.leRenameTemplate.text())
-        self.settings.rename_issue_number_padding = int(self.leIssueNumPadding.text())
+        self.settings.rename_issue_number_padding = int(
+            self.leIssueNumPadding.text())
         self.settings.rename_use_smart_string_cleanup = self.cbxSmartCleanup.isChecked()
         self.settings.rename_extension_based_on_archive = self.cbxChangeExtension.isChecked()
 
@@ -222,19 +229,22 @@ class SettingsWindow(QtGui.QDialog):
     def clearCache(self):
         ImageFetcher().clearCache()
         ComicVineCacher().clearCache()
-        QtGui.QMessageBox.information(self, self.name, "Cache has been cleared.")
+        QtGui.QMessageBox.information(
+            self, self.name, "Cache has been cleared.")
 
     def testAPIKey(self):
         if ComicVineTalker().testKey(unicode(self.leKey.text())):
-            QtGui.QMessageBox.information(self, "API Key Test", "Key is valid!")
+            QtGui.QMessageBox.information(
+                self, "API Key Test", "Key is valid!")
         else:
-            QtGui.QMessageBox.warning(self, "API Key Test", "Key is NOT valid.")
-
+            QtGui.QMessageBox.warning(
+                self, "API Key Test", "Key is NOT valid.")
 
     def resetSettings(self):
         self.settings.reset()
         self.settingsToForm()
-        QtGui.QMessageBox.information(self, self.name, self.name + " have been returned to default values.")
+        QtGui.QMessageBox.information(
+            self, self.name, self.name + " have been returned to default values.")
 
     def selectFile(self, control, name):
 
@@ -243,12 +253,13 @@ class SettingsWindow(QtGui.QDialog):
 
         if platform.system() == "Windows":
             if name == "RAR":
-                filter  = self.tr("Rar Program (Rar.exe)")
+                filter = self.tr("Rar Program (Rar.exe)")
             else:
-                filter  = self.tr("Programs (*.exe)")
+                filter = self.tr("Programs (*.exe)")
             dialog.setNameFilter(filter)
         else:
-            dialog.setFilter(QtCore.QDir.Files) #QtCore.QDir.Executable | QtCore.QDir.Files)
+            # QtCore.QDir.Executable | QtCore.QDir.Files)
+            dialog.setFilter(QtCore.QDir.Files)
             pass
 
         dialog.setDirectory(os.path.dirname(str(control.text())))

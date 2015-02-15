@@ -43,7 +43,7 @@ class ExportWindow(QtGui.QDialog):
         self.label.setText(msg)
 
         self.setWindowFlags(self.windowFlags() &
-                                      ~QtCore.Qt.WindowContextHelpButtonHint)
+                            ~QtCore.Qt.WindowContextHelpButtonHint)
 
         self.settings = settings
 
@@ -64,5 +64,5 @@ class ExportWindow(QtGui.QDialog):
             self.fileConflictBehavior = ExportConflictOpts.dontCreate
         elif self.radioCreateNew.isChecked():
             self.fileConflictBehavior = ExportConflictOpts.createUnique
-        #else:
+        # else:
         #    self.fileConflictBehavior = ExportConflictOpts.overwrite

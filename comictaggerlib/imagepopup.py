@@ -33,9 +33,10 @@ class ImagePopup(QtGui.QDialog):
 
         uic.loadUi(ComicTaggerSettings.getUIFile('imagepopup.ui'), self)
 
-        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+        QtGui.QApplication.setOverrideCursor(
+            QtGui.QCursor(QtCore.Qt.WaitCursor))
 
-        #self.setWindowModality(QtCore.Qt.WindowModal)
+        # self.setWindowModality(QtCore.Qt.WindowModal)
         self.setWindowFlags(QtCore.Qt.Popup)
         self.setWindowState(QtCore.Qt.WindowFullScreen)
 
@@ -48,10 +49,11 @@ class ImagePopup(QtGui.QDialog):
         # This is a total hack.  Uses a snapshot of the desktop, and overlays a
         # translucent screen over it.  Probably can do it better by setting opacity of a
         # widget
-        self.desktopBg = QtGui.QPixmap.grabWindow(QtGui.QApplication.desktop ().winId(),
-            0,0, screen_size.width(), screen_size.height())
+        self.desktopBg = QtGui.QPixmap.grabWindow(QtGui.QApplication.desktop().winId(),
+                                                  0, 0, screen_size.width(), screen_size.height())
         bg = QtGui.QPixmap(ComicTaggerSettings.getGraphic('popup_bg.png'))
-        self.clientBgPixmap = bg.scaled(screen_size.width(), screen_size.height())
+        self.clientBgPixmap = bg.scaled(
+            screen_size.width(), screen_size.height())
         self.setMask(self.clientBgPixmap.mask())
 
         self.applyImagePixmap()
@@ -59,7 +61,7 @@ class ImagePopup(QtGui.QDialog):
         self.raise_()
         QtGui.QApplication.restoreOverrideCursor()
 
-    def paintEvent (self, event):
+    def paintEvent(self, event):
         self.painter = QtGui.QPainter(self)
         self.painter.setRenderHint(QtGui.QPainter.Antialiasing)
         self.painter.drawPixmap(0, 0, self.desktopBg)
@@ -70,9 +72,10 @@ class ImagePopup(QtGui.QDialog):
         win_h = self.height()
         win_w = self.width()
 
-        if self.imagePixmap.width() >  win_w or self.imagePixmap.height() > win_h:
+        if self.imagePixmap.width() > win_w or self.imagePixmap.height() > win_h:
             # scale the pixmap to fit in the frame
-            display_pixmap = self.imagePixmap.scaled(win_w, win_h, QtCore.Qt.KeepAspectRatio)
+            display_pixmap = self.imagePixmap.scaled(
+                win_w, win_h, QtCore.Qt.KeepAspectRatio)
             self.lblImage.setPixmap(display_pixmap)
         else:
             display_pixmap = self.imagePixmap
@@ -82,7 +85,7 @@ class ImagePopup(QtGui.QDialog):
         img_w = display_pixmap.width()
         img_h = display_pixmap.height()
         self.lblImage.resize(img_w, img_h)
-        self.lblImage.move((win_w - img_w)/2, (win_h - img_h)/2)
+        self.lblImage.move((win_w - img_w) / 2, (win_h - img_h) / 2)
 
-    def    mousePressEvent(self , event):
+    def mousePressEvent(self, event):
         self.close()

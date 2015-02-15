@@ -35,7 +35,7 @@ class IDProgressWindow(QtGui.QDialog):
         uic.loadUi(ComicTaggerSettings.getUIFile('progresswindow.ui'), self)
 
         self.setWindowFlags(self.windowFlags() |
-                                      QtCore.Qt.WindowSystemMenuHint |
-                                      QtCore.Qt.WindowMaximizeButtonHint)
+                            QtCore.Qt.WindowSystemMenuHint |
+                            QtCore.Qt.WindowMaximizeButtonHint)
 
         utils.reduceWidgetFontSize(self.textEdit)

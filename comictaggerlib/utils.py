@@ -32,11 +32,13 @@ from settings import ComicTaggerSettings
 class UtilsVars:
     already_fixed_encoding = False
 
+
 def get_actual_preferred_encoding():
     preferred_encoding = locale.getpreferredencoding()
     if platform.system() == "Darwin":
         preferred_encoding = "utf-8"
     return preferred_encoding
+
 
 def fix_output_encoding():
     if not UtilsVars.already_fixed_encoding:
@@ -49,6 +51,7 @@ def fix_output_encoding():
         sys.stderr = codecs.getwriter(preferred_encoding)(sys.stderr)
         UtilsVars.already_fixed_encoding = True
 
+
 def get_recursive_filelist(pathlist):
     """Get a recursive list of of all files under all path items in the list"""
     filename_encoding = sys.getfilesystemencoding()
@@ -56,26 +59,27 @@ def get_recursive_filelist(pathlist):
     for p in pathlist:
         # if path is a folder, walk it recursivly, and all files underneath
         if type(p) == str:
-            #make sure string is unicode
-            p = p.decode(filename_encoding) #, 'replace')
+            # make sure string is unicode
+            p = p.decode(filename_encoding)  # , 'replace')
         elif type(p) != unicode:
-            #it's probably a QString
+            # it's probably a QString
             p = unicode(p)
 
         if os.path.isdir(p):
-            for root,dirs,files in os.walk(p):
+            for root, dirs, files in os.walk(p):
                 for f in files:
                     if type(f) == str:
-                        #make sure string is unicode
+                        # make sure string is unicode
                         f = f.decode(filename_encoding, 'replace')
                     elif type(f) != unicode:
-                        #it's probably a QString
+                        # it's probably a QString
                         f = unicode(f)
-                    filelist.append(os.path.join(root,f))
+                    filelist.append(os.path.join(root, f))
         else:
             filelist.append(p)
 
     return filelist
+
 
 def listToString(l):
     string = ""
@@ -86,18 +90,22 @@ def listToString(l):
             string += item
     return string
 
+
 def addtopath(dirname):
     if dirname is not None and dirname != "":
 
         # verify that path doesn't already contain the given dirname
         tmpdirname = re.escape(dirname)
-        pattern = r"{sep}{dir}$|^{dir}{sep}|{sep}{dir}{sep}|^{dir}$".format(dir=tmpdirname, sep=os.pathsep)
+        pattern = r"{sep}{dir}$|^{dir}{sep}|{sep}{dir}{sep}|^{dir}$".format(
+            dir=tmpdirname, sep=os.pathsep)
 
         match = re.search(pattern, os.environ['PATH'])
         if not match:
             os.environ['PATH'] = dirname + os.pathsep + os.environ['PATH']
 
 # returns executable path, if it exists
+
+
 def which(program):
 
     def is_exe(fpath):
@@ -115,13 +123,14 @@ def which(program):
 
     return None
 
+
 def removearticles(text):
     text = text.lower()
-    articles = ['and', 'the', 'a', '&', 'issue' ]
+    articles = ['and', 'the', 'a', '&', 'issue']
     newText = ''
     for word in text.split(' '):
         if word not in articles:
-            newText += word+' '
+            newText += word + ' '
 
     newText = newText[:-1]
 
@@ -140,11 +149,13 @@ def removearticles(text):
 
 def unique_file(file_name):
     counter = 1
-    file_name_parts = os.path.splitext(file_name) # returns ('/path/file', '.ext')
+    # returns ('/path/file', '.ext')
+    file_name_parts = os.path.splitext(file_name)
     while 1:
         if not os.path.lexists(file_name):
             return file_name
-        file_name = file_name_parts[0] + ' (' + str(counter) + ')' + file_name_parts[1]
+        file_name = file_name_parts[
+            0] + ' (' + str(counter) + ')' + file_name_parts[1]
         counter += 1
 
 
@@ -575,15 +586,15 @@ countries = [
 ]
 
 
-
 def getLanguageDict():
     return lang_dict
+
 
 def getLanguageFromISO(iso):
     if iso == None:
         return None
     else:
-        return lang_dict[ iso ]
+        return lang_dict[iso]
 
 
 try:
@@ -593,7 +604,7 @@ except ImportError:
     qt_available = False
 
 if qt_available:
-    def reduceWidgetFontSize(widget , delta = 2):
+    def reduceWidgetFontSize(widget, delta=2):
         f = widget.font()
         if f.pointSize() > 10:
             f.setPointSize(f.pointSize() - delta)
@@ -630,7 +641,8 @@ if qt_available:
         # And vertical position the same, but with the height dimensions
         vpos = (main_window_size.height() - window.height()) / 2
         # And the move call repositions the window
-        window.move(hpos + main_window_size.left(), vpos + main_window_size.top())
+        window.move(
+            hpos + main_window_size.left(), vpos + main_window_size.top())
 
     try:
         from PIL import Image
@@ -647,7 +659,8 @@ if qt_available:
             try:
                 if pil_available:
                     #  Qt doesn't understand the format, but maybe PIL does
-                    # so try to convert the image data to uncompressed tiff format
+                    # so try to convert the image data to uncompressed tiff
+                    # format
                     im = Image.open(StringIO.StringIO(image_data))
                     output = StringIO.StringIO()
                     im.save(output, format="TIFF")

@@ -23,34 +23,41 @@ import os
 import datetime
 import shutil
 import tempfile
-import urllib2, urllib
+import urllib2
+import urllib
 
 try:
     from PyQt4.QtNetwork import QNetworkAccessManager, QNetworkRequest
     from PyQt4.QtCore import QUrl, pyqtSignal, QObject, QByteArray
-    from PyQt4 import  QtGui
+    from PyQt4 import QtGui
 except ImportError:
     # No Qt, so define a few dummy QObjects to help us compile
     class QObject():
-        def __init__(self,*args):
+
+        def __init__(self, *args):
             pass
+
     class QByteArray():
         pass
+
     class pyqtSignal():
-        def __init__(self,*args):
+
+        def __init__(self, *args):
             pass
-        def emit(a,b,c):
+
+        def emit(a, b, c):
             pass
 
 from settings import ComicTaggerSettings
 
+
 class ImageFetcherException(Exception):
     pass
 
+
 class ImageFetcher(QObject):
 
-    fetchComplete = pyqtSignal(QByteArray , int)
-
+    fetchComplete = pyqtSignal(QByteArray, int)
 
     def __init__(self):
         QObject.__init__(self)
@@ -66,7 +73,6 @@ class ImageFetcher(QObject):
         os.unlink(self.db_file)
         if os.path.isdir(self.cache_folder):
             shutil.rmtree(self.cache_folder)
-
 
     def fetch(self, url, user_data=None, blocking=False):
         """
@@ -107,9 +113,7 @@ class ImageFetcher(QObject):
             self.nam.finished.connect(self.finishRequest)
             self.nam.get(QNetworkRequest(QUrl(url)))
 
-            #we'll get called back when done...
-
-
+            # we'll get called back when done...
 
     def finishRequest(self, reply):
 
@@ -120,8 +124,6 @@ class ImageFetcher(QObject):
         self.add_image_to_cache(self.fetched_url, image_data)
 
         self.fetchComplete.emit(QByteArray(image_data), self.user_data)
-
-
 
     def create_image_db(self):
 
@@ -141,12 +143,11 @@ class ImageFetcher(QObject):
             cur = con.cursor()
 
             cur.execute("CREATE TABLE Images(" +
-                            "url TEXT," +
-                            "filename TEXT," +
-                            "timestamp TEXT," +
-                            "PRIMARY KEY (url))"
-                     )
-
+                        "url TEXT," +
+                        "filename TEXT," +
+                        "timestamp TEXT," +
+                        "PRIMARY KEY (url))"
+                        )
 
     def add_image_to_cache(self, url, image_data):
 
@@ -158,16 +159,17 @@ class ImageFetcher(QObject):
 
             timestamp = datetime.datetime.now()
 
-            tmp_fd, filename = tempfile.mkstemp(dir=self.cache_folder, prefix="img")
+            tmp_fd, filename = tempfile.mkstemp(
+                dir=self.cache_folder, prefix="img")
             f = os.fdopen(tmp_fd, 'w+b')
             f.write(image_data)
             f.close()
 
-            cur.execute("INSERT or REPLACE INTO Images VALUES(?, ?, ?)" ,
-                            (url,
-                            filename,
-                            timestamp)
-                     )
+            cur.execute("INSERT or REPLACE INTO Images VALUES(?, ?, ?)",
+                        (url,
+                         filename,
+                         timestamp)
+                        )
 
     def get_image_from_cache(self, url):
 
@@ -175,10 +177,10 @@ class ImageFetcher(QObject):
         with con:
             cur = con.cursor()
 
-            cur.execute("SELECT filename FROM Images WHERE url=?", [ url ])
+            cur.execute("SELECT filename FROM Images WHERE url=?", [url])
             row = cur.fetchone()
 
-            if row is None :
+            if row is None:
                 return None
             else:
                 filename = row[0]

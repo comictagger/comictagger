@@ -35,11 +35,12 @@ class RenameWindow(QtGui.QDialog):
         super(RenameWindow, self).__init__(parent)
 
         uic.loadUi(ComicTaggerSettings.getUIFile('renamewindow.ui'), self)
-        self.label.setText("Preview (based on {0} tags):".format(MetaDataStyle.name[data_style]))
+        self.label.setText(
+            "Preview (based on {0} tags):".format(MetaDataStyle.name[data_style]))
 
         self.setWindowFlags(self.windowFlags() |
-                                      QtCore.Qt.WindowSystemMenuHint |
-                                      QtCore.Qt.WindowMaximizeButtonHint)
+                            QtCore.Qt.WindowSystemMenuHint |
+                            QtCore.Qt.WindowMaximizeButtonHint)
 
         self.settings = settings
         self.comic_archive_list = comic_archive_list
@@ -52,8 +53,10 @@ class RenameWindow(QtGui.QDialog):
     def configRenamer(self):
         self.renamer = FileRenamer(None)
         self.renamer.setTemplate(self.settings.rename_template)
-        self.renamer.setIssueZeroPadding(self.settings.rename_issue_number_padding)
-        self.renamer.setSmartCleanup(self.settings.rename_use_smart_string_cleanup)
+        self.renamer.setIssueZeroPadding(
+            self.settings.rename_issue_number_padding)
+        self.renamer.setSmartCleanup(
+            self.settings.rename_use_smart_string_cleanup)
 
     def doPreview(self):
         self.rename_list = []
@@ -79,23 +82,26 @@ class RenameWindow(QtGui.QDialog):
 
             row = self.twList.rowCount()
             self.twList.insertRow(row)
-            folder_item =   QtGui.QTableWidgetItem()
+            folder_item = QtGui.QTableWidgetItem()
             old_name_item = QtGui.QTableWidgetItem()
             new_name_item = QtGui.QTableWidgetItem()
 
             item_text = os.path.split(ca.path)[0]
-            folder_item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
+            folder_item.setFlags(
+                QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
             self.twList.setItem(row, 0, folder_item)
             folder_item.setText(item_text)
             folder_item.setData(QtCore.Qt.ToolTipRole, item_text)
 
             item_text = os.path.split(ca.path)[1]
-            old_name_item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
+            old_name_item.setFlags(
+                QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
             self.twList.setItem(row, 1, old_name_item)
             old_name_item.setText(item_text)
             old_name_item.setData(QtCore.Qt.ToolTipRole, item_text)
 
-            new_name_item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
+            new_name_item.setFlags(
+                QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
             self.twList.setItem(row, 2, new_name_item)
             new_name_item.setText(new_name)
             new_name_item.setData(QtCore.Qt.ToolTipRole, new_name)
@@ -125,12 +131,13 @@ class RenameWindow(QtGui.QDialog):
 
     def accept(self):
 
-        progdialog = QtGui.QProgressDialog("", "Cancel", 0, len(self.rename_list), self)
+        progdialog = QtGui.QProgressDialog(
+            "", "Cancel", 0, len(self.rename_list), self)
         progdialog.setWindowTitle("Renaming Archives")
         progdialog.setWindowModality(QtCore.Qt.WindowModal)
         progdialog.show()
 
-        for idx,item in enumerate(self.rename_list):
+        for idx, item in enumerate(self.rename_list):
 
             QtCore.QCoreApplication.processEvents()
             if progdialog.wasCanceled():
@@ -140,14 +147,15 @@ class RenameWindow(QtGui.QDialog):
             progdialog.setLabelText(item['new_name'])
 
             if item['new_name'] == os.path.basename(item['archive'].path):
-                print item['new_name'] , "Filename is already good!"
+                print item['new_name'], "Filename is already good!"
                 continue
 
             if not item['archive'].isWritable(check_rar_status=False):
                 continue
 
             folder = os.path.dirname(os.path.abspath(item['archive'].path))
-            new_abs_path = utils.unique_file(os.path.join(folder, item['new_name']))
+            new_abs_path = utils.unique_file(
+                os.path.join(folder, item['new_name']))
 
             os.rename(item['archive'].path, new_abs_path)
 

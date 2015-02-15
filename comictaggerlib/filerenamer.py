@@ -27,9 +27,11 @@ from issuestring import IssueString
 
 
 class FileRenamer:
+
     def __init__(self, metadata):
         self.setMetadata(metadata)
-        self.setTemplate("%series% v%volume% #%issue% (of %issuecount%) (%year%)")
+        self.setTemplate(
+            "%series% v%volume% #%issue% (of %issuecount%) (%year%)")
         self.smart_cleanup = True
         self.issue_zero_padding = 3
 
@@ -46,7 +48,7 @@ class FileRenamer:
         self.template = template
 
     def replaceToken(self, text, value, token):
-        #helper func
+        # helper func
         def isToken(word):
             return (word[0] == "%" and word[-1:] == "%")
 
@@ -59,13 +61,14 @@ class FileRenamer:
                 # (TODO: This could fail if there is more than one token appended together, I guess)
                 text_list = text.split()
 
-                #special case for issuecount, remove preceding non-token word, as in "...(of %issuecount%)..."
+                # special case for issuecount, remove preceding non-token word,
+                # as in "...(of %issuecount%)..."
                 if token == '%issuecount%':
-                    for idx,word in enumerate(text_list):
-                        if token in word and not isToken(text_list[idx -1]) :
-                            text_list[idx -1] = ""
+                    for idx, word in enumerate(text_list):
+                        if token in word and not isToken(text_list[idx - 1]):
+                            text_list[idx - 1] = ""
 
-                text_list = [ x  for x in text_list if token not in x ]
+                text_list = [x for x in text_list if token not in x]
                 return " ".join(text_list)
             else:
                 return text.replace(token, "")
@@ -76,13 +79,14 @@ class FileRenamer:
         new_name = self.template
         preferred_encoding = utils.get_actual_preferred_encoding()
 
-        #print(u"{0}".format(md))
+        # print(u"{0}".format(md))
 
         new_name = self.replaceToken(new_name, md.series, '%series%')
         new_name = self.replaceToken(new_name, md.volume, '%volume%')
 
         if md.issue is not None:
-            issue_str = u"{0}".format(IssueString(md.issue).asString(pad=self.issue_zero_padding))
+            issue_str = u"{0}".format(
+                IssueString(md.issue).asString(pad=self.issue_zero_padding))
         else:
             issue_str = None
         new_name = self.replaceToken(new_name, issue_str, '%issue%')
@@ -95,20 +99,26 @@ class FileRenamer:
         month_name = None
         if md.month is not None:
             if (type(md.month) == str and md.month.isdigit()) or type(md.month) == int:
-                if int(md.month) in range(1,13):
+                if int(md.month) in range(1, 13):
                     dt = datetime.datetime(1970, int(md.month), 1, 0, 0)
-                    month_name = dt.strftime(u"%B".encode(preferred_encoding)).decode(preferred_encoding)
+                    month_name = dt.strftime(
+                        u"%B".encode(preferred_encoding)).decode(preferred_encoding)
         new_name = self.replaceToken(new_name, month_name, '%month_name%')
 
         new_name = self.replaceToken(new_name, md.genre, '%genre%')
         new_name = self.replaceToken(new_name, md.language, '%language_code%')
-        new_name = self.replaceToken(new_name, md.criticalRating , '%criticalrating%')
-        new_name = self.replaceToken(new_name, md.alternateSeries, '%alternateseries%')
-        new_name = self.replaceToken(new_name, md.alternateNumber, '%alternatenumber%')
-        new_name = self.replaceToken(new_name, md.alternateCount, '%alternatecount%')
+        new_name = self.replaceToken(
+            new_name, md.criticalRating, '%criticalrating%')
+        new_name = self.replaceToken(
+            new_name, md.alternateSeries, '%alternateseries%')
+        new_name = self.replaceToken(
+            new_name, md.alternateNumber, '%alternatenumber%')
+        new_name = self.replaceToken(
+            new_name, md.alternateCount, '%alternatecount%')
         new_name = self.replaceToken(new_name, md.imprint, '%imprint%')
         new_name = self.replaceToken(new_name, md.format, '%format%')
-        new_name = self.replaceToken(new_name, md.maturityRating, '%maturityrating%')
+        new_name = self.replaceToken(
+            new_name, md.maturityRating, '%maturityrating%')
         new_name = self.replaceToken(new_name, md.storyArc, '%storyarc%')
         new_name = self.replaceToken(new_name, md.seriesGroup, '%seriesgroup%')
         new_name = self.replaceToken(new_name, md.scanInfo, '%scaninfo%')
@@ -133,7 +143,6 @@ class FileRenamer:
 
             # remove duplicate spaces (again!)
             new_name = u" ".join(new_name.split())
-
 
         if ext is None:
             ext = os.path.splitext(filename)[1]

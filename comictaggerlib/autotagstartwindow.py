@@ -33,21 +33,24 @@ class AutoTagStartWindow(QtGui.QDialog):
     def __init__(self, parent,  settings, msg):
         super(AutoTagStartWindow, self).__init__(parent)
 
-        uic.loadUi(ComicTaggerSettings.getUIFile('autotagstartwindow.ui'), self)
+        uic.loadUi(
+            ComicTaggerSettings.getUIFile('autotagstartwindow.ui'), self)
         self.label.setText(msg)
 
         self.setWindowFlags(self.windowFlags() &
-                                      ~QtCore.Qt.WindowContextHelpButtonHint)
+                            ~QtCore.Qt.WindowContextHelpButtonHint)
 
         self.settings = settings
 
         self.cbxSaveOnLowConfidence.setCheckState(QtCore.Qt.Unchecked)
         self.cbxDontUseYear.setCheckState(QtCore.Qt.Unchecked)
         self.cbxAssumeIssueOne.setCheckState(QtCore.Qt.Unchecked)
-        self.cbxIgnoreLeadingDigitsInFilename.setCheckState(QtCore.Qt.Unchecked)
+        self.cbxIgnoreLeadingDigitsInFilename.setCheckState(
+            QtCore.Qt.Unchecked)
         self.cbxRemoveAfterSuccess.setCheckState(QtCore.Qt.Unchecked)
         self.cbxSpecifySearchString.setCheckState(QtCore.Qt.Unchecked)
-        self.leNameLengthMatchTolerance.setText(str(self.settings.id_length_delta_thresh))
+        self.leNameLengthMatchTolerance.setText(
+            str(self.settings.id_length_delta_thresh))
         self.leSearchString.setEnabled(False)
 
         if self.settings.save_on_low_confidence:
@@ -57,7 +60,8 @@ class AutoTagStartWindow(QtGui.QDialog):
         if self.settings.assume_1_if_no_issue_num:
             self.cbxAssumeIssueOne.setCheckState(QtCore.Qt.Checked)
         if self.settings.ignore_leading_numbers_in_filename:
-            self.cbxIgnoreLeadingDigitsInFilename.setCheckState(QtCore.Qt.Checked)
+            self.cbxIgnoreLeadingDigitsInFilename.setCheckState(
+                QtCore.Qt.Checked)
         if self.settings.remove_archive_after_successful_match:
             self.cbxRemoveAfterSuccess.setCheckState(QtCore.Qt.Checked)
         if self.settings.wait_and_retry_on_rate_limit:
@@ -78,15 +82,15 @@ class AutoTagStartWindow(QtGui.QDialog):
             Use this when trying to match archives with hard-to-parse or incorrect filenames.  All archives selected
             should be from the same series.
             </html>"""
-     )
+        )
         self.leSearchString.setToolTip(ssTip)
         self.cbxSpecifySearchString.setToolTip(ssTip)
-
 
         validator = QtGui.QIntValidator(0, 99, self)
         self.leNameLengthMatchTolerance.setValidator(validator)
 
-        self.cbxSpecifySearchString.stateChanged.connect(self.searchStringToggle)
+        self.cbxSpecifySearchString.stateChanged.connect(
+            self.searchStringToggle)
 
         self.autoSaveOnLow = False
         self.dontUseYear = False
@@ -95,12 +99,11 @@ class AutoTagStartWindow(QtGui.QDialog):
         self.removeAfterSuccess = False
         self.waitAndRetryOnRateLimit = False
         self.searchString = None
-        self.nameLengthMatchTolerance =  self.settings.id_length_delta_thresh
+        self.nameLengthMatchTolerance = self.settings.id_length_delta_thresh
 
     def searchStringToggle(self):
         enable = self.cbxSpecifySearchString.isChecked()
         self.leSearchString.setEnabled(enable)
-
 
     def accept(self):
         QtGui.QDialog.accept(self)
@@ -110,10 +113,11 @@ class AutoTagStartWindow(QtGui.QDialog):
         self.assumeIssueOne = self.cbxAssumeIssueOne.isChecked()
         self.ignoreLeadingDigitsInFilename = self.cbxIgnoreLeadingDigitsInFilename.isChecked()
         self.removeAfterSuccess = self.cbxRemoveAfterSuccess.isChecked()
-        self.nameLengthMatchTolerance = int(self.leNameLengthMatchTolerance.text())
+        self.nameLengthMatchTolerance = int(
+            self.leNameLengthMatchTolerance.text())
         self.waitAndRetryOnRateLimit = self.cbxWaitForRateLimit.isChecked()
 
-        #persist some settings
+        # persist some settings
         self.settings.save_on_low_confidence = self.autoSaveOnLow
         self.settings.dont_use_year_when_identifying = self.dontUseYear
         self.settings.assume_1_if_no_issue_num = self.assumeIssueOne

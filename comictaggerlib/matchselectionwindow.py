@@ -24,7 +24,7 @@ import os
 from PyQt4 import QtCore, QtGui, uic
 from PyQt4.QtCore import QUrl, pyqtSignal, QByteArray
 
-from imagefetcher import  ImageFetcher
+from imagefetcher import ImageFetcher
 from settings import ComicTaggerSettings
 from comicarchive import MetaDataStyle
 from coverimagewidget import CoverImageWidget
@@ -39,24 +39,27 @@ class MatchSelectionWindow(QtGui.QDialog):
     def __init__(self, parent, matches, comic_archive):
         super(MatchSelectionWindow, self).__init__(parent)
 
-        uic.loadUi(ComicTaggerSettings.getUIFile('matchselectionwindow.ui'), self)
+        uic.loadUi(
+            ComicTaggerSettings.getUIFile('matchselectionwindow.ui'), self)
 
-        self.altCoverWidget = CoverImageWidget(self.altCoverContainer, CoverImageWidget.AltCoverMode)
+        self.altCoverWidget = CoverImageWidget(
+            self.altCoverContainer, CoverImageWidget.AltCoverMode)
         gridlayout = QtGui.QGridLayout(self.altCoverContainer)
         gridlayout.addWidget(self.altCoverWidget)
-        gridlayout.setContentsMargins(0,0,0,0)
+        gridlayout.setContentsMargins(0, 0, 0, 0)
 
-        self.archiveCoverWidget = CoverImageWidget(self.archiveCoverContainer, CoverImageWidget.ArchiveMode)
+        self.archiveCoverWidget = CoverImageWidget(
+            self.archiveCoverContainer, CoverImageWidget.ArchiveMode)
         gridlayout = QtGui.QGridLayout(self.archiveCoverContainer)
         gridlayout.addWidget(self.archiveCoverWidget)
-        gridlayout.setContentsMargins(0,0,0,0)
+        gridlayout.setContentsMargins(0, 0, 0, 0)
 
         utils.reduceWidgetFontSize(self.twList)
         utils.reduceWidgetFontSize(self.teDescription, 1)
 
         self.setWindowFlags(self.windowFlags() |
-                                      QtCore.Qt.WindowSystemMenuHint |
-                                      QtCore.Qt.WindowMaximizeButtonHint)
+                            QtCore.Qt.WindowSystemMenuHint |
+                            QtCore.Qt.WindowMaximizeButtonHint)
 
         self.matches = matches
         self.comic_archive = comic_archive
@@ -75,7 +78,7 @@ class MatchSelectionWindow(QtGui.QDialog):
 
         path = self.comic_archive.path
         self.setWindowTitle(u"Select correct match: {0}".format(
-                        os.path.split(path)[1]))
+            os.path.split(path)[1]))
 
     def populateTable(self):
 
@@ -92,7 +95,7 @@ class MatchSelectionWindow(QtGui.QDialog):
             item = QtGui.QTableWidgetItem(item_text)
             item.setData(QtCore.Qt.ToolTipRole, item_text)
             item.setData(QtCore.Qt.UserRole, (match,))
-            item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
+            item.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
             self.twList.setItem(row, 0, item)
 
             if match['publisher'] is not None:
@@ -101,7 +104,7 @@ class MatchSelectionWindow(QtGui.QDialog):
                 item_text = u"Unknown"
             item = QtGui.QTableWidgetItem(item_text)
             item.setData(QtCore.Qt.ToolTipRole, item_text)
-            item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
+            item.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
             self.twList.setItem(row, 1, item)
 
             month_str = u""
@@ -114,7 +117,7 @@ class MatchSelectionWindow(QtGui.QDialog):
             item_text = year_str + month_str
             item = QtGui.QTableWidgetItem(item_text)
             item.setData(QtCore.Qt.ToolTipRole, item_text)
-            item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
+            item.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
             self.twList.setItem(row, 2, item)
 
             item_text = match['issue_title']
@@ -122,18 +125,17 @@ class MatchSelectionWindow(QtGui.QDialog):
                 item_text = ""
             item = QtGui.QTableWidgetItem(item_text)
             item.setData(QtCore.Qt.ToolTipRole, item_text)
-            item.setFlags(QtCore.Qt.ItemIsSelectable| QtCore.Qt.ItemIsEnabled)
+            item.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
             self.twList.setItem(row, 3, item)
 
             row += 1
 
         self.twList.resizeColumnsToContents()
         self.twList.setSortingEnabled(True)
-        self.twList.sortItems(2 , QtCore.Qt.AscendingOrder)
+        self.twList.sortItems(2, QtCore.Qt.AscendingOrder)
         self.twList.selectRow(0)
         self.twList.resizeColumnsToContents()
         self.twList.horizontalHeader().setStretchLastSection(True)
-
 
     def cellDoubleClicked(self, r, c):
         self.accept()
@@ -143,18 +145,19 @@ class MatchSelectionWindow(QtGui.QDialog):
         if curr is None:
             return
         if prev is not None and prev.row() == curr.row():
-                return
+            return
 
         self.altCoverWidget.setIssueID(self.currentMatch()['issue_id'])
         if self.currentMatch()['description'] is None:
-            self.teDescription.setText ("")
+            self.teDescription.setText("")
         else:
-            self.teDescription.setText (self.currentMatch()['description'])
+            self.teDescription.setText(self.currentMatch()['description'])
 
     def setCoverImage(self):
         self.archiveCoverWidget.setArchive(self.comic_archive)
 
     def currentMatch(self):
         row = self.twList.currentRow()
-        match = self.twList.item(row, 0).data(QtCore.Qt.UserRole).toPyObject()[0]
+        match = self.twList.item(row, 0).data(
+            QtCore.Qt.UserRole).toPyObject()[0]
         return match

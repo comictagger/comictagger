@@ -21,7 +21,8 @@ limitations under the License.
 import sys
 import os
 import platform
-import urllib,urllib2
+import urllib
+import urllib2
 
 import ctversion
 
@@ -31,13 +32,18 @@ try:
 except ImportError:
     # No Qt, so define a few dummy QObjects to help us compile
     class QObject():
-        def __init__(self,*args):
+
+        def __init__(self, *args):
             pass
+
     class pyqtSignal():
-        def __init__(self,*args):
+
+        def __init__(self, *args):
             pass
-        def emit(a,b,c):
+
+        def emit(a, b, c):
             pass
+
 
 class VersionChecker(QObject):
 
@@ -55,11 +61,12 @@ class VersionChecker(QObject):
                 plat = "mac"
             else:
                 plat = "other"
-            args = "?uuid={0}&platform={1}&version={2}".format(uuid, plat, ctversion.version)
+            args = "?uuid={0}&platform={1}&version={2}".format(
+                uuid, plat, ctversion.version)
             if not getattr(sys, 'frozen', None):
                 args += "&src=T"
 
-        return base_url+args
+        return base_url + args
 
     def getLatestVersion(self, uuid, use_stats=True):
 
