@@ -2,6 +2,7 @@
 """
 A PyQt4 widget for managing list of comic archive files
 """
+from comictaggerlib.ui.qtutils import reduceWidgetFontSize, centerWindowOnParent
 
 """
 Copyright 2012-2014  Anthony Beville

@@ -1,6 +1,7 @@
 """
 A PyQT4 dialog to show ID log and progress
 """
+from comictaggerlib.ui.qtutils import reduceWidgetFontSize
 
 """
 Copyright 2012-2014  Anthony Beville

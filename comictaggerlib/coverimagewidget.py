@@ -3,6 +3,7 @@ A PyQt4 widget display cover images from either local archive, or from ComicVine
 
 (TODO: This should be re-factored using subclasses!)
 """
+from comictaggerlib.ui.qtutils import reduceWidgetFontSize, getQImageFromData
 
 """
 Copyright 2012-2014  Anthony Beville

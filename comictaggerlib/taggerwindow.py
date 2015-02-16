@@ -2,6 +2,7 @@
 """
 The main window of the ComicTagger app
 """
+from comictaggerlib.ui.qtutils import reduceWidgetFontSize, centerWindowOnParent
 
 """
 Copyright 2012-2014  Anthony Beville
@@ -202,10 +203,10 @@ class TaggerWindow(QtGui.QMainWindow):
         # for all sorts of wacky things
 
         # tweak some control fonts
-        utils.reduceWidgetFontSize(self.lblFilename, 1)
-        utils.reduceWidgetFontSize(self.lblArchiveType)
-        utils.reduceWidgetFontSize(self.lblTagList)
-        utils.reduceWidgetFontSize(self.lblPageCount)
+        reduceWidgetFontSize(self.lblFilename, 1)
+        reduceWidgetFontSize(self.lblArchiveType)
+        reduceWidgetFontSize(self.lblTagList)
+        reduceWidgetFontSize(self.lblPageCount)
 
         # make sure some editable comboboxes don't take drop actions
         self.cbFormat.lineEdit().setAcceptDrops(False)

@@ -1,6 +1,7 @@
 """
 A PyQT4 dialog to select specific issue from list
 """
+from comictaggerlib.ui.qtutils import reduceWidgetFontSize
 
 """
 Copyright 2012-2014  Anthony Beville
