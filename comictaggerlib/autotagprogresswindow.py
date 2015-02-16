@@ -55,7 +55,7 @@ class AutoTagProgressWindow(QtGui.QDialog):
                             QtCore.Qt.WindowSystemMenuHint |
                             QtCore.Qt.WindowMaximizeButtonHint)
 
-        utils.reduceWidgetFontSize(self.textEdit)
+        reduceWidgetFontSize(self.textEdit)
 
     def setArchiveImage(self, img_data):
         self.setCoverImage(img_data, self.archiveCoverWidget)

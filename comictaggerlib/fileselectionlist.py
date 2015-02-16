@@ -71,7 +71,7 @@ class FileSelectionList(QWidget):
 
         self.settings = settings
 
-        utils.reduceWidgetFontSize(self.twList)
+        reduceWidgetFontSize(self.twList)
 
         self.twList.setColumnCount(6)
         #self.twlist.setHorizontalHeaderLabels (["File", "Folder", "CR", "CBL", ""])
@@ -204,7 +204,7 @@ class FileSelectionList(QWidget):
                 break
             progdialog.setValue(idx)
             progdialog.setLabelText(f)
-            utils.centerWindowOnParent(progdialog)
+            centerWindowOnParent(progdialog)
             QCoreApplication.processEvents()
             row = self.addPathItem(f)
             if firstAdded is None and row is not None:
@@ -282,7 +282,7 @@ class FileSelectionList(QWidget):
         if self.isListDupe(path):
             return self.getCurrentListRow(path)
 
-        ca = ComicArchive(path, self.settings.rar_exe_path)
+        ca = ComicArchive(path, self.settings.rar_exe_path, ComicTaggerSettings.getGraphic('nocover.png'))
 
         if ca.seemsToBeAComicArchive():
             row = self.twList.rowCount()

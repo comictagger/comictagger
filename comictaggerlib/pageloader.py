@@ -68,7 +68,7 @@ class PageLoader(QtCore.QThread):
             return
 
         if image_data is not None:
-            img = utils.getQImageFromData(image_data)
+            img = getQImageFromData(image_data)
 
             if self.abandoned:
                 return
