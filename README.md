@@ -2,8 +2,18 @@ This is a fork derived from google code:
 
   https://code.google.com/p/comictagger/
 
-I've cloned the full subversion repository (with git-svn).
-Eventually I'll develop some experimental idea for comic tagging...
+
+Changes in this fork:
+ - using different unrar library https://pypi.python.org/pypi/unrar/. The previous one used unrar.dll on windows and hackish wrapping of
+   unrar command on linux, while this new one should use unrarlib on both platforms. From my tests
+   it is more stable and faster. *Requires unrarlib availability, check unrar module documentation for more information*.
+ - extracted core libraries in its own package comicapi, shared in a new repository using git subtree for better alignment with comicstreamer
+ - support for *day of month* field in the GUI
+ - merge of changes from fcanc fork
+
+Todo:
+ - more tests in non-linux platforms
+ - repackage for simple user installation
 
 Follows original readme:
 
