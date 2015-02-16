@@ -1,17 +1,18 @@
 #!/usr/bin/python
 """
-make some tree structures and symbolic links to comic files based on metadata
-oragnizing by date and series, in different trees
+Moves comic files based on metadata organizing in a tree by Publisher/Series (Volume)
 """
 
 """
-Copyright 2012  Anthony Beville
+This script is based on make_links.py by Anthony Beville
+
+Copyright 2015  Fabio Cancedda, Anthony Beville
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-	http://www.apache.org/licenses/LICENSE-2.0
+   http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,6 +24,7 @@ limitations under the License.
 import sys
 import os
 import platform
+import shutil
 
 from comictaggerlib.comicarchive import *
 from comictaggerlib.settings import *
@@ -39,9 +41,9 @@ def make_folder(folder):
             quit()
 
 
-def make_link(source, link):
-    if not os.path.exists(link):
-        os.symlink(os.path.abspath(source), link)
+def move_file(source, filename):
+    if not os.path.exists(filename):
+        shutil.move(os.path.abspath(source), filename)
 
 
 def main():
@@ -54,19 +56,28 @@ def main():
         print >> sys.stderr, "Sorry, this script works only on UNIX systems"
 
     if len(sys.argv) < 3:
-        print >> sys.stderr, "usage:  {0} comic_root link_root".format(
+        print >> sys.stderr, "usage:  {0} comic_root tree_root".format(
             sys.argv[0])
         return
 
     comic_root = sys.argv[1]
-    link_root = sys.argv[2]
+    tree_root = sys.argv[2]
 
-    print "root is : ", comic_root
+    print "Root is : ", comic_root
+    if not os.path.exists(comic_root):
+        print >> sys.stderr, "The comic root doesn't seem a directory or it doesn't exists. -- quitting"
+        return
+
     filelist = utils.get_recursive_filelist([comic_root])
-    make_folder(link_root)
+
+    if len(filelist) == 0:
+        print >> sys.stderr, "The comic root seems empty. -- quitting"
+        return
+
+    make_folder(tree_root)
 
     # first find all comics with metadata
-    print "reading in all comics..."
+    print "Reading in all comics..."
     comic_list = []
     max_name_len = 2
     for filename in filelist:
@@ -81,33 +92,29 @@ def main():
             sys.stderr.flush()
 
     print >> sys.stderr, fmt_str.format("")
+
     print "Found {0} tagged comics.".format(len(comic_list))
 
-    # walk through the comic list and add subdirs and links for each one
+    # walk through the comic list and moves each one
     for filename, md in comic_list:
         print >> sys.stderr, fmt_str.format(filename) + "\r",
         sys.stderr.flush()
 
-        # do date organizing:
-        if md.month is not None:
-            month_str = "{0:02d}".format(int(md.month))
-        else:
-            month_str = "00"
-        date_folder = os.path.join(link_root, "date", str(md.year), month_str)
-        make_folder(date_folder)
-        make_link(
-            filename, os.path.join(date_folder, os.path.basename(filename)))
-
         # do publisher/series organizing:
-        fixed_series_name = md.series
-        if fixed_series_name is not None:
+        series_name = md.series
+        publisher_name = md.publisher
+        start_year = md.volume
+        if series_name is not None:
             # some tweaks to keep various filesystems happy
-            fixed_series_name = fixed_series_name.replace("/", "-")
-            fixed_series_name = fixed_series_name.replace("?", "")
+            series_name = series_name.replace(":", " -")
+            series_name = series_name.replace("/", "-")
+            series_name = series_name.replace("?", "")
         series_folder = os.path.join(
-            link_root, "series", str(md.publisher), unicode(fixed_series_name))
+            tree_root,
+            unicode(publisher_name),
+            unicode(series_name) + " (" + unicode(start_year) + ")")
         make_folder(series_folder)
-        make_link(filename, os.path.join(
+        move_file(filename, os.path.join(
             series_folder, os.path.basename(filename)))
 
 if __name__ == '__main__':
