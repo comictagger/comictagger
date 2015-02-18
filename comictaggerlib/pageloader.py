@@ -1,6 +1,7 @@
 """
 A PyQT4 class to load a page image from a ComicArchive in a background thread
 """
+from comictaggerlib.ui.qtutils import getQImageFromData
 
 """
 Copyright 2012-2014  Anthony Beville
@@ -67,7 +68,7 @@ class PageLoader(QtCore.QThread):
             return
 
         if image_data is not None:
-            img = utils.getQImageFromData(image_data)
+            img = getQImageFromData(image_data)
 
             if self.abandoned:
                 return

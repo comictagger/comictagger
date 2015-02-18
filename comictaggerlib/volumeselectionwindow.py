@@ -1,6 +1,7 @@
 """
 A PyQT4 dialog to select specific series/volume from list
 """
+from comictaggerlib.ui.qtutils import reduceWidgetFontSize
 
 """
 Copyright 2012-2014  Anthony Beville
@@ -108,8 +109,8 @@ class VolumeSelectionWindow(QtGui.QDialog):
         gridlayout.addWidget(self.imageWidget)
         gridlayout.setContentsMargins(0, 0, 0, 0)
 
-        utils.reduceWidgetFontSize(self.teDetails, 1)
-        utils.reduceWidgetFontSize(self.twList)
+        reduceWidgetFontSize(self.teDetails, 1)
+        reduceWidgetFontSize(self.twList)
 
         self.setWindowFlags(self.windowFlags() |
                             QtCore.Qt.WindowSystemMenuHint |

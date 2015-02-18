@@ -3,6 +3,7 @@ A PyQt4 widget display cover images from either local archive, or from ComicVine
 
 (TODO: This should be re-factored using subclasses!)
 """
+from comictaggerlib.ui.qtutils import reduceWidgetFontSize, getQImageFromData
 
 """
 Copyright 2012-2014  Anthony Beville
@@ -69,7 +70,7 @@ class CoverImageWidget(QWidget):
 
         uic.loadUi(ComicTaggerSettings.getUIFile('coverimagewidget.ui'), self)
 
-        utils.reduceWidgetFontSize(self.label)
+        reduceWidgetFontSize(self.label)
 
         self.mode = mode
         self.comicVine = ComicVineTalker()
@@ -248,7 +249,7 @@ class CoverImageWidget(QWidget):
 
     # called when the image is done loading from internet
     def coverRemoteFetchComplete(self, image_data, issue_id):
-        img = utils.getQImageFromData(image_data)
+        img = getQImageFromData(image_data)
         self.current_pixmap = QPixmap(img)
         self.setDisplayPixmap(0, 0)
         #print("ATB cover fetch complete!")

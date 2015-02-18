@@ -2,6 +2,7 @@
 """
 The main window of the ComicTagger app
 """
+from comictaggerlib.ui.qtutils import reduceWidgetFontSize, centerWindowOnParent
 
 """
 Copyright 2012-2014  Anthony Beville
@@ -191,6 +192,10 @@ class TaggerWindow(QtGui.QMainWindow):
         validator = QtGui.QIntValidator(1, 12, self)
         self.lePubMonth.setValidator(validator)
 
+        # TODO: for now keep it simple, ideally we should check the full date
+        validator = QtGui.QIntValidator(1, 31, self)
+        self.lePubDay.setValidator(validator)
+
         validator = QtGui.QIntValidator(1, 99999, self)
         self.leIssueCount.setValidator(validator)
         self.leVolumeNum.setValidator(validator)
@@ -202,10 +207,10 @@ class TaggerWindow(QtGui.QMainWindow):
         # for all sorts of wacky things
 
         # tweak some control fonts
-        utils.reduceWidgetFontSize(self.lblFilename, 1)
-        utils.reduceWidgetFontSize(self.lblArchiveType)
-        utils.reduceWidgetFontSize(self.lblTagList)
-        utils.reduceWidgetFontSize(self.lblPageCount)
+        reduceWidgetFontSize(self.lblFilename, 1)
+        reduceWidgetFontSize(self.lblArchiveType)
+        reduceWidgetFontSize(self.lblTagList)
+        reduceWidgetFontSize(self.lblPageCount)
 
         # make sure some editable comboboxes don't take drop actions
         self.cbFormat.lineEdit().setAcceptDrops(False)
@@ -783,6 +788,7 @@ class TaggerWindow(QtGui.QMainWindow):
         assignText(self.lePublisher, md.publisher)
         assignText(self.lePubMonth, md.month)
         assignText(self.lePubYear, md.year)
+        assignText(self.lePubDay, md.day)
         assignText(self.leGenre, md.genre)
         assignText(self.leImprint, md.imprint)
         assignText(self.teComments, md.comments)
@@ -909,6 +915,7 @@ class TaggerWindow(QtGui.QMainWindow):
         md.publisher = xlate(self.lePublisher.text(), "str")
         md.month = xlate(self.lePubMonth.text(), "int")
         md.year = xlate(self.lePubYear.text(), "int")
+        md.day =  xlate(self.lePubDay.text(), "int")
         md.genre = xlate(self.leGenre.text(), "str")
         md.imprint = xlate(self.leImprint.text(), "str")
         md.comments = xlate(self.teComments.toPlainText(), "str")
