@@ -1,22 +1,18 @@
-"""
-Settings class for comictagger app
-"""
+"""Settings class for ComicTagger app"""
 
-"""
-Copyright 2012-2014  Anthony Beville
+# Copyright 2012-2014 Anthony Beville
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+#     http://www.apache.org/licenses/LICENSE-2.0
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-"""
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 import os
 import sys
@@ -161,7 +157,7 @@ class ComicTaggerSettings:
         # take a crack at finding rar exes, if not set already
         if self.rar_exe_path == "":
             if platform.system() == "Windows":
-                # look in some likely places for windows machine
+                # look in some likely places for Windows machines
                 if os.path.exists("C:\Program Files\WinRAR\Rar.exe"):
                     self.rar_exe_path = "C:\Program Files\WinRAR\Rar.exe"
                 elif os.path.exists("C:\Program Files (x86)\WinRAR\Rar.exe"):
@@ -181,7 +177,7 @@ class ComicTaggerSettings:
             if self.unrar_exe_path != "":
                 self.save()
 
-        # make sure unrar/rar program is now in the path for the UnRAR class to
+        # make sure unrar/rar programs are now in the path for the UnRAR class to
         # use
         utils.addtopath(os.path.dirname(self.unrar_exe_path))
         utils.addtopath(os.path.dirname(self.rar_exe_path))
@@ -521,6 +517,6 @@ class ComicTaggerSettings:
         with codecs.open(self.settings_file, 'wb', 'utf8') as configfile:
             self.config.write(configfile)
 
-# make sure the basedir is cached, in case we're on windows running a
+# make sure the basedir is cached, in case we're on Windows running a
 # script from frozen binary
 ComicTaggerSettings.baseDir()

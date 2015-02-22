@@ -1,35 +1,31 @@
 #!/usr/bin/python
-"""
-Moves comic files based on metadata organizing in a tree by Publisher/Series (Volume)
-"""
+"""Moves comic files based on metadata organizing in a tree by Publisher/Series (Volume)"""
 
-"""
-This script is based on make_links.py by Anthony Beville
+# This script is based on make_links.py by Anthony Beville
 
-Copyright 2015  Fabio Cancedda, Anthony Beville
+# Copyright 2015 Fabio Cancedda, Anthony Beville
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 
-   http://www.apache.org/licenses/LICENSE-2.0
+#     http://www.apache.org/licenses/LICENSE-2.0
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-"""
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-import sys
-import os
-import platform
 import shutil
+#import sys
+#import os
+#import platform
 
-from comictaggerlib.comicarchive import *
 from comictaggerlib.settings import *
-from comictaggerlib.issuestring import *
-import comictaggerlib.utils
+from comicapi.comicarchive import *
+#from comicapi.issuestring import *
+#import comicapi.utils
 
 
 def make_folder(folder):
@@ -56,14 +52,14 @@ def main():
         print >> sys.stderr, "Sorry, this script works only on UNIX systems"
 
     if len(sys.argv) < 3:
-        print >> sys.stderr, "usage:  {0} comic_root tree_root".format(
+        print >> sys.stderr, "Usage: {0} [comic_root][tree_root]".format(
             sys.argv[0])
         return
 
     comic_root = sys.argv[1]
     tree_root = sys.argv[2]
 
-    print "Root is : ", comic_root
+    print "Root is:", comic_root
     if not os.path.exists(comic_root):
         print >> sys.stderr, "The comic root doesn't seem a directory or it doesn't exists. -- quitting"
         return

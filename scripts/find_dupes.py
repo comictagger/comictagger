@@ -1,14 +1,12 @@
 #!/usr/bin/python
-"""
-find all duplicate comics
-"""
+"""Find all duplicate comics"""
 
-import sys
+#import sys
 
 from comictaggerlib.comicarchive import *
 from comictaggerlib.settings import *
-from comictaggerlib.issuestring import *
-import comictaggerlib.utils
+#from comictaggerlib.issuestring import *
+#import comictaggerlib.utils
 
 
 def main():
@@ -18,13 +16,13 @@ def main():
     style = MetaDataStyle.CIX
 
     if len(sys.argv) < 2:
-        print >> sys.stderr, "usage:  {0} comic_folder ".format(sys.argv[0])
+        print >> sys.stderr, "Usage:  {0} [comic_folder]".format(sys.argv[0])
         return
 
     filelist = utils.get_recursive_filelist(sys.argv[1:])
 
     # first find all comics with metadata
-    print >> sys.stderr, "reading in all comics..."
+    print >> sys.stderr, "Reading in all comics..."
     comic_list = []
     fmt_str = ""
     max_name_len = 2
@@ -38,9 +36,9 @@ def main():
             comic_list.append((filename, ca.readMetadata(style)))
 
     print >> sys.stderr, fmt_str.format("") + "\r",
-    print "-----------------------------------------------"
+    print "--------------------------------------------------------------------------"
     print "Found {0} comics with {1} tags".format(len(comic_list), MetaDataStyle.name[style])
-    print "-----------------------------------------------"
+    print "--------------------------------------------------------------------------"
 
     # sort the list by series+issue+year, to put all the dupes together
     def makeKey(x):
@@ -80,7 +78,7 @@ def main():
         md = ca.readMetadata(style)
         print "{0} #{1} ({2})".format(md.series, md.issue, md.year)
         for filename in dupe_set:
-            print "------------->{0}".format(filename)
+            print "------>{0}".format(filename)
 
 if __name__ == '__main__':
     main()

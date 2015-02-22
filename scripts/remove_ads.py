@@ -1,25 +1,23 @@
 #!/usr/bin/python
 """
 Create new comic archives from old one, removing  pages marked as ads
-and deleted. Walks recursivly through the given folders.  Originals
-are kept in a subfolder at the level of the original
+and deleted. Walks recursively through the given folders.  Originals
+are kept in a sub-folder at the level of the original
 """
 
-"""
-Copyright 2013  Anthony Beville
+# Copyright 2013 Anthony Beville
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 
-	http://www.apache.org/licenses/LICENSE-2.0
+#     http://www.apache.org/licenses/LICENSE-2.0
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-"""
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 import sys
 import os
@@ -32,7 +30,7 @@ from comictaggerlib.settings import *
 from comictaggerlib.comicarchive import *
 
 subfolder_name = "PRE_AD_REMOVAL"
-unwanted_types = ['Deleted', 'Advertisment']
+unwanted_types = ['Deleted', 'Advertisement']
 
 
 def main():
@@ -43,7 +41,7 @@ def main():
     style = MetaDataStyle.CIX
 
     if len(sys.argv) < 2:
-        print >> sys.stderr, "usage:  {0} comic_folder ".format(sys.argv[0])
+        print >> sys.stderr, "Usage: {0} [comic_folder]".format(sys.argv[0])
         return
 
     filelist = utils.get_recursive_filelist(sys.argv[1:])

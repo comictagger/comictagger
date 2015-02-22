@@ -1,33 +1,31 @@
 #!/usr/bin/python
 """
-make some tree structures and symbolic links to comic files based on metadata
-oragnizing by date and series, in different trees
+Make some tree structures and symbolic links to comic files based on metadata
+organizing by date and series, in different trees
 """
 
-"""
-Copyright 2012  Anthony Beville
+# Copyright 2012 Anthony Beville
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 
-	http://www.apache.org/licenses/LICENSE-2.0
+#     http://www.apache.org/licenses/LICENSE-2.0
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-"""
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-import sys
-import os
-import platform
+#import sys
+#import os
+#import platform
 
 from comictaggerlib.comicarchive import *
 from comictaggerlib.settings import *
-from comictaggerlib.issuestring import *
-import comictaggerlib.utils
+#from comictaggerlib.issuestring import *
+#import comictaggerlib.utils
 
 
 def make_folder(folder):
@@ -54,19 +52,19 @@ def main():
         print >> sys.stderr, "Sorry, this script works only on UNIX systems"
 
     if len(sys.argv) < 3:
-        print >> sys.stderr, "usage:  {0} comic_root link_root".format(
+        print >> sys.stderr, "Usage: {0} [comic_root][link_root]".format(
             sys.argv[0])
         return
 
     comic_root = sys.argv[1]
     link_root = sys.argv[2]
 
-    print "root is : ", comic_root
+    print "Root is:", comic_root
     filelist = utils.get_recursive_filelist([comic_root])
     make_folder(link_root)
 
     # first find all comics with metadata
-    print "reading in all comics..."
+    print "Reading in all comics..."
     comic_list = []
     max_name_len = 2
     for filename in filelist:

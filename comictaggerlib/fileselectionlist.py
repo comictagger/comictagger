@@ -1,27 +1,24 @@
 # coding=utf-8
-"""
-A PyQt4 widget for managing list of comic archive files
-"""
-from comictaggerlib.ui.qtutils import reduceWidgetFontSize, centerWindowOnParent
+"""A PyQt4 widget for managing list of comic archive files"""
 
-"""
-Copyright 2012-2014  Anthony Beville
+# Copyright 2012-2014 Anthony Beville
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+#     http://www.apache.org/licenses/LICENSE-2.0
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-"""
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
+import platform
 import os
-import sys
+#import os
+#import sys
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
@@ -30,12 +27,11 @@ from PyQt4.QtCore import pyqtSignal
 
 from settings import ComicTaggerSettings
 from comicarchive import ComicArchive
-from comicarchive import MetaDataStyle
-from genericmetadata import GenericMetadata, PageType
 from optionalmsgdialog import OptionalMessageDialog
+from comictaggerlib.ui.qtutils import reduceWidgetFontSize, centerWindowOnParent
 import utils
-import platform
-import os
+#from comicarchive import MetaDataStyle
+#from genericmetadata import GenericMetadata, PageType
 
 
 class FileTableWidgetItem(QTableWidgetItem):
@@ -282,7 +278,10 @@ class FileSelectionList(QWidget):
         if self.isListDupe(path):
             return self.getCurrentListRow(path)
 
-        ca = ComicArchive(path, self.settings.rar_exe_path, ComicTaggerSettings.getGraphic('nocover.png'))
+        ca = ComicArchive(
+            path,
+            self.settings.rar_exe_path,
+            ComicTaggerSettings.getGraphic('nocover.png'))
 
         if ca.seemsToBeAComicArchive():
             row = self.twList.rowCount()

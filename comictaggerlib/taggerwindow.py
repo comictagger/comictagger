@@ -1,27 +1,21 @@
 # coding=utf-8
-"""
-The main window of the ComicTagger app
-"""
-from comictaggerlib.ui.qtutils import reduceWidgetFontSize, centerWindowOnParent
+"""The main window of the ComicTagger app"""
 
-"""
-Copyright 2012-2014  Anthony Beville
+# Copyright 2012-2014 Anthony Beville
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+#     http://www.apache.org/licenses/LICENSE-2.0
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-"""
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 import sys
-import signal
 import locale
 import platform
 import os
@@ -30,17 +24,19 @@ import json
 import webbrowser
 import re
 import pickle
+#import signal
 
 from PyQt4 import QtCore, QtGui, uic
-from PyQt4.QtCore import QUrl, pyqtSignal
 from PyQt4 import QtNetwork
+#from PyQt4.QtCore import QUrl, pyqtSignal
 
+#from comicarchive import ComicArchive
+#from pageloader import PageLoader
 from volumeselectionwindow import VolumeSelectionWindow
 from comicarchive import MetaDataStyle
 from comicinfoxml import ComicInfoXml
 from genericmetadata import GenericMetadata
 from comicvinetalker import ComicVineTalker, ComicVineTalkerException
-from comicarchive import ComicArchive
 from crediteditorwindow import CreditEditorWindow
 from settingswindow import SettingsWindow
 from settings import ComicTaggerSettings
@@ -53,13 +49,13 @@ from fileselectionlist import FileSelectionList
 from cbltransformer import CBLTransformer
 from renamewindow import RenameWindow
 from exportwindow import ExportWindow, ExportConflictOpts
-from pageloader import PageLoader
 from issueidentifier import IssueIdentifier
 from autotagstartwindow import AutoTagStartWindow
 from autotagprogresswindow import AutoTagProgressWindow
 from autotagmatchwindow import AutoTagMatchWindow
 from coverimagewidget import CoverImageWidget
 from versionchecker import VersionChecker
+from comictaggerlib.ui.qtutils import reduceWidgetFontSize, centerWindowOnParent
 import utils
 import ctversion
 
@@ -502,7 +498,7 @@ class TaggerWindow(QtGui.QMainWindow):
                     progdialog.setValue(prog_idx)
                     prog_idx += 1
                     progdialog.setLabelText(ca.path)
-                    utils.centerWindowOnParent(progdialog)
+                    centerWindowOnParent(progdialog)
                     QtCore.QCoreApplication.processEvents()
 
                     original_path = os.path.abspath(ca.path)
@@ -571,7 +567,7 @@ class TaggerWindow(QtGui.QMainWindow):
                        " v" +
                        self.version +
                        "<br>" +
-                       "(c)2014 Anthony Beville<br><br>" +
+                       "&copy;2014 Anthony Beville<br><br>" +
                        "<a href='{0}'>{0}</a><br><br>".format(website) +
                        "<a href='mailto:{0}'>{0}</a><br><br>".format(email) +
                        "License: <a href='{0}'>{1}</a>".format(license_link, license_name))
@@ -717,7 +713,7 @@ class TaggerWindow(QtGui.QMainWindow):
             self.updateAppTitle()
 
     def connectDirtyFlagSignals(self):
-        # recursivly connect the tab form child slots
+        # recursively connect the tab form child slots
         self.connectChildDirtyFlagSignals(self.tabWidget)
 
     def connectChildDirtyFlagSignals(self, widget):
@@ -744,7 +740,7 @@ class TaggerWindow(QtGui.QMainWindow):
             self.metadata.setDefaultPageList(
                 self.comic_archive.getNumberOfPages())
 
-        # recursivly clear the tab form
+        # recursively clear the tab form
         self.clearChildren(self.tabWidget)
 
         # clear the dirty flag, since there is nothing in there now to lose
@@ -915,7 +911,7 @@ class TaggerWindow(QtGui.QMainWindow):
         md.publisher = xlate(self.lePublisher.text(), "str")
         md.month = xlate(self.lePubMonth.text(), "int")
         md.year = xlate(self.lePubYear.text(), "int")
-        md.day =  xlate(self.lePubDay.text(), "int")
+        md.day = xlate(self.lePubDay.text(), "int")
         md.genre = xlate(self.leGenre.text(), "str")
         md.imprint = xlate(self.leImprint.text(), "str")
         md.comments = xlate(self.teComments.toPlainText(), "str")
@@ -1092,7 +1088,7 @@ class TaggerWindow(QtGui.QMainWindow):
                     QtGui.QMessageBox.critical(
                         self,
                         self.tr("Network Issue"),
-                        self.tr("Could not connect to ComicVine to get issue details.!"))
+                        self.tr("Could not connect to Comic Vine to get issue details.!"))
             else:
                 QtGui.QApplication.restoreOverrideCursor()
                 if new_metadata is not None:
@@ -1340,7 +1336,8 @@ class TaggerWindow(QtGui.QMainWindow):
                 reply = QtGui.QMessageBox.question(
                     self,
                     self.tr("Duplicate Credit!"),
-                    self.tr("This will create a duplicate credit entry. Would you like to merge the entries, or create a duplicate?"),
+                    self.tr(
+                        "This will create a duplicate credit entry. Would you like to merge the entries, or create a duplicate?"),
                     self.tr("Merge"),
                     self.tr("Duplicate"))
 
@@ -1570,7 +1567,7 @@ class TaggerWindow(QtGui.QMainWindow):
                         progdialog.setValue(prog_idx)
                         prog_idx += 1
                         progdialog.setLabelText(ca.path)
-                        utils.centerWindowOnParent(progdialog)
+                        centerWindowOnParent(progdialog)
                         QtCore.QCoreApplication.processEvents()
 
                     if ca.hasMetadata(style) and ca.isWritable():
@@ -1662,7 +1659,7 @@ class TaggerWindow(QtGui.QMainWindow):
                         progdialog.setValue(prog_idx)
                         prog_idx += 1
                         progdialog.setLabelText(ca.path)
-                        utils.centerWindowOnParent(progdialog)
+                        centerWindowOnParent(progdialog)
                         QtCore.QCoreApplication.processEvents()
 
                     if ca.hasMetadata(src_style) and ca.isWritable():
@@ -1863,7 +1860,7 @@ class TaggerWindow(QtGui.QMainWindow):
         self.atprogdialog.setWindowTitle("Auto-Tagging")
 
         self.autoTagLog(
-            u"========================================================================\n")
+            u"==========================================================================\n")
         self.autoTagLog(
             u"Auto-Tagging Started for {0} items\n".format(len(ca_list)))
 
@@ -1873,7 +1870,7 @@ class TaggerWindow(QtGui.QMainWindow):
         archives_to_remove = []
         for ca in ca_list:
             self.autoTagLog(
-                u"============================================================\n")
+                u"==========================================================================\n")
             self.autoTagLog(
                 u"Auto-Tagging {0} of {1}\n".format(prog_idx + 1, len(ca_list)))
             self.autoTagLog(u"{0}\n".format(ca.path))
@@ -1888,7 +1885,7 @@ class TaggerWindow(QtGui.QMainWindow):
             self.atprogdialog.progressBar.setValue(prog_idx)
             prog_idx += 1
             self.atprogdialog.label.setText(ca.path)
-            utils.centerWindowOnParent(self.atprogdialog)
+            centerWindowOnParent(self.atprogdialog)
             QtCore.QCoreApplication.processEvents()
 
             if ca.isWritable():

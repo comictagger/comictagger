@@ -1,41 +1,45 @@
-import StringIO
-from PIL import Image
+"""Some utilities for the GUI"""
+
+#import StringIO
+
+#from PIL import Image
+
 from comictaggerlib.settings import ComicTaggerSettings
 
 
 try:
-	from PyQt4 import QtGui
-	qt_available = True
+    from PyQt4 import QtGui
+    qt_available = True
 except ImportError:
-	qt_available = False
+    qt_available = False
 
 if qt_available:
 
-    def reduceWidgetFontSize( widget , delta = 2):
+    def reduceWidgetFontSize(widget, delta=2):
         f = widget.font()
         if f.pointSize() > 10:
-            f.setPointSize( f.pointSize() - delta )
-        widget.setFont( f )
+            f.setPointSize(f.pointSize() - delta)
+        widget.setFont(f)
 
+    def centerWindowOnScreen(window):
+        """Center the window on screen.
 
-    def centerWindowOnScreen( window ):
-        """
-        Center the window on screen. This implemention will handle the window
+        This implementation will handle the window
         being resized or the screen resolution changing.
         """
         # Get the current screens' dimensions...
         screen = QtGui.QDesktopWidget().screenGeometry()
         # ... and get this windows' dimensions
         mysize = window.geometry()
-        # The horizontal position is calulated as screenwidth - windowwidth /2
-        hpos = ( screen.width() - window.width() ) / 2
+        # The horizontal position is calculated as screen width - window width
+        # / 2
+        hpos = (screen.width() - window.width()) / 2
         # And vertical position the same, but with the height dimensions
-        vpos = ( screen.height() - window.height() ) / 2
+        vpos = (screen.height() - window.height()) / 2
         # And the move call repositions the window
         window.move(hpos, vpos)
 
-
-    def centerWindowOnParent( window ):
+    def centerWindowOnParent(window):
 
         top_level = window
         while top_level.parent() is not None:
@@ -45,12 +49,17 @@ if qt_available:
         main_window_size = top_level.geometry()
         # ... and get this windows' dimensions
         mysize = window.geometry()
-        # The horizontal position is calulated as screenwidth - windowwidth /2
-        hpos = ( main_window_size.width() - window.width() ) / 2
+        # The horizontal position is calculated as screen width - window width
+        # /2
+        hpos = (main_window_size.width() - window.width()) / 2
         # And vertical position the same, but with the height dimensions
-        vpos = ( main_window_size.height() - window.height() ) / 2
+        vpos = (main_window_size.height() - window.height()) / 2
         # And the move call repositions the window
-        window.move(hpos + main_window_size.left(), vpos + main_window_size.top())
+        window.move(
+            hpos +
+            main_window_size.left(),
+            vpos +
+            main_window_size.top())
 
     try:
         from PIL import Image
@@ -62,16 +71,17 @@ if qt_available:
 
     def getQImageFromData(image_data):
         img = QtGui.QImage()
-        success = img.loadFromData( image_data )
+        success = img.loadFromData(image_data)
         if not success:
             try:
                 if pil_available:
                     #  Qt doesn't understand the format, but maybe PIL does
-                    # so try to convert the image data to uncompressed tiff format
+                    # so try to convert the image data to uncompressed tiff
+                    # format
                     im = Image.open(StringIO.StringIO(image_data))
                     output = StringIO.StringIO()
                     im.save(output, format="TIFF")
-                    img.loadFromData( output.getvalue() )
+                    img.loadFromData(output.getvalue())
                     success = True
             except Exception as e:
                 pass
@@ -79,4 +89,3 @@ if qt_available:
         if not success:
             img.load(ComicTaggerSettings.getGraphic('nocover.png'))
         return img
-

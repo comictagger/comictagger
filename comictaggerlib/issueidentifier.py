@@ -1,28 +1,24 @@
-"""
-A python class to automatically identify a comic archive
-"""
+"""A class to automatically identify a comic archive"""
 
-"""
-Copyright 2012-2014  Anthony Beville
+# Copyright 2012-2014 Anthony Beville
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+#     http://www.apache.org/licenses/LICENSE-2.0
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-"""
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 import sys
-import math
-import urllib2
-import urllib
 import StringIO
+#import math
+#import urllib2
+#import urllib
 
 try:
     from PIL import Image
@@ -31,14 +27,14 @@ try:
 except ImportError:
     pil_available = False
 
-from settings import ComicTaggerSettings
-from comicvinecacher import ComicVineCacher
 from genericmetadata import GenericMetadata
 from comicvinetalker import ComicVineTalker, ComicVineTalkerException
 from imagehasher import ImageHasher
 from imagefetcher import ImageFetcher, ImageFetcherException
 from issuestring import IssueString
 import utils
+#from settings import ComicTaggerSettings
+#from comicvinecacher import ComicVineCacher
 
 
 class IssueIdentifierNetworkError(Exception):
@@ -261,7 +257,7 @@ class IssueIdentifier:
                 primary_thumb_url, blocking=True)
         except ImageFetcherException:
             self.log_msg(
-                "Network issue while fetching cover image from ComicVine.  Aborting...")
+                "Network issue while fetching cover image from Comic Vine. Aborting...")
             raise IssueIdentifierNetworkError
 
         if self.cancel:
@@ -290,7 +286,7 @@ class IssueIdentifier:
                         alt_url, blocking=True)
                 except ImageFetcherException:
                     self.log_msg(
-                        "Network issue while fetching alt. cover image from ComicVine.  Aborting...")
+                        "Network issue while fetching alt. cover image from Comic Vine. Aborting...")
                     raise IssueIdentifierNetworkError
 
                 if self.cancel:
@@ -326,7 +322,7 @@ class IssueIdentifier:
                 score_item['hash'] = remote_cover_item['hash']
                 score_list.append(score_item)
                 if useLog:
-                    self.log_msg("{0} ".format(score), False)
+                    self.log_msg("{0}".format(score), False)
 
                 if score <= self.strong_score_thresh:
                     # such a good score, we can quit now, since for sure we
@@ -343,15 +339,13 @@ class IssueIdentifier:
 
         return best_score_item
 
-    """
-    def validate(self, issue_id):
+    # def validate(self, issue_id):
         # create hash list
-        score = self.getIssueMatchScore(issue_id, hash_list, useRemoteAlternates = True)
-        if score < 20:
-            return True
-        else:
-            return False
-    """
+    #    score = self.getIssueMatchScore(issue_id, hash_list, useRemoteAlternates = True)
+    #    if score < 20:
+    #        return True
+    #    else:
+    #        return False
 
     def search(self):
 
@@ -367,13 +361,13 @@ class IssueIdentifier:
 
         if not ca.seemsToBeAComicArchive():
             self.log_msg(
-                "Sorry, but " + opts.filename + "  is not a comic archive!")
+                "Sorry, but " + opts.filename + " is not a comic archive!")
             return self.match_list
 
         cover_image_data = ca.getPage(self.cover_page_index)
         cover_hash = self.calculateHash(cover_image_data)
 
-        # check the apect ratio
+        # check the aspect ratio
         # if it's wider than it is high, it's probably a two page spread
         # if so, crop it and calculate a second hash
         narrow_cover_hash = None
@@ -396,13 +390,13 @@ class IssueIdentifier:
 
         self.log_msg("Going to search for:")
         self.log_msg("\tSeries: " + keys['series'])
-        self.log_msg("\tIssue : " + keys['issue_number'])
+        self.log_msg("\tIssue:  " + keys['issue_number'])
         if keys['issue_count'] is not None:
-            self.log_msg("\tCount : " + str(keys['issue_count']))
+            self.log_msg("\tCount:  " + str(keys['issue_count']))
         if keys['year'] is not None:
-            self.log_msg("\tYear :  " + str(keys['year']))
+            self.log_msg("\tYear:   " + str(keys['year']))
         if keys['month'] is not None:
-            self.log_msg("\tMonth : " + str(keys['month']))
+            self.log_msg("\tMonth:  " + str(keys['month']))
 
         #self.log_msg("Publisher Blacklist: " + str(self.publisher_blacklist))
         comicVine = ComicVineTalker()
@@ -417,7 +411,7 @@ class IssueIdentifier:
             cv_search_results = comicVine.searchForSeries(keys['series'])
         except ComicVineTalkerException:
             self.log_msg(
-                "Network issue while searching for series.  Aborting...")
+                "Network issue while searching for series. Aborting...")
             return []
 
         #self.log_msg("Found " + str(len(cv_search_results)) + " initial results")
@@ -483,7 +477,7 @@ class IssueIdentifier:
 
         except ComicVineTalkerException:
             self.log_msg(
-                "Network issue while searching for series details.  Aborting...")
+                "Network issue while searching for series details. Aborting...")
             return []
 
         if issue_list is None:
@@ -603,7 +597,7 @@ class IssueIdentifier:
             # look at a few more pages in the archive, and also alternate
             # covers online
             self.log_msg(
-                "Very weak scores for the cover.  Analyzing alternate pages and covers...")
+                "Very weak scores for the cover. Analyzing alternate pages and covers...")
             hash_list = [cover_hash]
             if narrow_cover_hash is not None:
                 hash_list.append(narrow_cover_hash)
@@ -646,18 +640,18 @@ class IssueIdentifier:
                 if len(self.match_list) == 1:
                     self.log_msg("No matching pages in the issue.")
                     self.log_msg(
-                        u"--------------------------------------------------")
+                        u"--------------------------------------------------------------------------")
                     print_match(self.match_list[0])
                     self.log_msg(
-                        u"--------------------------------------------------")
+                        u"--------------------------------------------------------------------------")
                     self.search_result = self.ResultFoundMatchButBadCoverScore
                 else:
                     self.log_msg(
-                        u"--------------------------------------------------")
+                        u"--------------------------------------------------------------------------")
                     self.log_msg(
                         u"Multiple bad cover matches!  Need to use other info...")
                     self.log_msg(
-                        u"--------------------------------------------------")
+                        u"--------------------------------------------------------------------------")
                     self.search_result = self.ResultMultipleMatchesWithBadImageScores
                 return self.match_list
             else:
@@ -700,23 +694,29 @@ class IssueIdentifier:
                 self.match_list = new_list
 
         if len(self.match_list) == 1:
-            self.log_msg(u"--------------------------------------------------")
+            self.log_msg(
+                u"--------------------------------------------------------------------------")
             print_match(self.match_list[0])
-            self.log_msg(u"--------------------------------------------------")
+            self.log_msg(
+                u"--------------------------------------------------------------------------")
             self.search_result = self.ResultOneGoodMatch
 
         elif len(self.match_list) == 0:
-            self.log_msg(u"--------------------------------------------------")
+            self.log_msg(
+                u"--------------------------------------------------------------------------")
             self.log_msg("No matches found :(")
-            self.log_msg(u"--------------------------------------------------")
+            self.log_msg(
+                u"--------------------------------------------------------------------------")
             self.search_result = self.ResultNoMatches
         else:
             # we've got multiple good matches:
-            self.log_msg("More than one likley candiate.")
+            self.log_msg("More than one likely candidate.")
             self.search_result = self.ResultMultipleGoodMatches
-            self.log_msg(u"--------------------------------------------------")
+            self.log_msg(
+                u"--------------------------------------------------------------------------")
             for item in self.match_list:
                 print_match(item)
-            self.log_msg(u"--------------------------------------------------")
+            self.log_msg(
+                u"--------------------------------------------------------------------------")
 
         return self.match_list

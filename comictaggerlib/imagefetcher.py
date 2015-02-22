@@ -1,30 +1,26 @@
-"""
-A python class to manage fetching and caching of images by URL
-"""
+"""A class to manage fetching and caching of images by URL"""
 
-"""
-Copyright 2012-2014  Anthony Beville
+# Copyright 2012-2014 Anthony Beville
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+#     http://www.apache.org/licenses/LICENSE-2.0
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-"""
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 import sqlite3 as lite
 import os
 import datetime
 import shutil
 import tempfile
-import urllib2
 import urllib
+#import urllib2
 
 try:
     from PyQt4.QtNetwork import QNetworkAccessManager, QNetworkRequest
@@ -78,7 +74,6 @@ class ImageFetcher(QObject):
         """
         If called with blocking=True, this will block until the image is
         fetched.
-
         If called with blocking=False, this will run the fetch in the
         background, and emit a signal when done
         """

@@ -1,31 +1,27 @@
 #!/usr/bin/python
-"""
-Print out a line-by-line list of basic tag info from all comics
-"""
+"""Print out a line-by-line list of basic tag info from all comics"""
 
-"""
-Copyright 2012  Anthony Beville
+# Copyright 2012 Anthony Beville
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 
-	http://www.apache.org/licenses/LICENSE-2.0
+#     http://www.apache.org/licenses/LICENSE-2.0
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-"""
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-import sys
-import os
+#import sys
+#import os
 
 from comictaggerlib.comicarchive import *
 from comictaggerlib.settings import *
 from comictaggerlib.issuestring import *
-import comictaggerlib.utils
+#import comictaggerlib.utils
 
 
 def main():
@@ -35,7 +31,7 @@ def main():
     style = MetaDataStyle.CIX
 
     if len(sys.argv) < 2:
-        print >> sys.stderr, "usage:  {0} comic_folder ".format(sys.argv[0])
+        print >> sys.stderr, "Usage: {0} [comic_folder]".format(sys.argv[0])
         return
 
     filelist = utils.get_recursive_filelist(sys.argv[1:])
@@ -46,7 +42,7 @@ def main():
     for filename in filelist:
         ca = ComicArchive(filename, settings.rar_exe_path)
         if ca.hasMetadata(style):
-            # make a list of paired filenames and metadata objects
+            # make a list of paired file names and metadata objects
             metadata_list.append((filename, ca.readMetadata(style)))
 
             max_name_len = max(max_name_len, len(filename))
@@ -55,9 +51,9 @@ def main():
             sys.stderr.flush()
 
     print >> sys.stderr, fmt_str.format("") + "\r",
-    print "-----------------------------------------------"
+    print "--------------------------------------------------------------------------"
     print "Found {0} comics with {1} tags".format(len(metadata_list), MetaDataStyle.name[style])
-    print "-----------------------------------------------"
+    print "--------------------------------------------------------------------------"
 
     # now, figure out column widths
     w0 = 4
