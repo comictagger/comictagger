@@ -42,7 +42,7 @@ Zip flakes out when filename differs from index (or whatever)  i.e "\" vs "/". P
 -----------------------------------------------------
 Big  Future Features
 -----------------------------------------------------
-Support for ACBF metatdata in CBZ
+Support for ACBF metadata in CBZ
 
 GCD scraper or DB reader
 

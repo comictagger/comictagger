@@ -1,35 +1,31 @@
 #!/usr/bin/python
 
-"""
-Comic tagger CLI functions
-"""
+"""ComicTagger CLI functions"""
 
-"""
-Copyright 2013  Anthony Beville
+# Copyright 2013 Anthony Beville
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+#     http://www.apache.org/licenses/LICENSE-2.0
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-"""
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 import sys
-import signal
 import os
-import traceback
-import time
 from pprint import pprint
 import json
-import platform
-import locale
-import codecs
+#import signal
+#import traceback
+#import time
+#import platform
+#import locale
+#import codecs
 
 filename_encoding = sys.getfilesystemencoding()
 
@@ -127,7 +123,10 @@ def display_match_set_for_choice(label, match_set, opts, settings):
             i = int(i) - 1
             # save the data!
             # we know at this point, that the file is all good to go
-            ca = ComicArchive(match_set.filename, settings.rar_exe_path, ComicTaggerSettings.getGraphic('nocover.png'))
+            ca = ComicArchive(
+                match_set.filename,
+                settings.rar_exe_path,
+                ComicTaggerSettings.getGraphic('nocover.png'))
             md = create_local_metadata(
                 opts, ca, ca.hasMetadata(opts.data_style))
             cv_md = actual_issue_data_fetch(
@@ -220,7 +219,10 @@ def process_file_cli(filename, opts, settings, match_results):
 
     batch_mode = len(opts.file_list) > 1
 
-    ca = ComicArchive(filename, settings.rar_exe_path, ComicTaggerSettings.getGraphic('nocover.png'))
+    ca = ComicArchive(
+        filename,
+        settings.rar_exe_path,
+        ComicTaggerSettings.getGraphic('nocover.png'))
 
     if not os.path.lexists(filename):
         print >> sys.stderr, "Cannot find " + filename

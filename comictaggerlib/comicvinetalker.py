@@ -1,32 +1,28 @@
-"""
-A python class to manage communication with Comic Vine's REST API
-"""
+"""A python class to manage communication with Comic Vine's REST API"""
 
-"""
-Copyright 2012-2014  Anthony Beville
+# Copyright 2012-2014 Anthony Beville
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+#     http://www.apache.org/licenses/LICENSE-2.0
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-"""
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 import json
-from pprint import pprint
 import urllib2
 import urllib
-import math
 import re
 import time
 import datetime
 import sys
+#from pprint import pprint
+#import math
 
 from bs4 import BeautifulSoup
 
@@ -50,10 +46,10 @@ except ImportError:
 
 import ctversion
 import utils
-from settings import ComicTaggerSettings
 from comicvinecacher import ComicVineCacher
 from genericmetadata import GenericMetadata
 from issuestring import IssueString
+#from settings import ComicTaggerSettings
 
 
 class CVTypeID:
@@ -433,7 +429,7 @@ class ComicVineTalker(QObject):
         else:
             return None
 
-        # now, map the comicvine data to generic metadata
+        # Now, map the Comic Vine data to generic metadata
         return self.mapCVDataToMetadata(
             volume_results, issue_results, settings)
 
@@ -447,14 +443,14 @@ class ComicVineTalker(QObject):
 
         volume_results = self.fetchVolumeData(issue_results['volume']['id'])
 
-        # now, map the comicvine data to generic metadata
+        # Now, map the Comic Vine data to generic metadata
         md = self.mapCVDataToMetadata(volume_results, issue_results, settings)
         md.isEmpty = False
         return md
 
     def mapCVDataToMetadata(self, volume_results, issue_results, settings):
 
-        # now, map the comicvine data to generic metadata
+        # Now, map the Comic Vine data to generic metadata
         metadata = GenericMetadata()
 
         metadata.series = issue_results['volume']['name']
@@ -692,7 +688,7 @@ class ComicVineTalker(QObject):
 
         alt_cover_url_list = []
 
-        # Using knowledge of the layout of the ComicVine issue page here:
+        # Using knowledge of the layout of the Comic Vine issue page here:
         # look for the divs that are in the classes 'content-pod' and
         # 'alt-cover'
         div_list = soup.find_all('div')

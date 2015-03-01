@@ -1,28 +1,24 @@
-"""
-A python class to manage caching of data from Comic Vine
-"""
+"""A python class to manage caching of data from Comic Vine"""
 
-"""
-Copyright 2012-2014  Anthony Beville
+# Copyright 2012-2014 Anthony Beville
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+#     http://www.apache.org/licenses/LICENSE-2.0
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-"""
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-from pprint import pprint
 import sqlite3 as lite
-import sys
 import os
 import datetime
+#import sys
+#from pprint import pprint
 
 import ctversion
 from settings import ComicTaggerSettings
@@ -430,12 +426,12 @@ class ComicVineCacher:
             return details
 
     def upsert(self, cur, tablename, pkname, pkval, data):
-        """
-        This does an insert if the given PK doesn't exist, and an update it if does
-        """
+        """This does an insert if the given PK doesn't exist, and an
+        update it if does
 
-        # TODO - look into checking if UPDATE is needed
-        # TODO - should the cursor be created here, and not up the stack?
+        TODO: look into checking if UPDATE is needed
+        TODO: should the cursor be created here, and not up the stack?
+        """
 
         ins_count = len(data) + 1
 

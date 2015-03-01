@@ -15,12 +15,12 @@
 ---------------------------------  
 1.1.13-beta - 9-Apr-2014
 ---------------------------------
- * Handle non-ascii usernames properly
+ * Handle non-ascii user names properly
  * better parsing of html table in summary text, and optional removal
  * Python package should auto-install requirements
  * Specify default GUI tag style on command-line
  * enforce single GUI instance
- * new CBL tranform to copy story arcs to generic tags
+ * new CBL transform to copy story arcs to generic tags
  * Persist some auto-tag settings
 
 ---------------------------------  
@@ -96,7 +96,7 @@ Bug Fixes:
 	* Fixed sequence order of ComicInfo.xml items
 
 Note:
-  New requirement for users of the python package:  "configparser"
+  New requirement for users of the python package: "configparser"
 
 ---------------------------------  
 1.1.2-beta - 14-Feb-2013
@@ -115,7 +115,7 @@ Changes:
 	* Enhanced identification process to use alternative covers from ComicVine
 	* Post auto-tag manual matching now includes single low-confidence matches (CLI & GUI)
 	* Page and cover view mini-browser available throughout app.  Most images can be
-         double-clicked for embiggened view
+         double-clicked for enlarged view
 	* Export-to-zip in CLI (very handy in scripts!)
 	* More rename template variables
 	* Misc GUI & CLI Tweaks
@@ -162,15 +162,15 @@ GUI Changes:
 0.9.5-beta - 16-Jan-2013
 ---------------------------------
 Changes:
-  Added CLI option to search by comicvine issue ID
+  Added CLI option to search by Comic Vine issue ID
   Some image loading optimizations
-  Bug Fix:  Some CBL fields that should have been ints were written as strings
+  Bug Fix: Some CBL fields that should have been ints were written as strings
 
 ---------------------------------  
 0.9.4-beta - 7-Jan-2013
 ---------------------------------
 Changes:
-  Better handling of non-ascii characters in filenames and data
+  Better handling of non-ascii characters in file names and data
   Add CBL Transform to copy Web Link and Notes to comments
   Minor bug fixes
 
@@ -182,8 +182,8 @@ Changes:
   Setting for file rename
   Option to use series start year as volume
   Added "CBL Transform" to handle primary credits copying data into the generic tags field
-  Bug Fix:  unicode characters in credits caused crash 
-  Bug Fix:  bad or non-image data in file caused crash 
+  Bug Fix: unicode characters in credits caused crash
+  Bug Fix: bad or non-image data in file caused crash
 
 Note:
   The user should clear the cache and delete the existing settings when first running this version.

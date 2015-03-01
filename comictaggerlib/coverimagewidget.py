@@ -1,44 +1,42 @@
-"""
-A PyQt4 widget display cover images from either local archive, or from ComicVine
+"""A PyQt4 widget to display cover images
 
-(TODO: This should be re-factored using subclasses!)
-"""
-from comictaggerlib.ui.qtutils import reduceWidgetFontSize, getQImageFromData
-
-"""
-Copyright 2012-2014  Anthony Beville
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+Display cover images from either a local archive, or from Comic Vine.
+TODO: This should be re-factored using subclasses!
 """
 
-import os
+# Copyright 2012-2014 Anthony Beville
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+
+#     http://www.apache.org/licenses/LICENSE-2.0
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+#import os
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from PyQt4 import uic
 
 from settings import ComicTaggerSettings
-from genericmetadata import GenericMetadata, PageType
-from comicarchive import MetaDataStyle
 from comicvinetalker import ComicVineTalker, ComicVineTalkerException
 from imagefetcher import ImageFetcher
 from pageloader import PageLoader
 from imagepopup import ImagePopup
-import utils
+from comictaggerlib.ui.qtutils import reduceWidgetFontSize, getQImageFromData
+#from genericmetadata import GenericMetadata, PageType
+#from comicarchive import MetaDataStyle
+#import utils
 
 
-# helper func to allow a label to be clickable
 def clickable(widget):
+    """# Allow a label to be clickable"""
 
     class Filter(QObject):
 
@@ -284,18 +282,17 @@ class CoverImageWidget(QWidget):
             self.setDisplayPixmap(delta_w, delta_h)
 
     def setDisplayPixmap(self, delta_w, delta_h):
-            # the deltas let us know what the new width and height of the label
-            # will be
-        """
-        new_h = self.frame.height() + delta_h
-        new_w = self.frame.width() + delta_w
-        print "ATB setDisplayPixmap deltas", delta_w , delta_h
-        print "ATB self.frame", self.frame.width(), self.frame.height()
-        print "ATB self.", self.width(), self.height()
+        """The deltas let us know what the new width and height of the label will be"""
 
-        frame_w = new_w
-        frame_h = new_h
-        """
+        #new_h = self.frame.height() + delta_h
+        #new_w = self.frame.width() + delta_w
+        # print "ATB setDisplayPixmap deltas", delta_w , delta_h
+        # print "ATB self.frame", self.frame.width(), self.frame.height()
+        # print "ATB self.", self.width(), self.height()
+
+        #frame_w = new_w
+        #frame_h = new_h
+
         new_h = self.frame.height()
         new_w = self.frame.width()
         frame_w = self.frame.width()

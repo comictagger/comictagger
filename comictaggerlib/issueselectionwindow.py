@@ -1,38 +1,34 @@
-"""
-A PyQT4 dialog to select specific issue from list
-"""
-from comictaggerlib.ui.qtutils import reduceWidgetFontSize
+"""A PyQT4 dialog to select specific issue from list"""
 
-"""
-Copyright 2012-2014  Anthony Beville
+# Copyright 2012-2014 Anthony Beville
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+#     http://www.apache.org/licenses/LICENSE-2.0
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-"""
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-import sys
-import os
-import re
+#import sys
+#import os
+#import re
 
 from PyQt4 import QtCore, QtGui, uic
-from PyQt4.QtCore import QUrl, pyqtSignal, QByteArray
-from PyQt4.QtNetwork import QNetworkAccessManager, QNetworkRequest
+#from PyQt4.QtCore import QUrl, pyqtSignal, QByteArray
+#from PyQt4.QtNetwork import QNetworkAccessManager, QNetworkRequest
 
 from comicvinetalker import ComicVineTalker, ComicVineTalkerException
-from imagefetcher import ImageFetcher
 from settings import ComicTaggerSettings
 from issuestring import IssueString
 from coverimagewidget import CoverImageWidget
-import utils
+from comictaggerlib.ui.qtutils import reduceWidgetFontSize
+#from imagefetcher import ImageFetcher
+#import utils
 
 
 class IssueNumberTableWidgetItem(QtGui.QTableWidgetItem):
@@ -115,7 +111,7 @@ class IssueSelectionWindow(QtGui.QDialog):
                 QtGui.QMessageBox.critical(
                     self,
                     self.tr("Network Issue"),
-                    self.tr("Could not connect to ComicVine to list issues!"))
+                    self.tr("Could not connect to Comic Vine to list issues!"))
             return
 
         while self.twList.rowCount() > 0:

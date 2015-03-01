@@ -4,10 +4,12 @@ This is a fork derived from google code:
 
 
 Changes in this fork:
- - using different unrar library https://pypi.python.org/pypi/unrar/. The previous one used unrar.dll on windows and hackish wrapping of
-   unrar command on linux, while this new one should use unrarlib on both platforms. From my tests
-   it is more stable and faster. *Requires unrarlib availability, check unrar module documentation for more information*.
- - extracted core libraries in its own package comicapi, shared in a new repository using git subtree for better alignment with comicstreamer
+ - using different unrar library https://pypi.python.org/pypi/unrar/. The previous one used unrar.dll on windows and
+   hackish wrapping of unrar command on linux, while this new one should use unrarlib on both platforms. From my tests
+   it is more stable and faster. *Requires unrarlib availability, check unrar module documentation for more
+   information*.
+ - extracted core libraries in its own package comicapi, shared in a new repository using git subtree for better
+   alignment with comicstreamer
  - support for *day of month* field in the GUI
  - merge of changes from fcanc fork
 
@@ -27,10 +29,11 @@ Features:
 * Batch processing in the GUI for tagging hundreds or more comics at a time
 * Reads and writes multiple tagging schemes ( ComicBookLover and ComicRack, with more planned).
 * Reads and writes RAR and Zip archives (external tools needed for writing RAR)
-* Command line interface (CLI) on all platforms (including Windows), which supports batch operations, and which can be used in native scripts for complex operations. For example, to recusrively scrape and tag all archives in a folder
+* Command line interface (CLI) on all platforms (including Windows), which supports batch operations, and which can be
+  used in native scripts for complex operations. For example, to recursively scrape and tag all archives in a folder
 	comictagger.py -R -s -o -f -t cr -v -i --nooverwrite /path/to/comics/
 
-For details, screenshots, release notes, and more, visit http://code.google.com/p/comictagger/
+For details, screen-shots, release notes, and more, visit http://code.google.com/p/comictagger/
 
 Requires:
 

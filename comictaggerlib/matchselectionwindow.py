@@ -1,36 +1,32 @@
-"""
-A PyQT4 dialog to select from automated issue matches
-"""
-from comictaggerlib.ui.qtutils import reduceWidgetFontSize
+"""A PyQT4 dialog to select from automated issue matches"""
 
-"""
-Copyright 2012-2014  Anthony Beville
+# Copyright 2012-2014 Anthony Beville
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+#     http://www.apache.org/licenses/LICENSE-2.0
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-"""
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-import sys
 import os
+#import sys
 
 from PyQt4 import QtCore, QtGui, uic
-from PyQt4.QtCore import QUrl, pyqtSignal, QByteArray
+#from PyQt4.QtCore import QUrl, pyqtSignal, QByteArray
 
-from imagefetcher import ImageFetcher
 from settings import ComicTaggerSettings
-from comicarchive import MetaDataStyle
 from coverimagewidget import CoverImageWidget
-from comicvinetalker import ComicVineTalker
-import utils
+from comictaggerlib.ui.qtutils import reduceWidgetFontSize
+#from imagefetcher import ImageFetcher
+#from comicarchive import MetaDataStyle
+#from comicvinetalker import ComicVineTalker
+#import utils
 
 
 class MatchSelectionWindow(QtGui.QDialog):
