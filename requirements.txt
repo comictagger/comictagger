@@ -1,5 +1,5 @@
 configparser
 beautifulsoup4 >= 4.1
--e git+https://github.com/matiasb/python-unrar.git@1010cf5f6fcf09a9b1fe7c958faf0167fafaa7d9#egg=unrar-master
+unrar==0.3
 natsort==3.5.2
 PyPDF2==1.24
