@@ -126,7 +126,7 @@ class ZipArchiver:
 
     def getArchiveFilenameList(self):
         try:
-            zOf = zipfile.ZipFile(self.path, 'r')
+            zf = zipfile.ZipFile(self.path, 'r')
             namelist = zf.namelist()
             zf.close()
             return namelist
