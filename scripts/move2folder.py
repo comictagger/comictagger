@@ -76,6 +76,7 @@ def main():
     print "Reading in all comics..."
     comic_list = []
     max_name_len = 2
+    fmt_str = ""
     for filename in filelist:
         ca = ComicArchive(filename, settings.rar_exe_path, ComicTaggerSettings.getGraphic('nocover.png'))
         if ca.seemsToBeAComicArchive() and ca.hasMetadata(style):
