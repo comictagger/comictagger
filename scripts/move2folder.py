@@ -77,7 +77,7 @@ def main():
     comic_list = []
     max_name_len = 2
     for filename in filelist:
-        ca = ComicArchive(filename, settings.rar_exe_path)
+        ca = ComicArchive(filename, settings.rar_exe_path, ComicTaggerSettings.getGraphic('nocover.png'))
         if ca.seemsToBeAComicArchive() and ca.hasMetadata(style):
 
             comic_list.append((filename, ca.readMetadata(style)))
