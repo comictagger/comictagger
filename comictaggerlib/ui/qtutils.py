@@ -63,7 +63,6 @@ if qt_available:
 
     try:
         from PIL import Image
-        from PIL import WebPImagePlugin
         import StringIO
         pil_available = True
     except ImportError:
