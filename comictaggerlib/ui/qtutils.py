@@ -76,11 +76,10 @@ if qt_available:
             try:
                 if pil_available:
                     #  Qt doesn't understand the format, but maybe PIL does
-                    # so try to convert the image data to uncompressed tiff
-                    # format
+                    # so try to convert the image data to PNG format
                     im = Image.open(StringIO.StringIO(image_data))
                     output = StringIO.StringIO()
-                    im.save(output, format="TIFF")
+                    im.save(output, format="PNG")
                     img.loadFromData(output.getvalue())
                     success = True
             except Exception as e:
