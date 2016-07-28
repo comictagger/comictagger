@@ -528,7 +528,7 @@ class ComicVineTalker(QObject):
         if string is None:
             return ""
         # find any tables
-        soup = BeautifulSoup(string)
+        soup = BeautifulSoup(string, "lxml")
         tables = soup.findAll('table')
 
         # remove all newlines first
@@ -684,7 +684,7 @@ class ComicVineTalker(QObject):
         return alt_cover_url_list
 
     def parseOutAltCoverUrls(self, page_html):
-        soup = BeautifulSoup(page_html)
+        soup = BeautifulSoup(page_html, "lxml")
 
         alt_cover_url_list = []
 

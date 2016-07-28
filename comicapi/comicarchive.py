@@ -645,8 +645,9 @@ class ComicArchive:
         if ComicArchive.logo_data is None:
             #fname = ComicTaggerSettings.getGraphic('nocover.png')
             fname = self.default_image_path
-            with open(fname, 'rb') as fd:
-                ComicArchive.logo_data = fd.read()
+            if fname is not None and os.path.isfile(fname):
+                with open(fname, 'rb') as fd:
+                    ComicArchive.logo_data = fd.read()
 
     def resetCache(self):
         """Clears the cached data"""
