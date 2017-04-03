@@ -15,7 +15,6 @@ dist:
 		"C:\Python27\Scripts\cxfreeze.bat" $(TAGGER_BASE)\comictagger.py --icon nsis\app.ico  
 #--base-name=Win32GUI 
 	cp -R C:\Python27\Lib\site-packages\PyQt4\plugins\imageformats $(DIST_DIR)
-	cp "$(TAGGER_SRC)\UnRAR2\UnRARDLL\unrar.dll" $(DIST_DIR)
 	cp -r "$(TAGGER_SRC)\ui" $(DIST_DIR)
 	cp -r "$(TAGGER_SRC)\graphics" $(DIST_DIR)
 	

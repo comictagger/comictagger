@@ -1,5 +1,5 @@
 configparser
 beautifulsoup4 >= 4.1
-unrar==0.3
+rarfile>=3.0
 natsort==3.5.2
 PyPDF2==1.24

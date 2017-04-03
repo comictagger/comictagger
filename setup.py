@@ -14,10 +14,9 @@ setup(name="comictagger",
       author_email="comictagger@gmail.com",
       url="http://code.google.com/p/comictagger/",
       download_url="https://pypi.python.org/packages/source/c/comictagger/comictagger-{0}.zip".format(comictaggerlib.ctversion.version),
-      packages=["comictaggerlib", "comicapi", "comicapi/UnRAR2"],
+      packages=["comictaggerlib", "comicapi"],
       package_data={
           'comictaggerlib': ['ui/*.ui', 'graphics/*'],
-          'comicapi/UnRAR2': ['UnRARDLL/*.*', 'UnRARDLL/x64/*.*'],
       },
       scripts=["comictagger.py"],
       classifiers=[
