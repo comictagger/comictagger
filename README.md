@@ -4,10 +4,7 @@ This is a fork derived from google code:
 
 
 Changes in this fork:
- - using different unrar library https://pypi.python.org/pypi/unrar/. The previous one used unrar.dll on windows and
-   hackish wrapping of unrar command on linux, while this new one should use unrarlib on both platforms. From my tests
-   it is more stable and faster. *Requires unrarlib availability, check unrar module documentation for more
-   information*.
+ - Updated to use rarfile as it has been more recently maintained
  - extracted core libraries in its own package comicapi, shared in a new repository using git subtree for better
    alignment with comicstreamer
  - support for *day of month* field in the GUI
