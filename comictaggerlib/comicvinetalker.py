@@ -21,6 +21,7 @@ import re
 import time
 import datetime
 import sys
+import ssl
 #from pprint import pprint
 #import math
 
@@ -184,7 +185,8 @@ class ComicVineTalker(QObject):
         # print "ATB---", url
         for tries in range(3):
             try:
-                resp = urllib2.urlopen(url)
+                context = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
+                resp = urllib2.urlopen(url, context=context)
                 return resp.read()
             except urllib2.HTTPError as e:
                 if e.getcode() == 500:
