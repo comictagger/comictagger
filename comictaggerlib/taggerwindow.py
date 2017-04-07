@@ -279,7 +279,8 @@ class TaggerWindow(QtGui.QMainWindow):
             self.settings.ask_about_usage_stats = False
 
         if self.settings.check_for_new_version:
-            self.checkLatestVersionOnline()
+            #self.checkLatestVersionOnline()
+            pass
 
     def sigint_handler(self, *args):
         # defer the actual close in the app loop thread

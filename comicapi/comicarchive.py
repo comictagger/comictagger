@@ -30,11 +30,13 @@ import StringIO
 
 from natsort import natsorted
 from PyPDF2 import PdfFileReader
-from unrar import rarfile
-from unrar import unrarlib
-from unrar import constants
-#import UnRAR2
-#from UnRAR2.rar_exceptions import *
+try:
+    from unrar import rarfile
+    from unrar import unrarlib
+    from unrar import constants
+except:
+    print "WARNING: cannot find libunrar, rar support is disabled"
+    pass
 
 if platform.system() == "Windows":
     import _subprocess
