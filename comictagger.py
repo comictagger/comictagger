@@ -14,9 +14,6 @@ else:
 if not os.environ.get("UNRAR_LIB_PATH", None):
     os.environ["UNRAR_LIB_PATH"] = bundle_dir + "/libunrar.so"
 
-print os.environ.get("UNRAR_LIB_PATH", None)
-print bundle_dir    
-
 from comictaggerlib.main import ctmain
 
 if __name__ == '__main__':
