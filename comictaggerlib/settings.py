@@ -37,20 +37,14 @@ class ComicTaggerSettings:
             folder = folder.decode(filename_encoding)
         return folder
 
-    frozen_win_exe_path = None
+    @staticmethod
+    def libunrarPath():
+        return ComicTaggerSettings.baseDir() + "/libunrar.so"
 
     @staticmethod
     def baseDir():
         if getattr(sys, 'frozen', None):
-            if platform.system() == "Darwin":
-                return sys._MEIPASS
-            else:  # Windows
-                # Preserve this value, in case sys.argv gets changed importing
-                # a plugin script
-                if ComicTaggerSettings.frozen_win_exe_path is None:
-                    ComicTaggerSettings.frozen_win_exe_path = os.path.dirname(
-                        os.path.abspath(sys.argv[0]))
-                return ComicTaggerSettings.frozen_win_exe_path
+            return sys._MEIPASS
         else:
             return os.path.dirname(os.path.abspath(__file__))
 

@@ -1,6 +1,8 @@
 # This Makefile expects that certain GNU utils are available:
 # rm, cp, grep, cut, cat
 
+# Install pyqt4 from https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyqt4
+
 HOMEPATH ?= $(HOME)
 TAGGER_BASE?= $(HOMEPATH)/Dropbox/tagger/comictagger
 TAGGER_SRC := $(TAGGER_BASE)/comictaggerlib
