@@ -21,6 +21,7 @@ import re
 import time
 import datetime
 import sys
+import ssl
 #from pprint import pprint
 #import math
 
@@ -90,7 +91,7 @@ class ComicVineTalker(QObject):
     def __init__(self):
         QObject.__init__(self)
 
-        self.api_base_url = "http://www.comicvine.com/api"
+        self.api_base_url = "https://comicvine.gamespot.com/api"
         self.wait_for_rate_limit = False
 
         # key that is registered to comictagger
@@ -102,6 +103,9 @@ class ComicVineTalker(QObject):
             self.api_key = ComicVineTalker.api_key
 
         self.log_func = None
+
+        # always use a tls context for urlopen
+        self.ssl = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
 
     def setLogFunc(self, log_func):
         self.log_func = log_func
@@ -131,7 +135,7 @@ class ComicVineTalker(QObject):
 
         test_url = self.api_base_url + "/issue/1/?api_key=" + \
             key + "&format=json&field_list=name"
-        resp = urllib2.urlopen(test_url)
+        resp = urllib2.urlopen(test_url, context=self.ssl)
         content = resp.read()
 
         cv_response = json.loads(content)
@@ -184,7 +188,7 @@ class ComicVineTalker(QObject):
         # print "ATB---", url
         for tries in range(3):
             try:
-                resp = urllib2.urlopen(url)
+                resp = urllib2.urlopen(url, context=self.ssl)
                 return resp.read()
             except urllib2.HTTPError as e:
                 if e.getcode() == 500:
@@ -674,7 +678,7 @@ class ComicVineTalker(QObject):
             return url_list
 
         # scrape the CV issue page URL to get the alternate cover URLs
-        resp = urllib2.urlopen(issue_page_url)
+        resp = urllib2.urlopen(issue_page_url, context=self.ssl)
         content = resp.read()
         alt_cover_url_list = self.parseOutAltCoverUrls(content)
 

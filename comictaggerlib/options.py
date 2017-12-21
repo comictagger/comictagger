@@ -344,14 +344,6 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
                     "ComicTagger {0}:  Copyright (c) 2012-2014 Anthony Beville".format(ctversion.version))
                 print(
                     "Distributed under Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)")
-                new_version = VersionChecker().getLatestVersion("", False)
-                if new_version is not None and new_version != ctversion.version:
-                    print(
-                        "--------------------------------------------------------------------------")
-                    print(
-                        "New version available online: {0}".format(new_version))
-                    print(
-                        "--------------------------------------------------------------------------")
                 sys.exit(0)
             if o in ("-t", "--type"):
                 if a.lower() == "cr":

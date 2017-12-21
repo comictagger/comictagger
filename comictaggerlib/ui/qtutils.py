@@ -80,9 +80,8 @@ if qt_available:
                     # format
                     im = Image.open(StringIO.StringIO(image_data))
                     output = StringIO.StringIO()
-                    im.save(output, format="TIFF")
-                    img.loadFromData(output.getvalue())
-                    success = True
+                    im.save(output, format="PNG")
+                    success = img.loadFromData(output.getvalue())
             except Exception as e:
                 pass
         # if still nothing, go with default image

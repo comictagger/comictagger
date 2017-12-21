@@ -28,7 +28,7 @@ import pickle
 
 from PyQt4 import QtCore, QtGui, uic
 from PyQt4 import QtNetwork
-#from PyQt4.QtCore import QUrl, pyqtSignal
+from PyQt4.QtCore import QString, QUrl
 
 #from comicarchive import ComicArchive
 #from pageloader import PageLoader
@@ -279,7 +279,8 @@ class TaggerWindow(QtGui.QMainWindow):
             self.settings.ask_about_usage_stats = False
 
         if self.settings.check_for_new_version:
-            self.checkLatestVersionOnline()
+            #self.checkLatestVersionOnline()
+            pass
 
     def sigint_handler(self, *args):
         # defer the actual close in the app loop thread
@@ -584,10 +585,40 @@ class TaggerWindow(QtGui.QMainWindow):
                 if url.isValid() and url.scheme() == "file":
                     if self.droppedFiles is None:
                         self.droppedFiles = []
-                    self.droppedFiles.append(url.toLocalFile())
+                    self.droppedFiles.append(self.getUrlFromLocalFileID(url))
 
             if self.droppedFiles is not None:
                 event.accept()
+
+    # http://stackoverflow.com/questions/34689562/pyqt-mimedata-filename
+    def getUrlFromLocalFileID(self, localFileID):
+        import sys
+        if not sys.platform == 'darwin':
+            return localFileID.toLocalFile()
+
+        import objc
+        import CoreFoundation as CF
+        localFileQString = QString(localFileID.toLocalFile())
+        relCFStringRef = CF.CFStringCreateWithCString(
+            CF.kCFAllocatorDefault,
+            localFileQString.toUtf8(),
+            CF.kCFStringEncodingUTF8
+            )
+        relCFURL = CF.CFURLCreateWithFileSystemPath(
+            CF.kCFAllocatorDefault,
+            relCFStringRef,
+            CF.kCFURLPOSIXPathStyle,
+            False  # is directory
+            )
+        absCFURL = CF.CFURLCreateFilePathURL(
+            CF.kCFAllocatorDefault,
+            relCFURL,
+            objc.NULL
+            )
+
+        local = QUrl(str(absCFURL[0])).toLocalFile()
+        
+        return local
 
     def dropEvent(self, event):
         # if self.dirtyFlagVerification("Open Archive",

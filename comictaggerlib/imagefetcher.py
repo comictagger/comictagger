@@ -20,6 +20,7 @@ import datetime
 import shutil
 import tempfile
 import urllib
+import ssl
 #import urllib2
 
 try:
@@ -65,6 +66,9 @@ class ImageFetcher(QObject):
         if not os.path.exists(self.db_file):
             self.create_image_db()
 
+        # always use a tls context for urlopen
+        self.ssl = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
+
     def clearCache(self):
         os.unlink(self.db_file)
         if os.path.isdir(self.cache_folder):
@@ -87,7 +91,7 @@ class ImageFetcher(QObject):
         if blocking:
             if image_data is None:
                 try:
-                    image_data = urllib.urlopen(url).read()
+                    image_data = urllib.urlopen(url, context=self.ssl).read()
                 except Exception as e:
                     print(e)
                     raise ImageFetcherException("Network Error!")
