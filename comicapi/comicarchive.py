@@ -117,6 +117,7 @@ class ZipArchiver:
             zf = zipfile.ZipFile(
                 self.path,
                 mode='a',
+                allowZip64=True,
                 compression=zipfile.ZIP_DEFLATED)
             zf.writestr(archive_file, data)
             zf.close()
@@ -149,7 +150,7 @@ class ZipArchiver:
         os.close(tmp_fd)
 
         zin = zipfile.ZipFile(self.path, 'r')
-        zout = zipfile.ZipFile(tmp_name, 'w')
+        zout = zipfile.ZipFile(tmp_name, 'w', allowZip64=True)
         for item in zin.infolist():
             buffer = zin.read(item.filename)
             if (item.filename not in exclude_list):
@@ -234,7 +235,7 @@ class ZipArchiver:
         """Replace the current zip with one copied from another archive"""
 
         try:
-            zout = zipfile.ZipFile(self.path, 'w')
+            zout = zipfile.ZipFile(self.path, 'w', allowZip64=True)
             for fname in otherArchive.getArchiveFilenameList():
                 data = otherArchive.readArchiveFile(fname)
                 if data is not None:
