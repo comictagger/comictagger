@@ -10,10 +10,9 @@ clean:
 	rm -rf dist MANIFEST
 	rm -rf *.deb
 	rm -rf logdict*.log
-	make -C mac clean
-	make -C windows clean
+	$(MAKE) -C mac clean   
 	rm -rf build
-	make -C unrar clean
+	$(MAKE) -C unrar clean
 
 pydist:
 	mkdir -p release
@@ -25,6 +24,9 @@ upload:
 	python setup.py register
 	python setup.py sdist --formats=zip upload
 
-.PHONY: unrar
+.PHONY: unrar dist
 unrar:
-	make -C unrar lib
+	$(MAKE) -C unrar lib
+
+dist: unrar
+	pyinstaller comictagger.spec
