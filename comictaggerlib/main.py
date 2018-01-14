@@ -14,11 +14,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 import sys
 import signal
 import traceback
 import platform
-#import os
+
+from settings import ComicTaggerSettings
+
+# setup libunrar
+if not os.environ.get("UNRAR_LIB_PATH", None):
+    os.environ["UNRAR_LIB_PATH"] = ComicTaggerSettings.libunrarPath()
 
 try:
     qt_available = True
@@ -29,10 +35,8 @@ except ImportError as e:
 
 import utils
 import cli
-from settings import ComicTaggerSettings
 from options import Options
 from comicvinetalker import ComicVineTalker
-
 
 def ctmain():
     utils.fix_output_encoding()

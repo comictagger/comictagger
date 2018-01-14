@@ -34,6 +34,37 @@ try:
     from unrar import rarfile
     from unrar import unrarlib
     from unrar import constants
+    # monkey patch unrarlib to avoid segfaults on Win10
+    if platform.system() == 'Windows':
+        unrarlib.UNRARCALLBACK = ctypes.WINFUNCTYPE(
+            # return type
+            ctypes.c_int,
+            # msg
+            ctypes.c_uint,
+            # UserData
+            ctypes.c_long,
+            # MONKEY PATCH HERE -- use a pointer instead of a long, in unrar code: (LPARAM)(*byte), 
+            # that is a pointer to byte casted to LPARAM
+            # On win10 64bit causes nasty segfaults when used from pyinstaller
+            ctypes.POINTER(ctypes.c_byte),
+            # size
+            ctypes.c_long
+        )
+        RARSetCallback = unrarlib._c_func(unrarlib.RARSetCallback, None,
+                         [unrarlib.HANDLE, unrarlib.UNRARCALLBACK, ctypes.c_long])
+        def _rar_cb(self, msg, user_data, p1, p2):
+            if (msg == constants.UCM_NEEDPASSWORD or
+                msg == constants.UCM_NEEDPASSWORDW):
+                # This is a work around since libunrar doesn't
+                # properly return the error code when files are encrypted
+                self._missing_password = True
+            elif msg == constants.UCM_PROCESSDATA:
+                if self._data is None:
+                    self._data = b''
+                chunk = ctypes.string_at(p1, p2)
+                self._data += chunk
+            return 1
+        rarfile._ReadIntoMemory._callback = _rar_cb
 except:
     print "WARNING: cannot find libunrar, rar support is disabled"
     pass
