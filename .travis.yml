@@ -1,0 +1,15 @@
+language: python
+os: osx
+before_install:
+  # install macports
+  - export COLUMNS=80
+  - curl -LO https://raw.githubusercontent.com/GiovanniBussi/macports-ci/master/macports-ci
+  - chmod +x ./macports-ci
+  - ./macports-ci install
+  - PATH="/opt/local/bin:$PATH"
+  - port install py27-pyqt4
+install:
+  - pip install -r requirements.txt
+script:
+  - make dist
+  - ls -l dist
