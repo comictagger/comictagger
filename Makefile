@@ -52,4 +52,4 @@ endif
 
 dist: unrar
 	pyinstaller -y comictagger.spec
-	mv dist/$(APP_NAME) dist/$(FINAL_NAME)
+	mv dist/$(APP_NAME) dßist/$(FINAL_NAME)
