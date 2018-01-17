@@ -1,0 +1,6 @@
+version: 1.0.{build}
+build_script:
+- cmd: powershell -exec bypass -File windows\fullbuild.ps1
+artifacts:
+- path: dist\*.exe
+  name: ComicTagger

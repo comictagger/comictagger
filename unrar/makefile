@@ -8,13 +8,7 @@ LIBFLAGS=-fPIC
 DEFINES=-D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -DRAR_SMP
 STRIP=strip
 AR=ar
-ifeq ($(OS),Windows_NT)
-	# statically compile mingw dependencies
-	# https://stackoverflow.com/questions/18138635/mingw-exe-requires-a-few-gcc-dlls-regardless-of-the-code
-	LDFLAGS=-Wl,-Bstatic,--whole-archive -lwinpthread -Wl,--no-whole-archive -pthread -static-libgcc -static-libstdc++
-else
-	LDFLAGS=-pthread
-endif
+LDFLAGS=-pthread
 DESTDIR=/usr
 
 # Linux using LCC
