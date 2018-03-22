@@ -223,17 +223,10 @@ class ComicVineTalker(QObject):
 
         original_series_name = series_name
 
-        # We need to make the series name into an "AND"ed query list
+	# Split and rejoin to remove extra internal spaces
         query_word_list = series_name.split()
-        and_list = ['AND'] * (len(query_word_list) - 1)
-        and_list.append('')
-        # zipper up the two lists
-        query_list = zip(query_word_list, and_list)
-        # flatten the list
-        query_list = [item for sublist in query_list for item in sublist]
-        # convert back to a string
-        query_string = " ".join(query_list).strip()
-        # print "Query string = ", query_string
+        query_string = " ".join( query_word_list ).strip()
+        #print "Query string = ", query_string
 
         query_string = urllib.quote_plus(query_string.encode("utf-8"))
 
@@ -532,7 +525,7 @@ class ComicVineTalker(QObject):
         if string is None:
             return ""
         # find any tables
-        soup = BeautifulSoup(string)
+        soup = BeautifulSoup(string, "html.parser")
         tables = soup.findAll('table')
 
         # remove all newlines first
@@ -688,7 +681,7 @@ class ComicVineTalker(QObject):
         return alt_cover_url_list
 
     def parseOutAltCoverUrls(self, page_html):
-        soup = BeautifulSoup(page_html)
+        soup = BeautifulSoup(page_html, "html.parser")
 
         alt_cover_url_list = []
 
