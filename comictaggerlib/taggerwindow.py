@@ -472,7 +472,9 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 "", "Cancel", 0, rar_count, self)
             progdialog.setWindowTitle("Exporting as ZIP")
             progdialog.setWindowModality(QtCore.Qt.ApplicationModal)
-            progdialog.show()
+            progdialog.setMinimumDuration(300)
+            centerWindowOnParent(progdialog)
+            QtCore.QCoreApplication.processEvents()
             prog_idx = 0
 
             new_archives_to_add = []
@@ -518,8 +520,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
                             if os.path.lexists(export_name):
                                 os.remove(export_name)
 
-            progdialog.close()
-
+            progdialog.hide()
+            QtCore.QCoreApplication.processEvents()
             self.fileSelectionList.addPathList(new_archives_to_add)
             self.fileSelectionList.removeArchiveList(archives_to_remove)
 
@@ -1578,7 +1580,11 @@ class TaggerWindow(QtWidgets.QMainWindow):
                     "", "Cancel", 0, has_md_count, self)
                 progdialog.setWindowTitle("Removing Tags")
                 progdialog.setWindowModality(QtCore.Qt.ApplicationModal)
-                progdialog.show()
+                progdialog.setMinimumDuration(300)
+                centerWindowOnParent(progdialog)
+                QtCore.QCoreApplication.processEvents()
+                #progdialog.show()
+
                 prog_idx = 0
 
                 failed_list = []
@@ -1601,7 +1607,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
                             success_count += 1
                         ca.loadCache([MetaDataStyle.CBI, MetaDataStyle.CIX])
 
-                progdialog.close()
+                progdialog.hide()
+                QtCore.QCoreApplication.processEvents()
                 self.fileSelectionList.updateSelectedRows()
                 self.updateInfoBox()
                 self.updateMenus()
@@ -1670,7 +1677,9 @@ class TaggerWindow(QtWidgets.QMainWindow):
                     "", "Cancel", 0, has_src_count, self)
                 progdialog.setWindowTitle("Copying Tags")
                 progdialog.setWindowModality(QtCore.Qt.ApplicationModal)
-                progdialog.show()
+                progdialog.setMinimumDuration(300)
+                centerWindowOnParent(progdialog)
+                QtCore.QCoreApplication.processEvents()
                 prog_idx = 0
 
                 failed_list = []
@@ -1699,7 +1708,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
                         ca.loadCache([MetaDataStyle.CBI, MetaDataStyle.CIX])
 
-                progdialog.close()
+                progdialog.hide()
+                QtCore.QCoreApplication.processEvents()
                 self.fileSelectionList.updateSelectedRows()
                 self.updateInfoBox()
                 self.updateMenus()

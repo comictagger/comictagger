@@ -190,25 +190,22 @@ class FileSelectionList(QWidget):
         # we now have a list of files to add
 
         # Prog dialog on Linux flakes out for small range, so scale up
-        progdialog = QProgressDialog("", "Cancel", 1, len(filelist)+2, self)
+        progdialog = QProgressDialog("", "Cancel", 0, len(filelist), parent=self)
         progdialog.setWindowTitle("Adding Files")
-        #progdialog.setWindowModality(Qt.WindowModal)
         progdialog.setWindowModality(Qt.ApplicationModal)
-        progdialog.setAutoReset(False)
-        progdialog.setAutoClose(False)
-        #progdialog.setMinimumDuration(200)
-        progdialog.show()
+        progdialog.setMinimumDuration(300)
+        centerWindowOnParent(progdialog)
+        #QCoreApplication.processEvents()
+        #progdialog.show()
         
         QCoreApplication.processEvents()
-        import time
         firstAdded = None
         self.twList.setSortingEnabled(False)
         for idx, f in enumerate(filelist):
             QCoreApplication.processEvents()
             if progdialog.wasCanceled():
                 break
-            print("ATB setting index", idx+1)
-            progdialog.setValue(idx)
+            progdialog.setValue(idx+1)
             progdialog.setLabelText(f)
             centerWindowOnParent(progdialog)
             QCoreApplication.processEvents()
@@ -216,8 +213,8 @@ class FileSelectionList(QWidget):
             if firstAdded is None and row is not None:
                 firstAdded = row
  
-        progdialog.setValue(len(filelist)-1)    
-        progdialog.close()
+        progdialog.hide()
+        QCoreApplication.processEvents()
 
         if (self.settings.show_no_unrar_warning and
                 self.settings.unrar_exe_path == "" and

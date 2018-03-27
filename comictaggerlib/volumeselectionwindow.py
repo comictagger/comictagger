@@ -31,7 +31,7 @@ from .progresswindow import IDProgressWindow
 from .settings import ComicTaggerSettings
 from .matchselectionwindow import MatchSelectionWindow
 from .coverimagewidget import CoverImageWidget
-from comictaggerlib.ui.qtutils import reduceWidgetFontSize
+from comictaggerlib.ui.qtutils import reduceWidgetFontSize, centerWindowOnParent
 #from imagefetcher import ImageFetcher
 #import utils
 
@@ -113,6 +113,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
                             QtCore.Qt.WindowMaximizeButtonHint)
 
         self.settings = settings
+        self.parent = parent
         self.series_name = series_name
         self.issue_number = issue_number
         self.year = year
@@ -287,20 +288,17 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
     def performQuery(self, refresh=False):
 
         self.progdialog = QtWidgets.QProgressDialog(
-            "Searching Online", "Cancel", 0, 1, self)
+            "Searching Online", "Cancel", 0, 100, self)
         self.progdialog.setWindowTitle("Online Search")
         self.progdialog.canceled.connect(self.searchCanceled)
         self.progdialog.setModal(True)
-        self.progdialog.setAutoReset(False)
-        self.progdialog.setAutoClose(False)
-        
+        self.progdialog.setMinimumDuration(300)
+        QtCore.QCoreApplication.processEvents()        
         self.search_thread = SearchThread(self.series_name, refresh)
         self.search_thread.searchComplete.connect(self.searchComplete)
         self.search_thread.progressUpdate.connect(self.searchProgressUpdate)
         self.search_thread.start()
-        self.progdialog.setValue(10)
         self.progdialog.exec_()
-        QtCore.QCoreApplication.processEvents()
 
     def searchCanceled(self):
         print("query cancelled")
@@ -319,10 +317,8 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
         self.progdialog.setValue(current+1)
 
     def searchComplete(self):
-        self.progdialog.setValue(self.progdialog.maximum())
-        self.progdialog.hide()
-
         self.progdialog.accept()
+        del self.progdialog
         QtCore.QCoreApplication.processEvents()
         if self.search_thread.cv_error:
             if self.search_thread.error_code == ComicVineTalkerException.RateLimit:
