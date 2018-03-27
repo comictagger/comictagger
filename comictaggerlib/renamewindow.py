@@ -16,16 +16,16 @@
 
 import os
 
-from PyQt4 import QtCore, QtGui, uic
+from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
-from settings import ComicTaggerSettings
-from settingswindow import SettingsWindow
-from filerenamer import FileRenamer
-from comicarchive import MetaDataStyle
-import utils
+from .settings import ComicTaggerSettings
+from .settingswindow import SettingsWindow
+from .filerenamer import FileRenamer
+from .comicarchive import MetaDataStyle
+from . import utils
 
 
-class RenameWindow(QtGui.QDialog):
+class RenameWindow(QtWidgets.QDialog):
 
     def __init__(self, parent, comic_archive_list, data_style, settings):
         super(RenameWindow, self).__init__(parent)
@@ -79,9 +79,9 @@ class RenameWindow(QtGui.QDialog):
 
             row = self.twList.rowCount()
             self.twList.insertRow(row)
-            folder_item = QtGui.QTableWidgetItem()
-            old_name_item = QtGui.QTableWidgetItem()
-            new_name_item = QtGui.QTableWidgetItem()
+            folder_item = QtWidgets.QTableWidgetItem()
+            old_name_item = QtWidgets.QTableWidgetItem()
+            new_name_item = QtWidgets.QTableWidgetItem()
 
             item_text = os.path.split(ca.path)[0]
             folder_item.setFlags(
@@ -128,11 +128,13 @@ class RenameWindow(QtGui.QDialog):
 
     def accept(self):
 
-        progdialog = QtGui.QProgressDialog(
+        progdialog = QtWidgets.QProgressDialog(
             "", "Cancel", 0, len(self.rename_list), self)
         progdialog.setWindowTitle("Renaming Archives")
         progdialog.setWindowModality(QtCore.Qt.WindowModal)
-        progdialog.show()
+        progdialog.setMinimumDuration(100)
+        #progdialog.show()
+
 
         for idx, item in enumerate(self.rename_list):
 
@@ -144,7 +146,7 @@ class RenameWindow(QtGui.QDialog):
             progdialog.setLabelText(item['new_name'])
 
             if item['new_name'] == os.path.basename(item['archive'].path):
-                print item['new_name'], "Filename is already good!"
+                print(item['new_name'], "Filename is already good!")
                 continue
 
             if not item['archive'].isWritable(check_rar_status=False):
@@ -160,4 +162,4 @@ class RenameWindow(QtGui.QDialog):
 
         progdialog.close()
 
-        QtGui.QDialog.accept(self)
+        QtWidgets.QDialog.accept(self)

@@ -17,13 +17,13 @@
 import platform
 import os
 
-from PyQt4 import QtCore, QtGui, uic
+from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
-from settings import ComicTaggerSettings
-from comicvinecacher import ComicVineCacher
-from comicvinetalker import ComicVineTalker
-from imagefetcher import ImageFetcher
-import utils
+from .settings import ComicTaggerSettings
+from .comicvinecacher import ComicVineCacher
+from .comicvinetalker import ComicVineTalker
+from .imagefetcher import ImageFetcher
+from . import utils
 
 
 windowsRarHelp = """
@@ -51,7 +51,7 @@ macRarHelp = """
                 """
 
 
-class SettingsWindow(QtGui.QDialog):
+class SettingsWindow(QtWidgets.QDialog):
 
     def __init__(self, parent, settings):
         super(SettingsWindow, self).__init__(parent)
@@ -195,7 +195,7 @@ class SettingsWindow(QtGui.QDialog):
         self.settings.use_series_start_as_volume = self.cbxUseSeriesStartAsVolume.isChecked()
         self.settings.clear_form_before_populating_from_cv = self.cbxClearFormBeforePopulating.isChecked()
         self.settings.remove_html_tables = self.cbxRemoveHtmlTables.isChecked()
-        self.settings.cv_api_key = unicode(self.leKey.text())
+        self.settings.cv_api_key = str(self.leKey.text())
         ComicVineTalker.api_key = self.settings.cv_api_key
         self.settings.assume_lone_credit_is_primary = self.cbxAssumeLoneCreditIsPrimary.isChecked()
         self.settings.copy_characters_to_tags = self.cbxCopyCharactersToTags.isChecked()
@@ -214,7 +214,7 @@ class SettingsWindow(QtGui.QDialog):
         self.settings.rename_extension_based_on_archive = self.cbxChangeExtension.isChecked()
 
         self.settings.save()
-        QtGui.QDialog.accept(self)
+        QtWidgets.QDialog.accept(self)
 
     def selectRar(self):
         self.selectFile(self.leRarExePath, "RAR")
@@ -225,21 +225,21 @@ class SettingsWindow(QtGui.QDialog):
     def clearCache(self):
         ImageFetcher().clearCache()
         ComicVineCacher().clearCache()
-        QtGui.QMessageBox.information(
+        QtWidgets.QMessageBox.information(
             self, self.name, "Cache has been cleared.")
 
     def testAPIKey(self):
-        if ComicVineTalker().testKey(unicode(self.leKey.text())):
-            QtGui.QMessageBox.information(
+        if ComicVineTalker().testKey(str(self.leKey.text())):
+            QtWidgets.QMessageBox.information(
                 self, "API Key Test", "Key is valid!")
         else:
-            QtGui.QMessageBox.warning(
+            QtWidgets.QMessageBox.warning(
                 self, "API Key Test", "Key is NOT valid.")
 
     def resetSettings(self):
         self.settings.reset()
         self.settingsToForm()
-        QtGui.QMessageBox.information(
+        QtWidgets.QMessageBox.information(
             self,
             self.name,
             self.name +
@@ -247,8 +247,8 @@ class SettingsWindow(QtGui.QDialog):
 
     def selectFile(self, control, name):
 
-        dialog = QtGui.QFileDialog(self)
-        dialog.setFileMode(QtGui.QFileDialog.ExistingFile)
+        dialog = QtWidgets.QFileDialog(self)
+        dialog.setFileMode(QtWidgets.QFileDialog.ExistingFile)
 
         if platform.system() == "Windows":
             if name == "RAR":

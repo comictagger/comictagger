@@ -18,19 +18,19 @@
 #import time
 #import os
 
-from PyQt4 import QtCore, QtGui, uic
-from PyQt4.QtCore import QUrl, pyqtSignal
+from PyQt5 import QtCore, QtGui, QtWidgets, uic
+from PyQt5.QtCore import QUrl, pyqtSignal
 #from PyQt4.QtCore import QObject
 #from PyQt4.QtNetwork import QNetworkAccessManager, QNetworkRequest
 
-from comicvinetalker import ComicVineTalker, ComicVineTalkerException
-from issueselectionwindow import IssueSelectionWindow
-from issueidentifier import IssueIdentifier
-from genericmetadata import GenericMetadata
-from progresswindow import IDProgressWindow
-from settings import ComicTaggerSettings
-from matchselectionwindow import MatchSelectionWindow
-from coverimagewidget import CoverImageWidget
+from .comicvinetalker import ComicVineTalker, ComicVineTalkerException
+from .issueselectionwindow import IssueSelectionWindow
+from .issueidentifier import IssueIdentifier
+from .genericmetadata import GenericMetadata
+from .progresswindow import IDProgressWindow
+from .settings import ComicTaggerSettings
+from .matchselectionwindow import MatchSelectionWindow
+from .coverimagewidget import CoverImageWidget
 from comictaggerlib.ui.qtutils import reduceWidgetFontSize
 #from imagefetcher import ImageFetcher
 #import utils
@@ -90,7 +90,7 @@ class IdentifyThread(QtCore.QThread):
         self.identifyComplete.emit()
 
 
-class VolumeSelectionWindow(QtGui.QDialog):
+class VolumeSelectionWindow(QtWidgets.QDialog):
 
     def __init__(self, parent, series_name, issue_number, year, issue_count,
                  cover_index_list, comic_archive, settings, autoselect=False):
@@ -101,7 +101,7 @@ class VolumeSelectionWindow(QtGui.QDialog):
 
         self.imageWidget = CoverImageWidget(
             self.imageContainer, CoverImageWidget.URLMode)
-        gridlayout = QtGui.QGridLayout(self.imageContainer)
+        gridlayout = QtWidgets.QGridLayout(self.imageContainer)
         gridlayout.addWidget(self.imageWidget)
         gridlayout.setContentsMargins(0, 0, 0, 0)
 
@@ -144,7 +144,7 @@ class VolumeSelectionWindow(QtGui.QDialog):
         self.btnRequery.setEnabled(enabled)
         self.btnIssues.setEnabled(enabled)
         self.btnAutoSelect.setEnabled(enabled)
-        self.buttonBox.button(QtGui.QDialogButtonBox.Ok).setEnabled(enabled)
+        self.buttonBox.button(QtWidgets.QDialogButtonBox.Ok).setEnabled(enabled)
 
     def requery(self,):
         self.performQuery(refresh=True)
@@ -153,12 +153,12 @@ class VolumeSelectionWindow(QtGui.QDialog):
     def autoSelect(self):
 
         if self.comic_archive is None:
-            QtGui.QMessageBox.information(
+            QtWidgets.QMessageBox.information(
                 self, "Auto-Select", "You need to load a comic first!")
             return
 
         if self.issue_number is None or self.issue_number == "":
-            QtGui.QMessageBox.information(
+            QtWidgets.QMessageBox.information(
                 self,
                 "Auto-Select",
                 "Can't auto-select without an issue number (yet!)")
@@ -192,7 +192,7 @@ class VolumeSelectionWindow(QtGui.QDialog):
         self.iddialog.exec_()
 
     def logIDOutput(self, text):
-        print unicode(text),
+        print(str(text), end=' ')
         self.iddialog.textEdit.ensureCursorVisible()
         self.iddialog.textEdit.insertPlainText(text)
 
@@ -212,22 +212,22 @@ class VolumeSelectionWindow(QtGui.QDialog):
         found_match = None
         choices = False
         if result == self.ii.ResultNoMatches:
-            QtGui.QMessageBox.information(
+            QtWidgets.QMessageBox.information(
                 self, "Auto-Select Result", " No matches found :-(")
         elif result == self.ii.ResultFoundMatchButBadCoverScore:
-            QtGui.QMessageBox.information(
+            QtWidgets.QMessageBox.information(
                 self,
                 "Auto-Select Result",
                 " Found a match, but cover doesn't seem the same.  Verify before commiting!")
             found_match = matches[0]
         elif result == self.ii.ResultFoundMatchButNotFirstPage:
-            QtGui.QMessageBox.information(
+            QtWidgets.QMessageBox.information(
                 self,
                 "Auto-Select Result",
                 " Found a match, but not with the first page of the archive.")
             found_match = matches[0]
         elif result == self.ii.ResultMultipleMatchesWithBadImageScores:
-            QtGui.QMessageBox.information(
+            QtWidgets.QMessageBox.information(
                 self,
                 "Auto-Select Result",
                 " Found some possibilities, but no confidence. Proceed manually.")
@@ -235,7 +235,7 @@ class VolumeSelectionWindow(QtGui.QDialog):
         elif result == self.ii.ResultOneGoodMatch:
             found_match = matches[0]
         elif result == self.ii.ResultMultipleGoodMatches:
-            QtGui.QMessageBox.information(
+            QtWidgets.QMessageBox.information(
                 self,
                 "Auto-Select Result",
                 " Found multiple likely matches.  Please select.")
@@ -264,7 +264,7 @@ class VolumeSelectionWindow(QtGui.QDialog):
         for record in self.cv_search_results:
             if record['id'] == self.volume_id:
                 title = record['name']
-                title += " (" + unicode(record['start_year']) + ")"
+                title += " (" + str(record['start_year']) + ")"
                 title += " - "
                 break
 
@@ -279,27 +279,28 @@ class VolumeSelectionWindow(QtGui.QDialog):
 
     def selectByID(self):
         for r in range(0, self.twList.rowCount()):
-            volume_id, b = self.twList.item(
-                r, 0).data(QtCore.Qt.UserRole).toInt()
+            volume_id = self.twList.item(r, 0).data(QtCore.Qt.UserRole)
             if (volume_id == self.volume_id):
                 self.twList.selectRow(r)
                 break
 
     def performQuery(self, refresh=False):
 
-        self.progdialog = QtGui.QProgressDialog(
-            "Searching Online", "Cancel", 0, 100, self)
+        self.progdialog = QtWidgets.QProgressDialog(
+            "Searching Online", "Cancel", 0, 1, self)
         self.progdialog.setWindowTitle("Online Search")
         self.progdialog.canceled.connect(self.searchCanceled)
         self.progdialog.setModal(True)
-
+        self.progdialog.setAutoReset(False)
+        self.progdialog.setAutoClose(False)
+        
         self.search_thread = SearchThread(self.series_name, refresh)
         self.search_thread.searchComplete.connect(self.searchComplete)
         self.search_thread.progressUpdate.connect(self.searchProgressUpdate)
         self.search_thread.start()
-
-        # QtCore.QCoreApplication.processEvents()
+        self.progdialog.setValue(10)
         self.progdialog.exec_()
+        QtCore.QCoreApplication.processEvents()
 
     def searchCanceled(self):
         print("query cancelled")
@@ -315,18 +316,22 @@ class VolumeSelectionWindow(QtGui.QDialog):
 
     def searchProgressUpdate(self, current, total):
         self.progdialog.setMaximum(total)
-        self.progdialog.setValue(current)
+        self.progdialog.setValue(current+1)
 
     def searchComplete(self):
+        self.progdialog.setValue(self.progdialog.maximum())
+        self.progdialog.hide()
+
         self.progdialog.accept()
+        QtCore.QCoreApplication.processEvents()
         if self.search_thread.cv_error:
             if self.search_thread.error_code == ComicVineTalkerException.RateLimit:
-                QtGui.QMessageBox.critical(
+                QtWidgets.QMessageBox.critical(
                     self,
                     self.tr("Comic Vine Error"),
                     ComicVineTalker.getRateLimitMessage())
             else:
-                QtGui.QMessageBox.critical(
+                QtWidgets.QMessageBox.critical(
                     self,
                     self.tr("Network Issue"),
                     self.tr("Could not connect to Comic Vine to search for series!"))
@@ -345,20 +350,20 @@ class VolumeSelectionWindow(QtGui.QDialog):
             self.twList.insertRow(row)
 
             item_text = record['name']
-            item = QtGui.QTableWidgetItem(item_text)
+            item = QtWidgets.QTableWidgetItem(item_text)
             item.setData(QtCore.Qt.ToolTipRole, item_text)
             item.setData(QtCore.Qt.UserRole, record['id'])
             item.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
             self.twList.setItem(row, 0, item)
 
             item_text = str(record['start_year'])
-            item = QtGui.QTableWidgetItem(item_text)
+            item = QtWidgets.QTableWidgetItem(item_text)
             item.setData(QtCore.Qt.ToolTipRole, item_text)
             item.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
             self.twList.setItem(row, 1, item)
 
             item_text = record['count_of_issues']
-            item = QtGui.QTableWidgetItem(item_text)
+            item = QtWidgets.QTableWidgetItem(item_text)
             item.setData(QtCore.Qt.ToolTipRole, item_text)
             item.setData(QtCore.Qt.DisplayRole, record['count_of_issues'])
             item.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
@@ -367,7 +372,7 @@ class VolumeSelectionWindow(QtGui.QDialog):
             if record['publisher'] is not None:
                 item_text = record['publisher']['name']
                 item.setData(QtCore.Qt.ToolTipRole, item_text)
-                item = QtGui.QTableWidgetItem(item_text)
+                item = QtWidgets.QTableWidgetItem(item_text)
                 item.setFlags(
                     QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
                 self.twList.setItem(row, 3, item)
@@ -382,7 +387,7 @@ class VolumeSelectionWindow(QtGui.QDialog):
 
         if len(self.cv_search_results) == 0:
             QtCore.QCoreApplication.processEvents()
-            QtGui.QMessageBox.information(
+            QtWidgets.QMessageBox.information(
                 self, "Search Result", "No matches found!")
 
         if self.immediate_autoselect and len(self.cv_search_results) > 0:
@@ -404,9 +409,8 @@ class VolumeSelectionWindow(QtGui.QDialog):
         if prev is not None and prev.row() == curr.row():
             return
 
-        self.volume_id, b = self.twList.item(
-            curr.row(), 0).data(QtCore.Qt.UserRole).toInt()
-
+        self.volume_id = self.twList.item(curr.row(), 0).data(QtCore.Qt.UserRole)
+             
         # list selection was changed, update the info on the volume
         for record in self.cv_search_results:
             if record['id'] == self.volume_id:

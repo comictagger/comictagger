@@ -21,7 +21,7 @@ import platform
 import codecs
 import uuid
 
-import utils
+from . import utils
 
 
 class ComicTaggerSettings:
@@ -34,7 +34,7 @@ class ComicTaggerSettings:
         else:
             folder = os.path.join(os.path.expanduser('~'), '.ComicTagger')
         if folder is not None:
-            folder = folder.decode(filename_encoding)
+            folder = folder
         return folder
 
     @staticmethod

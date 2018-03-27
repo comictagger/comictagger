@@ -23,7 +23,7 @@ import subprocess
 import platform
 import ctypes
 import time
-import StringIO
+import io
 #import io
 #import locale
 #import shutil
@@ -66,11 +66,11 @@ try:
             return 1
         rarfile._ReadIntoMemory._callback = _rar_cb
 except:
-    print "WARNING: cannot find libunrar, rar support is disabled"
+    print("WARNING: cannot find libunrar, rar support is disabled")
     pass
 
-if platform.system() == "Windows":
-    import _subprocess
+#if platform.system() == "Windows":
+#    import _subprocess
 
 try:
     import Image
@@ -78,11 +78,11 @@ try:
 except ImportError:
     pil_available = False
 
-from comicinfoxml import ComicInfoXml
-from comicbookinfo import ComicBookInfo
-from comet import CoMet
-from genericmetadata import GenericMetadata, PageType
-from filenameparser import FileNameParser
+from .comicinfoxml import ComicInfoXml
+from .comicbookinfo import ComicBookInfo
+from .comet import CoMet
+from .genericmetadata import GenericMetadata, PageType
+from .filenameparser import FileNameParser
 #from settings import ComicTaggerSettings
 
 
@@ -109,7 +109,13 @@ class ZipArchiver:
         return comment
 
     def setArchiveComment(self, comment):
-        return self.writeZipComment(self.path, comment)
+        #!!!ATB py3 port
+        #return self.writeZipComment(self.path, bytes(comment, 'utf-8'))
+        zf = zipfile.ZipFile(self.path, 'a')
+        print ("ATB comment type=", type(comment), bytes(comment, 'utf-8'))
+        zf.comment = bytes(comment, 'utf-8')
+        zf.close()
+        return True
 
     def readArchiveFile(self, archive_file):
         data = ""
@@ -118,14 +124,13 @@ class ZipArchiver:
         try:
             data = zf.read(archive_file)
         except zipfile.BadZipfile as e:
-            print >> sys.stderr, u"bad zipfile [{0}]: {1} :: {2}".format(
-                e, self.path, archive_file)
+            print("bad zipfile [{0}]: {1} :: {2}".format(e, self.path, archive_file), file=sys.stderr)
             zf.close()
             raise IOError
         except Exception as e:
             zf.close()
-            print >> sys.stderr, u"bad zipfile [{0}]: {1} :: {2}".format(
-                e, self.path, archive_file)
+            print("bad zipfile [{0}]: {1} :: {2}".format(
+                e, self.path, archive_file), file=sys.stderr)
             raise IOError
         finally:
             zf.close()
@@ -164,8 +169,8 @@ class ZipArchiver:
             zf.close()
             return namelist
         except Exception as e:
-            print >> sys.stderr, u"Unable to get zipfile list [{0}]: {1}".format(
-                e, self.path)
+            print("Unable to get zipfile list [{0}]: {1}".format(
+                e, self.path), file=sys.stderr)
             return []
 
     def rebuildZipFile(self, exclude_list):
@@ -220,7 +225,7 @@ class ZipArchiver:
 
             found = False
             value = bytearray()
-
+            
             # walk backwards to find the "End of Central Directory" record
             while (not found) and (-pos != file_length):
                 # seek, relative to EOF
@@ -253,12 +258,12 @@ class ZipArchiver:
                 fo.seek(pos + 2, 2)
 
                 # write out the comment itself
-                fo.write(comment)
+                fo.write(bytes(comment))
                 fo.truncate()
                 fo.close()
             else:
                 raise Exception('Failed to write comment to zip file!')
-        except:
+        except Exception as e:
             return False
         else:
             return True
@@ -280,8 +285,8 @@ class ZipArchiver:
                 if not self.writeZipComment(self.path, comment):
                     return False
         except Exception as e:
-            print >> sys.stderr, u"Error while copying to {0}: {1}".format(
-                self.path, e)
+            print("Error while copying to {0}: {1}".format(
+                self.path, e), file=sys.stderr)
             return False
         else:
             return True
@@ -376,26 +381,26 @@ class RarArchiver:
                 #entries = rarc.read_files( archive_file )
 
                 if entries[0][0].file_size != len(entries[0][1]):
-                    print >> sys.stderr, u"readArchiveFile(): [file is not expected size: {0} vs {1}]  {2}:{3} [attempt # {4}]".format(
+                    print("readArchiveFile(): [file is not expected size: {0} vs {1}]  {2}:{3} [attempt # {4}]".format(
                         entries[0][0].file_size, len(
-                            entries[0][1]), self.path, archive_file, tries)
+                            entries[0][1]), self.path, archive_file, tries), file=sys.stderr)
                     continue
 
             except (OSError, IOError) as e:
-                print >> sys.stderr, u"readArchiveFile(): [{0}]  {1}:{2} attempt#{3}".format(
-                    str(e), self.path, archive_file, tries)
+                print("readArchiveFile(): [{0}]  {1}:{2} attempt#{3}".format(
+                    str(e), self.path, archive_file, tries), file=sys.stderr)
                 time.sleep(1)
             except Exception as e:
-                print >> sys.stderr, u"Unexpected exception in readArchiveFile(): [{0}] for {1}:{2} attempt#{3}".format(
-                    str(e), self.path, archive_file, tries)
+                print("Unexpected exception in readArchiveFile(): [{0}] for {1}:{2} attempt#{3}".format(
+                    str(e), self.path, archive_file, tries), file=sys.stderr)
                 break
 
             else:
                 # Success"
                 # entries is a list of of tuples:  ( rarinfo, filedata)
                 if tries > 1:
-                    print >> sys.stderr, u"Attempted read_files() {0} times".format(
-                        tries)
+                    print("Attempted read_files() {0} times".format(
+                        tries), file=sys.stderr)
                 if (len(entries) == 1):
                     return entries[0][1]
                 else:
@@ -479,8 +484,8 @@ class RarArchiver:
                         namelist.append(item.filename)
 
             except (OSError, IOError) as e:
-                print >> sys.stderr, u"getArchiveFilenameList(): [{0}] {1} attempt#{2}".format(
-                    str(e), self.path, tries)
+                print("getArchiveFilenameList(): [{0}] {1} attempt#{2}".format(
+                    str(e), self.path, tries), file=sys.stderr)
                 time.sleep(1)
 
             else:
@@ -497,8 +502,8 @@ class RarArchiver:
                 rarc = rarfile.RarFile( self.path )
 
             except (OSError, IOError) as e:
-                print >> sys.stderr, u"getRARObj(): [{0}] {1} attempt#{2}".format(
-                    str(e), self.path, tries)
+                print("getRARObj(): [{0}] {1} attempt#{2}".format(
+                    str(e), self.path, tries), file=sys.stderr)
                 time.sleep(1)
 
             else:
@@ -634,7 +639,7 @@ class ComicArchive:
     logo_data = None
 
     class ArchiveType:
-        Zip, Rar, Folder, Pdf, Unknown = range(5)
+        Zip, Rar, Folder, Pdf, Unknown = list(range(5))
 
     def __init__(self, path, rar_exe_path=None, default_image_path=None):
         self.path = path
@@ -817,7 +822,7 @@ class ComicArchive:
             try:
                 image_data = self.archiver.readArchiveFile(filename)
             except IOError:
-                print >> sys.stderr, u"Error reading in page.  Substituting logo page."
+                print("Error reading in page.  Substituting logo page.", file=sys.stderr)
                 image_data = ComicArchive.logo_data
 
         return image_data
@@ -859,7 +864,7 @@ class ComicArchive:
 
         # sort by most common
         sorted_buckets = sorted(
-            length_buckets.iteritems(),
+            iter(length_buckets.items()),
             key=lambda k_v: (
                 k_v[1],
                 k_v[0]),
@@ -1006,7 +1011,7 @@ class ComicArchive:
         try:
             raw_cix = self.archiver.readArchiveFile(self.ci_xml_filename)
         except IOError:
-            print "Error reading in raw CIX!"
+            print("Error reading in raw CIX!")
             raw_cix = ""
         return raw_cix
 
@@ -1075,13 +1080,13 @@ class ComicArchive:
 
     def readRawCoMet(self):
         if not self.hasCoMet():
-            print >> sys.stderr, self.path, "doesn't have CoMet data!"
+            print(self.path, "doesn't have CoMet data!", file=sys.stderr)
             return None
 
         try:
             raw_comet = self.archiver.readArchiveFile(self.comet_filename)
         except IOError:
-            print >> sys.stderr, u"Error reading in raw CoMet!"
+            print("Error reading in raw CoMet!", file=sys.stderr)
             raw_comet = ""
         return raw_comet
 
@@ -1136,7 +1141,7 @@ class ComicArchive:
                         data = self.archiver.readArchiveFile(n)
                     except:
                         data = ""
-                        print >> sys.stderr, u"Error reading in Comet XML for validation!"
+                        print("Error reading in Comet XML for validation!", file=sys.stderr)
                     if CoMet().validateString(data):
                         # since we found it, save it!
                         self.comet_filename = n
@@ -1156,7 +1161,7 @@ class ComicArchive:
                         data = self.getPage(idx)
                         if data is not None:
                             try:
-                                im = Image.open(StringIO.StringIO(data))
+                                im = Image.open(io.StringIO(data))
                                 w, h = im.size
 
                                 p['ImageSize'] = str(len(data))
