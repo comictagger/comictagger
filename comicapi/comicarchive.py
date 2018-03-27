@@ -109,10 +109,7 @@ class ZipArchiver:
         return comment
 
     def setArchiveComment(self, comment):
-        #!!!ATB py3 port
-        #return self.writeZipComment(self.path, bytes(comment, 'utf-8'))
         zf = zipfile.ZipFile(self.path, 'a')
-        print ("ATB comment type=", type(comment), bytes(comment, 'utf-8'))
         zf.comment = bytes(comment, 'utf-8')
         zf.close()
         return True
