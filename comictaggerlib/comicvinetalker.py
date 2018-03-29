@@ -133,16 +133,19 @@ class ComicVineTalker(QObject):
 
     def testKey(self, key):
 
-        test_url = self.api_base_url + "/issue/1/?api_key=" + \
-            key + "&format=json&field_list=name"
-        resp = urllib.request.urlopen(test_url, context=self.ssl)
-        content = resp.read()
-
-        cv_response = json.loads(content)
-
-        # Bogus request, but if the key is wrong, you get error 100: "Invalid
-        # API Key"
-        return cv_response['status_code'] != 100
+        try:
+            test_url = self.api_base_url + "/issue/1/?api_key=" + \
+                key + "&format=json&field_list=name"
+            resp = urllib.request.urlopen(test_url, context=self.ssl)
+            content = resp.read()
+    
+            cv_response = json.loads(content.decode('utf-8'))
+    
+            # Bogus request, but if the key is wrong, you get error 100: "Invalid
+            # API Key"
+            return cv_response['status_code'] != 100
+        except:
+            return False
 
     """
     Get the contect from the CV server.  If we're in "wait mode" and status code is a rate limit error
