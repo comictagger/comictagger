@@ -95,8 +95,8 @@ class SettingsWindow(QtWidgets.QDialog):
         
         self.priorUnrarLibPath = self.settings.unrar_lib_path
 
-        if getattr(sys, 'frozen', None):
-            # Frozen apps should have unrar lib built-in
+        if self.settings.haveOwnUnrarLib():
+            # We have our own unrarlib, so no need for this GUI
             self.grpBoxUnrar.hide()
             
         if platform.system() == "Windows":
@@ -210,7 +210,10 @@ class SettingsWindow(QtWidgets.QDialog):
 
         # Copy values from form to settings and save
         self.settings.rar_exe_path = str(self.leRarExePath.text())
-        self.settings.unrar_lib_path = str(self.leUnrarLibPath.text())
+        
+        # Don't accept the form info if we have our own unrar lib
+        if not self.settings.haveOwnUnrarLib():
+            self.settings.unrar_lib_path = str(self.leUnrarLibPath.text())
 
         # make sure rar program is now in the path for the rar class
         if self.settings.rar_exe_path:

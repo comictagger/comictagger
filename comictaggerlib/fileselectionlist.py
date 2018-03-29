@@ -218,16 +218,17 @@ class FileSelectionList(QWidget):
 
         if (self.settings.show_no_unrar_warning and
                 self.settings.unrar_lib_path == "" and
-                not getattr(sys, 'frozen', None)):
+                not ComicTaggerSettings.haveOwnUnrarLib()):
             for f in filelist:
                 ext = os.path.splitext(f)[1].lower()
                 if ext == ".rar" or ext == ".cbr":
-                    checked = OptionalMessageDialog.msg(self, "No unrar tool",
+                    checked = OptionalMessageDialog.msg(self, "No UnRAR Ability",
                                                         """
                             It looks like you've tried to open at least one CBR or RAR file.<br><br>
                             In order for ComicTagger to read this kind of file, you will have to configure
                             the location of the unrar library in the settings.  Until then, ComicTagger
-                            will not be able read these kind of files.
+                            will not be able read these kind of files. See the "RAR Tools" tab in the
+                            settings/preferences for more info.
                             """
                                                         )
                     self.settings.show_no_unrar_warning = not checked

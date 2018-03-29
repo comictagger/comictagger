@@ -42,6 +42,10 @@ class ComicTaggerSettings:
         return ComicTaggerSettings.baseDir() + "/libunrar.so"
 
     @staticmethod
+    def haveOwnUnrarLib():
+        return os.path.exists(ComicTaggerSettings.defaultLibunrarPath())
+    
+    @staticmethod
     def baseDir():
         if getattr(sys, 'frozen', None):
             return sys._MEIPASS
@@ -165,17 +169,19 @@ class ComicTaggerSettings:
              # make sure rar program is now in the path for the rar class    
             utils.addtopath(os.path.dirname(self.rar_exe_path))
         
-        # Priority is for unrar lib is:
-        #    1. explicit setting in settings file
-        #    2. UNRAR_LIB_PATH in environment
-        #    3. existing file in basedir
-        #    4. check some likely platform specific places
-        if self.unrar_lib_path == "":
-            # setup unrar lib
+        if self.haveOwnUnrarLib():
+            # We have a 'personal' copy of the unrar lib in the basedir, so
+            # don't search and change the setting
+            # NOTE: a manual edit of the settings file overrides this below
+            os.environ["UNRAR_LIB_PATH"] = self.defaultLibunrarPath()
+            
+        elif self.unrar_lib_path == "":
+            # Priority is for unrar lib search is:
+            #    1. explicit setting in settings file
+            #    2. UNRAR_LIB_PATH in environment
+            #    3. check some likely platform specific places
             if "UNRAR_LIB_PATH" in os.environ:
                 self.unrar_lib_path =  os.environ["UNRAR_LIB_PATH"]
-            elif os.path.exists(ComicTaggerSettings.defaultLibunrarPath()):
-                self.unrar_lib_path = ComicTaggerSettings.defaultLibunrarPath()
             else:
                 # look in some platform specific places:
                 if platform.system() == "Windows":
