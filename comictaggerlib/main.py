@@ -21,11 +21,8 @@ import traceback
 import platform
 
 from .settings import ComicTaggerSettings
-
-# setup libunrar
-if not os.environ.get("UNRAR_LIB_PATH", None):
-    os.environ["UNRAR_LIB_PATH"] = ComicTaggerSettings.libunrarPath()
-
+# Need to load setting before anything else
+SETTINGS = ComicTaggerSettings()
 
 try:
     qt_available = True
@@ -41,20 +38,19 @@ from .options import Options
 from .comicvinetalker import ComicVineTalker
 
 def ctmain():
-    settings = ComicTaggerSettings()
     opts = Options()
     opts.parseCmdLineArgs()
 
     # manage the CV API key
     if opts.cv_api_key:
-        if opts.cv_api_key != settings.cv_api_key:
-            settings.cv_api_key = opts.cv_api_key
-            settings.save()
+        if opts.cv_api_key != SETTINGS.cv_api_key:
+            SETTINGS.cv_api_key = opts.cv_api_key
+            SETTINGS.save()
     if opts.only_set_key:
         print("Key set")
         return
 
-    ComicVineTalker.api_key = settings.cv_api_key
+    ComicVineTalker.api_key = SETTINGS.cv_api_key
 
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
@@ -63,10 +59,17 @@ def ctmain():
         print("PyQt5 is not available.  ComicTagger is limited to command-line mode.", file=sys.stderr)
 
     if opts.no_gui:
-        cli.cli_mode(opts, settings)
+        cli.cli_mode(opts, SETTINGS)
     else:
+        
+        os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
+        
+        #if platform.system() == "Darwin":
+        #    QtWidgets.QApplication.setStyle("macintosh")
+        #else:
+        #    QtWidgets.QApplication.setStyle("Fusion")
+            
         app = QtWidgets.QApplication(sys.argv)
-
         if platform.system() == "Darwin":
             # Set the MacOS dock icon
             app.setWindowIcon(
@@ -88,7 +91,7 @@ def ctmain():
             app.processEvents()
 
         try:
-            tagger_window = TaggerWindow(opts.file_list, settings, opts=opts)
+            tagger_window = TaggerWindow(opts.file_list, SETTINGS, opts=opts)
             tagger_window.setWindowIcon(
                 QtGui.QIcon(ComicTaggerSettings.getGraphic('app.png')))
             tagger_window.show()

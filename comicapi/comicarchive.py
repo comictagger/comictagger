@@ -65,7 +65,8 @@ try:
                 self._data += chunk
             return 1
         rarfile._ReadIntoMemory._callback = _rar_cb
-except:
+except Exception as e:
+    print(e)
     print("WARNING: cannot find libunrar, rar support is disabled")
     pass
 
@@ -307,7 +308,7 @@ class RarArchiver:
         # windows only, keeps the cmd.exe from popping up
         if platform.system() == "Windows":
             self.startupinfo = subprocess.STARTUPINFO()
-            self.startupinfo.dwFlags |= _subprocess.STARTF_USESHOWWINDOW
+            self.startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
         else:
             self.startupinfo = None
 
@@ -316,37 +317,36 @@ class RarArchiver:
         pass
 
     def getArchiveComment(self):
-
         rarc = self.getRARObj()
         return rarc.comment
 
     def setArchiveComment(self, comment):
-
         if self.rar_exe_path is not None:
             try:
                 # write comment to temp file
                 tmp_fd, tmp_name = tempfile.mkstemp()
-                f = os.fdopen(tmp_fd, 'w+b')
+                f = os.fdopen(tmp_fd, 'w+')
                 f.write(comment)
                 f.close()
 
                 working_dir = os.path.dirname(os.path.abspath(self.path))
-
+                
                 # use external program to write comment to Rar archive
-                subprocess.call([self.rar_exe_path,
+                proc_args = [self.rar_exe_path,
                                  'c',
                                  '-w' + working_dir,
                                  '-c-',
                                  '-z' + tmp_name,
-                                 self.path],
+                                 self.path]
+                subprocess.call(proc_args,
                                 startupinfo=self.startupinfo,
                                 stdout=RarArchiver.devnull)
 
                 if platform.system() == "Darwin":
                     time.sleep(1)
-
                 os.remove(tmp_name)
-            except:
+            except Exception as e:
+                print(e)
                 return False
             else:
                 return True
@@ -731,7 +731,7 @@ class ComicArchive:
         if self.archive_type == self.ArchiveType.Unknown:
             return False
 
-        elif check_rar_status and self.isRar() and self.rar_exe_path is None:
+        elif check_rar_status and self.isRar() and not self.rar_exe_path:
             return False
 
         elif not os.access(self.path, os.W_OK):

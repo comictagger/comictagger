@@ -16,6 +16,7 @@
 
 import platform
 import os
+import sys
 
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
@@ -27,27 +28,55 @@ from . import utils
 
 
 windowsRarHelp = """
-                 <html><head/><body><p>In order to write to CBR/RAR archives,
+                 <html><head/><body><p>To write to CBR/RAR archives,
                  you will need to have the tools from
                  <a href="http://www.win-rar.com/download.html">
-                 <span style=" text-decoration: underline; color:#0000ff;">WinRAR</span>
-                 </a> installed. </p></body></html>
+                 <span style=" text-decoration: underline; color:#0000ff;">WINRar</span>
+                 </a> installed. (ComicTagger only uses the command-line rar tool,
+                 which is free to use.)</p></body></html>
                 """
 
 linuxRarHelp = """
-               <html><head/><body><p>In order to read/write to CBR/RAR archives,
-               you will need to have the shareware tools from WinRar installed.
-               Your package manager should have unrar, and probably rar.
-               If not, download them <a href="http://www.win-rar.com/download.html">
+               <html><head/><body><p>To write to CBR/RAR archives,
+               you will need to have the shareware rar tool from RARLab installed.
+               Your package manager should have rar. If not, download it <a href="https://www.rarlab.com/download.htm">
                <span style=" text-decoration: underline; color:#0000ff;">here</span>
                </a>, and install in your path. </p></body></html>
                """
+               
 macRarHelp = """
-                 <html><head/><body><p>In order to read/write to CBR/RAR archives,
-                 you will need the shareware tools from
-                 <a href="http://www.win-rar.com/download.html">
-                 <span style=" text-decoration: underline; color:#0000ff;">WinRAR</span>
-                 </a>. </p></body></html>
+                 <html><head/><body><p>To write to CBR/RAR archives,
+                 you will need the rar tool.  The easiest way to get this is
+                 to install <a href="https://brew.sh/">
+                 <span style=" text-decoration: underline; color:#0000ff;">homebrew</span>
+                 </a>. </p>Once homebrew is installed, run: <b>brew install caskroom/cask/rar</b></body></html>  
+                """
+
+windowsUnrarHelp = """
+                 <html><head/><body><p>To read CBR/RAR archives,
+                 you will need to have the unrar DLL from
+                 <a href="https://www.rarlab.com/rar_add.htm">
+                 <span style=" text-decoration: underline; color:#0000ff;">RARLab</span>
+                 </a> installed. </p></body></html>
+                """
+
+linuxUnrarHelp = """
+               <html><head/><body><p>To read CBR/RAR archives,
+               you will need to have the unrar library from RARLab installed.
+               This was probably compiled when you installed ComicTagger.
+               If not, you can look <a href="https://github.com/beville/libunrar-binaries/releases">
+               <span style=" text-decoration: underline; color:#0000ff;">here</span></a> for
+               pre-compiled binaries, or <a href="https://www.rarlab.com/rar_add.htm">
+               <span style=" text-decoration: underline; color:#0000ff;">here</span>
+               </a>for the UnRAR source (which is easy to compile on Linux). </p></body></html>
+               """
+               
+macUnrarHelp = """
+                 <html><head/><body><p>To read CBR/RAR archives,
+                 you will need the unrar library.  The easiest way to get this is
+                 to install <a href="https://brew.sh/">
+                 <span style=" text-decoration: underline; color:#0000ff;">homebrew</span>
+                 </a>. </p>Once homebrew is installed, run: <b>brew install unrar</b></body></html>
                 """
 
 
@@ -63,18 +92,28 @@ class SettingsWindow(QtWidgets.QDialog):
 
         self.settings = settings
         self.name = "Settings"
+        
+        self.priorUnrarLibPath = self.settings.unrar_lib_path
 
+        if getattr(sys, 'frozen', None):
+            # Frozen apps should have unrar lib built-in
+            self.grpBoxUnrar.hide()
+            
         if platform.system() == "Windows":
-            self.lblUnrar.hide()
-            self.leUnrarExePath.hide()
-            self.btnBrowseUnrar.hide()
             self.lblRarHelp.setText(windowsRarHelp)
+            self.lblUnrarHelp.setText(windowsUnrarHelp)
 
         elif platform.system() == "Linux":
             self.lblRarHelp.setText(linuxRarHelp)
+            self.lblUnrarHelp.setText(linuxUnrarHelp)
 
         elif platform.system() == "Darwin":
+            # Mac file dialog hides "/usr" and others, so allow user to type
+            self.leUnrarLibPath.setReadOnly(False)
+            self.leRarExePath.setReadOnly(False)
+                     
             self.lblRarHelp.setText(macRarHelp)
+            self.lblUnrarHelp.setText(macUnrarHelp)
             self.name = "Preferences"
 
         self.setWindowTitle("ComicTagger " + self.name)
@@ -118,7 +157,7 @@ class SettingsWindow(QtWidgets.QDialog):
 
         # Copy values from settings to form
         self.leRarExePath.setText(self.settings.rar_exe_path)
-        self.leUnrarExePath.setText(self.settings.unrar_exe_path)
+        self.leUnrarLibPath.setText(self.settings.unrar_lib_path)
         self.leNameLengthDeltaThresh.setText(
             str(self.settings.id_length_delta_thresh))
         self.tePublisherBlacklist.setPlainText(
@@ -171,12 +210,16 @@ class SettingsWindow(QtWidgets.QDialog):
 
         # Copy values from form to settings and save
         self.settings.rar_exe_path = str(self.leRarExePath.text())
-        self.settings.unrar_exe_path = str(self.leUnrarExePath.text())
+        self.settings.unrar_lib_path = str(self.leUnrarLibPath.text())
 
-        # make sure unrar/rar program is now in the path for the UnRAR class
-        utils.addtopath(os.path.dirname(self.settings.unrar_exe_path))
-        utils.addtopath(os.path.dirname(self.settings.rar_exe_path))
+        # make sure rar program is now in the path for the rar class
+        if self.settings.rar_exe_path:
+            utils.addtopath(os.path.dirname(self.settings.rar_exe_path))
 
+        if self.settings.unrar_lib_path:
+            os.environ["UNRAR_LIB_PATH"] = self.settings.unrar_lib_path
+            # This doesn't do anything... we need to restart!
+            
         if not str(self.leNameLengthDeltaThresh.text()).isdigit():
             self.leNameLengthDeltaThresh.setText("0")
 
@@ -196,7 +239,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.settings.clear_form_before_populating_from_cv = self.cbxClearFormBeforePopulating.isChecked()
         self.settings.remove_html_tables = self.cbxRemoveHtmlTables.isChecked()
         self.settings.cv_api_key = str(self.leKey.text())
-        ComicVineTalker.api_key = self.settings.cv_api_key
+        ComicVineTalker.api_key = self.settings.cv_api_key.strip()
         self.settings.assume_lone_credit_is_primary = self.cbxAssumeLoneCreditIsPrimary.isChecked()
         self.settings.copy_characters_to_tags = self.cbxCopyCharactersToTags.isChecked()
         self.settings.copy_teams_to_tags = self.cbxCopyTeamsToTags.isChecked()
@@ -216,11 +259,16 @@ class SettingsWindow(QtWidgets.QDialog):
         self.settings.save()
         QtWidgets.QDialog.accept(self)
 
+        if self.priorUnrarLibPath != self.settings.unrar_lib_path:
+            QtWidgets.QMessageBox.information(
+                self, "UnRar Library Change",
+                "ComicTagger will need to be restarted for changes to take effect.")
+            
     def selectRar(self):
         self.selectFile(self.leRarExePath, "RAR")
 
     def selectUnrar(self):
-        self.selectFile(self.leUnrarExePath, "UnRAR")
+        self.selectFile(self.leUnrarLibPath, "UnRAR")
 
     def clearCache(self):
         ImageFetcher().clearCache()
@@ -229,7 +277,7 @@ class SettingsWindow(QtWidgets.QDialog):
             self, self.name, "Cache has been cleared.")
 
     def testAPIKey(self):
-        if ComicVineTalker().testKey(str(self.leKey.text())):
+        if ComicVineTalker().testKey(str(self.leKey.text()).strip()):
             QtWidgets.QMessageBox.information(
                 self, "API Key Test", "Key is valid!")
         else:
@@ -254,7 +302,7 @@ class SettingsWindow(QtWidgets.QDialog):
             if name == "RAR":
                 filter = self.tr("Rar Program (Rar.exe)")
             else:
-                filter = self.tr("Programs (*.exe)")
+                filter = self.tr("Libraries (*.dll)")
             dialog.setNameFilter(filter)
         else:
             # QtCore.QDir.Executable | QtCore.QDir.Files)
@@ -262,8 +310,11 @@ class SettingsWindow(QtWidgets.QDialog):
             pass
 
         dialog.setDirectory(os.path.dirname(str(control.text())))
-        dialog.setWindowTitle("Find " + name + " program")
-
+        if name == "RAR":
+            dialog.setWindowTitle("Find " + name + " program")
+        else:
+             dialog.setWindowTitle("Find " + name + " library")
+             
         if (dialog.exec_()):
             fileList = dialog.selectedFiles()
             control.setText(str(fileList[0]))

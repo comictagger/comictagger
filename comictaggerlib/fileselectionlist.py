@@ -18,7 +18,7 @@
 import platform
 import os
 #import os
-#import sys
+import sys
 
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
@@ -217,9 +217,8 @@ class FileSelectionList(QWidget):
         QCoreApplication.processEvents()
 
         if (self.settings.show_no_unrar_warning and
-                self.settings.unrar_exe_path == "" and
-                self.settings.rar_exe_path == "" and
-                platform.system() != "Windows"):
+                self.settings.unrar_lib_path == "" and
+                not getattr(sys, 'frozen', None)):
             for f in filelist:
                 ext = os.path.splitext(f)[1].lower()
                 if ext == ".rar" or ext == ".cbr":
@@ -227,8 +226,8 @@ class FileSelectionList(QWidget):
                                                         """
                             It looks like you've tried to open at least one CBR or RAR file.<br><br>
                             In order for ComicTagger to read this kind of file, you will have to configure
-                            the location of the unrar tool in the settings.  Until then, ComicTagger
-                            will not be able recognize these kind of files.
+                            the location of the unrar library in the settings.  Until then, ComicTagger
+                            will not be able read these kind of files.
                             """
                                                         )
                     self.settings.show_no_unrar_warning = not checked
@@ -238,13 +237,19 @@ class FileSelectionList(QWidget):
             self.twList.selectRow(firstAdded)
         else:
             if len(pathlist) == 1 and os.path.isfile(pathlist[0]):
-                QMessageBox.information(self, self.tr("File Open"), self.tr(
-                    "Selected file doesn't seem to be a comic archive."))
+                ext = os.path.splitext(pathlist[0])[1].lower()
+                if ext == ".rar" or ext == ".cbr" and self.settings.unrar_lib_path == "":
+                    QMessageBox.information(self, self.tr("File Open"), self.tr(
+                     "Selected file seems to be a rar file, "
+                     "and can't be read until the unrar library is configured."))
+                else:
+                    QMessageBox.information(self, self.tr("File Open"), self.tr(
+                        "Selected file doesn't seem to be a comic archive."))
             else:
                 QMessageBox.information(
                     self,
                     self.tr("File/Folder Open"),
-                    self.tr("No comic archives were found."))
+                    self.tr("No readable comic archives were found."))
 
         self.twList.setSortingEnabled(True)
 
