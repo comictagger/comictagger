@@ -39,7 +39,7 @@ windowsRarHelp = """
 linuxRarHelp = """
                <html><head/><body><p>To write to CBR/RAR archives,
                you will need to have the shareware rar tool from RARLab installed.
-               Your package manager should have rar. If not, download it <a href="https://www.rarlab.com/download.htm">
+               Your package manager should have rar (e.g. "apt-get install rar"). If not, download it <a href="https://www.rarlab.com/download.htm">
                <span style=" text-decoration: underline; color:#0000ff;">here</span>
                </a>, and install in your path. </p></body></html>
                """
@@ -63,8 +63,7 @@ windowsUnrarHelp = """
 linuxUnrarHelp = """
                <html><head/><body><p>To read CBR/RAR archives,
                you will need to have the unrar library from RARLab installed.
-               This was probably compiled when you installed ComicTagger.
-               If not, you can look <a href="https://github.com/beville/libunrar-binaries/releases">
+               Look <a href="https://github.com/beville/libunrar-binaries/releases">
                <span style=" text-decoration: underline; color:#0000ff;">here</span></a> for
                pre-compiled binaries, or <a href="https://www.rarlab.com/rar_add.htm">
                <span style=" text-decoration: underline; color:#0000ff;">here</span>
