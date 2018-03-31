@@ -7,14 +7,13 @@
 #
 # An entry point script called "comictagger" will be created
 #
-# In addition, the install process will add some platform specfic files for 
-# dekstop integration.  These files will reference the entry point script:
-#   Linux: a "desktop" file in /usr/local/share/applications
-#   Windows: a desktop shortcut on the installing user's desktop
-#   Mac: an app bundle is put into /Applications  
+# Currently commented out, an experiment at desktop integration.
+# It seems that post installation tweaks are broken by wheel files.
+# Kept here for further research
 
 from __future__ import print_function
 from setuptools import setup
+from setuptools import dist
 from setuptools import Command
 import setuptools.command.build_py 
 import setuptools.command.install
@@ -24,24 +23,27 @@ import sys
 import shutil
 import platform
 import tempfile
-
 import comictaggerlib.ctversion
 
 python_requires='>=3',
 
+
 with open('requirements.txt') as f:
     required = f.read().splitlines()
-
-if platform.system() in [ "Windows" ]:
-    required.append("winshell")
-
 # Always require PyQt5 on Windows and Mac
 if platform.system() in [ "Windows", "Darwin" ]:
     required.append("PyQt5")
 
-# Some files to install on different platforms
 platform_data_files = []
+
+"""
+if platform.system() in [ "Windows" ]:
+    required.append("winshell")
+
+# Some files to install on different platforms
+
 if platform.system() == "Linux":
+    linux_desktop_shortcut = "/usr/local/share/applications/ComicTagger.desktop"
     platform_data_files = [("/usr/local/share/applications",
                                 ["desktop-integration/linux/ComicTagger.desktop"]),
                            ("/usr/local/share/comictagger",
@@ -51,6 +53,7 @@ if platform.system() == "Linux":
 if platform.system() == "Windows":
     win_desktop_folder = os.path.join(os.environ["USERPROFILE"], "Desktop")
     win_appdata_folder = os.path.join(os.environ["APPDATA"], "comictagger")
+    win_desktop_shortcut = os.path.join(win_desktop_folder, "ComicTagger-pip.lnk")
     platform_data_files = [(win_desktop_folder,
                                 ["desktop-integration/windows/ComicTagger-pip.lnk"]),
                            (win_appdata_folder,
@@ -60,6 +63,9 @@ if platform.system() == "Windows":
 if platform.system() == "Darwin":
     mac_app_folder = "/Applications"
     ct_app_name = "ComicTagger-pip.app"
+    mac_app_infoplist = os.path.join(mac_app_folder, ct_app_name, "Contents", "Info.plist")
+    mac_app_main = os.path.join(mac_app_folder, ct_app_name, "MacOS", "main.sh")
+    mac_python_link = os.path.join(mac_app_folder, ct_app_name, "MacOS", "ComicTagger")
     platform_data_files = [(os.path.join(mac_app_folder, ct_app_name, "Contents"),
                                 ["desktop-integration/mac/Info.plist"]),
                            (os.path.join(mac_app_folder, ct_app_name, "Contents/Resources"),
@@ -69,15 +75,76 @@ if platform.system() == "Darwin":
                                  "desktop-integration/mac/ComicTagger"]),
                            ]   
 
-def fileReplace(filename, token, newstring):
+def fileTokenReplace(filename, token, replacement):
     with open(filename, "rt") as fin:
-        fout = tempfile.NamedTemporaryFile(mode="wt")
-        for line in fin:
-            fout.write(line.replace('%%{}%%'.format(token), newstring))
-        os.rename(fout.name, filename)
-        # fix permissions of former temp file
-        os.chmod(filename, 420) #Octal 0o644
+        fd, tmpfile = tempfile.mkstemp()
+        with open(tmpfile, "wt") as fout:
+            for line in fin:
+                fout.write(line.replace('%%{}%%'.format(token), replacement))
+    os.close(fd)
+    # fix permissions of temp file
+    os.chmod(tmpfile, 420) #Octal 0o644
+    os.rename(tmpfile, filename)
+
+def postInstall(scripts_folder):
+    entry_point_script = os.path.join(scripts_folder, "comictagger")
     
+    if platform.system() == "Windows":
+        # doctor the shortcut for this windows system after deployment
+        import winshell
+        winshell.CreateShortcut(
+          Path=os.path.abspath(win_desktop_shortcut),
+          Target=entry_point_script + ".exe",
+          Icon=(os.path.join(win_appdata_folder, 'app.ico'), 0),
+          Description="Launch ComicTagger as installed by PIP"
+        )
+        
+    if platform.system() == "Linux":
+        # doctor the script path in the desktop file
+        fileTokenReplace(linux_desktop_shortcut,
+                    "CTSCRIPT",
+                    entry_point_script)
+        
+    if platform.system() == "Darwin":
+        # doctor the plist app version
+        fileTokenReplace(mac_app_infoplist,
+                    "CTVERSION",
+                    comictaggerlib.ctversion.version)
+        # doctor the script path in main.sh
+        fileTokenReplace(mac_app_main,
+                    "CTSCRIPT",    
+                    entry_point_script)
+        # Make the launcher script executable
+        os.chmod(mac_app_main, 509) #Octal 0o775
+        
+        # Final install step: create a symlink to Python OS X application
+        punt = False
+        pythonpath,top = os.path.split(os.path.realpath(sys.executable))
+        while top:
+            if 'Resources' in pythonpath:
+                pass
+            elif os.path.exists(os.path.join(pythonpath,'Resources')):
+                break
+            pythonpath,top = os.path.split(pythonpath)
+        else:
+            print("Failed to find a Resources directory associated with ", str(sys.executable))
+            punt = True
+        
+        if not punt:
+            pythonapp = os.path.join(pythonpath, 'Resources','Python.app','Contents','MacOS','Python')
+            if not os.path.exists(pythonapp): 
+                print("Failed to find a Python app in ", str(pythonapp))
+                punt = True
+                   
+        # remove the placeholder
+        os.remove(mac_python_link)
+        if not punt:    
+            os.symlink(pythonapp, mac_python_link)
+        else:
+            # We failed, but we can still be functional
+            os.symlink(sys.executable, mac_python_link) 
+"""
+
 class BuildUnrarCommand(Command):
     description = 'build unrar library' 
     user_options = []
@@ -98,92 +165,27 @@ class BuildUnrarCommand(Command):
         except Exception as e:
             print(e)
             print("WARNING ----  Unrar library build/deploy failed.  User will have to self-install libunrar.")
-
-           
+       
+       
 class BuildPyCommand(setuptools.command.build_py.build_py):
   """Custom build command."""
 
   def run(self):
     self.run_command('build_unrar')
     setuptools.command.build_py.build_py.run(self)
-
-    # This is after the "build" is complete, but before the install process
-    # We can now create/modify some files for desktop integration
-    
-    if platform.system() == "Windows":
-        # doctor the shortcut for this windows system before deployment
-        import winshell
-        winshell.CreateShortcut(
-          Path=os.path.abspath(r"desktop-integration\windows\ComicTagger-pip.lnk"),
-          Target=os.path.join(self.distribution._x_script_dir, "comictagger.exe"),
-          Icon=(os.path.join(win_appdata_folder, 'app.ico'), 0),
-          Description="Launch ComicTagger as installed by PIP"
-        )
-        
-    if platform.system() == "Linux":
-        # doctor the script path in the desktop file
-        fileReplace("desktop-integration/linux/ComicTagger.desktop",
-                    "CTSCRIPT",
-                    os.path.join(self.distribution._x_script_dir, "comictagger"))
-        
-    if platform.system() == "Darwin":
-        # doctor the plist app version
-        fileReplace("desktop-integration/mac/Info.plist",
-                    "CTVERSION",
-                    comictaggerlib.ctversion.version)
-        # doctor the script path in main.sh
-        fileReplace("desktop-integration/mac/main.sh",
-                    "CTSCRIPT",
-                    os.path.join(self.distribution._x_script_dir, "comictagger"))      
             
 class customInstall(setuptools.command.install.install):
   """Custom install command."""
 
   def run(self):
-    # save the install script folder for desktop integration stuff later
-    self.distribution._x_script_dir = self.install_scripts
-    print ("ATB script install folder = ", self.install_scripts)
     
+    # Do the standard install
     setuptools.command.install.install.run(self)
     
-    # Final install step:
-    if platform.system() == "Darwin":
-        # Try to create a symlink to Python OS X app
-        # find the python application; must be an OS X app
-        punt = False
-        pythonpath,top = os.path.split(os.path.realpath(sys.executable))
-        while top:
-            if 'Resources' in pythonpath:
-                pass
-            elif os.path.exists(os.path.join(pythonpath,'Resources')):
-                break
-            pythonpath,top = os.path.split(pythonpath)
-        else:
-            print("Failed to find a Resources directory associated with ", str(sys.executable))
-            punt = True
-        
-        if not punt:
-            pythonapp = os.path.join(pythonpath, 'Resources','Python.app','Contents','MacOS','Python')
-            if not os.path.exists(pythonapp): 
-                print("Failed to find a Python app in ", str(pythonapp))
-                punt = True
-                   
-        # create a link to the python app, but named to match the project
-        apppath = os.path.abspath(os.path.join(mac_app_folder,ct_app_name))
-        newpython =  os.path.join(apppath,"Contents","MacOS","ComicTagger")
-        # remove the placeholder
-        os.remove(newpython)
-        if not punt:    
-            os.symlink(pythonapp, newpython)
-        else:
-            # We failed, but we can still be functional
-            os.symlink(sys.executable, newpython)
-        
-        # Lastly, make the launcher script executable
-        launcher_script =  os.path.join(apppath,"Contents","MacOS","main.sh")
-        os.chmod(launcher_script, 509) #Octal 0o775
-
+    # Custom post install 
+    #postInstall(self.install_scripts)
     
+#----------------------------------------------------    
 setup(name="comictagger",
       install_requires=required,
       cmdclass={
@@ -204,20 +206,22 @@ setup(name="comictagger",
       entry_points=dict(console_scripts=['comictagger=comictaggerlib.main:ctmain']),
       data_files=platform_data_files,
       classifiers=[
-          "Development Status :: 4 - Beta",
-          "Environment :: Console",
-          "Environment :: Win32 (MS Windows)",
-          "Environment :: MacOS X",
-          "Environment :: X11 Applications :: Qt",
-          "Intended Audience :: End Users/Desktop",
-          "License :: OSI Approved :: Apache Software License",
-          "Natural Language :: English",
-          "Operating System :: OS Independent",
-          "Programming Language :: Python",
-          "Topic :: Utilities",
-          "Topic :: Other/Nonlisted Topic",
-          "Topic :: Multimedia :: Graphics"
+            "Development Status :: 4 - Beta",
+            "Environment :: Console",
+            "Environment :: Win32 (MS Windows)",
+            "Environment :: MacOS X",
+            "Environment :: X11 Applications :: Qt",
+            "Intended Audience :: End Users/Desktop",
+            "License :: OSI Approved :: Apache Software License",
+            "Natural Language :: English",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: 3.6",
+            "Topic :: Utilities",
+            "Topic :: Other/Nonlisted Topic",
+            "Topic :: Multimedia :: Graphics"
       ],
+      keywords=['comictagger', 'comics', 'comic', 'metadata', 'tagging', 'tagger'],
       license="Apache License 2.0",
 
       long_description="""
