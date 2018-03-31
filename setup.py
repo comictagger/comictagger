@@ -98,9 +98,8 @@ class BuildPyCommand(setuptools.command.build_py.build_py):
         # doctor the shortcut for this windows system before deployment
         import winshell
         winshell.CreateShortcut(
-          Path=os.path.abspath(r"desktop-integration\windows\ComicTagger (pip).lnk"),
+          Path=os.path.abspath(r"desktop-integration\windows\ComicTagger-pip.lnk"),
           Target=os.path.join(self.distribution._x_script_dir, "comictagger.exe"),
-          #Target=os.path.join(os.path.dirname(sys.executable), "Scripts", "comictagger.exe"),
           Icon=(os.path.join(win_appdata_folder, 'app.ico'), 0),
           Description="Launch ComicTagger as installed by PIP"
         )
