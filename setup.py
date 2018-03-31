@@ -1,3 +1,18 @@
+# Setup file for comictagger python source  (no wheels yet)
+#
+# The install process will attempt to compile the unrar lib from source.
+# If it succeeds, the unrar lib binary will be installed with the python
+# source.  If it fails, install will just continue.  On most Linux systems it
+# should just work.  (Tested on a Mac system with homebrew, as well)
+#
+# An entry point script called "comictagger" will be created
+#
+# In addition, the install process will add some platform specfic files for 
+# dekstop integration.  These files will reference the entry point script:
+#   Linux: a "desktop" file in /usr/local/share/applications
+#   Windows: a desktop shortcut on the installing user's desktop
+#   Mac: an app bundle is put into /Applications  
+
 from __future__ import print_function
 from setuptools import setup
 from setuptools import Command
@@ -8,6 +23,7 @@ import os
 import sys
 import shutil
 import platform
+import tempfile
 
 import comictaggerlib.ctversion
 
@@ -18,8 +34,6 @@ with open('requirements.txt') as f:
 
 if platform.system() in [ "Windows" ]:
     required.append("winshell")
-    win_desktop_folder = os.path.join(os.environ["USERPROFILE"], "Desktop")
-    win_appdata_folder = os.path.join(os.environ["APPDATA"], "comictagger")
 
 # Always require PyQt5 on Windows and Mac
 if platform.system() in [ "Windows", "Darwin" ]:
@@ -35,6 +49,8 @@ if platform.system() == "Linux":
                           ]
     
 if platform.system() == "Windows":
+    win_desktop_folder = os.path.join(os.environ["USERPROFILE"], "Desktop")
+    win_appdata_folder = os.path.join(os.environ["APPDATA"], "comictagger")
     platform_data_files = [(win_desktop_folder,
                                 ["desktop-integration/windows/ComicTagger-pip.lnk"]),
                            (win_appdata_folder,
@@ -53,14 +69,14 @@ if platform.system() == "Darwin":
                                  "desktop-integration/mac/ComicTagger"]),
                            ]   
 
-    
 def fileReplace(filename, token, newstring):
-    tmpfile = "/tmp/out.txt"
     with open(filename, "rt") as fin:
-        with open(tmpfile, "wt") as fout:
-            for line in fin:
-                fout.write(line.replace('%%{}%%'.format(token), newstring))
-        os.rename(tmpfile, filename)
+        fout = tempfile.NamedTemporaryFile(mode="wt")
+        for line in fin:
+            fout.write(line.replace('%%{}%%'.format(token), newstring))
+        os.rename(fout.name, filename)
+        # fix permissions of former temp file
+        os.chmod(filename, 420) #Octal 0o644
     
 class BuildUnrarCommand(Command):
     description = 'build unrar library' 
