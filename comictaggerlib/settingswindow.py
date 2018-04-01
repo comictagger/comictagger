@@ -30,52 +30,53 @@ from . import utils
 windowsRarHelp = """
                  <html><head/><body><p>To write to CBR/RAR archives,
                  you will need to have the tools from
-                 <a href="http://www.win-rar.com/download.html">
-                 <span style=" text-decoration: underline; color:#0000ff;">WINRar</span>
-                 </a> installed. (ComicTagger only uses the command-line rar tool,
+                 <span style=" text-decoration: underline; color:#0000ff;">
+                 <a href="http://www.win-rar.com/download.html">WINRar</a></span>
+                 installed. (ComicTagger only uses the command-line rar tool,
                  which is free to use.)</p></body></html>
                 """
 
 linuxRarHelp = """
                <html><head/><body><p>To write to CBR/RAR archives,
                you will need to have the shareware rar tool from RARLab installed.
-               Your package manager should have rar (e.g. "apt-get install rar"). If not, download it <a href="https://www.rarlab.com/download.htm">
-               <span style=" text-decoration: underline; color:#0000ff;">here</span>
-               </a>, and install in your path. </p></body></html>
+               Your package manager should have rar (e.g. "apt-get install rar"). If not, download it
+               <span style=" text-decoration: underline; color:#0000ff;">
+               <a href="https://www.rarlab.com/download.htm">here</a></span>,
+               and install in your path. </p></body></html>
                """
                
 macRarHelp = """
                  <html><head/><body><p>To write to CBR/RAR archives,
                  you will need the rar tool.  The easiest way to get this is
-                 to install <a href="https://brew.sh/">
-                 <span style=" text-decoration: underline; color:#0000ff;">homebrew</span>
-                 </a>. </p>Once homebrew is installed, run: <b>brew install caskroom/cask/rar</b></body></html>  
+                 to install <span style=" text-decoration: underline; color:#0000ff;">
+                 <a href="https://brew.sh/">homebrew</a></span>.
+                 </p>Once homebrew is installed, run: <b>brew install caskroom/cask/rar</b></body></html>  
                 """
 
 windowsUnrarHelp = """
                  <html><head/><body><p>To read CBR/RAR archives,
                  you will need to have the unrar DLL from
+                 <span style=" text-decoration: underline; color:#0000ff;">
                  <a href="https://www.rarlab.com/rar_add.htm">
-                 <span style=" text-decoration: underline; color:#0000ff;">RARLab</span>
-                 </a> installed. </p></body></html>
+                 RARLab</a></span> installed. </p></body></html>
                 """
 
 linuxUnrarHelp = """
                <html><head/><body><p>To read CBR/RAR archives,
                you will need to have the unrar library from RARLab installed.
-               Look <a href="https://github.com/beville/libunrar-binaries/releases">
-               <span style=" text-decoration: underline; color:#0000ff;">here</span></a> for
-               pre-compiled binaries, or <a href="https://www.rarlab.com/rar_add.htm">
-               <span style=" text-decoration: underline; color:#0000ff;">here</span>
-               </a>for the UnRAR source (which is easy to compile on Linux). </p></body></html>
+               Look <span style=" text-decoration: underline; color:#0000ff;">
+               <a href="https://github.com/beville/libunrar-binaries/releases">here</a></span>
+               for pre-compiled binaries, or <span style=" text-decoration: underline; color:#0000ff;">
+               <a href="https://www.rarlab.com/rar_add.htm">here</a></span>
+               for the UnRAR source (which is easy to compile on Linux). </p></body></html>
                """
                
 macUnrarHelp = """
                  <html><head/><body><p>To read CBR/RAR archives,
                  you will need the unrar library.  The easiest way to get this is
-                 to install <a href="https://brew.sh/">
-                 <span style=" text-decoration: underline; color:#0000ff;">homebrew</span>
-                 </a>. </p>Once homebrew is installed, run: <b>brew install unrar</b></body></html>
+                 to install <span style=" text-decoration: underline; color:#0000ff;">
+                 <a href="https://brew.sh/homebrew">homebrew</a></span>.
+                 </p>Once homebrew is installed, run: <b>brew install unrar</b></body></html>
                 """
 
 
