@@ -1,4 +1,4 @@
-VERSION_STR := $(shell python -c 'import comictaggerlib.ctversion; print comictaggerlib.ctversion.version')
+VERSION_STR := $(shell python -c 'import comictaggerlib.ctversion; print( comictaggerlib.ctversion.version)')
 
 ifeq ($(OS),Windows_NT)
 	APP_NAME=comictagger.exe
@@ -25,12 +25,17 @@ clean:
 	$(MAKE) -C mac clean   
 	rm -rf build
 	$(MAKE) -C unrar clean
+	rm -f unrar/libunrar.so unrar/libunrar.a unrar/unrar
+	rm -f comictaggerlib/libunrar.so
+	rm -rf comictaggerlib/ui/__pycache__
 
 pydist:
-	mkdir -p release
-	rm -f release/*.zip
+	make clean
+	mkdir -p piprelease
+	rm -f comictagger-$(VERSION_STR).zip
 	python setup.py sdist --formats=zip  #,gztar
-	mv dist/comictagger-$(VERSION_STR).zip release
+	mv dist/comictagger-$(VERSION_STR).zip piprelease
+	rm -rf comictagger.egg-info dist
 		
 upload:
 	python setup.py register

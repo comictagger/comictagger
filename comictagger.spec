@@ -1,10 +1,22 @@
 # -*- mode: python -*-
 
+import platform
+
 block_cipher = None
 
+binaries = [
+    ('./unrar/libunrar.so', './'),
+]
+
+if platform.system() == "Windows":
+    # add ssl qt libraries not discovered automatically
+    binaries.extend([
+        ('./venv/Lib/site-packages/PyQt5/Qt/bin/libeay32.dll', './PyQt5/Qt/bin'),
+        ('./venv/Lib/site-packages/PyQt5/Qt/bin/ssleay32.dll', './PyQt5/Qt/bin')
+    ])
 
 a = Analysis(['comictagger.py'],
-             binaries=[('./unrar/libunrar.so', './')],
+             binaries=binaries,
              datas=[('comictaggerlib/ui/*.ui', 'ui'), ('comictaggerlib/graphics', 'graphics')],
              hiddenimports=['PIL'],
              hookspath=[],
