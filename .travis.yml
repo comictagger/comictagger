@@ -1,10 +1,9 @@
-language: python
-python:
-  - "3.7-dev"
+language: generic
 os: osx
 osx_image: xcode8.3
 
 install:
+  - brew install python3
   - pip install --upgrade setuptools
   - pip install -r requirements.txt
 script:
