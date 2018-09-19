@@ -4,4 +4,5 @@ python -m venv venv
 .\venv\Scripts\Activate.ps1
 pip install -r .\requirements.txt
 choco install -y mingw
+refreshenv
 mingw32-make dist
