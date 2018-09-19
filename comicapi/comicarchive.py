@@ -340,7 +340,9 @@ class RarArchiver:
                                  self.path]
                 subprocess.call(proc_args,
                                 startupinfo=self.startupinfo,
-                                stdout=RarArchiver.devnull)
+                                stdout=RarArchiver.devnull,
+                                stdin=RarArchiver.devnull,
+                                stderr=RarArchiver.devnull)
 
                 if platform.system() == "Darwin":
                     time.sleep(1)
@@ -430,7 +432,9 @@ class RarArchiver:
                                  self.path,
                                  tmp_file],
                                 startupinfo=self.startupinfo,
-                                stdout=RarArchiver.devnull)
+                                stdout=RarArchiver.devnull,
+                                stdin=RarArchiver.devnull,
+                                stderr=RarArchiver.devnull)
 
                 if platform.system() == "Darwin":
                     time.sleep(1)
@@ -453,7 +457,9 @@ class RarArchiver:
                                  self.path,
                                  archive_file],
                                 startupinfo=self.startupinfo,
-                                stdout=RarArchiver.devnull)
+                                stdout=RarArchiver.devnull,
+                                stdin=RarArchiver.devnull,
+                                stderr=RarArchiver.devnull)
 
                 if platform.system() == "Darwin":
                     time.sleep(1)
