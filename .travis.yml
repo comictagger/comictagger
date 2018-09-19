@@ -5,7 +5,8 @@ os: osx
 osx_image: xcode8.3
 
 install:
-  - sudo pip install -r requirements.txt
+  - pip install setuptools
+  - pip install -r requirements.txt
 script:
   - make dist
   - ls -l dist
