@@ -1,6 +1,6 @@
 language: generic
 os: osx
-osx_image: xcode8.3
+osx_image: xcode8
 install:
 - brew upgrade python3
 - pip3 install --upgrade setuptools
@@ -16,3 +16,4 @@ deploy:
   file: dist/comictagger
   on:
     repo: davide-romanini/comictagger
+    branch: feature/100-travis-osx
