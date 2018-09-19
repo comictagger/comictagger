@@ -1,11 +1,18 @@
 language: generic
 os: osx
-osx_image: xcode8.3
-
+osx_image: xcode6.4
 install:
-  - brew upgrade python3
-  - pip3 install --upgrade setuptools
-  - pip3 install -r requirements.txt
+- brew upgrade python3
+- pip3 install --upgrade setuptools
+- pip3 install -r requirements.txt
 script:
-  - make dist
-  - ls -l dist
+- make dist
+- ls -l dist
+deploy:
+  provider: releases
+  skip_cleanup: true
+  api_key:
+    secure: IZgd1Qcnvcf2AdypbXayuy6fiJoy2bHNvfx+VSPkGMQJYqIMEVULw87LgqPf3ypkE+jOOxUoxSaG0jYSpdUlFVDn9T7kTWjLpBsdoIEU4vTNwl6XX1q0cGJYUFOakelAuQ87b+wOABd3oC6cl/fpMJaOnwlFkQUK8qBuIVMsC2Oj/cXcDqZ8+ucvwUlmaGiJqMb9jdS6N0vJOfrOwEsQhJjMHxcD2VT+9JGH1c1sIh1et7vB+q3ON4o1eWHXvAAjxUZcEE519+4Tpysi1fDI41QHYL6ksE4bJpAyjcqmhrHQeoVhGz52Il5NYbpvWROt3scsgBRy3Kv91NSqRyv1AcQqI6z5bvSIi0cuWSshVu9GXqC/5+HuWN4CaoiRUZeP5x1Y209UnDi1sIr33mEZj6cpvKhiFg26sw8D0RO6SK74orpCxg3zcZTpmCvZVHep1CijIisyuvwyVclOfi8C97q41GTPNvM7H0ZztUWpVcWKTvZl+22dXSDa8ET9n3rngCpjXBCLKETxPJtrlAkJPUSRoUwUQPlayN5ZMktkoYXH7e8i3uhw/SQeA4FIBJiMuSK3Mnb3bh9gVEOkU6eavu5bl4aDS4RcVv0YCaXZqHtZxoN898I2Sh7H6SCZcWiRDZk5LrpUsbL3vB9o37/BaSEUHjxuPBuCl8Ypx9rR8qc=
+  file: dist/comictagger
+  on:
+    repo: davide-romanini/comictagger
