@@ -228,19 +228,10 @@ class ComicVineTalker(QObject):
 
 	# Split and rejoin to remove extra internal spaces
         query_word_list = series_name.split()
-==== BASE ====
-        and_list = ['AND'] * (len(query_word_list) - 1)
-        and_list.append('')
-        # zipper up the two lists
-        query_list = zip(query_word_list, and_list)
-        # flatten the list
-        query_list = [item for sublist in query_list for item in sublist]
-        # convert back to a string
-        query_string = " ".join(query_list).strip()
-        # print "Query string = ", query_string
+        query_string = " ".join( query_word_list ).strip()
+        #print "Query string = ", query_string
 
-        query_string = urllib.quote_plus(query_string.encode("utf-8"))
-==== BASE ====
+        query_string = urllib.parse.quote_plus(query_string.encode("utf-8"))
 
         search_url = self.api_base_url + "/search/?api_key=" + self.api_key + "&format=json&resources=volume&query=" + \
             query_string + \
