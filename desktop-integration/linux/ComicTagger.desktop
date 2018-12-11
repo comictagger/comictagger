@@ -1,0 +1,11 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=ComicTagger
+GenericName=Comic Metadata Editor
+Comment=A cross-platform GUI/CLI app for writing metadata to comic archives
+Exec=%%CTSCRIPT%% %F
+Icon=/usr/local/share/comictagger/app.png
+Terminal=false
+Type=Application
+MimeType=text/plain;
+Categories=Application;

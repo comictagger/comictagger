@@ -15,8 +15,8 @@
 # limitations under the License.
 
 import json
-import urllib2
-import urllib
+import urllib.request, urllib.error, urllib.parse
+import urllib.request, urllib.parse, urllib.error
 import re
 import time
 import datetime
@@ -28,8 +28,8 @@ import ssl
 from bs4 import BeautifulSoup
 
 try:
-    from PyQt4.QtNetwork import QNetworkAccessManager, QNetworkRequest
-    from PyQt4.QtCore import QUrl, pyqtSignal, QObject, QByteArray
+    from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkRequest
+    from PyQt5.QtCore import QUrl, pyqtSignal, QObject, QByteArray
 except ImportError:
     # No Qt, so define a few dummy QObjects to help us compile
     class QObject():
@@ -45,11 +45,11 @@ except ImportError:
         def emit(a, b, c):
             pass
 
-import ctversion
-import utils
-from comicvinecacher import ComicVineCacher
-from genericmetadata import GenericMetadata
-from issuestring import IssueString
+from . import ctversion
+from . import utils
+from .comicvinecacher import ComicVineCacher
+from .genericmetadata import GenericMetadata
+from .issuestring import IssueString
 #from settings import ComicTaggerSettings
 
 
@@ -114,7 +114,7 @@ class ComicVineTalker(QObject):
         if self.log_func is None:
             # sys.stdout.write(text.encode(errors='replace'))
             # sys.stdout.flush()
-            print >> sys.stderr, text
+            print(text, file=sys.stderr)
         else:
             self.log_func(text)
 
@@ -133,16 +133,19 @@ class ComicVineTalker(QObject):
 
     def testKey(self, key):
 
-        test_url = self.api_base_url + "/issue/1/?api_key=" + \
-            key + "&format=json&field_list=name"
-        resp = urllib2.urlopen(test_url, context=self.ssl)
-        content = resp.read()
-
-        cv_response = json.loads(content)
-
-        # Bogus request, but if the key is wrong, you get error 100: "Invalid
-        # API Key"
-        return cv_response['status_code'] != 100
+        try:
+            test_url = self.api_base_url + "/issue/1/?api_key=" + \
+                key + "&format=json&field_list=name"
+            resp = urllib.request.urlopen(test_url, context=self.ssl)
+            content = resp.read()
+    
+            cv_response = json.loads(content.decode('utf-8'))
+    
+            # Bogus request, but if the key is wrong, you get error 100: "Invalid
+            # API Key"
+            return cv_response['status_code'] != 100
+        except:
+            return False
 
     """
     Get the contect from the CV server.  If we're in "wait mode" and status code is a rate limit error
@@ -156,7 +159,7 @@ class ComicVineTalker(QObject):
         wait_times = [1, 2, 3, 4]
         while True:
             content = self.getUrlContent(url)
-            cv_response = json.loads(content)
+            cv_response = json.loads(content.decode('utf-8'))
             if self.wait_for_rate_limit and cv_response[
                     'status_code'] == ComicVineTalkerException.RateLimit:
                 self.writeLog(
@@ -188,9 +191,9 @@ class ComicVineTalker(QObject):
         # print "ATB---", url
         for tries in range(3):
             try:
-                resp = urllib2.urlopen(url, context=self.ssl)
+                resp = urllib.request.urlopen(url, context=self.ssl)
                 return resp.read()
-            except urllib2.HTTPError as e:
+            except urllib.error.HTTPError as e:
                 if e.getcode() == 500:
                     self.writeLog("Try #{0}: ".format(tries + 1))
                     time.sleep(1)
@@ -225,10 +228,19 @@ class ComicVineTalker(QObject):
 
 	# Split and rejoin to remove extra internal spaces
         query_word_list = series_name.split()
-        query_string = " ".join( query_word_list ).strip()
-        #print "Query string = ", query_string
+==== BASE ====
+        and_list = ['AND'] * (len(query_word_list) - 1)
+        and_list.append('')
+        # zipper up the two lists
+        query_list = zip(query_word_list, and_list)
+        # flatten the list
+        query_list = [item for sublist in query_list for item in sublist]
+        # convert back to a string
+        query_string = " ".join(query_list).strip()
+        # print "Query string = ", query_string
 
         query_string = urllib.quote_plus(query_string.encode("utf-8"))
+==== BASE ====
 
         search_url = self.api_base_url + "/search/?api_key=" + self.api_key + "&format=json&resources=volume&query=" + \
             query_string + \
@@ -362,7 +374,7 @@ class ComicVineTalker(QObject):
             year_filter = ",cover_date:{0}-1-1|{1}-1-1".format(
                 year, int(year) + 1)
 
-        issue_number = urllib.quote_plus(unicode(issue_number).encode("utf-8"))
+        issue_number = urllib.parse.quote_plus(str(issue_number).encode("utf-8"))
 
         filter = "&filter=" + volume_filter + \
             year_filter + ",issue_number:" + issue_number
@@ -585,7 +597,7 @@ class ComicVineTalker(QObject):
                     for w in col_widths:
                         fmtstr += " {{:{}}}|".format(w + 1)
                     width = sum(col_widths) + len(col_widths) * 2
-                    print "width=", width
+                    print("width=", width)
                     table_text = ""
                     counter = 0
                     for row in rows:
@@ -671,7 +683,7 @@ class ComicVineTalker(QObject):
             return url_list
 
         # scrape the CV issue page URL to get the alternate cover URLs
-        resp = urllib2.urlopen(issue_page_url, context=self.ssl)
+        resp = urllib.request.urlopen(issue_page_url, context=self.ssl)
         content = resp.read()
         alt_cover_url_list = self.parseOutAltCoverUrls(content)
 
@@ -682,22 +694,26 @@ class ComicVineTalker(QObject):
 
     def parseOutAltCoverUrls(self, page_html):
         soup = BeautifulSoup(page_html, "html.parser")
-
+    
         alt_cover_url_list = []
-
+    
         # Using knowledge of the layout of the Comic Vine issue page here:
-        # look for the divs that are in the classes 'content-pod' and
-        # 'alt-cover'
+        # look for the divs that are in the classes 'imgboxart' and
+        # 'issue-cover'
         div_list = soup.find_all('div')
         covers_found = 0
         for d in div_list:
-            if 'class' in d:
+            if 'class' in d.attrs:
                 c = d['class']
-                if 'imgboxart' in c and 'issue-cover' in c:
+                if ('imgboxart' in c and 
+                        'issue-cover' in c and
+                        d.img['src'].startswith("http")
+                   ):
+                    
                     covers_found += 1
                     if covers_found != 1:
-                        alt_cover_url_list.append(d.img['src'])
-
+                            alt_cover_url_list.append(d.img['src'])
+    
         return alt_cover_url_list
 
     def fetchCachedAlternateCoverURLs(self, issue_id):
@@ -742,15 +758,15 @@ class ComicVineTalker(QObject):
         data = reply.readAll()
 
         try:
-            cv_response = json.loads(str(data))
-        except:
-            print >> sys.stderr, "Comic Vine query failed to get JSON data"
-            print >> sys.stderr, str(data)
+            cv_response = json.loads(bytes(data))
+        except Exception as e:
+            print("Comic Vine query failed to get JSON data", file=sys.stderr)
+            print(str(data), file=sys.stderr)
             return
 
         if cv_response['status_code'] != 1:
-            print >> sys.stderr, "Comic Vine query failed with error:  [{0}]. ".format(
-                cv_response['error'])
+            print("Comic Vine query failed with error:  [{0}]. ".format(
+                cv_response['error']), file=sys.stderr)
             return
 
         image_url = cv_response['results']['image']['super_url']

@@ -19,14 +19,14 @@ import os
 import datetime
 import shutil
 import tempfile
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import ssl
 #import urllib2
 
 try:
-    from PyQt4.QtNetwork import QNetworkAccessManager, QNetworkRequest
-    from PyQt4.QtCore import QUrl, pyqtSignal, QObject, QByteArray
-    from PyQt4 import QtGui
+    from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkRequest
+    from PyQt5.QtCore import QUrl, pyqtSignal, QObject, QByteArray
+    from PyQt5 import QtGui
 except ImportError:
     # No Qt, so define a few dummy QObjects to help us compile
     class QObject():
@@ -45,7 +45,7 @@ except ImportError:
         def emit(a, b, c):
             pass
 
-from settings import ComicTaggerSettings
+from .settings import ComicTaggerSettings
 
 
 class ImageFetcherException(Exception):
@@ -87,11 +87,10 @@ class ImageFetcher(QObject):
 
         # first look in the DB
         image_data = self.get_image_from_cache(url)
-
         if blocking:
             if image_data is None:
                 try:
-                    image_data = urllib.urlopen(url, context=self.ssl).read()
+                    image_data = urllib.request.urlopen(url, context=self.ssl).read()
                 except Exception as e:
                     print(e)
                     raise ImageFetcherException("Network Error!")
