@@ -123,7 +123,7 @@ def which(program):
 
 def removearticles(text):
     text = text.lower()
-    articles = ['and', 'a', '&', 'issue']
+    articles = ['and', 'a', '&', 'issue', 'the']
     newText = ''
     for word in text.split(' '):
         if word not in articles:

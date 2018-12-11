@@ -188,7 +188,7 @@ class ComicVineTalker(QObject):
         # connect to server:
         #  if there is a 500 error, try a few more times before giving up
         #  any other error, just bail
-        # print "ATB---", url
+        #print("---", url)
         for tries in range(3):
             try:
                 resp = urllib.request.urlopen(url, context=self.ssl)
@@ -226,10 +226,10 @@ class ComicVineTalker(QObject):
 
         original_series_name = series_name
 
-	# Split and rejoin to remove extra internal spaces
+        # Split and rejoin to remove extra internal spaces
         query_word_list = series_name.split()
         query_string = " ".join( query_word_list ).strip()
-        #print "Query string = ", query_string
+        #print ("Query string = ", query_string)
 
         query_string = urllib.parse.quote_plus(query_string.encode("utf-8"))
 
@@ -246,6 +246,19 @@ class ComicVineTalker(QObject):
         current_result_count = cv_response['number_of_page_results']
         total_result_count = cv_response['number_of_total_results']
 
+        # 8 Dec 2018 - Comic Vine changed query results again. Terms are now
+        # ORed together, and we get thousands of results.  Good news is the
+        # results are sorted by relevance, so we can be smart about halting
+        # the search.  
+        # 1. Don't fetch more than some sane amount of pages.
+        max_results = 500 
+        # 2. Halt when not all of our search terms are present in a result
+        # 3. Halt when the results contain more (plus threshold) words than
+        #    our search
+        result_word_count_max = len(query_word_list) + 3
+
+        total_result_count = min(total_result_count, max_results) 
+
         if callback is None:
             self.writeLog(
                 "Found {0} of {1} results\n".format(
@@ -258,7 +271,29 @@ class ComicVineTalker(QObject):
             callback(current_result_count, total_result_count)
 
         # see if we need to keep asking for more pages...
+        stop_searching = False
         while (current_result_count < total_result_count):
+
+            last_result = search_results[-1]['name']
+
+            # See if the last result's name has all the of the search terms.
+            # if not, break out of this, loop, we're done.
+            #print("Searching for {} in '{}'".format(query_word_list, last_result))
+            for term in query_word_list:
+                if term not in last_result.lower():
+                    #print("Term '{}' not in last result. Halting search result fetching".format(term))
+                    stop_searching = True
+                    break
+
+            # Also, stop searching when the word count of last results is too much longer
+            # than our search terms list 
+            if len(utils.removearticles(last_result).split()) > result_word_count_max:
+                #print("Last result '{}' is too long. Halting search result fetching".format(last_result))
+                stop_searching = True
+
+            if stop_searching:
+                break
+
             if callback is None:
                 self.writeLog(
                     "getting another page of results {0} of {1}...\n".format(
@@ -273,6 +308,15 @@ class ComicVineTalker(QObject):
 
             if callback is not None:
                 callback(current_result_count, total_result_count)
+
+        # Remove any search results that don't contain all the search terms
+        # (iterate backwards for easy removal)
+        for i in range(len(search_results) - 1, -1, -1):
+            record = search_results[i]
+            for term in query_word_list:
+                if term not in record['name'].lower():
+                    del search_results[i]
+                    break
 
         # for record in search_results:
             #print(u"{0}: {1} ({2})".format(record['id'], record['name'] , record['start_year']))
@@ -328,16 +372,16 @@ class ComicVineTalker(QObject):
         limit = cv_response['limit']
         current_result_count = cv_response['number_of_page_results']
         total_result_count = cv_response['number_of_total_results']
-        # print "ATB total_result_count", total_result_count
+        #print("total_result_count", total_result_count)
 
-        #print("ATB Found {0} of {1} results".format(cv_response['number_of_page_results'], cv_response['number_of_total_results']))
+        #print("Found {0} of {1} results".format(cv_response['number_of_page_results'], cv_response['number_of_total_results']))
         volume_issues_result = cv_response['results']
         page = 1
         offset = 0
 
         # see if we need to keep asking for more pages...
         while (current_result_count < total_result_count):
-            #print("ATB getting another page of issue results {0} of {1}...".format(current_result_count, total_result_count))
+            #print("getting another page of issue results {0} of {1}...".format(current_result_count, total_result_count))
             page += 1
             offset += cv_response['number_of_page_results']
 
@@ -380,16 +424,16 @@ class ComicVineTalker(QObject):
         limit = cv_response['limit']
         current_result_count = cv_response['number_of_page_results']
         total_result_count = cv_response['number_of_total_results']
-        # print "ATB total_result_count", total_result_count
+        #print("total_result_count", total_result_count)
 
-        #print("ATB Found {0} of {1} results\n".format(cv_response['number_of_page_results'], cv_response['number_of_total_results']))
+        #print("Found {0} of {1} results\n".format(cv_response['number_of_page_results'], cv_response['number_of_total_results']))
         filtered_issues_result = cv_response['results']
         page = 1
         offset = 0
 
         # see if we need to keep asking for more pages...
         while (current_result_count < total_result_count):
-            #print("ATB getting another page of issue results {0} of {1}...\n".format(current_result_count, total_result_count))
+            #print("getting another page of issue results {0} of {1}...\n".format(current_result_count, total_result_count))
             page += 1
             offset += cv_response['number_of_page_results']
 
