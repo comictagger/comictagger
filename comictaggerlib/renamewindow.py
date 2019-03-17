@@ -160,7 +160,13 @@ class RenameWindow(QtWidgets.QDialog):
             new_abs_path = utils.unique_file(
                 os.path.join(folder, item['new_name']))
 
-            os.rename(item['archive'].path, new_abs_path)
+#            os.rename(item['archive'].path, new_abs_path)
+            try:
+                shutil.move(item['archive'].path, new_abs_path)
+            except FileNotFoundError:
+                os.makedirs(os.path.dirname(new_abs_path))
+                shutil.move(item['archive'].path, new_abs_path)
+            
 
             item['archive'].rename(new_abs_path)
 
