@@ -147,7 +147,7 @@ class FileRenamer:
         new_name += ext
 
         # some tweaks to keep various filesystems happy
-        new_name = new_name.replace("/", "-")
+        # new_name = new_name.replace("/", "-")
         new_name = new_name.replace(" :", " -")
         new_name = new_name.replace(": ", " - ")
         new_name = new_name.replace(":", "-")
