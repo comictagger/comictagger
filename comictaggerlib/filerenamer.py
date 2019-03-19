@@ -77,6 +77,23 @@ class FileRenamer:
 
         # print(u"{0}".format(md))
 
+        # Fix some tags so they don't break folder-renaming
+        md.series = md.series.replace("/", "-")
+
+        # Clean up some publishers
+        if md.publisher == 'DC':
+            md.publisher = 'DC Comics'
+        if md.publisher in ['Marvel Comics', 'Marvel UK', 'Marvel Knights']:
+            md.publisher = 'Marvel'
+        if md.publisher == 'Dynamite':
+            md.publisher = 'Dynamite Entertainment'
+        if md.publisher == 'IDW':
+            md.publisher = 'IDW Publishing'
+        if md.publisher == 'Zenescope':
+            md.publisher = 'Zenescope Entertainment'
+        if md.publisher == 'BOOM! Studios':
+            md.publisher = 'Boom! Studios'
+
         new_name = self.replaceToken(new_name, md.series, '%series%')
         new_name = self.replaceToken(new_name, md.volume, '%volume%')
 
@@ -147,7 +164,8 @@ class FileRenamer:
         new_name += ext
 
         # some tweaks to keep various filesystems happy
-        # new_name = new_name.replace("/", "-")
+        #new_name = new_name.replace("/", "-")
+        new_name = new_name.replace(" / ", "/")
         new_name = new_name.replace(" :", " -")
         new_name = new_name.replace(": ", " - ")
         new_name = new_name.replace(":", "-")

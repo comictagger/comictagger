@@ -15,6 +15,8 @@
 # limitations under the License.
 
 import os
+import errno
+import shutil
 
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
@@ -166,7 +168,6 @@ class RenameWindow(QtWidgets.QDialog):
             except FileNotFoundError:
                 os.makedirs(os.path.dirname(new_abs_path))
                 shutil.move(item['archive'].path, new_abs_path)
-            
 
             item['archive'].rename(new_abs_path)
 
