@@ -85,11 +85,11 @@ class FileRenamer:
             md.publisher = 'DC Comics'
         if md.publisher in ['Curtis Magazines','Epic','Icon Comics','Marvel Digital Comics Unlimited','Marvel Knights','Marvel Music','Marvel Soleil','Marvel UK','Max','Razorline','Star Comics']:
             md.publisher = 'Marvel'
-        if.md.publisher in ['Dark Horse Books','Dark Horse Manga','Maverick','
+        if md.publisher in ['Dark Horse Books','Dark Horse Manga','Maverick']:
             md.publisher = 'Dark Horse Comics'
         if md.publisher in ['Dynamite', 'Chaos! Comics']:
             md.publisher = 'Dynamite Entertainment'
-        if md.publisher in ['Adventure','Aircel Publishing','Eternity','Ultraverse']
+        if md.publisher in ['Adventure','Aircel Publishing','Eternity','Ultraverse']:
             md.publisher = 'Malibu'
         if md.publisher == 'IDW':
             md.publisher = 'IDW Publishing'
