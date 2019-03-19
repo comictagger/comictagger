@@ -80,19 +80,51 @@ class FileRenamer:
         # Fix some tags so they don't break folder-renaming
         md.series = md.series.replace("/", "-")
 
-        # Clean up some publishers
-        if md.publisher == 'DC':
+        # Take care of imprints
+        if md.publisher in ['DC', '2000AD', 'Wildstorm', 'Cliffhanger', 'CMX', 'Focus', 'Helix', 'Homage comics', 'Impact', 'Milestone', 'Minx', 'Paradox Press', 'Piranah Press', 'Tangent Comics', 'Vertigo']:
             md.publisher = 'DC Comics'
-        if md.publisher in ['Marvel Comics', 'Marvel UK', 'Marvel Knights']:
+        if md.publisher in ['Curtis Magazines','Epic','Icon Comics','Marvel Digital Comics Unlimited','Marvel Knights','Marvel Music','Marvel Soleil','Marvel UK','Max','Razorline','Star Comics']:
             md.publisher = 'Marvel'
-        if md.publisher == 'Dynamite':
+        if.md.publisher in ['Dark Horse Books','Dark Horse Manga','Maverick','
+            md.publisher = 'Dark Horse Comics'
+        if md.publisher in ['Dynamite', 'Chaos! Comics']:
             md.publisher = 'Dynamite Entertainment'
+        if md.publisher in ['Adventure','Aircel Publishing','Eternity','Ultraverse']
+            md.publisher = 'Malibu'
         if md.publisher == 'IDW':
             md.publisher = 'IDW Publishing'
         if md.publisher == 'Zenescope':
             md.publisher = 'Zenescope Entertainment'
         if md.publisher == 'BOOM! Studios':
             md.publisher = 'Boom! Studios'
+        if md.publisher in ['Antimatter']:
+            md.publisher = 'Amryl Entertainment'
+        if md.publisher in ['Apparat']:
+            md.publisher = 'Avatar Press'
+        if md.publisher in ['Black Bull']:
+            md.publisher = 'Wizard'
+        if md.publisher in ['Blu Manga']:
+            md.publisher = 'Tokyopop'
+        if md.publisher in ['Comic Bom Bom']:
+            md.publisher = 'Kodansha'
+        if md.publisher in ['ComicsLit','Papercutz']:
+            md.publisher = 'Nbm'
+        if md.publisher in ['Desperado Publishing','ShadowLine','Skybound']:
+            md.publisher = 'Image'
+        if md.publisher in ['Sin Factory Comix']:
+            md.publisher = 'Radio Comix'
+        if md.publisher in ['Hero Comics']:
+            md.publisher = 'Heroic Publishing'
+        if md.publisher in ['Hudson Street Press']:
+            md.publisher = 'Penguin Group'
+        if md.publisher in ['Jet Comics']:
+            md.publisher = 'Hakusensha'
+        if md.publisher in ['KiZoic']:
+            md.publisher = 'Ape Entertainment'
+        if md.publisher in ['Slave Labor']:
+            md.publisher = 'Slg Publishing'
+        if md.publisher in ['Tokuma Comics']:
+            md.publisher = 'Tokuma Shoten'
 
         new_name = self.replaceToken(new_name, md.series, '%series%')
         new_name = self.replaceToken(new_name, md.volume, '%volume%')
