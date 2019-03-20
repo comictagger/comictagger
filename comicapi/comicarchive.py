@@ -995,7 +995,10 @@ class ComicArchive:
             if raw_cix is None or raw_cix == "":
                 self.cix_md = GenericMetadata()
             else:
-                self.cix_md = ComicInfoXml().metadataFromString(raw_cix)
+                try: 
+                    self.cix_md = ComicInfoXml().metadataFromString(raw_cix)
+                except:
+                    self.cix_md = GenericMetadata()
 
             # validate the existing page list (make sure count is correct)
             if len(self.cix_md.pages) != 0:
