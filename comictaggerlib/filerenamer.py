@@ -78,7 +78,10 @@ class FileRenamer:
         # print(u"{0}".format(md))
 
         # Fix some tags so they don't break folder-renaming
-        md.series = md.series.replace("/", "-")
+        try:
+            md.series = md.series.replace("/", "-")
+        except:
+            print('Oops')
 
         # Take care of imprints
         if md.publisher in ['DC', '2000AD', 'Wildstorm', 'Cliffhanger', 'CMX', 'Focus', 'Helix', 'Homage comics', 'Impact', 'Milestone', 'Minx', 'Paradox Press', 'Piranah Press', 'Tangent Comics', 'Vertigo']:
