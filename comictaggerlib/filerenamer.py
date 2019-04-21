@@ -88,7 +88,7 @@ class FileRenamer:
             md.publisher = 'DC Comics'
         if md.publisher in ['Curtis Magazines','Epic','Icon Comics','Marvel Digital Comics Unlimited','Marvel Knights','Marvel Music','Marvel Soleil','Marvel UK','Max','Razorline','Star Comics']:
             md.publisher = 'Marvel'
-        if md.publisher in ['Dark Horse Books','Dark Horse Manga','Maverick']:
+        if md.publisher in ['Dark Horse Books','Dark Horse Manga','Maverick', 'Dark Horse']:
             md.publisher = 'Dark Horse Comics'
         if md.publisher in ['Dynamite', 'Chaos! Comics']:
             md.publisher = 'Dynamite Entertainment'
