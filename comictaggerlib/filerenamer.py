@@ -128,6 +128,8 @@ class FileRenamer:
             md.publisher = 'Slg Publishing'
         if md.publisher in ['Tokuma Comics']:
             md.publisher = 'Tokuma Shoten'
+        if md.publisher in ['Titan']:
+            md.publisher = 'Titan Comics'
 
         new_name = self.replaceToken(new_name, md.series, '%series%')
         new_name = self.replaceToken(new_name, md.volume, '%volume%')
