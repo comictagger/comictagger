@@ -108,8 +108,8 @@ class FileRenamer:
             md.publisher = 'Wizard'
         if md.publisher in ['Blu Manga']:
             md.publisher = 'Tokyopop'
-        if md.publisher in ['Comic Bom Bom']:
-            md.publisher = 'Kodansha'
+        if md.publisher in ['Comic Bom Bom', 'Kodansha Comics USA']:
+            md.publisher = 'Kodansha Comics'
         if md.publisher in ['ComicsLit','Papercutz']:
             md.publisher = 'Nbm'
         if md.publisher in ['Desperado Publishing','ShadowLine','Skybound']:

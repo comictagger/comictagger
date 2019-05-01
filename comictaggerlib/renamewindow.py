@@ -168,8 +168,11 @@ class RenameWindow(QtWidgets.QDialog):
                 try:
                     shutil.move(item['archive'].path, new_abs_path)
                 except FileNotFoundError:
-                    os.makedirs(os.path.dirname(new_abs_path))
-                    shutil.move(item['archive'].path, new_abs_path)
+                    try:
+                        os.makedirs(os.path.dirname(new_abs_path))
+                        shutil.move(item['archive'].path, new_abs_path)
+                    except:
+                        pass
             else:
                 print(new_abs_path, " already exists, skipping!")
             item['archive'].rename(new_abs_path)
