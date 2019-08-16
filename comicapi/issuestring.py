@@ -38,19 +38,18 @@ class IssueString:
         if text is None:
             return
 
-        if isinstance(text, int):
-            text = str(text)
+        text = str(text)
 
         if len(text) == 0:
             return
-
-        text = str(text)
 
         # skip the minus sign if it's first
         if text[0] == '-':
             start = 1
         else:
             start = 0
+
+        text = text.strip(' \t\r\n()')
 
         # if it's still not numeric at start skip it
         if text[start].isdigit() or text[start] == ".":
@@ -81,9 +80,16 @@ class IssueString:
             part1 = text[0:idx]
             part2 = text[idx:len(text)]
 
+            if "of" in part2:
+                part2, _, after = part2.partition("of")
+                after = after.strip()
+                for char in after:
+                    if char not in "0123456789.":
+                        part2 = part2 + char
+
             if part1 != "":
                 self.num = float(part1)
-            self.suffix = part2
+            self.suffix = part2.strip()
         else:
             self.suffix = text
 
