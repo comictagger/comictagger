@@ -67,7 +67,7 @@ class ImageFetcher(QObject):
             self.create_image_db()
 
         # always use a tls context for urlopen
-        self.ssl = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
+        self.ssl = ssl.SSLContext(ssl.PROTOCOL_TLS)
 
     def clearCache(self):
         os.unlink(self.db_file)
