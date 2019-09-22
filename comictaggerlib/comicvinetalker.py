@@ -105,7 +105,7 @@ class ComicVineTalker(QObject):
         self.log_func = None
 
         # always use a tls context for urlopen
-        self.ssl = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
+        self.ssl = ssl.SSLContext(ssl.PROTOCOL_TLS)
 
     def setLogFunc(self, log_func):
         self.log_func = log_func
