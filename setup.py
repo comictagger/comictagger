@@ -28,7 +28,7 @@ import comictaggerlib.ctversion
 python_requires='>=3',
 
 
-with open('requirements.txt') as f:
+with open('setup_requirements.txt') as f:
     required = f.read().splitlines()
 # Always require PyQt5 on Windows and Mac
 if platform.system() in [ "Windows", "Darwin" ]:
@@ -198,7 +198,7 @@ setup(name="comictagger",
       author="ComicTagger team",
       author_email="comictagger@gmail.com",
       url="https://github.com/davide-romanini/comictagger",
-      download_url="https://pypi.python.org/packages/source/c/comictagger/comictagger-{0}.zip".format(comictaggerlib.ctversion.version),
+      #download_url="https://pypi.python.org/packages/source/c/comictagger/comictagger-{0}.zip".format(comictaggerlib.ctversion.version),
       packages=["comictaggerlib", "comicapi"],
       package_data={
           'comictaggerlib': ['ui/*', 'graphics/*', '*.so'],

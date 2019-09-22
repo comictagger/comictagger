@@ -1,0 +1,6 @@
+configparser
+beautifulsoup4 >= 4.1
+unrar==0.3
+natsort==3.5.2
+PyPDF2==1.24
+pillow>=4.3.0

@@ -33,7 +33,7 @@ pydist:
 	make clean
 	mkdir -p piprelease
 	rm -f comictagger-$(VERSION_STR).zip
-	python setup.py sdist --formats=zip  #,gztar
+	python3 setup.py sdist --formats=zip  #,gztar
 	mv dist/comictagger-$(VERSION_STR).zip piprelease
 	rm -rf comictagger.egg-info dist
 		
