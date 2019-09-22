@@ -1,3 +1,3 @@
 # This file should contain only these comments, and the line below.
 # Used by packaging makefiles and app
-version = "1.1.32-rc1"
+version = "1.1.32rc1"
