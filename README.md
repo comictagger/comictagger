@@ -1,6 +1,18 @@
-A fork from the primary dev branch at https://github.com/davide-romanini/comictagger
 
-Changes:
+ComicTagger is a multi-platform app for writing metadata to digital comics, written in Python and PyQt.
+
+Features:
+
+* Runs on Mac OSX, Microsoft Windows, and Linux systems
+* Communicates with an online database (Comic Vine) for acquiring metadata
+* Uses image processing to automatically match a given archive with the correct issue data
+* Batch processing in the GUI for tagging hundreds or more comics at a time
+* Reads and writes multiple tagging schemes (ComicBookLover and ComicRack).
+* Reads and writes RAR and Zip archives (external tools needed for writing RAR)
+* Can run without PyQt5 installed 
+
+
+Recent changes:
  - Ported to Python 3
  - Ported to PyQt5
  - Added more application and GUI awareness of the unrar library, and removed references to the old scheme that used the unrar executable.  
