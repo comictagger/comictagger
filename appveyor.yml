@@ -2,5 +2,17 @@ version: 1.0.{build}
 build_script:
 - cmd: powershell -exec bypass -File windows\fullbuild.ps1
 artifacts:
-- path: dist\*.exe
+- path: dist\*.zip
   name: ComicTagger
+deploy:
+  release: Draft
+  description: ComicTagger Windows Release
+  provider: GitHub
+  auth_token:
+    secure: GftVXNVTfnfWxlCIWNsufQjgrLqGPbrhK7bddzZ+6onYbbx6vEKWku0QMZjcxq/D
+  draft: true
+  prerelease: false
+  artifact: ComicTagger
+  on:
+    branch: feature/139-appveyor-github-release
+    

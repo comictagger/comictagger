@@ -1,8 +1,9 @@
 VERSION_STR := $(shell python -c 'import comictaggerlib.ctversion; print( comictaggerlib.ctversion.version)')
 
 ifeq ($(OS),Windows_NT)
+	OS_VERSION=win-$(PROCESSOR_ARCHITECTURE)
 	APP_NAME=comictagger.exe
-	FINAL_NAME=ComicTagger-$(VERSION_STR).exe
+	FINAL_NAME=ComicTagger-$(VERSION_STR)-$(OS_VERSION).exe
 else ifeq ($(shell uname -s),Darwin)
 	OS_VERSION=osx-$(shell defaults read loginwindow SystemVersionStampAsString)-$(shell uname -m)
 	APP_NAME=ComicTagger.app
