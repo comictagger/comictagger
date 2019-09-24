@@ -5,8 +5,7 @@ artifacts:
 - path: dist\*.zip
   name: ComicTagger
 deploy:
-  release: Draft
-  description: ComicTagger Windows Release
+  description: New Windows Release
   provider: GitHub
   auth_token:
     secure: GftVXNVTfnfWxlCIWNsufQjgrLqGPbrhK7bddzZ+6onYbbx6vEKWku0QMZjcxq/D
@@ -14,5 +13,6 @@ deploy:
   prerelease: false
   artifact: ComicTagger
   on:
-    branch: feature/139-appveyor-github-release
+    branch: master
+    APPVEYOR_REPO_TAG: true
     
