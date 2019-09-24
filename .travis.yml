@@ -9,6 +9,8 @@ script:
 - make dist
 - ls -l dist
 deploy:
+  name: $TRAVIS_TAG
+  body: New macOS Release
   provider: releases
   skip_cleanup: true
   api_key:
