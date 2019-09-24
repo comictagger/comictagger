@@ -17,5 +17,5 @@ deploy:
   file: dist/ComicTagger*.zip
   draft: true
   on:
-    repo: davide-romanini/comictagger
-    branch: feature/100-travis-osx
+    branch: master
+    tags: true
