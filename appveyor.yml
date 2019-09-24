@@ -13,6 +13,5 @@ deploy:
   prerelease: false
   artifact: ComicTagger
   on:
-    branch: master
     APPVEYOR_REPO_TAG: true
     
