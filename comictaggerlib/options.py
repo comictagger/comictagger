@@ -25,11 +25,11 @@ try:
 except ImportError:
     pass
 
-from genericmetadata import GenericMetadata
-from comicarchive import MetaDataStyle
-from versionchecker import VersionChecker
-import ctversion
-import utils
+from .genericmetadata import GenericMetadata
+from .comicarchive import MetaDataStyle
+from .versionchecker import VersionChecker
+from . import ctversion
+from . import utils
 
 
 class Options:
@@ -144,7 +144,7 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
         if msg is not None:
             print(msg)
         if show_help:
-            print(self.help_text.format(appname))
+            print((self.help_text.format(appname)))
         else:
             print("For more help, run with '--help'")
         sys.exit(code)
@@ -196,7 +196,7 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
         # Map the dict to the metadata object
         for key in md_dict:
             if not hasattr(md, key):
-                print("Warning: '{0}' is not a valid tag name".format(key))
+                print(("Warning: '{0}' is not a valid tag name".format(key)))
             else:
                 md.isEmpty = False
                 setattr(md, key, md_dict[key])
@@ -216,7 +216,7 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
                 break
         sys.argv = script_args
         if not os.path.exists(scriptfile):
-            print("Can't find {0}".format(scriptfile))
+            print(("Can't find {0}".format(scriptfile)))
         else:
             # I *think* this makes sense:
             #  assume the base name of the file is the module name
@@ -232,11 +232,11 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
                 if "main" in dir(script):
                     script.main()
                 else:
-                    print(
-                        "Can't find entry point \"main()\" in module \"{0}\"".format(module_name))
+                    print((
+                        "Can't find entry point \"main()\" in module \"{0}\"".format(module_name)))
             except Exception as e:
-                print "Script raised an unhandled exception: ", e
-                print(traceback.format_exc())
+                print("Script raised an unhandled exception: ", e)
+                print((traceback.format_exc()))
 
         sys.exit(0)
 
@@ -340,18 +340,10 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
             if o == "--only-set-cv-key":
                 self.only_set_key = True
             if o == "--version":
-                print(
-                    "ComicTagger {0}:  Copyright (c) 2012-2014 Anthony Beville".format(ctversion.version))
+                print((
+                    "ComicTagger {0}:  Copyright (c) 2012-2014 Anthony Beville".format(ctversion.version)))
                 print(
                     "Distributed under Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)")
-                new_version = VersionChecker().getLatestVersion("", False)
-                if new_version is not None and new_version != ctversion.version:
-                    print(
-                        "--------------------------------------------------------------------------")
-                    print(
-                        "New version available online: {0}".format(new_version))
-                    print(
-                        "--------------------------------------------------------------------------")
                 sys.exit(0)
             if o in ("-t", "--type"):
                 if a.lower() == "cr":

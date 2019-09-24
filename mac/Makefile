@@ -1,7 +1,7 @@
 #PYINSTALLER_CMD := VERSIONER_PYTHON_PREFER_32_BIT=yes arch -i386 python $(HOME)/pyinstaller-2.0/pyinstaller.py
 #PYINSTALLER_CMD := python $(HOME)/pyinstaller-2.0/pyinstaller.py
 PYINSTALLER_CMD := pyinstaller
-TAGGER_BASE ?= $(HOME)/Dropbox/tagger/comictagger
+TAGGER_BASE ?= ../
 TAGGER_SRC := $(TAGGER_BASE)/comictaggerlib
 
 APP_NAME := ComicTagger
@@ -11,7 +11,7 @@ MAC_BASE := $(TAGGER_BASE)/mac
 DIST_DIR := $(MAC_BASE)/dist
 STAGING := $(MAC_BASE)/$(APP_NAME)
 APP_BUNDLE := $(DIST_DIR)/$(APP_NAME).app
-VOLUME_NAME := $(APP_NAME)-$(VERSION_STR)
+VOLUME_NAME := "$(APP_NAME)-$(VERSION_STR)"
 DMG_FILE := $(VOLUME_NAME).dmg
 
 all: clean dist diskimage
@@ -21,6 +21,7 @@ dist:
 	$(PYINSTALLER_CMD) $(TAGGER_BASE)/comictagger.py  -w -n $(APP_NAME) -s 
 	cp -a $(TAGGER_SRC)/ui $(APP_BUNDLE)/Contents/MacOS
 	cp -a $(TAGGER_SRC)/graphics $(APP_BUNDLE)/Contents/MacOS
+	cp $(MAC_BASE)/libunrar.so $(APP_BUNDLE)/Contents/MacOS
 	cp $(MAC_BASE)/app.icns $(APP_BUNDLE)/Contents/Resources/icon-windowed.icns
 	# fix the version string in the Info.plist
 	sed -i -e 's/0\.0\.0/$(VERSION_STR)/' $(MAC_BASE)/dist/ComicTagger.app/Contents/Info.plist

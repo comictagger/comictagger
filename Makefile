@@ -1,9 +1,21 @@
-TAGGER_BASE ?= $(HOME)/Dropbox/tagger/comictagger
-TAGGER_SRC := $(TAGGER_BASE)/comictaggerlib
-VERSION_STR := $(shell grep version $(TAGGER_SRC)/ctversion.py| cut -d= -f2 | sed 's/\"//g')
-PASSWORD    := $(shell cat $(TAGGER_BASE)/project_password.txt)  
-UPLOAD_TOOL := $(TAGGER_BASE)/google/googlecode_upload.py
-all: clean
+VERSION_STR := $(shell python -c 'import comictaggerlib.ctversion; print( comictaggerlib.ctversion.version)')
+
+ifeq ($(OS),Windows_NT)
+	OS_VERSION=win-$(PROCESSOR_ARCHITECTURE)
+	APP_NAME=comictagger.exe
+	FINAL_NAME=ComicTagger-$(VERSION_STR)-$(OS_VERSION).exe
+else ifeq ($(shell uname -s),Darwin)
+	OS_VERSION=osx-$(shell defaults read loginwindow SystemVersionStampAsString)-$(shell uname -m)
+	APP_NAME=ComicTagger.app
+	FINAL_NAME=ComicTagger-$(VERSION_STR)-$(OS_VERSION).app
+else
+	APP_NAME=comictagger
+	FINAL_NAME=ComicTagger-$(VERSION_STR)
+endif
+
+.PHONY: all clean pydist upload unrar dist
+	
+all: clean dist
 
 clean:
 	rm -rf *~ *.pyc *.pyo
@@ -12,50 +24,34 @@ clean:
 	rm -rf dist MANIFEST
 	rm -rf *.deb
 	rm -rf logdict*.log
-	make -C mac clean
-	make -C windows clean
+	$(MAKE) -C mac clean   
 	rm -rf build
+	$(MAKE) -C unrar clean
+	rm -f unrar/libunrar.so unrar/libunrar.a unrar/unrar
+	rm -f comictaggerlib/libunrar.so
+	rm -rf comictaggerlib/ui/__pycache__
 
 pydist:
-	mkdir -p release
-	rm -f release/*.zip
+	make clean
+	mkdir -p piprelease
+	rm -f comictagger-$(VERSION_STR).zip
 	python setup.py sdist --formats=zip  #,gztar
-	mv dist/comictagger-$(VERSION_STR).zip release
-	@echo When satisfied with release, do this:
-	@echo make svn_tag
-
-remove_test_install:
-	sudo rm -rf /usr/local/bin/comictagger.py
-	sudo rm -rf /usr/local/lib/python2.7/dist-packages/comictagger*
-	
-#deb:
-#	fpm -s python -t deb \
-#		-n 'comictagger' \
-#		--category 'utilities' \
-#		--maintainer 'comictagger@gmail.com' \
-#		--after-install debian_scripts/after_install.sh \
-#		--before-remove debian_scripts/before_remove.sh \
-#		-d 'python >= 2.6' \
-#		-d 'python < 2.8' \
-#		-d 'python-imaging' \
-#		-d 'python-bs4' \
-#		--deb-suggests 'rar' \
-#		--deb-suggests 'unrar-free' \
-#		--python-install-bin /usr/share/comictagger \
-#		--python-install-lib /usr/share/comictagger \
-#		setup.py 
-#
-#		# For now, don't require PyQt, since command-line is available without it
-#		#-d 'python-qt4 >= 4.8' 
+	mv dist/comictagger-$(VERSION_STR).zip piprelease
+	rm -rf comictagger.egg-info dist
 		
 upload:
-	#$(UPLOAD_TOOL) -p comictagger -s "ComicTagger $(VERSION_STR) Source" -l Featured,Type-Source -u beville -w $(PASSWORD) "release/comictagger-$(VERSION_STR).zip"
-	#$(UPLOAD_TOOL) -p comictagger -s "ComicTagger $(VERSION_STR)  Mac OS X" -l Featured,Type-Archive -u beville -w $(PASSWORD) "release/ComicTagger-$(VERSION_STR).dmg"
-	#$(UPLOAD_TOOL) -p comictagger -s "ComicTagger $(VERSION_STR)  Windows" -l Featured,Type-Installer -u beville -w $(PASSWORD) "release/ComicTagger v$(VERSION_STR).exe"
 	python setup.py register
 	python setup.py sdist --formats=zip upload
- 
-svn_tag:
-	svn copy https://comictagger.googlecode.com/svn/trunk \
-		https://comictagger.googlecode.com/svn/tags/$(VERSION_STR) -m "Release $(VERSION_STR)"
 
+unrar:
+ifeq ($(OS),Windows_NT)
+		# statically compile mingw dependencies
+		# https://stackoverflow.com/questions/18138635/mingw-exe-requires-a-few-gcc-dlls-regardless-of-the-code
+		$(MAKE) -C unrar LDFLAGS='-Wl,-Bstatic,--whole-archive -lwinpthread -Wl,--no-whole-archive -pthread -static-libgcc -static-libstdc++' lib
+else
+		$(MAKE) -C unrar lib
+endif
+
+dist: unrar
+	pyinstaller -y comictagger.spec
+	cd dist && zip -r $(FINAL_NAME).zip $(APP_NAME)

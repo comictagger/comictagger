@@ -1,3 +1,6 @@
 /.idea/
 /nbproject/
+/dist
 *.pyc
+/.vscode
+venv

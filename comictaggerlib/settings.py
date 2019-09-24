@@ -21,7 +21,7 @@ import platform
 import codecs
 import uuid
 
-import utils
+from . import utils
 
 
 class ComicTaggerSettings:
@@ -34,23 +34,21 @@ class ComicTaggerSettings:
         else:
             folder = os.path.join(os.path.expanduser('~'), '.ComicTagger')
         if folder is not None:
-            folder = folder.decode(filename_encoding)
+            folder = folder
         return folder
 
-    frozen_win_exe_path = None
+    @staticmethod
+    def defaultLibunrarPath():
+        return ComicTaggerSettings.baseDir() + "/libunrar.so"
 
+    @staticmethod
+    def haveOwnUnrarLib():
+        return os.path.exists(ComicTaggerSettings.defaultLibunrarPath())
+    
     @staticmethod
     def baseDir():
         if getattr(sys, 'frozen', None):
-            if platform.system() == "Darwin":
-                return sys._MEIPASS
-            else:  # Windows
-                # Preserve this value, in case sys.argv gets changed importing
-                # a plugin script
-                if ComicTaggerSettings.frozen_win_exe_path is None:
-                    ComicTaggerSettings.frozen_win_exe_path = os.path.dirname(
-                        os.path.abspath(sys.argv[0]))
-                return ComicTaggerSettings.frozen_win_exe_path
+            return sys._MEIPASS
         else:
             return os.path.dirname(os.path.abspath(__file__))
 
@@ -66,12 +64,11 @@ class ComicTaggerSettings:
         return os.path.join(ui_folder, filename)
 
     def setDefaultValues(self):
-
         # General Settings
         self.rar_exe_path = ""
-        self.unrar_exe_path = ""
+        self.unrar_lib_path = ""
         self.allow_cbi_in_rar = True
-        self.check_for_new_version = True
+        self.check_for_new_version = False
         self.send_usage_stats = False
 
         # automatic settings
@@ -90,7 +87,7 @@ class ComicTaggerSettings:
 
         # identifier settings
         self.id_length_delta_thresh = 5
-        self.id_publisher_blacklist = "Panini Comics, Abril, Planeta DeAgostini, Editorial Televisa"
+        self.id_publisher_blacklist = "Panini Comics, Abril, Planeta DeAgostini, Editorial Televisa, Dino Comics"
 
         # Show/ask dialog flags
         self.ask_about_cbi_in_rar = True
@@ -154,7 +151,7 @@ class ComicTaggerSettings:
         else:
             self.load()
 
-        # take a crack at finding rar exes, if not set already
+        # take a crack at finding rar exe, if not set already
         if self.rar_exe_path == "":
             if platform.system() == "Windows":
                 # look in some likely places for Windows machines
@@ -168,19 +165,51 @@ class ComicTaggerSettings:
                     self.rar_exe_path = utils.which("rar")
             if self.rar_exe_path != "":
                 self.save()
-
-        if self.unrar_exe_path == "":
-            if platform.system() != "Windows":
-                # see if it's in the path of unix user
-                if utils.which("unrar") is not None:
-                    self.unrar_exe_path = utils.which("unrar")
-            if self.unrar_exe_path != "":
+        if self.rar_exe_path != "":
+             # make sure rar program is now in the path for the rar class    
+            utils.addtopath(os.path.dirname(self.rar_exe_path))
+        
+        if self.haveOwnUnrarLib():
+            # We have a 'personal' copy of the unrar lib in the basedir, so
+            # don't search and change the setting
+            # NOTE: a manual edit of the settings file overrides this below
+            os.environ["UNRAR_LIB_PATH"] = self.defaultLibunrarPath()
+            
+        elif self.unrar_lib_path == "":
+            # Priority is for unrar lib search is:
+            #    1. explicit setting in settings file
+            #    2. UNRAR_LIB_PATH in environment
+            #    3. check some likely platform specific places
+            if "UNRAR_LIB_PATH" in os.environ:
+                self.unrar_lib_path =  os.environ["UNRAR_LIB_PATH"]
+            else:
+                # look in some platform specific places:
+                if platform.system() == "Windows":
+                    # Default location for the RARLab DLL installer
+                    if (platform.architecture()[0] == '64bit' and 
+                            os.path.exists("C:\\Program Files (x86)\\UnrarDLL\\x64\\UnRAR64.dll")
+                        ):
+                        self.unrar_lib_path = "C:\\Program Files (x86)\\UnrarDLL\\x64\\UnRAR64.dll"
+                    elif (platform.architecture()[0] == '32bit' and 
+                            os.path.exists("C:\\Program Files\\UnrarDLL\\UnRAR.dll")
+                        ):
+                        self.unrar_lib_path = "C:\\Program Files\\UnrarDLL\\UnRAR.dll"
+                elif platform.system() == "Darwin":
+                    # Look for the brew unrar library
+                    if os.path.exists("/usr/local/lib/libunrar.dylib"):
+                        self.unrar_lib_path = "/usr/local/lib/libunrar.dylib"
+                elif platform.system() == "Linux":
+                    if os.path.exists("/usr/local/lib/libunrar.so"):
+                        self.unrar_lib_path = "/usr/local/lib/libunrar.so"
+                    elif os.path.exists("/usr/lib/libunrar.so"):
+                        self.unrar_lib_path = "/usr/lib/libunrar.so"                        
+                        
+            if self.unrar_lib_path != "":
                 self.save()
-
-        # make sure unrar/rar programs are now in the path for the UnRAR class to
-        # use
-        utils.addtopath(os.path.dirname(self.unrar_exe_path))
-        utils.addtopath(os.path.dirname(self.rar_exe_path))
+                
+        if self.unrar_lib_path != "":
+            # This needs to occur before the unrar module is loaded for the first time
+            os.environ["UNRAR_LIB_PATH"] = self.unrar_lib_path            
 
     def reset(self):
         os.unlink(self.settings_file)
@@ -199,7 +228,8 @@ class ComicTaggerSettings:
             readline_generator(codecs.open(self.settings_file, "r", "utf8")))
 
         self.rar_exe_path = self.config.get('settings', 'rar_exe_path')
-        self.unrar_exe_path = self.config.get('settings', 'unrar_exe_path')
+        if self.config.has_option('settings', 'unrar_lib_path'):
+            self.unrar_lib_path = self.config.get('settings', 'unrar_lib_path')
         if self.config.has_option('settings', 'check_for_new_version'):
             self.check_for_new_version = self.config.getboolean(
                 'settings', 'check_for_new_version')
@@ -359,7 +389,7 @@ class ComicTaggerSettings:
         self.config.set(
             'settings', 'check_for_new_version', self.check_for_new_version)
         self.config.set('settings', 'rar_exe_path', self.rar_exe_path)
-        self.config.set('settings', 'unrar_exe_path', self.unrar_exe_path)
+        self.config.set('settings', 'unrar_lib_path', self.unrar_lib_path)
         self.config.set('settings', 'send_usage_stats', self.send_usage_stats)
 
         if not self.config.has_section('auto'):

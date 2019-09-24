@@ -1,0 +1,4 @@
+This file is a placeholder that will automaticlly be replaced with a symlink to
+the local machine's Python framework python binary.
+
+When pip does an uninstall, it will remove the link.
