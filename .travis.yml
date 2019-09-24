@@ -1,0 +1,21 @@
+language: generic
+os: osx
+osx_image: xcode8.3
+install:
+- brew upgrade python3
+- pip3 install --upgrade setuptools
+- pip3 install -r requirements.txt
+script:
+- make dist
+- ls -l dist
+deploy:
+  provider: releases
+  skip_cleanup: true
+  api_key:
+    secure: RgohcOJOfLhXXT12bMWaLwOqhe+ClSCYXjYuUJuWK4/E1fdd1xu1ebdQU+MI/R8cZ0Efz3sr2n3NkO/Aa8gN68xEfuF7RVRMm64P9oPrfZgGdsD6H43rU/6kN8bgaDRmCYpLTfXaJ+/gq0x1QDkhWJuceF2BYEGGvL0BvS/TUsLyjVxs8ujTplLyguXHNEv4/7Yz7SBNZZmUHjBuq/y+l8ds3ra9rSgAVAN1tMXoFKJPv+SNNkpTo5WUNMPzBnN041F1rzqHwYDLog2V7Krp9JkXzheRFdAr51/tJBYzEd8AtYVdYvaIvoO6A4PiTZ7MpsmcZZPAWqLQU00UTm/PhT/LVR+7+f8lOBG07RgNNHB+edjDRz3TAuqyuZl9wURWTZKTPuO49TkZMz7Wm0DRNZHvBm1IXLeSG7Tll2YL1+WpZNZg+Dhro2J1QD3vxDXafhMdTCB4z0q5aKpG93IT0p6oXOO0oEGOPZYbA2c5R3SXWSyqd1E1gdhbVjIZr59h++TEf1zz07tvWHqPuAF/Ly/j+dIcY2wj0EzRWaSASWgUpTnMljAkHtWhqDw4GXGDRkRUWRJl1d0/JyVqCeIdRzDQNl8/q7BcO3F1zqr1PgnYdz0lfwWxL1/ekw2vHOJE/GOdkyvX0aJrnaOV338mjJbfGHYv4ESc9ow1kdtIbiU=
+  file_glob: true  
+  file: dist/ComicTagger*.zip
+  draft: true
+  on:
+    branch: master
+    tags: true

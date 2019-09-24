@@ -4,8 +4,9 @@ ifeq ($(OS),Windows_NT)
 	APP_NAME=comictagger.exe
 	FINAL_NAME=ComicTagger-$(VERSION_STR).exe
 else ifeq ($(shell uname -s),Darwin)
+	OS_VERSION=osx-$(shell defaults read loginwindow SystemVersionStampAsString)-$(shell uname -m)
 	APP_NAME=ComicTagger.app
-	FINAL_NAME=ComicTagger-$(VERSION_STR).app
+	FINAL_NAME=ComicTagger-$(VERSION_STR)-$(OS_VERSION).app
 else
 	APP_NAME=comictagger
 	FINAL_NAME=ComicTagger-$(VERSION_STR)
@@ -52,4 +53,4 @@ endif
 
 dist: unrar
 	pyinstaller -y comictagger.spec
-	mv dist/$(APP_NAME) dist/$(FINAL_NAME)
+	cd dist && zip -r $(FINAL_NAME).zip $(APP_NAME)
