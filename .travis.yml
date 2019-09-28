@@ -2,7 +2,7 @@ language: python
 branches:
   only:
     - develop
-    - "/^\\d+\\.\\d+\\.\\d+$/"
+    - /^\d+\.\d+\.\d+$/
 env:
   global:
     - PYTHON=python
