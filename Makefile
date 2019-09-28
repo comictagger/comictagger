@@ -1,3 +1,4 @@
+PIP ?= pip
 VERSION_STR := $(shell python setup.py --version)
 
 ifeq ($(OS),Windows_NT)
@@ -54,6 +55,6 @@ else
 endif
 
 dist: unrar
-	pip install .
+	$(PIP) install .
 	pyinstaller -y comictagger.spec
 	cd dist && zip -r $(FINAL_NAME).zip $(APP_NAME)
