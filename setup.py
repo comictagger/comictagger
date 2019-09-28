@@ -23,7 +23,6 @@ import sys
 import shutil
 import platform
 import tempfile
-import comictaggerlib.ctversion
 
 python_requires='>=3',
 
@@ -193,7 +192,6 @@ setup(name="comictagger",
         'build_py': BuildPyCommand,
         'install': customInstall,
         },
-      version=comictaggerlib.ctversion.version,
       description="A cross-platform GUI/CLI app for writing metadata to comic archives",
       author="ComicTagger team",
       author_email="comictagger@gmail.com",
@@ -204,6 +202,12 @@ setup(name="comictagger",
       },
       entry_points=dict(console_scripts=['comictagger=comictaggerlib.main:ctmain']),
       data_files=platform_data_files,
+      setup_requires=[
+        "setuptools_scm"
+      ],
+      use_scm_version={
+          'write_to': 'comictaggerlib/ctversion.py'
+      },
       classifiers=[
             "Development Status :: 4 - Beta",
             "Environment :: Console",

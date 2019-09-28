@@ -5,7 +5,7 @@ TAGGER_BASE ?= ../
 TAGGER_SRC := $(TAGGER_BASE)/comictaggerlib
 
 APP_NAME := ComicTagger
-VERSION_STR := $(shell grep version $(TAGGER_SRC)/ctversion.py| cut -d= -f2 | sed 's/\"//g')
+VERSION_STR := $(shell python setup.py --version)
 
 MAC_BASE := $(TAGGER_BASE)/mac
 DIST_DIR := $(MAC_BASE)/dist

@@ -1,4 +1,4 @@
-VERSION_STR := $(shell python -c 'import comictaggerlib.ctversion; print( comictaggerlib.ctversion.version)')
+VERSION_STR := $(shell python setup.py --version)
 
 ifeq ($(OS),Windows_NT)
 	OS_VERSION=win-$(PROCESSOR_ARCHITECTURE)
@@ -30,6 +30,7 @@ clean:
 	rm -f unrar/libunrar.so unrar/libunrar.a unrar/unrar
 	rm -f comictaggerlib/libunrar.so
 	rm -rf comictaggerlib/ui/__pycache__
+	rm comitaggerlib/ctversion.py
 
 pydist:
 	make clean
@@ -53,5 +54,6 @@ else
 endif
 
 dist: unrar
+	pip install .
 	pyinstaller -y comictagger.spec
 	cd dist && zip -r $(FINAL_NAME).zip $(APP_NAME)
