@@ -1,7 +1,6 @@
 include README.md
 include release_notes.txt
 include requirements.txt
-include unrar/*
 recursive-include scripts *.py *.txt
 recursive-include desktop-integration *
 include windows/app.ico

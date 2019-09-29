@@ -5,10 +5,6 @@ from comictaggerlib import ctversion
 
 block_cipher = None
 
-binaries = [
-    ('./unrar/libunrar.so', './'),
-]
-
 if platform.system() == "Windows":
     from site import getsitepackages
     sitepackages = getsitepackages()[1]

@@ -1,10 +1,5 @@
 # Setup file for comictagger python source  (no wheels yet)
 #
-# The install process will attempt to compile the unrar lib from source.
-# If it succeeds, the unrar lib binary will be installed with the python
-# source.  If it fails, install will just continue.  On most Linux systems it
-# should just work.  (Tested on a Mac system with homebrew, as well)
-#
 # An entry point script called "comictagger" will be created
 #
 # Currently commented out, an experiment at desktop integration.
@@ -144,61 +139,15 @@ def postInstall(scripts_folder):
             os.symlink(sys.executable, mac_python_link) 
 """
 
-class BuildUnrarCommand(Command):
-    description = 'build unrar library' 
-    user_options = []
-
-    def initialize_options(self):
-        pass
-    def finalize_options(self):
-        pass
-
-    def run(self):
-        try: 
-            if not os.path.exists("comictaggerlib/libunrar.so"):
-                if not os.path.exists("unrar/libunrar.so"):
-                   print("Building C++ unrar library....")
-                   subprocess.call(['make', '-C', 'unrar', 'lib'])
-                print("Copying .so file to comictaggerlib folder")
-                shutil.copyfile("unrar/libunrar.so", "comictaggerlib/libunrar.so")
-        except Exception as e:
-            print(e)
-            print("WARNING ----  Unrar library build/deploy failed.  User will have to self-install libunrar.")
-       
-       
-class BuildPyCommand(setuptools.command.build_py.build_py):
-  """Custom build command."""
-
-  def run(self):
-    self.run_command('build_unrar')
-    setuptools.command.build_py.build_py.run(self)
-            
-class customInstall(setuptools.command.install.install):
-  """Custom install command."""
-
-  def run(self):
-    
-    # Do the standard install
-    setuptools.command.install.install.run(self)
-    
-    # Custom post install 
-    #postInstall(self.install_scripts)
-    
-#----------------------------------------------------    
 setup(name="comictagger",
       install_requires=required,
-      cmdclass={
-        'build_unrar': BuildUnrarCommand,
-        'build_py': BuildPyCommand,
-        'install': customInstall,
-        },
       description="A cross-platform GUI/CLI app for writing metadata to comic archives",
       author="ComicTagger team",
       author_email="comictagger@gmail.com",
       url="https://github.com/davide-romanini/comictagger",      
       packages=["comictaggerlib", "comicapi"],
       package_data={
-          'comictaggerlib': ['ui/*', 'graphics/*', '*.so'],
+          'comictaggerlib': ['ui/*', 'graphics/*'],
       },
       entry_points=dict(console_scripts=['comictagger=comictaggerlib.main:ctmain']),
       data_files=platform_data_files,

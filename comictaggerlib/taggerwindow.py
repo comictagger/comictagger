@@ -984,13 +984,9 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
         if self.settings.last_opened_folder is not None:
             dialog.setDirectory(self.settings.last_opened_folder)
-        # dialog.setFileMode(QtWidgets.QFileDialog.Directory)
 
         if not folder_mode:
-            if platform.system() != "Windows" and utils.which("unrar") is None:
-                archive_filter = "Comic archive files (*.cbz *.zip)"
-            else:
-                archive_filter = "Comic archive files (*.cbz *.zip *.cbr *.rar)"
+            archive_filter = "Comic archive files (*.cbz *.zip *.cbr *.rar)"
             filters = [
                 archive_filter,
                 "Any files (*)"
