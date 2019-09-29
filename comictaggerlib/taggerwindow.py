@@ -582,35 +582,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
             if self.droppedFiles is not None:
                 event.accept()
 
-    # http://stackoverflow.com/questions/34689562/pyqt-mimedata-filename
     def getUrlFromLocalFileID(self, localFileID):
-        import sys
-        if not sys.platform == 'darwin':
-            return localFileID.toLocalFile()
-
-        import objc
-        import CoreFoundation as CF
-        localFileQString = QString(localFileID.toLocalFile())
-        relCFStringRef = CF.CFStringCreateWithCString(
-            CF.kCFAllocatorDefault,
-            localFileQString.toUtf8(),
-            CF.kCFStringEncodingUTF8
-            )
-        relCFURL = CF.CFURLCreateWithFileSystemPath(
-            CF.kCFAllocatorDefault,
-            relCFStringRef,
-            CF.kCFURLPOSIXPathStyle,
-            False  # is directory
-            )
-        absCFURL = CF.CFURLCreateFilePathURL(
-            CF.kCFAllocatorDefault,
-            relCFURL,
-            objc.NULL
-            )
-
-        local = QUrl(str(absCFURL[0])).toLocalFile()
-        
-        return local
+            return localFileID.toLocalFile()        
 
     def dropEvent(self, event):
         # if self.dirtyFlagVerification("Open Archive",
