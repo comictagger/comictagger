@@ -1,6 +1,7 @@
 # -*- mode: python -*-
 
 import platform
+from comictaggerlib import ctversion
 
 block_cipher = None
 
@@ -47,6 +48,9 @@ app = BUNDLE(exe,
             name='ComicTagger.app',
             icon='mac/app.icns',
             info_plist={
-                'NSHighResolutionCapable': 'True'
+                'NSHighResolutionCapable': 'True',
+                'CFBundleDisplayName': 'ComicTagger',
+                'CFBundleShortVersionString': ctversion.version,
+                'CFBundleVersion': ctversion.version
             },
             bundle_identifier=None)
