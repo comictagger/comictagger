@@ -24,55 +24,10 @@ import platform
 import ctypes
 import time
 import io
-#import io
-#import locale
-#import shutil
 
 from natsort import natsorted
 from PyPDF2 import PdfFileReader
-try:
-    from unrar import rarfile
-    from unrar import unrarlib
-    from unrar import constants
-    # monkey patch unrarlib to avoid segfaults on Win10
-    if platform.system() == 'Windows':
-        unrarlib.UNRARCALLBACK = ctypes.WINFUNCTYPE(
-            # return type
-            ctypes.c_int,
-            # msg
-            ctypes.c_uint,
-            # UserData
-            ctypes.c_long,
-            # MONKEY PATCH HERE -- use a pointer instead of a long, in unrar code: (LPARAM)(*byte), 
-            # that is a pointer to byte casted to LPARAM
-            # On win10 64bit causes nasty segfaults when used from pyinstaller
-            ctypes.POINTER(ctypes.c_byte),
-            # size
-            ctypes.c_long
-        )
-        RARSetCallback = unrarlib._c_func(unrarlib.RARSetCallback, None,
-                         [unrarlib.HANDLE, unrarlib.UNRARCALLBACK, ctypes.c_long])
-        def _rar_cb(self, msg, user_data, p1, p2):
-            if (msg == constants.UCM_NEEDPASSWORD or
-                msg == constants.UCM_NEEDPASSWORDW):
-                # This is a work around since libunrar doesn't
-                # properly return the error code when files are encrypted
-                self._missing_password = True
-            elif msg == constants.UCM_PROCESSDATA:
-                if self._data is None:
-                    self._data = b''
-                chunk = ctypes.string_at(p1, p2)
-                self._data += chunk
-            return 1
-        rarfile._ReadIntoMemory._callback = _rar_cb
-except Exception as e:
-    print(e)
-    print("WARNING: cannot find libunrar, rar support is disabled")
-    pass
-
-#if platform.system() == "Windows":
-#    import _subprocess
-
+from unrar.cffi import rarfile
 try:
     import Image
     pil_available = True
@@ -84,8 +39,6 @@ from .comicbookinfo import ComicBookInfo
 from .comet import CoMet
 from .genericmetadata import GenericMetadata, PageType
 from .filenameparser import FileNameParser
-#from settings import ComicTaggerSettings
-
 
 sys.path.insert(0, os.path.abspath("."))
 
@@ -94,7 +47,6 @@ class MetaDataStyle:
     CIX = 1
     COMET = 2
     name = ['ComicBookLover', 'ComicRack', 'CoMet']
-
 
 class ZipArchiver:
 
@@ -177,11 +129,6 @@ class ZipArchiver:
 
         This recompresses the zip archive, without the files in the exclude_list
         """
-
-        # print ">> sys.stderr, Rebuilding zip {0} without {1}".format(
-        #                                            self.path, exclude_list )
-
-        # generate temp file
         tmp_fd, tmp_name = tempfile.mkstemp(dir=os.path.dirname(self.path))
         os.close(tmp_fd)
 
@@ -269,7 +216,6 @@ class ZipArchiver:
 
     def copyFromArchive(self, otherArchive):
         """Replace the current zip with one copied from another archive"""
-
         try:
             zout = zipfile.ZipFile(self.path, 'w', allowZip64=True)
             for fname in otherArchive.getArchiveFilenameList():
@@ -290,16 +236,12 @@ class ZipArchiver:
         else:
             return True
 
-
-#------------------------------------------
-
 class RarArchiver:
-
     """RAR implementation"""
-
     devnull = None
 
     def __init__(self, path, rar_exe_path):
+        print("RAR %s" % path)
         self.path = path
         self.rar_exe_path = rar_exe_path
 
@@ -312,10 +254,6 @@ class RarArchiver:
             self.startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
         else:
             self.startupinfo = None
-
-    def __del__(self):
-        # RarArchiver.devnull.close()
-        pass
 
     def getArchiveComment(self):
         rarc = self.getRARObj()
@@ -357,10 +295,6 @@ class RarArchiver:
             return False
 
     def readArchiveFile(self, archive_file):
-
-        # Make sure to escape brackets, since some funky stuff is going on
-        # underneath with "fnmatch"
-        #archive_file = archive_file.replace("[", '[[]')
         entries = []
 
         rarc = self.getRARObj()
@@ -369,23 +303,14 @@ class RarArchiver:
         while tries < 7:
             try:
                 tries = tries + 1
-                #tmp_folder = tempfile.mkdtemp()
-                #tmp_file = os.path.join(tmp_folder, archive_file)
-                #rarc.extract(archive_file, tmp_folder)
-                data = rarc.open(archive_file).read()
-                #data = open(tmp_file).read()
+                data = rarc.open(archive_file).read()                
                 entries = [(rarc.getinfo(archive_file), data)]
-
-                #shutil.rmtree(tmp_folder, ignore_errors=True)
-
-                #entries = rarc.read_files( archive_file )
 
                 if entries[0][0].file_size != len(entries[0][1]):
                     print("readArchiveFile(): [file is not expected size: {0} vs {1}]  {2}:{3} [attempt # {4}]".format(
                         entries[0][0].file_size, len(
                             entries[0][1]), self.path, archive_file, tries), file=sys.stderr)
                     continue
-
             except (OSError, IOError) as e:
                 print("readArchiveFile(): [{0}]  {1}:{2} attempt#{3}".format(
                     str(e), self.path, archive_file, tries), file=sys.stderr)
@@ -472,16 +397,11 @@ class RarArchiver:
             return False
 
     def getArchiveFilenameList(self):
-
         rarc = self.getRARObj()
-        #namelist = [ item.filename for item in rarc.infolist() ]
-        # return namelist
-
         tries = 0
         while tries < 7:
             try:
                 tries = tries + 1
-                #namelist = [ item.filename for item in rarc.infolist() ]
                 namelist = []
                 for item in rarc.infolist():
                     if item.file_size != 0:
@@ -499,11 +419,12 @@ class RarArchiver:
         raise e
 
     def getRARObj(self):
+        print("Opening %s" % self.path)
         tries = 0
         while tries < 7:
             try:
                 tries = tries + 1
-                rarc = rarfile.RarFile( self.path )
+                rarc = rarfile.RarFile(self.path)
 
             except (OSError, IOError) as e:
                 print("getRARObj(): [{0}] {1} attempt#{2}".format(
@@ -512,6 +433,7 @@ class RarArchiver:
 
             else:
                 # Success"
+                print("Success!")
                 return rarc
 
         raise e
@@ -606,7 +528,6 @@ class UnknownArchiver:
     def getArchiveFilenameList(self):
         return []
 
-
 class PdfArchiver:
 
     def __init__(self, path):
@@ -635,17 +556,13 @@ class PdfArchiver:
             out.append("/%04d.jpg" % (page))
         return out
 
-#------------------------------------------------------------------
-
-
 class ComicArchive:
-
     logo_data = None
-
     class ArchiveType:
         Zip, Rar, Folder, Pdf, Unknown = list(range(5))
 
     def __init__(self, path, rar_exe_path=None, default_image_path=None):
+        print("ComicArchive %s" % path)
         self.path = path
 
         self.rar_exe_path = rar_exe_path
@@ -715,12 +632,7 @@ class ComicArchive:
         return zipfile.is_zipfile(self.path)
 
     def rarTest(self):
-        try:
-            rarc = rarfile.RarFile(self.path)
-        except:  # InvalidRARArchive:
-            return False
-        else:
-            return True
+        return rarfile.is_rarfile(self.path)        
 
     def isZip(self):
         return self.archive_type == self.ArchiveType.Zip
@@ -758,7 +670,6 @@ class ComicArchive:
         return self.isWritable()
 
     def seemsToBeAComicArchive(self):
-
         # Do we even care about extensions??
         ext = os.path.splitext(self.path)[1].lower()
 
@@ -785,7 +696,6 @@ class ComicArchive:
             return GenericMetadata()
 
     def writeMetadata(self, metadata, style):
-
         retcode = None
         if style == MetaDataStyle.CIX:
             retcode = self.writeCIX(metadata)
@@ -796,7 +706,6 @@ class ComicArchive:
         return retcode
 
     def hasMetadata(self, style):
-
         if style == MetaDataStyle.CIX:
             return self.hasCIX()
         elif style == MetaDataStyle.CBI:
@@ -817,7 +726,6 @@ class ComicArchive:
         return retcode
 
     def getPage(self, index):
-
         image_data = None
 
         filename = self.getPageName(index)
@@ -832,7 +740,6 @@ class ComicArchive:
         return image_data
 
     def getPageName(self, index):
-
         if index is None:
             return None
 
@@ -845,7 +752,6 @@ class ComicArchive:
         return page_list[index]
 
     def getScannerPageIndex(self):
-
         scanner_page_index = None
 
         # make a guess at the scanner page
@@ -900,7 +806,6 @@ class ComicArchive:
         return scanner_page_index
 
     def getPageNameList(self, sort_list=True):
-
         if self.page_list is None:
             # get the list file names in the archive, and sort
             files = self.archiver.getArchiveFilenameList()
@@ -930,7 +835,6 @@ class ComicArchive:
         return self.page_list
 
     def getNumberOfPages(self):
-
         if self.page_count is None:
             self.page_count = len(self.getPageNameList())
         return self.page_count
@@ -1020,7 +924,6 @@ class ComicArchive:
         return raw_cix
 
     def writeCIX(self, metadata):
-
         if metadata is not None:
             self.applyArchiveInfoToMetadata(metadata, calc_page_sizes=True)
             cix_string = ComicInfoXml().stringFromMetadata(metadata)
@@ -1180,7 +1083,6 @@ class ComicArchive:
                         p['ImageSize'] = str(len(data))
 
     def metadataFromFilename(self, parse_scan_info=True):
-
         metadata = GenericMetadata()
 
         fnp = FileNameParser()
