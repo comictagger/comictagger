@@ -1,21 +1,19 @@
 # -*- mode: python -*-
 
 import platform
+from os.path import join
 from comictaggerlib import ctversion
 
+binaries = []
 block_cipher = None
-
-binaries = [
-    ('./unrar/libunrar.so', './'),
-]
 
 if platform.system() == "Windows":
     from site import getsitepackages
     sitepackages = getsitepackages()[1]
     # add ssl qt libraries not discovered automatically
     binaries.extend([
-        ('%s/PyQt5/Qt/bin/libeay32.dll' % sitepackages, './PyQt5/Qt/bin'),
-        ('%s/PyQt5/Qt/bin/ssleay32.dll' % sitepackages, './PyQt5/Qt/bin')
+        (join(sitepackages, "PyQt5/Qt/bin/libeay32.dll"), "./PyQt5/Qt/bin"),
+        (join(sitepackages, "PyQt5/Qt/bin/ssleay32.dll"), "./PyQt5/Qt/bin")
     ])
 
 a = Analysis(['comictagger.py'],

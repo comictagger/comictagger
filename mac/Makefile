@@ -21,7 +21,6 @@ dist:
 	$(PYINSTALLER_CMD) $(TAGGER_BASE)/comictagger.py  -w -n $(APP_NAME) -s 
 	cp -a $(TAGGER_SRC)/ui $(APP_BUNDLE)/Contents/MacOS
 	cp -a $(TAGGER_SRC)/graphics $(APP_BUNDLE)/Contents/MacOS
-	cp $(MAC_BASE)/libunrar.so $(APP_BUNDLE)/Contents/MacOS
 	cp $(MAC_BASE)/app.icns $(APP_BUNDLE)/Contents/Resources/icon-windowed.icns
 	# fix the version string in the Info.plist
 	sed -i -e 's/0\.0\.0/$(VERSION_STR)/' $(MAC_BASE)/dist/ComicTagger.app/Contents/Info.plist
