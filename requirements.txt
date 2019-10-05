@@ -5,3 +5,4 @@ PyPDF2==1.24
 pillow>=4.3.0
 PyQt5>=5.10.1
 pyinstaller>=3.5
+unrar-cffi==0.1.0a5
