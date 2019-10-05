@@ -21,7 +21,6 @@ import sys
 import tempfile
 import subprocess
 import platform
-import ctypes
 import time
 import io
 
@@ -241,7 +240,6 @@ class RarArchiver:
     devnull = None
 
     def __init__(self, path, rar_exe_path):
-        print("RAR %s" % path)
         self.path = path
         self.rar_exe_path = rar_exe_path
 
@@ -560,7 +558,6 @@ class ComicArchive:
         Zip, Rar, Folder, Pdf, Unknown = list(range(5))
 
     def __init__(self, path, rar_exe_path=None, default_image_path=None):
-        print("ComicArchive %s" % path)
         self.path = path
 
         self.rar_exe_path = rar_exe_path
