@@ -3,6 +3,6 @@ beautifulsoup4 >= 4.1
 natsort==3.5.2
 PyPDF2==1.24
 pillow>=4.3.0
-PyQt5>=5.10.1
+PyQt5>=5.12.2
 pyinstaller>=3.5
 unrar-cffi==0.1.0a5

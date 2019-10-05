@@ -39,7 +39,7 @@ exe = EXE(pyz,
           debug=False,
           strip=False,
           upx=True,
-          console=False,
+          console=True,
           icon="windows/app.ico" )
 
 app = BUNDLE(exe,
@@ -47,6 +47,7 @@ app = BUNDLE(exe,
             icon='mac/app.icns',
             info_plist={
                 'NSHighResolutionCapable': 'True',
+                'NSRequiresAquaSystemAppearance': 'False',
                 'CFBundleDisplayName': 'ComicTagger',
                 'CFBundleShortVersionString': ctversion.version,
                 'CFBundleVersion': ctversion.version
