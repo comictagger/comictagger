@@ -195,7 +195,7 @@ setup(name="comictagger",
       description="A cross-platform GUI/CLI app for writing metadata to comic archives",
       author="ComicTagger team",
       author_email="comictagger@gmail.com",
-      url="https://github.com/davide-romanini/comictagger",      
+      url="https://github.com/comictagger/comictagger",      
       packages=["comictaggerlib", "comicapi"],
       package_data={
           'comictaggerlib': ['ui/*', 'graphics/*', '*.so'],

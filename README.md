@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/davide-romanini/comictagger.svg?branch=develop)](https://travis-ci.org/davide-romanini/comictagger)
+[![Build Status](https://travis-ci.org/comictagger/comictagger.svg?branch=develop)](https://travis-ci.org/comictagger/comictagger)
 [![Gitter chat](https://badges.gitter.im/gitterHQ/gitter.png)](https://gitter.im/comictagger/community)
 [![Google Group](https://img.shields.io/badge/discuss-on%20groups-%23207de5)](https://groups.google.com/forum/#!forum/comictagger)
 [![Twitter](https://img.shields.io/badge/%40comictagger-twitter-lightgrey)](https://twitter.com/comictagger)
@@ -21,14 +21,14 @@ ComicTagger is a **multi-platform** app for **writing metadata to digital comics
 * Native read only support for **CBR** digital comics: full support enabled installing additional [rar tools](https://www.rarlab.com/download.htm)
 * Command line interface (CLI) enabling **custom scripting** and **batch operations on large collections**
 
-For details, screen-shots, release notes, and more, visit [the Wiki](https://github.com/davide-romanini/comictagger/wiki)
+For details, screen-shots, release notes, and more, visit [the Wiki](https://github.com/comictagger/comictagger/wiki)
 
 
 ## Installation
 
 ### Binaries
 
-Windows and macOS binaries are provided in the [Releases Page](https://github.com/davide-romanini/comictagger/releases). 
+Windows and macOS binaries are provided in the [Releases Page](https://github.com/comictagger/comictagger/releases). 
 
 Just unzip the archive in any folder and run, no additional installation steps are required.
 
@@ -43,6 +43,6 @@ A pip package is provided, you can install it with:
 ### From source
 
  1. ensure you have a recent version of python3 and setuptools installed
- 2. clone this repository `git clone https://github.com/davide-romanini/comictagger.git`
+ 2. clone this repository `git clone https://github.com/comictagger/comictagger.git`
  3. `pip install -r requirements.txt`
  4. `python comictagger.py`

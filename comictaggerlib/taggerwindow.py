@@ -545,7 +545,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
     def aboutApp(self):
 
-        website = "https://github.com/davide-romanini/comictagger"
+        website = "https://github.com/comictagger/comictagger"
         email = "comictagger@gmail.com"
         license_link = "http://www.apache.org/licenses/LICENSE-2.0"
         license_name = "Apache License 2.0"
@@ -2022,10 +2022,10 @@ class TaggerWindow(QtWidgets.QMainWindow):
             dlg.exec_()
 
     def showWiki(self):
-        webbrowser.open("https://github.com/davide-romanini/comictagger/wiki")
+        webbrowser.open("https://github.com/comictagger/comictagger/wiki")
 
     def reportBug(self):
-        webbrowser.open("https://github.com/davide-romanini/comictagger/issues")
+        webbrowser.open("https://github.com/comictagger/comictagger/issues")
 
     def showForum(self):
         webbrowser.open("http://comictagger.forumotion.com/")
