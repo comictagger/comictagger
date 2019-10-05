@@ -49,6 +49,7 @@ app = BUNDLE(exe,
             icon='mac/app.icns',
             info_plist={
                 'NSHighResolutionCapable': 'True',
+                'NSRequiresAquaSystemAppearance': 'False',
                 'CFBundleDisplayName': 'ComicTagger',
                 'CFBundleShortVersionString': ctversion.version,
                 'CFBundleVersion': ctversion.version
