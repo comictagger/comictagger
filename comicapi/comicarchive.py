@@ -419,7 +419,6 @@ class RarArchiver:
         raise e
 
     def getRARObj(self):
-        print("Opening %s" % self.path)
         tries = 0
         while tries < 7:
             try:
@@ -433,7 +432,6 @@ class RarArchiver:
 
             else:
                 # Success"
-                print("Success!")
                 return rarc
 
         raise e
