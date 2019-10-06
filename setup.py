@@ -21,12 +21,11 @@ import tempfile
 
 python_requires='>=3',
 
-
 with open('requirements.txt') as f:
     required = f.read().splitlines()
-# Always require PyQt5 on Windows and Mac
-if platform.system() in [ "Windows", "Darwin" ]:
-    required.append("PyQt5")
+
+with open('README.md') as f:
+    long_description = f.read()
 
 platform_data_files = []
 
@@ -175,19 +174,6 @@ setup(name="comictagger",
       ],
       keywords=['comictagger', 'comics', 'comic', 'metadata', 'tagging', 'tagger'],
       license="Apache License 2.0",
-
-      long_description="""
-ComicTagger is a multi-platform app for writing metadata to digital comics, written in Python and PyQt.
-
-Features:
-
-* Runs on Mac OSX, Microsoft Windows, and Linux systems
-* Communicates with an online database (Comic Vine) for acquiring metadata
-* Uses image processing to automatically match a given archive with the correct issue data
-* Batch processing in the GUI for tagging hundreds or more comics at a time
-* Reads and writes multiple tagging schemes ( ComicBookLover and ComicRack).
-* Reads and writes RAR and Zip archives (external tools needed for writing RAR)
-* Command line interface (CLI) on all platforms (including Windows), which supports batch operations, and which can be used in native scripts for complex operations.
-* Can run without PyQt5 installed 
-"""
-      )
+      long_description=long_description,
+      long_description_content_type="text/markdown"
+)

@@ -8,7 +8,7 @@
 
 ComicTagger is a **multi-platform** app for **writing metadata to digital comics**, written in Python and PyQt.
 
-![ComicTagger logo](comictaggerlib/graphics/app.png?raw=true)
+![ComicTagger logo](https://raw.githubusercontent.com/comictagger/comictagger/develop/comictaggerlib/graphics/app.png)
 
 ## Features
 
