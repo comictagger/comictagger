@@ -1,32 +1,33 @@
 language: python
 branches:
   only:
-  - develop
-  - "/^\\d+\\.\\d+\\.\\d+$/"
+    - develop
+    - /^\d+\.\d+\.\d+$/
 env:
   global:
-  - PYTHON=python
-  - PIP=pip
-  - SETUPTOOLS_SCM_PRETEND_VERSION=$TRAVIS_TAG
-  - MAKE=make
+    - PYTHON=python
+    - PIP=pip
+    - SETUPTOOLS_SCM_PRETEND_VERSION=$TRAVIS_TAG
+    - MAKE=make
 matrix:
   include:
-  - os: linux
-  - os: osx
-    language: generic
-    osx_image: xcode8.3
-    env: PYTHON=python3 PIP=pip3 MACOSX_DEPLOYMENT_TARGET=10.11
-  - os: windows
-    language: bash
-    env: PATH=/C/Python37:/C/Python37/Scripts:$PATH MAKE=mingw32-make
+    - os: linux
+    - os: osx
+      language: generic
+      osx_image: xcode8.3
+      env: PYTHON=python3 PIP=pip3 MACOSX_DEPLOYMENT_TARGET=10.11
+    - os: windows
+      language: bash
+      env: PATH=/C/Python37:/C/Python37/Scripts:$PATH MAKE=mingw32-make
 before_install:
-- if [ "$TRAVIS_OS_NAME" = "windows" ]; then choco install -y python mingw zip; fi
-- if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew upgrade python3 ; fi
+  - if [ "$TRAVIS_OS_NAME" = "windows" ]; then choco install -y python mingw zip; fi
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew upgrade python3 ; fi
 install:
-- "$PIP install --upgrade setuptools"
-- "$PIP install -r requirements.txt"
+  - $PIP install --upgrade setuptools
+  - $PIP install -r requirements.txt
 script:
-- if [ "$TRAVIS_OS_NAME" != "linux" ]; then $MAKE dist ; fi
+  - if [ "$TRAVIS_OS_NAME" != "linux" ]; then $MAKE dist ; fi
+
 deploy:
   - name: "$TRAVIS_TAG"
     body: Released ComicTagger $TRAVIS_TAG
