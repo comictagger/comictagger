@@ -25,6 +25,7 @@ try:
 except ImportError:
     pass
 
+from datetime import datetime
 from .genericmetadata import GenericMetadata
 from .comicarchive import MetaDataStyle
 from .versionchecker import VersionChecker
@@ -103,7 +104,7 @@ If no options are given, {0} will run in windowed mode.
     --version               Display version.
 -h, --help                  Display this message.
 
-For more help visit the wiki at: http://code.google.com/p/comictagger/
+For more help visit the wiki at: https://github.com/comictagger/comictagger/wiki
     """
 
     def __init__(self):
@@ -341,7 +342,7 @@ For more help visit the wiki at: http://code.google.com/p/comictagger/
                 self.only_set_key = True
             if o == "--version":
                 print((
-                    "ComicTagger {0}:  Copyright (c) 2012-2014 Anthony Beville".format(ctversion.version)))
+                    "ComicTagger {}:  Copyright (c) 2012-{:%Y} ComicTagger Team".format(ctversion.version, datetime.today())))
                 print(
                     "Distributed under Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)")
                 sys.exit(0)
