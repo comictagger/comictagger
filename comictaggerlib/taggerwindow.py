@@ -2103,7 +2103,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
     def versionCheckComplete(self, new_version):
         if (new_version != self.version and
                 new_version != self.settings.dont_notify_about_this_version):
-            website = "http://code.google.com/p/comictagger"
+            website = "https://github.com/comictagger/comictagger"
             checked = OptionalMessageDialog.msg(
                 self,
                 "New version available!",
