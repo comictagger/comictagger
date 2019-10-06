@@ -4,6 +4,7 @@ import platform
 from os.path import join
 from comictaggerlib import ctversion
 
+enable_console = False
 binaries = []
 block_cipher = None
 
@@ -15,6 +16,7 @@ if platform.system() == "Windows":
         (join(sitepackages, "PyQt5/Qt/bin/libeay32.dll"), "./PyQt5/Qt/bin"),
         (join(sitepackages, "PyQt5/Qt/bin/ssleay32.dll"), "./PyQt5/Qt/bin")
     ])
+    enable_console = True
 
 a = Analysis(['comictagger.py'],
              binaries=binaries,
@@ -39,7 +41,7 @@ exe = EXE(pyz,
           debug=False,
           strip=False,
           upx=True,
-          console=True,
+          console=enable_console,
           icon="windows/app.ico" )
 
 app = BUNDLE(exe,

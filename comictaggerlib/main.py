@@ -61,14 +61,7 @@ def ctmain():
     if opts.no_gui:
         cli.cli_mode(opts, SETTINGS)
     else:
-        
-        os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'
-        
-        #if platform.system() == "Darwin":
-        #    QtWidgets.QApplication.setStyle("macintosh")
-        #else:
-        #    QtWidgets.QApplication.setStyle("Fusion")
-            
+        os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'            
         app = QtWidgets.QApplication(sys.argv)
         if platform.system() == "Darwin":
             # Set the MacOS dock icon
@@ -81,6 +74,11 @@ def ctmain():
             import ctypes
             myappid = u'comictagger' # arbitrary string
             ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+            # force close of console window
+            SWP_HIDEWINDOW = 0x0080
+            consoleWnd = ctypes.windll.kernel32.GetConsoleWindow()
+            if consoleWnd != 0:          
+                ctypes.windll.user32.SetWindowPos(consoleWnd, None, 0, 0, 0, 0, SWP_HIDEWINDOW)
 
         if platform.system() != "Linux":
             img = QtGui.QPixmap(ComicTaggerSettings.getGraphic('tags.png'))
