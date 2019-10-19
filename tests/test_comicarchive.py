@@ -1,11 +1,11 @@
 from os.path import dirname, abspath, join
 from comicapi.comicarchive import ComicArchive
 
-__dir__ = dirname(abspath(__file__))
+thisdir = dirname(abspath(__file__))
 
 def test_getPageNameList():
     ComicArchive.logo_data = b''
-    c = ComicArchive(join(__dir__, "fake_cbr.cbr"))
+    c = ComicArchive(join(thisdir, "fake_cbr.cbr"))
     pageNameList = c.getPageNameList()
 
     assert pageNameList == [
