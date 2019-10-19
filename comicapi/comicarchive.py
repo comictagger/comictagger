@@ -24,7 +24,7 @@ import platform
 import time
 import io
 
-from natsort import natsorted
+from natsort import natsorted, ns
 from PyPDF2 import PdfFileReader
 from unrar.cffi import rarfile
 try:
@@ -597,7 +597,6 @@ class ComicArchive:
                 self.archiver = PdfArchiver(self.path)
 
         if ComicArchive.logo_data is None:
-            #fname = ComicTaggerSettings.getGraphic('nocover.png')
             fname = self.default_image_path
             with open(fname, 'rb') as fd:
                 ComicArchive.logo_data = fd.read()
@@ -804,7 +803,6 @@ class ComicArchive:
         if self.page_list is None:
             # get the list file names in the archive, and sort
             files = self.archiver.getArchiveFilenameList()
-
             # seems like some archive creators are on  Windows, and don't know
             # about case-sensitivity!
             if sort_list:
@@ -815,7 +813,7 @@ class ComicArchive:
                     #	k = os.path.join(os.path.split(k)[0], "z" + basename)
                     return k.lower()
 
-                files = natsorted(files, key=keyfunc, signed=False)
+                files = natsorted(files, key=keyfunc, alg=ns.UNSIGNED)
 
             # make a sub-list of image files
             self.page_list = []
