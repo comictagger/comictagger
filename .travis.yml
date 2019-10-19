@@ -15,7 +15,7 @@ matrix:
     - os: osx
       language: generic
       osx_image: xcode8.3
-      env: PYTHON=python3 PIP=pip3 MACOSX_DEPLOYMENT_TARGET=10.11
+      env: PYTHON=python3 PIP=pip3
     - os: windows
       language: bash
       env: PATH=/C/Python37:/C/Python37/Scripts:$PATH MAKE=mingw32-make
@@ -24,8 +24,9 @@ before_install:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew upgrade python3 ; fi
 install:
   - $PIP install --upgrade setuptools
-  - $PIP install -r requirements.txt
+  - $PIP install -r requirements.txt -r requirements_dev.txt
 script:
+  - pytest
   - if [ "$TRAVIS_OS_NAME" != "linux" ]; then $MAKE dist ; fi
 
 deploy:
