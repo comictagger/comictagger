@@ -26,6 +26,7 @@ install:
   - $PIP install --upgrade setuptools
   - $PIP install -r requirements.txt -r requirements_dev.txt
 script:
+  - $PYTHON setup.py install
   - pytest
   - if [ "$TRAVIS_OS_NAME" != "linux" ]; then $MAKE dist ; fi
 
