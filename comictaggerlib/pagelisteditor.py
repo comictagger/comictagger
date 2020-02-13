@@ -157,7 +157,7 @@ class PageListEditor(QWidget):
                 self.modified.emit()
 
     def changePageType(self, i):
-        new_type = self.comboBox.itemData(i).toString()
+        new_type = self.comboBox.itemData(i)
         if self.getCurrentPageType() != new_type:
             self.setCurrentPageType(new_type)
             self.emitFrontCoverChange()
