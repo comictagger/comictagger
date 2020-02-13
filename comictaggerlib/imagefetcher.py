@@ -19,9 +19,7 @@ import os
 import datetime
 import shutil
 import tempfile
-import urllib.request, urllib.parse, urllib.error
-import ssl
-#import urllib2
+import requests
 
 try:
     from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkRequest
@@ -46,6 +44,7 @@ except ImportError:
             pass
 
 from .settings import ComicTaggerSettings
+from . import ctversion
 
 
 class ImageFetcherException(Exception):
@@ -65,9 +64,6 @@ class ImageFetcher(QObject):
 
         if not os.path.exists(self.db_file):
             self.create_image_db()
-
-        # always use a tls context for urlopen
-        self.ssl = ssl.SSLContext(ssl.PROTOCOL_TLS)
 
     def clearCache(self):
         os.unlink(self.db_file)
@@ -90,7 +86,8 @@ class ImageFetcher(QObject):
         if blocking:
             if image_data is None:
                 try:
-                    image_data = urllib.request.urlopen(url, context=self.ssl).read()
+                    print(url)
+                    image_data = requests.get(url, headers={'user-agent': 'comictagger/' + ctversion.version}).content
                 except Exception as e:
                     print(e)
                     raise ImageFetcherException("Network Error!")
