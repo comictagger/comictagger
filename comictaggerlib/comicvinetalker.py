@@ -21,6 +21,7 @@ import time
 import datetime
 import sys
 import ssl
+import unicodedata
 #from pprint import pprint
 #import math
 
@@ -203,8 +204,13 @@ class ComicVineTalker(QObject):
 
     def searchForSeries(self, series_name, callback=None, refresh_cache=False):
 
-        # remove cruft from the search string
-        series_name = utils.removearticles(series_name).lower().strip()
+        # normalize unicode and convert to ascii. Does not work for everything eg ½ to 1⁄2 not 1/2
+        search_series_name = unicodedata.normalize('NFKD', series_name).encode('ascii', 'ignore').decode('ascii')
+        # comicvine ignores punctuation and accents
+        search_series_name = re.sub(r'[^A-Za-z0-9]+',' ', search_series_name)
+        # remove extra space and articles and all lower case
+        search_series_name = utils.removearticles(search_series_name).lower().strip()
+
 
         # before we search online, look in our cache, since we might have
         # done this same search recently
@@ -215,14 +221,12 @@ class ComicVineTalker(QObject):
             if len(cached_search_results) > 0:
                 return cached_search_results
 
-        original_series_name = series_name
-
         params = {
             'api_key': self.api_key,
             'format': 'json',
             'resources': 'volume',
-            'query': series_name,
-            'field_list': 'name,id,start_year,publisher,image,description,count_of_issues',
+            'query': search_series_name,
+            'field_list': 'volume,name,id,start_year,publisher,image,description,count_of_issues',
             'page': 1
         }
 
@@ -245,7 +249,7 @@ class ComicVineTalker(QObject):
         # 2. Halt when not all of our search terms are present in a result
         # 3. Halt when the results contain more (plus threshold) words than
         #    our search
-        result_word_count_max = len(series_name.split()) + 3
+        result_word_count_max = len(search_series_name.split()) + 3
 
         total_result_count = min(total_result_count, max_results)
 
@@ -266,9 +270,16 @@ class ComicVineTalker(QObject):
 
             last_result = search_results[-1]['name']
 
+            # normalize unicode and convert to ascii. Does not work for everything eg ½ to 1⁄2 not 1/2
+            last_result = unicodedata.normalize('NFKD', last_result).encode('ascii', 'ignore').decode('ascii')
+            # comicvine ignores punctuation and accents
+            last_result = re.sub(r'[^A-Za-z0-9]+',' ', last_result)
+            # remove extra space and articles and all lower case
+            last_result = utils.removearticles(last_result).lower().strip()
+
             # See if the last result's name has all the of the search terms.
             # if not, break out of this, loop, we're done.
-            for term in series_name.split():
+            for term in search_series_name.split():
                 if term not in last_result.lower():
                     #print("Term '{}' not in last result. Halting search result fetching".format(term))
                     stop_searching = True
@@ -276,7 +287,7 @@ class ComicVineTalker(QObject):
 
             # Also, stop searching when the word count of last results is too much longer
             # than our search terms list
-            if len(utils.removearticles(last_result).split()) > result_word_count_max:
+            if len(last_result) > result_word_count_max:
                 #print("Last result '{}' is too long. Halting search result fetching".format(last_result))
                 stop_searching = True
 
@@ -303,8 +314,15 @@ class ComicVineTalker(QObject):
         # (iterate backwards for easy removal)
         for i in range(len(search_results) - 1, -1, -1):
             record = search_results[i]
-            for term in series_name.split():
-                if term not in record['name'].lower():
+            for term in search_series_name.split():
+                # normalize unicode and convert to ascii. Does not work for everything eg ½ to 1⁄2 not 1/2
+                recordName = unicodedata.normalize('NFKD', record['name']).encode('ascii', 'ignore').decode('ascii')
+                # comicvine ignores punctuation and accents
+                recordName = re.sub(r'[^A-Za-z0-9]+',' ', recordName)
+                # remove extra space and articles and all lower case
+                recordName = utils.removearticles(recordName).lower().strip()
+
+                if term not in recordName:
                     del search_results[i]
                     break
 
@@ -315,7 +333,7 @@ class ComicVineTalker(QObject):
         #print(u"{0}: {1} ({2})".format(search_results['results'][0]['id'], search_results['results'][0]['name'] , search_results['results'][0]['start_year']))
 
         # cache these search results
-        cvc.add_search_results(original_series_name, search_results)
+        cvc.add_search_results(series_name, search_results)
 
         return search_results
 
