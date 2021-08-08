@@ -124,11 +124,11 @@ class ComicVineTalker(QObject):
         year = None
         if date_str is not None:
             parts = date_str.split('-')
-            year = parts[0]
+            year = utils.xlate(parts[0], True)
             if len(parts) > 1:
-                month = parts[1]
+                month = utils.xlate(parts[1], True)
                 if len(parts) > 2:
-                    day = parts[2]
+                    day = utils.xlate(parts[2], True)
         return day, month, year
 
     def testKey(self, key):
@@ -497,15 +497,13 @@ class ComicVineTalker(QObject):
         # Now, map the Comic Vine data to generic metadata
         metadata = GenericMetadata()
 
-        metadata.series = issue_results['volume']['name']
+        metadata.series = utils.xlate(issue_results['volume']['name'])
+        metadata.issue = IssueString(issue_results['issue_number']).asString()
+        metadata.title = utils.xlate(issue_results['name'])
 
-        num_s = IssueString(issue_results['issue_number']).asString()
-        metadata.issue = num_s
-        metadata.title = issue_results['name']
-
-        metadata.publisher = volume_results['publisher']['name']
-        metadata.day, metadata.month, metadata.year = self.parseDateStr(
-            issue_results['cover_date'])
+        if volume_results['publisher'] is not None:
+            metadata.publisher = utils.xlate(volume_results['publisher']['name'])
+        metadata.day, metadata.month, metadata.year = self.parseDateStr(issue_results['cover_date'])
 
         #metadata.issueCount = volume_results['count_of_issues']
         metadata.comments = self.cleanup_html(

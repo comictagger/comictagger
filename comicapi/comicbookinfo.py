@@ -24,39 +24,33 @@ from . import utils
 
 
 class ComicBookInfo:
-
     def metadataFromString(self, string):
-
+        class Default(dict):
+            def __missing__(self, key):
+                return None
         cbi_container = json.loads(str(string, 'utf-8'))
 
         metadata = GenericMetadata()
 
-        cbi = cbi_container['ComicBookInfo/1.0']
+        cbi = Default(cbi_container['ComicBookInfo/1.0'])
 
-        # helper func
-        # If item is not in CBI, return None
-        def xlate(cbi_entry):
-            if cbi_entry in cbi:
-                return cbi[cbi_entry]
-            else:
-                return None
+        metadata.series = utils.xlate(cbi['series'])
+        metadata.title = utils.xlate(cbi['title'])
+        metadata.issue = utils.xlate(cbi['issue'])
+        metadata.publisher = utils.xlate(cbi['publisher'])
+        metadata.month = utils.xlate(cbi['publicationMonth'], True)
+        metadata.year = utils.xlate(cbi['publicationYear'], True)
+        metadata.issueCount = utils.xlate(cbi['numberOfIssues'], True)
+        metadata.comments = utils.xlate(cbi['comments'])
+        metadata.genre = utils.xlate(cbi['genre'])
+        metadata.volume = utils.xlate(cbi['volume'], True)
+        metadata.volumeCount = utils.xlate(cbi['numberOfVolumes'], True)
+        metadata.language = utils.xlate(cbi['language'])
+        metadata.country = utils.xlate(cbi['country'])
+        metadata.criticalRating = utils.xlate(cbi['rating'])
 
-        metadata.series = xlate('series')
-        metadata.title = xlate('title')
-        metadata.issue = xlate('issue')
-        metadata.publisher = xlate('publisher')
-        metadata.month = xlate('publicationMonth')
-        metadata.year = xlate('publicationYear')
-        metadata.issueCount = xlate('numberOfIssues')
-        metadata.comments = xlate('comments')
-        metadata.credits = xlate('credits')
-        metadata.genre = xlate('genre')
-        metadata.volume = xlate('volume')
-        metadata.volumeCount = xlate('numberOfVolumes')
-        metadata.language = xlate('language')
-        metadata.country = xlate('country')
-        metadata.criticalRating = xlate('rating')
-        metadata.tags = xlate('tags')
+        metadata.credits = cbi['credits']
+        metadata.tags = cbi['tags']
 
         # make sure credits and tags are at least empty lists and not None
         if metadata.credits is None:
@@ -103,33 +97,23 @@ class ComicBookInfo:
 
         # helper func
         def assign(cbi_entry, md_entry):
-            if md_entry is not None:
+            if md_entry is not None or isinstance(md_entry, str) and md_entry != "":
                 cbi[cbi_entry] = md_entry
 
-        # helper func
-        def toInt(s):
-            i = None
-            if type(s) in [str, str, int]:
-                try:
-                    i = int(s)
-                except ValueError:
-                    pass
-            return i
-
-        assign('series', metadata.series)
-        assign('title', metadata.title)
-        assign('issue', metadata.issue)
-        assign('publisher', metadata.publisher)
-        assign('publicationMonth', toInt(metadata.month))
-        assign('publicationYear', toInt(metadata.year))
-        assign('numberOfIssues', toInt(metadata.issueCount))
-        assign('comments', metadata.comments)
-        assign('genre', metadata.genre)
-        assign('volume', toInt(metadata.volume))
-        assign('numberOfVolumes', toInt(metadata.volumeCount))
-        assign('language', utils.getLanguageFromISO(metadata.language))
-        assign('country', metadata.country)
-        assign('rating', metadata.criticalRating)
+        assign('series', utils.xlate(metadata.series))
+        assign('title', utils.xlate(metadata.title))
+        assign('issue', utils.xlate(metadata.issue))
+        assign('publisher', utils.xlate(metadata.publisher))
+        assign('publicationMonth', utils.xlate(metadata.month, True))
+        assign('publicationYear', utils.xlate(metadata.year, True))
+        assign('numberOfIssues', utils.xlate(metadata.issueCount, True))
+        assign('comments', utils.xlate(metadata.comments))
+        assign('genre', utils.xlate(metadata.genre))
+        assign('volume', utils.xlate(metadata.volume, True))
+        assign('numberOfVolumes', utils.xlate(metadata.volumeCount, True))
+        assign('language', utils.xlate(utils.getLanguageFromISO(metadata.language)))
+        assign('country', utils.xlate(metadata.country))
+        assign('rating', utils.xlate(metadata.criticalRating))
         assign('credits', metadata.credits)
         assign('tags', metadata.tags)
 
