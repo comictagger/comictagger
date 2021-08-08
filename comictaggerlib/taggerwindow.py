@@ -248,6 +248,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.fileSelectionList.addAppAction(self.actionRemoveAuto)
         self.fileSelectionList.addAppAction(self.actionRepackage)
 
+        self.btnAutoImprint.clicked.connect(self.autoImprint)
+
         if len(file_list) != 0:
             self.fileSelectionList.addPathList(file_list)
 
@@ -384,6 +386,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.actionSearchOnline.setStatusTip('Search online for tags')
         self.actionSearchOnline.triggered.connect(self.queryOnline)
 
+        self.actionAutoImprint.triggered.connect(self.autoImprint)
+
         self.actionAutoIdentify.setShortcut('Ctrl+I')
         self.actionAutoIdentify.triggered.connect(self.autoIdentifySearch)
 
@@ -425,6 +429,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
             QtGui.QIcon(ComicTaggerSettings.getGraphic('auto.png')))
         self.actionAutoTag.setIcon(
             QtGui.QIcon(ComicTaggerSettings.getGraphic('autotag.png')))
+        self.actionAutoImprint.setIcon(
+            QtGui.QIcon(ComicTaggerSettings.getGraphic('autotag.png')))
         self.actionClearEntryForm.setIcon(
             QtGui.QIcon(ComicTaggerSettings.getGraphic('clear.png')))
         self.actionPageBrowser.setIcon(
@@ -438,6 +444,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.toolBar.addAction(self.actionAutoTag)
         self.toolBar.addAction(self.actionClearEntryForm)
         self.toolBar.addAction(self.actionPageBrowser)
+        self.toolBar.addAction(self.actionAutoImprint)
 
     def repackageArchive(self):
         ca_list = self.fileSelectionList.getSelectedArchiveList()
@@ -1816,6 +1823,9 @@ class TaggerWindow(QtWidgets.QMainWindow):
             if cv_md is not None:
                 md.overlay(cv_md)
 
+                if self.settings.auto_imprint:
+                    md.fixPublisher()
+
                 if not ca.writeMetadata(md, self.save_data_style):
                     match_results.writeFailures.append(ca.path)
                     self.autoTagLog("Save failed ;-(\n")
@@ -2167,3 +2177,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
             # self.show()
             self.setWindowFlags(flags)
             self.show()
+
+    def autoImprint(self):
+        self.formToMetadata()
+        self.metadata.fixPublisher()
+        self.metadataToForm()

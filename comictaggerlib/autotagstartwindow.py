@@ -45,6 +45,7 @@ class AutoTagStartWindow(QtWidgets.QDialog):
             QtCore.Qt.Unchecked)
         self.cbxRemoveAfterSuccess.setCheckState(QtCore.Qt.Unchecked)
         self.cbxSpecifySearchString.setCheckState(QtCore.Qt.Unchecked)
+        self.cbxAutoImprint.setCheckState(QtCore.Qt.Unchecked)
         self.leNameLengthMatchTolerance.setText(
             str(self.settings.id_length_delta_thresh))
         self.leSearchString.setEnabled(False)
@@ -62,6 +63,9 @@ class AutoTagStartWindow(QtWidgets.QDialog):
             self.cbxRemoveAfterSuccess.setCheckState(QtCore.Qt.Checked)
         if self.settings.wait_and_retry_on_rate_limit:
             self.cbxWaitForRateLimit.setCheckState(QtCore.Qt.Checked)
+        if self.settings.auto_imprint:
+            self.cbxAutoImprint.setCheckState(QtCore.Qt.Checked)
+
 
         nlmtTip = (
             """ <html>The <b>Name Length Match Tolerance</b> is for eliminating automatic

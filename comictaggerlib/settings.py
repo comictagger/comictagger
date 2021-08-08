@@ -94,6 +94,7 @@ class ComicTaggerSettings:
         self.clear_form_before_populating_from_cv = False
         self.remove_html_tables = False
         self.cv_api_key = ""
+        self.auto_imprint = False
 
         # CBL Tranform settings
 
@@ -323,6 +324,8 @@ class ComicTaggerSettings:
         if self.config.has_option('autotag', 'wait_and_retry_on_rate_limit'):
             self.wait_and_retry_on_rate_limit = self.config.getboolean(
                 'autotag', 'wait_and_retry_on_rate_limit')
+        if self.config.has_option('autotag', 'auto_imprint'):
+            self.auto_imprint = self.config.getboolean('autotag', 'auto_imprint')
 
     def save(self):
 
@@ -483,6 +486,7 @@ class ComicTaggerSettings:
             'autotag',
             'wait_and_retry_on_rate_limit',
             self.wait_and_retry_on_rate_limit)
+        self.config.set('autotag', 'auto_imprint', self.auto_imprint)
 
         with codecs.open(self.settings_file, 'wb', 'utf8') as configfile:
             self.config.write(configfile)

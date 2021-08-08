@@ -319,3 +319,21 @@ class GenericMetadata:
             outstr += fmt_str.format(i[0] + ":", i[1])
 
         return outstr
+
+    def fixPublisher(self):
+        if self.publisher is None:
+            return
+        if self.imprint is None:
+            self.imprint = ""
+
+        imprint, publisher = utils.getPublisher(self.publisher)
+
+        self.publisher = publisher
+
+        if self.imprint.lower() in publisher.lower():
+            self.imprint = None
+
+        if self.imprint is None or self.imprint == "":
+            self.imprint = imprint
+        elif self.imprint.lower() in imprint.lower():
+            self.imprint = imprint

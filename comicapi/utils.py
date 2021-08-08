@@ -615,3 +615,170 @@ def getLanguageFromISO(iso):
         return None
     else:
         return lang_dict[iso]
+
+
+def getPublisher(publisher):
+    if publisher is None:
+        return ("", "")
+    imprint = ""
+
+    for pub in publishers:
+        imprint, publisher, ok = pub[publisher]
+        if ok:
+            break
+
+    return (imprint, publisher)
+
+
+class ImprintDict(dict):
+    '''
+    ImprintDict takes a publisher and a dict or mapping of lowercased
+    imprint names to the proper imprint name. Retreiving a value from an
+    ImprintDict returns a tuple of (imprint, publisher, keyExists).
+    if the key does not exist the key is returned as the publisher unchanged
+    '''
+    def __init__(self, publisher, mapping=(), **kwargs):
+        super().__init__(mapping, **kwargs)
+        self.publisher = publisher
+
+    def __missing__(self, key):
+        return None
+
+    def __getitem__(self, k):
+        item = super().__getitem__(k.lower())
+        if item is None:
+            return ("", k, False)
+        else:
+            return (item, self.publisher, True)
+
+Marvel = ImprintDict("Marvel", {
+    "marvel comics": "",
+    "marvel": "",
+    "aircel comics": "Aircel Comics",
+    "aircel": "Aircel Comics",
+    "atlas comics": "Atlas Comics",
+    "atlas": "Atlas Comics",
+    "crossgen comics": "CrossGen comics",
+    "crossgen": "CrossGen comics",
+    "curtis magazines": "Curtis Magazines",
+    "disney books group": "Disney Books Group",
+    "disney books": "Disney Books Group",
+    "disney kingdoms": "Disney Kingdoms",
+    "epic comics": "Epic Comics",
+    "epic": "Epic Comics",
+    "epic comics group": "Epic Comics",
+    "eternity comics": "Eternity Comics",
+    "humorama": "Humorama",
+    "icon comics": "Icon Comics",
+    "infinite comics": "Infinite Comics",
+    "malibu comics": "Malibu Comics",
+    "malibu": "Malibu Comics",
+    "marvel 2099": "Marvel 2099",
+    "marvel absurd": "Marvel Absurd",
+    "marvel adventures": "Marvel Adventures",
+    "marvel age": "Marvel Age",
+    "marvel books": "Marvel Books",
+    "marvel comics 2": "Marvel Comics 2",
+    "marvel edge": "Marvel Edge",
+    "marvel frontier": "Marvel Frontier",
+    "marvel illustrated": "Marvel Illustrated",
+    "marvel knights": "Marvel Knights",
+    "marvel digital comics unlimited": "Marvel Unlimited",
+    "marvel magazine group": "Marvel Magazine Group",
+    "marvel mangaverse": "Marvel Mangaverse",
+    "marvel monsters group": "Marvel Monsters Group",
+    "marvel music": "Marvel Music",
+    "marvel next": "Marvel Next",
+    "marvel noir": "Marvel Noir",
+    "marvel press": "Marvel Press",
+    "marvel uk": "Marvel UK",
+    "marvel unlimited": "Marvel Unlimited",
+    "max": "MAX",
+    "mc2": "Marvel Comics 2",
+    "new universe": "New Universe",
+    "non-pareil publishing corp.": "Non-Pareil Publishing Corp.",
+    "paramount comics": "Paramount Comics",
+    "power comics": "Power Comics",
+    "razorline": "Razorline",
+    "star comics": "Star Comics",
+    "timely comics": "Timely Comics",
+    "timely": "Timely Comics",
+    "tsunami": "Tsunami",
+    "ultimate comics": "Ultimate Comics",
+    "ultimate marvel": "Ultimate Marvel",
+    "vital publications, inc.": "Vital Publications, Inc."
+})
+
+DC_Comics = ImprintDict("DC Comics", {
+    "dc comics": "",
+    "dc_comics": "",
+    "dc": "",
+    "tangent comics": "Tangent Comics",
+    "dccomics": "",
+    "all star dc": "All-Star",
+    "all star": "All-Star",
+    "all-star dc": "All-Star",
+    "all-star": "All-Star",
+    "america's best comics": "America's Best Comics",
+    "black label": "DC Black Label",
+    "cliffhanger": "Cliffhanger",
+    "cmx manga": "CMX Manga",
+    "dc black label": "DC Black Label",
+    "dc focus": "DC Focus",
+    "dc ink": "DC Ink",
+    "dc zoom": "DC Zoom",
+    "earth m": "Earth M",
+    "earth one": "Earth One",
+    "earth-m": "Earth M",
+    "elseworlds": "Elseworlds",
+    "eo": "Earth One",
+    "first wave": "First Wave",
+    "focus": "DC Focus",
+    "helix": "Helix",
+    "homage comics": "Homage Comics",
+    "impact comics": "Impact Comics",
+    "impact! comics": "Impact Comics",
+    "!mpact comics": "Impact Comics",
+    "johnny dc": "Johnny DC",
+    "mad": "Mad",
+    "minx": "Minx",
+    "paradox press": "Paradox Press",
+    "piranha press": "Piranha Press",
+    "sandman universe": "Sandman Universe",
+    "tsr": "TSR",
+    "vertigo": "Vertigo",
+    "wildstorm productions": "WildStorm Productions",
+    "wildstorm signature": "WildStorm Productions",
+    "wildstorm": "WildStorm Productions",
+    "wonder comics": "Wonder Comics",
+    "young animal": "Young Animal",
+    "zuda comics": "Zuda Comics",
+    "zuda": "Zuda Comics",
+})
+
+Dark_Horse_Comics = ImprintDict("Dark Horse Comics", {
+    "legend": "Legend",
+    "comics' greatest world": "Dark Horse Heroes",
+    "dark horse heroes": "Dark Horse Heroes",
+    "dark horse manga": "Dark Horse Manga",
+    "maverick": "Maverick",
+    "dh press": "DH Press",
+    "m press": "M Press",
+    "dark horse digital": "Dark Horse Digital",
+    "dh deluxe": "DH Deluxe",
+    "kitchen sink books": "Kitchen Sink Books",
+    "berger books": "Berger Books",
+})
+
+Archie_Comics = ImprintDict("Archie Comics", {
+    "Archie Action": "Archie Action",
+    "Archie Horror": "Archie Horror",
+    "Dark Circle Comics": "Dark Circle Comics",
+    "Dark Circle": "Dark Circle Comics",
+    "Red Circle Comics": "Dark Circle Comics",
+    "Red Circle": "Dark Circle Comics",
+    "Archie Adventure Series": "Archie Adventure Series",
+    "Radio Comics": "Mighty Comics Group",
+    "Mighty Comics Group": "Mighty Comics Group",
+})
+publishers = [Marvel, DC_Comics, Dark_Horse_Comics, Archie_Comics]

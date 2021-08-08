@@ -113,6 +113,7 @@ For more help visit the wiki at: https://github.com/comictagger/comictagger/wiki
         self.filename = None
         self.verbose = False
         self.terse = False
+        self.auto_imprint = False
         self.metadata = None
         self.print_tags = False
         self.copy_tags = False
@@ -291,6 +292,8 @@ For more help visit the wiki at: https://github.com/comictagger/comictagger/wiki
                 self.delete_tags = True
             if o in ("-i", "--interactive"):
                 self.interactive = True
+            if o in ("-a", "--auto-imprint"):
+                self.auto_imprint = True
             if o in ("-c", "--copy"):
                 self.copy_tags = True
                 if a.lower() == "cr":

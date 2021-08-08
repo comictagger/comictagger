@@ -132,6 +132,10 @@ def display_match_set_for_choice(label, match_set, opts, settings):
             cv_md = actual_issue_data_fetch(
                 match_set.matches[int(i)], settings, opts)
             md.overlay(cv_md)
+
+            if settings.auto_imprint:
+                md.fixPublisher()
+
             actual_metadata_save(ca, opts, md)
 
 
@@ -218,6 +222,8 @@ def create_local_metadata(opts, ca, has_desired_tags):
 def process_file_cli(filename, opts, settings, match_results):
 
     batch_mode = len(opts.file_list) > 1
+
+    settings.auto_imprint = opts.auto_imprint
 
     ca = ComicArchive(
         filename,
@@ -472,6 +478,9 @@ def process_file_cli(filename, opts, settings, match_results):
                     return
 
             md.overlay(cv_md)
+
+            if settings.auto_imprint:
+                md.fixPublisher()
 
         # ok, done building our metadata. time to save
         if not actual_metadata_save(ca, opts, md):
