@@ -505,11 +505,12 @@ class ComicVineTalker(QObject):
             metadata.publisher = utils.xlate(volume_results['publisher']['name'])
         metadata.day, metadata.month, metadata.year = self.parseDateStr(issue_results['cover_date'])
 
-        #metadata.issueCount = volume_results['count_of_issues']
+        metadata.seriesYear = utils.xlate(volume_results['start_year'])
+        metadata.issueCount = utils.xlate(volume_results['count_of_issues'])
         metadata.comments = self.cleanup_html(
             issue_results['description'], settings.remove_html_tables)
         if settings.use_series_start_as_volume:
-            metadata.volume = volume_results['start_year']
+            metadata.volume = utils.xlate(volume_results['start_year'])
 
         metadata.notes = "Tagged with ComicTagger {0} using info from Comic Vine on {1}.  [Issue ID {2}]".format(
             ctversion.version,

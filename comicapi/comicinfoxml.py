@@ -104,6 +104,7 @@ class ComicInfoXml:
         assign('Year', md.year)
         assign('Month', md.month)
         assign('Day', md.day)
+        assign('SeriesYear', md.seriesYear)
 
         # need to specially process the credits, since they are structured
         # differently than CIX
@@ -228,6 +229,7 @@ class ComicInfoXml:
         md.year = utils.xlate(get('Year'), True)
         md.month = utils.xlate(get('Month'), True)
         md.day = utils.xlate(get('Day'), True)
+        md.seriesYear = utils.xlate(get('SeriesYear'), True)
         md.publisher = utils.xlate(get('Publisher'))
         md.imprint = utils.xlate(get('Imprint'))
         md.genre = utils.xlate(get('Genre'))

@@ -512,6 +512,16 @@
                         </property>
                        </widget>
                       </item>
+                       <item row="10" column="1">
+                       <widget class="QLineEdit" name="leSeriesPubYear"/>
+                      </item>
+                      <item row="9" column="1">
+                       <widget class="QLabel" name="label_7">
+                        <property name="text">
+                         <string>Series Year</string>
+                        </property>
+                       </widget>
+                      </item>
                      </layout>
                     </item>
                     <item>
