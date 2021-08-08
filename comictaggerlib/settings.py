@@ -108,10 +108,12 @@ class ComicTaggerSettings:
         self.apply_cbl_transform_on_bulk_operation = False
 
         # Rename settings
-        self.rename_template = "%series% #%issue% (%year%)"
+        self.rename_template = "{publisher}/{series}/{series} #{issue} - {title} ({year})"
         self.rename_issue_number_padding = 3
         self.rename_use_smart_string_cleanup = True
         self.rename_extension_based_on_archive = True
+        self.rename_dir = ""
+        self.rename_move_dir = False
 
         # Auto-tag stickies
         self.save_on_low_confidence = False
@@ -301,6 +303,10 @@ class ComicTaggerSettings:
                 'rename', 'rename_extension_based_on_archive'):
             self.rename_extension_based_on_archive = self.config.getboolean(
                 'rename', 'rename_extension_based_on_archive')
+        if self.config.has_option('rename', 'rename_dir'):
+            self.rename_dir = self.config.get('rename', 'rename_dir')
+        if self.config.has_option('rename', 'rename_move_dir'):
+            self.rename_move_dir = self.config.getboolean('rename', 'rename_move_dir')
 
         if self.config.has_option('autotag', 'save_on_low_confidence'):
             self.save_on_low_confidence = self.config.getboolean(
@@ -462,6 +468,8 @@ class ComicTaggerSettings:
             self.rename_use_smart_string_cleanup)
         self.config.set('rename', 'rename_extension_based_on_archive',
                         self.rename_extension_based_on_archive)
+        self.config.set('rename', 'rename_dir', self.rename_dir)
+        self.config.set('rename', 'rename_move_dir', self.rename_move_dir)
 
         if not self.config.has_section('autotag'):
             self.config.add_section('autotag')

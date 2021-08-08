@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Dialog</class>
+ <widget class="QDialog" name="Dialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>702</width>
+    <height>452</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Template Help</string>
+  </property>
+  <property name="sizeGripEnabled">
+   <bool>true</bool>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>0</number>
+   </property>
+   <property name="leftMargin">
+    <number>2</number>
+   </property>
+   <property name="topMargin">
+    <number>2</number>
+   </property>
+   <item>
+    <widget class="QTextBrowser" name="textBrowser">
+     <property name="html">
+      <string>&lt;html&gt;
+	&lt;head/&gt;
+	&lt;body&gt;
+		&lt;h1 style=&quot;text-align: center&quot;&gt;Template help&lt;/h1&gt;
+		&lt;p&gt;The template uses Python format strings, in the simplest use it replaces the field (e.g. {issue}) with the value for that particular comic (e.g. 1) for advanced formatting please reference the
+
+			&lt;a href=&quot;https://docs.python.org/3/library/string.html#format-string-syntax&quot;&gt;Python 3 documentation&lt;/a&gt;&lt;/p&gt;
+		&lt;pre&gt;Accepts the following variables:
+{isEmpty}&#009;&#009;(boolean)
+{tagOrigin}&#009;&#009;(string)
+{series}&#009;&#009;(string)
+{issue}&#009;&#009;(string)
+{title}&#009;&#009;(string)
+{publisher}&#009;&#009;(string)
+{month}&#009;&#009;(integer)
+{year}&#009;&#009;(integer)
+{day}&#009;&#009;(integer)
+{issueCount}&#009;(integer)
+{volume}&#009;&#009;(integer)
+{genre}&#009;&#009;(string)
+{language}&#009;&#009;(string)
+{comments}&#009;&#009;(string)
+{volumeCount}&#009;(integer)
+{criticalRating}&#009;(string)
+{country}&#009;&#009;(string)
+{alternateSeries}&#009;(string)
+{alternateNumber}&#009;(string)
+{alternateCount}&#009;(integer)
+{imprint}&#009;&#009;(string)
+{notes}&#009;&#009;(string)
+{webLink}&#009;&#009;(string)
+{format}&#009;&#009;(string)
+{manga}&#009;&#009;(string)
+{blackAndWhite}&#009;(boolean)
+{pageCount}&#009;&#009;(integer)
+{maturityRating}&#009;(string)
+{storyArc}&#009;&#009;(string)
+{seriesGroup}&#009;(string)
+{scanInfo}&#009;&#009;(string)
+{characters}&#009;(string)
+{teams}&#009;&#009;(string)
+{locations}&#009;&#009;(string)
+{credits}&#009;&#009;(list of dict({&apos;role&apos;: &apos;str&apos;, &apos;person&apos;: &apos;str&apos;, &apos;primary&apos;: boolean}))
+{tags}&#009;&#009;(list of str)
+{pages}&#009;&#009;(list of dict({&apos;Image&apos;: &apos;str(int)&apos;, &apos;Type&apos;: &apos;str&apos;}))
+
+CoMet-only items:
+{price}&#009;&#009;(float)
+{isVersionOf}&#009;(string)
+{rights}&#009;&#009;(string)
+{identifier}&#009;(string)
+{lastMark}&#009;(string)
+{coverImage}&#009;(string)
+
+Examples:
+
+{series} {issue} ({year})
+Spider-Geddon 1 (2018)
+
+{series} #{issue} - {title}
+Spider-Geddon #1 - New Players; Check In
+
+&lt;/pre&gt;
+	&lt;/body&gt;
+&lt;/html&gt;</string>
+     </property>
+     <property name="openExternalLinks">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

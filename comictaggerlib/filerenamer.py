@@ -17,9 +17,85 @@
 import os
 import re
 import datetime
+import sys
+import string
+
+from pathvalidate import sanitize_filepath
 
 from . import utils
 from .issuestring import IssueString
+
+
+class MetadataFormatter(string.Formatter):
+    def __init__(self, smart_cleanup=False):
+       super().__init__()
+       self.smart_cleanup = smart_cleanup
+
+    def format_field(self, value, format_spec):
+        if value is None or value == "":
+            return ""
+        return super().format_field(value, format_spec)
+
+    def _vformat(self, format_string, args, kwargs, used_args, recursion_depth,
+                 auto_arg_index=0):
+        if recursion_depth < 0:
+            raise ValueError('Max string recursion exceeded')
+        result = []
+        lstrip = False
+        for literal_text, field_name, format_spec, conversion in \
+                self.parse(format_string):
+
+            # output the literal text
+            if literal_text:
+                if lstrip:
+                    result.append(literal_text.lstrip("-_)}]#"))
+                else:
+                    result.append(literal_text)
+            lstrip = False
+            # if there's a field, output it
+            if field_name is not None:
+                # this is some markup, find the object and do
+                #  the formatting
+
+                # handle arg indexing when empty field_names are given.
+                if field_name == '':
+                    if auto_arg_index is False:
+                        raise ValueError('cannot switch from manual field '
+                                         'specification to automatic field '
+                                         'numbering')
+                    field_name = str(auto_arg_index)
+                    auto_arg_index += 1
+                elif field_name.isdigit():
+                    if auto_arg_index:
+                        raise ValueError('cannot switch from manual field '
+                                         'specification to automatic field '
+                                         'numbering')
+                    # disable auto arg incrementing, if it gets
+                    # used later on, then an exception will be raised
+                    auto_arg_index = False
+
+                # given the field_name, find the object it references
+                #  and the argument it came from
+                obj, arg_used = self.get_field(field_name, args, kwargs)
+                used_args.add(arg_used)
+
+                # do any conversion on the resulting object
+                obj = self.convert_field(obj, conversion)
+
+                # expand the format spec, if needed
+                format_spec, auto_arg_index = self._vformat(
+                    format_spec, args, kwargs,
+                    used_args, recursion_depth-1,
+                    auto_arg_index=auto_arg_index)
+
+                # format the object and append to the result
+                fmtObj = self.format_field(obj, format_spec)
+                if fmtObj == "" and len(result) > 0 and self.smart_cleanup:
+                    lstrip = True
+                    result.pop()
+                result.append(fmtObj)
+
+        return ''.join(result), auto_arg_index
 
 
 class FileRenamer:
@@ -27,9 +103,10 @@ class FileRenamer:
     def __init__(self, metadata):
         self.setMetadata(metadata)
         self.setTemplate(
-            "%series% v%volume% #%issue% (of %issuecount%) (%year%)")
+            "{publisher}/{series}/{series} v{volume} #{issue} (of {issueCount}) ({year})")
         self.smart_cleanup = True
         self.issue_zero_padding = 3
+        self.move = False
 
     def setMetadata(self, metadata):
         self.metdata = metadata
@@ -43,114 +120,37 @@ class FileRenamer:
     def setTemplate(self, template):
         self.template = template
 
-    def replaceToken(self, text, value, token):
-        # helper func
-        def isToken(word):
-            return (word[0] == "%" and word[-1:] == "%")
-
-        if value is not None:
-            return text.replace(token, str(value))
-        else:
-            if self.smart_cleanup:
-                # smart cleanup means we want to remove anything appended to token if it's empty
-                # (e.g "#%issue%"  or "v%volume%")
-                # (TODO: This could fail if there is more than one token appended together, I guess)
-                text_list = text.split()
-
-                # special case for issuecount, remove preceding non-token word,
-                # as in "...(of %issuecount%)..."
-                if token == '%issuecount%':
-                    for idx, word in enumerate(text_list):
-                        if token in word and not isToken(text_list[idx - 1]):
-                            text_list[idx - 1] = ""
-
-                text_list = [x for x in text_list if token not in x]
-                return " ".join(text_list)
-            else:
-                return text.replace(token, "")
-
     def determineName(self, filename, ext=None):
-
+        class Default(dict):
+             def __missing__(self, key):
+                 return "{" + key + "}"
         md = self.metdata
-        new_name = self.template
-        preferred_encoding = utils.get_actual_preferred_encoding()
 
-        # print(u"{0}".format(md))
 
-        new_name = self.replaceToken(new_name, md.series, '%series%')
-        new_name = self.replaceToken(new_name, md.volume, '%volume%')
+        # padding for issue
+        md.issue = IssueString(md.issue).asString(pad=self.issue_zero_padding)
 
-        if md.issue is not None:
-            issue_str = "{0}".format(
-                IssueString(md.issue).asString(pad=self.issue_zero_padding))
-        else:
-            issue_str = None
-        new_name = self.replaceToken(new_name, issue_str, '%issue%')
+        template = self.template
 
-        new_name = self.replaceToken(new_name, md.issueCount, '%issuecount%')
-        new_name = self.replaceToken(new_name, md.year, '%year%')
-        new_name = self.replaceToken(new_name, md.publisher, '%publisher%')
-        new_name = self.replaceToken(new_name, md.title, '%title%')
-        new_name = self.replaceToken(new_name, md.month, '%month%')
-        month_name = None
-        if md.month is not None:
-            if (isinstance(md.month, str) and md.month.isdigit()) or isinstance(
-                    md.month, int):
-                if int(md.month) in range(1, 13):
-                    dt = datetime.datetime(1970, int(md.month), 1, 0, 0)
-                    #month_name = dt.strftime("%B".encode(preferred_encoding)).decode(preferred_encoding)
-                    month_name = dt.strftime("%B")
-        new_name = self.replaceToken(new_name, month_name, '%month_name%')
+        pathComponents = template.split(os.sep)
+        new_name = ""
 
-        new_name = self.replaceToken(new_name, md.genre, '%genre%')
-        new_name = self.replaceToken(new_name, md.language, '%language_code%')
-        new_name = self.replaceToken(
-            new_name, md.criticalRating, '%criticalrating%')
-        new_name = self.replaceToken(
-            new_name, md.alternateSeries, '%alternateseries%')
-        new_name = self.replaceToken(
-            new_name, md.alternateNumber, '%alternatenumber%')
-        new_name = self.replaceToken(
-            new_name, md.alternateCount, '%alternatecount%')
-        new_name = self.replaceToken(new_name, md.imprint, '%imprint%')
-        new_name = self.replaceToken(new_name, md.format, '%format%')
-        new_name = self.replaceToken(
-            new_name, md.maturityRating, '%maturityrating%')
-        new_name = self.replaceToken(new_name, md.storyArc, '%storyarc%')
-        new_name = self.replaceToken(new_name, md.seriesGroup, '%seriesgroup%')
-        new_name = self.replaceToken(new_name, md.scanInfo, '%scaninfo%')
+        fmt = MetadataFormatter(self.smart_cleanup)
+        for Component in pathComponents:
+            new_name = os.path.join(new_name, fmt.vformat(Component, args=[], kwargs=Default(vars(md))).replace("/", "-"))
 
-        if self.smart_cleanup:
-
-            # remove empty braces,brackets, parentheses
-            new_name = re.sub("\(\s*[-:]*\s*\)", "", new_name)
-            new_name = re.sub("\[\s*[-:]*\s*\]", "", new_name)
-            new_name = re.sub("\{\s*[-:]*\s*\}", "", new_name)
-
-            # remove duplicate spaces
-            new_name = " ".join(new_name.split())
-
-            # remove remove duplicate -, _,
-            new_name = re.sub("[-_]{2,}\s+", "-- ", new_name)
-            new_name = re.sub("(\s--)+", " --", new_name)
-            new_name = re.sub("(\s-)+", " -", new_name)
-
-            # remove dash or double dash at end of line
-            new_name = re.sub("[-]{1,2}\s*$", "", new_name)
-
-            # remove duplicate spaces (again!)
-            new_name = " ".join(new_name.split())
-
-        if ext is None:
+        if ext is None or ext == "":
             ext = os.path.splitext(filename)[1]
 
         new_name += ext
 
         # some tweaks to keep various filesystems happy
-        new_name = new_name.replace("/", "-")
-        new_name = new_name.replace(" :", " -")
         new_name = new_name.replace(": ", " - ")
         new_name = new_name.replace(":", "-")
-        new_name = new_name.replace("?", "")
 
-        return new_name
+        # remove padding
+        md.issue = IssueString(md.issue).asString()
+        if self.move:
+            return sanitize_filepath(new_name.strip())
+        else:
+            return os.path.basename(sanitize_filepath(new_name.strip()))

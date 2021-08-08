@@ -503,7 +503,7 @@
             <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
            </property>
            <item row="1" column="0">
-            <widget class="QLabel" name="label">
+            <widget class="QLabel" name="lblTemplate">
              <property name="text">
               <string>Template:</string>
              </property>
@@ -512,31 +512,80 @@
            <item row="1" column="1">
             <widget class="QLineEdit" name="leRenameTemplate">
              <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The template for the new filename. Accepts the following variables:&lt;/p&gt;&lt;p&gt;%series%&lt;br/&gt;%issue%&lt;br/&gt;%volume%&lt;br/&gt;%issuecount%&lt;br/&gt;%year%&lt;br/&gt;%month%&lt;br/&gt;%month_name%&lt;br/&gt;%publisher%&lt;br/&gt;%title%&lt;br/&gt;
-%genre%&lt;br/&gt;
-%language_code%&lt;br/&gt;
-%criticalrating%&lt;br/&gt;
-%alternateseries%&lt;br/&gt;
-%alternatenumber%&lt;br/&gt;
-%alternatecount%&lt;br/&gt;
-%imprint%&lt;br/&gt;
-%format%&lt;br/&gt;
-%maturityrating%&lt;br/&gt;
-%storyarc%&lt;br/&gt;
-%seriesgroup%&lt;br/&gt;
-%scaninfo%
-&lt;/p&gt;&lt;p&gt;Examples:&lt;/p&gt;&lt;p&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;%series% %issue% (%year%)&lt;/span&gt;&lt;br/&gt;&lt;span style=&quot; font-style:italic;&quot;&gt;%series% #%issue% - %title%&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>&lt;pre&gt;The template for the new filename. Uses python format strings https://docs.python.org/3/library/string.html#format-string-syntax
+Accepts the following variables:
+{isEmpty}		(boolean)
+{tagOrigin}		(string)
+{series}		(string)
+{issue}		(string)
+{title}		(string)
+{publisher}		(string)
+{month}		(integer)
+{year}		(integer)
+{day}		(integer)
+{issueCount}	(integer)
+{volume}		(integer)
+{genre}		(string)
+{language}		(string)
+{comments}		(string)
+{volumeCount}	(integer)
+{criticalRating}	(string)
+{country}		(string)
+{alternateSeries}	(string)
+{alternateNumber}	(string)
+{alternateCount}	(integer)
+{imprint}		(string)
+{notes}		(string)
+{webLink}		(string)
+{format}		(string)
+{manga}		(string)
+{blackAndWhite}	(boolean)
+{pageCount}		(integer)
+{maturityRating}	(string)
+{storyArc}		(string)
+{seriesGroup}	(string)
+{scanInfo}		(string)
+{characters}	(string)
+{teams}		(string)
+{locations}		(string)
+{credits}		(list of dict({&amp;apos;role&amp;apos;: &amp;apos;str&amp;apos;, &amp;apos;person&amp;apos;: &amp;apos;str&amp;apos;, &amp;apos;primary&amp;apos;: boolean}))
+{tags}		(list of str)
+{pages}		(list of dict({&amp;apos;Image&amp;apos;: &amp;apos;str(int)&amp;apos;, &amp;apos;Type&amp;apos;: &amp;apos;str&amp;apos;}))
+
+CoMet-only items:
+{price}		(float)
+{isVersionOf}	(string)
+{rights}		(string)
+{identifier}	(string)
+{lastMark}	(string)
+{coverImage}	(string)
+
+Examples:
+
+{series} {issue} ({year})
+Spider-Geddon 1 (2018)
+
+{series} #{issue} - {title}
+Spider-Geddon #1 - New Players; Check In
+&lt;/pre&gt;</string>
              </property>
             </widget>
            </item>
            <item row="2" column="0">
-            <widget class="QLabel" name="label_6">
+            <widget class="QPushButton" name="btnTemplateHelp">
+             <property name="text">
+              <string>Template Help</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QLabel" name="lblPadding">
              <property name="text">
               <string>Issue # Zero Padding</string>
              </property>
             </widget>
            </item>
-           <item row="2" column="1">
+           <item row="3" column="1">
             <widget class="QLineEdit" name="leIssueNumPadding">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
@@ -555,7 +604,7 @@
              </property>
             </widget>
            </item>
-           <item row="3" column="0" colspan="2">
+           <item row="4" column="0" colspan="2">
             <widget class="QCheckBox" name="cbxSmartCleanup">
              <property name="toolTip">
               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;&amp;quot;Smart Text Cleanup&amp;quot; &lt;/span&gt;will attempt to clean up the new filename if there are missing fields from the template.  For example, removing empty braces, repeated spaces and dashes, and more.  Experimental feature.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -565,12 +614,32 @@
              </property>
             </widget>
            </item>
-           <item row="4" column="0" colspan="2">
+           <item row="5" column="0" colspan="2">
             <widget class="QCheckBox" name="cbxChangeExtension">
              <property name="text">
               <string>Change Extension Based On Archive Type</string>
              </property>
             </widget>
+           </item>
+           <item row="6" column="0">
+            <widget class="QCheckBox" name="cbxMoveFiles">
+             <property name="toolTip">
+              <string>If checked moves files to specified folder</string>
+             </property>
+             <property name="text">
+              <string>Move files when renaming</string>
+             </property>
+            </widget>
+           </item>
+           <item row="7" column="0">
+            <widget class="QLabel" name="lblDirectory">
+             <property name="text">
+              <string>Destination Directory:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="7" column="1">
+            <widget class="QLineEdit" name="leDirectory"/>
            </item>
           </layout>
          </item>

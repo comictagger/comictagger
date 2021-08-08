@@ -24,6 +24,8 @@ from .settings import ComicTaggerSettings
 from .comicvinecacher import ComicVineCacher
 from .comicvinetalker import ComicVineTalker
 from .imagefetcher import ImageFetcher
+from .filerenamer import FileRenamer
+from .genericmetadata import GenericMetadata
 from . import utils
 
 
@@ -113,6 +115,66 @@ class SettingsWindow(QtWidgets.QDialog):
         self.btnClearCache.clicked.connect(self.clearCache)
         self.btnResetSettings.clicked.connect(self.resetSettings)
         self.btnTestKey.clicked.connect(self.testAPIKey)
+        self.btnTemplateHelp.clicked.connect(self.showTemplateHelp)
+
+    def configRenamer(self):
+        md = GenericMetadata()
+        md.isEmpty = False
+        md.tagOrigin = "testing"
+
+        md.series = "series name"
+        md.issue = "1"
+        md.title = "issue title"
+        md.publisher = "publisher"
+        md.year = 1998
+        md.month = 4
+        md.day = 4
+        md.issueCount = 1
+        md.volume = 256
+        md.genre = "test"
+        md.language = "en"  # 2 letter iso code
+        md.comments = "This is definitly a comic."  # use same way as Summary in CIX
+
+        md.volumeCount = 4096
+        md.criticalRating = "Worst Comic Ever"
+        md.country = "US"
+
+        md.alternateSeries = "None"
+        md.alternateNumber = 4.4
+        md.alternateCount = 4444
+        md.imprint = 'imprint'
+        md.notes = "This doesn't actually exist"
+        md.webLink = "https://example.com/series name/1"
+        md.format = "Box Set"
+        md.manga = "Yes"
+        md.blackAndWhite = False
+        md.pageCount = 4
+        md.maturityRating = "Everyone"
+
+        md.storyArc = "story"
+        md.seriesGroup = "seriesGroup"
+        md.scanInfo = "(lordwelch)"
+
+        md.characters = "character 1, character 2"
+        md.teams = "None"
+        md.locations = "Earth, 444 B.C."
+
+        md.credits = [dict({'role': 'Everything', 'person': 'author', 'primary': True})]
+        md.tags = ["testing", "not real"]
+        md.pages = [dict({'Image': '0', 'Type': 'Front Cover'}), dict({'Image': '1', 'Type': 'Story'})]
+
+        # Some CoMet-only items
+        md.price = 0.00
+        md.isVersionOf = "SERIES #1"
+        md.rights = "None"
+        md.identifier = "LW4444-Comic"
+        md.lastMark = "0"
+        md.coverImage = "https://example.com/series name/1/cover"
+
+        self.renamer = FileRenamer(md)
+        self.renamer.setTemplate(str(self.leRenameTemplate.text()))
+        self.renamer.setIssueZeroPadding(self.settings.rename_issue_number_padding)
+        self.renamer.setSmartCleanup(self.settings.rename_use_smart_string_cleanup)
 
     def settingsToForm(self):
 
@@ -165,8 +227,26 @@ class SettingsWindow(QtWidgets.QDialog):
             self.cbxSmartCleanup.setCheckState(QtCore.Qt.Checked)
         if self.settings.rename_extension_based_on_archive:
             self.cbxChangeExtension.setCheckState(QtCore.Qt.Checked)
+        if self.settings.rename_move_dir:
+            self.cbxMoveFiles.setCheckState(QtCore.Qt.Checked)
+        self.leDirectory.setText(self.settings.rename_dir)
 
     def accept(self):
+
+        self.configRenamer()
+
+
+        try:
+            new_name = self.renamer.determineName('test.cbz')
+        except Exception as e:
+            QtWidgets.QMessageBox.critical(self, 'Invalid format string!',
+                'Your rename template is invalid!'
+                '<br/><br/>{}<br/><br/>'
+                'Please consult the template help in the '
+                'settings and the documentation on the format at '
+                '<a href=\'https://docs.python.org/3/library/string.html#format-string-syntax\'>'
+                'https://docs.python.org/3/library/string.html#format-string-syntax</a>'.format(e))
+            return
 
         # Copy values from form to settings and save
         self.settings.rar_exe_path = str(self.leRarExePath.text())
@@ -210,6 +290,8 @@ class SettingsWindow(QtWidgets.QDialog):
             self.leIssueNumPadding.text())
         self.settings.rename_use_smart_string_cleanup = self.cbxSmartCleanup.isChecked()
         self.settings.rename_extension_based_on_archive = self.cbxChangeExtension.isChecked()
+        self.settings.rename_move_dir = self.cbxMoveFiles.isChecked()
+        self.settings.rename_dir = self.leDirectory.text()
 
         self.settings.save()
         QtWidgets.QDialog.accept(self)
@@ -268,3 +350,17 @@ class SettingsWindow(QtWidgets.QDialog):
 
     def showRenameTab(self):
         self.tabWidget.setCurrentIndex(5)
+
+    def showTemplateHelp(self):
+        TemplateHelpWin = TemplateHelpWindow(self)
+        TemplateHelpWin.setModal(False)
+        TemplateHelpWin.show()
+
+class TemplateHelpWindow(QtWidgets.QDialog):
+
+    def __init__(self, parent):
+        super(TemplateHelpWindow, self).__init__(parent)
+
+        uic.loadUi(ComicTaggerSettings.getUIFile('TemplateHelp.ui'), self)
+
+

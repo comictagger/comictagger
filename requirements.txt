@@ -4,3 +4,4 @@ configparser
 natsort
 pillow>=4.3.0
 requests
+pathvalidate
