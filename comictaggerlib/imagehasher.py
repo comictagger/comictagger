@@ -51,7 +51,6 @@ class ImageHasher(object):
             image = self.image.resize(
                 (self.width, self.height), Image.ANTIALIAS).convert("L")
         except Exception as e:
-            sys.exc_clear()
             print("average_hash error:", e)
             return int(0)
 

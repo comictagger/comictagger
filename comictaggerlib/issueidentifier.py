@@ -138,7 +138,6 @@ class IssueIdentifier:
         try:
             cropped_im = im.crop((int(w / 2), 0, w, h))
         except Exception as e:
-            sys.exc_clear()
             print("cropCover() error:", e)
             return None
 
