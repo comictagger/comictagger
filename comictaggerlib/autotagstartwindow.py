@@ -45,6 +45,7 @@ class AutoTagStartWindow(QtWidgets.QDialog):
             QtCore.Qt.Unchecked)
         self.cbxRemoveAfterSuccess.setCheckState(QtCore.Qt.Unchecked)
         self.cbxSpecifySearchString.setCheckState(QtCore.Qt.Unchecked)
+        self.cbxSplitWords.setCheckState(QtCore.Qt.Unchecked)
         self.leNameLengthMatchTolerance.setText(
             str(self.settings.id_length_delta_thresh))
         self.leSearchString.setEnabled(False)
@@ -62,6 +63,8 @@ class AutoTagStartWindow(QtWidgets.QDialog):
             self.cbxRemoveAfterSuccess.setCheckState(QtCore.Qt.Checked)
         if self.settings.wait_and_retry_on_rate_limit:
             self.cbxWaitForRateLimit.setCheckState(QtCore.Qt.Checked)
+        if self.settings.split_words:
+            self.cbxSplitWords.setCheckState(QtCore.Qt.Checked)
 
         nlmtTip = (
             """ <html>The <b>Name Length Match Tolerance</b> is for eliminating automatic
@@ -96,6 +99,7 @@ class AutoTagStartWindow(QtWidgets.QDialog):
         self.waitAndRetryOnRateLimit = False
         self.searchString = None
         self.nameLengthMatchTolerance = self.settings.id_length_delta_thresh
+        self.splitWords = self.cbxSplitWords.isChecked()
 
     def searchStringToggle(self):
         enable = self.cbxSpecifySearchString.isChecked()
@@ -112,6 +116,7 @@ class AutoTagStartWindow(QtWidgets.QDialog):
         self.nameLengthMatchTolerance = int(
             self.leNameLengthMatchTolerance.text())
         self.waitAndRetryOnRateLimit = self.cbxWaitForRateLimit.isChecked()
+        self.splitWords = self.cbxSplitWords.isChecked()
 
         # persist some settings
         self.settings.save_on_low_confidence = self.autoSaveOnLow

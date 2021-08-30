@@ -128,6 +128,8 @@ class SettingsWindow(QtWidgets.QDialog):
 
         if self.settings.parse_scan_info:
             self.cbxParseScanInfo.setCheckState(QtCore.Qt.Checked)
+        if self.settings.split_words:
+            self.cbxSplitWords.setCheckState(QtCore.Qt.Checked)
 
         if self.settings.use_series_start_as_volume:
             self.cbxUseSeriesStartAsVolume.setCheckState(QtCore.Qt.Checked)
@@ -189,6 +191,7 @@ class SettingsWindow(QtWidgets.QDialog):
             self.tePublisherBlacklist.toPlainText())
 
         self.settings.parse_scan_info = self.cbxParseScanInfo.isChecked()
+        self.settings.split_words = self.cbxSplitWords.isChecked()
 
         self.settings.use_series_start_as_volume = self.cbxUseSeriesStartAsVolume.isChecked()
         self.settings.clear_form_before_populating_from_cv = self.cbxClearFormBeforePopulating.isChecked()

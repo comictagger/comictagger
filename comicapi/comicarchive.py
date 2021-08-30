@@ -16,6 +16,7 @@
 
 import zipfile
 import os
+import os.path
 import struct
 import sys
 import tempfile
@@ -23,6 +24,7 @@ import subprocess
 import platform
 import time
 import io
+import wordninja
 
 import natsort
 from PyPDF2 import PdfFileReader
@@ -1080,11 +1082,14 @@ class ComicArchive:
                         data = self.getPage(idx)
                         p['ImageSize'] = str(len(data))
 
-    def metadataFromFilename(self, parse_scan_info=True):
+    def metadataFromFilename(self, parse_scan_info=True, split_words=False):
         metadata = GenericMetadata()
 
         fnp = FileNameParser()
-        fnp.parseFilename(self.path)
+        filename = self.path
+        if split_words:
+            filename = " ".join(wordninja.split(os.path.splitext(os.path.basename(self.path))[0]))
+        fnp.parseFilename(filename)
 
         if fnp.issue != "":
             metadata.issue = fnp.issue

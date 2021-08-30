@@ -88,6 +88,7 @@ class ComicTaggerSettings:
 
         # filename parsing settings
         self.parse_scan_info = True
+        self.split_words = False
 
         # Comic Vine settings
         self.use_series_start_as_volume = False
@@ -229,6 +230,9 @@ class ComicTaggerSettings:
         if self.config.has_option('filenameparser', 'parse_scan_info'):
             self.parse_scan_info = self.config.getboolean(
                 'filenameparser', 'parse_scan_info')
+        if self.config.has_option('filenameparser', 'split_words'):
+            self.split_words = self.config.getboolean(
+                'filenameparser', 'split_words')
 
         if self.config.has_option('dialogflags', 'ask_about_cbi_in_rar'):
             self.ask_about_cbi_in_rar = self.config.getboolean(
@@ -396,6 +400,8 @@ class ComicTaggerSettings:
 
         self.config.set(
             'filenameparser', 'parse_scan_info', self.parse_scan_info)
+        self.config.set(
+            'filenameparser', 'split_words', self.parse_scan_info)
 
         if not self.config.has_section('comicvine'):
             self.config.add_section('comicvine')

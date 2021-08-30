@@ -225,6 +225,19 @@
           <string>Parse Scan Info From Filename (Experimental)</string>
          </property>
         </widget>
+        <widget class="QCheckBox" name="cbxSplitWords">
+         <property name="geometry">
+          <rect>
+           <x>30</x>
+           <y>60</y>
+           <width>541</width>
+           <height>25</height>
+          </rect>
+         </property>
+         <property name="text">
+          <string>Split words apart in filenames (e.g. 'judgedredd' to 'judge dredd') (Experimental)</string>
+         </property>
+        </widget>
        </widget>
        <widget class="QWidget" name="tab_3">
         <attribute name="title">

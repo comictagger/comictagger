@@ -595,7 +595,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
     def actualLoadCurrentArchive(self):
         if self.metadata.isEmpty:
             self.metadata = self.comic_archive.metadataFromFilename(
-                self.settings.parse_scan_info)
+                self.settings.parse_scan_info, self.settings.split_words)
         if len(self.metadata.pages) == 0:
             self.metadata.setDefaultPageList(
                 self.comic_archive.getNumberOfPages())
@@ -965,7 +965,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             # copy the form onto metadata object
             self.formToMetadata()
             new_metadata = self.comic_archive.metadataFromFilename(
-                self.settings.parse_scan_info)
+                self.settings.parse_scan_info, self.settings.split_words)
             if new_metadata is not None:
                 self.metadata.overlay(new_metadata)
                 self.metadataToForm()
@@ -1727,14 +1727,14 @@ class TaggerWindow(QtWidgets.QMainWindow):
             QtCore.QCoreApplication.processEvents()
             QtCore.QCoreApplication.processEvents()
 
-    def identifyAndTagSingleArchive(self, ca, match_results, dlg):
+    def identifyAndTagSingleArchive(self, ca, match_results, dlg, split_words):
         success = False
         ii = IssueIdentifier(ca, self.settings)
 
         # read in metadata, and parse file name if not there
         md = ca.readMetadata(self.save_data_style)
         if md.isEmpty:
-            md = ca.metadataFromFilename(self.settings.parse_scan_info)
+            md = ca.metadataFromFilename(self.settings.parse_scan_info, split_words)
             if dlg.ignoreLeadingDigitsInFilename and md.series is not None:
                 # remove all leading numbers
                 md.series = re.sub("([\d.]*)(.*)", "\\2", md.series)
@@ -1892,7 +1892,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
             if ca.isWritable():
                 success, match_results = self.identifyAndTagSingleArchive(
-                    ca, match_results, atstartdlg)
+                    ca, match_results, atstartdlg, atstartdlg.splitWords)
 
                 if success and atstartdlg.removeAfterSuccess:
                     archives_to_remove.append(ca)

@@ -180,10 +180,10 @@ class FileNameParser:
         series = re.sub("\(.*?\)", "", series)
 
         # search for volume number
-        match = re.search('(.+)([vV]|[Vv][oO][Ll]\.?\s?)(\d+)\s*$', series)
+        match = re.search('(.+)([vV]|[Vv][oO][Ll]\.?\s?)(\d+)?\s*$', series)
         if match:
             series = match.group(1)
-            volume = match.group(3)
+            volume = match.group(3) or ""
 
         # if a volume wasn't found, see if the last word is a year in parentheses
         # since that's a common way to designate the volume
@@ -282,6 +282,9 @@ class FileNameParser:
             self.issue_count,
             self.volume,
             issue_end)
+
+        if self.issue == "" and self.volume != "":
+            self.issue = self.volume
 
         if self.issue != "":
             # strip off leading zeros
