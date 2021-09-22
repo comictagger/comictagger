@@ -9,13 +9,6 @@ binaries = []
 block_cipher = None
 
 if platform.system() == "Windows":
-    from site import getsitepackages
-    sitepackages = getsitepackages()[1]
-    # add ssl qt libraries not discovered automatically
-    binaries.extend([
-        (join(sitepackages, "PyQt5/Qt/bin/libeay32.dll"), "./PyQt5/Qt/bin"),
-        (join(sitepackages, "PyQt5/Qt/bin/ssleay32.dll"), "./PyQt5/Qt/bin")
-    ])
     enable_console = True
 
 a = Analysis(['comictagger.py'],
