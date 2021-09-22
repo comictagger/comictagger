@@ -1,5 +1,6 @@
-PIP ?= pip
-VERSION_STR := $(shell python setup.py --version)
+PIP ?= pip3
+PYTHON ?= python3
+VERSION_STR := $(shell $(PYTHON) setup.py --version)
 
 ifeq ($(OS),Windows_NT)
 	OS_VERSION=win-$(PROCESSOR_ARCHITECTURE)
@@ -34,13 +35,13 @@ pydist:
 	make clean
 	mkdir -p piprelease
 	rm -f comictagger-$(VERSION_STR).zip
-	python setup.py sdist --formats=zip  #,gztar
+	$(PYTHON) setup.py sdist --formats=zip  #,gztar
 	mv dist/comictagger-$(VERSION_STR).zip piprelease
 	rm -rf comictagger.egg-info dist
 		
 upload:
-	python setup.py register
-	python setup.py sdist --formats=zip upload
+	$(PYTHON) setup.py register
+	$(PYTHON) setup.py sdist --formats=zip upload
 
 dist:
 	$(PIP) install .
