@@ -1,27 +1,33 @@
 language: python
+# Only build tags
+if: type = pull_request OR tag IS present
 branches:
   only:
     - develop
     - /^\d+\.\d+\.\d+.*$/
 env:
   global:
-    - PYTHON=python
-    - PIP=pip
+    - PYTHON=python3
+    - PIP=pip3
     - SETUPTOOLS_SCM_PRETEND_VERSION=$TRAVIS_TAG
     - MAKE=make
 matrix:
   include:
     - os: linux
-    - os: osx
-      language: generic
-      osx_image: xcode8.3
-      env: PYTHON=python3 PIP=pip3 MACOSX_DEPLOYMENT_TARGET=10.11
+      python: 3.8
+    - name: "Python: 3.7"
+      os: osx
+      language: shell
+      python: 3.7
+      env: PYTHON=python3 PIP="python3 -m pip"
+      cache:
+        - directories:
+          - $HOME/Library/Caches/pip
     - os: windows
       language: bash
-      env: PATH=/C/Python37:/C/Python37/Scripts:$PATH MAKE=mingw32-make
+      env: PATH=/C/Python37:/C/Python37/Scripts:$PATH MAKE=mingw32-make PIP=pip PYTHON=python
 before_install:
-  - if [ "$TRAVIS_OS_NAME" = "windows" ]; then choco install -y python mingw zip; fi
-  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew upgrade python3 ; fi
+  - if [ "$TRAVIS_OS_NAME" = "windows" ]; then choco install -y python --version 3.7.9; choco install -y mingw zip; fi
 install:
   - $PIP install --upgrade setuptools
   - $PIP install -r requirements.txt
