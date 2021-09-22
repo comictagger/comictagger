@@ -16,9 +16,6 @@
 
 import sys
 import io
-#import math
-#import urllib2
-#import urllib
 
 try:
     from PIL import Image

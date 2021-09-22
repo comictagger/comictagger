@@ -20,6 +20,7 @@ import xml.etree.ElementTree as ET
 #import zipfile
 
 from .genericmetadata import GenericMetadata
+from .issuestring import IssueString
 from . import utils
 
 
@@ -206,48 +207,44 @@ class ComicInfoXml:
             raise 1
             return None
 
-        metadata = GenericMetadata()
-        md = metadata
-
-        # Helper function
-        def xlate(tag):
-            node = root.find(tag)
-            if node is not None:
-                return node.text
-            else:
+        def get(name):
+            tag = root.find(name)
+            if tag is None:
                 return None
+            return tag.text
 
-        md.series = xlate('Series')
-        md.title = xlate('Title')
-        md.issue = xlate('Number')
-        md.issueCount = xlate('Count')
-        md.volume = xlate('Volume')
-        md.alternateSeries = xlate('AlternateSeries')
-        md.alternateNumber = xlate('AlternateNumber')
-        md.alternateCount = xlate('AlternateCount')
-        md.comments = xlate('Summary')
-        md.notes = xlate('Notes')
-        md.year = xlate('Year')
-        md.month = xlate('Month')
-        md.day = xlate('Day')
-        md.publisher = xlate('Publisher')
-        md.imprint = xlate('Imprint')
-        md.genre = xlate('Genre')
-        md.webLink = xlate('Web')
-        md.language = xlate('LanguageISO')
-        md.format = xlate('Format')
-        md.manga = xlate('Manga')
-        md.characters = xlate('Characters')
-        md.teams = xlate('Teams')
-        md.locations = xlate('Locations')
-        md.pageCount = xlate('PageCount')
-        md.scanInfo = xlate('ScanInformation')
-        md.storyArc = xlate('StoryArc')
-        md.seriesGroup = xlate('SeriesGroup')
-        md.maturityRating = xlate('AgeRating')
+        md = GenericMetadata()
 
-        tmp = xlate('BlackAndWhite')
-        md.blackAndWhite = False
+        md.series = utils.xlate(get('Series'))
+        md.title = utils.xlate(get('Title'))
+        md.issue = IssueString(utils.xlate(get('Number'))).asString()
+        md.issueCount = utils.xlate(get('Count'), True)
+        md.volume = utils.xlate(get('Volume'), True)
+        md.alternateSeries = utils.xlate(get('AlternateSeries'))
+        md.alternateNumber = IssueString(utils.xlate(get('AlternateNumber'))).asString()
+        md.alternateCount = utils.xlate(get('AlternateCount'), True)
+        md.comments = utils.xlate(get('Summary'))
+        md.notes = utils.xlate(get('Notes'))
+        md.year = utils.xlate(get('Year'), True)
+        md.month = utils.xlate(get('Month'), True)
+        md.day = utils.xlate(get('Day'), True)
+        md.publisher = utils.xlate(get('Publisher'))
+        md.imprint = utils.xlate(get('Imprint'))
+        md.genre = utils.xlate(get('Genre'))
+        md.webLink = utils.xlate(get('Web'))
+        md.language = utils.xlate(get('LanguageISO'))
+        md.format = utils.xlate(get('Format'))
+        md.manga = utils.xlate(get('Manga'))
+        md.characters = utils.xlate(get('Characters'))
+        md.teams = utils.xlate(get('Teams'))
+        md.locations = utils.xlate(get('Locations'))
+        md.pageCount = utils.xlate(get('PageCount'), True)
+        md.scanInfo = utils.xlate(get('ScanInformation'))
+        md.storyArc = utils.xlate(get('StoryArc'))
+        md.seriesGroup = utils.xlate(get('SeriesGroup'))
+        md.maturityRating = utils.xlate(get('AgeRating'))
+
+        tmp = utils.xlate(get('BlackAndWhite'))
         if tmp is not None and tmp.lower() in ["yes", "true", "1"]:
             md.blackAndWhite = True
         # Now extract the credit info
@@ -261,23 +258,23 @@ class ComicInfoXml:
                 ):
                 if n.text is not None:
                     for name in n.text.split(','):
-                        metadata.addCredit(name.strip(), n.tag)
+                        md.addCredit(name.strip(), n.tag)
 
             if n.tag == 'CoverArtist':
                 if n.text is not None:
                     for name in n.text.split(','):
-                        metadata.addCredit(name.strip(), "Cover")
+                        md.addCredit(name.strip(), "Cover")
 
         # parse page data now
         pages_node = root.find("Pages")
         if pages_node is not None:
             for page in pages_node:
-                metadata.pages.append(page.attrib)
+                md.pages.append(page.attrib)
                 # print page.attrib
 
-        metadata.isEmpty = False
+        md.isEmpty = False
 
-        return metadata
+        return md
 
     def writeToExternalFile(self, filename, metadata):
 

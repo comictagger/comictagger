@@ -121,6 +121,23 @@ def which(program):
     return None
 
 
+def xlate(data, isInt=False):
+    class Default(dict):
+        def __missing__(self, key):
+            return None
+    if data is None or data == "":
+        return None
+    if isInt:
+        i = str(data).translate(Default(zip((ord(c) for c in "1234567890"),"1234567890")))
+        if i == "0":
+            return "0"
+        if i is "":
+            return None
+        return int(i)
+    else:
+        return str(data)
+
+
 def removearticles(text):
     text = text.lower()
     articles = ['and', 'a', '&', 'issue', 'the']
@@ -130,16 +147,6 @@ def removearticles(text):
             newText += word + ' '
 
     newText = newText[:-1]
-
-    # now get rid of some other junk
-    newText = newText.replace(":", "")
-    newText = newText.replace(",", "")
-    newText = newText.replace("-", " ")
-
-    # since the CV API changed, searches for series names with periods
-    # now explicitly require the period to be in the search key,
-    # so the line below is removed (for now)
-    #newText = newText.replace(".", "")
 
     return newText
 
