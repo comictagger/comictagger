@@ -32,6 +32,8 @@ from .settings import ComicTaggerSettings
 from .matchselectionwindow import MatchSelectionWindow
 from .coverimagewidget import CoverImageWidget
 from comictaggerlib.ui.qtutils import reduceWidgetFontSize, centerWindowOnParent
+
+from comictaggerlib import settings
 #from imagefetcher import ImageFetcher
 #import utils
 
@@ -334,6 +336,30 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
             return
 
         self.cv_search_results = self.search_thread.cv_search_results
+
+        # filter the blacklisted publishers if setting set
+        if self.settings.id_use_publisher_blacklist_for_manual:
+            publisher_blacklist = [
+                s.strip().lower() for s in self.settings.id_publisher_blacklist.split(',')]
+            filtered = []
+            for item in self.cv_search_results:
+                if item['publisher'] is not None:
+                    publisher = item['publisher']['name']
+                    if publisher is None or publisher.lower() not in publisher_blacklist:
+                        filtered.append(item)
+            self.cv_search_results = filtered
+        
+        # pre sort the data - so that we can put exact matches first afterwards
+        self.cv_search_results = sorted(self.cv_search_results, key = lambda i: i['count_of_issues'], reverse=True)
+        # sort by start_year if set
+        if self.settings.sort_series_by_year:
+            self.cv_search_results = sorted(self.cv_search_results, key = lambda i: (i['start_year'], i['count_of_issues']), reverse=True)
+        
+        if self.settings.exact_series_matches_first:
+            exactMatches = list(filter(lambda d: d['name'] in self.series_name, self.cv_search_results))
+            otherMatches = list(filter(lambda d: d['name'] not in self.series_name, self.cv_search_results))
+            self.cv_search_results = exactMatches + otherMatches
+
         self.updateButtons()
 
         self.twList.setSortingEnabled(False)
@@ -377,7 +403,6 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
 
         self.twList.resizeColumnsToContents()
         self.twList.setSortingEnabled(True)
-        self.twList.sortItems(2, QtCore.Qt.DescendingOrder)
         self.twList.selectRow(0)
         self.twList.resizeColumnsToContents()
 
