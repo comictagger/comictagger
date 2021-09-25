@@ -79,6 +79,8 @@ class ComicTaggerSettings:
         # identifier settings
         self.id_length_delta_thresh = 5
         self.id_publisher_blacklist = "Panini Comics, Abril, Planeta DeAgostini, Editorial Televisa, Dino Comics"
+        
+        self.id_use_publisher_blacklist_for_manual = True
 
         # Show/ask dialog flags
         self.ask_about_cbi_in_rar = True
@@ -94,6 +96,9 @@ class ComicTaggerSettings:
         self.clear_form_before_populating_from_cv = False
         self.remove_html_tables = False
         self.cv_api_key = ""
+
+        self.sort_series_by_year = True
+        self.exact_series_matches_first = True
 
         # CBL Tranform settings
 
