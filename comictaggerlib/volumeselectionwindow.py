@@ -410,8 +410,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
         #self.twList.resizeColumnsToContents()
         self.twList.setSortingEnabled(True)
         self.twList.selectRow(0)
-        
-        QtCore.QTimer.singleShot(10, self.twList.resizeColumnsToContents)
+        self.twList.resizeColumnsToContents()
 
         if len(self.cv_search_results) == 0:
             QtCore.QCoreApplication.processEvents()
