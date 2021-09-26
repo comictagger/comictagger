@@ -352,13 +352,18 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
         
         # move exact matches to the front
         # - maybe compare lower case
-        # - not sure what to do about names with colons
+        # - not sure what to do about names with colons and /\
         #   ie. should a filenamed 'blah - blah' match 'blah: blah'
-        # - should filenamed 'blah' match 'the blah'
         if self.settings.exact_series_matches_first:
             exactMatches = list(filter(lambda d: d['name'] in self.series_name, self.cv_search_results))
             otherMatches = list(filter(lambda d: d['name'] not in self.series_name, self.cv_search_results))
-            self.cv_search_results = exactMatches + otherMatches
+            # experimental - match 'The ' + series_name
+            nearMatches =  list(filter(lambda d: d['name'] in 'The ' + self.series_name, otherMatches))
+            otherMatches =  list(filter(lambda d: d['name'] not in 'The ' + self.series_name, otherMatches))
+            # experimental - match 'blah - ' as 'blah: '
+            nearMatches1 =  list(filter(lambda d: d['name'] in self.series_name.replace(' - ', ': '), otherMatches))
+            otherMatches =  list(filter(lambda d: d['name'] not in self.series_name.replace(' - ', ': '), otherMatches))
+            self.cv_search_results = exactMatches + nearMatches + nearMatches1 + otherMatches
 
         self.updateButtons()
 
@@ -405,7 +410,8 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
         #self.twList.resizeColumnsToContents()
         self.twList.setSortingEnabled(True)
         self.twList.selectRow(0)
-        self.twList.resizeColumnsToContents()
+        
+        QtCore.QTimer.singleShot(10, self.twList.resizeColumnsToContents)
 
         if len(self.cv_search_results) == 0:
             QtCore.QCoreApplication.processEvents()
