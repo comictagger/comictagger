@@ -339,22 +339,22 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
 
         # filter the blacklisted publishers if setting set
         if self.settings.id_use_publisher_blacklist_for_manual:
-            publisher_blacklist = [
-                s.strip().lower() for s in self.settings.id_publisher_blacklist.split(',')]
-            filtered = []
-            for item in self.cv_search_results:
-                if item['publisher'] is not None:
-                    publisher = item['publisher']['name']
-                    if publisher is None or publisher.lower() not in publisher_blacklist:
-                        filtered.append(item)
-            self.cv_search_results = filtered
+            publisher_blacklist = [s.strip().lower() for s in self.settings.id_publisher_blacklist.split(',')]
+            self.cv_search_results = list(filter(lambda d: d['publisher']['name'].lower() not in set(publisher_blacklist), self.cv_search_results))
         
         # pre sort the data - so that we can put exact matches first afterwards
-        self.cv_search_results = sorted(self.cv_search_results, key = lambda i: i['count_of_issues'], reverse=True)
+        # filter none to end, compare as str incase extra chars ie. '1976?'
         # sort by start_year if set
         if self.settings.sort_series_by_year:
-            self.cv_search_results = sorted(self.cv_search_results, key = lambda i: (i['start_year'], i['count_of_issues']), reverse=True)
+            self.cv_search_results = sorted(self.cv_search_results, key = lambda i: ((i['start_year'] is None, str(i['start_year'])), (i['count_of_issues'] is None, str(i['count_of_issues']))), reverse=True)
+        else:
+            self.cv_search_results = sorted(self.cv_search_results, key = lambda i: (i['count_of_issues'] is None, str(i['count_of_issues'])), reverse=True)
         
+        # move exact matches to the front
+        # - maybe compare lower case
+        # - not sure what to do about names with colons
+        #   ie. should a filenamed 'blah - blah' match 'blah: blah'
+        # - should filenamed 'blah' match 'the blah'
         if self.settings.exact_series_matches_first:
             exactMatches = list(filter(lambda d: d['name'] in self.series_name, self.cv_search_results))
             otherMatches = list(filter(lambda d: d['name'] not in self.series_name, self.cv_search_results))
@@ -401,7 +401,8 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
 
             row += 1
 
-        self.twList.resizeColumnsToContents()
+        # redundant
+        #self.twList.resizeColumnsToContents()
         self.twList.setSortingEnabled(True)
         self.twList.selectRow(0)
         self.twList.resizeColumnsToContents()
