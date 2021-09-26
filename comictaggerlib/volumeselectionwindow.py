@@ -352,6 +352,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
         # - maybe compare lower case
         # - not sure what to do about names with colons
         #   ie. should a filenamed 'blah - blah' match 'blah: blah'
+        # - should filenamed 'blah' match 'the blah'
         if self.settings.exact_series_matches_first:
             exactMatches = list(filter(lambda d: d['name'] in self.series_name, self.cv_search_results))
             otherMatches = list(filter(lambda d: d['name'] not in self.series_name, self.cv_search_results))
