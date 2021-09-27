@@ -258,6 +258,17 @@ class ComicTaggerSettings:
         if self.config.has_option('comicvine', 'remove_html_tables'):
             self.remove_html_tables = self.config.getboolean(
                 'comicvine', 'remove_html_tables')
+
+        if self.config.has_option('comicvine', 'sort_series_by_year'):
+            self.sort_series_by_year = self.config.getboolean(
+                'comicvine', 'sort_series_by_year')
+        if self.config.has_option('comicvine', 'exact_series_matches_first'):
+            self.exact_series_matches_first = self.config.getboolean(
+                'comicvine', 'exact_series_matches_first')
+        if self.config.has_option('comicvine', 'use_publisher_blacklist_for_manual'):
+            self.use_publisher_blacklist_for_manual = self.config.getboolean(
+                'comicvine', 'use_publisher_blacklist_for_manual')
+
         if self.config.has_option('comicvine', 'cv_api_key'):
             self.cv_api_key = self.config.get('comicvine', 'cv_api_key')
 
@@ -412,6 +423,14 @@ class ComicTaggerSettings:
                         self.clear_form_before_populating_from_cv)
         self.config.set(
             'comicvine', 'remove_html_tables', self.remove_html_tables)
+
+        self.config.set(
+            'comicvine', 'sort_series_by_year', self.sort_series_by_year)
+        self.config.set(
+            'comicvine', 'exact_series_matches_first', self.exact_series_matches_first)
+        self.config.set(
+            'comicvine', 'use_publisher_blacklist_for_manual', self.use_publisher_blacklist_for_manual)
+
         self.config.set('comicvine', 'cv_api_key', self.cv_api_key)
 
         if not self.config.has_section('cbl_transform'):
