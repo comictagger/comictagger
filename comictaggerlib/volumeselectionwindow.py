@@ -126,12 +126,17 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
         self.cover_index_list = cover_index_list
         self.cv_search_results = None
 
+        self.use_blackList = self.settings.use_publisher_blacklist_for_manual
+
         self.twList.resizeColumnsToContents()
         self.twList.currentItemChanged.connect(self.currentItemChanged)
         self.twList.cellDoubleClicked.connect(self.cellDoubleClicked)
         self.btnRequery.clicked.connect(self.requery)
         self.btnIssues.clicked.connect(self.showIssues)
         self.btnAutoSelect.clicked.connect(self.autoSelect)
+
+        self.cbxFilter.setChecked(self.use_blackList)
+        self.cbxFilter.toggled.connect(self.filterToggled)
 
         self.updateButtons()
         self.performQuery()
@@ -152,6 +157,10 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
     def requery(self,):
         self.performQuery(refresh=True)
         self.twList.selectRow(0)
+    
+    def filterToggled(self):
+        self.use_blackList = not self.use_blackList
+        self.performQuery(refresh=False)
 
     def autoSelect(self):
 
@@ -337,7 +346,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
 
         self.cv_search_results = self.search_thread.cv_search_results
         # filter the blacklisted publishers if setting set
-        if self.settings.id_use_publisher_blacklist_for_manual:
+        if self.use_blackList:
             try:
                 publisher_blacklist = set([s.strip().lower() for s in self.settings.id_publisher_blacklist.split(',')])
                 # use '' as publisher name if None

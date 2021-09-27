@@ -135,6 +135,14 @@ class SettingsWindow(QtWidgets.QDialog):
             self.cbxClearFormBeforePopulating.setCheckState(QtCore.Qt.Checked)
         if self.settings.remove_html_tables:
             self.cbxRemoveHtmlTables.setCheckState(QtCore.Qt.Checked)
+
+        if self.settings.use_publisher_blacklist_for_manual:
+            self.cbxUseBlackFilter.setCheckState(QtCore.Qt.Checked)
+        if self.settings.sort_series_by_year:
+            self.cbxSortByYear.setCheckState(QtCore.Qt.Checked)
+        if self.settings.exact_series_matches_first:
+            self.cbxExactMatches.setCheckState(QtCore.Qt.Checked)
+
         self.leKey.setText(str(self.settings.cv_api_key))
 
         if self.settings.assume_lone_credit_is_primary:
@@ -193,6 +201,11 @@ class SettingsWindow(QtWidgets.QDialog):
         self.settings.use_series_start_as_volume = self.cbxUseSeriesStartAsVolume.isChecked()
         self.settings.clear_form_before_populating_from_cv = self.cbxClearFormBeforePopulating.isChecked()
         self.settings.remove_html_tables = self.cbxRemoveHtmlTables.isChecked()
+
+        self.settings.use_publisher_blacklist_for_manual = self.cbxUseBlackFilter.isChecked()
+        self.settings.sort_series_by_year = self.cbxSortByYear.isChecked()
+        self.settings.exact_series_matches_first = self.cbxExactMatches.isChecked()
+
         self.settings.cv_api_key = str(self.leKey.text())
         ComicVineTalker.api_key = self.settings.cv_api_key.strip()
         self.settings.assume_lone_credit_is_primary = self.cbxAssumeLoneCreditIsPrimary.isChecked()
