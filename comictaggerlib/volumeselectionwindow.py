@@ -352,18 +352,16 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
             self.cv_search_results = sorted(self.cv_search_results, key = lambda i: str(i['count_of_issues']), reverse=True)
         
         # move exact matches to the front
-        # - maybe compare lower case
-        # - not sure what to do about names with colons and /\
-        #   ie. should a filenamed 'blah - blah' match 'blah: blah'
         if self.settings.exact_series_matches_first:
-            exactMatches = list(filter(lambda d: d['name'] in self.series_name, self.cv_search_results))
-            otherMatches = list(filter(lambda d: d['name'] not in self.series_name, self.cv_search_results))
+            lower = self.series_name.lower()
+            exactMatches = list(filter(lambda d: str(d['name']).lower() in lower, self.cv_search_results))
+            otherMatches = list(filter(lambda d: str(d['name']).lower() not in lower, self.cv_search_results))
             # experimental - match 'The ' + series_name
-            nearMatches =  list(filter(lambda d: d['name'] in 'The ' + self.series_name, otherMatches))
-            otherMatches =  list(filter(lambda d: d['name'] not in 'The ' + self.series_name, otherMatches))
+            nearMatches =  list(filter(lambda d: str(d['name']).lower() in 'the ' + lower, otherMatches))
+            otherMatches =  list(filter(lambda d: str(d['name']).lower() not in 'the ' + lower, otherMatches))
             # experimental - match 'blah - ' as 'blah: '
-            nearMatches1 =  list(filter(lambda d: d['name'] in self.series_name.replace(' - ', ': '), otherMatches))
-            otherMatches =  list(filter(lambda d: d['name'] not in self.series_name.replace(' - ', ': '), otherMatches))
+            nearMatches1 =  list(filter(lambda d: str(d['name']).lower() in lower.replace(' - ', ': '), otherMatches))
+            otherMatches =  list(filter(lambda d: str(d['name']).lower() not in lower.replace(' - ', ': '), otherMatches))
             self.cv_search_results = exactMatches + nearMatches + nearMatches1 + otherMatches
 
         self.updateButtons()
