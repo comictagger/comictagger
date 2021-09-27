@@ -435,8 +435,10 @@ class IssueIdentifier:
 
             # assume that our search name is close to the actual name, say
             # within ,e.g. 5 chars
-            shortened_key = utils.removearticles(keys['series'])
-            shortened_item_name = utils.removearticles(item['name'])
+            # sanitize both the search string and the result so that
+            # we are comparing the same type of data
+            shortened_key = utils.sanitize_title(keys['series'])
+            shortened_item_name = utils.sanitize_title(item['name'])
             if len(shortened_item_name) < (
                     len(shortened_key) + self.length_delta_thresh):
                 length_approved = True

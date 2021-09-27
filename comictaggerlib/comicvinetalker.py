@@ -21,7 +21,6 @@ import time
 import datetime
 import sys
 import ssl
-import unicodedata
 #from pprint import pprint
 #import math
 
@@ -204,13 +203,8 @@ class ComicVineTalker(QObject):
 
     def searchForSeries(self, series_name, callback=None, refresh_cache=False):
 
-        # normalize unicode and convert to ascii. Does not work for everything eg ½ to 1⁄2 not 1/2
-        search_series_name = unicodedata.normalize('NFKD', series_name).encode('ascii', 'ignore').decode('ascii')
-        # comicvine ignores punctuation and accents
-        search_series_name = re.sub(r'[^A-Za-z0-9]+',' ', search_series_name)
-        # remove extra space and articles and all lower case
-        search_series_name = utils.removearticles(search_series_name).lower().strip()
-
+        # Sanitize the series name for comicvine searching, comicvine search ignore symbols
+        search_series_name = utils.sanitize_title(series_name)
 
         # before we search online, look in our cache, since we might have
         # done this same search recently
@@ -270,12 +264,8 @@ class ComicVineTalker(QObject):
 
             last_result = search_results[-1]['name']
 
-            # normalize unicode and convert to ascii. Does not work for everything eg ½ to 1⁄2 not 1/2
-            last_result = unicodedata.normalize('NFKD', last_result).encode('ascii', 'ignore').decode('ascii')
-            # comicvine ignores punctuation and accents
-            last_result = re.sub(r'[^A-Za-z0-9]+',' ', last_result)
-            # remove extra space and articles and all lower case
-            last_result = utils.removearticles(last_result).lower().strip()
+            # Sanitize the series name for comicvine searching, comicvine search ignore symbols
+            last_result = utils.sanitize_title(last_result)
 
             # See if the last result's name has all the of the search terms.
             # if not, break out of this, loop, we're done.
@@ -314,13 +304,9 @@ class ComicVineTalker(QObject):
         # (iterate backwards for easy removal)
         for i in range(len(search_results) - 1, -1, -1):
             record = search_results[i]
+            # Sanitize the series name for comicvine searching, comicvine search ignore symbols
+            recordName = utils.sanitize_title(record['name'])
             for term in search_series_name.split():
-                # normalize unicode and convert to ascii. Does not work for everything eg ½ to 1⁄2 not 1/2
-                recordName = unicodedata.normalize('NFKD', record['name']).encode('ascii', 'ignore').decode('ascii')
-                # comicvine ignores punctuation and accents
-                recordName = re.sub(r'[^A-Za-z0-9]+',' ', recordName)
-                # remove extra space and articles and all lower case
-                recordName = utils.removearticles(recordName).lower().strip()
 
                 if term not in recordName:
                     del search_results[i]
