@@ -336,33 +336,32 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
             return
 
         self.cv_search_results = self.search_thread.cv_search_results
-
         # filter the blacklisted publishers if setting set
         if self.settings.id_use_publisher_blacklist_for_manual:
-            publisher_blacklist = [s.strip().lower() for s in self.settings.id_publisher_blacklist.split(',')]
-            self.cv_search_results = list(filter(lambda d: d['publisher']['name'].lower() not in set(publisher_blacklist), self.cv_search_results))
-        
+            publisher_blacklist = set([s.strip().lower() for s in self.settings.id_publisher_blacklist.split(',')])
+            # use '' as publisher name if None
+            self.cv_search_results = list(filter(lambda d: ('' if d['publisher'] is None else str(d['publisher']['name']).lower()) not in publisher_blacklist, self.cv_search_results))
+
         # pre sort the data - so that we can put exact matches first afterwards
-        # filter none to end, compare as str incase extra chars ie. '1976?'
+        # compare as str incase extra chars ie. '1976?'
+        # - missing (none) values being converted to 'None' - consistant with prior behaviour in v1.2.3
         # sort by start_year if set
         if self.settings.sort_series_by_year:
-            self.cv_search_results = sorted(self.cv_search_results, key = lambda i: ((i['start_year'] is None, str(i['start_year'])), (i['count_of_issues'] is None, str(i['count_of_issues']))), reverse=True)
+            self.cv_search_results = sorted(self.cv_search_results, key = lambda i: (str(i['start_year']), str(i['count_of_issues'])), reverse=True)
         else:
-            self.cv_search_results = sorted(self.cv_search_results, key = lambda i: (i['count_of_issues'] is None, str(i['count_of_issues'])), reverse=True)
+            self.cv_search_results = sorted(self.cv_search_results, key = lambda i: str(i['count_of_issues']), reverse=True)
         
         # move exact matches to the front
-        # - maybe compare lower case
-        # - not sure what to do about names with colons and /\
-        #   ie. should a filenamed 'blah - blah' match 'blah: blah'
         if self.settings.exact_series_matches_first:
-            exactMatches = list(filter(lambda d: d['name'] in self.series_name, self.cv_search_results))
-            otherMatches = list(filter(lambda d: d['name'] not in self.series_name, self.cv_search_results))
+            lower = self.series_name.lower()
+            exactMatches = list(filter(lambda d: str(d['name']).lower() in lower, self.cv_search_results))
+            otherMatches = list(filter(lambda d: str(d['name']).lower() not in lower, self.cv_search_results))
             # experimental - match 'The ' + series_name
-            nearMatches =  list(filter(lambda d: d['name'] in 'The ' + self.series_name, otherMatches))
-            otherMatches =  list(filter(lambda d: d['name'] not in 'The ' + self.series_name, otherMatches))
+            nearMatches =  list(filter(lambda d: str(d['name']).lower() in 'the ' + lower, otherMatches))
+            otherMatches =  list(filter(lambda d: str(d['name']).lower() not in 'the ' + lower, otherMatches))
             # experimental - match 'blah - ' as 'blah: '
-            nearMatches1 =  list(filter(lambda d: d['name'] in self.series_name.replace(' - ', ': '), otherMatches))
-            otherMatches =  list(filter(lambda d: d['name'] not in self.series_name.replace(' - ', ': '), otherMatches))
+            nearMatches1 =  list(filter(lambda d: str(d['name']).lower() in lower.replace(' - ', ': '), otherMatches))
+            otherMatches =  list(filter(lambda d: str(d['name']).lower() not in lower.replace(' - ', ': '), otherMatches))
             self.cv_search_results = exactMatches + nearMatches + nearMatches1 + otherMatches
 
         self.updateButtons()
