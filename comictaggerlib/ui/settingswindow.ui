@@ -286,7 +286,7 @@
               <item>
                <widget class="QCheckBox" name="cbxSortByYear">
                 <property name="text">
-                 <string>Initally sort Series search results by Starting Year</string>
+                 <string>Initally sort Series search results by Starting Year instead of No. Issues</string>
                 </property>
                </widget>
               </item>
