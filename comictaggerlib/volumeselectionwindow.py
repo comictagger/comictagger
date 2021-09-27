@@ -336,12 +336,12 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
             return
 
         self.cv_search_results = self.search_thread.cv_search_results
-
         # filter the blacklisted publishers if setting set
         if self.settings.id_use_publisher_blacklist_for_manual:
-            publisher_blacklist = [s.strip().lower() for s in self.settings.id_publisher_blacklist.split(',')]
-            self.cv_search_results = list(filter(lambda d: str(d['publisher']['name']).lower() not in set(publisher_blacklist), self.cv_search_results))
-        
+            publisher_blacklist = set([s.strip().lower() for s in self.settings.id_publisher_blacklist.split(',')])
+            # use '' as publisher name if None
+            self.cv_search_results = list(filter(lambda d: ('' if d['publisher'] is None else str(d['publisher']['name']).lower()) not in publisher_blacklist, self.cv_search_results))
+
         # pre sort the data - so that we can put exact matches first afterwards
         # compare as str incase extra chars ie. '1976?'
         # - missing (none) values being converted to 'None' - consistant with prior behaviour in v1.2.3
