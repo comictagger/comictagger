@@ -338,31 +338,43 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
         self.cv_search_results = self.search_thread.cv_search_results
         # filter the blacklisted publishers if setting set
         if self.settings.id_use_publisher_blacklist_for_manual:
-            publisher_blacklist = set([s.strip().lower() for s in self.settings.id_publisher_blacklist.split(',')])
-            # use '' as publisher name if None
-            self.cv_search_results = list(filter(lambda d: ('' if d['publisher'] is None else str(d['publisher']['name']).lower()) not in publisher_blacklist, self.cv_search_results))
+            try:
+                publisher_blacklist = set([s.strip().lower() for s in self.settings.id_publisher_blacklist.split(',')])
+                # use '' as publisher name if None
+                self.cv_search_results = list(filter(lambda d: ('' if d['publisher'] is None else str(d['publisher']['name']).lower()) not in publisher_blacklist, self.cv_search_results))
+            except:
+                print('bad data error filtering blacklist publishers')
 
         # pre sort the data - so that we can put exact matches first afterwards
         # compare as str incase extra chars ie. '1976?'
         # - missing (none) values being converted to 'None' - consistant with prior behaviour in v1.2.3
         # sort by start_year if set
         if self.settings.sort_series_by_year:
-            self.cv_search_results = sorted(self.cv_search_results, key = lambda i: (str(i['start_year']), str(i['count_of_issues'])), reverse=True)
+            try:
+                self.cv_search_results = sorted(self.cv_search_results, key = lambda i: (str(i['start_year']), str(i['count_of_issues'])), reverse=True)
+            except:
+                print('bad data error sorting results by start_year,count_of_issues')
         else:
-            self.cv_search_results = sorted(self.cv_search_results, key = lambda i: str(i['count_of_issues']), reverse=True)
+            try:
+                self.cv_search_results = sorted(self.cv_search_results, key = lambda i: str(i['count_of_issues']), reverse=True)
+            except:
+                print('bad data error sorting results by count_of_issues')
         
-        # move exact matches to the front
+        # move exact/near matches to the front
         if self.settings.exact_series_matches_first:
-            lower = self.series_name.lower()
-            exactMatches = list(filter(lambda d: str(d['name']).lower() in lower, self.cv_search_results))
-            otherMatches = list(filter(lambda d: str(d['name']).lower() not in lower, self.cv_search_results))
-            # experimental - match 'The ' + series_name
-            nearMatches =  list(filter(lambda d: str(d['name']).lower() in 'the ' + lower, otherMatches))
-            otherMatches =  list(filter(lambda d: str(d['name']).lower() not in 'the ' + lower, otherMatches))
-            # experimental - match 'blah - ' as 'blah: '
-            nearMatches1 =  list(filter(lambda d: str(d['name']).lower() in lower.replace(' - ', ': '), otherMatches))
-            otherMatches =  list(filter(lambda d: str(d['name']).lower() not in lower.replace(' - ', ': '), otherMatches))
-            self.cv_search_results = exactMatches + nearMatches + nearMatches1 + otherMatches
+            try:
+                lower = self.series_name.lower()
+                exactMatches = list(filter(lambda d: str(d['name']).lower() in lower, self.cv_search_results))
+                otherMatches = list(filter(lambda d: str(d['name']).lower() not in lower, self.cv_search_results))
+                # experimental - match 'The ' + series_name
+                nearMatches =  list(filter(lambda d: str(d['name']).lower() in 'the ' + lower, otherMatches))
+                otherMatches =  list(filter(lambda d: str(d['name']).lower() not in 'the ' + lower, otherMatches))
+                # experimental - match 'blah - ' as 'blah: '
+                nearMatches1 =  list(filter(lambda d: str(d['name']).lower() in lower.replace(' - ', ': '), otherMatches))
+                otherMatches =  list(filter(lambda d: str(d['name']).lower() not in lower.replace(' - ', ': '), otherMatches))
+                self.cv_search_results = exactMatches + nearMatches + nearMatches1 + otherMatches
+            except:
+                print('bad data error filtering exact/near matches')
 
         self.updateButtons()
 
