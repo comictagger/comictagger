@@ -21,6 +21,7 @@ import re
 import platform
 import locale
 import codecs
+import unicodedata
 
 
 class UtilsVars:
@@ -149,6 +150,21 @@ def removearticles(text):
     newText = newText[:-1]
 
     return newText
+
+
+def sanitize_title(text):
+    # normalize unicode and convert to ascii. Does not work for everything eg ½ to 1⁄2 not 1/2
+    # this will probably cause issues with titles in other character sets e.g. chinese, japanese
+    text = unicodedata.normalize('NFKD', text).encode('ascii', 'ignore').decode('ascii')
+    # comicvine keeps apostrophes a part of the word
+    text = text.replace("'", "")
+    text = text.replace("\"", "")
+    # comicvine ignores punctuation and accents
+    text = re.sub(r'[^A-Za-z0-9]+',' ', text)
+    # remove extra space and articles and all lower case
+    text = removearticles(text).lower().strip()
+
+    return text
 
 
 def unique_file(file_name):
