@@ -148,6 +148,13 @@
            </property>
           </widget>
          </item>
+        <item>
+         <widget class="QCheckBox" name="cbxFilter">
+          <property name="text">
+           <string>Apply Publishers Filter</string>
+          </property>
+         </widget>
+        </item>
          <item>
           <widget class="QDialogButtonBox" name="buttonBox">
            <property name="orientation">
