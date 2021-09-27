@@ -340,15 +340,16 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
         # filter the blacklisted publishers if setting set
         if self.settings.id_use_publisher_blacklist_for_manual:
             publisher_blacklist = [s.strip().lower() for s in self.settings.id_publisher_blacklist.split(',')]
-            self.cv_search_results = list(filter(lambda d: d['publisher']['name'].lower() not in set(publisher_blacklist), self.cv_search_results))
+            self.cv_search_results = list(filter(lambda d: str(d['publisher']['name']).lower() not in set(publisher_blacklist), self.cv_search_results))
         
         # pre sort the data - so that we can put exact matches first afterwards
-        # filter none to end, compare as str incase extra chars ie. '1976?'
+        # compare as str incase extra chars ie. '1976?'
+        # - missing (none) values being converted to 'None' - consistant with prior behaviour in v1.2.3
         # sort by start_year if set
         if self.settings.sort_series_by_year:
-            self.cv_search_results = sorted(self.cv_search_results, key = lambda i: ((i['start_year'] is None, str(i['start_year'])), (i['count_of_issues'] is None, str(i['count_of_issues']))), reverse=True)
+            self.cv_search_results = sorted(self.cv_search_results, key = lambda i: (str(i['start_year']), str(i['count_of_issues'])), reverse=True)
         else:
-            self.cv_search_results = sorted(self.cv_search_results, key = lambda i: (i['count_of_issues'] is None, str(i['count_of_issues'])), reverse=True)
+            self.cv_search_results = sorted(self.cv_search_results, key = lambda i: str(i['count_of_issues']), reverse=True)
         
         # move exact matches to the front
         # - maybe compare lower case
