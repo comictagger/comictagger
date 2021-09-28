@@ -35,8 +35,8 @@ from comictaggerlib.ui.qtutils import reduceWidgetFontSize, centerWindowOnParent
 
 from comictaggerlib import settings
 #from imagefetcher import ImageFetcher
-#import utils
 
+from . import utils
 
 class SearchThread(QtCore.QThread):
 
@@ -369,19 +369,13 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
             except:
                 print('bad data error sorting results by count_of_issues')
         
-        # move exact/near matches to the front
+        # move sanitized matches to the front
         if self.settings.exact_series_matches_first:
             try:
-                lower = self.series_name.lower()
-                exactMatches = list(filter(lambda d: str(d['name']).lower() in lower, self.cv_search_results))
-                otherMatches = list(filter(lambda d: str(d['name']).lower() not in lower, self.cv_search_results))
-                # experimental - match 'The ' + series_name
-                nearMatches =  list(filter(lambda d: str(d['name']).lower() in 'the ' + lower, otherMatches))
-                otherMatches =  list(filter(lambda d: str(d['name']).lower() not in 'the ' + lower, otherMatches))
-                # experimental - match 'blah - ' as 'blah: '
-                nearMatches1 =  list(filter(lambda d: str(d['name']).lower() in lower.replace(' - ', ': '), otherMatches))
-                otherMatches =  list(filter(lambda d: str(d['name']).lower() not in lower.replace(' - ', ': '), otherMatches))
-                self.cv_search_results = exactMatches + nearMatches + nearMatches1 + otherMatches
+                sanitized = utils.sanitize_title(self.series_name)
+                exactMatches =  list(filter(lambda d: utils.sanitize_title(str(d['name'])) in sanitized, self.cv_search_results))
+                nonMatches = list(filter(lambda d: utils.sanitize_title(str(d['name'])) not in sanitized, self.cv_search_results))
+                self.cv_search_results = exactMatches + nonMatches
             except:
                 print('bad data error filtering exact/near matches')
 
