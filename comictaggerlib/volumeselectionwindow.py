@@ -420,8 +420,6 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
 
             row += 1
 
-        # redundant
-        #self.twList.resizeColumnsToContents()
         self.twList.setSortingEnabled(True)
         self.twList.selectRow(0)
         self.twList.resizeColumnsToContents()
