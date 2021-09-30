@@ -97,7 +97,7 @@ class ComicTaggerSettings:
 
         self.sort_series_by_year = True
         self.exact_series_matches_first = True
-        self.use_publisher_blacklist_for_manual = False
+        self.always_use_publisher_blacklist = False
 
         # CBL Tranform settings
 
@@ -265,9 +265,9 @@ class ComicTaggerSettings:
         if self.config.has_option('comicvine', 'exact_series_matches_first'):
             self.exact_series_matches_first = self.config.getboolean(
                 'comicvine', 'exact_series_matches_first')
-        if self.config.has_option('comicvine', 'use_publisher_blacklist_for_manual'):
-            self.use_publisher_blacklist_for_manual = self.config.getboolean(
-                'comicvine', 'use_publisher_blacklist_for_manual')
+        if self.config.has_option('comicvine', 'always_use_publisher_blacklist'):
+            self.always_use_publisher_blacklist = self.config.getboolean(
+                'comicvine', 'always_use_publisher_blacklist')
 
         if self.config.has_option('comicvine', 'cv_api_key'):
             self.cv_api_key = self.config.get('comicvine', 'cv_api_key')
@@ -429,7 +429,7 @@ class ComicTaggerSettings:
         self.config.set(
             'comicvine', 'exact_series_matches_first', self.exact_series_matches_first)
         self.config.set(
-            'comicvine', 'use_publisher_blacklist_for_manual', self.use_publisher_blacklist_for_manual)
+            'comicvine', 'always_use_publisher_blacklist', self.always_use_publisher_blacklist)
 
         self.config.set('comicvine', 'cv_api_key', self.cv_api_key)
 

@@ -126,7 +126,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
         self.cover_index_list = cover_index_list
         self.cv_search_results = None
 
-        self.use_blackList = self.settings.use_publisher_blacklist_for_manual
+        self.use_blackList = self.settings.always_use_publisher_blacklist
 
         self.twList.resizeColumnsToContents()
         self.twList.currentItemChanged.connect(self.currentItemChanged)
@@ -348,7 +348,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
         # filter the blacklisted publishers if setting set
         if self.use_blackList:
             try:
-                publisher_blacklist = set([s.strip().lower() for s in self.settings.id_publisher_blacklist.split(',')])
+                publisher_blacklist = {s.strip().lower() for s in self.settings.id_publisher_blacklist.split(',')}
                 # use '' as publisher name if None
                 self.cv_search_results = list(filter(lambda d: ('' if d['publisher'] is None else str(d['publisher']['name']).lower()) not in publisher_blacklist, self.cv_search_results))
             except:
@@ -420,8 +420,6 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
 
             row += 1
 
-        # redundant
-        #self.twList.resizeColumnsToContents()
         self.twList.setSortingEnabled(True)
         self.twList.selectRow(0)
         self.twList.resizeColumnsToContents()

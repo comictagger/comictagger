@@ -136,7 +136,7 @@ class SettingsWindow(QtWidgets.QDialog):
         if self.settings.remove_html_tables:
             self.cbxRemoveHtmlTables.setCheckState(QtCore.Qt.Checked)
 
-        if self.settings.use_publisher_blacklist_for_manual:
+        if self.settings.always_use_publisher_blacklist:
             self.cbxUseBlackFilter.setCheckState(QtCore.Qt.Checked)
         if self.settings.sort_series_by_year:
             self.cbxSortByYear.setCheckState(QtCore.Qt.Checked)
@@ -202,7 +202,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.settings.clear_form_before_populating_from_cv = self.cbxClearFormBeforePopulating.isChecked()
         self.settings.remove_html_tables = self.cbxRemoveHtmlTables.isChecked()
 
-        self.settings.use_publisher_blacklist_for_manual = self.cbxUseBlackFilter.isChecked()
+        self.settings.always_use_publisher_blacklist = self.cbxUseBlackFilter.isChecked()
         self.settings.sort_series_by_year = self.cbxSortByYear.isChecked()
         self.settings.exact_series_matches_first = self.cbxExactMatches.isChecked()
 
