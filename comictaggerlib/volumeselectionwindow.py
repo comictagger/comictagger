@@ -348,7 +348,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
         # filter the blacklisted publishers if setting set
         if self.use_blackList:
             try:
-                publisher_blacklist = set([s.strip().lower() for s in self.settings.id_publisher_blacklist.split(',')])
+                publisher_blacklist = {s.strip().lower() for s in self.settings.id_publisher_blacklist.split(',')}
                 # use '' as publisher name if None
                 self.cv_search_results = list(filter(lambda d: ('' if d['publisher'] is None else str(d['publisher']['name']).lower()) not in publisher_blacklist, self.cv_search_results))
             except:
