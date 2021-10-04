@@ -924,7 +924,10 @@ class ComicArchive:
     def writeCIX(self, metadata):
         if metadata is not None:
             self.applyArchiveInfoToMetadata(metadata, calc_page_sizes=True)
-            cix_string = ComicInfoXml().stringFromMetadata(metadata)
+            rawCIX = self.readRawCIX()
+            if rawCIX == "":
+                rawCIX = None
+            cix_string = ComicInfoXml().stringFromMetadata(metadata, xml=rawCIX)
             write_success = self.archiver.writeArchiveFile(
                 self.ci_xml_filename,
                 cix_string)
