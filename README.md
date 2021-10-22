@@ -37,12 +37,14 @@ Just unzip the archive in any folder and run, no additional installation steps a
 A pip package is provided, you can install it with:
 
 ```
- $ pip install comictagger
+ $ pip3 install comictagger[GUI]
 ```
 
 ### From source
 
- 1. ensure you have a recent version of python3 and setuptools installed
- 2. clone this repository `git clone https://github.com/comictagger/comictagger.git`
- 3. `pip install -r requirements.txt`
- 4. `python comictagger.py`
+ 1. Ensure you have a recent version of python3 installed
+ 2. Clone this repository `git clone https://github.com/comictagger/comictagger.git`
+ 3. `pip3 install -r requirements_dev.txt`
+ 4. Optionally install the GUI `pip3 install -r requirements-GUI.txt`
+ 5. Optionally install CBR support `pip3 install -r requirements-CBR.txt`
+ 6. `python3 comictagger.py`
