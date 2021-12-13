@@ -24,7 +24,7 @@ import platform
 import time
 import io
 
-from natsort import natsorted
+import natsort
 from PyPDF2 import PdfFileReader
 from unrar.cffi import rarfile
 try:
@@ -809,13 +809,9 @@ class ComicArchive:
             # about case-sensitivity!
             if sort_list:
                 def keyfunc(k):
-                    # hack to account for some weird scanner ID pages
-                    # basename=os.path.split(k)[1]
-                    # if basename < '0':
-                    #	k = os.path.join(os.path.split(k)[0], "z" + basename)
                     return k.lower()
 
-                files = natsorted(files, key=keyfunc, signed=False)
+                files = natsort.natsorted(files, alg=natsort.ns.IC | natsort.ns.I)
 
             # make a sub-list of image files
             self.page_list = []

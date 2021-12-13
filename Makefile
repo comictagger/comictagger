@@ -29,19 +29,19 @@ clean:
 	$(MAKE) -C mac clean   
 	rm -rf build
 	rm -rf comictaggerlib/ui/__pycache__
-	rm comitaggerlib/ctversion.py
+	rm comictaggerlib/ctversion.py
 
 pydist:
 	make clean
 	mkdir -p piprelease
 	rm -f comictagger-$(VERSION_STR).zip
-	$(PYTHON) setup.py sdist --formats=zip  #,gztar
-	mv dist/comictagger-$(VERSION_STR).zip piprelease
+	$(PYTHON) setup.py sdist --formats=gztar
+	mv dist/comictagger-$(VERSION_STR).tar.gz piprelease
 	rm -rf comictagger.egg-info dist
 		
 upload:
 	$(PYTHON) setup.py register
-	$(PYTHON) setup.py sdist --formats=zip upload
+	$(PYTHON) setup.py sdist --formats=gztar upload
 
 dist:
 	$(PIP) install .

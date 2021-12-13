@@ -1,0 +1,13 @@
+[tool.black]
+line-length = 150
+
+[tool.isort]
+line_length = 150
+
+[build-system]
+requires = ["setuptools>=42", "wheel", "setuptools_scm[toml]>=3.4"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+write_to = "comictaggerlib/ctversion.py"
+local_scheme = "no-local-version"

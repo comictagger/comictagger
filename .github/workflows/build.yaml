@@ -27,19 +27,23 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
-          python3 -m pip install --upgrade pip setuptools_scm wheel
+          python3 -m pip install -r requirements_dev.txt
           python3 -m pip install -r requirements.txt
+          for requirement in requirements-*.txt; do
+            python3 -m pip install -r "$requirement"
+          done
+        shell: bash
       - name: Install Windows dependencies
         run: |
           choco install -y zip
         if: runner.os == 'Windows'
       - name: build
         run: |
+          make pydist
           make dist
-      # TODO: Add a step to comment on a pull request with links to the artifacts
       - name: Archive production artifacts
         uses: actions/upload-artifact@v2
-        if: "runner.os != 'linux'" # linux currently has a segfault when running on latest fedora
+        if: runner.os != 'Linux' # linux binary currently has a segfault when running on latest fedora
         with:
           name: "${{ format('ComicTagger-{0}', runner.os) }}"
           path: dist/*.zip
@@ -51,3 +55,9 @@ jobs:
           prerelease: "${{ contains(github.ref, '-') }}" # alpha-releases should be 1.3.0-alpha.x full releases should be 1.3.0
           draft: true
           files: dist/*.zip
+      - name: "Publish distribution 📦 to PyPI"
+        if: startsWith(github.ref, 'refs/tags/') && runner.os == 'Linux'
+        uses: pypa/gh-action-pypi-publish@master
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
+          packages_dir: piprelease

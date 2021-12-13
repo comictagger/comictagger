@@ -29,8 +29,9 @@ matrix:
 before_install:
   - if [ "$TRAVIS_OS_NAME" = "windows" ]; then choco install -y python --version 3.7.9; choco install -y mingw zip; fi
 install:
-  - $PIP install --upgrade setuptools
-  - $PIP install -r requirements.txt
+  - $PIP install -r requirements_dev.txt
+  - $PIP install -r requirements-GUI.txt
+  - $PIP install -r requirements-CBR.txt
 script:
   - if [ "$TRAVIS_OS_NAME" != "linux" ]; then $MAKE dist ; fi
 
