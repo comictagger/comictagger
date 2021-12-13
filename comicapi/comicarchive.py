@@ -26,7 +26,11 @@ import io
 
 import natsort
 from PyPDF2 import PdfFileReader
-from unrar.cffi import rarfile
+try:
+    from unrar.cffi import rarfile
+except:
+    pass
+
 try:
     import Image
     pil_available = True
@@ -627,7 +631,10 @@ class ComicArchive:
         return zipfile.is_zipfile(self.path)
 
     def rarTest(self):
-        return rarfile.is_rarfile(self.path)        
+        try:
+            return rarfile.is_rarfile(self.path)
+        except:
+            return False
 
     def isZip(self):
         return self.archive_type == self.ArchiveType.Zip
