@@ -359,7 +359,7 @@
             <item row="1" column="2">
              <widget class="QPushButton" name="btnTestKey">
               <property name="text">
-               <string>Tesk Key</string>
+               <string>Test Key</string>
               </property>
              </widget>
             </item>
