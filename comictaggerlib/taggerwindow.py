@@ -1422,7 +1422,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         # Add the entries to the language combobox
         self.cbLanguage.addItem("", "")
         lang_dict = utils.getLanguageDict()
-        for key in sorted(lang_dict, key=functools.cmp_to_key(locale.strcoll)):
+        for key in sorted(lang_dict, key=lang_dict.get):
             self.cbLanguage.addItem(lang_dict[key], key)
 
         # Add the entries to the manga combobox
