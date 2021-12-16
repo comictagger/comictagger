@@ -15,6 +15,7 @@
 # limitations under the License.
 
 #import os
+from operator import itemgetter, attrgetter
 
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
@@ -126,25 +127,75 @@ class PageListEditor(QWidget):
         self.comic_archive = None
         self.pages_list = None
 
+    def getNewIndexes(self, movement):
+        selection = self.listWidget.selectionModel().selectedRows()
+        selection.sort(reverse=movement>0)
+        current = 0
+        newindexes = []
+        oldindexes = []
+        for x in selection:
+            current = x.row()
+            oldindexes.append(current)
+            if current + movement >= 0 and current + movement <= self.listWidget.count()-1:
+                if len(newindexes) < 1 or current + movement != newindexes[-1]:
+                    current += movement
+            else:
+                prev = current
+            newindexes.append(current)
+        oldindexes.sort()
+        newindexes.sort()
+        return list(zip(newindexes, oldindexes))
+
+    def SetSelection(self, indexes):
+        selectionRanges = []
+        first = 0
+        for i, selection in enumerate(indexes):
+            if i == 0:
+                first = selection[0]
+                continue
+
+            if selection != indexes[i-1][0]+1:
+                selectionRanges.append((first,indexes[i-1][0]))
+                first = selection[0]
+
+        selectionRanges.append((first, indexes[-1][0]))
+        selection = QItemSelection()
+        for x in selectionRanges:
+            selection.merge(QItemSelection(self.listWidget.model().index(x[0], 0), self.listWidget.model().index(x[1], 0)), QItemSelectionModel.Select)
+
+        self.listWidget.selectionModel().select(selection, QItemSelectionModel.ClearAndSelect)
+        return selectionRanges
+
+
     def moveCurrentUp(self):
         row = self.listWidget.currentRow()
+        selection = self.getNewIndexes(-1)
+        for sel in selection:
+            item = self.listWidget.takeItem(sel[1])
+            self.listWidget.insertItem(sel[0], item)
+
         if row > 0:
-            item = self.listWidget.takeItem(row)
-            self.listWidget.insertItem(row - 1, item)
             self.listWidget.setCurrentRow(row - 1)
-            self.listOrderChanged.emit()
-            self.emitFrontCoverChange()
-            self.modified.emit()
+        self.SetSelection(selection)
+        self.listOrderChanged.emit()
+        self.emitFrontCoverChange()
+        self.modified.emit()
+
 
     def moveCurrentDown(self):
         row = self.listWidget.currentRow()
+        selection = self.getNewIndexes(1)
+        selection.sort(reverse=True)
+        for sel in selection:
+            item = self.listWidget.takeItem(sel[1])
+            self.listWidget.insertItem(sel[0], item)
+
         if row < self.listWidget.count() - 1:
-            item = self.listWidget.takeItem(row)
-            self.listWidget.insertItem(row + 1, item)
             self.listWidget.setCurrentRow(row + 1)
-            self.listOrderChanged.emit()
-            self.emitFrontCoverChange()
-            self.modified.emit()
+        self.listOrderChanged.emit()
+        self.emitFrontCoverChange()
+        self.SetSelection(selection)
+        self.modified.emit()
 
     def itemMoveEvent(self, s):
         # print "move event: ", s, self.listWidget.currentRow()
