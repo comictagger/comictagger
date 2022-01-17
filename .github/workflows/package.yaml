@@ -1,0 +1,76 @@
+name: Package
+
+env:
+  PIP: pip
+  PYTHON: python
+on:
+  push:
+    tags:
+      - "[0-9]+.[0-9]+.[0-9]+*"
+jobs:
+  package:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        python-version: [3.9]
+        os: [ubuntu-latest, macos-10.15, windows-latest]
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - uses: syphar/restore-virtualenv@v1.2
+        id: cache-virtualenv
+
+      - uses: syphar/restore-pip-download-cache@v1
+        if: steps.cache-virtualenv.outputs.cache-hit != 'true'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade --upgrade-strategy eager -r requirements_dev.txt
+          python -m pip install --upgrade --upgrade-strategy eager -r requirements.txt
+          for requirement in requirements-*.txt; do
+            python -m pip install --upgrade --upgrade-strategy eager -r "$requirement"
+          done
+        shell: bash
+
+      - name: Install Windows dependencies
+        run: |
+          choco install -y zip
+        if: runner.os == 'Windows'
+
+      - name: build
+        run: |
+          make pydist
+          make dist
+
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v2
+        if: runner.os != 'Linux' # linux binary currently has a segfault when running on latest fedora
+        with:
+          name: "${{ format('ComicTagger-{0}', runner.os) }}"
+          path: dist/*.zip
+
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          prerelease: "${{ contains(github.ref, '-') }}" # alpha-releases should be 1.3.0-alpha.x full releases should be 1.3.0
+          draft: false
+          files: dist/*.zip
+        permissions:
+          contents: write
+
+      - name: "Publish distribution 📦 to PyPI"
+        if: startsWith(github.ref, 'refs/tags/') && runner.os == 'Linux' && 1 == 0
+        uses: pypa/gh-action-pypi-publish@master
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
+          packages_dir: piprelease
