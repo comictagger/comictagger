@@ -263,6 +263,40 @@
                 </property>
                </widget>
               </item>
+             <item>
+              <widget class="Line" name="line_4">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+              </property>
+            </widget>
+            </item>
+              <item>
+               <widget class="QCheckBox" name="cbxUseBlackFilter">
+                <property name="text">
+                 <string>Always use Publisher Blacklist on 'manual' searches</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="cbxSortByYear">
+                <property name="text">
+                 <string>Initally sort Series search results by Starting Year instead of No. Issues</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QCheckBox" name="cbxExactMatches">
+                <property name="text">
+                 <string>Initally show Series Name exact matches first</string>
+                </property>
+               </widget>
+              </item>
              </layout>
             </item>
            </layout>

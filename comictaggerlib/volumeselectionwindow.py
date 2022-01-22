@@ -32,9 +32,11 @@ from .settings import ComicTaggerSettings
 from .matchselectionwindow import MatchSelectionWindow
 from .coverimagewidget import CoverImageWidget
 from comictaggerlib.ui.qtutils import reduceWidgetFontSize, centerWindowOnParent
-#from imagefetcher import ImageFetcher
-#import utils
 
+from comictaggerlib import settings
+#from imagefetcher import ImageFetcher
+
+from . import utils
 
 class SearchThread(QtCore.QThread):
 
@@ -124,12 +126,17 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
         self.cover_index_list = cover_index_list
         self.cv_search_results = None
 
+        self.use_blackList = self.settings.always_use_publisher_blacklist
+
         self.twList.resizeColumnsToContents()
         self.twList.currentItemChanged.connect(self.currentItemChanged)
         self.twList.cellDoubleClicked.connect(self.cellDoubleClicked)
         self.btnRequery.clicked.connect(self.requery)
         self.btnIssues.clicked.connect(self.showIssues)
         self.btnAutoSelect.clicked.connect(self.autoSelect)
+
+        self.cbxFilter.setChecked(self.use_blackList)
+        self.cbxFilter.toggled.connect(self.filterToggled)
 
         self.updateButtons()
         self.performQuery()
@@ -150,6 +157,10 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
     def requery(self,):
         self.performQuery(refresh=True)
         self.twList.selectRow(0)
+    
+    def filterToggled(self):
+        self.use_blackList = not self.use_blackList
+        self.performQuery(refresh=False)
 
     def autoSelect(self):
 
@@ -334,6 +345,40 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
             return
 
         self.cv_search_results = self.search_thread.cv_search_results
+        # filter the blacklisted publishers if setting set
+        if self.use_blackList:
+            try:
+                publisher_blacklist = {s.strip().lower() for s in self.settings.id_publisher_blacklist.split(',')}
+                # use '' as publisher name if None
+                self.cv_search_results = list(filter(lambda d: ('' if d['publisher'] is None else str(d['publisher']['name']).lower()) not in publisher_blacklist, self.cv_search_results))
+            except:
+                print('bad data error filtering blacklist publishers')
+
+        # pre sort the data - so that we can put exact matches first afterwards
+        # compare as str incase extra chars ie. '1976?'
+        # - missing (none) values being converted to 'None' - consistant with prior behaviour in v1.2.3
+        # sort by start_year if set
+        if self.settings.sort_series_by_year:
+            try:
+                self.cv_search_results = sorted(self.cv_search_results, key = lambda i: (str(i['start_year']), str(i['count_of_issues'])), reverse=True)
+            except:
+                print('bad data error sorting results by start_year,count_of_issues')
+        else:
+            try:
+                self.cv_search_results = sorted(self.cv_search_results, key = lambda i: str(i['count_of_issues']), reverse=True)
+            except:
+                print('bad data error sorting results by count_of_issues')
+        
+        # move sanitized matches to the front
+        if self.settings.exact_series_matches_first:
+            try:
+                sanitized = utils.sanitize_title(self.series_name)
+                exactMatches =  list(filter(lambda d: utils.sanitize_title(str(d['name'])) in sanitized, self.cv_search_results))
+                nonMatches = list(filter(lambda d: utils.sanitize_title(str(d['name'])) not in sanitized, self.cv_search_results))
+                self.cv_search_results = exactMatches + nonMatches
+            except:
+                print('bad data error filtering exact/near matches')
+
         self.updateButtons()
 
         self.twList.setSortingEnabled(False)
@@ -375,9 +420,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
 
             row += 1
 
-        self.twList.resizeColumnsToContents()
         self.twList.setSortingEnabled(True)
-        self.twList.sortItems(2, QtCore.Qt.DescendingOrder)
         self.twList.selectRow(0)
         self.twList.resizeColumnsToContents()
 

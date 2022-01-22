@@ -79,7 +79,7 @@ class ComicTaggerSettings:
         # identifier settings
         self.id_length_delta_thresh = 5
         self.id_publisher_blacklist = "Panini Comics, Abril, Planeta DeAgostini, Editorial Televisa, Dino Comics"
-
+        
         # Show/ask dialog flags
         self.ask_about_cbi_in_rar = True
         self.show_disclaimer = True
@@ -94,6 +94,10 @@ class ComicTaggerSettings:
         self.clear_form_before_populating_from_cv = False
         self.remove_html_tables = False
         self.cv_api_key = ""
+
+        self.sort_series_by_year = True
+        self.exact_series_matches_first = True
+        self.always_use_publisher_blacklist = False
 
         # CBL Tranform settings
 
@@ -254,6 +258,17 @@ class ComicTaggerSettings:
         if self.config.has_option('comicvine', 'remove_html_tables'):
             self.remove_html_tables = self.config.getboolean(
                 'comicvine', 'remove_html_tables')
+
+        if self.config.has_option('comicvine', 'sort_series_by_year'):
+            self.sort_series_by_year = self.config.getboolean(
+                'comicvine', 'sort_series_by_year')
+        if self.config.has_option('comicvine', 'exact_series_matches_first'):
+            self.exact_series_matches_first = self.config.getboolean(
+                'comicvine', 'exact_series_matches_first')
+        if self.config.has_option('comicvine', 'always_use_publisher_blacklist'):
+            self.always_use_publisher_blacklist = self.config.getboolean(
+                'comicvine', 'always_use_publisher_blacklist')
+
         if self.config.has_option('comicvine', 'cv_api_key'):
             self.cv_api_key = self.config.get('comicvine', 'cv_api_key')
 
@@ -408,6 +423,14 @@ class ComicTaggerSettings:
                         self.clear_form_before_populating_from_cv)
         self.config.set(
             'comicvine', 'remove_html_tables', self.remove_html_tables)
+
+        self.config.set(
+            'comicvine', 'sort_series_by_year', self.sort_series_by_year)
+        self.config.set(
+            'comicvine', 'exact_series_matches_first', self.exact_series_matches_first)
+        self.config.set(
+            'comicvine', 'always_use_publisher_blacklist', self.always_use_publisher_blacklist)
+
         self.config.set('comicvine', 'cv_api_key', self.cv_api_key)
 
         if not self.config.has_section('cbl_transform'):
