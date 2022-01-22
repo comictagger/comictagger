@@ -76,8 +76,8 @@ class IssueIdentifier:
         self.length_delta_thresh = settings.id_length_delta_thresh
 
         # used to eliminate unlikely publishers
-        self.publisher_blacklist = [
-            s.strip().lower() for s in settings.id_publisher_blacklist.split(',')]
+        self.publisher_filter = [
+            s.strip().lower() for s in settings.id_publisher_filter.split(',')]
 
         self.additional_metadata = GenericMetadata()
         self.output_function = IssueIdentifier.defaultWriteOutput
@@ -100,8 +100,8 @@ class IssueIdentifier:
     def setNameLengthDeltaThreshold(self, delta):
         self.length_delta_thresh = delta
 
-    def setPublisherBlackList(self, blacklist):
-        self.publisher_blacklist = blacklist
+    def setPublisherFilter(self, filter):
+        self.publisher_filter = filter
 
     def setHasherAlgorithm(self, algo):
         self.image_hasher = algo
@@ -394,7 +394,7 @@ class IssueIdentifier:
         if keys['month'] is not None:
             self.log_msg("\tMonth:  " + str(keys['month']))
 
-        #self.log_msg("Publisher Blacklist: " + str(self.publisher_blacklist))
+        #self.log_msg("Publisher Filter: " + str(self.publisher_filter))
         comicVine = ComicVineTalker()
         comicVine.wait_for_rate_limit = self.waitAndRetryOnRateLimit
 
@@ -442,11 +442,11 @@ class IssueIdentifier:
                     len(shortened_key) + self.length_delta_thresh):
                 length_approved = True
 
-            # remove any series from publishers on the blacklist
+            # remove any series from publishers on the filter
             if item['publisher'] is not None:
                 publisher = item['publisher']['name']
                 if publisher is not None and publisher.lower(
-                ) in self.publisher_blacklist:
+                ) in self.publisher_filter:
                     publisher_approved = False
 
             if length_approved and publisher_approved and date_approved:
