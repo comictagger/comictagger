@@ -126,7 +126,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
         self.cover_index_list = cover_index_list
         self.cv_search_results = None
 
-        self.use_blackList = self.settings.always_use_publisher_blacklist
+        self.use_filter = self.settings.always_use_publisher_filter
 
         self.twList.resizeColumnsToContents()
         self.twList.currentItemChanged.connect(self.currentItemChanged)
@@ -135,7 +135,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
         self.btnIssues.clicked.connect(self.showIssues)
         self.btnAutoSelect.clicked.connect(self.autoSelect)
 
-        self.cbxFilter.setChecked(self.use_blackList)
+        self.cbxFilter.setChecked(self.use_filter)
         self.cbxFilter.toggled.connect(self.filterToggled)
 
         self.updateButtons()
@@ -157,9 +157,9 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
     def requery(self,):
         self.performQuery(refresh=True)
         self.twList.selectRow(0)
-    
+
     def filterToggled(self):
-        self.use_blackList = not self.use_blackList
+        self.use_filter = not self.use_filter
         self.performQuery(refresh=False)
 
     def autoSelect(self):
@@ -304,7 +304,6 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
         self.progdialog.canceled.connect(self.searchCanceled)
         self.progdialog.setModal(True)
         self.progdialog.setMinimumDuration(300)
-        QtCore.QCoreApplication.processEvents()        
         self.search_thread = SearchThread(self.series_name, refresh)
         self.search_thread.searchComplete.connect(self.searchComplete)
         self.search_thread.progressUpdate.connect(self.searchProgressUpdate)
@@ -345,14 +344,14 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
             return
 
         self.cv_search_results = self.search_thread.cv_search_results
-        # filter the blacklisted publishers if setting set
-        if self.use_blackList:
+        # filter the publishers if enabled set
+        if self.use_filter:
             try:
-                publisher_blacklist = {s.strip().lower() for s in self.settings.id_publisher_blacklist.split(',')}
+                publisher_filter = {s.strip().lower() for s in self.settings.id_publisher_filter.split(',')}
                 # use '' as publisher name if None
-                self.cv_search_results = list(filter(lambda d: ('' if d['publisher'] is None else str(d['publisher']['name']).lower()) not in publisher_blacklist, self.cv_search_results))
+                self.cv_search_results = list(filter(lambda d: ('' if d['publisher'] is None else str(d['publisher']['name']).lower()) not in publisher_filter, self.cv_search_results))
             except:
-                print('bad data error filtering blacklist publishers')
+                print('bad data error filtering filter publishers')
 
         # pre sort the data - so that we can put exact matches first afterwards
         # compare as str incase extra chars ie. '1976?'
@@ -368,7 +367,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
                 self.cv_search_results = sorted(self.cv_search_results, key = lambda i: str(i['count_of_issues']), reverse=True)
             except:
                 print('bad data error sorting results by count_of_issues')
-        
+
         # move sanitized matches to the front
         if self.settings.exact_series_matches_first:
             try:
@@ -449,7 +448,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
             return
 
         self.volume_id = self.twList.item(curr.row(), 0).data(QtCore.Qt.UserRole)
-             
+
         # list selection was changed, update the info on the volume
         for record in self.cv_search_results:
             if record['id'] == self.volume_id:

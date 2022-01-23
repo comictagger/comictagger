@@ -78,7 +78,7 @@ class ComicTaggerSettings:
 
         # identifier settings
         self.id_length_delta_thresh = 5
-        self.id_publisher_blacklist = "Panini Comics, Abril, Planeta DeAgostini, Editorial Televisa, Dino Comics"
+        self.id_publisher_filter = "Panini Comics, Abril, Planeta DeAgostini, Editorial Televisa, Dino Comics"
         
         # Show/ask dialog flags
         self.ask_about_cbi_in_rar = True
@@ -97,7 +97,7 @@ class ComicTaggerSettings:
 
         self.sort_series_by_year = True
         self.exact_series_matches_first = True
-        self.always_use_publisher_blacklist = False
+        self.always_use_publisher_filter = False
 
         # CBL Tranform settings
 
@@ -226,9 +226,9 @@ class ComicTaggerSettings:
         if self.config.has_option('identifier', 'id_length_delta_thresh'):
             self.id_length_delta_thresh = self.config.getint(
                 'identifier', 'id_length_delta_thresh')
-        if self.config.has_option('identifier', 'id_publisher_blacklist'):
-            self.id_publisher_blacklist = self.config.get(
-                'identifier', 'id_publisher_blacklist')
+        if self.config.has_option('identifier', 'id_publisher_filter'):
+            self.id_publisher_filter = self.config.get(
+                'identifier', 'id_publisher_filter')
 
         if self.config.has_option('filenameparser', 'parse_scan_info'):
             self.parse_scan_info = self.config.getboolean(
@@ -265,9 +265,9 @@ class ComicTaggerSettings:
         if self.config.has_option('comicvine', 'exact_series_matches_first'):
             self.exact_series_matches_first = self.config.getboolean(
                 'comicvine', 'exact_series_matches_first')
-        if self.config.has_option('comicvine', 'always_use_publisher_blacklist'):
-            self.always_use_publisher_blacklist = self.config.getboolean(
-                'comicvine', 'always_use_publisher_blacklist')
+        if self.config.has_option('comicvine', 'always_use_publisher_filter'):
+            self.always_use_publisher_filter = self.config.getboolean(
+                'comicvine', 'always_use_publisher_filter')
 
         if self.config.has_option('comicvine', 'cv_api_key'):
             self.cv_api_key = self.config.get('comicvine', 'cv_api_key')
@@ -390,8 +390,8 @@ class ComicTaggerSettings:
             self.id_length_delta_thresh)
         self.config.set(
             'identifier',
-            'id_publisher_blacklist',
-            self.id_publisher_blacklist)
+            'id_publisher_filter',
+            self.id_publisher_filter)
 
         if not self.config.has_section('dialogflags'):
             self.config.add_section('dialogflags')
@@ -429,7 +429,7 @@ class ComicTaggerSettings:
         self.config.set(
             'comicvine', 'exact_series_matches_first', self.exact_series_matches_first)
         self.config.set(
-            'comicvine', 'always_use_publisher_blacklist', self.always_use_publisher_blacklist)
+            'comicvine', 'always_use_publisher_filter', self.always_use_publisher_filter)
 
         self.config.set('comicvine', 'cv_api_key', self.cv_api_key)
 

@@ -94,12 +94,12 @@ class SettingsWindow(QtWidgets.QDialog):
 
         pblTip = (
             """<html>
-            The <b>Publisher Blacklist</b> is for eliminating automatic matches to certain publishers
+            The <b>Publisher Filter</b> is for eliminating automatic matches to certain publishers
             that you know are incorrect. Useful for avoiding international re-prints with same
             covers or series names. Enter publisher names separated by commas.
             </html>"""
         )
-        self.tePublisherBlacklist.setToolTip(pblTip)
+        self.tePublisherFilter.setToolTip(pblTip)
 
         validator = QtGui.QIntValidator(1, 4, self)
         self.leIssueNumPadding.setValidator(validator)
@@ -120,8 +120,8 @@ class SettingsWindow(QtWidgets.QDialog):
         self.leRarExePath.setText(self.settings.rar_exe_path)
         self.leNameLengthDeltaThresh.setText(
             str(self.settings.id_length_delta_thresh))
-        self.tePublisherBlacklist.setPlainText(
-            self.settings.id_publisher_blacklist)
+        self.tePublisherFilter.setPlainText(
+            self.settings.id_publisher_filter)
 
         if self.settings.check_for_new_version:
             self.cbxCheckForNewVersion.setCheckState(QtCore.Qt.Checked)
@@ -136,8 +136,8 @@ class SettingsWindow(QtWidgets.QDialog):
         if self.settings.remove_html_tables:
             self.cbxRemoveHtmlTables.setCheckState(QtCore.Qt.Checked)
 
-        if self.settings.always_use_publisher_blacklist:
-            self.cbxUseBlackFilter.setCheckState(QtCore.Qt.Checked)
+        if self.settings.always_use_publisher_filter:
+            self.cbxUseFilter.setCheckState(QtCore.Qt.Checked)
         if self.settings.sort_series_by_year:
             self.cbxSortByYear.setCheckState(QtCore.Qt.Checked)
         if self.settings.exact_series_matches_first:
@@ -193,8 +193,8 @@ class SettingsWindow(QtWidgets.QDialog):
 
         self.settings.id_length_delta_thresh = int(
             self.leNameLengthDeltaThresh.text())
-        self.settings.id_publisher_blacklist = str(
-            self.tePublisherBlacklist.toPlainText())
+        self.settings.id_publisher_filter = str(
+            self.tePublisherFilter.toPlainText())
 
         self.settings.parse_scan_info = self.cbxParseScanInfo.isChecked()
 
@@ -202,7 +202,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.settings.clear_form_before_populating_from_cv = self.cbxClearFormBeforePopulating.isChecked()
         self.settings.remove_html_tables = self.cbxRemoveHtmlTables.isChecked()
 
-        self.settings.always_use_publisher_blacklist = self.cbxUseBlackFilter.isChecked()
+        self.settings.always_use_publisher_filter = self.cbxUseFilter.isChecked()
         self.settings.sort_series_by_year = self.cbxSortByYear.isChecked()
         self.settings.exact_series_matches_first = self.cbxExactMatches.isChecked()
 

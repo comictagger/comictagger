@@ -154,7 +154,7 @@
            <string>Filter Publishers</string>
           </property>
           <property name="toolTip">
-           <string>Filter the publishers based on the publisher blacklist.</string>
+           <string>Filter the publishers based on the publisher filter.</string>
           </property>
          </widget>
         </item>
