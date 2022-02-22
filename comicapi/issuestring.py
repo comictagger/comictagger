@@ -38,8 +38,7 @@ class IssueString:
         if text is None:
             return
 
-        if isinstance(text, int):
-            text = str(text)
+        text = str(text)
 
         if len(text) == 0:
             return

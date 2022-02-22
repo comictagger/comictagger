@@ -1385,8 +1385,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
         else:
             screen = QtWidgets.QDesktopWidget().screenGeometry()
             size = self.frameGeometry()
-            self.move((screen.width() - size.width()) / 2,
-                      (screen.height() - size.height()) / 2)
+            self.move(int((screen.width() - size.width()) / 2),
+                      int((screen.height() - size.height()) / 2))
 
     def adjustLoadStyleCombo(self):
         # select the current style
@@ -1721,7 +1721,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
     def autoTagLog(self, text):
         IssueIdentifier.defaultWriteOutput(text)
         if self.atprogdialog is not None:
-            self.atprogdialog.textEdit.insertPlainText(text)
+            self.atprogdialog.textEdit.append(text.rstrip())
             self.atprogdialog.textEdit.ensureCursorVisible()
             QtCore.QCoreApplication.processEvents()
             QtCore.QCoreApplication.processEvents()
@@ -2064,8 +2064,13 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.comic_archive = None
         self.clearForm()
 
-        self.settings.last_opened_folder = os.path.abspath(
-            os.path.split(comic_archive.path)[0])
+        if not os.path.exists(comic_archive.path):
+            self.fileSelectionList.dirty_flag = False
+            self.fileSelectionList.removeArchiveList([comic_archive])
+            QtCore.QTimer.singleShot(1, self.fileSelectionList.revertSelection)
+            return
+
+        self.settings.last_opened_folder = os.path.abspath(os.path.split(comic_archive.path)[0])
         self.comic_archive = comic_archive
         self.metadata = self.comic_archive.readMetadata(self.load_data_style)
         if self.metadata is None:

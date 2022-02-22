@@ -87,7 +87,7 @@ class ImagePopup(QtWidgets.QDialog):
         img_w = display_pixmap.width()
         img_h = display_pixmap.height()
         self.lblImage.resize(img_w, img_h)
-        self.lblImage.move((win_w - img_w) / 2, (win_h - img_h) / 2)
+        self.lblImage.move(int((win_w - img_w) / 2), int((win_h - img_h) / 2))
 
     def mousePressEvent(self, event):
         self.close()

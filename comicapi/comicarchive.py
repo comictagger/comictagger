@@ -25,7 +25,6 @@ import time
 import io
 
 import natsort
-from PyPDF2 import PdfFileReader
 try:
     from unrar.cffi import rarfile
 except:
@@ -528,34 +527,6 @@ class UnknownArchiver:
     def getArchiveFilenameList(self):
         return []
 
-class PdfArchiver:
-
-    def __init__(self, path):
-        self.path = path
-
-    def getArchiveComment(self):
-        return ""
-
-    def setArchiveComment(self, comment):
-        return False
-
-    def readArchiveFile(self, page_num):
-        return subprocess.check_output(
-            ['mudraw', '-o', '-', self.path, str(int(os.path.basename(page_num)[:-4]))])
-
-    def writeArchiveFile(self, archive_file, data):
-        return False
-
-    def removeArchiveFile(self, archive_file):
-        return False
-
-    def getArchiveFilenameList(self):
-        out = []
-        pdf = PdfFileReader(open(self.path, 'rb'))
-        for page in range(1, pdf.getNumPages() + 1):
-            out.append("/%04d.jpg" % (page))
-        return out
-
 class ComicArchive:
     logo_data = None
     class ArchiveType:
@@ -596,9 +567,6 @@ class ComicArchive:
                 self.archiver = RarArchiver(
                     self.path,
                     rar_exe_path=self.rar_exe_path)
-            elif os.path.basename(self.path)[-3:] == 'pdf':
-                self.archive_type = self.ArchiveType.Pdf
-                self.archiver = PdfArchiver(self.path)
 
         if ComicArchive.logo_data is None:
             #fname = ComicTaggerSettings.getGraphic('nocover.png')
@@ -677,7 +645,7 @@ class ComicArchive:
 
         if (
             # or self.isFolder() )
-            (self.isZip() or self.isRar() or self.isPdf())
+            (self.isZip() or self.isRar())
             and
             (self.getNumberOfPages() > 0)
 

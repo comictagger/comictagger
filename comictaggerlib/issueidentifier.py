@@ -19,7 +19,6 @@ import io
 
 try:
     from PIL import Image
-    from PIL import WebPImagePlugin
     pil_available = True
 except ImportError:
     pil_available = False
@@ -231,9 +230,9 @@ class IssueIdentifier:
         sys.stdout.flush()
 
     def log_msg(self, msg, newline=True):
-        self.output_function(msg)
         if newline:
-            self.output_function("\n")
+            msg += "\n"
+        self.output_function(msg)
 
     def getIssueCoverMatchScore(
             self,
