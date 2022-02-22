@@ -51,9 +51,9 @@ if qt_available:
         mysize = window.geometry()
         # The horizontal position is calculated as screen width - window width
         # /2
-        hpos = (main_window_size.width() - window.width()) / 2
+        hpos = int((main_window_size.width() - window.width()) / 2)
         # And vertical position the same, but with the height dimensions
-        vpos = (main_window_size.height() - window.height()) / 2
+        vpos = int((main_window_size.height() - window.height()) / 2)
         # And the move call repositions the window
         window.move(
             hpos +
@@ -63,7 +63,6 @@ if qt_available:
 
     try:
         from PIL import Image
-        from PIL import WebPImagePlugin
         import io
         pil_available = True
     except ImportError:

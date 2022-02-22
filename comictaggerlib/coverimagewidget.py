@@ -320,7 +320,7 @@ class CoverImageWidget(QWidget):
         img_w = scaled_pixmap.width()
         img_h = scaled_pixmap.height()
         self.lblImage.resize(img_w, img_h)
-        self.lblImage.move((frame_w - img_w) / 2, (frame_h - img_h) / 2)
+        self.lblImage.move(int((frame_w - img_w) / 2), int((frame_h - img_h) / 2))
 
     def showPopup(self):
         self.popup = ImagePopup(self, self.current_pixmap)
