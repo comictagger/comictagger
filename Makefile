@@ -7,7 +7,7 @@ ifeq ($(OS),Windows_NT)
 	APP_NAME=comictagger.exe
 	FINAL_NAME=ComicTagger-$(VERSION_STR)-$(OS_VERSION).exe
 else ifeq ($(shell uname -s),Darwin)
-	OS_VERSION=osx-$(shell defaults read loginwindow SystemVersionStampAsString)-$(shell uname -m)
+	OS_VERSION=osx-$(shell uname -m)
 	APP_NAME=ComicTagger.app
 	FINAL_NAME=ComicTagger-$(VERSION_STR)-$(OS_VERSION).app
 else
