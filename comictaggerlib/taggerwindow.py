@@ -87,7 +87,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
     def __init__(self, file_list, settings, parent=None, opts=None):
         super(TaggerWindow, self).__init__(parent)
-        
+
         uic.loadUi(ComicTaggerSettings.getUIFile('taggerwindow.ui'), self)
         self.settings = settings
 
@@ -294,7 +294,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
         self.setWindowIcon(
             QtGui.QIcon(ComicTaggerSettings.getGraphic('app.png')))
-        
+
         if self.comic_archive is None:
             self.setWindowTitle(self.appName)
         else:
@@ -584,7 +584,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 event.accept()
 
     def getUrlFromLocalFileID(self, localFileID):
-            return localFileID.toLocalFile()        
+            return localFileID.toLocalFile()
 
     def dropEvent(self, event):
         # if self.dirtyFlagVerification("Open Archive",
@@ -675,7 +675,9 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
         self.lblFilename.setText(filename)
 
-        if ca.isZip():
+        if ca.isSevenZip():
+            self.lblArchiveType.setText("7Z archive")
+        elif ca.isZip():
             self.lblArchiveType.setText("ZIP archive")
         elif ca.isRar():
             self.lblArchiveType.setText("RAR archive")
@@ -985,7 +987,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             dialog.setDirectory(self.settings.last_opened_folder)
 
         if not folder_mode:
-            archive_filter = "Comic archive files (*.cbz *.zip *.cbr *.rar)"
+            archive_filter = "Comic archive files (*.cb7 *.7z *.cbz *.zip *.cbr *.rar)"
             filters = [
                 archive_filter,
                 "Any files (*)"
@@ -1164,11 +1166,11 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
     def updateCreditColors(self):
         #!!!ATB qt5 porting TODO
-        #return 
+        #return
         inactive_color = QtGui.QColor(255, 170, 150)
         active_palette = self.leSeries.palette()
         active_color = active_palette.color(QtGui.QPalette.Base)
-        
+
         inactive_brush = QtGui.QBrush(inactive_color)
         active_brush = QtGui.QBrush(active_color)
 

@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import py7zr
 import zipfile
 import os
 import struct
@@ -49,6 +50,109 @@ class MetaDataStyle:
     CIX = 1
     COMET = 2
     name = ['ComicBookLover', 'ComicRack', 'CoMet']
+
+class SevenZipArchiver:
+
+    """7Z implementation"""
+
+    def __init__(self, path):
+        self.path = path
+
+    # @todo: Implement Comment?
+    def getArchiveComment(self):
+        return ""
+
+    def setArchiveComment(self, comment):
+        return False
+
+    def readArchiveFile(self, archive_file):
+        data = ""
+        try:
+            with py7zr.SevenZipFile(self.path, 'r') as zf:
+                data = zf.read(archive_file)[archive_file].read()
+        except py7zr.Bad7zFile as e:
+            print("bad zipfile [{0}]: {1} :: {2}".format(e, self.path,
+                archive_file), file=sys.stderr)
+            raise IOError
+        except Exception as e:
+            print("bad zipfile [{0}]: {1} :: {2}".format(e, self.path,
+                archive_file), file=sys.stderr)
+            raise IOError
+
+        return data
+
+    def removeArchiveFile(self, archive_file):
+        try:
+            self.rebuildSevenZipFile([archive_file])
+        except:
+            return False
+        else:
+            return True
+
+    def writeArchiveFile(self, archive_file, data):
+        #  At the moment, no other option but to rebuild the whole
+        #  zip archive w/o the indicated file. Very sucky, but maybe
+        # another solution can be found
+        try:
+            files = self.getArchiveFilenameList()
+            if archive_file in files:
+                self.rebuildSevenZipFile([archive_file])
+
+            # now just add the archive file as a new one
+            with py7zr.SevenZipFile(self.path, 'a') as zf:
+                zf.writestr(data, archive_file)
+            return True
+        except:
+            return False
+
+    def getArchiveFilenameList(self):
+        try:
+            with py7zr.SevenZipFile(self.path, 'r') as zf:
+                namelist = zf.getnames()
+
+            return namelist
+        except Exception as e:
+            print("Unable to get zipfile list [{0}]: {1}".format(
+                e, self.path), file=sys.stderr)
+            return []
+
+    def rebuildSevenZipFile(self, exclude_list):
+        """Zip helper func
+
+        This recompresses the zip archive, without the files in the exclude_list
+        """
+        tmp_fd, tmp_name = tempfile.mkstemp(dir=os.path.dirname(self.path))
+        os.close(tmp_fd)
+
+        try:
+            with py7zr.SevenZipFile(self.path, 'r') as zip:
+                targets = [f for f in zip.getnames() if f not in exclude_list]
+            with py7zr.SevenZipFile(self.path, 'r') as zin:
+                with py7zr.SevenZipFile(tmp_name, 'w') as zout:
+                    for fname, bio in zin.read(targets).items():
+                        zout.writef(bio, fname)
+        except Exception as e:
+            print("Exception[{0}]: {1}".format(e, self.path))
+            return []
+
+        # replace with the new file
+        os.remove(self.path)
+        os.rename(tmp_name, self.path)
+
+    def copyFromArchive(self, otherArchive):
+        """Replace the current zip with one copied from another archive"""
+        try:
+            with py7zr.SevenZipFile(self.path, 'w') as zout:
+                for fname in otherArchive.getArchiveFilenameList():
+                    data = otherArchive.readArchiveFile(fname)
+                    if data is not None:
+                        zout.writestr(data, fname)
+        except Exception as e:
+            print("Error while copying to {0}: {1}".format(
+                self.path, e), file=sys.stderr)
+            return False
+        else:
+            return True
 
 class ZipArchiver:
 
@@ -101,7 +205,9 @@ class ZipArchiver:
         #  zip archive w/o the indicated file. Very sucky, but maybe
         # another solution can be found
         try:
-            self.rebuildZipFile([archive_file])
+            files = self.getArchiveFilenameList()
+            if archive_file in files:
+                self.rebuildZipFile([archive_file])
 
             # now just add the archive file as a new one
             zf = zipfile.ZipFile(
@@ -173,7 +279,7 @@ class ZipArchiver:
 
             found = False
             value = bytearray()
-            
+
             # walk backwards to find the "End of Central Directory" record
             while (not found) and (-pos != file_length):
                 # seek, relative to EOF
@@ -270,7 +376,7 @@ class RarArchiver:
                 f.close()
 
                 working_dir = os.path.dirname(os.path.abspath(self.path))
-                
+
                 # use external program to write comment to Rar archive
                 proc_args = [self.rar_exe_path,
                                  'c',
@@ -304,7 +410,7 @@ class RarArchiver:
         while tries < 7:
             try:
                 tries = tries + 1
-                data = rarc.open(archive_file).read()                
+                data = rarc.open(archive_file).read()
                 entries = [(rarc.getinfo(archive_file), data)]
 
                 if entries[0][0].file_size != len(entries[0][1]):
@@ -530,7 +636,7 @@ class UnknownArchiver:
 class ComicArchive:
     logo_data = None
     class ArchiveType:
-        Zip, Rar, Folder, Pdf, Unknown = list(range(5))
+        SevenZip, Zip, Rar, Folder, Pdf, Unknown = list(range(6))
 
     def __init__(self, path, rar_exe_path=None, default_image_path=None):
         self.path = path
@@ -558,7 +664,11 @@ class ComicArchive:
                 self.archive_type = self.ArchiveType.Zip
                 self.archiver = ZipArchiver(self.path)
         else:
-            if self.zipTest():
+            if self.sevenZipTest():
+                self.archive_type = self.ArchiveType.SevenZip
+                self.archiver = SevenZipArchiver(self.path)
+
+            elif self.zipTest():
                 self.archive_type = self.ArchiveType.Zip
                 self.archiver = ZipArchiver(self.path)
 
@@ -595,6 +705,9 @@ class ComicArchive:
         self.path = path
         self.archiver.path = path
 
+    def sevenZipTest(self):
+        return py7zr.is_7zfile(self.path)
+
     def zipTest(self):
         return zipfile.is_zipfile(self.path)
 
@@ -603,6 +716,9 @@ class ComicArchive:
             return rarfile.is_rarfile(self.path)
         except:
             return False
+
+    def isSevenZip(self):
+        return self.archive_type == self.ArchiveType.SevenZip
 
     def isZip(self):
         return self.archive_type == self.ArchiveType.Zip
@@ -645,7 +761,7 @@ class ComicArchive:
 
         if (
             # or self.isFolder() )
-            (self.isZip() or self.isRar())
+            (self.isSevenZip() or self.isZip() or self.isRar())
             and
             (self.getNumberOfPages() > 0)
 
@@ -826,7 +942,7 @@ class ComicArchive:
     def hasCBI(self):
         if self.has_cbi is None:
 
-            # if ( not ( self.isZip() or self.isRar()) or not
+            # if ( not (self.isSevenZip() or self.isZip() or self.isRar()) or not
             # self.seemsToBeAComicArchive() ):
             if not self.seemsToBeAComicArchive():
                 self.has_cbi = False
@@ -1037,7 +1153,10 @@ class ComicArchive:
                         data = self.getPage(idx)
                         if data is not None:
                             try:
-                                im = Image.open(io.StringIO(data))
+                                if isinstance(data, bytes):
+                                    im = Image.open(io.BytesIO(data))
+                                else:
+                                    im = Image.open(io.StringIO(data))
                                 w, h = im.size
 
                                 p['ImageSize'] = str(len(data))

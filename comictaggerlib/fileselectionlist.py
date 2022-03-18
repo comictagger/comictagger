@@ -197,7 +197,7 @@ class FileSelectionList(QWidget):
         centerWindowOnParent(progdialog)
         #QCoreApplication.processEvents()
         #progdialog.show()
-        
+
         QCoreApplication.processEvents()
         firstAdded = None
         self.twList.setSortingEnabled(False)
@@ -212,7 +212,7 @@ class FileSelectionList(QWidget):
             row = self.addPathItem(f)
             if firstAdded is None and row is not None:
                 firstAdded = row
- 
+
         progdialog.hide()
         QCoreApplication.processEvents()
 
@@ -335,7 +335,9 @@ class FileSelectionList(QWidget):
         filename_item.setText(item_text)
         filename_item.setData(Qt.ToolTipRole, item_text)
 
-        if fi.ca.isZip():
+        if fi.ca.isSevenZip():
+            item_text = "7Z"
+        elif fi.ca.isZip():
             item_text = "ZIP"
         elif fi.ca.isRar():
             item_text = "RAR"
