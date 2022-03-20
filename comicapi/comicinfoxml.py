@@ -51,12 +51,9 @@ class ComicInfoXml:
         return self.convertXMLToMetadata(tree)
 
     def stringFromMetadata(self, metadata, xml=None):
-
-        header = '<?xml version="1.0"?>\n'
-
         tree = self.convertMetadataToXML(self, metadata, xml)
-        tree_str = ET.tostring(tree.getroot()).decode()
-        return header + tree_str
+        tree_str = ET.tostring(tree.getroot(), encoding="utf-8", xml_declaration=True).decode()
+        return tree_str
 
     def indent(self, elem, level=0):
         # for making the XML output readable
@@ -278,7 +275,7 @@ class ComicInfoXml:
 
         tree = self.convertMetadataToXML(self, metadata, xml)
         # ET.dump(tree)
-        tree.write(filename, encoding='utf-8')
+        tree.write(filename, encoding="utf-8", xml_declaration=True)
 
     def readFromExternalFile(self, filename):
 
