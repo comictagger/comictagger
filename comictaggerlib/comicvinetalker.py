@@ -630,7 +630,6 @@ class ComicVineTalker(QObject):
                     for w in col_widths:
                         fmtstr += " {{:{}}}|".format(w + 1)
                     width = sum(col_widths) + len(col_widths) * 2
-                    print("width=", width)
                     table_text = ""
                     counter = 0
                     for row in rows:
