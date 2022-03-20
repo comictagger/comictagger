@@ -87,7 +87,6 @@ class ComicInfoXml:
 
         def assign(cix_entry, md_entry):
             if md_entry is not None:
-                print(cix_entry, md_entry)
                 et_entry = root.find(cix_entry)
                 if et_entry is not None:
                     et_entry.text = "{0}".format(md_entry)
