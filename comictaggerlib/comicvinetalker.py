@@ -740,14 +740,15 @@ class ComicVineTalker(QObject):
         for d in div_list:
             if 'class' in d.attrs:
                 c = d['class']
-                if ('imgboxart' in c and
-                        'issue-cover' in c and
-                        d.img['src'].startswith("http")
-                   ):
-
-                    covers_found += 1
-                    if covers_found != 1:
+                if 'imgboxart' in c and 'issue-cover' in c:
+                    if d.img['src'].startswith("http"):
+                        covers_found += 1
+                        if covers_found != 1:
                             alt_cover_url_list.append(d.img['src'])
+                    elif d.img['data-src'].startswith("http"):
+                        covers_found += 1
+                        if covers_found != 1:
+                            alt_cover_url_list.append(d.img['data-src'])
 
         return alt_cover_url_list
 
