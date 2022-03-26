@@ -54,9 +54,7 @@ def calculate_rename(ca, md, settings):
 
     new_ext = None  # default
     if settings.rename_extension_based_on_archive:
-        if ca.isSevenZip():
-            new_ext = ".cb7"
-        elif ca.isZip():
+        if ca.isZip():
             new_ext = ".cbz"
         elif ca.isRar():
             new_ext = ".cbr"

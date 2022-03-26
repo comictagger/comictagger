@@ -71,11 +71,11 @@ class SevenZipArchiver:
             with py7zr.SevenZipFile(self.path, 'r') as zf:
                 data = zf.read(archive_file)[archive_file].read()
         except py7zr.Bad7zFile as e:
-            print("bad zipfile [{0}]: {1} :: {2}".format(e, self.path,
+            print("bad 7zip file [{0}]: {1} :: {2}".format(e, self.path,
                 archive_file), file=sys.stderr)
             raise IOError
         except Exception as e:
-            print("bad zipfile [{0}]: {1} :: {2}".format(e, self.path,
+            print("bad 7zip file [{0}]: {1} :: {2}".format(e, self.path,
                 archive_file), file=sys.stderr)
             raise IOError
 
@@ -1153,10 +1153,7 @@ class ComicArchive:
                         data = self.getPage(idx)
                         if data is not None:
                             try:
-                                if isinstance(data, bytes):
-                                    im = Image.open(io.BytesIO(data))
-                                else:
-                                    im = Image.open(io.StringIO(data))
+                                im = Image.open(io.StringIO(data))
                                 w, h = im.size
 
                                 p['ImageSize'] = str(len(data))

@@ -51,7 +51,7 @@ def main():
     for filename in filelist:
 
         ca = ComicArchive(filename, settings.rar_exe_path)
-        if (ca.isSevenZip() or ca.isZip() or ca.isRar()) and ca.hasMetadata(style):
+        if (ca.isZip() or ca.isRar()) and ca.hasMetadata(style):
             md = ca.readMetadata(style)
             if len(md.pages) != 0:
                 for p in md.pages:
