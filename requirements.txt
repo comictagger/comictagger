@@ -1,5 +1,5 @@
 beautifulsoup4 >= 4.1
-configparser
-natsort
+natsort>=6.0.0
 pillow>=4.3.0
-requests
+requests==2.*
+pyicu
