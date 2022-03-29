@@ -258,7 +258,9 @@ def process_file_cli(filename, opts, settings, match_results):
             if batch_mode:
                 brief = "{0}: ".format(filename)
 
-            if ca.isZip():
+            if ca.isSevenZip():
+                brief += "7Z archive     "
+            elif ca.isZip():
                 brief += "ZIP archive    "
             elif ca.isRar():
                 brief += "RAR archive    "
@@ -498,7 +500,9 @@ def process_file_cli(filename, opts, settings, match_results):
 
         new_ext = None  # default
         if settings.rename_extension_based_on_archive:
-            if ca.isZip():
+            if ca.isSevenZip():
+                new_ext = ".cb7"
+            elif ca.isZip():
                 new_ext = ".cbz"
             elif ca.isRar():
                 new_ext = ".cbr"
