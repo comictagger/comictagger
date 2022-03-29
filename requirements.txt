@@ -3,3 +3,4 @@ configparser
 natsort >=8.1.0
 pillow>=4.3.0
 requests
+py7zr
