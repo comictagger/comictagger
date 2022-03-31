@@ -25,6 +25,7 @@ import json
 import webbrowser
 import re
 import pickle
+import requests
 #import signal
 
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
@@ -221,6 +222,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.btnAddCredit.clicked.connect(self.addCredit)
         self.btnRemoveCredit.clicked.connect(self.removeCredit)
         self.twCredits.cellDoubleClicked.connect(self.editCredit)
+        self.btnOpenWebLink.clicked.connect(self.openWebLink)
         self.connectDirtyFlagSignals()
         self.pageListEditor.modified.connect(self.setDirtyFlag)
         self.pageListEditor.firstFrontCoverChanged.connect(
@@ -409,8 +411,11 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.actionReportBug.triggered.connect(self.reportBug)
         self.actionComicTaggerForum.triggered.connect(self.showForum)
 
-        # ToolBar
+        # Notes Menu
+        self.btnOpenWebLink.setIcon(
+            QtGui.QIcon(ComicTaggerSettings.getGraphic('open.png')))
 
+        # ToolBar
         self.actionLoad.setIcon(
             QtGui.QIcon(ComicTaggerSettings.getGraphic('open.png')))
         self.actionLoadFolder.setIcon(
@@ -1367,6 +1372,19 @@ class TaggerWindow(QtWidgets.QMainWindow):
         if row != -1:
             self.twCredits.removeRow(row)
         self.setDirtyFlag()
+
+    def openWebLink(self):
+        if self.leWebLink is not None:
+            web_link = "{0}".format(self.leWebLink.text()).strip();
+            if len(web_link) > 0:
+                try:
+                    response = requests.get(web_link)
+                    webbrowser.open_new_tab(web_link)
+                except:
+                    QtWidgets.QMessageBox.information(
+                        self,
+                        self.tr("Web Link"),
+                        self.tr("Web Link is invalid."))
 
     def showSettings(self):
 
