@@ -1375,10 +1375,10 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
     def openWebLink(self):
         if self.leWebLink is not None:
-            web_link = "{0}".format(self.leWebLink.text()).strip();
-            if len(web_link) > 0:
+            web_link = self.leWebLink.text().strip();
+            if web_link:
                 try:
-                    response = requests.get(web_link)
+                    requests.get(web_link)
                     webbrowser.open_new_tab(web_link)
                 except:
                     QtWidgets.QMessageBox.information(
