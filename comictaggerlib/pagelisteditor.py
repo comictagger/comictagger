@@ -284,7 +284,10 @@ class PageListEditor(QWidget):
     def listEntryText(self, page_dict):
         text = str(int(page_dict['Image']) + 1)
         if 'Type' in page_dict:
-            text += " (" + self.pageTypeNames[page_dict['Type']] + ")"
+            if page_dict["Type"] in self.pageTypeNames.keys():
+                text += " (" + self.pageTypeNames[page_dict['Type']] + ")"
+            else:
+                text += " (Error: " + page_dict["Type"] + ")"
         return text
 
     def getPageList(self):
