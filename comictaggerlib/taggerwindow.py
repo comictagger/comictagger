@@ -25,12 +25,13 @@ import json
 import webbrowser
 import re
 import pickle
-import requests
 #import signal
 
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 from PyQt5 import QtNetwork
 from PyQt5.QtCore import QUrl
+
+from urllib.parse import urlparse
 
 #from comicarchive import ComicArchive
 #from pageloader import PageLoader
@@ -1376,15 +1377,20 @@ class TaggerWindow(QtWidgets.QMainWindow):
     def openWebLink(self):
         if self.leWebLink is not None:
             web_link = self.leWebLink.text().strip();
-            if web_link:
-                try:
-                    requests.get(web_link)
-                    webbrowser.open_new_tab(web_link)
-                except:
-                    QtWidgets.QMessageBox.information(
-                        self,
-                        self.tr("Web Link"),
-                        self.tr("Web Link is invalid."))
+            valid = False;
+            try:
+                result = urlparse(web_link)
+                valid = all([result.scheme in ["http", "https"], result.netloc])
+            except:
+                pass
+
+            if valid:
+                webbrowser.open_new_tab(web_link)
+            else:
+                QtWidgets.QMessageBox.warning(
+                    self,
+                    self.tr("Web Link"),
+                    self.tr("Web Link is invalid."))
 
     def showSettings(self):
 
