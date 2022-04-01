@@ -14,14 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#import os
 
-from PyQt5 import QtCore, QtGui, QtWidgets, uic
+from PyQt5 import QtCore, QtWidgets, uic
 
-from .settings import ComicTaggerSettings
-#from settingswindow import SettingsWindow
-#from filerenamer import FileRenamer
-#import utils
+from comictaggerlib.settings import ComicTaggerSettings
 
 
 class ExportConflictOpts:
@@ -31,20 +27,20 @@ class ExportConflictOpts:
 
 
 class ExportWindow(QtWidgets.QDialog):
-
     def __init__(self, parent, settings, msg):
-        super(ExportWindow, self).__init__(parent)
+        super().__init__(parent)
 
-        uic.loadUi(ComicTaggerSettings.getUIFile('exportwindow.ui'), self)
+        uic.loadUi(ComicTaggerSettings.get_ui_file("exportwindow.ui"), self)
         self.label.setText(msg)
 
-        self.setWindowFlags(self.windowFlags() &
-                            ~QtCore.Qt.WindowContextHelpButtonHint)
+        self.setWindowFlags(
+            QtCore.Qt.WindowType(self.windowFlags() & ~QtCore.Qt.WindowType.WindowContextHelpButtonHint)
+        )
 
         self.settings = settings
 
-        self.cbxDeleteOriginal.setCheckState(QtCore.Qt.Unchecked)
-        self.cbxAddToList.setCheckState(QtCore.Qt.Checked)
+        self.cbxDeleteOriginal.setCheckState(QtCore.Qt.CheckState.Unchecked)
+        self.cbxAddToList.setCheckState(QtCore.Qt.CheckState.Checked)
         self.radioDontCreate.setChecked(True)
 
         self.deleteOriginal = False
@@ -60,5 +56,3 @@ class ExportWindow(QtWidgets.QDialog):
             self.fileConflictBehavior = ExportConflictOpts.dontCreate
         elif self.radioCreateNew.isChecked():
             self.fileConflictBehavior = ExportConflictOpts.createUnique
-        # else:
-        #    self.fileConflictBehavior = ExportConflictOpts.overwrite

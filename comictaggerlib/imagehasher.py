@@ -15,40 +15,37 @@
 # limitations under the License.
 
 import io
-import sys
 from functools import reduce
 
 try:
     from PIL import Image
+
     pil_available = True
 except ImportError:
     pil_available = False
 
 
-class ImageHasher(object):
-
+class ImageHasher:
     def __init__(self, path=None, data=None, width=8, height=8):
-        #self.hash_size = size
         self.width = width
         self.height = height
 
         if path is None and data is None:
             raise IOError
-        else:
-            try:
-                if path is not None:
-                    self.image = Image.open(path)
-                else:
-                    self.image = Image.open(io.BytesIO(data))
-            except Exception as e:
-                print("Image data seems corrupted! [{}]".format(e))
-                # just generate a bogus image
-                self.image = Image.new("L", (1, 1))
+
+        try:
+            if path is not None:
+                self.image = Image.open(path)
+            else:
+                self.image = Image.open(io.BytesIO(data))
+        except Exception as e:
+            print(f"Image data seems corrupted! [{e}]")
+            # just generate a bogus image
+            self.image = Image.new("L", (1, 1))
 
     def average_hash(self):
         try:
-            image = self.image.resize(
-                (self.width, self.height), Image.ANTIALIAS).convert("L")
+            image = self.image.resize((self.width, self.height), Image.ANTIALIAS).convert("L")
         except Exception as e:
             print("average_hash error:", e)
             return int(0)
@@ -57,14 +54,14 @@ class ImageHasher(object):
         avg = sum(pixels) / len(pixels)
 
         def compare_value_to_avg(i):
-            return (1 if i > avg else 0)
+            return 1 if i > avg else 0
 
         bitlist = list(map(compare_value_to_avg, pixels))
 
         # build up an int value from the bit list, one bit at a time
         def set_bit(x, idx_val):
             (idx, val) = idx_val
-            return (x | (val << idx))
+            return x | (val << idx)
 
         result = reduce(set_bit, enumerate(bitlist), 0)
 
@@ -72,7 +69,6 @@ class ImageHasher(object):
         return result
 
     def average_hash2(self):
-        pass
         """
         # Got this one from somewhere on the net.  Not a clue how the 'convolve2d'
         # works!
@@ -94,7 +90,6 @@ class ImageHasher(object):
         """
 
     def dct_average_hash(self):
-        pass
         """
         # Algorithm source: http://syntaxcandy.blogspot.com/2012/08/perceptual-hash.html
 
@@ -132,8 +127,8 @@ class ImageHasher(object):
 
         7. Construct the hash. Set the 64 bits into a 64-bit integer. The order does not
         matter, just as long as you are consistent.
-        """
-        """
+
+
         import numpy
         import scipy.fftpack
         numpy.set_printoptions(threshold=10000, linewidth=200, precision=2, suppress=True)
@@ -176,7 +171,7 @@ class ImageHasher(object):
 
     @staticmethod
     def hamming_distance(h1, h2):
-        if isinstance(h1, int) or isinstance(h1, int):
+        if isinstance(h1, int) or isinstance(h2, int):
             n1 = h1
             n2 = h2
         else:
@@ -188,4 +183,4 @@ class ImageHasher(object):
         n = n1 ^ n2
 
         # count up the 1's in the binary string
-        return sum(b == '1' for b in bin(n)[2:])
+        return sum(b == "1" for b in bin(n)[2:])

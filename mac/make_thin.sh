@@ -8,12 +8,12 @@ do
 	then
 		echo "Fat Binary:  $FILE"
 		mkdir -p thin
-		lipo -thin i386 -output thin/$FILE $BINFOLDER/$FILE 
+		lipo -thin i386 -output thin/$FILE $BINFOLDER/$FILE
 	fi
 done
 
 if [ -d thin ]
-then 
+then
 	mv thin/* $BINFOLDER
 else
 	echo No files to lipo

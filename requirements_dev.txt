@@ -2,3 +2,6 @@ pyinstaller>=4.10
 setuptools>=42
 setuptools_scm[toml]>=3.4
 wheel
+black>=22
+flake8==4.*
+isort>=5.10

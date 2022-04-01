@@ -16,14 +16,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#import sys
-#import os
+# import sys
+# import os
 
-from comictaggerlib.settings import *
 from comictaggerlib.comicarchive import *
-from comictaggerlib.issueidentifier import *
 from comictaggerlib.comicvinetalker import *
-#import comictaggerlib.utils
+from comictaggerlib.issueidentifier import *
+from comictaggerlib.settings import *
+
+# import comictaggerlib.utils
 
 
 def main():
@@ -32,8 +33,7 @@ def main():
     settings = ComicTaggerSettings()
 
     if len(sys.argv) < 3:
-        print >> sys.stderr, "Usage: {0} [comicfile][issueid]".format(
-            sys.argv[0])
+        print >> sys.stderr, "Usage: {0} [comicfile][issueid]".format(sys.argv[0])
         return
 
     filename = sys.argv[1]
@@ -45,8 +45,7 @@ def main():
 
     ca = ComicArchive(filename, settings.rar_exe_path)
     if not ca.seemsToBeAComicArchive():
-        print >> sys.stderr, "Sorry, but " + \
-            filename + " is not a comic archive!"
+        print >> sys.stderr, "Sorry, but " + filename + " is not a comic archive!"
         return
 
     ii = IssueIdentifier(ca, settings)
@@ -59,16 +58,15 @@ def main():
     hash_list = [cover_hash0, cover_hash1]
 
     comicVine = ComicVineTalker()
-    result = ii.getIssueCoverMatchScore(
-        comicVine, issue_id, hash_list, useRemoteAlternates=True, useLog=False)
+    result = ii.getIssueCoverMatchScore(comicVine, issue_id, hash_list, useRemoteAlternates=True, useLog=False)
 
-    print "Best cover match score is:", result['score']
-    if result['score'] < ii.min_alternate_score_thresh:
+    print "Best cover match score is:", result["score"]
+    if result["score"] < ii.min_alternate_score_thresh:
         print "Looks like a match!"
     else:
         print "Bad score, maybe not a match?"
-    print result['url']
+    print result["url"]
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

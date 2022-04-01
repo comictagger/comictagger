@@ -13,15 +13,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-#import os
-
-#import utils
+from comicapi.genericmetadata import GenericMetadata
 
 
 class CBLTransformer:
-
-    def __init__(self, metadata, settings):
+    def __init__(self, metadata: GenericMetadata, settings):
         self.metadata = metadata
         self.settings = settings
 
@@ -33,36 +29,36 @@ class CBLTransformer:
 
         def add_string_list_to_tags(str_list):
             if str_list is not None and str_list != "":
-                items = [s.strip() for s in str_list.split(',')]
+                items = [s.strip() for s in str_list.split(",")]
                 for item in items:
                     append_to_tags_if_unique(item)
 
         if self.settings.assume_lone_credit_is_primary:
 
             # helper
-            def setLonePrimary(role_list):
+            def set_lone_primary(role_list):
                 lone_credit = None
                 count = 0
                 for c in self.metadata.credits:
-                    if c['role'].lower() in role_list:
+                    if c["role"].lower() in role_list:
                         count += 1
                         lone_credit = c
                     if count > 1:
                         lone_credit = None
                         break
                 if lone_credit is not None:
-                    lone_credit['primary'] = True
+                    lone_credit["primary"] = True
                 return lone_credit, count
 
             # need to loop three times, once for 'writer', 'artist', and then
             # 'penciler' if no artist
-            setLonePrimary(['writer'])
-            c, count = setLonePrimary(['artist'])
+            set_lone_primary(["writer"])
+            c, count = set_lone_primary(["artist"])
             if c is None and count == 0:
-                c, count = setLonePrimary(['penciler', 'penciller'])
+                c, count = set_lone_primary(["penciler", "penciller"])
                 if c is not None:
-                    c['primary'] = False
-                    self.metadata.addCredit(c['person'], 'Artist', True)
+                    c["primary"] = False
+                    self.metadata.add_credit(c["person"], "Artist", True)
 
         if self.settings.copy_characters_to_tags:
             add_string_list_to_tags(self.metadata.characters)
@@ -74,7 +70,7 @@ class CBLTransformer:
             add_string_list_to_tags(self.metadata.locations)
 
         if self.settings.copy_storyarcs_to_tags:
-            add_string_list_to_tags(self.metadata.storyArc)
+            add_string_list_to_tags(self.metadata.story_arc)
 
         if self.settings.copy_notes_to_comments:
             if self.metadata.notes is not None:
@@ -86,12 +82,12 @@ class CBLTransformer:
                     self.metadata.comments += self.metadata.notes
 
         if self.settings.copy_weblink_to_comments:
-            if self.metadata.webLink is not None:
+            if self.metadata.web_link is not None:
                 if self.metadata.comments is None:
                     self.metadata.comments = ""
                 else:
                     self.metadata.comments += "\n\n"
-                if self.metadata.webLink not in self.metadata.comments:
-                    self.metadata.comments += self.metadata.webLink
+                if self.metadata.web_link not in self.metadata.comments:
+                    self.metadata.comments += self.metadata.web_link
 
         return self.metadata

@@ -28,7 +28,7 @@ For details, screen-shots, release notes, and more, visit [the Wiki](https://git
 
 ### Binaries
 
-Windows and macOS binaries are provided in the [Releases Page](https://github.com/comictagger/comictagger/releases). 
+Windows and macOS binaries are provided in the [Releases Page](https://github.com/comictagger/comictagger/releases).
 
 Just unzip the archive in any folder and run, no additional installation steps are required.
 

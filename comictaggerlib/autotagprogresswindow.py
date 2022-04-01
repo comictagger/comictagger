@@ -14,53 +14,50 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#import sys
-#import os
 
-from PyQt5 import QtCore, QtGui, QtWidgets, uic
+from PyQt5 import QtCore, QtWidgets, uic
 
-from .settings import ComicTaggerSettings
-from .coverimagewidget import CoverImageWidget
-from comictaggerlib.ui.qtutils import reduceWidgetFontSize
-#import utils
+from comictaggerlib.coverimagewidget import CoverImageWidget
+from comictaggerlib.settings import ComicTaggerSettings
+from comictaggerlib.ui.qtutils import reduce_widget_font_size
 
 
 class AutoTagProgressWindow(QtWidgets.QDialog):
-
     def __init__(self, parent):
-        super(AutoTagProgressWindow, self).__init__(parent)
+        super().__init__(parent)
 
-        uic.loadUi(
-            ComicTaggerSettings.getUIFile('autotagprogresswindow.ui'), self)
+        uic.loadUi(ComicTaggerSettings.get_ui_file("autotagprogresswindow.ui"), self)
 
-        self.archiveCoverWidget = CoverImageWidget(
-            self.archiveCoverContainer, CoverImageWidget.DataMode, False)
+        self.archiveCoverWidget = CoverImageWidget(self.archiveCoverContainer, CoverImageWidget.DataMode, False)
         gridlayout = QtWidgets.QGridLayout(self.archiveCoverContainer)
         gridlayout.addWidget(self.archiveCoverWidget)
         gridlayout.setContentsMargins(0, 0, 0, 0)
 
-        self.testCoverWidget = CoverImageWidget(
-            self.testCoverContainer, CoverImageWidget.DataMode, False)
+        self.testCoverWidget = CoverImageWidget(self.testCoverContainer, CoverImageWidget.DataMode, False)
         gridlayout = QtWidgets.QGridLayout(self.testCoverContainer)
         gridlayout.addWidget(self.testCoverWidget)
         gridlayout.setContentsMargins(0, 0, 0, 0)
 
         self.isdone = False
 
-        self.setWindowFlags(self.windowFlags() |
-                            QtCore.Qt.WindowSystemMenuHint |
-                            QtCore.Qt.WindowMaximizeButtonHint)
+        self.setWindowFlags(
+            QtCore.Qt.WindowType(
+                self.windowFlags()
+                | QtCore.Qt.WindowType.WindowSystemMenuHint
+                | QtCore.Qt.WindowType.WindowMaximizeButtonHint
+            )
+        )
 
-        reduceWidgetFontSize(self.textEdit)
+        reduce_widget_font_size(self.textEdit)
 
-    def setArchiveImage(self, img_data):
-        self.setCoverImage(img_data, self.archiveCoverWidget)
+    def set_archive_image(self, img_data):
+        self.set_cover_image(img_data, self.archiveCoverWidget)
 
-    def setTestImage(self, img_data):
-        self.setCoverImage(img_data, self.testCoverWidget)
+    def set_test_image(self, img_data):
+        self.set_cover_image(img_data, self.testCoverWidget)
 
-    def setCoverImage(self, img_data, widget):
-        widget.setImageData(img_data)
+    def set_cover_image(self, img_data, widget):
+        widget.set_image_data(img_data)
         QtCore.QCoreApplication.processEvents()
         QtCore.QCoreApplication.processEvents()
 

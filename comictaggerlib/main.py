@@ -15,31 +15,32 @@
 # limitations under the License.
 
 import os
-import sys
-import signal
-import traceback
 import platform
+import signal
+import sys
+import traceback
 
-from .settings import ComicTaggerSettings
-# Need to load setting before anything else
-SETTINGS = ComicTaggerSettings()
+from comictaggerlib import cli
+from comictaggerlib.comicvinetalker import ComicVineTalker
+from comictaggerlib.options import Options
+from comictaggerlib.settings import ComicTaggerSettings
 
 try:
     qt_available = True
-    from PyQt5 import QtCore, QtGui, QtWidgets
-    from .taggerwindow import TaggerWindow
+    from PyQt5 import QtGui, QtWidgets
+
+    from comictaggerlib.taggerwindow import TaggerWindow
 except ImportError as e:
+    print(e)
     qt_available = False
 
 
-from . import utils
-from . import cli
-from .options import Options
-from .comicvinetalker import ComicVineTalker
-
 def ctmain():
     opts = Options()
-    opts.parseCmdLineArgs()
+    opts.parse_cmd_line_args()
+
+    # Need to load setting before anything else
+    SETTINGS = ComicTaggerSettings()
 
     # manage the CV API key
     if opts.cv_api_key:
@@ -61,27 +62,31 @@ def ctmain():
     if opts.no_gui:
         cli.cli_mode(opts, SETTINGS)
     else:
-        os.environ['QT_AUTO_SCREEN_SCALE_FACTOR'] = '1'            
-        app = QtWidgets.QApplication(sys.argv)
+        os.environ["QtWidgets.QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
+        args = []
+        if opts.darkmode:
+            args.extend(["-platform", "windows:darkmode=2"])
+        args.extend(sys.argv)
+        app = QtWidgets.QApplication(args)
         if platform.system() == "Darwin":
             # Set the MacOS dock icon
-            app.setWindowIcon(
-            QtGui.QIcon(ComicTaggerSettings.getGraphic('app.png')))
+            app.setWindowIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("app.png")))
 
         if platform.system() == "Windows":
             # For pure python, tell windows that we're not python,
             # so we can have our own taskbar icon
             import ctypes
-            myappid = u'comictagger' # arbitrary string
+
+            myappid = "comictagger"  # arbitrary string
             ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
             # force close of console window
-            SWP_HIDEWINDOW = 0x0080
-            consoleWnd = ctypes.windll.kernel32.GetConsoleWindow()
-            if consoleWnd != 0:          
-                ctypes.windll.user32.SetWindowPos(consoleWnd, None, 0, 0, 0, 0, SWP_HIDEWINDOW)
+            swp_hidewindow = 0x0080
+            console_wnd = ctypes.windll.kernel32.GetConsoleWindow()
+            if console_wnd != 0:
+                ctypes.windll.user32.SetWindowPos(console_wnd, None, 0, 0, 0, 0, swp_hidewindow)
 
         if platform.system() != "Linux":
-            img = QtGui.QPixmap(ComicTaggerSettings.getGraphic('tags.png'))
+            img = QtGui.QPixmap(ComicTaggerSettings.get_graphic("tags.png"))
 
             splash = QtWidgets.QSplashScreen(img)
             splash.show()
@@ -90,17 +95,15 @@ def ctmain():
 
         try:
             tagger_window = TaggerWindow(opts.file_list, SETTINGS, opts=opts)
-            tagger_window.setWindowIcon(
-                QtGui.QIcon(ComicTaggerSettings.getGraphic('app.png')))
+            tagger_window.setWindowIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("app.png")))
             tagger_window.show()
 
             if platform.system() != "Linux":
                 splash.finish(tagger_window)
 
-            sys.exit(app.exec_())
-        except Exception as e:
+            sys.exit(app.exec())
+        except Exception:
+            print(traceback.format_exc())
             QtWidgets.QMessageBox.critical(
-                QtWidgets.QMainWindow(),
-                "Error",
-                "Unhandled exception in app:\n" +
-                traceback.format_exc())
+                QtWidgets.QMainWindow(), "Error", "Unhandled exception in app:\n" + traceback.format_exc()
+            )

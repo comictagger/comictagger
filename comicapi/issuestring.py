@@ -1,4 +1,3 @@
-# coding=utf-8
 """Support for mixed digit/string type Issue field
 
 Class for handling the odd permutations of an 'issue number' that the
@@ -20,13 +19,8 @@ comics industry throws at us.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#import utils
-#import math
-#import re
-
 
 class IssueString:
-
     def __init__(self, text):
 
         # break up the issue number string into 2 parts: the numeric and suffix string.
@@ -43,10 +37,8 @@ class IssueString:
         if len(text) == 0:
             return
 
-        text = str(text)
-
         # skip the minus sign if it's first
-        if text[0] == '-':
+        if text[0] == "-":
             start = 1
         else:
             start = 0
@@ -78,7 +70,7 @@ class IssueString:
                 idx = 0
 
             part1 = text[0:idx]
-            part2 = text[idx:len(text)]
+            part2 = text[idx : len(text)]
 
             if part1 != "":
                 self.num = float(part1)
@@ -86,9 +78,7 @@ class IssueString:
         else:
             self.suffix = text
 
-        # print "num: {0} suf: {1}".format(self.num, self.suffix)
-
-    def asString(self, pad=0):
+    def as_string(self, pad=0):
         # return the float, left side zero-padded, with suffix attached
         if self.num is None:
             return self.suffix
@@ -106,9 +96,9 @@ class IssueString:
 
         # create padding
         padding = ""
-        l = len(str(num_int))
-        if l < pad:
-            padding = "0" * (pad - l)
+        length = len(str(num_int))
+        if length < pad:
+            padding = "0" * (pad - length)
 
         num_s = padding + num_s
         if negative:
@@ -116,16 +106,16 @@ class IssueString:
 
         return num_s
 
-    def asFloat(self):
+    def as_float(self):
         # return the float, with no suffix
         if self.suffix == "½":
             if self.num is not None:
-                return self.num + .5
-            else:
-                return .5
+                return self.num + 0.5
+
+            return 0.5
         return self.num
 
-    def asInt(self):
+    def as_int(self):
         # return the int version of the float
         if self.num is None:
             return None

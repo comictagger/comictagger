@@ -14,25 +14,25 @@ Maybe replace configparser  -- seems to be causing all sorts of problems
 Feature Requests:
 	Move CBR to other folder after conversion to ZIP
 	Pre-process series name before identification
-		(using a list of regex transforms) 
+		(using a list of regex transforms)
 	(GC #24) Multiple options for -t i.e. "-t cr,cbl"
 	(GC #18 ) Option for handling colon in rename
 	(GC #31 ) Specify CV Series ID for auto-tag
 	Re-org - move to new folder based on template
-	
+
 	Denied Requests (for now):
 		Auto-rename on auto-tag
 		Re-zip (to remove compression)
-	
-	
+
+
 	Selective fields on CLI print (use -m option.  Maybe internally remove all but specified fields in MD object before print )
-		
+
 Docs:
 	Auto-Tagging Tips:
-		Multiple Passes with different options	
-	
+		Multiple Passes with different options
+
 -----------------------------------------------------
-Bugs	
+Bugs
 -----------------------------------------------------
 
 Zip flakes out when filename differs from index (or whatever)  i.e "\" vs "/". Python issue
@@ -48,14 +48,14 @@ GCD scraper or DB reader
 
 (GC #29) Batch Edit
 	Form Mode:  Single vs Batch
-	
+
 -----------------------------------------------------
 Small(er) Future Feature
 -----------------------------------------------------
 Parse out the rest of the scan info from filename
 
 Style sheets for windows/mac/linux
- 
+
 CLI
 	explicit metadata settings option format
 		-- figure out how to add CBI "tags"
@@ -68,7 +68,7 @@ Archive function to  detect tag blocks out of sync
 Settings
 	Add setting to dis-allow writing CBI to RAR
 
-Google App engine to store hashes 
+Google App engine to store hashes
 	Content Hashes, Image hashes, who knows?
 
 Filename parsing:
@@ -91,12 +91,12 @@ Release Process
     Tag the repository
 	Manually upload release packages to Google Drive
 	Update the Downloads wiki page with direct links
-	"make upload" to the pypi site 
+	"make upload" to the pypi site
 	Announce on Forum and Main Page and Twitter and Facebook
 	MacUpdate
 	Update appspot value
-	
+
 ----------------------------------------------
 
-	
+
 rename 's/([A-Za-z]+)(\d+)(.cb[rz])/$1 $2$3/' *.cb?

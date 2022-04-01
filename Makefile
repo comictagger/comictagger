@@ -15,8 +15,8 @@ else
 	FINAL_NAME=ComicTagger-$(VERSION_STR)
 endif
 
-.PHONY: all clean pydist upload dist
-	
+.PHONY: all clean pydist upload dist CI
+
 all: clean dist
 
 clean:
@@ -26,24 +26,29 @@ clean:
 	rm -rf dist MANIFEST
 	rm -rf *.deb
 	rm -rf logdict*.log
-	$(MAKE) -C mac clean   
+	$(MAKE) -C mac clean
 	rm -rf build
 	rm -rf comictaggerlib/ui/__pycache__
 	rm comictaggerlib/ctversion.py
 
-pydist:
+CI:
+	black .
+	isort .
+	flake8 .
+
+pydist: CI
 	make clean
 	mkdir -p piprelease
 	rm -f comictagger-$(VERSION_STR).zip
 	$(PYTHON) setup.py sdist --formats=gztar
 	mv dist/comictagger-$(VERSION_STR).tar.gz piprelease
 	rm -rf comictagger.egg-info dist
-		
+
 upload:
 	$(PYTHON) setup.py register
 	$(PYTHON) setup.py sdist --formats=gztar upload
 
-dist:
+dist: CI
 	$(PIP) install .
 	pyinstaller -y comictagger.spec
 	cd dist && zip -r $(FINAL_NAME).zip $(APP_NAME)

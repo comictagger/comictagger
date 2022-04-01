@@ -14,23 +14,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
 import getopt
-import platform
 import os
+import platform
+import sys
 import traceback
-
-try:
-    import argparse
-except ImportError:
-    pass
-
 from datetime import datetime
-from .genericmetadata import GenericMetadata
-from .comicarchive import MetaDataStyle
-from .versionchecker import VersionChecker
-from . import ctversion
-from . import utils
+
+from comicapi import utils
+from comicapi.comicarchive import MetaDataStyle
+from comicapi.genericmetadata import GenericMetadata
+from comictaggerlib import ctversion
 
 
 class Options:
@@ -101,11 +95,13 @@ If no options are given, {0} will run in windowed mode.
                             error, wait and retry query.
 -v, --verbose               Be noisy when doing what it does.
     --terse                 Don't say much (for print mode).
+    --darkmode              Windows only. Force a dark pallet
+    --config=CONFIG_DIR     Config directory defaults to ~/.ComicTagger
     --version               Display version.
 -h, --help                  Display this message.
 
 For more help visit the wiki at: https://github.com/comictagger/comictagger/wiki
-    """
+"""
 
     def __init__(self):
         self.data_style = None
@@ -139,6 +135,9 @@ For more help visit the wiki at: https://github.com/comictagger/comictagger/wiki
         self.wait_and_retry_on_rate_limit = False
         self.assume_issue_is_one_if_not_set = False
         self.file_list = []
+        self.darkmode = False
+        self.copy_source = None
+        self.config_path = ""
 
     def display_msg_and_quit(self, msg, code, show_help=False):
         appname = os.path.basename(sys.argv[0])
@@ -150,7 +149,7 @@ For more help visit the wiki at: https://github.com/comictagger/comictagger/wiki
             print("For more help, run with '--help'")
         sys.exit(code)
 
-    def parseMetadataFromString(self, mdstr):
+    def parse_metadata_from_string(self, mdstr):
         """The metadata string is a comma separated list of name-value pairs
         The names match the attributes of the internal metadata struct (for now)
         The caret is the special "escape character", since it's not common in
@@ -165,8 +164,7 @@ For more help visit the wiki at: https://github.com/comictagger/comictagger/wiki
 
         md = GenericMetadata()
 
-        # First, replace escaped commas with with a unique token (to be changed
-        # back later)
+        # First, replace escaped commas with with a unique token (to be changed back later)
         mdstr = mdstr.replace(escaped_comma, replacement_token)
         tmp_list = mdstr.split(",")
         md_list = []
@@ -175,7 +173,7 @@ For more help visit the wiki at: https://github.com/comictagger/comictagger/wiki
             md_list.append(item)
 
         # Now build a nice dict from the list
-        md_dict = dict()
+        md_dict = {}
         for item in md_list:
             # Make sure to fix any escaped equal signs
             i = item.replace(escaped_equals, replacement_token)
@@ -185,44 +183,38 @@ For more help visit the wiki at: https://github.com/comictagger/comictagger/wiki
             if key.lower() == "credit":
                 cred_attribs = value.split(":")
                 role = cred_attribs[0]
-                person = (cred_attribs[1] if len(cred_attribs) > 1 else "")
-                primary = (cred_attribs[2] if len(cred_attribs) > 2 else None)
-                md.addCredit(
-                    person.strip(),
-                    role.strip(),
-                    True if primary is not None else False)
+                person = cred_attribs[1] if len(cred_attribs) > 1 else ""
+                primary = len(cred_attribs) > 2
+                md.add_credit(person.strip(), role.strip(), primary)
             else:
                 md_dict[key] = value
 
         # Map the dict to the metadata object
-        for key in md_dict:
+        for key, value in md_dict.items():
             if not hasattr(md, key):
-                print(("Warning: '{0}' is not a valid tag name".format(key)))
+                print(f"Warning: '{key}' is not a valid tag name")
             else:
-                md.isEmpty = False
-                setattr(md, key, md_dict[key])
-        # print(md)
+                md.is_empty = False
+                setattr(md, key, value)
         return md
 
     def launch_script(self, scriptfile):
         # we were given a script.  special case for the args:
         # 1. ignore everything before the -S,
-        # 2. pass all the ones that follow (including script name) to the
-        # script
-        script_args = list()
+        # 2. pass all the ones that follow (including script name) to the script
+        script_args = []
         for idx, arg in enumerate(sys.argv):
-            if arg in ['-S', '--script']:
+            if arg in ["-S", "--script"]:
                 # found script!
-                script_args = sys.argv[idx + 1:]
+                script_args = sys.argv[idx + 1 :]
                 break
         sys.argv = script_args
         if not os.path.exists(scriptfile):
-            print(("Can't find {0}".format(scriptfile)))
+            print(f"Can't find {scriptfile}")
         else:
             # I *think* this makes sense:
-            #  assume the base name of the file is the module name
-            #  add the folder of the given file to the python path
-            #  import module
+            # assume the base name of the file is the module name
+            # add the folder of the given file to the python path import module
             dirname = os.path.dirname(scriptfile)
             module_name = os.path.splitext(os.path.basename(scriptfile))[0]
             sys.path = [dirname] + sys.path
@@ -233,27 +225,24 @@ For more help visit the wiki at: https://github.com/comictagger/comictagger/wiki
                 if "main" in dir(script):
                     script.main()
                 else:
-                    print((
-                        "Can't find entry point \"main()\" in module \"{0}\"".format(module_name)))
+                    print(f"Can't find entry point 'main()' in module '{module_name}'")
             except Exception as e:
                 print("Script raised an unhandled exception: ", e)
-                print((traceback.format_exc()))
+                print(traceback.format_exc())
 
         sys.exit(0)
 
-    def parseCmdLineArgs(self):
+    def parse_cmd_line_args(self):
 
-        if platform.system() == "Darwin" and hasattr(
-                sys, "frozen") and sys.frozen == 1:
-            # remove the PSN ("process serial number") argument from OS/X
+        if platform.system() == "Darwin" and hasattr(sys, "frozen") and sys.frozen == 1:
+            # remove the PSN (process serial number) argument from OS/X
             input_args = [a for a in sys.argv[1:] if "-psn_0_" not in a]
         else:
             input_args = sys.argv[1:]
 
         # first check if we're launching a script:
         for n in range(len(input_args)):
-            if (input_args[n] in ["-S", "--script"] and
-                    n + 1 < len(input_args)):
+            if input_args[n] in ["-S", "--script"] and n + 1 < len(input_args):
                 # insert a "--" which will cause getopt to ignore the remaining args
                 # so they will be passed to the script
                 input_args.insert(n + 2, "--")
@@ -261,15 +250,43 @@ For more help visit the wiki at: https://github.com/comictagger/comictagger/wiki
 
         # parse command line options
         try:
-            opts, args = getopt.getopt(input_args,
-                                       "hpdt:fm:vownsrc:ieRS:1",
-                                       ["help", "print", "delete", "type=", "copy=", "parsefilename",
-                                        "metadata=", "verbose", "online", "dryrun", "save", "rename",
-                                        "raw", "noabort", "terse", "nooverwrite", "interactive",
-                                        "nosummary", "version", "id=", "recursive", "script=",
-                                        "export-to-zip", "delete-rar", "abort-on-conflict",
-                                        "assume-issue-one", "cv-api-key=", "only-set-cv-key",
-                                        "wait-on-cv-rate-limit"])
+            opts, args = getopt.getopt(
+                input_args,
+                "hpdt:fm:vownsrc:ieRS:1",
+                [
+                    "help",
+                    "print",
+                    "delete",
+                    "type=",
+                    "copy=",
+                    "parsefilename",
+                    "metadata=",
+                    "verbose",
+                    "online",
+                    "dryrun",
+                    "save",
+                    "rename",
+                    "raw",
+                    "noabort",
+                    "terse",
+                    "nooverwrite",
+                    "interactive",
+                    "nosummary",
+                    "version",
+                    "id=",
+                    "recursive",
+                    "script=",
+                    "export-to-zip",
+                    "delete-rar",
+                    "abort-on-conflict",
+                    "assume-issue-one",
+                    "cv-api-key=",
+                    "only-set-cv-key",
+                    "wait-on-cv-rate-limit",
+                    "darkmode",
+                    "config=",
+                ],
+            )
 
         except getopt.GetoptError as err:
             self.display_msg_and_quit(str(err), 2)
@@ -293,6 +310,7 @@ For more help visit the wiki at: https://github.com/comictagger/comictagger/wiki
                 self.interactive = True
             if o in ("-c", "--copy"):
                 self.copy_tags = True
+
                 if a.lower() == "cr":
                     self.copy_source = MetaDataStyle.CIX
                 elif a.lower() == "cbl":
@@ -300,14 +318,13 @@ For more help visit the wiki at: https://github.com/comictagger/comictagger/wiki
                 elif a.lower() == "comet":
                     self.copy_source = MetaDataStyle.COMET
                 else:
-                    self.display_msg_and_quit(
-                        "Invalid copy tag source type", 1)
+                    self.display_msg_and_quit("Invalid copy tag source type", 1)
             if o in ("-o", "--online"):
                 self.search_online = True
             if o in ("-n", "--dryrun"):
                 self.dryrun = True
             if o in ("-m", "--metadata"):
-                self.metadata = self.parseMetadataFromString(a)
+                self.metadata = self.parse_metadata_from_string(a)
             if o in ("-s", "--save"):
                 self.save_tags = True
             if o in ("-r", "--rename"):
@@ -322,6 +339,8 @@ For more help visit the wiki at: https://github.com/comictagger/comictagger/wiki
                 self.parse_filename = True
             if o in ("-w", "--wait-on-cv-rate-limit"):
                 self.wait_and_retry_on_rate_limit = True
+            if o == "--config":
+                self.config_path = os.path.abspath(a)
             if o == "--id":
                 self.issue_id = a
             if o == "--raw":
@@ -341,10 +360,8 @@ For more help visit the wiki at: https://github.com/comictagger/comictagger/wiki
             if o == "--only-set-cv-key":
                 self.only_set_key = True
             if o == "--version":
-                print((
-                    "ComicTagger {}:  Copyright (c) 2012-{:%Y} ComicTagger Team".format(ctversion.version, datetime.today())))
-                print(
-                    "Distributed under Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)")
+                print(f"ComicTagger {ctversion.version}:  Copyright (c) 2012-{datetime.today():%Y} ComicTagger Team")
+                print("Distributed under Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)")
                 sys.exit(0)
             if o in ("-t", "--type"):
                 if a.lower() == "cr":
@@ -355,8 +372,20 @@ For more help visit the wiki at: https://github.com/comictagger/comictagger/wiki
                     self.data_style = MetaDataStyle.COMET
                 else:
                     self.display_msg_and_quit("Invalid tag type", 1)
+            if o == "--darkmode":
+                self.darkmode = True
 
-        if self.print_tags or self.delete_tags or self.save_tags or self.copy_tags or self.rename_file or self.export_to_zip or self.only_set_key:
+        if any(
+            [
+                self.print_tags,
+                self.delete_tags,
+                self.save_tags,
+                self.copy_tags,
+                self.rename_file,
+                self.export_to_zip,
+                self.only_set_key,
+            ]
+        ):
             self.no_gui = True
 
         count = 0
@@ -379,8 +408,8 @@ For more help visit the wiki at: https://github.com/comictagger/comictagger/wiki
 
         if count > 1:
             self.display_msg_and_quit(
-                "Must choose only one action of print, delete, save, copy, rename, export, set key, or run script",
-                1)
+                "Must choose only one action of print, delete, save, copy, rename, export, set key, or run script", 1
+            )
 
         if self.script is not None:
             self.launch_script(self.script)
@@ -389,6 +418,7 @@ For more help visit the wiki at: https://github.com/comictagger/comictagger/wiki
             if platform.system() == "Windows":
                 # no globbing on windows shell, so do it for them
                 import glob
+
                 self.file_list = []
                 for item in args:
                     self.file_list.extend(glob.glob(item))
@@ -401,25 +431,17 @@ For more help visit the wiki at: https://github.com/comictagger/comictagger/wiki
         if self.only_set_key and self.cv_api_key is None:
             self.display_msg_and_quit("Key not given!", 1)
 
-        if (self.only_set_key == False) and self.no_gui and (
-                self.filename is None):
-            self.display_msg_and_quit(
-                "Command requires at least one filename!", 1)
+        if not self.only_set_key and self.no_gui and self.filename is None:
+            self.display_msg_and_quit("Command requires at least one filename!", 1)
 
         if self.delete_tags and self.data_style is None:
-            self.display_msg_and_quit(
-                "Please specify the type to delete with -t", 1)
+            self.display_msg_and_quit("Please specify the type to delete with -t", 1)
 
         if self.save_tags and self.data_style is None:
-            self.display_msg_and_quit(
-                "Please specify the type to save with -t", 1)
+            self.display_msg_and_quit("Please specify the type to save with -t", 1)
 
         if self.copy_tags and self.data_style is None:
-            self.display_msg_and_quit(
-                "Please specify the type to copy to with -t", 1)
-
-        # if self.rename_file and self.data_style is None:
-        #    self.display_msg_and_quit("Please specify the type to use for renaming with -t", 1)
+            self.display_msg_and_quit("Please specify the type to copy to with -t", 1)
 
         if self.recursive:
             self.file_list = utils.get_recursive_filelist(self.file_list)
