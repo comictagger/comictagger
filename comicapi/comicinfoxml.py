@@ -73,6 +73,10 @@ class ComicInfoXml:
                     et_entry.text = str(md_entry)
                 else:
                     ET.SubElement(root, cix_entry).text = str(md_entry)
+            else:
+                et_entry = root.find(cix_entry)
+                if et_entry is not None:
+                    et_entry.clear()
 
         assign("Title", md.title)
         assign("Series", md.series)
@@ -148,8 +152,7 @@ class ComicInfoXml:
         assign("LanguageISO", md.language)
         assign("Format", md.format)
         assign("AgeRating", md.maturity_rating)
-        if md.black_and_white is not None and md.black_and_white:
-            ET.SubElement(root, "BlackAndWhite").text = "Yes"
+        assign("BlackAndWhite", "Yes" if md.blackAndWhite else None)
         assign("Manga", md.manga)
         assign("Characters", md.characters)
         assign("Teams", md.teams)
