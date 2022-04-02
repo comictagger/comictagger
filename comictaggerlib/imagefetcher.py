@@ -14,63 +14,59 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sqlite3 as lite
-import os
 import datetime
+import os
 import shutil
+import sqlite3 as lite
 import tempfile
+
 import requests
 
 try:
-    from PyQt5.QtNetwork import QNetworkAccessManager, QNetworkRequest
-    from PyQt5.QtCore import QUrl, pyqtSignal, QObject, QByteArray
-    from PyQt5 import QtGui
+    from PyQt5 import QtCore, QtNetwork
+
+    qt_available = True
 except ImportError:
-    # No Qt, so define a few dummy QObjects to help us compile
-    class QObject():
+    qt_available = False
 
-        def __init__(self, *args):
-            pass
 
-    class QByteArray():
-        pass
-
-    class pyqtSignal():
-
-        def __init__(self, *args):
-            pass
-
-        def emit(a, b, c):
-            pass
-
-from .settings import ComicTaggerSettings
-from . import ctversion
+from comictaggerlib import ctversion
+from comictaggerlib.settings import ComicTaggerSettings
 
 
 class ImageFetcherException(Exception):
     pass
 
 
-class ImageFetcher(QObject):
+def fetch_complete(this, image_data):
+    ...
 
-    fetchComplete = pyqtSignal(QByteArray, int)
+
+class ImageFetcher:
+
+    image_fetch_complete = fetch_complete
 
     def __init__(self):
-        QObject.__init__(self)
 
-        self.settings_folder = ComicTaggerSettings.getSettingsFolder()
+        self.settings_folder = ComicTaggerSettings.get_settings_folder()
         self.db_file = os.path.join(self.settings_folder, "image_url_cache.db")
         self.cache_folder = os.path.join(self.settings_folder, "image_cache")
+
+        self.user_data = None
+        self.fetched_url = ""
 
         if not os.path.exists(self.db_file):
             self.create_image_db()
 
-    def clearCache(self):
+        if qt_available:
+            self.nam = QtNetwork.QNetworkAccessManager()
+
+    def clear_cache(self):
         os.unlink(self.db_file)
         if os.path.isdir(self.cache_folder):
             shutil.rmtree(self.cache_folder)
 
-    def fetch(self, url, user_data=None, blocking=False):
+    def fetch(self, url, blocking=False):
         """
         If called with blocking=True, this will block until the image is
         fetched.
@@ -78,52 +74,50 @@ class ImageFetcher(QObject):
         background, and emit a signal when done
         """
 
-        self.user_data = user_data
         self.fetched_url = url
 
         # first look in the DB
         image_data = self.get_image_from_cache(url)
-        if blocking:
+        if blocking or not qt_available:
             if image_data is None:
                 try:
                     print(url)
-                    image_data = requests.get(url, headers={'user-agent': 'comictagger/' + ctversion.version}).content
+                    image_data = requests.get(url, headers={"user-agent": "comictagger/" + ctversion.version}).content
                 except Exception as e:
                     print(e)
-                    raise ImageFetcherException("Network Error!")
+                    raise ImageFetcherException("Network Error!") from e
 
             # save the image to the cache
             self.add_image_to_cache(self.fetched_url, image_data)
             return image_data
 
-        else:
-
+        if qt_available:
             # if we found it, just emit the signal asap
             if image_data is not None:
-                self.fetchComplete.emit(QByteArray(image_data), self.user_data)
-                return
+                self.image_fetch_complete(QtCore.QByteArray(image_data))
+                return bytes()
 
             # didn't find it.  look online
-            self.nam = QNetworkAccessManager()
-            self.nam.finished.connect(self.finishRequest)
-            self.nam.get(QNetworkRequest(QUrl(url)))
+            self.nam.finished.connect(self.finish_request)
+            self.nam.get(QtNetwork.QNetworkRequest(QtCore.QUrl(url)))
 
             # we'll get called back when done...
+        return bytes()
 
-    def finishRequest(self, reply):
-
+    def finish_request(self, reply):
         # read in the image data
+        print("request finished")
         image_data = reply.readAll()
 
         # save the image to the cache
         self.add_image_to_cache(self.fetched_url, image_data)
 
-        self.fetchComplete.emit(QByteArray(image_data), self.user_data)
+        self.image_fetch_complete(image_data)
 
     def create_image_db(self):
 
         # this will wipe out any existing version
-        open(self.db_file, 'w').close()
+        open(self.db_file, "w").close()
 
         # wipe any existing image cache folder too
         if os.path.isdir(self.cache_folder):
@@ -134,37 +128,25 @@ class ImageFetcher(QObject):
 
         # create tables
         with con:
-
             cur = con.cursor()
 
-            cur.execute("CREATE TABLE Images(" +
-                        "url TEXT," +
-                        "filename TEXT," +
-                        "timestamp TEXT," +
-                        "PRIMARY KEY (url))"
-                        )
+            cur.execute("CREATE TABLE Images(url TEXT,filename TEXT,timestamp TEXT,PRIMARY KEY (url))")
 
     def add_image_to_cache(self, url, image_data):
 
         con = lite.connect(self.db_file)
 
         with con:
-
             cur = con.cursor()
 
             timestamp = datetime.datetime.now()
 
-            tmp_fd, filename = tempfile.mkstemp(
-                dir=self.cache_folder, prefix="img")
-            f = os.fdopen(tmp_fd, 'w+b')
+            tmp_fd, filename = tempfile.mkstemp(dir=self.cache_folder, prefix="img")
+            f = os.fdopen(tmp_fd, "w+b")
             f.write(image_data)
             f.close()
 
-            cur.execute("INSERT or REPLACE INTO Images VALUES(?, ?, ?)",
-                        (url,
-                         filename,
-                         timestamp)
-                        )
+            cur.execute("INSERT or REPLACE INTO Images VALUES(?, ?, ?)", (url, filename, timestamp))
 
     def get_image_from_cache(self, url):
 
@@ -177,15 +159,15 @@ class ImageFetcher(QObject):
 
             if row is None:
                 return None
-            else:
-                filename = row[0]
-                image_data = None
 
-                try:
-                    with open(filename, 'rb') as f:
-                        image_data = f.read()
-                        f.close()
-                except IOError as e:
-                    pass
+            filename = row[0]
+            image_data = None
 
-                return image_data
+            try:
+                with open(filename, "rb") as f:
+                    image_data = f.read()
+                    f.close()
+            except IOError:
+                pass
+
+            return image_data

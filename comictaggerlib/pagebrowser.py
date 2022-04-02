@@ -15,50 +15,49 @@
 # limitations under the License.
 
 import platform
-#import sys
-#import os
 
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
-from .settings import ComicTaggerSettings
-from .coverimagewidget import CoverImageWidget
+from comicapi.comicarchive import ComicArchive
+from comictaggerlib.coverimagewidget import CoverImageWidget
+from comictaggerlib.settings import ComicTaggerSettings
 
 
 class PageBrowserWindow(QtWidgets.QDialog):
-
     def __init__(self, parent, metadata):
-        super(PageBrowserWindow, self).__init__(parent)
+        super().__init__(parent)
 
-        uic.loadUi(ComicTaggerSettings.getUIFile('pagebrowser.ui'), self)
+        uic.loadUi(ComicTaggerSettings.get_ui_file("pagebrowser.ui"), self)
 
-        self.pageWidget = CoverImageWidget(
-            self.pageContainer, CoverImageWidget.ArchiveMode)
+        self.pageWidget = CoverImageWidget(self.pageContainer, CoverImageWidget.ArchiveMode)
         gridlayout = QtWidgets.QGridLayout(self.pageContainer)
         gridlayout.addWidget(self.pageWidget)
         gridlayout.setContentsMargins(0, 0, 0, 0)
         self.pageWidget.showControls = False
 
-        self.setWindowFlags(self.windowFlags() |
-                            QtCore.Qt.WindowSystemMenuHint |
-                            QtCore.Qt.WindowMaximizeButtonHint)
+        self.setWindowFlags(
+            QtCore.Qt.WindowType(
+                self.windowFlags()
+                | QtCore.Qt.WindowType.WindowSystemMenuHint
+                | QtCore.Qt.WindowType.WindowMaximizeButtonHint
+            )
+        )
 
         self.comic_archive = None
         self.page_count = 0
         self.current_page_num = 0
         self.metadata = metadata
 
-        self.buttonBox.button(QtWidgets.QDialogButtonBox.Close).setDefault(True)
+        self.buttonBox.button(QtWidgets.QDialogButtonBox.StandardButton.Close).setDefault(True)
         if platform.system() == "Darwin":
             self.btnPrev.setText("<<")
             self.btnNext.setText(">>")
         else:
-            self.btnPrev.setIcon(
-                QtGui.QIcon(ComicTaggerSettings.getGraphic('left.png')))
-            self.btnNext.setIcon(
-                QtGui.QIcon(ComicTaggerSettings.getGraphic('right.png')))
+            self.btnPrev.setIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("left.png")))
+            self.btnNext.setIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("right.png")))
 
-        self.btnNext.clicked.connect(self.nextPage)
-        self.btnPrev.clicked.connect(self.prevPage)
+        self.btnNext.clicked.connect(self.next_page)
+        self.btnPrev.clicked.connect(self.prev_page)
         self.show()
 
         self.btnNext.setEnabled(False)
@@ -74,41 +73,39 @@ class PageBrowserWindow(QtWidgets.QDialog):
         self.btnPrev.setEnabled(False)
         self.pageWidget.clear()
 
-    def setComicArchive(self, ca):
+    def set_comic_archive(self, ca: ComicArchive):
 
         self.comic_archive = ca
-        self.page_count = ca.getNumberOfPages()
+        self.page_count = ca.get_number_of_pages()
         self.current_page_num = 0
-        self.pageWidget.setArchive(self.comic_archive)
-        self.setPage()
+        self.pageWidget.set_archive(self.comic_archive)
+        self.set_page()
 
         if self.page_count > 1:
             self.btnNext.setEnabled(True)
             self.btnPrev.setEnabled(True)
 
-    def nextPage(self):
+    def next_page(self):
 
         if self.current_page_num + 1 < self.page_count:
             self.current_page_num += 1
         else:
             self.current_page_num = 0
-        self.setPage()
+        self.set_page()
 
-    def prevPage(self):
+    def prev_page(self):
 
         if self.current_page_num - 1 >= 0:
             self.current_page_num -= 1
         else:
             self.current_page_num = self.page_count - 1
-        self.setPage()
+        self.set_page()
 
-    def setPage(self):
+    def set_page(self):
         if self.metadata is not None:
-            archive_page_index = self.metadata.getArchivePageIndex(
-                self.current_page_num)
+            archive_page_index = self.metadata.get_archive_page_index(self.current_page_num)
         else:
             archive_page_index = self.current_page_num
 
-        self.pageWidget.setPage(archive_page_index)
-        self.setWindowTitle(
-            "Page Browser - Page {0} (of {1}) ".format(self.current_page_num + 1, self.page_count))
+        self.pageWidget.set_page(archive_page_index)
+        self.setWindowTitle(f"Page Browser - Page {self.current_page_num + 1} (of {self.page_count}) ")

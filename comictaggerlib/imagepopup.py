@@ -14,70 +14,58 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#import sys
-#import os
 
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
-from .settings import ComicTaggerSettings
+from comictaggerlib.settings import ComicTaggerSettings
 
 
 class ImagePopup(QtWidgets.QDialog):
-
     def __init__(self, parent, image_pixmap):
         super(ImagePopup, self).__init__(parent)
 
-        uic.loadUi(ComicTaggerSettings.getUIFile('imagepopup.ui'), self)
+        uic.loadUi(ComicTaggerSettings.get_ui_file("imagepopup.ui"), self)
 
-        QtWidgets.QApplication.setOverrideCursor(
-            QtGui.QCursor(QtCore.Qt.WaitCursor))
+        QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
 
-        # self.setWindowModality(QtCore.Qt.WindowModal)
-        self.setWindowFlags(QtCore.Qt.Popup)
-        self.setWindowState(QtCore.Qt.WindowFullScreen)
+        self.setWindowFlags(QtCore.Qt.WindowType.Popup)
+        self.setWindowState(QtCore.Qt.WindowState.WindowFullScreen)
 
         self.imagePixmap = image_pixmap
 
-        screen_size = QtWidgets.QDesktopWidget().screenGeometry()
+        screen_size = QtGui.QGuiApplication.primaryScreen().geometry()
+        QtWidgets.QApplication.primaryScreen()
         self.resize(screen_size.width(), screen_size.height())
         self.move(0, 0)
 
         # This is a total hack.  Uses a snapshot of the desktop, and overlays a
-        # translucent screen over it.  Probably can do it better by setting opacity of a
-        # widget
+        # translucent screen over it.  Probably can do it better by setting opacity of a widget
+        # TODO: macOS denies this
         screen = QtWidgets.QApplication.primaryScreen()
-        self.desktopBg = screen.grabWindow(
-            QtWidgets.QApplication.desktop().winId(),
-            0,
-            0,
-            screen_size.width(),
-            screen_size.height())
-        bg = QtGui.QPixmap(ComicTaggerSettings.getGraphic('popup_bg.png'))
-        self.clientBgPixmap = bg.scaled(
-            screen_size.width(), screen_size.height())
+        self.desktopBg = screen.grabWindow(0, 0, 0, screen_size.width(), screen_size.height())
+        bg = QtGui.QPixmap(ComicTaggerSettings.get_graphic("popup_bg.png"))
+        self.clientBgPixmap = bg.scaled(screen_size.width(), screen_size.height())
         self.setMask(self.clientBgPixmap.mask())
 
-        self.applyImagePixmap()
+        self.apply_image_pixmap()
         self.showFullScreen()
         self.raise_()
         QtWidgets.QApplication.restoreOverrideCursor()
 
     def paintEvent(self, event):
-        self.painter = QtGui.QPainter(self)
-        self.painter.setRenderHint(QtGui.QPainter.Antialiasing)
-        self.painter.drawPixmap(0, 0, self.desktopBg)
-        self.painter.drawPixmap(0, 0, self.clientBgPixmap)
-        self.painter.end()
+        painter = QtGui.QPainter(self)
+        painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
+        painter.drawPixmap(0, 0, self.desktopBg)
+        painter.drawPixmap(0, 0, self.clientBgPixmap)
+        painter.end()
 
-    def applyImagePixmap(self):
+    def apply_image_pixmap(self):
         win_h = self.height()
         win_w = self.width()
 
-        if self.imagePixmap.width(
-        ) > win_w or self.imagePixmap.height() > win_h:
+        if self.imagePixmap.width() > win_w or self.imagePixmap.height() > win_h:
             # scale the pixmap to fit in the frame
-            display_pixmap = self.imagePixmap.scaled(
-                win_w, win_h, QtCore.Qt.KeepAspectRatio)
+            display_pixmap = self.imagePixmap.scaled(win_w, win_h, QtCore.Qt.AspectRatioMode.KeepAspectRatio)
             self.lblImage.setPixmap(display_pixmap)
         else:
             display_pixmap = self.imagePixmap

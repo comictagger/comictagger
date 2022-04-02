@@ -18,14 +18,17 @@
 # limitations under the License.
 
 import shutil
-#import sys
-#import os
-#import platform
 
-from comictaggerlib.settings import *
 from comicapi.comicarchive import *
-#from comicapi.issuestring import *
-#import comicapi.utils
+from comictaggerlib.settings import *
+
+# import sys
+# import os
+# import platform
+
+
+# from comicapi.issuestring import *
+# import comicapi.utils
 
 
 def make_folder(folder):
@@ -52,8 +55,7 @@ def main():
         print >> sys.stderr, "Sorry, this script works only on UNIX systems"
 
     if len(sys.argv) < 3:
-        print >> sys.stderr, "Usage: {0} [comic_root][tree_root]".format(
-            sys.argv[0])
+        print >> sys.stderr, "Usage: {0} [comic_root][tree_root]".format(sys.argv[0])
         return
 
     comic_root = sys.argv[1]
@@ -78,7 +80,7 @@ def main():
     max_name_len = 2
     fmt_str = ""
     for filename in filelist:
-        ca = ComicArchive(filename, settings.rar_exe_path, ComicTaggerSettings.getGraphic('nocover.png'))
+        ca = ComicArchive(filename, settings.rar_exe_path, ComicTaggerSettings.getGraphic("nocover.png"))
         if ca.seemsToBeAComicArchive() and ca.hasMetadata(style):
 
             comic_list.append((filename, ca.readMetadata(style)))
@@ -107,12 +109,11 @@ def main():
             series_name = series_name.replace("/", "-")
             series_name = series_name.replace("?", "")
         series_folder = os.path.join(
-            tree_root,
-            unicode(publisher_name),
-            unicode(series_name) + " (" + unicode(start_year) + ")")
+            tree_root, unicode(publisher_name), unicode(series_name) + " (" + unicode(start_year) + ")"
+        )
         make_folder(series_folder)
-        move_file(filename, os.path.join(
-            series_folder, os.path.basename(filename)))
+        move_file(filename, os.path.join(series_folder, os.path.basename(filename)))
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

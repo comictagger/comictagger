@@ -16,16 +16,19 @@
 # limitations under the License.
 
 import shutil
-#import sys
-#import os
-#import tempfile
-#import zipfile
 
 import Image
 
-from comictaggerlib.settings import *
 from comictaggerlib.comicarchive import *
-#import comictaggerlib.utils
+from comictaggerlib.settings import *
+
+# import sys
+# import os
+# import tempfile
+# import zipfile
+
+
+# import comictaggerlib.utils
 
 
 subfolder_name = "ORIGINALS"
@@ -52,7 +55,7 @@ def main():
     for filename in filelist:
 
         ca = ComicArchive(filename, settings.rar_exe_path)
-        if (ca.seemsToBeAComicArchive()):
+        if ca.seemsToBeAComicArchive():
             # Check the images in the file, see if we need to reduce any
 
             for idx in range(ca.getNumberOfPages()):
@@ -66,8 +69,7 @@ def main():
 
                             max_name_len = max(max_name_len, len(filename))
                             fmt_str = u"{{0:{0}}}".format(max_name_len)
-                            print >> sys.stderr, fmt_str.format(
-                                filename) + "\r",
+                            print >> sys.stderr, fmt_str.format(filename) + "\r",
                             sys.stderr.flush()
                             break
 
@@ -99,8 +101,7 @@ def main():
         if not os.access(filename, os.W_OK):
             print "Can't move: {0}: skipped!".format(filename)
             continue
-        if not os.path.exists(curr_subfolder) and not os.access(
-                curr_folder, os.W_OK):
+        if not os.path.exists(curr_subfolder) and not os.access(curr_folder, os.W_OK):
             print "Can't create subfolder here: {0}: skipped!".format(filename)
             continue
         if not os.path.exists(curr_subfolder):
@@ -118,7 +119,7 @@ def main():
             cix_md = ca.readCIX()
 
         try:
-            zout = zipfile.ZipFile(tmp_name, 'w')
+            zout = zipfile.ZipFile(tmp_name, "w")
 
             # Check the images in the file, see if we want to reduce them
             page_count = ca.getNumberOfPages()
@@ -133,7 +134,7 @@ def main():
                         w, h = im.size
                         if h > max_height:
                             # resize the image
-                            hpercent = (max_height / float(h))
+                            hpercent = max_height / float(h)
                             wsize = int((float(w) * float(hpercent)))
                             size = (wsize, max_height)
                             im = im.resize(size, Image.ANTIALIAS)
@@ -151,7 +152,7 @@ def main():
                     # page is empty?? nothing to write
                     out_data = ""
 
-                sys.stdout.write('.')
+                sys.stdout.write(".")
                 sys.stdout.flush()
 
                 # write out the new resized image
@@ -186,5 +187,5 @@ def main():
                 ca.writeCIX(cix_md)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

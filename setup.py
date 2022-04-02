@@ -77,5 +77,5 @@ setup(
     keywords=["comictagger", "comics", "comic", "metadata", "tagging", "tagger"],
     license="Apache License 2.0",
     long_description=read("README.md"),
-    long_description_content_type='text/markdown'
+    long_description_content_type="text/markdown",
 )

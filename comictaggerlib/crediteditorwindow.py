@@ -14,23 +14,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#import os
 
-from PyQt5 import QtCore, QtGui, QtWidgets, uic
+from PyQt5 import QtCore, QtWidgets, uic
 
-from .settings import ComicTaggerSettings
+from comictaggerlib.settings import ComicTaggerSettings
 
 
 class CreditEditorWindow(QtWidgets.QDialog):
-
     ModeEdit = 0
     ModeNew = 1
 
     def __init__(self, parent, mode, role, name, primary):
-        super(CreditEditorWindow, self).__init__(parent)
+        super().__init__(parent)
 
-        uic.loadUi(
-            ComicTaggerSettings.getUIFile('crediteditorwindow.ui'), self)
+        uic.loadUi(ComicTaggerSettings.get_ui_file("crediteditorwindow.ui"), self)
 
         self.mode = mode
 
@@ -63,34 +60,33 @@ class CreditEditorWindow(QtWidgets.QDialog):
                 self.cbRole.setCurrentIndex(i)
 
         if primary:
-            self.cbPrimary.setCheckState(QtCore.Qt.Checked)
+            self.cbPrimary.setCheckState(QtCore.Qt.CheckState.Checked)
 
-        self.cbRole.currentIndexChanged.connect(self.roleChanged)
-        self.cbRole.editTextChanged.connect(self.roleChanged)
+        self.cbRole.currentIndexChanged.connect(self.role_changed)
+        self.cbRole.editTextChanged.connect(self.role_changed)
 
-        self.updatePrimaryButton()
+        self.update_primary_button()
 
-    def updatePrimaryButton(self):
-        enabled = self.currentRoleCanBePrimary()
+    def update_primary_button(self):
+        enabled = self.current_role_can_be_primary()
         self.cbPrimary.setEnabled(enabled)
 
-    def currentRoleCanBePrimary(self):
+    def current_role_can_be_primary(self):
         role = self.cbRole.currentText()
         if str(role).lower() == "writer" or str(role).lower() == "artist":
             return True
-        else:
-            return False
 
-    def roleChanged(self, s):
-        self.updatePrimaryButton()
+        return False
 
-    def getCredits(self):
-        primary = self.currentRoleCanBePrimary() and self.cbPrimary.isChecked()
+    def role_changed(self, s):
+        self.update_primary_button()
+
+    def get_credits(self):
+        primary = self.current_role_can_be_primary() and self.cbPrimary.isChecked()
         return self.cbRole.currentText(), self.leName.text(), primary
 
     def accept(self):
         if self.cbRole.currentText() == "" or self.leName.text() == "":
-            QtWidgets.QMessageBox.warning(self, self.tr("Whoops"), self.tr(
-                "You need to enter both role and name for a credit."))
+            QtWidgets.QMessageBox.warning(self, "Whoops", "You need to enter both role and name for a credit.")
         else:
             QtWidgets.QDialog.accept(self)

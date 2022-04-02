@@ -2,5 +2,6 @@
 import localefix
 from comictaggerlib.main import ctmain
 
-if __name__ == '__main__':
+if __name__ == "__main__":
+    localefix.configure_locale()
     ctmain()

@@ -14,16 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from PyQt5 import QtCore, QtGui, uic
-from PyQt5.QtCore import pyqtSignal
+from PyQt5 import QtCore
 
-from comictaggerlib.ui.qtutils import getQImageFromData
-#from comicarchive import ComicArchive
-#import utils
+from comicapi.comicarchive import ComicArchive
 
 
 class PageLoader(QtCore.QThread):
-
     """
     This class holds onto a reference of each instance in a list since
     problems occur if the ref count goes to zero and the GC tries to reap
@@ -32,39 +28,36 @@ class PageLoader(QtCore.QThread):
     "abandoned", and no signals will be issued.
     """
 
-    loadComplete = pyqtSignal(QtGui.QImage)
+    loadComplete = QtCore.pyqtSignal(bytes)
 
     instanceList = []
     mutex = QtCore.QMutex()
 
     # Remove all finished threads from the list
     @staticmethod
-    def reapInstances():
+    def reap_instances():
         for obj in reversed(PageLoader.instanceList):
             if obj.isFinished():
                 PageLoader.instanceList.remove(obj)
 
-    def __init__(self, ca, page_num):
+    def __init__(self, ca: ComicArchive, page_num):
         QtCore.QThread.__init__(self)
-        self.ca = ca
-        self.page_num = page_num
+        self.ca: ComicArchive = ca
+        self.page_num: int = page_num
         self.abandoned = False
 
         # remove any old instances, and then add ourself
         PageLoader.mutex.lock()
-        PageLoader.reapInstances()
+        PageLoader.reap_instances()
         PageLoader.instanceList.append(self)
         PageLoader.mutex.unlock()
 
     def run(self):
-        image_data = self.ca.getPage(self.page_num)
+        image_data = self.ca.get_page(self.page_num)
         if self.abandoned:
             return
 
         if image_data is not None:
-            img = getQImageFromData(image_data)
-
             if self.abandoned:
                 return
-
-            self.loadComplete.emit(img)
+            self.loadComplete.emit(image_data)

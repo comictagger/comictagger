@@ -15,49 +15,50 @@
 # limitations under the License.
 
 import os
+from typing import List
 
-from PyQt5 import QtCore, QtGui, QtWidgets, uic
+from PyQt5 import QtCore, QtWidgets, uic
 
-from .settings import ComicTaggerSettings
-from .settingswindow import SettingsWindow
-from .filerenamer import FileRenamer
-from .comicarchive import MetaDataStyle
-from comictaggerlib.ui.qtutils import  centerWindowOnParent
-from . import utils
+import comicapi.comicarchive
+from comicapi import utils
+from comicapi.comicarchive import MetaDataStyle
+from comictaggerlib.filerenamer import FileRenamer
+from comictaggerlib.settings import ComicTaggerSettings
+from comictaggerlib.settingswindow import SettingsWindow
+from comictaggerlib.ui.qtutils import center_window_on_parent
 
 
 class RenameWindow(QtWidgets.QDialog):
+    def __init__(self, parent, comic_archive_list: List[comicapi.comicarchive.ComicArchive], data_style, settings):
+        super().__init__(parent)
 
-    def __init__(self, parent, comic_archive_list, data_style, settings):
-        super(RenameWindow, self).__init__(parent)
+        uic.loadUi(ComicTaggerSettings.get_ui_file("renamewindow.ui"), self)
+        self.label.setText(f"Preview (based on {MetaDataStyle.name[data_style]} tags):")
 
-        uic.loadUi(ComicTaggerSettings.getUIFile('renamewindow.ui'), self)
-        self.label.setText(
-            "Preview (based on {0} tags):".format(
-                MetaDataStyle.name[data_style]))
-
-        self.setWindowFlags(self.windowFlags() |
-                            QtCore.Qt.WindowSystemMenuHint |
-                            QtCore.Qt.WindowMaximizeButtonHint)
+        self.setWindowFlags(
+            QtCore.Qt.WindowType(
+                self.windowFlags()
+                | QtCore.Qt.WindowType.WindowSystemMenuHint
+                | QtCore.Qt.WindowType.WindowMaximizeButtonHint
+            )
+        )
 
         self.settings = settings
         self.comic_archive_list = comic_archive_list
         self.data_style = data_style
-
-        self.btnSettings.clicked.connect(self.modifySettings)
-        self.configRenamer()
-        self.doPreview()
-
-    def configRenamer(self):
-        self.renamer = FileRenamer(None)
-        self.renamer.setTemplate(self.settings.rename_template)
-        self.renamer.setIssueZeroPadding(
-            self.settings.rename_issue_number_padding)
-        self.renamer.setSmartCleanup(
-            self.settings.rename_use_smart_string_cleanup)
-
-    def doPreview(self):
         self.rename_list = []
+
+        self.btnSettings.clicked.connect(self.modify_settings)
+        self.renamer = FileRenamer(None)
+        self.config_renamer()
+        self.do_preview()
+
+    def config_renamer(self):
+        self.renamer.set_template(self.settings.rename_template)
+        self.renamer.set_issue_zero_padding(self.settings.rename_issue_number_padding)
+        self.renamer.set_smart_cleanup(self.settings.rename_use_smart_string_cleanup)
+
+    def do_preview(self):
         while self.twList.rowCount() > 0:
             self.twList.removeRow(0)
 
@@ -67,18 +68,18 @@ class RenameWindow(QtWidgets.QDialog):
 
             new_ext = None  # default
             if self.settings.rename_extension_based_on_archive:
-                if ca.isSevenZip():
+                if ca.is_sevenzip():
                     new_ext = ".cb7"
-                elif ca.isZip():
+                elif ca.is_zip():
                     new_ext = ".cbz"
-                elif ca.isRar():
+                elif ca.is_rar():
                     new_ext = ".cbr"
 
-            md = ca.readMetadata(self.data_style)
-            if md.isEmpty:
-                md = ca.metadataFromFilename(self.settings.parse_scan_info)
-            self.renamer.setMetadata(md)
-            new_name = self.renamer.determineName(ca.path, ext=new_ext)
+            md = ca.read_metadata(self.data_style)
+            if md.is_empty:
+                md = ca.metadata_from_filename(self.settings.parse_scan_info)
+            self.renamer.set_metadata(md)
+            new_name = self.renamer.determine_name(ca.path, ext=new_ext)
 
             row = self.twList.rowCount()
             self.twList.insertRow(row)
@@ -87,28 +88,25 @@ class RenameWindow(QtWidgets.QDialog):
             new_name_item = QtWidgets.QTableWidgetItem()
 
             item_text = os.path.split(ca.path)[0]
-            folder_item.setFlags(
-                QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
+            folder_item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
             self.twList.setItem(row, 0, folder_item)
             folder_item.setText(item_text)
-            folder_item.setData(QtCore.Qt.ToolTipRole, item_text)
+            folder_item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
 
             item_text = os.path.split(ca.path)[1]
-            old_name_item.setFlags(
-                QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
+            old_name_item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
             self.twList.setItem(row, 1, old_name_item)
             old_name_item.setText(item_text)
-            old_name_item.setData(QtCore.Qt.ToolTipRole, item_text)
+            old_name_item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
 
-            new_name_item.setFlags(
-                QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
+            new_name_item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
             self.twList.setItem(row, 2, new_name_item)
             new_name_item.setText(new_name)
-            new_name_item.setData(QtCore.Qt.ToolTipRole, new_name)
+            new_name_item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, new_name)
 
-            dict_item = dict()
-            dict_item['archive'] = ca
-            dict_item['new_name'] = new_name
+            dict_item = {}
+            dict_item["archive"] = ca
+            dict_item["new_name"] = new_name
             self.rename_list.append(dict_item)
 
         # Adjust column sizes
@@ -120,53 +118,50 @@ class RenameWindow(QtWidgets.QDialog):
 
         self.twList.setSortingEnabled(True)
 
-    def modifySettings(self):
+    def modify_settings(self):
         settingswin = SettingsWindow(self, self.settings)
         settingswin.setModal(True)
-        settingswin.showRenameTab()
-        settingswin.exec_()
+        settingswin.show_rename_tab()
+        settingswin.exec()
         if settingswin.result():
-            self.configRenamer()
-            self.doPreview()
+            self.config_renamer()
+            self.do_preview()
 
     def accept(self):
 
-        progdialog = QtWidgets.QProgressDialog(
-            "", "Cancel", 0, len(self.rename_list), self)
-        progdialog.setWindowTitle("Renaming Archives")
-        progdialog.setWindowModality(QtCore.Qt.WindowModal)
-        progdialog.setMinimumDuration(100)
-        centerWindowOnParent(progdialog)
-        #progdialog.show()
+        prog_dialog = QtWidgets.QProgressDialog("", "Cancel", 0, len(self.rename_list), self)
+        prog_dialog.setWindowTitle("Renaming Archives")
+        prog_dialog.setWindowModality(QtCore.Qt.WindowModality.WindowModal)
+        prog_dialog.setMinimumDuration(100)
+        center_window_on_parent(prog_dialog)
         QtCore.QCoreApplication.processEvents()
 
         for idx, item in enumerate(self.rename_list):
 
             QtCore.QCoreApplication.processEvents()
-            if progdialog.wasCanceled():
+            if prog_dialog.wasCanceled():
                 break
             idx += 1
-            progdialog.setValue(idx)
-            progdialog.setLabelText(item['new_name'])
-            centerWindowOnParent(progdialog)
+            prog_dialog.setValue(idx)
+            prog_dialog.setLabelText(item["new_name"])
+            center_window_on_parent(prog_dialog)
             QtCore.QCoreApplication.processEvents()
 
-            if item['new_name'] == os.path.basename(item['archive'].path):
-                print(item['new_name'], "Filename is already good!")
+            if item["new_name"] == os.path.basename(item["archive"].path):
+                print(item["new_name"], "Filename is already good!")
                 continue
 
-            if not item['archive'].isWritable(check_rar_status=False):
+            if not item["archive"].is_writable(check_rar_status=False):
                 continue
 
-            folder = os.path.dirname(os.path.abspath(item['archive'].path))
-            new_abs_path = utils.unique_file(
-                os.path.join(folder, item['new_name']))
+            folder = os.path.dirname(os.path.abspath(item["archive"].path))
+            new_abs_path = utils.unique_file(os.path.join(folder, item["new_name"]))
 
-            os.rename(item['archive'].path, new_abs_path)
+            os.rename(item["archive"].path, new_abs_path)
 
-            item['archive'].rename(new_abs_path)
+            item["archive"].rename(new_abs_path)
 
-        progdialog.hide()
+        prog_dialog.hide()
         QtCore.QCoreApplication.processEvents()
 
         QtWidgets.QDialog.accept(self)

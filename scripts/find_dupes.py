@@ -1,12 +1,13 @@
 #!/usr/bin/python
 """Find all duplicate comics"""
 
-#import sys
+# import sys
 
 from comictaggerlib.comicarchive import *
 from comictaggerlib.settings import *
-#from comictaggerlib.issuestring import *
-#import comictaggerlib.utils
+
+# from comictaggerlib.issuestring import *
+# import comictaggerlib.utils
 
 
 def main():
@@ -42,13 +43,13 @@ def main():
 
     # sort the list by series+issue+year, to put all the dupes together
     def makeKey(x):
-        return "<" + unicode(x[1].series) + u" #" + \
-            unicode(x[1].issue) + u" - " + unicode(x[1].year) + ">"
+        return "<" + unicode(x[1].series) + u" #" + unicode(x[1].issue) + u" - " + unicode(x[1].year) + ">"
+
     comic_list.sort(key=makeKey, reverse=False)
 
     # look for duplicate blocks
-    dupe_set_list = list()
-    dupe_set = list()
+    dupe_set_list = []
+    dupe_set = []
     prev_key = ""
     for filename, md in comic_list:
         print >> sys.stderr, fmt_str.format(filename) + "\r",
@@ -65,7 +66,7 @@ def main():
             # only add if the dupe list has 2 or more
             if len(dupe_set) > 1:
                 dupe_set_list.append(dupe_set)
-            dupe_set = list()
+            dupe_set = []
             dupe_set.append(filename)
 
         prev_key = new_key
@@ -80,5 +81,6 @@ def main():
         for filename in dupe_set:
             print "------>{0}".format(filename)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

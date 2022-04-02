@@ -5,7 +5,7 @@
 # binary to call the CT script.  This is all so that the
 # Mac menu doesn't say "Python".
 
-realpath() 
+realpath()
 {
     [[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"
 }

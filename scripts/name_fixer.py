@@ -17,34 +17,27 @@
 
 import argparse
 import json
-#import sys
-#import os
-#import re
 
 from comictaggerlib.comicarchive import *
-from comictaggerlib.settings import *
 from comictaggerlib.filerenamer import *
-#import comictaggerlib.utils
+from comictaggerlib.settings import *
+
+# import sys
+# import os
+# import re
+
+
+# import comictaggerlib.utils
 
 
 def parse_args():
 
     input_args = sys.argv[1:]
 
-    parser = argparse.ArgumentParser(
-        description='A script to rename comic files')
-    parser.add_argument(
-        '-t',
-        '--transforms',
-        metavar='xformfile',
-        help="The file with transforms")
-    parser.add_argument(
-        '-n',
-        '--noconfirm',
-        action='store_true',
-        help="Don't confirm before rename")
-    parser.add_argument('paths', metavar='PATH', type=str,
-                        nargs='+', help='path to look for comic files')
+    parser = argparse.ArgumentParser(description="A script to rename comic files")
+    parser.add_argument("-t", "--transforms", metavar="xformfile", help="The file with transforms")
+    parser.add_argument("-n", "--noconfirm", action="store_true", help="Don't confirm before rename")
+    parser.add_argument("paths", metavar="PATH", type=str, nargs="+", help="path to look for comic files")
     parsed_args = parser.parse_args(input_args)
 
     return parsed_args
@@ -60,8 +53,7 @@ def calculate_rename(ca, md, settings):
             new_ext = ".cbr"
 
     renamer = FileRenamer(md)
-    renamer.setTemplate(
-        "%series% V%volume% #%issue% (of %issuecount%) (%year%) %scaninfo%")
+    renamer.setTemplate("%series% V%volume% #%issue% (of %issuecount%) (%year%) %scaninfo%")
     renamer.setIssueZeroPadding(0)
     renamer.setSmartCleanup(settings.rename_use_smart_string_cleanup)
 
@@ -96,11 +88,11 @@ def main():
         print "Reading in transforms from:", parsed_args.transforms
         json_data = open(parsed_args.transforms).read()
         data = json.loads(json_data)
-        xform_list = data['xforms']
+        xform_list = data["xforms"]
     else:
         xform_list = default_xform_list
 
-    #pprint( xform_list, indent=4)
+    # pprint( xform_list, indent=4)
 
     filelist = utils.get_recursive_filelist(parsed_args.paths)
 
@@ -124,7 +116,7 @@ def main():
     print >> sys.stderr, fmt_str.format("")
     print "Found {0} comics.".format(len(comic_list))
 
-    modify_list = list()
+    modify_list = []
     # walk through the comic list fix the file names
     for ca in comic_list:
 
@@ -153,11 +145,12 @@ def main():
                 print u"'{0}' -> '{1}'".format(os.path.basename(old_name), new_name)
 
             i = raw_input("Do you want to proceed with rename? [y/N] ")
-            if i.lower() not in ('y', 'yes'):
+            if i.lower() not in ("y", "yes"):
                 print "exiting without rename."
                 sys.exit(0)
 
         perform_rename(modify_list)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

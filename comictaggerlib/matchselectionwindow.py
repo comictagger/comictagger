@@ -15,69 +15,62 @@
 # limitations under the License.
 
 import os
-#import sys
 
-from PyQt5 import QtCore, QtGui, QtWidgets, uic
-#from PyQt5.QtCore import QUrl, pyqtSignal, QByteArray
+from PyQt5 import QtCore, QtWidgets, uic
 
-from .settings import ComicTaggerSettings
-from .coverimagewidget import CoverImageWidget
-from comictaggerlib.ui.qtutils import reduceWidgetFontSize
-#from imagefetcher import ImageFetcher
-#from comicarchive import MetaDataStyle
-#from comicvinetalker import ComicVineTalker
-#import utils
+from comictaggerlib.coverimagewidget import CoverImageWidget
+from comictaggerlib.settings import ComicTaggerSettings
+from comictaggerlib.ui.qtutils import reduce_widget_font_size
 
 
 class MatchSelectionWindow(QtWidgets.QDialog):
-
     volume_id = 0
 
     def __init__(self, parent, matches, comic_archive):
-        super(MatchSelectionWindow, self).__init__(parent)
+        super().__init__(parent)
 
-        uic.loadUi(
-            ComicTaggerSettings.getUIFile('matchselectionwindow.ui'), self)
+        uic.loadUi(ComicTaggerSettings.get_ui_file("matchselectionwindow.ui"), self)
 
-        self.altCoverWidget = CoverImageWidget(
-            self.altCoverContainer, CoverImageWidget.AltCoverMode)
+        self.altCoverWidget = CoverImageWidget(self.altCoverContainer, CoverImageWidget.AltCoverMode)
         gridlayout = QtWidgets.QGridLayout(self.altCoverContainer)
         gridlayout.addWidget(self.altCoverWidget)
         gridlayout.setContentsMargins(0, 0, 0, 0)
 
-        self.archiveCoverWidget = CoverImageWidget(
-            self.archiveCoverContainer, CoverImageWidget.ArchiveMode)
+        self.archiveCoverWidget = CoverImageWidget(self.archiveCoverContainer, CoverImageWidget.ArchiveMode)
         gridlayout = QtWidgets.QGridLayout(self.archiveCoverContainer)
         gridlayout.addWidget(self.archiveCoverWidget)
         gridlayout.setContentsMargins(0, 0, 0, 0)
 
-        reduceWidgetFontSize(self.twList)
-        reduceWidgetFontSize(self.teDescription, 1)
+        reduce_widget_font_size(self.twList)
+        reduce_widget_font_size(self.teDescription, 1)
 
-        self.setWindowFlags(self.windowFlags() |
-                            QtCore.Qt.WindowSystemMenuHint |
-                            QtCore.Qt.WindowMaximizeButtonHint)
+        self.setWindowFlags(
+            QtCore.Qt.WindowType(
+                self.windowFlags()
+                | QtCore.Qt.WindowType.WindowSystemMenuHint
+                | QtCore.Qt.WindowType.WindowMaximizeButtonHint
+            )
+        )
 
         self.matches = matches
         self.comic_archive = comic_archive
 
-        self.twList.currentItemChanged.connect(self.currentItemChanged)
-        self.twList.cellDoubleClicked.connect(self.cellDoubleClicked)
+        self.twList.currentItemChanged.connect(self.current_item_changed)
+        self.twList.cellDoubleClicked.connect(self.cell_double_clicked)
 
-        self.updateData()
+        self.update_data()
 
-    def updateData(self):
+    def update_data(self):
 
-        self.setCoverImage()
-        self.populateTable()
+        self.set_cover_image()
+        self.populate_table()
         self.twList.resizeColumnsToContents()
         self.twList.selectRow(0)
 
         path = self.comic_archive.path
-        self.setWindowTitle("Select correct match: {0}".format(
-            os.path.split(path)[1]))
+        self.setWindowTitle(f"Select correct match: {os.path.split(path)[1]}")
 
-    def populateTable(self):
+    def populate_table(self):
 
         while self.twList.rowCount() > 0:
             self.twList.removeRow(0)
@@ -88,73 +81,72 @@ class MatchSelectionWindow(QtWidgets.QDialog):
         for match in self.matches:
             self.twList.insertRow(row)
 
-            item_text = match['series']
+            item_text = match["series"]
             item = QtWidgets.QTableWidgetItem(item_text)
-            item.setData(QtCore.Qt.ToolTipRole, item_text)
-            item.setData(QtCore.Qt.UserRole, (match,))
-            item.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
+            item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
+            item.setData(QtCore.Qt.ItemDataRole.UserRole, (match,))
+            item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
             self.twList.setItem(row, 0, item)
 
-            if match['publisher'] is not None:
-                item_text = "{0}".format(match['publisher'])
+            if match["publisher"] is not None:
+                item_text = str(match["publisher"])
             else:
                 item_text = "Unknown"
             item = QtWidgets.QTableWidgetItem(item_text)
-            item.setData(QtCore.Qt.ToolTipRole, item_text)
-            item.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
+            item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
+            item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
             self.twList.setItem(row, 1, item)
 
             month_str = ""
             year_str = "????"
-            if match['month'] is not None:
-                month_str = "-{0:02d}".format(int(match['month']))
-            if match['year'] is not None:
-                year_str = "{0}".format(match['year'])
+            if match["month"] is not None:
+                month_str = f"-{int(match['month']):02d}"
+            if match["year"] is not None:
+                year_str = str(match["year"])
 
             item_text = year_str + month_str
             item = QtWidgets.QTableWidgetItem(item_text)
-            item.setData(QtCore.Qt.ToolTipRole, item_text)
-            item.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
+            item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
+            item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
             self.twList.setItem(row, 2, item)
 
-            item_text = match['issue_title']
+            item_text = match["issue_title"]
             if item_text is None:
                 item_text = ""
             item = QtWidgets.QTableWidgetItem(item_text)
-            item.setData(QtCore.Qt.ToolTipRole, item_text)
-            item.setFlags(QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled)
+            item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
+            item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
             self.twList.setItem(row, 3, item)
 
             row += 1
 
         self.twList.resizeColumnsToContents()
         self.twList.setSortingEnabled(True)
-        self.twList.sortItems(2, QtCore.Qt.AscendingOrder)
+        self.twList.sortItems(2, QtCore.Qt.SortOrder.AscendingOrder)
         self.twList.selectRow(0)
         self.twList.resizeColumnsToContents()
         self.twList.horizontalHeader().setStretchLastSection(True)
 
-    def cellDoubleClicked(self, r, c):
+    def cell_double_clicked(self, r, c):
         self.accept()
 
-    def currentItemChanged(self, curr, prev):
+    def current_item_changed(self, curr, prev):
 
         if curr is None:
             return
         if prev is not None and prev.row() == curr.row():
             return
 
-        self.altCoverWidget.setIssueID(self.currentMatch()['issue_id'])
-        if self.currentMatch()['description'] is None:
+        self.altCoverWidget.set_issue_id(self.current_match()["issue_id"])
+        if self.current_match()["description"] is None:
             self.teDescription.setText("")
         else:
-            self.teDescription.setText(self.currentMatch()['description'])
+            self.teDescription.setText(self.current_match()["description"])
 
-    def setCoverImage(self):
-        self.archiveCoverWidget.setArchive(self.comic_archive)
+    def set_cover_image(self):
+        self.archiveCoverWidget.set_archive(self.comic_archive)
 
-    def currentMatch(self):
+    def current_match(self):
         row = self.twList.currentRow()
-        match = self.twList.item(row, 0).data(
-            QtCore.Qt.UserRole)[0]
+        match = self.twList.item(row, 0).data(QtCore.Qt.ItemDataRole.UserRole)[0]
         return match

@@ -1,4 +1,4 @@
-"""A PyQT5 dialog to show ID log and progress"""
+"""A PyQt5 dialog to show ID log and progress"""
 
 # Copyright 2012-2014 Anthony Beville
 
@@ -14,25 +14,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#import sys
-#import os
 
-from PyQt5 import QtCore, QtGui, QtWidgets, uic
+from PyQt5 import QtCore, QtWidgets, uic
 
-from comictaggerlib.ui.qtutils import reduceWidgetFontSize
-from .settings import ComicTaggerSettings
-#import utils
+from comictaggerlib.settings import ComicTaggerSettings
+from comictaggerlib.ui.qtutils import reduce_widget_font_size
 
 
 class IDProgressWindow(QtWidgets.QDialog):
-
     def __init__(self, parent):
-        super(IDProgressWindow, self).__init__(parent)
+        super().__init__(parent)
 
-        uic.loadUi(ComicTaggerSettings.getUIFile('progresswindow.ui'), self)
+        uic.loadUi(ComicTaggerSettings.get_ui_file("progresswindow.ui"), self)
 
-        self.setWindowFlags(self.windowFlags() |
-                            QtCore.Qt.WindowSystemMenuHint |
-                            QtCore.Qt.WindowMaximizeButtonHint)
+        self.setWindowFlags(
+            QtCore.Qt.WindowType(
+                self.windowFlags()
+                | QtCore.Qt.WindowType.WindowSystemMenuHint
+                | QtCore.Qt.WindowType.WindowMaximizeButtonHint
+            )
+        )
 
-        reduceWidgetFontSize(self.textEdit)
+        reduce_widget_font_size(self.textEdit)

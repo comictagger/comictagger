@@ -1,1 +1,0 @@
-from comicapi.genericmetadata import *

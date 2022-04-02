@@ -18,14 +18,15 @@ organizing by date and series, in different trees
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#import sys
-#import os
-#import platform
+# import sys
+# import os
+# import platform
 
 from comictaggerlib.comicarchive import *
 from comictaggerlib.settings import *
-#from comictaggerlib.issuestring import *
-#import comictaggerlib.utils
+
+# from comictaggerlib.issuestring import *
+# import comictaggerlib.utils
 
 
 def make_folder(folder):
@@ -52,8 +53,7 @@ def main():
         print >> sys.stderr, "Sorry, this script works only on UNIX systems"
 
     if len(sys.argv) < 3:
-        print >> sys.stderr, "Usage: {0} [comic_root][link_root]".format(
-            sys.argv[0])
+        print >> sys.stderr, "Usage: {0} [comic_root][link_root]".format(sys.argv[0])
         return
 
     comic_root = sys.argv[1]
@@ -93,8 +93,7 @@ def main():
             month_str = "00"
         date_folder = os.path.join(link_root, "date", str(md.year), month_str)
         make_folder(date_folder)
-        make_link(
-            filename, os.path.join(date_folder, os.path.basename(filename)))
+        make_link(filename, os.path.join(date_folder, os.path.basename(filename)))
 
         # do publisher/series organizing:
         fixed_series_name = md.series
@@ -102,11 +101,10 @@ def main():
             # some tweaks to keep various filesystems happy
             fixed_series_name = fixed_series_name.replace("/", "-")
             fixed_series_name = fixed_series_name.replace("?", "")
-        series_folder = os.path.join(
-            link_root, "series", str(md.publisher), unicode(fixed_series_name))
+        series_folder = os.path.join(link_root, "series", str(md.publisher), unicode(fixed_series_name))
         make_folder(series_folder)
-        make_link(filename, os.path.join(
-            series_folder, os.path.basename(filename)))
+        make_link(filename, os.path.join(series_folder, os.path.basename(filename)))
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
