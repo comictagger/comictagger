@@ -31,6 +31,8 @@ from PyQt5 import QtCore, QtGui, QtWidgets, uic
 from PyQt5 import QtNetwork
 from PyQt5.QtCore import QUrl
 
+from urllib.parse import urlparse
+
 #from comicarchive import ComicArchive
 #from pageloader import PageLoader
 from .volumeselectionwindow import VolumeSelectionWindow
@@ -221,6 +223,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.btnAddCredit.clicked.connect(self.addCredit)
         self.btnRemoveCredit.clicked.connect(self.removeCredit)
         self.twCredits.cellDoubleClicked.connect(self.editCredit)
+        self.btnOpenWebLink.clicked.connect(self.openWebLink)
         self.connectDirtyFlagSignals()
         self.pageListEditor.modified.connect(self.setDirtyFlag)
         self.pageListEditor.firstFrontCoverChanged.connect(
@@ -409,8 +412,11 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.actionReportBug.triggered.connect(self.reportBug)
         self.actionComicTaggerForum.triggered.connect(self.showForum)
 
-        # ToolBar
+        # Notes Menu
+        self.btnOpenWebLink.setIcon(
+            QtGui.QIcon(ComicTaggerSettings.getGraphic('open.png')))
 
+        # ToolBar
         self.actionLoad.setIcon(
             QtGui.QIcon(ComicTaggerSettings.getGraphic('open.png')))
         self.actionLoadFolder.setIcon(
@@ -1367,6 +1373,24 @@ class TaggerWindow(QtWidgets.QMainWindow):
         if row != -1:
             self.twCredits.removeRow(row)
         self.setDirtyFlag()
+
+    def openWebLink(self):
+        if self.leWebLink is not None:
+            web_link = self.leWebLink.text().strip();
+            valid = False;
+            try:
+                result = urlparse(web_link)
+                valid = all([result.scheme in ["http", "https"], result.netloc])
+            except:
+                pass
+
+            if valid:
+                webbrowser.open_new_tab(web_link)
+            else:
+                QtWidgets.QMessageBox.warning(
+                    self,
+                    self.tr("Web Link"),
+                    self.tr("Web Link is invalid."))
 
     def showSettings(self):
 
