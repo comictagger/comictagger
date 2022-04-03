@@ -67,7 +67,7 @@ class ComicInfoXml:
         # helper func
 
         def assign(cix_entry, md_entry):
-            if md_entry is not None:
+            if md_entry is not None and md_entry:
                 et_entry = root.find(cix_entry)
                 if et_entry is not None:
                     et_entry.text = str(md_entry)
