@@ -152,7 +152,7 @@ class ComicInfoXml:
         assign("LanguageISO", md.language)
         assign("Format", md.format)
         assign("AgeRating", md.maturity_rating)
-        assign("BlackAndWhite", "Yes" if md.blackAndWhite else None)
+        assign("BlackAndWhite", "Yes" if md.black_and_white else None)
         assign("Manga", md.manga)
         assign("Characters", md.characters)
         assign("Teams", md.teams)
