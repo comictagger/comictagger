@@ -168,7 +168,7 @@ class ComicInfoXml:
 
         for page_dict in md.pages:
             page_node = ET.SubElement(pages_node, "Page")
-            page_node.attrib = page_dict
+            page_node.attrib = dict(sorted(page_dict.items()))
 
         utils.indent(root)
 
