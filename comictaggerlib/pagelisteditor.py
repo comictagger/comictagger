@@ -205,11 +205,10 @@ class PageListEditor(QtWidgets.QWidget):
         i = self.comboBox.findData(pagetype)
         self.comboBox.setCurrentIndex(i)
 
-        if 'Bookmark' in self.listWidget.item(row).data(QtCore.Qt.UserRole)[0]:
-            self.leBookmark.setText(self.listWidget.item(row)
-                .data(QtCore.Qt.UserRole)[0]['Bookmark'])
+        if "Bookmark" in self.listWidget.item(row).data(QtCore.Qt.UserRole)[0]:
+            self.leBookmark.setText(self.listWidget.item(row).data(QtCore.Qt.UserRole)[0]["Bookmark"])
         else:
-            self.leBookmark.setText('')
+            self.leBookmark.setText("")
 
         idx = int(self.listWidget.item(row).data(QtCore.Qt.ItemDataRole.UserRole)[0]["Image"])
 
@@ -253,17 +252,17 @@ class PageListEditor(QtWidgets.QWidget):
         row = self.listWidget.currentRow()
         page_dict = self.listWidget.item(row).data(QtCore.Qt.UserRole)[0]
 
-        current_bookmark = ''
-        if 'Bookmark' in page_dict:
-            current_bookmark = page_dict['Bookmark']
+        current_bookmark = ""
+        if "Bookmark" in page_dict:
+            current_bookmark = page_dict["Bookmark"]
 
         if self.leBookmark.text().strip():
             new_bookmark = str(self.leBookmark.text().strip())
             if current_bookmark != new_bookmark:
-                page_dict['Bookmark'] = new_bookmark
+                page_dict["Bookmark"] = new_bookmark
                 self.modified.emit()
-        elif current_bookmark != '':
-            del(page_dict['Bookmark'])
+        elif current_bookmark != "":
+            del page_dict["Bookmark"]
             self.modified.emit()
 
         item = self.listWidget.item(row)
@@ -294,14 +293,14 @@ class PageListEditor(QtWidgets.QWidget):
         self.listWidget.setCurrentRow(0)
 
     def list_entry_text(self, page_dict):
-        text = str(int(page_dict['Image']) + 1)
-        if 'Type' in page_dict:
-            if page_dict['Type'] in self.pageTypeNames.keys():
-                text += ' (' + self.pageTypeNames[page_dict['Type']] + ')'
+        text = str(int(page_dict["Image"]) + 1)
+        if "Type" in page_dict:
+            if page_dict["Type"] in self.pageTypeNames.keys():
+                text += " (" + self.pageTypeNames[page_dict["Type"]] + ")"
             else:
-                text += ' (Error: ' + page_dict['Type'] + ')'
-        if 'Bookmark' in page_dict:
-            text += ' ' + u'\U0001F516'
+                text += " (Error: " + page_dict["Type"] + ")"
+        if "Bookmark" in page_dict:
+            text += " " + "\U0001F516"
         return text
 
     def get_page_list(self):
