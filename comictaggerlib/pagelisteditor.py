@@ -97,6 +97,7 @@ class PageListEditor(QtWidgets.QWidget):
         self.listWidget.itemSelectionChanged.connect(self.change_page)
         item_move_events(self.listWidget).connect(self.item_move_event)
         self.comboBox.activated.connect(self.change_page_type)
+        self.leBookmark.editingFinished.connect(self.save_bookmark)
         self.btnUp.clicked.connect(self.move_current_up)
         self.btnDown.clicked.connect(self.move_current_down)
         self.pre_move_row = -1
@@ -108,6 +109,7 @@ class PageListEditor(QtWidgets.QWidget):
     def reset_page(self):
         self.pageWidget.clear()
         self.comboBox.setDisabled(True)
+        self.leBookmark.setDisabled(True)
         self.comic_archive = None
         self.pages_list = []
 
@@ -203,6 +205,11 @@ class PageListEditor(QtWidgets.QWidget):
         i = self.comboBox.findData(pagetype)
         self.comboBox.setCurrentIndex(i)
 
+        if "Bookmark" in self.listWidget.item(row).data(QtCore.Qt.UserRole)[0]:
+            self.leBookmark.setText(self.listWidget.item(row).data(QtCore.Qt.UserRole)[0]["Bookmark"])
+        else:
+            self.leBookmark.setText("")
+
         idx = int(self.listWidget.item(row).data(QtCore.Qt.ItemDataRole.UserRole)[0]["Image"])
 
         if self.comic_archive is not None:
@@ -241,11 +248,36 @@ class PageListEditor(QtWidgets.QWidget):
         item.setData(QtCore.Qt.ItemDataRole.UserRole, (page_dict,))
         item.setText(self.list_entry_text(page_dict))
 
+    def save_bookmark(self):
+        row = self.listWidget.currentRow()
+        page_dict = self.listWidget.item(row).data(QtCore.Qt.UserRole)[0]
+
+        current_bookmark = ""
+        if "Bookmark" in page_dict:
+            current_bookmark = page_dict["Bookmark"]
+
+        if self.leBookmark.text().strip():
+            new_bookmark = str(self.leBookmark.text().strip())
+            if current_bookmark != new_bookmark:
+                page_dict["Bookmark"] = new_bookmark
+                self.modified.emit()
+        elif current_bookmark != "":
+            del page_dict["Bookmark"]
+            self.modified.emit()
+
+        item = self.listWidget.item(row)
+        # wrap the dict in a tuple to keep from being converted to QStrings
+        item.setData(QtCore.Qt.UserRole, (page_dict,))
+        item.setText(self.list_entry_text(page_dict))
+
+        self.listWidget.setFocus()
+
     def set_data(self, comic_archive: ComicArchive, pages_list: list):
         self.comic_archive = comic_archive
         self.pages_list = pages_list
         if pages_list is not None and len(pages_list) > 0:
             self.comboBox.setDisabled(False)
+            self.leBookmark.setDisabled(False)
 
         self.listWidget.itemSelectionChanged.disconnect(self.change_page)
 
@@ -267,6 +299,8 @@ class PageListEditor(QtWidgets.QWidget):
                 text += " (" + self.pageTypeNames[page_dict["Type"]] + ")"
             else:
                 text += " (Error: " + page_dict["Type"] + ")"
+        if "Bookmark" in page_dict:
+            text += " " + "\U0001F516"
         return text
 
     def get_page_list(self):
@@ -294,16 +328,20 @@ class PageListEditor(QtWidgets.QWidget):
             self.btnUp.setEnabled(True)
             self.btnDown.setEnabled(True)
             self.comboBox.setEnabled(True)
+            self.leBookmark.setEnabled(True)
             self.listWidget.setEnabled(True)
 
+            self.leBookmark.setPalette(active_palette)
             self.listWidget.setPalette(active_palette)
 
         elif data_style == MetaDataStyle.CBI:
             self.btnUp.setEnabled(False)
             self.btnDown.setEnabled(False)
             self.comboBox.setEnabled(False)
+            self.leBookmark.setEnabled(False)
             self.listWidget.setEnabled(False)
 
+            self.leBookmark.setPalette(inactive_palette3)
             self.listWidget.setPalette(inactive_palette3)
 
         elif data_style == MetaDataStyle.COMET:
@@ -312,3 +350,4 @@ class PageListEditor(QtWidgets.QWidget):
         # make sure combo is disabled when no list
         if self.comic_archive is None:
             self.comboBox.setEnabled(False)
+            self.leBookmark.setEnabled(False)

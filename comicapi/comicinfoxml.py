@@ -67,7 +67,7 @@ class ComicInfoXml:
         # helper func
 
         def assign(cix_entry, md_entry):
-            if md_entry is not None:
+            if md_entry is not None and md_entry:
                 et_entry = root.find(cix_entry)
                 if et_entry is not None:
                     et_entry.text = str(md_entry)
@@ -152,7 +152,7 @@ class ComicInfoXml:
         assign("LanguageISO", md.language)
         assign("Format", md.format)
         assign("AgeRating", md.maturity_rating)
-        assign("BlackAndWhite", "Yes" if md.blackAndWhite else None)
+        assign("BlackAndWhite", "Yes" if md.black_and_white else None)
         assign("Manga", md.manga)
         assign("Characters", md.characters)
         assign("Teams", md.teams)
@@ -168,7 +168,7 @@ class ComicInfoXml:
 
         for page_dict in md.pages:
             page_node = ET.SubElement(pages_node, "Page")
-            page_node.attrib = page_dict
+            page_node.attrib = dict(sorted(page_dict.items()))
 
         utils.indent(root)
 

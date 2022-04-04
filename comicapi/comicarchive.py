@@ -65,13 +65,13 @@ class SevenZipArchiver:
         self.path = path
 
     # @todo: Implement Comment?
-    def getArchiveComment(self):
+    def get_comment(self):
         return ""
 
-    def setArchiveComment(self, comment):
+    def set_comment(self, comment):
         return False
 
-    def readArchiveFile(self, archive_file):
+    def read_file(self, archive_file):
         data = ""
         try:
             with py7zr.SevenZipFile(self.path, "r") as zf:
@@ -85,22 +85,22 @@ class SevenZipArchiver:
 
         return data
 
-    def removeArchiveFile(self, archive_file):
+    def remove_file(self, archive_file):
         try:
-            self.rebuildSevenZipFile([archive_file])
+            self.rebuild_zip_file([archive_file])
         except:
             return False
         else:
             return True
 
-    def writeArchiveFile(self, archive_file, data):
+    def write_file(self, archive_file, data):
         #  At the moment, no other option but to rebuild the whole
         #  zip archive w/o the indicated file. Very sucky, but maybe
         # another solution can be found
         try:
-            files = self.getArchiveFilenameList()
+            files = self.get_filename_list()
             if archive_file in files:
-                self.rebuildSevenZipFile([archive_file])
+                self.rebuild_zip_file([archive_file])
 
             # now just add the archive file as a new one
             with py7zr.SevenZipFile(self.path, "a") as zf:
@@ -109,7 +109,7 @@ class SevenZipArchiver:
         except:
             return False
 
-    def getArchiveFilenameList(self):
+    def get_filename_list(self):
         try:
             with py7zr.SevenZipFile(self.path, "r") as zf:
                 namelist = zf.getnames()
@@ -119,7 +119,7 @@ class SevenZipArchiver:
             logger.warning("Unable to get 7zip file list [%s]: %s", e, self.path)
             return []
 
-    def rebuildSevenZipFile(self, exclude_list):
+    def rebuild_zip_file(self, exclude_list):
         """Zip helper func
 
         This recompresses the zip archive, without the files in the exclude_list
@@ -142,12 +142,12 @@ class SevenZipArchiver:
         os.remove(self.path)
         os.rename(tmp_name, self.path)
 
-    def copyFromArchive(self, otherArchive):
+    def copy_from_archive(self, otherArchive):
         """Replace the current zip with one copied from another archive"""
         try:
             with py7zr.SevenZipFile(self.path, "w") as zout:
-                for fname in otherArchive.getArchiveFilenameList():
-                    data = otherArchive.readArchiveFile(fname)
+                for fname in otherArchive.get_filename_list():
+                    data = otherArchive.read_file(fname)
                     if data is not None:
                         zout.writestr(data, fname)
         except Exception as e:
