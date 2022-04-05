@@ -15,6 +15,7 @@
 # limitations under the License.
 
 import io
+import logging
 from functools import reduce
 
 try:
@@ -23,6 +24,7 @@ try:
     pil_available = True
 except ImportError:
     pil_available = False
+logger = logging.getLogger(__name__)
 
 
 class ImageHasher:
@@ -38,16 +40,16 @@ class ImageHasher:
                 self.image = Image.open(path)
             else:
                 self.image = Image.open(io.BytesIO(data))
-        except Exception as e:
-            print(f"Image data seems corrupted! [{e}]")
+        except Exception:
+            logger.exception("Image data seems corrupted!")
             # just generate a bogus image
             self.image = Image.new("L", (1, 1))
 
     def average_hash(self):
         try:
             image = self.image.resize((self.width, self.height), Image.ANTIALIAS).convert("L")
-        except Exception as e:
-            print("average_hash error:", e)
+        except Exception:
+            logger.exception("average_hash error")
             return int(0)
 
         pixels = list(image.getdata())

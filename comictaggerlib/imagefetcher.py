@@ -30,8 +30,12 @@ except ImportError:
     qt_available = False
 
 
+import logging
+
 from comictaggerlib import ctversion
 from comictaggerlib.settings import ComicTaggerSettings
+
+logger = logging.getLogger(__name__)
 
 
 class ImageFetcherException(Exception):
@@ -81,10 +85,9 @@ class ImageFetcher:
         if blocking or not qt_available:
             if image_data is None:
                 try:
-                    print(url)
                     image_data = requests.get(url, headers={"user-agent": "comictagger/" + ctversion.version}).content
                 except Exception as e:
-                    print(e)
+                    logger.exception("Fetching url failed: %s")
                     raise ImageFetcherException("Network Error!") from e
 
             # save the image to the cache
@@ -106,7 +109,7 @@ class ImageFetcher:
 
     def finish_request(self, reply):
         # read in the image data
-        print("request finished")
+        logger.debug("request finished")
         image_data = reply.readAll()
 
         # save the image to the cache

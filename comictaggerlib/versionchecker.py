@@ -14,12 +14,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
 import platform
 import sys
 
 import requests
 
 from comictaggerlib import ctversion
+
+logger = logging.getLogger(__name__)
 
 
 class VersionChecker:

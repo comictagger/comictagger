@@ -20,6 +20,11 @@ comics industry throws at us.
 # limitations under the License.
 
 
+import logging
+
+logger = logging.getLogger(__name__)
+
+
 class IssueString:
     def __init__(self, text):
 

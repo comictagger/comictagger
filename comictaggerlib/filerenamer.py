@@ -15,11 +15,14 @@
 # limitations under the License.
 
 import datetime
+import logging
 import os
 import re
 
 from comicapi.genericmetadata import GenericMetadata
 from comicapi.issuestring import IssueString
+
+logger = logging.getLogger(__name__)
 
 
 class FileRenamer:

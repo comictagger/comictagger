@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
 import os
 from typing import List
 
@@ -23,6 +24,8 @@ from comicapi import utils
 from comicapi.comicarchive import ComicArchive
 from comictaggerlib.settings import ComicTaggerSettings
 from comictaggerlib.ui.qtutils import center_window_on_parent, reduce_widget_font_size
+
+logger = logging.getLogger(__name__)
 
 
 class FileTableWidgetItem(QtWidgets.QTableWidgetItem):

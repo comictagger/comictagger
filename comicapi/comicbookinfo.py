@@ -15,11 +15,14 @@
 # limitations under the License.
 
 import json
+import logging
 from collections import defaultdict
 from datetime import datetime
 
 from comicapi import utils
 from comicapi.genericmetadata import GenericMetadata
+
+logger = logging.getLogger(__name__)
 
 
 class ComicBookInfo:

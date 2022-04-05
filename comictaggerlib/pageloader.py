@@ -14,9 +14,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
+
 from PyQt5 import QtCore
 
 from comicapi.comicarchive import ComicArchive
+
+logger = logging.getLogger(__name__)
 
 
 class PageLoader(QtCore.QThread):

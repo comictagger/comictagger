@@ -15,6 +15,7 @@
 # limitations under the License.
 
 import json
+import logging
 import operator
 import os
 import pickle
@@ -58,6 +59,8 @@ from comictaggerlib.ui.qtutils import center_window_on_parent, reduce_widget_fon
 from comictaggerlib.versionchecker import VersionChecker
 from comictaggerlib.volumeselectionwindow import VolumeSelectionWindow
 
+logger = logging.getLogger(__name__)
+
 
 def execute(f: callable):
     f()
@@ -79,6 +82,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         alive = socket.waitForConnected(3000)
         if alive:
             print(f"Another application with key [{settings.install_id}] is already running")
+            logger.info(f"Another application with key [{settings.install_id}] is already running")
             # send file list to other instance
             if file_list:
                 socket.write(pickle.dumps(file_list))
@@ -96,8 +100,10 @@ class TaggerWindow(QtWidgets.QMainWindow):
                     self.socketServer.removeServer(settings.install_id)
                     ok = self.socketServer.listen(settings.install_id)
                 if not ok:
-                    print(
-                        f"Cannot start local socket with key [{settings.install_id}]. Reason: {self.socketServer.errorString()}"
+                    logger.error(
+                        "Cannot start local socket with key [%s]. Reason: %s",
+                        settings.install_id,
+                        self.socketServer.errorString(),
                     )
                     sys.exit()
 
@@ -404,6 +410,7 @@ Have fun!
             QtWidgets.QMessageBox.information(
                 self, self.tr("Export as Zip Archive"), self.tr("No RAR archives selected!")
             )
+            logger.warning("Export as Zip Archive. No RAR archives selected")
             return
 
         if not self.dirty_flag_verification(
@@ -496,6 +503,7 @@ Please choose options below, and select OK.
                 for f in failed_list:
                     summary += f"\t{f}\n"
 
+            logger.info(summary)
             dlg = LogWindow(self)
             dlg.set_text(summary)
             dlg.setWindowTitle("Archive Export to Zip Summary")
@@ -1050,7 +1058,6 @@ Please choose options below, and select OK.
             "Change Tag Read Style", "If you change read tag style now, data in the form will be lost.  Are you sure?"
         ):
             self.load_data_style = self.cbLoadDataStyle.itemData(s)
-            print("load style:", self.load_data_style)
             self.settings.last_selected_load_data_style = self.load_data_style
             self.update_menus()
             if self.comic_archive is not None:
@@ -1062,7 +1069,6 @@ Please choose options below, and select OK.
 
     def set_save_data_style(self, s):
         self.save_data_style = self.cbSaveDataStyle.itemData(s)
-
         self.settings.last_selected_save_data_style = self.save_data_style
         self.update_style_tweaks()
         self.update_menus()
@@ -1603,7 +1609,7 @@ Please choose options below, and select OK.
             comic_vine.wait_for_rate_limit = self.settings.wait_and_retry_on_rate_limit
             cv_md = comic_vine.fetch_issue_data(match["volume_id"], match["issue_number"], self.settings)
         except ComicVineTalkerException:
-            print("Network error while getting issue details. Save aborted")
+            logger.exception("Network error while getting issue details. Save aborted")
 
         if cv_md is not None:
             if self.settings.apply_cbl_transform_on_cv_import:
@@ -1641,7 +1647,7 @@ Please choose options below, and select OK.
             md.series = dlg.search_string
 
         if md is None or md.is_empty:
-            print("No metadata given to search online with!")
+            logger.error("No metadata given to search online with!")
             return False, match_results
 
         if dlg.dont_use_year:
@@ -1831,6 +1837,7 @@ Please choose options below, and select OK to Auto-Tag.
 
         else:
             QtWidgets.QMessageBox.information(self, self.tr("Auto-Tag Summary"), self.tr(summary))
+        logger.info(summary)
 
     def dirty_flag_verification(self, title, desc):
         if self.dirty_flag:

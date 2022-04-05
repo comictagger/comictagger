@@ -47,6 +47,9 @@ from comicapi.filenameparser import FileNameParser
 from comicapi.genericmetadata import GenericMetadata, PageType
 
 logger = logging.getLogger(__name__)
+if not pil_available:
+    logger.exception("PIL unavalable")
+
 sys.path.insert(0, os.path.abspath("."))
 
 
@@ -77,10 +80,10 @@ class SevenZipArchiver:
             with py7zr.SevenZipFile(self.path, "r") as zf:
                 data = zf.read(archive_file)[archive_file].read()
         except py7zr.Bad7zFile as e:
-            logger.waning("bad 7zip file [%s]: %s :: %s", e, self.path, archive_file)
+            logger.error("bad 7zip file [%s]: %s :: %s", e, self.path, archive_file)
             raise IOError
         except Exception as e:
-            logger.waning("bad 7zip file [%s]: %s :: %s", e, self.path, archive_file)
+            logger.error("bad 7zip file [%s]: %s :: %s", e, self.path, archive_file)
             raise IOError
 
         return data
@@ -116,7 +119,7 @@ class SevenZipArchiver:
 
             return namelist
         except Exception as e:
-            logger.warning("Unable to get 7zip file list [%s]: %s", e, self.path)
+            logger.error("Unable to get 7zip file list [%s]: %s", e, self.path)
             return []
 
     def rebuild_zip_file(self, exclude_list):
@@ -134,8 +137,8 @@ class SevenZipArchiver:
                 with py7zr.SevenZipFile(tmp_name, "w") as zout:
                     for fname, bio in zin.read(targets).items():
                         zout.writef(bio, fname)
-        except Exception as e:
-            logger.warning("Exception[%s]: %s", e, self.path)
+        except Exception:
+            logger.exception("Error rebuilding 7zip file: %s", self.path)
             return []
 
         # replace with the new file
@@ -151,7 +154,7 @@ class SevenZipArchiver:
                     if data is not None:
                         zout.writestr(data, fname)
         except Exception as e:
-            logger.warning("Error while copying to %s: %s", self.path, e)
+            logger.exception("Error while copying to %s: %s", self.path, e)
             return False
         else:
             return True
@@ -180,10 +183,10 @@ class ZipArchiver:
             try:
                 data = zf.read(archive_file)
             except zipfile.BadZipfile as e:
-                logger.warning("bad zipfile [%s]: %s :: %s", e, self.path, archive_file)
+                logger.error("bad zipfile [%s]: %s :: %s", e, self.path, archive_file)
                 raise IOError from e
             except Exception as e:
-                logger.warning("bad zipfile [%s]: %s :: %s", e, self.path, archive_file)
+                logger.error("bad zipfile [%s]: %s :: %s", e, self.path, archive_file)
                 raise IOError from e
         return data
 
@@ -209,7 +212,7 @@ class ZipArchiver:
                 zf.writestr(archive_file, data)
             return True
         except Exception as e:
-            logger.warning("writing zip file failed [%s]: %s", e, self.path)
+            logger.error("writing zip file failed [%s]: %s", e, self.path)
             return False
 
     def get_filename_list(self):
@@ -218,7 +221,7 @@ class ZipArchiver:
                 namelist = zf.namelist()
             return namelist
         except Exception as e:
-            logger.warning("Unable to get zipfile list [%s]: %s", e, self.path)
+            logger.error("Unable to get zipfile list [%s]: %s", e, self.path)
             return []
 
     def rebuild_zip_file(self, exclude_list):
@@ -229,15 +232,19 @@ class ZipArchiver:
         tmp_fd, tmp_name = tempfile.mkstemp(dir=os.path.dirname(self.path))
         os.close(tmp_fd)
 
-        with zipfile.ZipFile(self.path, "r") as zin:
-            with zipfile.ZipFile(tmp_name, "w", allowZip64=True) as zout:
-                for item in zin.infolist():
-                    buffer = zin.read(item.filename)
-                    if item.filename not in exclude_list:
-                        zout.writestr(item, buffer)
+        try:
+            with zipfile.ZipFile(self.path, "r") as zin:
+                with zipfile.ZipFile(tmp_name, "w", allowZip64=True) as zout:
+                    for item in zin.infolist():
+                        buffer = zin.read(item.filename)
+                        if item.filename not in exclude_list:
+                            zout.writestr(item, buffer)
 
-                # preserve the old comment
-                zout.comment = zin.comment
+                    # preserve the old comment
+                    zout.comment = zin.comment
+        except Exception:
+            logger.exception("Error rebuilding 7zip file: %s", self.path)
+            return []
 
         # replace with the new file
         os.remove(self.path)
@@ -299,6 +306,7 @@ class ZipArchiver:
                 else:
                     raise Exception("Failed to write comment to zip file!")
         except Exception:
+            logger.exception()
             return False
         else:
             return True
@@ -317,8 +325,8 @@ class ZipArchiver:
             if comment is not None:
                 if not self.write_zip_comment(self.path, comment):
                     return False
-        except Exception as e:
-            logger.warning("Error while copying to %s: %s", self.path, e)
+        except Exception:
+            logger.exception("Error while copying to %s", self.path)
             return False
         else:
             return True
@@ -371,8 +379,8 @@ class RarArchiver:
                 if platform.system() == "Darwin":
                     time.sleep(1)
                 os.remove(tmp_name)
-            except Exception as e:
-                logger.warning(e)
+            except Exception:
+                logger.exception("Failed to set a comment")
                 return False
             else:
                 return True
@@ -401,10 +409,10 @@ class RarArchiver:
                     )
                     continue
             except (OSError, IOError) as e:
-                logger.warning("read_file(): [%s]  %s:%s attempt #%d", e, self.path, archive_file, tries)
+                logger.error("read_file(): [%s]  %s:%s attempt #%d", e, self.path, archive_file, tries)
                 time.sleep(1)
             except Exception as e:
-                logger.warning(
+                logger.error(
                     "Unexpected exception in read_file(): [%s] for %s:%s attempt #%d", e, self.path, archive_file, tries
                 )
                 break
@@ -489,7 +497,7 @@ class RarArchiver:
                     namelist.append(item.filename)
 
         except (OSError, IOError) as e:
-            logger.warning(f"get_filename_list(): [{e}] {self.path} attempt #{tries}".format(str(e), self.path, tries))
+            logger.error(f"get_filename_list(): [{e}] {self.path} attempt #{tries}".format(str(e), self.path, tries))
             time.sleep(1)
 
         else:
@@ -505,7 +513,7 @@ class RarArchiver:
             rarc = rarfile.RarFile(self.path)
 
         except (OSError, IOError) as e:
-            logger.warning("getRARObj(): [%s] %s attempt #%s", e, self.path, tries)
+            logger.error("getRARObj(): [%s] %s attempt #%s", e, self.path, tries)
             time.sleep(1)
 
         else:
@@ -537,7 +545,7 @@ class FolderArchiver:
                 data = f.read()
                 f.close()
         except IOError:
-            pass
+            logger.exception("Failed to read: %s", fname)
 
         return data
 
@@ -549,6 +557,7 @@ class FolderArchiver:
                 f.write(data)
                 f.close()
         except:
+            logger.exception("Failed to read: %s", fname)
             return False
         else:
             return True
@@ -559,6 +568,7 @@ class FolderArchiver:
         try:
             os.remove(fname)
         except:
+            logger.exception("Failed to read: %s", fname)
             return False
         else:
             return True
@@ -787,7 +797,7 @@ class ComicArchive:
             try:
                 image_data = self.archiver.read_file(filename)
             except IOError:
-                logger.warning("Error reading in page. Substituting logo page.")
+                logger.exception("Error reading in page. Substituting logo page.")
                 image_data = ComicArchive.logo_data
 
         return image_data
@@ -815,7 +825,7 @@ class ComicArchive:
         if count < 5:
             return None
 
-        # count the length of every filename, and count occurences
+        # count the length of every filename, and count occurrences
         length_buckets = {}
         for name in name_list:
             fname = os.path.split(name)[1]
@@ -828,7 +838,7 @@ class ComicArchive:
         # sort by most common
         sorted_buckets = sorted(iter(length_buckets.items()), key=lambda k_v: (k_v[1], k_v[0]), reverse=True)
 
-        # statistical mode occurence is first
+        # statistical mode occurrence is first
         mode_length = sorted_buckets[0][0]
 
         # we are only going to consider the final image file:
@@ -955,7 +965,7 @@ class ComicArchive:
         try:
             raw_cix = self.archiver.read_file(self.ci_xml_filename)
         except IOError as e:
-            logger.warning("Error reading in raw CIX!: %s", e)
+            logger.error("Error reading in raw CIX!: %s", e)
             raw_cix = ""
         return raw_cix
 
@@ -1022,15 +1032,13 @@ class ComicArchive:
 
     def read_raw_comet(self):
         if not self.has_comet():
-            err_msg = self.path + " doesn't have CoMet data!"
-            logger.info(err_msg)
+            logger.info("%s doesn't have CoMet data!", self.path)
             return None
 
         try:
             raw_comet = self.archiver.read_file(self.comet_filename)
-        except IOError as e:
-            err_msg = f"Error reading in raw CoMet!: {e}"
-            logger.warning(err_msg)
+        except:
+            logger.exception("Error reading in raw CoMet!")
             raw_comet = ""
         return raw_comet
 
@@ -1110,7 +1118,8 @@ class ComicArchive:
                                 p["ImageSize"] = str(len(data))
                                 p["ImageHeight"] = str(h)
                                 p["ImageWidth"] = str(w)
-                            except IOError:
+                            except Exception as e:
+                                logger.warning("decoding image failed: %s", e)
                                 p["ImageSize"] = str(len(data))
 
                 else:

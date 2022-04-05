@@ -17,6 +17,7 @@
 # limitations under the License.
 
 import json
+import logging
 import os
 import sys
 from pprint import pprint
@@ -32,6 +33,7 @@ from comictaggerlib.resulttypes import MultipleMatch, OnlineMatchResults
 from comictaggerlib.settings import ComicTaggerSettings
 
 filename_encoding = sys.getfilesystemencoding()
+logger = logging.getLogger(__name__)
 
 
 def actual_issue_data_fetch(match, settings, opts):
@@ -41,7 +43,7 @@ def actual_issue_data_fetch(match, settings, opts):
         comic_vine.wait_for_rate_limit = opts.wait_and_retry_on_rate_limit
         cv_md = comic_vine.fetch_issue_data(match["volume_id"], match["issue_number"], settings)
     except ComicVineTalkerException:
-        print("Network error while getting issue details.  Save aborted", file=sys.stderr)
+        logger.exception("Network error while getting issue details.  Save aborted")
         return None
 
     if settings.apply_cbl_transform_on_cv_import:
@@ -54,15 +56,18 @@ def actual_metadata_save(ca: ComicArchive, opts, md):
     if not opts.dryrun:
         # write out the new data
         if not ca.write_metadata(md, opts.data_style):
-            print("The tag save seemed to fail!", file=sys.stderr)
+            logger.error("The tag save seemed to fail!")
             return False
 
-        print("Save complete.", file=sys.stderr)
+        print("Save complete.")
+        logger.info("Save complete.")
     else:
         if opts.terse:
-            print("dry-run option was set, so nothing was written", file=sys.stderr)
+            logger.info("dry-run option was set, so nothing was written")
+            print("dry-run option was set, so nothing was written")
         else:
-            print("dry-run option was set, so nothing was written, but here is the final set of tags:", file=sys.stderr)
+            logger.info("dry-run option was set, so nothing was written, but here is the final set of tags:")
+            print("dry-run option was set, so nothing was written, but here is the final set of tags:")
             print(f"{md}")
     return True
 
@@ -147,7 +152,7 @@ def post_process_matches(match_results: OnlineMatchResults, opts, settings):
 
 def cli_mode(opts, settings):
     if len(opts.file_list) < 1:
-        print("You must specify at least one filename.  Use the -h option for more info", file=sys.stderr)
+        logger.error("You must specify at least one filename.  Use the -h option for more info")
         return
 
     match_results = OnlineMatchResults()
@@ -183,15 +188,15 @@ def process_file_cli(filename, opts, settings, match_results: OnlineMatchResults
     ca = ComicArchive(filename, settings.rar_exe_path, ComicTaggerSettings.get_graphic("nocover.png"))
 
     if not os.path.lexists(filename):
-        print("Cannot find " + filename, file=sys.stderr)
+        logger.error("Cannot find " + filename)
         return
 
     if not ca.seems_to_be_a_comic_archive():
-        print(f"Sorry, but {filename}  is not a comic archive!", file=sys.stderr)
+        logger.error("Sorry, but %s is not a comic archive!", filename)
         return
 
     if not ca.is_writable() and (opts.delete_tags or opts.copy_tags or opts.save_tags or opts.rename_file):
-        print("This archive is not writable for that tag type", file=sys.stderr)
+        logger.error("This archive is not writable for that tag type")
         return
 
     has = [False, False, False]
@@ -328,12 +333,12 @@ def process_file_cli(filename, opts, settings, match_results: OnlineMatchResults
                     comic_vine.wait_for_rate_limit = opts.wait_and_retry_on_rate_limit
                     cv_md = comic_vine.fetch_issue_data_by_issue_id(opts.issue_id, settings)
                 except ComicVineTalkerException:
-                    print("Network error while getting issue details.  Save aborted", file=sys.stderr)
+                    logger.exception("Network error while getting issue details. Save aborted")
                     match_results.fetch_data_failures.append(ca.path)
                     return
 
                 if cv_md is None:
-                    print(f"No match for ID {opts.issue_id} was found.", file=sys.stderr)
+                    logger.error("No match for ID %s was found.", opts.issue_id)
                     match_results.no_matches.append(ca.path)
                     return
 
@@ -343,7 +348,7 @@ def process_file_cli(filename, opts, settings, match_results: OnlineMatchResults
                 ii = IssueIdentifier(ca, settings)
 
                 if md is None or md.is_empty:
-                    print("No metadata given to search online with!", file=sys.stderr)
+                    logger.error("No metadata given to search online with!")
                     match_results.no_matches.append(ca.path)
                     return
 
@@ -382,19 +387,19 @@ def process_file_cli(filename, opts, settings, match_results: OnlineMatchResults
 
                 if choices:
                     if low_confidence:
-                        print("Online search: Multiple low confidence matches.  Save aborted", file=sys.stderr)
+                        logger.error("Online search: Multiple low confidence matches. Save aborted")
                         match_results.low_confidence_matches.append(MultipleMatch(ca, matches))
                         return
 
-                    print("Online search: Multiple good matches.  Save aborted", file=sys.stderr)
+                    logger.error("Online search: Multiple good matches. Save aborted")
                     match_results.multiple_matches.append(MultipleMatch(ca, matches))
                     return
                 if low_confidence and opts.abortOnLowConfidence:
-                    print("Online search: Low confidence match.  Save aborted", file=sys.stderr)
+                    logger.error("Online search: Low confidence match. Save aborted")
                     match_results.low_confidence_matches.append(MultipleMatch(ca, matches))
                     return
                 if not found_match:
-                    print("Online search: No match found.  Save aborted", file=sys.stderr)
+                    logger.error("Online search: No match found. Save aborted")
                     match_results.no_matches.append(ca.path)
                     return
 
@@ -428,7 +433,7 @@ def process_file_cli(filename, opts, settings, match_results: OnlineMatchResults
         md = create_local_metadata(opts, ca, use_tags)
 
         if md.series is None:
-            print(msg_hdr + "Can't rename without series name", file=sys.stderr)
+            logger.error(msg_hdr + "Can't rename without series name")
             return
 
         new_ext = None  # default
@@ -448,7 +453,7 @@ def process_file_cli(filename, opts, settings, match_results: OnlineMatchResults
         new_name = renamer.determine_name(ca.path, ext=new_ext)
 
         if new_name == os.path.basename(ca.path):
-            print(msg_hdr + "Filename is already good!", file=sys.stderr)
+            logger.error(msg_hdr + "Filename is already good!")
             return
 
         folder = os.path.dirname(os.path.abspath(ca.path))
@@ -469,7 +474,7 @@ def process_file_cli(filename, opts, settings, match_results: OnlineMatchResults
             msg_hdr = f"{ca.path}: "
 
         if not ca.is_rar():
-            print(msg_hdr + "Archive is not a RAR.", file=sys.stderr)
+            logger.error(msg_hdr + "Archive is not a RAR.")
             return
 
         rar_file = os.path.abspath(os.path.abspath(filename))
@@ -490,7 +495,7 @@ def process_file_cli(filename, opts, settings, match_results: OnlineMatchResults
                     try:
                         os.unlink(rar_file)
                     except:
-                        print(msg_hdr + "Error deleting original RAR after export", file=sys.stderr)
+                        logger.exception(msg_hdr + "Error deleting original RAR after export")
                         delete_success = False
                     else:
                         delete_success = True

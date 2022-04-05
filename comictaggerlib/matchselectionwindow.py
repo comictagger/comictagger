@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
 import os
 
 from PyQt5 import QtCore, QtWidgets, uic
@@ -21,6 +22,8 @@ from PyQt5 import QtCore, QtWidgets, uic
 from comictaggerlib.coverimagewidget import CoverImageWidget
 from comictaggerlib.settings import ComicTaggerSettings
 from comictaggerlib.ui.qtutils import reduce_widget_font_size
+
+logger = logging.getLogger(__name__)
 
 
 class MatchSelectionWindow(QtWidgets.QDialog):

@@ -15,6 +15,8 @@
 # limitations under the License.
 
 
+import logging
+
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
 from comicapi.issuestring import IssueString
@@ -22,6 +24,8 @@ from comictaggerlib.comicvinetalker import ComicVineTalker, ComicVineTalkerExcep
 from comictaggerlib.coverimagewidget import CoverImageWidget
 from comictaggerlib.settings import ComicTaggerSettings
 from comictaggerlib.ui.qtutils import reduce_widget_font_size
+
+logger = logging.getLogger(__name__)
 
 
 class IssueNumberTableWidgetItem(QtWidgets.QTableWidgetItem):

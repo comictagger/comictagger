@@ -15,11 +15,15 @@
 # limitations under the License.
 
 
+import logging
+
 from PyQt5 import QtCore, QtWidgets, uic
 
 from comictaggerlib.coverimagewidget import CoverImageWidget
 from comictaggerlib.settings import ComicTaggerSettings
 from comictaggerlib.ui.qtutils import reduce_widget_font_size
+
+logger = logging.getLogger(__name__)
 
 
 class AutoTagProgressWindow(QtWidgets.QDialog):
