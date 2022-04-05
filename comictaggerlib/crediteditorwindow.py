@@ -15,9 +15,13 @@
 # limitations under the License.
 
 
+import logging
+
 from PyQt5 import QtCore, QtWidgets, uic
 
 from comictaggerlib.settings import ComicTaggerSettings
+
+logger = logging.getLogger(__name__)
 
 
 class CreditEditorWindow(QtWidgets.QDialog):

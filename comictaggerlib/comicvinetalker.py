@@ -15,6 +15,7 @@
 # limitations under the License.
 
 import json
+import logging
 import re
 import sys
 import time
@@ -30,12 +31,16 @@ from comicapi.issuestring import IssueString
 from comictaggerlib import ctversion
 from comictaggerlib.comicvinecacher import ComicVineCacher
 
+logger = logging.getLogger(__name__)
+
 try:
     from PyQt5 import QtCore, QtNetwork
 
     qt_available = True
 except ImportError:
     qt_available = False
+
+logger = logging.getLogger(__name__)
 
 
 class SelectDetails(TypedDict):
@@ -115,7 +120,7 @@ class ComicVineTalker:
 
     def write_log(self, text):
         if self.log_func is None:
-            print(text, file=sys.stderr)
+            logger.info(text, file=sys.stderr)
         else:
             self.log_func(text)
 
@@ -599,7 +604,7 @@ class ComicVineTalker:
             except:
                 # we caught an error rebuilding the table.
                 # just bail and remove the formatting
-                print("table parse error")
+                logger.exception("table parse error")
                 newstring.replace("{}", "")
 
         return newstring
@@ -743,12 +748,11 @@ class ComicVineTalker:
         try:
             cv_response = json.loads(bytes(data))
         except Exception:
-            print("Comic Vine query failed to get JSON data", file=sys.stderr)
-            print(str(data), file=sys.stderr)
+            logger.exception("Comic Vine query failed to get JSON data\n%s", str(data))
             return
 
         if cv_response["status_code"] != 1:
-            print("Comic Vine query failed with error:  [{0}]. ".format(cv_response["error"]), file=sys.stderr)
+            logger.error("Comic Vine query failed with error:  [%s]. ", cv_response["error"])
             return
 
         image_url = cv_response["results"]["image"]["super_url"]

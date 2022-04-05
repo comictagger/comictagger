@@ -25,7 +25,11 @@ said_yes, checked = OptionalMessageDialog.question(self, "QtWidgets.Question",
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
+
 from PyQt5 import QtCore, QtWidgets
+
+logger = logging.getLogger(__name__)
 
 StyleMessage = 0
 StyleQuestion = 1

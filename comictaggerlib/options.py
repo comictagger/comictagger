@@ -15,16 +15,17 @@
 # limitations under the License.
 
 import getopt
+import logging
 import os
 import platform
 import sys
-import traceback
-from datetime import datetime
 
 from comicapi import utils
 from comicapi.comicarchive import MetaDataStyle
 from comicapi.genericmetadata import GenericMetadata
 from comictaggerlib import ctversion
+
+logger = logging.getLogger(__name__)
 
 
 class Options:
@@ -192,7 +193,7 @@ For more help visit the wiki at: https://github.com/comictagger/comictagger/wiki
         # Map the dict to the metadata object
         for key, value in md_dict.items():
             if not hasattr(md, key):
-                print(f"Warning: '{key}' is not a valid tag name")
+                logger.warning("'%s' is not a valid tag name", key)
             else:
                 md.is_empty = False
                 setattr(md, key, value)
@@ -210,7 +211,7 @@ For more help visit the wiki at: https://github.com/comictagger/comictagger/wiki
                 break
         sys.argv = script_args
         if not os.path.exists(scriptfile):
-            print(f"Can't find {scriptfile}")
+            logger.error("Can't find %s", scriptfile)
         else:
             # I *think* this makes sense:
             # assume the base name of the file is the module name
@@ -225,10 +226,9 @@ For more help visit the wiki at: https://github.com/comictagger/comictagger/wiki
                 if "main" in dir(script):
                     script.main()
                 else:
-                    print(f"Can't find entry point 'main()' in module '{module_name}'")
-            except Exception as e:
-                print("Script raised an unhandled exception: ", e)
-                print(traceback.format_exc())
+                    logger.error("Can't find entry point 'main()' in module '%s'", module_name)
+            except Exception:
+                logger.exception("Script: %s raised an unhandled exception: ", module_name)
 
         sys.exit(0)
 
@@ -360,7 +360,7 @@ For more help visit the wiki at: https://github.com/comictagger/comictagger/wiki
             if o == "--only-set-cv-key":
                 self.only_set_key = True
             if o == "--version":
-                print(f"ComicTagger {ctversion.version}:  Copyright (c) 2012-{datetime.today():%Y} ComicTagger Team")
+                print(f"ComicTagger {ctversion.version}:  Copyright (c) 2012-2022 ComicTagger Team")
                 print("Distributed under Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)")
                 sys.exit(0)
             if o in ("-t", "--type"):

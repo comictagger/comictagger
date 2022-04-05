@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
 
 from PyQt5 import QtCore, QtWidgets, uic
 from PyQt5.QtCore import pyqtSignal
@@ -28,6 +29,8 @@ from comictaggerlib.matchselectionwindow import MatchSelectionWindow
 from comictaggerlib.progresswindow import IDProgressWindow
 from comictaggerlib.settings import ComicTaggerSettings
 from comictaggerlib.ui.qtutils import reduce_widget_font_size
+
+logger = logging.getLogger(__name__)
 
 
 class SearchThread(QtCore.QThread):
@@ -296,7 +299,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
         self.progdialog.exec()
 
     def search_canceled(self):
-        print("query cancelled")
+        logger.info("query cancelled")
         self.search_thread.searchComplete.disconnect(self.search_complete)
         self.search_thread.progressUpdate.disconnect(self.search_progress_update)
         self.progdialog.canceled.disconnect(self.search_canceled)
@@ -336,7 +339,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
                     )
                 )
             except:
-                print("bad data error filtering filter publishers")
+                logger.exception("bad data error filtering filter publishers")
 
         # pre sort the data - so that we can put exact matches first afterwards
         # compare as str incase extra chars ie. '1976?'
@@ -350,14 +353,14 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
                     reverse=True,
                 )
             except:
-                print("bad data error sorting results by start_year,count_of_issues")
+                logger.exception("bad data error sorting results by start_year,count_of_issues")
         else:
             try:
                 self.cv_search_results = sorted(
                     self.cv_search_results, key=lambda i: str(i["count_of_issues"]), reverse=True
                 )
             except:
-                print("bad data error sorting results by count_of_issues")
+                logger.exception("bad data error sorting results by count_of_issues")
 
         # move sanitized matches to the front
         if self.settings.exact_series_matches_first:
@@ -371,7 +374,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
                 )
                 self.cv_search_results = exact_matches + non_matches
             except:
-                print("bad data error filtering exact/near matches")
+                logger.exception("bad data error filtering exact/near matches")
 
         self.update_buttons()
 

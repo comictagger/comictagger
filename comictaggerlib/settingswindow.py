@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
 import os
 import platform
 
@@ -24,6 +25,8 @@ from comictaggerlib.comicvinecacher import ComicVineCacher
 from comictaggerlib.comicvinetalker import ComicVineTalker
 from comictaggerlib.imagefetcher import ImageFetcher
 from comictaggerlib.settings import ComicTaggerSettings
+
+logger = logging.getLogger(__name__)
 
 windowsRarHelp = """
                  <html><head/><body><p>To write to CBR/RAR archives,

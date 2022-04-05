@@ -14,16 +14,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
+import logging.handlers
 import os
+import pathlib
 import platform
 import signal
 import sys
 import traceback
 
+import pkg_resources
+
 from comictaggerlib import cli
 from comictaggerlib.comicvinetalker import ComicVineTalker
+from comictaggerlib.ctversion import version
 from comictaggerlib.options import Options
 from comictaggerlib.settings import ComicTaggerSettings
+
+logger = logging.getLogger("comictagger")
+logging.getLogger("comicapi").setLevel(logging.DEBUG)
+logger.setLevel(logging.DEBUG)
 
 try:
     qt_available = True
@@ -31,11 +41,31 @@ try:
 
     from comictaggerlib.taggerwindow import TaggerWindow
 except ImportError as e:
-    print(e)
+    logging.debug(e)
     qt_available = False
 
 
+def rotate(handler: logging.handlers.RotatingFileHandler, filename: pathlib.Path):
+    if filename.is_file() and filename.stat().st_size > 0:
+        handler.doRollover()
+
+
 def ctmain():
+    stream_handler = logging.StreamHandler()
+    stream_handler.setLevel(logging.WARNING)
+    file_handler = logging.handlers.RotatingFileHandler(
+        ComicTaggerSettings.get_settings_folder() / "logs" / "ComicTagger.log", encoding="utf-8", backupCount=10
+    )
+    rotate(file_handler, ComicTaggerSettings.get_settings_folder() / "logs" / "ComicTagger.log")
+    logging.basicConfig(
+        handlers=[
+            stream_handler,
+            file_handler,
+        ],
+        level=logging.WARNING,
+        format="%(asctime)s | %(name)s | %(levelname)s | %(message)s",
+        datefmt="%Y-%m-%dT%H:%M:%S",
+    )
     opts = Options()
     opts.parse_cmd_line_args()
 
@@ -55,12 +85,27 @@ def ctmain():
 
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
+    logger.info(
+        "ComicTagger Version: %s running on: %s PyInstaller: %s",
+        version,
+        platform.system(),
+        "Yes" if getattr(sys, "frozen", None) else "No",
+    )
+
+    logger.debug("Installed Packages")
+    for pkg in sorted(pkg_resources.working_set, key=lambda x: x.project_name):
+        logger.debug("%s\t%s", pkg.project_name, pkg.version)
+
     if not qt_available and not opts.no_gui:
         opts.no_gui = True
-        print("PyQt5 is not available.  ComicTagger is limited to command-line mode.", file=sys.stderr)
+        print("PyQt5 is not available. ComicTagger is limited to command-line mode.")
+        logger.info("PyQt5 is not available. ComicTagger is limited to command-line mode.")
 
     if opts.no_gui:
-        cli.cli_mode(opts, SETTINGS)
+        try:
+            cli.cli_mode(opts, SETTINGS)
+        except:
+            logger.exception()
     else:
         os.environ["QtWidgets.QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
         args = []
@@ -103,7 +148,7 @@ def ctmain():
 
             sys.exit(app.exec())
         except Exception:
-            print(traceback.format_exc())
+            logger.exception()
             QtWidgets.QMessageBox.critical(
                 QtWidgets.QMainWindow(), "Error", "Unhandled exception in app:\n" + traceback.format_exc()
             )

@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
 from typing import Optional
 
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
@@ -22,6 +23,8 @@ from comicapi.comicarchive import ComicArchive, MetaDataStyle
 from comicapi.genericmetadata import PageType
 from comictaggerlib.coverimagewidget import CoverImageWidget
 from comictaggerlib.settings import ComicTaggerSettings
+
+logger = logging.getLogger(__name__)
 
 
 def item_move_events(widget):

@@ -20,9 +20,12 @@ This should probably be re-written, but, well, it mostly works!
 # Some portions of this code were modified from pyComicMetaThis project
 # http://code.google.com/p/pycomicmetathis/
 
+import logging
 import os
 import re
 from urllib.parse import unquote
+
+logger = logging.getLogger(__name__)
 
 
 class FileNameParser:
