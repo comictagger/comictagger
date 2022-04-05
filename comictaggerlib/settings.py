@@ -15,12 +15,16 @@
 # limitations under the License.
 
 import configparser
+import logging
 import os
+import pathlib
 import platform
 import sys
 import uuid
 
 from comicapi import utils
+
+logger = logging.getLogger(__name__)
 
 
 class ComicTaggerSettings:
@@ -30,18 +34,18 @@ class ComicTaggerSettings:
             folder = os.path.join(os.environ["APPDATA"], "ComicTagger")
         else:
             folder = os.path.join(os.path.expanduser("~"), ".ComicTagger")
-        return folder
+        return pathlib.Path(folder)
 
     @staticmethod
     def base_dir():
         if getattr(sys, "frozen", None):
             return sys._MEIPASS
 
-        return os.path.dirname(os.path.abspath(__file__))
+        return pathlib.Path(__file__).parent
 
     @staticmethod
     def get_graphic(filename):
-        graphic_folder = os.path.join(ComicTaggerSettings.base_dir(), "graphics")
+        graphic_folder = pathlib.Path(os.path.join(ComicTaggerSettings.base_dir(), "graphics"))
         return os.path.join(graphic_folder, filename)
 
     @staticmethod

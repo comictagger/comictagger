@@ -15,6 +15,7 @@
 # limitations under the License.
 
 import io
+import logging
 import sys
 from typing import List, TypedDict
 
@@ -26,6 +27,8 @@ from comictaggerlib.comicvinetalker import ComicVineTalker, ComicVineTalkerExcep
 from comictaggerlib.imagefetcher import ImageFetcher, ImageFetcherException
 from comictaggerlib.imagehasher import ImageHasher
 from comictaggerlib.resulttypes import IssueResult
+
+logger = logging.getLogger(__name__)
 
 try:
     from PIL import Image
@@ -141,8 +144,8 @@ class IssueIdentifier:
 
         try:
             cropped_im = im.crop((int(w / 2), 0, w, h))
-        except Exception as e:
-            print("cropCover() error:", e)
+        except:
+            logger.exception("cropCover() error")
             return None
 
         output = io.BytesIO()

@@ -1,8 +1,11 @@
 """Some utilities for the GUI"""
 
 import io
+import logging
 
 from comictaggerlib.settings import ComicTaggerSettings
+
+logger = logging.getLogger(__name__)
 
 try:
     from PyQt5 import QtGui

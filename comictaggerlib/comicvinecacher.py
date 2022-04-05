@@ -15,12 +15,15 @@
 # limitations under the License.
 
 import datetime
+import logging
 import os
 import sqlite3 as lite
 
 from comicapi import utils
 from comictaggerlib import ctversion
 from comictaggerlib.settings import ComicTaggerSettings
+
+logger = logging.getLogger(__name__)
 
 
 class ComicVineCacher:

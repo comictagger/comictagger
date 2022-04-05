@@ -14,10 +14,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
 import xml.etree.ElementTree as ET
 
 from comicapi import utils
 from comicapi.genericmetadata import GenericMetadata
+
+logger = logging.getLogger(__name__)
 
 
 class CoMet:

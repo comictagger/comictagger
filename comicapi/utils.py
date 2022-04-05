@@ -16,6 +16,7 @@
 
 import codecs
 import locale
+import logging
 import os
 import platform
 import re
@@ -24,6 +25,8 @@ import unicodedata
 from collections import defaultdict
 
 import pycountry
+
+logger = logging.getLogger(__name__)
 
 
 class UtilsVars:

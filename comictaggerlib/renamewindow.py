@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
 import os
 from typing import List
 
@@ -26,6 +27,8 @@ from comictaggerlib.filerenamer import FileRenamer
 from comictaggerlib.settings import ComicTaggerSettings
 from comictaggerlib.settingswindow import SettingsWindow
 from comictaggerlib.ui.qtutils import center_window_on_parent
+
+logger = logging.getLogger(__name__)
 
 
 class RenameWindow(QtWidgets.QDialog):
@@ -149,6 +152,7 @@ class RenameWindow(QtWidgets.QDialog):
 
             if item["new_name"] == os.path.basename(item["archive"].path):
                 print(item["new_name"], "Filename is already good!")
+                logger.info(item["new_name"], "Filename is already good!")
                 continue
 
             if not item["archive"].is_writable(check_rar_status=False):

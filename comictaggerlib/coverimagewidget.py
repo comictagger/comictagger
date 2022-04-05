@@ -19,6 +19,8 @@ TODO: This should be re-factored using subclasses!
 # limitations under the License.
 
 
+import logging
+
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
 from comicapi.comicarchive import ComicArchive
@@ -28,6 +30,8 @@ from comictaggerlib.imagepopup import ImagePopup
 from comictaggerlib.pageloader import PageLoader
 from comictaggerlib.settings import ComicTaggerSettings
 from comictaggerlib.ui.qtutils import get_qimage_from_data, reduce_widget_font_size
+
+logger = logging.getLogger(__name__)
 
 
 def clickable(widget):

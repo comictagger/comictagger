@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
 import platform
 
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
@@ -21,6 +22,8 @@ from PyQt5 import QtCore, QtGui, QtWidgets, uic
 from comicapi.comicarchive import ComicArchive
 from comictaggerlib.coverimagewidget import CoverImageWidget
 from comictaggerlib.settings import ComicTaggerSettings
+
+logger = logging.getLogger(__name__)
 
 
 class PageBrowserWindow(QtWidgets.QDialog):
