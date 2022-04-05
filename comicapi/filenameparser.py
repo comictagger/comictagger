@@ -89,7 +89,7 @@ class FileNameParser:
             # is the series name followed by issue
             filename = re.sub(r"--.*", self.repl, filename)
 
-        elif "__" in filename and not re.search('\\[__\\d+__\\]', filename):
+        elif "__" in filename and not re.search(r"\[__\d+__\]", filename):
             # the pattern seems to be that anything to left of the first "__"
             # is the series name followed by issue
             filename = re.sub(r"__.*", self.repl, filename)
