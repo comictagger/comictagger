@@ -51,7 +51,7 @@ def rotate(handler: logging.handlers.RotatingFileHandler, filename: pathlib.Path
 
 
 def ctmain():
-    os.makedirs(ComicTaggerSettings.get_settings_folder() / "logs")
+    os.makedirs(ComicTaggerSettings.get_settings_folder() / "logs", exist_ok=True)
     stream_handler = logging.StreamHandler()
     stream_handler.setLevel(logging.WARNING)
     file_handler = logging.handlers.RotatingFileHandler(
