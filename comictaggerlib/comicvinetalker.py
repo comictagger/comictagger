@@ -538,9 +538,20 @@ class ComicVineTalker:
 
         # put in our own
         string = string.replace("<br>", "\n")
+        string = string.replace("</li>", "\n")
         string = string.replace("</p>", "\n\n")
+        string = string.replace("<h1>", "*")
+        string = string.replace("</h1>", "*\n")
+        string = string.replace("<h2>", "*")
+        string = string.replace("</h2>", "*\n")
+        string = string.replace("<h3>", "*")
+        string = string.replace("</h3>", "*\n")
         string = string.replace("<h4>", "*")
         string = string.replace("</h4>", "*\n")
+        string = string.replace("<h5>", "*")
+        string = string.replace("</h5>", "*\n")
+        string = string.replace("<h6>", "*")
+        string = string.replace("</h6>", "*\n")
 
         # remove the tables
         p = re.compile(r"<table[^<]*?>.*?</table>")
