@@ -1371,6 +1371,7 @@ Please choose options below, and select OK.
         self.cbMaturityRating.addItem("PG", "")
         self.cbMaturityRating.addItem("Kids to Adults", "")
         self.cbMaturityRating.addItem("Teen", "")
+        self.cbMaturityRating.addItem("M", "")
         self.cbMaturityRating.addItem("MA15+", "")
         self.cbMaturityRating.addItem("Mature 17+", "")
         self.cbMaturityRating.addItem("R18+", "")
