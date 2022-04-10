@@ -360,6 +360,12 @@ Have fun!
         self.actionApplyCBLTransform.setStatusTip("Modify tags specifically for CBL format")
         self.actionApplyCBLTransform.triggered.connect(self.apply_cbl_transform)
 
+        self.actionReCalcPageDims.setShortcut("Ctrl+R")
+        self.actionReCalcPageDims.setStatusTip(
+            "Trigger re-calculating image size, height and width for all pages on the next save"
+        )
+        self.actionReCalcPageDims.triggered.connect(self.recalc_page_dimensions)
+
         self.actionClearEntryForm.setShortcut("Ctrl+Shift+C")
         self.actionClearEntryForm.setStatusTip("Clear all the data on the screen")
         self.actionClearEntryForm.triggered.connect(self.clear_form)
@@ -589,6 +595,7 @@ Please choose options below, and select OK.
         self.actionAutoIdentify.setEnabled(False)
         self.actionRename.setEnabled(False)
         self.actionApplyCBLTransform.setEnabled(False)
+        self.actionReCalcPageDims.setEnabled(False)
 
         # now, selectively re-enable
         if self.comic_archive is not None:
@@ -600,6 +607,7 @@ Please choose options below, and select OK.
             self.actionAutoTag.setEnabled(True)
             self.actionRename.setEnabled(True)
             self.actionApplyCBLTransform.setEnabled(True)
+            self.actionReCalcPageDims.setEnabled(True)
             self.actionRepackage.setEnabled(True)
             self.actionRemoveAuto.setEnabled(True)
             self.actionRemoveCRTags.setEnabled(True)
@@ -1363,6 +1371,7 @@ Please choose options below, and select OK.
         self.cbMaturityRating.addItem("PG", "")
         self.cbMaturityRating.addItem("Kids to Adults", "")
         self.cbMaturityRating.addItem("Teen", "")
+        self.cbMaturityRating.addItem("M", "")
         self.cbMaturityRating.addItem("MA15+", "")
         self.cbMaturityRating.addItem("Mature 17+", "")
         self.cbMaturityRating.addItem("R18+", "")
@@ -1927,6 +1936,18 @@ Please choose options below, and select OK to Auto-Tag.
         self.form_to_metadata()
         self.metadata = CBLTransformer(self.metadata, self.settings).apply()
         self.metadata_to_form()
+
+    def recalc_page_dimensions(self):
+        QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
+        for p in self.metadata.pages:
+            if "ImageSize" in p:
+                del p["ImageSize"]
+            if "ImageHeight" in p:
+                del p["ImageHeight"]
+            if "ImageWidth" in p:
+                del p["ImageWidth"]
+        self.set_dirty_flag()
+        QtWidgets.QApplication.restoreOverrideCursor()
 
     def rename_archive(self):
         ca_list = self.fileSelectionList.get_selected_archive_list()

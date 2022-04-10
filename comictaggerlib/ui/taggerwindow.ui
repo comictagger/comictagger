@@ -1198,6 +1198,7 @@
     <addaction name="actionAutoIdentify"/>
     <addaction name="separator"/>
     <addaction name="actionApplyCBLTransform"/>
+    <addaction name="actionReCalcPageDims"/>
    </widget>
    <widget class="QMenu" name="menuWindow">
     <property name="title">
@@ -1370,6 +1371,11 @@
   <action name="actionApplyCBLTransform">
    <property name="text">
     <string>Apply CBL Transform</string>
+   </property>
+  </action>
+  <action name="actionReCalcPageDims">
+   <property name="text">
+    <string>Re-Calculate Page Dimensions</string>
    </property>
   </action>
   <action name="actionLoadFolder">
