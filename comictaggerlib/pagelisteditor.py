@@ -43,6 +43,39 @@ def item_move_events(widget):
                     # print("ChildAdded")
                     self.mysignal.emit("start")
                     return True
+                if event.type() == QtCore.QEvent.KeyPress:
+                    ret = True
+                    if event.key() == QtCore.Qt.Key_A:
+                        self.mysignal.emit("A")
+                    elif event.key() == QtCore.Qt.Key_B:
+                        self.mysignal.emit("B")
+                    elif event.key() == QtCore.Qt.Key_D:
+                        self.mysignal.emit("D")
+                    elif event.key() == QtCore.Qt.Key_E:
+                        self.mysignal.emit("E")
+                    elif event.key() == QtCore.Qt.Key_F:
+                        self.mysignal.emit("F")
+                    elif event.key() == QtCore.Qt.Key_I:
+                        self.mysignal.emit("I")
+                    elif event.key() == QtCore.Qt.Key_L:
+                        self.mysignal.emit("L")
+                    elif event.key() == QtCore.Qt.Key_M:
+                        self.mysignal.emit("M")
+                    elif event.key() == QtCore.Qt.Key_O:
+                        self.mysignal.emit("O")
+                    elif event.key() == QtCore.Qt.Key_P:
+                        self.mysignal.emit("P")
+                    elif event.key() == QtCore.Qt.Key_R:
+                        self.mysignal.emit("R")
+                    elif event.key() == QtCore.Qt.Key_S:
+                        self.mysignal.emit("S")
+                    elif event.key() == QtCore.Qt.Key_X:
+                        self.mysignal.emit("X")
+                    elif event.key() == QtCore.Qt.Key_Space:
+                        self.mysignal.emit(" ")
+                    else:
+                        ret = False
+                    return ret
 
             return False
 
@@ -57,17 +90,17 @@ class PageListEditor(QtWidgets.QWidget):
     modified = QtCore.pyqtSignal()
 
     pageTypeNames = {
-        PageType.FrontCover: "Front Cover",
-        PageType.InnerCover: "Inner Cover",
-        PageType.Advertisement: "Advertisement",
-        PageType.Roundup: "Roundup",
-        PageType.Story: "Story",
-        PageType.Editorial: "Editorial",
-        PageType.Letters: "Letters",
-        PageType.Preview: "Preview",
-        PageType.BackCover: "Back Cover",
-        PageType.Other: "Other",
-        PageType.Deleted: "Deleted",
+        PageType.FrontCover: "Front Cover (F\U00000332)",
+        PageType.InnerCover: "Inner Cover (I\U00000332)",
+        PageType.Advertisement: "Advertisement (A\U00000332)",
+        PageType.Roundup: "Roundup (R\U00000332)",
+        PageType.Story: "Story (S\U00000332)",
+        PageType.Editorial: "Editorial (E\U00000332)",
+        PageType.Letters: "Letters (L\U00000332)",
+        PageType.Preview: "Preview (P\U00000332)",
+        PageType.BackCover: "Back Cover (B\U00000332)",
+        PageType.Other: "Other (O\U00000332)",
+        PageType.Deleted: "Deleted (X\U00000332)",
     }
 
     def __init__(self, parent):
@@ -83,23 +116,26 @@ class PageListEditor(QtWidgets.QWidget):
 
         self.reset_page()
 
-        # Add the entries to the manga combobox
-        self.comboBox.addItem("", "")
-        self.comboBox.addItem(self.pageTypeNames[PageType.FrontCover], PageType.FrontCover)
-        self.comboBox.addItem(self.pageTypeNames[PageType.InnerCover], PageType.InnerCover)
-        self.comboBox.addItem(self.pageTypeNames[PageType.Advertisement], PageType.Advertisement)
-        self.comboBox.addItem(self.pageTypeNames[PageType.Roundup], PageType.Roundup)
-        self.comboBox.addItem(self.pageTypeNames[PageType.Story], PageType.Story)
-        self.comboBox.addItem(self.pageTypeNames[PageType.Editorial], PageType.Editorial)
-        self.comboBox.addItem(self.pageTypeNames[PageType.Letters], PageType.Letters)
-        self.comboBox.addItem(self.pageTypeNames[PageType.Preview], PageType.Preview)
-        self.comboBox.addItem(self.pageTypeNames[PageType.BackCover], PageType.BackCover)
-        self.comboBox.addItem(self.pageTypeNames[PageType.Other], PageType.Other)
-        self.comboBox.addItem(self.pageTypeNames[PageType.Deleted], PageType.Deleted)
+        # Add the entries to the page type combobox
+        self.cbPageType.addItem("", "")
+        self.cbPageType.addItem(self.pageTypeNames[PageType.FrontCover], PageType.FrontCover)
+        self.cbPageType.addItem(self.pageTypeNames[PageType.InnerCover], PageType.InnerCover)
+        self.cbPageType.addItem(self.pageTypeNames[PageType.Advertisement], PageType.Advertisement)
+        self.cbPageType.addItem(self.pageTypeNames[PageType.Roundup], PageType.Roundup)
+        self.cbPageType.addItem(self.pageTypeNames[PageType.Story], PageType.Story)
+        self.cbPageType.addItem(self.pageTypeNames[PageType.Editorial], PageType.Editorial)
+        self.cbPageType.addItem(self.pageTypeNames[PageType.Letters], PageType.Letters)
+        self.cbPageType.addItem(self.pageTypeNames[PageType.Preview], PageType.Preview)
+        self.cbPageType.addItem(self.pageTypeNames[PageType.BackCover], PageType.BackCover)
+        self.cbPageType.addItem(self.pageTypeNames[PageType.Other], PageType.Other)
+        self.cbPageType.addItem(self.pageTypeNames[PageType.Deleted], PageType.Deleted)
+
+        self.chkDoublePage.setText("D\U00000332ouble Page?")
+        self.lblBookmark.setText("Bookm\U00000332ark:")
 
         self.listWidget.itemSelectionChanged.connect(self.change_page)
         item_move_events(self.listWidget).connect(self.item_move_event)
-        self.comboBox.activated.connect(self.change_page_type)
+        self.cbPageType.activated.connect(self.change_page_type)
         self.chkDoublePage.toggled.connect(self.toggle_double_page)
         self.leBookmark.editingFinished.connect(self.save_bookmark)
         self.btnUp.clicked.connect(self.move_current_up)
@@ -112,7 +148,7 @@ class PageListEditor(QtWidgets.QWidget):
 
     def reset_page(self):
         self.pageWidget.clear()
-        self.comboBox.setDisabled(True)
+        self.cbPageType.setDisabled(True)
         self.chkDoublePage.setDisabled(True)
         self.leBookmark.setDisabled(True)
         self.comic_archive = None
@@ -195,9 +231,42 @@ class PageListEditor(QtWidgets.QWidget):
                 self.listOrderChanged.emit()
                 self.emit_front_cover_change()
                 self.modified.emit()
+        if s == "D" and self.chkDoublePage.isEnabled():
+            self.chkDoublePage.toggle()
+        if s == "M" and self.leBookmark.isEnabled():
+            self.leBookmark.setFocus()
+        if self.cbPageType.isEnabled():
+            idx = -1
+            if s == " ":
+                idx = self.cbPageType.findData("")
+            elif s == "A":
+                idx = self.cbPageType.findData(PageType.Advertisement)
+            elif s == "B":
+                idx = self.cbPageType.findData(PageType.BackCover)
+            elif s == "E":
+                idx = self.cbPageType.findData(PageType.Editorial)
+            elif s == "F":
+                idx = self.cbPageType.findData(PageType.FrontCover)
+            elif s == "I":
+                idx = self.cbPageType.findData(PageType.InnerCover)
+            elif s == "L":
+                idx = self.cbPageType.findData(PageType.Letters)
+            elif s == "O":
+                idx = self.cbPageType.findData(PageType.Other)
+            elif s == "P":
+                idx = self.cbPageType.findData(PageType.Preview)
+            elif s == "R":
+                idx = self.cbPageType.findData(PageType.Roundup)
+            elif s == "S":
+                idx = self.cbPageType.findData(PageType.Story)
+            elif s == "X":
+                idx = self.cbPageType.findData(PageType.Deleted)
+            if idx > -1:
+                self.cbPageType.setCurrentIndex(idx)
+                self.change_page_type(idx)
 
     def change_page_type(self, i):
-        new_type = self.comboBox.itemData(i)
+        new_type = self.cbPageType.itemData(i)
         if self.get_current_page_type() != new_type:
             self.set_current_page_type(new_type)
             self.emit_front_cover_change()
@@ -207,8 +276,8 @@ class PageListEditor(QtWidgets.QWidget):
         row = self.listWidget.currentRow()
         pagetype = self.get_current_page_type()
 
-        i = self.comboBox.findData(pagetype)
-        self.comboBox.setCurrentIndex(i)
+        i = self.cbPageType.findData(pagetype)
+        self.cbPageType.setCurrentIndex(i)
 
         self.chkDoublePage.setChecked("DoublePage" in self.listWidget.item(row).data(QtCore.Qt.UserRole)[0])
 
@@ -300,7 +369,7 @@ class PageListEditor(QtWidgets.QWidget):
         self.comic_archive = comic_archive
         self.pages_list = pages_list
         if pages_list is not None and len(pages_list) > 0:
-            self.comboBox.setDisabled(False)
+            self.cbPageType.setDisabled(False)
             self.chkDoublePage.setDisabled(False)
             self.leBookmark.setDisabled(False)
 
@@ -321,7 +390,7 @@ class PageListEditor(QtWidgets.QWidget):
         text = str(int(page_dict["Image"]) + 1)
         if "Type" in page_dict:
             if page_dict["Type"] in self.pageTypeNames.keys():
-                text += " (" + self.pageTypeNames[page_dict["Type"]] + ")"
+                text += " (" + self.pageTypeNames[page_dict["Type"]][:-5] + ")"
             else:
                 text += " (Error: " + page_dict["Type"] + ")"
         if "DoublePage" in page_dict:
@@ -346,15 +415,15 @@ class PageListEditor(QtWidgets.QWidget):
         # depending on the current data style, certain fields are disabled
 
         inactive_color = QtGui.QColor(255, 170, 150)
-        active_palette = self.comboBox.palette()
+        active_palette = self.cbPageType.palette()
 
-        inactive_palette3 = self.comboBox.palette()
+        inactive_palette3 = self.cbPageType.palette()
         inactive_palette3.setColor(QtGui.QPalette.ColorRole.Base, inactive_color)
 
         if data_style == MetaDataStyle.CIX:
             self.btnUp.setEnabled(True)
             self.btnDown.setEnabled(True)
-            self.comboBox.setEnabled(True)
+            self.cbPageType.setEnabled(True)
             self.chkDoublePage.setEnabled(True)
             self.leBookmark.setEnabled(True)
             self.listWidget.setEnabled(True)
@@ -365,7 +434,7 @@ class PageListEditor(QtWidgets.QWidget):
         elif data_style == MetaDataStyle.CBI:
             self.btnUp.setEnabled(False)
             self.btnDown.setEnabled(False)
-            self.comboBox.setEnabled(False)
+            self.cbPageType.setEnabled(False)
             self.chkDoublePage.setEnabled(False)
             self.leBookmark.setEnabled(False)
             self.listWidget.setEnabled(False)
@@ -378,6 +447,6 @@ class PageListEditor(QtWidgets.QWidget):
 
         # make sure combo is disabled when no list
         if self.comic_archive is None:
-            self.comboBox.setEnabled(False)
+            self.cbPageType.setEnabled(False)
             self.chkDoublePage.setEnabled(False)
             self.leBookmark.setEnabled(False)
