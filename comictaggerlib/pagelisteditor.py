@@ -100,6 +100,7 @@ class PageListEditor(QtWidgets.QWidget):
         self.listWidget.itemSelectionChanged.connect(self.change_page)
         item_move_events(self.listWidget).connect(self.item_move_event)
         self.comboBox.activated.connect(self.change_page_type)
+        self.chkDoublePage.toggled.connect(self.toggle_double_page)
         self.leBookmark.editingFinished.connect(self.save_bookmark)
         self.btnUp.clicked.connect(self.move_current_up)
         self.btnDown.clicked.connect(self.move_current_down)
@@ -112,6 +113,7 @@ class PageListEditor(QtWidgets.QWidget):
     def reset_page(self):
         self.pageWidget.clear()
         self.comboBox.setDisabled(True)
+        self.chkDoublePage.setDisabled(True)
         self.leBookmark.setDisabled(True)
         self.comic_archive = None
         self.pages_list = []
@@ -208,6 +210,8 @@ class PageListEditor(QtWidgets.QWidget):
         i = self.comboBox.findData(pagetype)
         self.comboBox.setCurrentIndex(i)
 
+        self.chkDoublePage.setChecked("DoublePage" in self.listWidget.item(row).data(QtCore.Qt.UserRole)[0])
+
         if "Bookmark" in self.listWidget.item(row).data(QtCore.Qt.UserRole)[0]:
             self.leBookmark.setText(self.listWidget.item(row).data(QtCore.Qt.UserRole)[0]["Bookmark"])
         else:
@@ -251,6 +255,23 @@ class PageListEditor(QtWidgets.QWidget):
         item.setData(QtCore.Qt.ItemDataRole.UserRole, (page_dict,))
         item.setText(self.list_entry_text(page_dict))
 
+    def toggle_double_page(self):
+        row = self.listWidget.currentRow()
+        page_dict = self.listWidget.item(row).data(QtCore.Qt.UserRole)[0]
+
+        if self.sender().isChecked():
+            page_dict["DoublePage"] = str("true")
+        elif "DoublePage" in page_dict:
+            del page_dict["DoublePage"]
+        self.modified.emit()
+
+        item = self.listWidget.item(row)
+        # wrap the dict in a tuple to keep from being converted to QStrings
+        item.setData(QtCore.Qt.UserRole, (page_dict,))
+        item.setText(self.list_entry_text(page_dict))
+
+        self.listWidget.setFocus()
+
     def save_bookmark(self):
         row = self.listWidget.currentRow()
         page_dict = self.listWidget.item(row).data(QtCore.Qt.UserRole)[0]
@@ -280,6 +301,7 @@ class PageListEditor(QtWidgets.QWidget):
         self.pages_list = pages_list
         if pages_list is not None and len(pages_list) > 0:
             self.comboBox.setDisabled(False)
+            self.chkDoublePage.setDisabled(False)
             self.leBookmark.setDisabled(False)
 
         self.listWidget.itemSelectionChanged.disconnect(self.change_page)
@@ -302,6 +324,8 @@ class PageListEditor(QtWidgets.QWidget):
                 text += " (" + self.pageTypeNames[page_dict["Type"]] + ")"
             else:
                 text += " (Error: " + page_dict["Type"] + ")"
+        if "DoublePage" in page_dict:
+            text += " " + "\U00002461"
         if "Bookmark" in page_dict:
             text += " " + "\U0001F516"
         return text
@@ -331,6 +355,7 @@ class PageListEditor(QtWidgets.QWidget):
             self.btnUp.setEnabled(True)
             self.btnDown.setEnabled(True)
             self.comboBox.setEnabled(True)
+            self.chkDoublePage.setEnabled(True)
             self.leBookmark.setEnabled(True)
             self.listWidget.setEnabled(True)
 
@@ -341,6 +366,7 @@ class PageListEditor(QtWidgets.QWidget):
             self.btnUp.setEnabled(False)
             self.btnDown.setEnabled(False)
             self.comboBox.setEnabled(False)
+            self.chkDoublePage.setEnabled(False)
             self.leBookmark.setEnabled(False)
             self.listWidget.setEnabled(False)
 
@@ -353,4 +379,5 @@ class PageListEditor(QtWidgets.QWidget):
         # make sure combo is disabled when no list
         if self.comic_archive is None:
             self.comboBox.setEnabled(False)
+            self.chkDoublePage.setEnabled(False)
             self.leBookmark.setEnabled(False)

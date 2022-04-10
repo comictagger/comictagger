@@ -50,6 +50,8 @@ class PageType:
 
 class ImageMetadata(TypedDict):
     Type: PageType
+    Bookmark: str
+    DoublePage: bool
     Image: int
     ImageSize: str
     ImageHeight: str
