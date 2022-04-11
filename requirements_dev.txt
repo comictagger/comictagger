@@ -4,4 +4,5 @@ setuptools_scm[toml]>=3.4
 wheel
 black>=22
 flake8==4.*
+flake8-encodings
 isort>=5.10

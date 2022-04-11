@@ -239,7 +239,7 @@ class ComicTaggerSettings:
                 yield line
                 line = f.readline()
 
-        with open(self.settings_file, "r") as f:
+        with open(self.settings_file, "r", encoding="utf-8") as f:
             self.config.read_file(readline_generator(f))
 
         self.rar_exe_path = self.config.get("settings", "rar_exe_path")
@@ -451,5 +451,5 @@ class ComicTaggerSettings:
         self.config.set("autotag", "remove_archive_after_successful_match", self.remove_archive_after_successful_match)
         self.config.set("autotag", "wait_and_retry_on_rate_limit", self.wait_and_retry_on_rate_limit)
 
-        with open(self.settings_file, "w") as configfile:
+        with open(self.settings_file, "w", encoding="utf-8") as configfile:
             self.config.write(configfile)
