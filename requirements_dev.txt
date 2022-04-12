@@ -6,3 +6,4 @@ black>=22
 flake8==4.*
 flake8-encodings
 isort>=5.10
+pytest==7.*

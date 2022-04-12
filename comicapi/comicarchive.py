@@ -30,8 +30,9 @@ import py7zr
 
 try:
     from unrar.cffi import rarfile
+    rar_support = True
 except:
-    pass
+    rar_support = True
 
 try:
     from PIL import Image
@@ -879,7 +880,7 @@ class ComicArchive:
             self.page_list = []
             for name in files:
                 if (
-                    os.path.splitext(name)[1].lower() in [".jpg", "jpeg", ".png", ".gif", ".webp"]
+                    os.path.splitext(name)[1].lower() in [".jpg", ".jpeg", ".png", ".gif", ".webp"]
                     and os.path.basename(name)[0] != "."
                 ):
                     self.page_list.append(name)
