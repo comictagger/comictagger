@@ -119,5 +119,5 @@ class ComicBookInfo:
 
         cbi_container = self.create_json_dictionary(metadata)
 
-        with open(filename, "w") as f:
+        with open(filename, "w", encoding="utf-8") as f:
             f.write(json.dumps(cbi_container, indent=4))

@@ -2,13 +2,14 @@
 
 import io
 import logging
+import traceback
 
 from comictaggerlib.settings import ComicTaggerSettings
 
 logger = logging.getLogger(__name__)
 
 try:
-    from PyQt5 import QtGui
+    from PyQt5 import QtGui, QtWidgets
 
     qt_available = True
 except ImportError:
@@ -74,3 +75,10 @@ if qt_available:
         if not success:
             img.load(ComicTaggerSettings.get_graphic("nocover.png"))
         return img
+
+    def qt_error(msg: str, e: Exception = None):
+        trace = ""
+        if e:
+            trace = "\n".join(traceback.format_exception(type(e), e, e.__traceback__))
+
+        QtWidgets.QMessageBox.critical(QtWidgets.QMainWindow(), "Error", msg + trace)

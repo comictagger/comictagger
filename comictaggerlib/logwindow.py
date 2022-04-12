@@ -20,6 +20,7 @@ import logging
 from PyQt5 import QtCore, QtWidgets, uic
 
 from comictaggerlib.settings import ComicTaggerSettings
+from comictaggerlib.ui import qtutils
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +42,9 @@ class LogWindow(QtWidgets.QDialog):
     def set_text(self, text):
         try:
             text = text.decode()
-        except:
+            self.textEdit.setPlainText(text)
+        except AttributeError:
             pass
-        self.textEdit.setPlainText(text)
+        except Exception as e:
+            logger.exception("Displaying raw tags failed")
+            qtutils.qt_error("Displaying raw tags failed:", e)

@@ -92,6 +92,7 @@ class SevenZipArchiver:
         try:
             self.rebuild_zip_file([archive_file])
         except:
+            logger.exception("Failed to remove %s from 7zip archive", archive_file)
             return False
         else:
             return True
@@ -110,6 +111,7 @@ class SevenZipArchiver:
                 zf.writestr(data, archive_file)
             return True
         except:
+            logger.exception("Writing zip file failed")
             return False
 
     def get_filename_list(self):
@@ -194,6 +196,7 @@ class ZipArchiver:
         try:
             self.rebuild_zip_file([archive_file])
         except:
+            logger.exception("Failed to remove %s from zip archive", archive_file)
             return False
         else:
             return True
@@ -306,7 +309,7 @@ class ZipArchiver:
                 else:
                     raise Exception("Failed to write comment to zip file!")
         except Exception:
-            logger.exception()
+            logger.exception("Writing comment to %s failed", filename)
             return False
         else:
             return True
@@ -342,7 +345,7 @@ class RarArchiver:
         self.rar_exe_path = rar_exe_path
 
         if RarArchiver.devnull is None:
-            RarArchiver.devnull = open(os.devnull, "w")
+            RarArchiver.devnull = open(os.devnull, "bw")
 
         # windows only, keeps the cmd.exe from popping up
         if platform.system() == "Windows":
@@ -360,9 +363,8 @@ class RarArchiver:
             try:
                 # write comment to temp file
                 tmp_fd, tmp_name = tempfile.mkstemp()
-                f = os.fdopen(tmp_fd, "w+")
-                f.write(comment)
-                f.close()
+                with os.fdopen(tmp_fd, "wb") as f:
+                    f.write(comment.encode("utf-8"))
 
                 working_dir = os.path.dirname(os.path.abspath(self.path))
 
@@ -441,7 +443,7 @@ class RarArchiver:
 
                 # TODO: will this break if 'archive_file' is in a subfolder. i.e. "foo/bar.txt"
                 # will need to create the subfolder above, I guess...
-                with open(tmp_file, "w") as f:
+                with open(tmp_file, "wb") as f:
                     f.write(data)
 
                 # use external program to write file to Rar archive
@@ -457,7 +459,9 @@ class RarArchiver:
                     time.sleep(1)
                 os.remove(tmp_file)
                 os.rmdir(tmp_folder)
-            except:
+            except Exception as e:
+                logger.info(str(e))
+                logger.exception("Failed write %s to rar archive", archive_file)
                 return False
             else:
                 return True
@@ -479,6 +483,7 @@ class RarArchiver:
                 if platform.system() == "Darwin":
                     time.sleep(1)
             except:
+                logger.exception("Failed to remove %s from rar archive", archive_file)
                 return False
             else:
                 return True
@@ -543,7 +548,6 @@ class FolderArchiver:
         try:
             with open(fname, "rb") as f:
                 data = f.read()
-                f.close()
         except IOError:
             logger.exception("Failed to read: %s", fname)
 
@@ -553,11 +557,10 @@ class FolderArchiver:
 
         fname = os.path.join(self.path, archive_file)
         try:
-            with open(fname, "w+") as f:
+            with open(fname, "wb") as f:
                 f.write(data)
-                f.close()
         except:
-            logger.exception("Failed to read: %s", fname)
+            logger.exception("Failed to write: %s", fname)
             return False
         else:
             return True
@@ -568,7 +571,7 @@ class FolderArchiver:
         try:
             os.remove(fname)
         except:
-            logger.exception("Failed to read: %s", fname)
+            logger.exception("Failed to remove: %s", fname)
             return False
         else:
             return True
@@ -976,7 +979,7 @@ class ComicArchive:
             if raw_cix == "":
                 raw_cix = None
             cix_string = ComicInfoXml().string_from_metadata(metadata, xml=raw_cix)
-            write_success = self.archiver.write_file(self.ci_xml_filename, cix_string)
+            write_success = self.archiver.write_file(self.ci_xml_filename, cix_string.encode("utf-8"))
             if write_success:
                 self.has__cix = True
                 self.cix_md = metadata
@@ -1088,8 +1091,7 @@ class ComicArchive:
                         data = self.archiver.read_file(n)
                     except Exception as e:
                         data = ""
-                        err_msg = f"Error reading in Comet XML for validation!: {e}"
-                        logger.warning(err_msg)
+                        logger.warning("Error reading in Comet XML for validation!: %s", e)
                     if CoMet().validate_string(data):
                         # since we found it, save it!
                         self.comet_filename = n

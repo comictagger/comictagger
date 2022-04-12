@@ -120,7 +120,7 @@ class ImageFetcher:
     def create_image_db(self):
 
         # this will wipe out any existing version
-        open(self.db_file, "w").close()
+        open(self.db_file, "wb").close()
 
         # wipe any existing image cache folder too
         if os.path.isdir(self.cache_folder):

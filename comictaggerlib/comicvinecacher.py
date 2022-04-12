@@ -59,11 +59,11 @@ class ComicVineCacher:
     def create_cache_db(self):
 
         # create the version file
-        with open(self.version_file, "w") as f:
+        with open(self.version_file, "w", encoding="utf-8") as f:
             f.write(ctversion.version)
 
         # this will wipe out any existing version
-        open(self.db_file, "w").close()
+        open(self.db_file, "wb").close()
 
         con = lite.connect(self.db_file)
 
