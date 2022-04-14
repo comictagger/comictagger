@@ -104,7 +104,7 @@
        <item row="0" column="2">
         <widget class="QCheckBox" name="chkDoublePage">
          <property name="text">
-          <string>Double Page?</string>
+          <string>&amp;Double Page?</string>
          </property>
         </widget>
        </item>
@@ -115,7 +115,10 @@
        <item row="0" column="0">
         <widget class="QLabel" name="lblBookmark">
          <property name="text">
-          <string>Bookmark:</string>
+          <string>Book&amp;mark:</string>
+         </property>
+         <property name="buddy">
+          <cstring>leBookmark</cstring>
          </property>
         </widget>
        </item>

@@ -43,39 +43,6 @@ def item_move_events(widget):
                     # print("ChildAdded")
                     self.mysignal.emit("start")
                     return True
-                if event.type() == QtCore.QEvent.KeyPress:
-                    ret = True
-                    if event.key() == QtCore.Qt.Key_A:
-                        self.mysignal.emit("A")
-                    elif event.key() == QtCore.Qt.Key_B:
-                        self.mysignal.emit("B")
-                    elif event.key() == QtCore.Qt.Key_D:
-                        self.mysignal.emit("D")
-                    elif event.key() == QtCore.Qt.Key_E:
-                        self.mysignal.emit("E")
-                    elif event.key() == QtCore.Qt.Key_F:
-                        self.mysignal.emit("F")
-                    elif event.key() == QtCore.Qt.Key_I:
-                        self.mysignal.emit("I")
-                    elif event.key() == QtCore.Qt.Key_L:
-                        self.mysignal.emit("L")
-                    elif event.key() == QtCore.Qt.Key_M:
-                        self.mysignal.emit("M")
-                    elif event.key() == QtCore.Qt.Key_O:
-                        self.mysignal.emit("O")
-                    elif event.key() == QtCore.Qt.Key_P:
-                        self.mysignal.emit("P")
-                    elif event.key() == QtCore.Qt.Key_R:
-                        self.mysignal.emit("R")
-                    elif event.key() == QtCore.Qt.Key_S:
-                        self.mysignal.emit("S")
-                    elif event.key() == QtCore.Qt.Key_X:
-                        self.mysignal.emit("X")
-                    elif event.key() == QtCore.Qt.Key_Space:
-                        self.mysignal.emit(" ")
-                    else:
-                        ret = False
-                    return ret
 
             return False
 
@@ -90,17 +57,17 @@ class PageListEditor(QtWidgets.QWidget):
     modified = QtCore.pyqtSignal()
 
     pageTypeNames = {
-        PageType.FrontCover: "Front Cover (F\U00000332)",
-        PageType.InnerCover: "Inner Cover (I\U00000332)",
-        PageType.Advertisement: "Advertisement (A\U00000332)",
-        PageType.Roundup: "Roundup (R\U00000332)",
-        PageType.Story: "Story (S\U00000332)",
-        PageType.Editorial: "Editorial (E\U00000332)",
-        PageType.Letters: "Letters (L\U00000332)",
-        PageType.Preview: "Preview (P\U00000332)",
-        PageType.BackCover: "Back Cover (B\U00000332)",
-        PageType.Other: "Other (O\U00000332)",
-        PageType.Deleted: "Deleted (X\U00000332)",
+        PageType.FrontCover: "Front Cover",
+        PageType.InnerCover: "Inner Cover",
+        PageType.Advertisement: "Advertisement",
+        PageType.Roundup: "Roundup",
+        PageType.Story: "Story",
+        PageType.Editorial: "Editorial",
+        PageType.Letters: "Letters",
+        PageType.Preview: "Preview",
+        PageType.BackCover: "Back Cover",
+        PageType.Other: "Other",
+        PageType.Deleted: "Deleted",
     }
 
     def __init__(self, parent):
@@ -117,21 +84,18 @@ class PageListEditor(QtWidgets.QWidget):
         self.reset_page()
 
         # Add the entries to the page type combobox
-        self.cbPageType.addItem("", "")
-        self.cbPageType.addItem(self.pageTypeNames[PageType.FrontCover], PageType.FrontCover)
-        self.cbPageType.addItem(self.pageTypeNames[PageType.InnerCover], PageType.InnerCover)
-        self.cbPageType.addItem(self.pageTypeNames[PageType.Advertisement], PageType.Advertisement)
-        self.cbPageType.addItem(self.pageTypeNames[PageType.Roundup], PageType.Roundup)
-        self.cbPageType.addItem(self.pageTypeNames[PageType.Story], PageType.Story)
-        self.cbPageType.addItem(self.pageTypeNames[PageType.Editorial], PageType.Editorial)
-        self.cbPageType.addItem(self.pageTypeNames[PageType.Letters], PageType.Letters)
-        self.cbPageType.addItem(self.pageTypeNames[PageType.Preview], PageType.Preview)
-        self.cbPageType.addItem(self.pageTypeNames[PageType.BackCover], PageType.BackCover)
-        self.cbPageType.addItem(self.pageTypeNames[PageType.Other], PageType.Other)
-        self.cbPageType.addItem(self.pageTypeNames[PageType.Deleted], PageType.Deleted)
-
-        self.chkDoublePage.setText("D\U00000332ouble Page?")
-        self.lblBookmark.setText("Bookm\U00000332ark:")
+        self.add_page_type_item("", "", "Alt+0", False)
+        self.add_page_type_item(self.pageTypeNames[PageType.FrontCover], PageType.FrontCover, "Alt+F")
+        self.add_page_type_item(self.pageTypeNames[PageType.InnerCover], PageType.InnerCover, "Alt+I")
+        self.add_page_type_item(self.pageTypeNames[PageType.Advertisement], PageType.Advertisement, "Alt+A")
+        self.add_page_type_item(self.pageTypeNames[PageType.Roundup], PageType.Roundup, "Alt+R")
+        self.add_page_type_item(self.pageTypeNames[PageType.Story], PageType.Story, "Alt+S")
+        self.add_page_type_item(self.pageTypeNames[PageType.Editorial], PageType.Editorial, "Alt+E")
+        self.add_page_type_item(self.pageTypeNames[PageType.Letters], PageType.Letters, "Alt+L")
+        self.add_page_type_item(self.pageTypeNames[PageType.Preview], PageType.Preview, "Alt+P")
+        self.add_page_type_item(self.pageTypeNames[PageType.BackCover], PageType.BackCover, "Alt+B")
+        self.add_page_type_item(self.pageTypeNames[PageType.Other], PageType.Other, "Alt+O")
+        self.add_page_type_item(self.pageTypeNames[PageType.Deleted], PageType.Deleted, "Alt+X")
 
         self.listWidget.itemSelectionChanged.connect(self.change_page)
         item_move_events(self.listWidget).connect(self.item_move_event)
@@ -153,6 +117,21 @@ class PageListEditor(QtWidgets.QWidget):
         self.leBookmark.setDisabled(True)
         self.comic_archive = None
         self.pages_list = []
+
+    def add_page_type_item(self, text, user_data, shortcut, show_shortcut=True):
+        if show_shortcut:
+            text = text + " (" + shortcut + ")"
+        self.cbPageType.addItem(text, user_data)
+        actionItem = QtWidgets.QAction(
+            shortcut, self, triggered=lambda: self.select_page_type_item(self.cbPageType.findData(user_data))
+        )
+        actionItem.setShortcut(shortcut)
+        self.addAction(actionItem)
+
+    def select_page_type_item(self, idx):
+        if self.cbPageType.isEnabled():
+            self.cbPageType.setCurrentIndex(idx)
+            self.change_page_type(idx)
 
     def get_new_indexes(self, movement):
         selection = self.listWidget.selectionModel().selectedRows()
@@ -231,39 +210,6 @@ class PageListEditor(QtWidgets.QWidget):
                 self.listOrderChanged.emit()
                 self.emit_front_cover_change()
                 self.modified.emit()
-        if s == "D" and self.chkDoublePage.isEnabled():
-            self.chkDoublePage.toggle()
-        if s == "M" and self.leBookmark.isEnabled():
-            self.leBookmark.setFocus()
-        if self.cbPageType.isEnabled():
-            idx = -1
-            if s == " ":
-                idx = self.cbPageType.findData("")
-            elif s == "A":
-                idx = self.cbPageType.findData(PageType.Advertisement)
-            elif s == "B":
-                idx = self.cbPageType.findData(PageType.BackCover)
-            elif s == "E":
-                idx = self.cbPageType.findData(PageType.Editorial)
-            elif s == "F":
-                idx = self.cbPageType.findData(PageType.FrontCover)
-            elif s == "I":
-                idx = self.cbPageType.findData(PageType.InnerCover)
-            elif s == "L":
-                idx = self.cbPageType.findData(PageType.Letters)
-            elif s == "O":
-                idx = self.cbPageType.findData(PageType.Other)
-            elif s == "P":
-                idx = self.cbPageType.findData(PageType.Preview)
-            elif s == "R":
-                idx = self.cbPageType.findData(PageType.Roundup)
-            elif s == "S":
-                idx = self.cbPageType.findData(PageType.Story)
-            elif s == "X":
-                idx = self.cbPageType.findData(PageType.Deleted)
-            if idx > -1:
-                self.cbPageType.setCurrentIndex(idx)
-                self.change_page_type(idx)
 
     def change_page_type(self, i):
         new_type = self.cbPageType.itemData(i)
@@ -390,7 +336,7 @@ class PageListEditor(QtWidgets.QWidget):
         text = str(int(page_dict["Image"]) + 1)
         if "Type" in page_dict:
             if page_dict["Type"] in self.pageTypeNames.keys():
-                text += " (" + self.pageTypeNames[page_dict["Type"]][:-5] + ")"
+                text += " (" + self.pageTypeNames[page_dict["Type"]] + ")"
             else:
                 text += " (Error: " + page_dict["Type"] + ")"
         if "DoublePage" in page_dict:
