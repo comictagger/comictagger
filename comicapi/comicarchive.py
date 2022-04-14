@@ -33,7 +33,7 @@ try:
 
     rar_support = True
 except:
-    rar_support = True
+    rar_support = False
 
 try:
     from PIL import Image
