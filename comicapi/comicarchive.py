@@ -30,6 +30,7 @@ import py7zr
 
 try:
     from unrar.cffi import rarfile
+
     rar_support = True
 except:
     rar_support = True

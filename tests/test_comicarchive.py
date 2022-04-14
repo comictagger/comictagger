@@ -1,11 +1,13 @@
 from os.path import abspath, dirname, join
 
-from comicapi.comicarchive import ComicArchive, rar_support
 import pytest
+
+from comicapi.comicarchive import ComicArchive, rar_support
 
 thisdir = dirname(abspath(__file__))
 
-@pytest.mark.xfail("rar_support")
+
+@pytest.mark.xfail(rar_support, reason="rar support")
 def test_getPageNameList():
     ComicArchive.logo_data = b""
     c = ComicArchive(join(thisdir, "data", "fake_cbr.cbr"))
