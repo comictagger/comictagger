@@ -85,7 +85,7 @@ try:
     qt_exception_hook = UncaughtHook()
     from comictaggerlib.taggerwindow import TaggerWindow
 except ImportError as e:
-    logging.debug(e)
+    logger.error(str(e))
     qt_available = False
 
 

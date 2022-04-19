@@ -164,12 +164,13 @@ class IssueIdentifier:
     def get_search_keys(self):
 
         ca = self.comic_archive
-        search_keys: SearchKeys = {}
-        search_keys["series"] = None
-        search_keys["issue_number"] = None
-        search_keys["month"] = None
-        search_keys["year"] = None
-        search_keys["issue_count"] = None
+        search_keys: SearchKeys = {
+            "series": None,
+            "issue_number": None,
+            "month": None,
+            "year": None,
+            "issue_count": None,
+        }
 
         if ca is None:
             return None
@@ -274,10 +275,8 @@ class IssueIdentifier:
             self.cover_url_callback(url_image_data)
 
         remote_cover_list = []
-        item = {}
-        item["url"] = primary_img_url
+        item = {"url": primary_img_url, "hash": self.calculate_hash(url_image_data)}
 
-        item["hash"] = self.calculate_hash(url_image_data)
         remote_cover_list.append(item)
 
         if self.cancel:
@@ -299,9 +298,7 @@ class IssueIdentifier:
                 if self.cover_url_callback is not None:
                     self.cover_url_callback(alt_url_image_data)
 
-                item = {}
-                item["url"] = alt_url
-                item["hash"] = self.calculate_hash(alt_url_image_data)
+                item = {"url": alt_url, "hash": self.calculate_hash(alt_url_image_data)}
                 remote_cover_list.append(item)
 
                 if self.cancel:
@@ -317,10 +314,7 @@ class IssueIdentifier:
         for local_cover_hash in local_cover_hash_list:
             for remote_cover_item in remote_cover_list:
                 score = ImageHasher.hamming_distance(local_cover_hash, remote_cover_item["hash"])
-                score_item = {}
-                score_item["score"] = score
-                score_item["url"] = remote_cover_item["url"]
-                score_item["hash"] = remote_cover_item["hash"]
+                score_item = {"score": score, "url": remote_cover_item["url"], "hash": remote_cover_item["hash"]}
                 score_list.append(score_item)
                 if use_log:
                     self.log_msg(score, False)
@@ -520,24 +514,25 @@ class IssueIdentifier:
                 self.match_list = []
                 return self.match_list
 
-            match: IssueResult = {}
-            match["series"] = f"{series['name']} ({series['start_year']})"
-            match["distance"] = score_item["score"]
-            match["issue_number"] = keys["issue_number"]
-            match["cv_issue_count"] = series["count_of_issues"]
-            match["url_image_hash"] = score_item["hash"]
-            match["issue_title"] = issue["name"]
-            match["issue_id"] = issue["id"]
-            match["volume_id"] = series["id"]
-            match["month"] = month
-            match["year"] = year
-            match["publisher"] = None
+            match: IssueResult = {
+                "series": f"{series['name']} ({series['start_year']})",
+                "distance": score_item["score"],
+                "issue_number": keys["issue_number"],
+                "cv_issue_count": series["count_of_issues"],
+                "url_image_hash": score_item["hash"],
+                "issue_title": issue["name"],
+                "issue_id": issue["id"],
+                "volume_id": series["id"],
+                "month": month,
+                "year": year,
+                "publisher": None,
+                "image_url": image_url,
+                "thumb_url": thumb_url,
+                "page_url": page_url,
+                "description": issue["description"],
+            }
             if series["publisher"] is not None:
                 match["publisher"] = series["publisher"]["name"]
-            match["image_url"] = image_url
-            match["thumb_url"] = thumb_url
-            match["page_url"] = page_url
-            match["description"] = issue["description"]
 
             self.match_list.append(match)
 
