@@ -124,9 +124,6 @@ class ComicTaggerSettings:
         self.wait_and_retry_on_rate_limit = False
 
     def __init__(self):
-
-        self.settings_file = ""
-        self.folder = ""
         # General Settings
         self.rar_exe_path = ""
         self.allow_cbi_in_rar = True

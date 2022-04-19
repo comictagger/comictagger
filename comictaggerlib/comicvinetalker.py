@@ -644,16 +644,12 @@ class ComicVineTalker:
 
         cv_response = self.get_cv_content(issue_url, params)
 
-        details: SelectDetails = {}
-        details["image_url"] = None
-        details["thumb_image_url"] = None
-        details["cover_date"] = None
-        details["site_detail_url"] = None
-
-        details["image_url"] = cv_response["results"]["image"]["super_url"]
-        details["thumb_image_url"] = cv_response["results"]["image"]["thumb_url"]
-        details["cover_date"] = cv_response["results"]["cover_date"]
-        details["site_detail_url"] = cv_response["results"]["site_detail_url"]
+        details: SelectDetails = {
+            "image_url": cv_response["results"]["image"]["super_url"],
+            "thumb_image_url": cv_response["results"]["image"]["thumb_url"],
+            "cover_date": cv_response["results"]["cover_date"],
+            "site_detail_url": cv_response["results"]["site_detail_url"],
+        }
 
         if details["image_url"] is not None:
             self.cache_issue_select_details(

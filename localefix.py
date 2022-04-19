@@ -23,9 +23,9 @@ def _lang_code_mac():
     # - The macOS underlying API:
     #   https://developer.apple.com/documentation/foundation/nsuserdefaults.
 
-    LANG_DETECT_COMMAND = "defaults read -g AppleLocale"
+    lang_detect_command = "defaults read -g AppleLocale"
 
-    status, output = subprocess.getstatusoutput(LANG_DETECT_COMMAND)
+    status, output = subprocess.getstatusoutput(lang_detect_command)
     if status == 0:
         # Command was successful.
         lang_code = output

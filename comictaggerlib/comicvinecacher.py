@@ -175,16 +175,15 @@ class ComicVineCacher:
             rows = cur.fetchall()
             # now process the results
             for record in rows:
-                result = {}
-                result["id"] = record[1]
-                result["name"] = record[2]
-                result["start_year"] = record[3]
-                result["publisher"] = {}
-                result["publisher"]["name"] = record[4]
-                result["count_of_issues"] = record[5]
-                result["image"] = {}
-                result["image"]["super_url"] = record[6]
-                result["description"] = record[7]
+                result = {
+                    "id": record[1],
+                    "name": record[2],
+                    "start_year": record[3],
+                    "count_of_issues": record[5],
+                    "description": record[7],
+                    "publisher": {"name": record[4]},
+                    "image": {"super_url": record[6]},
+                }
 
                 results.append(result)
 
@@ -301,16 +300,15 @@ class ComicVineCacher:
             if row is None:
                 return result
 
-            result = {}
-
             # since ID is primary key, there is only one row
-            result["id"] = row[0]
-            result["name"] = row[1]
-            result["publisher"] = {}
-            result["publisher"]["name"] = row[2]
-            result["count_of_issues"] = row[3]
-            result["start_year"] = row[4]
-            result["issues"] = []
+            result = {
+                "id": row[0],
+                "name": row[1],
+                "count_of_issues": row[3],
+                "start_year": row[4],
+                "issues": [],
+                "publisher": {"name": row[2]},
+            }
 
         return result
 
@@ -337,17 +335,15 @@ class ComicVineCacher:
 
             # now process the results
             for row in rows:
-                record = {}
-
-                record["id"] = row[0]
-                record["name"] = row[1]
-                record["issue_number"] = row[2]
-                record["site_detail_url"] = row[3]
-                record["cover_date"] = row[4]
-                record["image"] = {}
-                record["image"]["super_url"] = row[5]
-                record["image"]["thumb_url"] = row[6]
-                record["description"] = row[7]
+                record = {
+                    "id": row[0],
+                    "name": row[1],
+                    "issue_number": row[2],
+                    "site_detail_url": row[3],
+                    "cover_date": row[4],
+                    "image": {"super_url": row[5], "thumb_url": row[6]},
+                    "description": row[7],
+                }
 
                 results.append(record)
 
