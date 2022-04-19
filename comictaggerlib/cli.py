@@ -27,7 +27,7 @@ from comicapi.comicarchive import ComicArchive, MetaDataStyle
 from comicapi.genericmetadata import GenericMetadata
 from comictaggerlib.cbltransformer import CBLTransformer
 from comictaggerlib.comicvinetalker import ComicVineTalker, ComicVineTalkerException
-from comictaggerlib.filerenamer import FileRenamer
+from comictaggerlib.filerenamer import FileRenamer, FileRenamer2
 from comictaggerlib.issueidentifier import IssueIdentifier
 from comictaggerlib.resulttypes import MultipleMatch, OnlineMatchResults
 from comictaggerlib.settings import ComicTaggerSettings
@@ -155,6 +155,13 @@ def cli_mode(opts, settings):
         logger.error("You must specify at least one filename.  Use the -h option for more info")
         return
 
+    if not settings.hide_rename_message:
+        print(
+            "There is a new rename template format available. "
+            "Please use the settings window to enable and test if you use this feature.\n\n"
+            "The old rename template format will be removed in the next release, "
+            "please reference the template help button in the settings or https://github.com/comictagger/comictagger/wiki/UserGuide#rename",
+        )
     match_results = OnlineMatchResults()
 
     for f in opts.file_list:
@@ -445,24 +452,42 @@ def process_file_cli(filename, opts, settings, match_results: OnlineMatchResults
             elif ca.is_rar():
                 new_ext = ".cbr"
 
-        renamer = FileRenamer(md)
+        if settings.rename_new_renamer:
+            renamer = FileRenamer2(md, platform="universal" if settings.rename_strict else "auto")
+        else:
+            renamer = FileRenamer(md)
         renamer.set_template(settings.rename_template)
         renamer.set_issue_zero_padding(settings.rename_issue_number_padding)
         renamer.set_smart_cleanup(settings.rename_use_smart_string_cleanup)
+        renamer.move = settings.rename_move_dir
 
-        new_name = renamer.determine_name(ca.path, ext=new_ext)
-
-        if new_name == os.path.basename(ca.path):
-            logger.error(msg_hdr + "Filename is already good!")
+        try:
+            new_name = renamer.determine_name(ext=new_ext)
+        except Exception as e:
+            print(
+                msg_hdr + "Invalid format string!\nYour rename template is invalid!\n\n"
+                "{}\n\nPlease consult the template help in the settings "
+                "and the documentation on the format at "
+                "https://docs.python.org/3/library/string.html#format-string-syntax".format(e),
+                file=sys.stderr,
+            )
             return
 
-        folder = os.path.dirname(os.path.abspath(ca.path))
+        folder = os.path.dirname(os.path.abspath(filename))
+        if settings.rename_move_dir and len(settings.rename_dir.strip()) > 3:
+            folder = settings.rename_dir.strip()
+
         new_abs_path = utils.unique_file(os.path.join(folder, new_name))
+
+        if os.path.join(folder, new_name) == os.path.abspath(filename):
+            print(msg_hdr + "Filename is already good!", file=sys.stderr)
+            return
 
         suffix = ""
         if not opts.dryrun:
             # rename the file
-            os.rename(ca.path, new_abs_path)
+            os.makedirs(os.path.dirname(new_abs_path), 0o777, True)
+            os.rename(filename, new_abs_path)
         else:
             suffix = " (dry-run, no change)"
 
