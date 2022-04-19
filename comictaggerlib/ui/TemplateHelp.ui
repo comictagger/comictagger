@@ -27,65 +27,87 @@
     <number>2</number>
    </property>
    <item>
-    <widget class="QTextEdit" name="textEdit">
+    <widget class="QTextBrowser" name="textEdit">
      <property name="readOnly">
       <bool>true</bool>
      </property>
      <property name="html">
       <string>&lt;html&gt;
-	&lt;head/&gt;
+	&lt;head&gt;
+     &lt;style&gt;
+table {
+  font-family: arial, sans-serif;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+td, th {
+  border: 1px solid #dddddd;
+  text-align: left;
+  padding: 8px;
+}
+
+tr:nth-child(even) {
+  background-color: #dddddd;
+}
+&lt;/style&gt;
+     &lt;/head&gt;
 	&lt;body&gt;
-		&lt;h1 style=&quot;text-align: center&quot;&gt;Template help&lt;/h1&gt;
+		&lt;h1 style="text-align: center"&gt;Template help&lt;/h1&gt;
 		&lt;p&gt;The template uses Python format strings, in the simplest use it replaces the field (e.g. {issue}) with the value for that particular comic (e.g. 1) for advanced formatting please reference the
 
-			&lt;a href=&quot;https://docs.python.org/3/library/string.html#format-string-syntax&quot;&gt;Python 3 documentation&lt;/a&gt;&lt;/p&gt;
-		&lt;pre&gt;Accepts the following variables:
-{isEmpty}&#009;&#009;(boolean)
-{tagOrigin}&#009;&#009;(string)
-{series}&#009;&#009;(string)
-{issue}&#009;&#009;(string)
-{title}&#009;&#009;(string)
-{publisher}&#009;&#009;(string)
-{month}&#009;&#009;(integer)
-{year}&#009;&#009;(integer)
-{day}&#009;&#009;(integer)
-{issueCount}&#009;(integer)
-{volume}&#009;&#009;(integer)
-{genre}&#009;&#009;(string)
-{language}&#009;&#009;(string)
-{comments}&#009;&#009;(string)
-{volumeCount}&#009;(integer)
-{criticalRating}&#009;(string)
-{country}&#009;&#009;(string)
-{alternateSeries}&#009;(string)
-{alternateNumber}&#009;(string)
-{alternateCount}&#009;(integer)
-{imprint}&#009;&#009;(string)
-{notes}&#009;&#009;(string)
-{webLink}&#009;&#009;(string)
-{format}&#009;&#009;(string)
-{manga}&#009;&#009;(string)
-{blackAndWhite}&#009;(boolean)
-{pageCount}&#009;&#009;(integer)
-{maturityRating}&#009;(string)
-{storyArc}&#009;&#009;(string)
-{seriesGroup}&#009;(string)
-{scanInfo}&#009;&#009;(string)
-{characters}&#009;(string)
-{teams}&#009;&#009;(string)
-{locations}&#009;&#009;(string)
-{credits}&#009;&#009;(list of dict({&apos;role&apos;: &apos;str&apos;, &apos;person&apos;: &apos;str&apos;, &apos;primary&apos;: boolean}))
-{tags}&#009;&#009;(list of str)
-{pages}&#009;&#009;(list of dict({&apos;Image&apos;: &apos;str(int)&apos;, &apos;Type&apos;: &apos;str&apos;}))
-
-CoMet-only items:
-{price}&#009;&#009;(float)
-{isVersionOf}&#009;(string)
-{rights}&#009;&#009;(string)
-{identifier}&#009;(string)
-{lastMark}&#009;(string)
-{coverImage}&#009;(string)
-
+			&lt;a href="https://docs.python.org/3/library/string.html#format-string-syntax"&gt;Python 3 documentation&lt;/a&gt;&lt;/p&gt;
+		Accepts the following variables:
+&lt;table&gt;
+     &lt;tr&gt;
+          &lt;th&gt;Tag name&lt;/th&gt;
+          &lt;th&gt;Type&lt;/th&gt;
+     &lt;/tr&gt;
+     &lt;tr&gt;&lt;td&gt;{is_empty}&lt;/td&gt;&lt;td&gt;boolean&lt;/td&gt;&lt;/tr&gt;
+     &lt;tr&gt;&lt;td&gt;{tag_origin}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
+     &lt;tr&gt;&lt;td&gt;{series}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
+     &lt;tr&gt;&lt;td&gt;{issue}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
+     &lt;tr&gt;&lt;td&gt;{title}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
+     &lt;tr&gt;&lt;td&gt;{publisher}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
+     &lt;tr&gt;&lt;td&gt;{month}&lt;/td&gt;&lt;td&gt;integer&lt;/td&gt;&lt;/tr&gt;
+     &lt;tr&gt;&lt;td&gt;{year}&lt;/td&gt;&lt;td&gt;integer&lt;/td&gt;&lt;/tr&gt;
+     &lt;tr&gt;&lt;td&gt;{day}&lt;/td&gt;&lt;td&gt;integer&lt;/td&gt;&lt;/tr&gt;
+     &lt;tr&gt;&lt;td&gt;{issue_count}&lt;/td&gt;&lt;td&gt;integer&lt;/td&gt;&lt;/tr&gt;
+     &lt;tr&gt;&lt;td&gt;{volume}&lt;/td&gt;&lt;td&gt;integer&lt;/td&gt;&lt;/tr&gt;
+     &lt;tr&gt;&lt;td&gt;{genre}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
+     &lt;tr&gt;&lt;td&gt;{language}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
+     &lt;tr&gt;&lt;td&gt;{comments}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
+     &lt;tr&gt;&lt;td&gt;{volume_count}&lt;/td&gt;&lt;td&gt;integer&lt;/td&gt;&lt;/tr&gt;
+     &lt;tr&gt;&lt;td&gt;{critical_rating}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
+     &lt;tr&gt;&lt;td&gt;{country}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
+     &lt;tr&gt;&lt;td&gt;{alternate_series}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
+     &lt;tr&gt;&lt;td&gt;{alternate_number}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
+     &lt;tr&gt;&lt;td&gt;{alternate_count}&lt;/td&gt;&lt;td&gt;integer&lt;/td&gt;&lt;/tr&gt;
+     &lt;tr&gt;&lt;td&gt;{imprint}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
+     &lt;tr&gt;&lt;td&gt;{notes}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
+     &lt;tr&gt;&lt;td&gt;{web_link}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
+     &lt;tr&gt;&lt;td&gt;{format}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
+     &lt;tr&gt;&lt;td&gt;{manga}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
+     &lt;tr&gt;&lt;td&gt;{black_and_white}&lt;/td&gt;&lt;td&gt;boolean&lt;/td&gt;&lt;/tr&gt;
+     &lt;tr&gt;&lt;td&gt;{page_count}&lt;/td&gt;&lt;td&gt;integer&lt;/td&gt;&lt;/tr&gt;
+     &lt;tr&gt;&lt;td&gt;{maturity_rating}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
+     &lt;tr&gt;&lt;td&gt;{story_arc}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
+     &lt;tr&gt;&lt;td&gt;{series_group}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
+     &lt;tr&gt;&lt;td&gt;{scan_info}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
+     &lt;tr&gt;&lt;td&gt;{characters}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
+     &lt;tr&gt;&lt;td&gt;{teams}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
+     &lt;tr&gt;&lt;td&gt;{locations}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
+     &lt;tr&gt;&lt;td&gt;{credits}&lt;/td&gt;&lt;td&gt;list of dict({&apos;role&apos;: string, &apos;person&apos;: string, &apos;primary&apos;: boolean})&lt;/td&gt;&lt;/tr&gt;
+     &lt;tr&gt;&lt;td&gt;{tags}&lt;/td&gt;&lt;td&gt;list of str&lt;/td&gt;&lt;/tr&gt;
+     &lt;tr&gt;&lt;td&gt;{pages}&lt;/td&gt;&lt;td&gt;list of dict({&apos;Image&apos;: string(int), &apos;Type&apos;: string})&lt;/td&gt;&lt;/tr&gt;
+     &lt;tr&gt;&lt;td&gt;{price}&lt;/td&gt;&lt;td&gt;float&lt;/td&gt;&lt;/tr&gt;
+     &lt;tr&gt;&lt;td&gt;{is_version_of}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
+     &lt;tr&gt;&lt;td&gt;{rights}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
+     &lt;tr&gt;&lt;td&gt;{identifier}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
+     &lt;tr&gt;&lt;td&gt;{last_mark}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
+     &lt;tr&gt;&lt;td&gt;{cover_image}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
+&lt;/table&gt;
+&lt;pre&gt;
 Examples:
 
 {series} {issue} ({year})
@@ -96,7 +118,9 @@ Spider-Geddon #1 - New Players; Check In
 
 &lt;/pre&gt;
 	&lt;/body&gt;
-&lt;/html&gt;</string>
+&lt;/html&gt;</string></property>
+     <property name="textInteractionFlags">
+      <set>Qt::TextBrowserInteraction</set>
      </property>
      <property name="openExternalLinks" stdset="0">
       <bool>true</bool>
