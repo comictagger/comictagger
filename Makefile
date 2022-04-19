@@ -35,6 +35,13 @@ CI:
 	black .
 	isort .
 	flake8 .
+	pytest
+
+check:
+	black --check .
+	isort --check .
+	flake8 .
+	pytest
 
 pydist: CI
 	make clean

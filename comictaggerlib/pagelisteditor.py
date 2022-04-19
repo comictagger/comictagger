@@ -263,7 +263,7 @@ class PageListEditor(QtWidgets.QWidget):
             if "Type" in page_dict:
                 del page_dict["Type"]
         else:
-            page_dict["Type"] = str(t)
+            page_dict["Type"] = t
 
         item = self.listWidget.item(row)
         # wrap the dict in a tuple to keep from being converted to QtWidgets.QStrings
