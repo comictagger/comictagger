@@ -72,7 +72,7 @@ $(INSTALL_STAMP): $(PYTHON_VENV) requirements.txt requirements_dev.txt
 
 ins: $(PACKAGE_PATH)
 $(PACKAGE_PATH):
-	$(PIP) -m pip install .
+	$(PIP) install .
 
 dist: CI
 	pyinstaller -y comictagger.spec
