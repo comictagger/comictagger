@@ -135,8 +135,8 @@ class SevenZipArchiver:
         os.close(tmp_fd)
 
         try:
-            with py7zr.SevenZipFile(self.path, "r") as zip:
-                targets = [f for f in zip.getnames() if f not in exclude_list]
+            with py7zr.SevenZipFile(self.path, "r") as zin:
+                targets = [f for f in zin.getnames() if f not in exclude_list]
             with py7zr.SevenZipFile(self.path, "r") as zin:
                 with py7zr.SevenZipFile(tmp_name, "w") as zout:
                     for fname, bio in zin.read(targets).items():

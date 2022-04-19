@@ -21,6 +21,7 @@ possible, however lossy it might be
 # limitations under the License.
 
 import logging
+from enum import Enum
 from typing import List, TypedDict
 
 from comicapi import utils
@@ -28,7 +29,7 @@ from comicapi import utils
 logger = logging.getLogger(__name__)
 
 
-class PageType:
+class PageType(Enum):
 
     """
     These page info classes are exactly the same as the CIX scheme, since
@@ -48,7 +49,7 @@ class PageType:
     Deleted = "Deleted"
 
 
-class ImageMetadata(TypedDict):
+class ImageMetadata(TypedDict, total=False):
     Type: PageType
     Bookmark: str
     DoublePage: bool
@@ -213,8 +214,7 @@ class GenericMetadata:
     def set_default_page_list(self, count):
         # generate a default page list, with the first page marked as the cover
         for i in range(count):
-            page_dict = {}
-            page_dict["Image"] = str(i)
+            page_dict = ImageMetadata(Image=i)
             if i == 0:
                 page_dict["Type"] = PageType.FrontCover
             self.pages.append(page_dict)
@@ -241,11 +241,7 @@ class GenericMetadata:
 
     def add_credit(self, person, role, primary=False):
 
-        credit = {}
-        credit["person"] = person
-        credit["role"] = role
-        if primary:
-            credit["primary"] = primary
+        credit: CreditMetadata = {"person": person, "role": role, "primary": primary}
 
         # look to see if it's not already there...
         found = False
