@@ -2,5 +2,6 @@ beautifulsoup4 >= 4.1
 natsort>=8.1.0
 pillow>=4.3.0
 requests==2.*
+pathvalidate
 pycountry
 py7zr

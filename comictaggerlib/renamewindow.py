@@ -82,7 +82,22 @@ class RenameWindow(QtWidgets.QDialog):
             if md.is_empty:
                 md = ca.metadata_from_filename(self.settings.parse_scan_info)
             self.renamer.set_metadata(md)
-            new_name = self.renamer.determine_name(ca.path, ext=new_ext)
+            self.renamer.move = self.settings.rename_move_dir
+
+            try:
+                new_name = self.renamer.determine_name(ca.path, ext=new_ext)
+            except Exception as e:
+                QtWidgets.QMessageBox.critical(
+                    self,
+                    "Invalid format string!",
+                    "Your rename template is invalid!"
+                    "<br/><br/>{}<br/><br/>"
+                    "Please consult the template help in the "
+                    "settings and the documentation on the format at "
+                    "<a href='https://docs.python.org/3/library/string.html#format-string-syntax'>"
+                    "https://docs.python.org/3/library/string.html#format-string-syntax</a>".format(e),
+                )
+                return
 
             row = self.twList.rowCount()
             self.twList.insertRow(row)
@@ -150,7 +165,13 @@ class RenameWindow(QtWidgets.QDialog):
             center_window_on_parent(prog_dialog)
             QtCore.QCoreApplication.processEvents()
 
-            if item["new_name"] == os.path.basename(item["archive"].path):
+            folder = os.path.dirname(os.path.abspath(item["archive"].path))
+            if self.settings.rename_move_dir and len(self.settings.rename_dir.strip()) > 3:
+                folder = self.settings.rename_dir.strip()
+
+            new_abs_path = utils.unique_file(os.path.join(folder, item["new_name"]))
+
+            if os.path.join(folder, item["new_name"]) == item["archive"].path:
                 print(item["new_name"], "Filename is already good!")
                 logger.info(item["new_name"], "Filename is already good!")
                 continue
@@ -158,9 +179,7 @@ class RenameWindow(QtWidgets.QDialog):
             if not item["archive"].is_writable(check_rar_status=False):
                 continue
 
-            folder = os.path.dirname(os.path.abspath(item["archive"].path))
-            new_abs_path = utils.unique_file(os.path.join(folder, item["new_name"]))
-
+            os.makedirs(os.path.dirname(new_abs_path), 0o777, True)
             os.rename(item["archive"].path, new_abs_path)
 
             item["archive"].rename(new_abs_path)

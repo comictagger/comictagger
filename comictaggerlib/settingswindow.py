@@ -21,8 +21,10 @@ import platform
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
 from comicapi import utils
+from comicapi.genericmetadata import md_test
 from comictaggerlib.comicvinecacher import ComicVineCacher
 from comictaggerlib.comicvinetalker import ComicVineTalker
+from comictaggerlib.filerenamer import FileRenamer
 from comictaggerlib.imagefetcher import ImageFetcher
 from comictaggerlib.settings import ComicTaggerSettings
 
@@ -111,6 +113,14 @@ class SettingsWindow(QtWidgets.QDialog):
         self.btnClearCache.clicked.connect(self.clear_cache)
         self.btnResetSettings.clicked.connect(self.reset_settings)
         self.btnTestKey.clicked.connect(self.test_api_key)
+        self.btnTemplateHelp.clicked.connect(self.show_template_help)
+
+    def config_renamer(self):
+
+        self.renamer = FileRenamer(md_test)
+        self.renamer.set_template(str(self.leRenameTemplate.text()))
+        self.renamer.set_issue_zero_padding(self.settings.rename_issue_number_padding)
+        self.renamer.set_smart_cleanup(self.settings.rename_use_smart_string_cleanup)
 
     def settings_to_form(self):
 
@@ -166,8 +176,28 @@ class SettingsWindow(QtWidgets.QDialog):
             self.cbxSmartCleanup.setCheckState(QtCore.Qt.CheckState.Checked)
         if self.settings.rename_extension_based_on_archive:
             self.cbxChangeExtension.setCheckState(QtCore.Qt.CheckState.Checked)
+        if self.settings.rename_move_dir:
+            self.cbxMoveFiles.setCheckState(QtCore.Qt.CheckState.Checked)
+        self.leDirectory.setText(self.settings.rename_dir)
 
     def accept(self):
+
+        self.config_renamer()
+
+        try:
+            new_name = self.renamer.determine_name("test.cbz")
+        except Exception as e:
+            QtWidgets.QMessageBox.critical(
+                self,
+                "Invalid format string!",
+                "Your rename template is invalid!"
+                "<br/><br/>{}<br/><br/>"
+                "Please consult the template help in the "
+                "settings and the documentation on the format at "
+                "<a href='https://docs.python.org/3/library/string.html#format-string-syntax'>"
+                "https://docs.python.org/3/library/string.html#format-string-syntax</a>".format(e),
+            )
+            return
 
         # Copy values from form to settings and save
         self.settings.rar_exe_path = str(self.leRarExePath.text())
@@ -213,6 +243,8 @@ class SettingsWindow(QtWidgets.QDialog):
         self.settings.rename_issue_number_padding = int(self.leIssueNumPadding.text())
         self.settings.rename_use_smart_string_cleanup = self.cbxSmartCleanup.isChecked()
         self.settings.rename_extension_based_on_archive = self.cbxChangeExtension.isChecked()
+        self.settings.rename_move_dir = self.cbxMoveFiles.isChecked()
+        self.settings.rename_dir = self.leDirectory.text()
 
         self.settings.save()
         QtWidgets.QDialog.accept(self)
@@ -262,3 +294,15 @@ class SettingsWindow(QtWidgets.QDialog):
 
     def show_rename_tab(self):
         self.tabWidget.setCurrentIndex(5)
+
+    def show_template_help(self):
+        template_help_win = TemplateHelpWindow(self)
+        template_help_win.setModal(False)
+        template_help_win.show()
+
+
+class TemplateHelpWindow(QtWidgets.QDialog):
+    def __init__(self, parent):
+        super(TemplateHelpWindow, self).__init__(parent)
+
+        uic.loadUi(ComicTaggerSettings.get_ui_file("TemplateHelp.ui"), self)
