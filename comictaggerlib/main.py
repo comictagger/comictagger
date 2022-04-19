@@ -95,6 +95,10 @@ def rotate(handler: logging.handlers.RotatingFileHandler, filename: pathlib.Path
 
 
 def ctmain():
+    opts = Options()
+    opts.parse_cmd_line_args()
+    SETTINGS = ComicTaggerSettings(opts.config_path)
+
     os.makedirs(ComicTaggerSettings.get_settings_folder() / "logs", exist_ok=True)
     stream_handler = logging.StreamHandler()
     stream_handler.setLevel(logging.WARNING)
@@ -111,11 +115,7 @@ def ctmain():
         format="%(asctime)s | %(name)s | %(levelname)s | %(message)s",
         datefmt="%Y-%m-%dT%H:%M:%S",
     )
-    opts = Options()
-    opts.parse_cmd_line_args()
-
     # Need to load setting before anything else
-    SETTINGS = ComicTaggerSettings()
 
     # manage the CV API key
     if opts.cv_api_key:

@@ -130,6 +130,11 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
         self.immediate_autoselect = autoselect
         self.cover_index_list = cover_index_list
         self.cv_search_results = None
+        self.ii = None
+        self.iddialog = None
+        self.id_thread = None
+        self.progdialog = None
+        self.search_thread = None
 
         self.use_filter = self.settings.always_use_publisher_filter
 

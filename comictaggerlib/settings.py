@@ -28,13 +28,16 @@ logger = logging.getLogger(__name__)
 
 
 class ComicTaggerSettings:
+    folder = ""
+
     @staticmethod
     def get_settings_folder():
-        if platform.system() == "Windows":
-            folder = os.path.join(os.environ["APPDATA"], "ComicTagger")
-        else:
-            folder = os.path.join(os.path.expanduser("~"), ".ComicTagger")
-        return pathlib.Path(folder)
+        if not ComicTaggerSettings.folder:
+            if platform.system() == "Windows":
+                ComicTaggerSettings.folder = os.path.join(os.environ["APPDATA"], "ComicTagger")
+            else:
+                ComicTaggerSettings.folder = os.path.join(os.path.expanduser("~"), ".ComicTagger")
+        return pathlib.Path(ComicTaggerSettings.folder)
 
     @staticmethod
     def base_dir():
@@ -123,10 +126,9 @@ class ComicTaggerSettings:
         self.remove_archive_after_successful_match = False
         self.wait_and_retry_on_rate_limit = False
 
-    def __init__(self):
+    def __init__(self, folder):
 
         self.settings_file = ""
-        self.folder = ""
         # General Settings
         self.rar_exe_path = ""
         self.allow_cbi_in_rar = True
@@ -197,12 +199,15 @@ class ComicTaggerSettings:
         self.wait_and_retry_on_rate_limit = False
 
         self.config = configparser.RawConfigParser()
-        self.folder = ComicTaggerSettings.get_settings_folder()
+        if folder:
+            ComicTaggerSettings.folder = pathlib.Path(folder)
+        else:
+            ComicTaggerSettings.folder = ComicTaggerSettings.get_settings_folder()
 
-        if not os.path.exists(self.folder):
-            os.makedirs(self.folder)
+        if not os.path.exists(ComicTaggerSettings.folder):
+            os.makedirs(ComicTaggerSettings.folder)
 
-        self.settings_file = os.path.join(self.folder, "settings")
+        self.settings_file = os.path.join(ComicTaggerSettings.folder, "settings")
 
         # if config file doesn't exist, write one out
         if not os.path.exists(self.settings_file):
