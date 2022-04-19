@@ -9,7 +9,7 @@ from comicapi.genericmetadata import GenericMetadata, PageType, md_test
 thisdir = dirname(abspath(__file__))
 
 
-@pytest.mark.xfail(rar_support, reason="rar support")
+@pytest.mark.xfail(not rar_support, reason="rar support")
 def test_getPageNameList():
     ComicArchive.logo_data = b""
     c = ComicArchive(join(thisdir, "data", "fake_cbr.cbr"))
