@@ -382,7 +382,7 @@ md_test.series_group = "Futuristic Tales"
 md_test.scan_info = "(CC BY-NC-SA 3.0)"
 md_test.characters = "Anda"
 md_test.teams = "Fahrenheit"
-md_test.locations = "lonely cottage"
+md_test.locations = "lonely  cottage "
 md_test.credits = [
     {"person": "Dara Naraghi", "role": "Writer"},
     {"person": "Esteve Polls", "role": "Penciller"},

@@ -118,6 +118,7 @@ class ComicTaggerSettings:
         self.rename_dir = ""
         self.rename_move_dir = False
         self.rename_new_renamer = False
+        self.rename_strict = False
 
         # Auto-tag stickies
         self.save_on_low_confidence = False
@@ -195,6 +196,7 @@ class ComicTaggerSettings:
         self.rename_dir = ""
         self.rename_move_dir = False
         self.rename_new_renamer = False
+        self.rename_strict = False
 
         # Auto-tag stickies
         self.save_on_low_confidence = False
@@ -360,6 +362,8 @@ class ComicTaggerSettings:
             self.rename_move_dir = self.config.getboolean("rename", "rename_move_dir")
         if self.config.has_option("rename", "rename_new_renamer"):
             self.rename_new_renamer = self.config.getboolean("rename", "rename_new_renamer")
+        if self.config.has_option("rename", "rename_strict"):
+            self.rename_strict = self.config.getboolean("rename", "rename_strict")
 
         if self.config.has_option("autotag", "save_on_low_confidence"):
             self.save_on_low_confidence = self.config.getboolean("autotag", "save_on_low_confidence")
@@ -461,6 +465,7 @@ class ComicTaggerSettings:
         self.config.set("rename", "rename_dir", self.rename_dir)
         self.config.set("rename", "rename_move_dir", self.rename_move_dir)
         self.config.set("rename", "rename_new_renamer", self.rename_new_renamer)
+        self.config.set("rename", "rename_strict", self.rename_strict)
 
         if not self.config.has_section("autotag"):
             self.config.add_section("autotag")

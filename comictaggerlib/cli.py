@@ -453,7 +453,7 @@ def process_file_cli(filename, opts, settings, match_results: OnlineMatchResults
                 new_ext = ".cbr"
 
         if settings.rename_new_renamer:
-            renamer = FileRenamer2(md)
+            renamer = FileRenamer2(md, platform="universal" if settings.rename_strict else "auto")
         else:
             renamer = FileRenamer(md)
         renamer.set_template(settings.rename_template)

@@ -580,6 +580,19 @@
              </property>
             </widget>
            </item>
+           <item row="2" column="1">
+            <widget class="QLabel" name="lblRenameTest">
+             <property name="text">
+              <string/>
+             </property>
+             <property name="textFormat">
+              <enum>Qt::PlainText</enum>
+             </property>
+             <property name="textInteractionFlags">
+              <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+             </property>
+            </widget>
+           </item>
            <item row="3" column="0">
             <widget class="QLabel" name="lblPadding">
              <property name="text">
@@ -623,6 +636,13 @@
              </property>
             </widget>
            </item>
+           <item row="6" column="0">
+            <widget class="QCheckBox" name="cbxNewRenamer">
+             <property name="text">
+              <string>Enable the new renamer</string>
+             </property>
+            </widget>
+           </item>
            <item row="7" column="0">
             <widget class="QCheckBox" name="cbxMoveFiles">
              <property name="toolTip">
@@ -633,33 +653,24 @@
              </property>
             </widget>
            </item>
-           <item row="8" column="0">
+           <item row="9" column="0">
             <widget class="QLabel" name="lblDirectory">
              <property name="text">
               <string>Destination Directory:</string>
              </property>
             </widget>
            </item>
-           <item row="8" column="1">
+           <item row="9" column="1">
             <widget class="QLineEdit" name="leDirectory"/>
            </item>
-           <item row="6" column="0">
-            <widget class="QCheckBox" name="cbxNewRenamer">
+           <item row="8" column="0">
+            <widget class="QCheckBox" name="cbxRenameStrict">
+             <property name="toolTip">
+              <string>If checked will ensure reserved characters and filenames are removed for all Operating Systems.
+By default only removes restricted characters and filenames for the current Operating System.</string>
+             </property>
              <property name="text">
-              <string>Enable the new renamer</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="1">
-            <widget class="QLabel" name="lblRenameTest">
-             <property name="text">
-              <string/>
-             </property>
-             <property name="textFormat">
-              <enum>Qt::PlainText</enum>
-             </property>
-             <property name="textInteractionFlags">
-              <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+              <string>Strict renaming</string>
              </property>
             </widget>
            </item>

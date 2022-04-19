@@ -194,7 +194,7 @@ class SettingsWindow(QtWidgets.QDialog):
 
         self.settings_to_form()
         self.rename_error = None
-        self.rename_test(self.leRenameTemplate.text())
+        self.rename_test()
 
         self.cbxNewRenamer.clicked.connect(self.new_rename_toggle)
         self.btnBrowseRar.clicked.connect(self.select_rar)
@@ -202,7 +202,10 @@ class SettingsWindow(QtWidgets.QDialog):
         self.btnResetSettings.clicked.connect(self.reset_settings)
         self.btnTestKey.clicked.connect(self.test_api_key)
         self.btnTemplateHelp.clicked.connect(self.show_template_help)
-        self.leRenameTemplate.textEdited.connect(self.rename_test)
+        self.leRenameTemplate.textEdited.connect(self.rename__test)
+        self.cbxMoveFiles.clicked.connect(self.rename_test)
+        self.cbxRenameStrict.clicked.connect(self.rename_test)
+        self.leDirectory.textEdited.connect(self.rename_test)
 
     def new_rename_toggle(self):
         new_rename = self.cbxNewRenamer.isChecked()
@@ -215,16 +218,19 @@ class SettingsWindow(QtWidgets.QDialog):
         self.cbxMoveFiles.setEnabled(new_rename)
         self.leDirectory.setEnabled(new_rename)
         self.lblDirectory.setEnabled(new_rename)
-        self.rename_test(self.leRenameTemplate.text())
+        self.rename_test()
 
-    def rename_test(self, template):
+    def rename_test(self):
+        self.rename__test(self.leRenameTemplate.text())
+
+    def rename__test(self, template):
         fr = FileRenamer(md_test)
         if self.cbxNewRenamer.isChecked():
-            fr = FileRenamer2(md_test)
+            fr = FileRenamer2(md_test, platform="universal" if self.cbxRenameStrict.isChecked() else "auto")
+            fr.move = self.cbxMoveFiles.isChecked()
         fr.set_template(template)
         fr.set_issue_zero_padding(int(self.leIssueNumPadding.text()))
         fr.set_smart_cleanup(self.cbxSmartCleanup.isChecked())
-        fr.move = self.cbxMoveFiles.isChecked()
         try:
             self.lblRenameTest.setText(fr.determine_name(".cbz"))
             self.rename_error = None
@@ -288,9 +294,11 @@ class SettingsWindow(QtWidgets.QDialog):
         if self.settings.rename_move_dir:
             self.cbxMoveFiles.setCheckState(QtCore.Qt.CheckState.Checked)
         self.leDirectory.setText(self.settings.rename_dir)
+        if self.settings.rename_strict:
+            self.cbxRenameStrict.setCheckState(QtCore.Qt.CheckState.Checked)
 
     def accept(self):
-        self.rename_test(self.leRenameTemplate.text())
+        self.rename_test()
         if self.rename_error is not None:
             QtWidgets.QMessageBox.critical(
                 self,
@@ -352,6 +360,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.settings.rename_dir = self.leDirectory.text()
 
         self.settings.rename_new_renamer = self.cbxNewRenamer.isChecked()
+        self.settings.rename_strict = self.cbxRenameStrict.isChecked()
 
         self.settings.save()
         QtWidgets.QDialog.accept(self)

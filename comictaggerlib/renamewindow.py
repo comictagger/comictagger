@@ -53,7 +53,7 @@ class RenameWindow(QtWidgets.QDialog):
 
         self.btnSettings.clicked.connect(self.modify_settings)
         if self.settings.rename_new_renamer:
-            self.renamer = FileRenamer2(None)
+            self.renamer = FileRenamer2(None, platform="universal" if self.settings.rename_strict else "auto")
         else:
             self.renamer = FileRenamer(None)
 
