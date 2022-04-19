@@ -23,7 +23,7 @@ from PyQt5 import QtCore, QtWidgets, uic
 import comicapi.comicarchive
 from comicapi import utils
 from comicapi.comicarchive import MetaDataStyle
-from comictaggerlib.filerenamer import FileRenamer
+from comictaggerlib.filerenamer import FileRenamer, FileRenamer2
 from comictaggerlib.settings import ComicTaggerSettings
 from comictaggerlib.settingswindow import SettingsWindow
 from comictaggerlib.ui.qtutils import center_window_on_parent
@@ -52,7 +52,11 @@ class RenameWindow(QtWidgets.QDialog):
         self.rename_list = []
 
         self.btnSettings.clicked.connect(self.modify_settings)
-        self.renamer = FileRenamer(None)
+        if self.settings.rename_new_renamer:
+            self.renamer = FileRenamer2(None)
+        else:
+            self.renamer = FileRenamer(None)
+
         self.config_renamer()
         self.do_preview()
 
@@ -85,7 +89,7 @@ class RenameWindow(QtWidgets.QDialog):
             self.renamer.move = self.settings.rename_move_dir
 
             try:
-                new_name = self.renamer.determine_name(ca.path, ext=new_ext)
+                new_name = self.renamer.determine_name(new_ext)
             except Exception as e:
                 QtWidgets.QMessageBox.critical(
                     self,

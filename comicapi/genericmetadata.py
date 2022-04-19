@@ -259,6 +259,15 @@ class GenericMetadata:
         if not found:
             self.credits.append(credit)
 
+    def get_primary_credit(self, role):
+        primary = ""
+        for credit in self.credits:
+            if (primary == "" and credit["role"].lower() == role.lower()) or (
+                credit["role"].lower() == role.lower() and credit["primary"]
+            ):
+                primary = credit["person"]
+        return primary
+
     def __str__(self):
         vals = []
         if self.is_empty:

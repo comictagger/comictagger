@@ -419,3 +419,15 @@ fnames = [
         marks=pytest.mark.xfail,
     ),
 ]
+
+rnames = [
+    (
+        "{series} #{issue} - {title} ({year})",
+        "Cory Doctorow's Futuristic Tales of the Here and Now #001 - Anda's Game (2007).cbz",
+    ),
+    pytest.param(
+        "{series} #{issue} - {title} - {WriteR}, {EDITOR} ({year})",
+        "Cory Doctorow's Futuristic Tales of the Here and Now #001 - Anda's Game - Dara Naraghi, Ted Adams (2007).cbz",
+        marks=pytest.mark.xfail,
+    ),
+]

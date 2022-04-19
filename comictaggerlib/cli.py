@@ -27,7 +27,7 @@ from comicapi.comicarchive import ComicArchive, MetaDataStyle
 from comicapi.genericmetadata import GenericMetadata
 from comictaggerlib.cbltransformer import CBLTransformer
 from comictaggerlib.comicvinetalker import ComicVineTalker, ComicVineTalkerException
-from comictaggerlib.filerenamer import FileRenamer
+from comictaggerlib.filerenamer import FileRenamer, FileRenamer2
 from comictaggerlib.issueidentifier import IssueIdentifier
 from comictaggerlib.resulttypes import MultipleMatch, OnlineMatchResults
 from comictaggerlib.settings import ComicTaggerSettings
@@ -155,6 +155,13 @@ def cli_mode(opts, settings):
         logger.error("You must specify at least one filename.  Use the -h option for more info")
         return
 
+    if not settings.hide_rename_message:
+        print(
+            "There is a new rename template format available. "
+            "Please use the settings window to enable and test if you use this feature.\n\n"
+            "The old rename template format will be removed in the next release, "
+            "please reference the template help button in the settings or https://github.com/comictagger/comictagger/wiki/UserGuide#rename",
+        )
     match_results = OnlineMatchResults()
 
     for f in opts.file_list:
@@ -445,20 +452,23 @@ def process_file_cli(filename, opts, settings, match_results: OnlineMatchResults
             elif ca.is_rar():
                 new_ext = ".cbr"
 
-        renamer = FileRenamer(md)
+        if settings.rename_new_renamer:
+            renamer = FileRenamer2(md)
+        else:
+            renamer = FileRenamer(md)
         renamer.set_template(settings.rename_template)
         renamer.set_issue_zero_padding(settings.rename_issue_number_padding)
         renamer.set_smart_cleanup(settings.rename_use_smart_string_cleanup)
         renamer.move = settings.rename_move_dir
 
         try:
-            new_name = renamer.determine_name(filename, ext=new_ext)
+            new_name = renamer.determine_name(ext=new_ext)
         except Exception as e:
             print(
                 msg_hdr + "Invalid format string!\nYour rename template is invalid!\n\n"
                 "{}\n\nPlease consult the template help in the settings "
                 "and the documentation on the format at "
-                "https://docs.python.org/3/library/string.html#format-string-syntax",
+                "https://docs.python.org/3/library/string.html#format-string-syntax".format(e),
                 file=sys.stderr,
             )
             return
