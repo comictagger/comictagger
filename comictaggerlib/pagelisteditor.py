@@ -35,12 +35,9 @@ def item_move_events(widget):
         def eventFilter(self, obj, event):
 
             if obj == widget:
-                # print(event.type())
                 if event.type() == QtCore.QEvent.Type.ChildRemoved:
-                    # print("ChildRemoved")
                     self.mysignal.emit("finish")
                 if event.type() == QtCore.QEvent.Type.ChildAdded:
-                    # print("ChildAdded")
                     self.mysignal.emit("start")
                     return True
 
@@ -241,7 +238,7 @@ class PageListEditor(QtWidgets.QWidget):
         front_cover = 0
         for i in range(self.listWidget.count()):
             item = self.listWidget.item(i)
-            page_dict = item.data(QtCore.Qt.ItemDataRole.UserRole)[0]  # .toPyObject()[0]
+            page_dict = item.data(QtCore.Qt.ItemDataRole.UserRole)[0]
             if "Type" in page_dict and page_dict["Type"] == PageType.FrontCover:
                 front_cover = int(page_dict["Image"])
                 break
@@ -249,7 +246,7 @@ class PageListEditor(QtWidgets.QWidget):
 
     def get_current_page_type(self):
         row = self.listWidget.currentRow()
-        page_dict = self.listWidget.item(row).data(QtCore.Qt.ItemDataRole.UserRole)[0]  # .toPyObject()[0]
+        page_dict = self.listWidget.item(row).data(QtCore.Qt.ItemDataRole.UserRole)[0]
         if "Type" in page_dict:
             return page_dict["Type"]
 
@@ -257,7 +254,7 @@ class PageListEditor(QtWidgets.QWidget):
 
     def set_current_page_type(self, t):
         row = self.listWidget.currentRow()
-        page_dict = self.listWidget.item(row).data(QtCore.Qt.ItemDataRole.UserRole)[0]  # .toPyObject()[0]
+        page_dict = self.listWidget.item(row).data(QtCore.Qt.ItemDataRole.UserRole)[0]
 
         if t == "":
             if "Type" in page_dict:
@@ -335,7 +332,7 @@ class PageListEditor(QtWidgets.QWidget):
     def list_entry_text(self, page_dict):
         text = str(int(page_dict["Image"]) + 1)
         if "Type" in page_dict:
-            if page_dict["Type"] in self.pageTypeNames.keys():
+            if page_dict["Type"] in self.pageTypeNames:
                 text += " (" + self.pageTypeNames[page_dict["Type"]] + ")"
             else:
                 text += " (Error: " + page_dict["Type"] + ")"
@@ -349,7 +346,7 @@ class PageListEditor(QtWidgets.QWidget):
         page_list = []
         for i in range(self.listWidget.count()):
             item = self.listWidget.item(i)
-            page_list.append(item.data(QtCore.Qt.ItemDataRole.UserRole)[0])  # .toPyObject()[0]
+            page_list.append(item.data(QtCore.Qt.ItemDataRole.UserRole)[0])
         return page_list
 
     def emit_front_cover_change(self):

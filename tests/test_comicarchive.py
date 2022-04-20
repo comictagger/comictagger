@@ -29,7 +29,6 @@ def test_set_default_page_list(tmpdir):
     md = GenericMetadata()
     md.overlay(md_test)
     md.pages = []
-    print(md_test.pages, md.pages)
     md.set_default_page_list(len(md_test.pages))
 
     assert isinstance(md.pages[0]["Image"], int)

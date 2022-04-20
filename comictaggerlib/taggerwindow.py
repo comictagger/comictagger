@@ -82,12 +82,12 @@ class TaggerWindow(QtWidgets.QMainWindow):
         alive = socket.waitForConnected(3000)
         if alive:
             print(f"Another application with key [{settings.install_id}] is already running")
-            logger.info(f"Another application with key [{settings.install_id}] is already running")
+            logger.info("Another application with key [%s] is already running", settings.install_id)
             # send file list to other instance
             if file_list:
                 socket.write(pickle.dumps(file_list))
                 if not socket.waitForBytesWritten(3000):
-                    print(socket.errorString())
+                    logger.error(socket.errorString())
             socket.disconnectFromServer()
             sys.exit()
         else:
@@ -493,8 +493,7 @@ Please choose options below, and select OK.
                                 os.unlink(ca.path)
 
                         else:
-                            # last export failed, so remove the zip, if it
-                            # exists
+                            # last export failed, so remove the zip, if it exists
                             failed_list.append(ca.path)
                             if os.path.lexists(export_name):
                                 os.remove(export_name)
@@ -1092,7 +1091,6 @@ Please choose options below, and select OK.
 
     def update_credit_colors(self):
         # !!!ATB qt5 porting TODO
-        # return
         inactive_color = QtGui.QColor(255, 170, 150)
         active_palette = self.leSeries.palette()
         active_color = active_palette.color(QtGui.QPalette.ColorRole.Base)
@@ -2067,8 +2065,8 @@ Please choose options below, and select OK to Auto-Tag.
                 # the top
                 win32gui.SetWindowPos(hwnd, win32con.HWND_TOPMOST, x, y, w, h, 0)
                 win32gui.SetWindowPos(hwnd, win32con.HWND_NOTOPMOST, x, y, w, h, 0)
-            except Exception as e:
-                print("Whoops", e)
+            except Exception:
+                logger.exception("Fail to bring window to top")
         elif platform.system() == "Darwin":
             self.raise_()
             self.showNormal()

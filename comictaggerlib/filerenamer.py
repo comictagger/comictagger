@@ -62,8 +62,7 @@ class FileRenamer:
             # (TODO: This could fail if there is more than one token appended together, I guess)
             text_list = text.split()
 
-            # special case for issuecount, remove preceding non-token word,
-            # as in "...(of %issuecount%)..."
+            # special case for issuecount, remove preceding non-token word, as in "...(of %issuecount%)..."
             if token == "%issuecount%":
                 for idx, word in enumerate(text_list):
                     if token in word and not is_token(text_list[idx - 1]):
@@ -270,7 +269,6 @@ class FileRenamer2:
             md_dict["month_name"] = calendar.month_name[int(md.month)]
             md_dict["month_abbr"] = calendar.month_abbr[int(md.month)]
         else:
-            print(md.month)
             md_dict["month_name"] = ""
             md_dict["month_abbr"] = ""
 
@@ -294,5 +292,4 @@ class FileRenamer2:
         md.issue = IssueString(md.issue).as_string()
         if self.move:
             return new_name.strip()
-        else:
-            return new_basename.strip()
+        return new_basename.strip()

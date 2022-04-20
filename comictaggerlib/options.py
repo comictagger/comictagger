@@ -241,7 +241,7 @@ For more help visit the wiki at: https://github.com/comictagger/comictagger/wiki
             input_args = sys.argv[1:]
 
         # first check if we're launching a script:
-        for n in range(len(input_args)):
+        for n, _ in enumerate(input_args):
             if input_args[n] in ["-S", "--script"] and n + 1 < len(input_args):
                 # insert a "--" which will cause getopt to ignore the remaining args
                 # so they will be passed to the script

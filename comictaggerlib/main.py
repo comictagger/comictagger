@@ -45,8 +45,8 @@ try:
         """
         if QtWidgets.QApplication.instance() is not None:
             errorbox = QtWidgets.QMessageBox()
-            errorbox.setText("Oops. An unexpected error occured:\n{0}".format(log_msg))
-            errorbox.exec_()
+            errorbox.setText(f"Oops. An unexpected error occured:\n{log_msg}")
+            errorbox.exec()
             QtWidgets.QApplication.exit(1)
         else:
             logger.debug("No QApplication instance available.")
@@ -55,7 +55,7 @@ try:
         _exception_caught = QtCore.pyqtSignal(object)
 
         def __init__(self, *args, **kwargs):
-            super(UncaughtHook, self).__init__(*args, **kwargs)
+            super().__init__(*args, **kwargs)
 
             # this registers the exception_hook() function as hook with the Python interpreter
             sys.excepthook = self.exception_hook
@@ -72,12 +72,8 @@ try:
                 sys.__excepthook__(exc_type, exc_value, exc_traceback)
             else:
                 exc_info = (exc_type, exc_value, exc_traceback)
-                log_msg = "\n".join(
-                    ["".join(traceback.format_tb(exc_traceback)), "{0}: {1}".format(exc_type.__name__, exc_value)]
-                )
-                logger.critical(
-                    "Uncaught exception: %s", "{0}: {1}".format(exc_type.__name__, exc_value), exc_info=exc_info
-                )
+                log_msg = "\n".join(["".join(traceback.format_tb(exc_traceback)), f"{exc_type.__name__}: {exc_value}"])
+                logger.critical("Uncaught exception: %s: %s", exc_type.__name__, exc_value, exc_info=exc_info)
 
                 # trigger message box show
                 self._exception_caught.emit(log_msg)

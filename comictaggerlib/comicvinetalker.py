@@ -144,8 +144,7 @@ class ComicVineTalker:
 
             cv_response = requests.get(test_url, headers={"user-agent": "comictagger/" + ctversion.version}).json()
 
-            # Bogus request, but if the key is wrong, you get error 100: "Invalid
-            # API Key"
+            # Bogus request, but if the key is wrong, you get error 100: "Invalid API Key"
             return cv_response["status_code"] != 100
         except:
             return False
@@ -208,8 +207,7 @@ class ComicVineTalker:
         # Sanitize the series name for comicvine searching, comicvine search ignore symbols
         search_series_name = utils.sanitize_title(series_name)
 
-        # before we search online, look in our cache, since we might have
-        # done this same search recently
+        # before we search online, look in our cache, since we might have done this same search recently
         cvc = ComicVineCacher()
         if not refresh_cache:
             cached_search_results = cvc.get_search_results(series_name)
@@ -238,13 +236,11 @@ class ComicVineTalker:
 
         # 8 Dec 2018 - Comic Vine changed query results again. Terms are now
         # ORed together, and we get thousands of results.  Good news is the
-        # results are sorted by relevance, so we can be smart about halting
-        # the search.
+        # results are sorted by relevance, so we can be smart about halting the search.
         # 1. Don't fetch more than some sane amount of pages.
         max_results = 500
         # 2. Halt when not all of our search terms are present in a result
-        # 3. Halt when the results contain more (plus threshold) words than
-        #    our search
+        # 3. Halt when the results contain more (plus threshold) words than our search
         result_word_count_max = len(search_series_name.split()) + 3
 
         total_result_count = min(total_result_count, max_results)
@@ -516,17 +512,6 @@ class ComicVineTalker:
         return metadata
 
     def cleanup_html(self, string, remove_html_tables):
-        """
-        converter = html2text.HTML2Text()
-        #converter.emphasis_mark = '*'
-        #converter.ignore_links = True
-        converter.body_width = 0
-
-        print(html2text.html2text(string))
-        return string
-        #return converter.handle(string)
-        """
-
         if string is None:
             return ""
         # find any tables
@@ -663,8 +648,7 @@ class ComicVineTalker:
 
     def fetch_cached_issue_select_details(self, issue_id):
 
-        # before we search online, look in our cache, since we might already
-        # have this info
+        # before we search online, look in our cache, since we might already have this info
         cvc = ComicVineCacher()
         return cvc.get_issue_select_details(issue_id)
 
@@ -692,8 +676,7 @@ class ComicVineTalker:
         alt_cover_url_list = []
 
         # Using knowledge of the layout of the Comic Vine issue page here:
-        # look for the divs that are in the classes 'imgboxart' and
-        # 'issue-cover'
+        # look for the divs that are in the classes 'imgboxart' and 'issue-cover'
         div_list = soup.find_all("div")
         covers_found = 0
         for d in div_list:
@@ -713,8 +696,7 @@ class ComicVineTalker:
 
     def fetch_cached_alternate_cover_urls(self, issue_id):
 
-        # before we search online, look in our cache, since we might already
-        # have this info
+        # before we search online, look in our cache, since we might already have this info
         cvc = ComicVineCacher()
         url_list = cvc.get_alt_covers(issue_id)
         if url_list is not None:

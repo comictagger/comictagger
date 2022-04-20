@@ -107,8 +107,6 @@ class FileNameParser:
         # some titles)
         filename = re.sub(r"of [\d]+", self.repl, filename)
 
-        # print u"[{0}]".format(filename)
-
         # we should now have a cleaned up filename version with all the words in
         # the same positions as original filename
 

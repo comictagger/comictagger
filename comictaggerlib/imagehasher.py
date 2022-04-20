@@ -72,8 +72,7 @@ class ImageHasher:
 
     def average_hash2(self):
         """
-        # Got this one from somewhere on the net.  Not a clue how the 'convolve2d'
-        # works!
+        # Got this one from somewhere on the net.  Not a clue how the 'convolve2d' works!
 
         from numpy import array
         from scipy.signal import convolve2d

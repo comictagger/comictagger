@@ -557,7 +557,7 @@ class IssueIdentifier:
 
         def print_match(item):
             self.log_msg(
-                "-----> {0} #{1} {2} ({3}/{4}) -- score: {5}".format(
+                "-----> {} #{} {} ({}/{}) -- score: {}".format(
                     item["series"],
                     item["issue_number"],
                     item["issue_title"],

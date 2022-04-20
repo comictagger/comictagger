@@ -348,7 +348,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
 
         # pre sort the data - so that we can put exact matches first afterwards
         # compare as str incase extra chars ie. '1976?'
-        # - missing (none) values being converted to 'None' - consistant with prior behaviour in v1.2.3
+        # - missing (none) values being converted to 'None' - consistent with prior behaviour in v1.2.3
         # sort by start_year if set
         if self.settings.sort_series_by_year:
             try:

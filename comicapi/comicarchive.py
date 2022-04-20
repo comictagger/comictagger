@@ -83,10 +83,10 @@ class SevenZipArchiver:
                 data = zf.read(archive_file)[archive_file].read()
         except py7zr.Bad7zFile as e:
             logger.error("bad 7zip file [%s]: %s :: %s", e, self.path, archive_file)
-            raise IOError
+            raise IOError from e
         except Exception as e:
             logger.error("bad 7zip file [%s]: %s :: %s", e, self.path, archive_file)
-            raise IOError
+            raise IOError from e
 
         return data
 
@@ -143,7 +143,6 @@ class SevenZipArchiver:
                         zout.writef(bio, fname)
         except Exception:
             logger.exception("Error rebuilding 7zip file: %s", self.path)
-            return []
 
         # replace with the new file
         os.remove(self.path)
@@ -248,8 +247,7 @@ class ZipArchiver:
                     # preserve the old comment
                     zout.comment = zin.comment
         except Exception:
-            logger.exception("Error rebuilding 7zip file: %s", self.path)
-            return []
+            logger.exception("Error rebuilding zip file: %s", self.path)
 
         # replace with the new file
         os.remove(self.path)
@@ -422,8 +420,7 @@ class RarArchiver:
                 break
 
             else:
-                # Success"
-                # entries is a list of of tuples:  ( rarinfo, filedata)
+                # Success. Entries is a list of of tuples:  ( rarinfo, filedata)
                 if tries > 1:
                     logger.info("Attempted read_files() {%d} times", tries)
                 if len(entries) == 1:
@@ -593,7 +590,6 @@ class FolderArchiver:
         return itemlist
 
 
-# noinspection PyUnusedLocal
 class UnknownArchiver:
 
     """Unknown implementation"""

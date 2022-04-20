@@ -81,7 +81,7 @@ def display_match_set_for_choice(label, match_set: MultipleMatch, opts, settings
     for (counter, m) in enumerate(match_set.matches):
         counter += 1
         print(
-            "    {0}. {1} #{2} [{3}] ({4}/{5}) - {6}".format(
+            "    {}. {} #{} [{}] ({}/{}) - {}".format(
                 counter,
                 m["series"],
                 m["issue_number"],
@@ -195,7 +195,7 @@ def process_file_cli(filename, opts, settings, match_results: OnlineMatchResults
     ca = ComicArchive(filename, settings.rar_exe_path, ComicTaggerSettings.get_graphic("nocover.png"))
 
     if not os.path.lexists(filename):
-        logger.error("Cannot find " + filename)
+        logger.error("Cannot find %s", filename)
         return
 
     if not ca.seems_to_be_a_comic_archive():
@@ -463,13 +463,13 @@ def process_file_cli(filename, opts, settings, match_results: OnlineMatchResults
 
         try:
             new_name = renamer.determine_name(ext=new_ext)
-        except Exception as e:
-            print(
-                msg_hdr + "Invalid format string!\nYour rename template is invalid!\n\n"
-                "{}\n\nPlease consult the template help in the settings "
+        except Exception:
+            logger.exception(
+                msg_hdr + "Invalid format string!\n"
+                "Your rename template is invalid!\n\n"
+                "Please consult the template help in the settings "
                 "and the documentation on the format at "
-                "https://docs.python.org/3/library/string.html#format-string-syntax".format(e),
-                file=sys.stderr,
+                "https://docs.python.org/3/library/string.html#format-string-syntax"
             )
             return
 
