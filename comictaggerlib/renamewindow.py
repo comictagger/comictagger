@@ -95,11 +95,11 @@ class RenameWindow(QtWidgets.QDialog):
                     self,
                     "Invalid format string!",
                     "Your rename template is invalid!"
-                    "<br/><br/>{}<br/><br/>"
+                    f"<br/><br/>{e}<br/><br/>"
                     "Please consult the template help in the "
                     "settings and the documentation on the format at "
                     "<a href='https://docs.python.org/3/library/string.html#format-string-syntax'>"
-                    "https://docs.python.org/3/library/string.html#format-string-syntax</a>".format(e),
+                    "https://docs.python.org/3/library/string.html#format-string-syntax</a>",
                 )
                 return
 
@@ -176,7 +176,6 @@ class RenameWindow(QtWidgets.QDialog):
             new_abs_path = utils.unique_file(os.path.join(folder, item["new_name"]))
 
             if os.path.join(folder, item["new_name"]) == item["archive"].path:
-                print(item["new_name"], "Filename is already good!")
                 logger.info(item["new_name"], "Filename is already good!")
                 continue
 

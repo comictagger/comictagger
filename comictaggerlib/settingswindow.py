@@ -304,11 +304,11 @@ class SettingsWindow(QtWidgets.QDialog):
                 self,
                 "Invalid format string!",
                 "Your rename template is invalid!"
-                "<br/><br/>{}<br/><br/>"
+                f"<br/><br/>{self.rename_error}<br/><br/>"
                 "Please consult the template help in the "
                 "settings and the documentation on the format at "
                 "<a href='https://docs.python.org/3/library/string.html#format-string-syntax'>"
-                "https://docs.python.org/3/library/string.html#format-string-syntax</a>".format(self.rename_error),
+                "https://docs.python.org/3/library/string.html#format-string-syntax</a>",
             )
             return
 

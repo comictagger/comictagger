@@ -92,8 +92,6 @@ def main():
     else:
         xform_list = default_xform_list
 
-    # pprint( xform_list, indent=4)
-
     filelist = utils.get_recursive_filelist(parsed_args.paths)
 
     # first find all comics

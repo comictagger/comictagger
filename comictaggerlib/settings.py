@@ -243,7 +243,7 @@ class ComicTaggerSettings:
 
     def reset(self):
         os.unlink(self.settings_file)
-        self.__init__()
+        self.__init__(ComicTaggerSettings.folder)
 
     def load(self):
         def readline_generator(f):

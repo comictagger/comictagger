@@ -91,7 +91,7 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
 
         path = self.current_match_set.ca.path
         self.setWindowTitle(
-            "Select correct match or skip ({0} of {1}): {2}".format(
+            "Select correct match or skip ({} of {}): {}".format(
                 self.current_match_set_idx + 1,
                 len(self.match_set_list),
                 os.path.split(path)[1],

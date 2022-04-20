@@ -15,6 +15,7 @@
 # limitations under the License.
 
 import datetime
+import logging
 import os
 import shutil
 import sqlite3 as lite
@@ -22,18 +23,15 @@ import tempfile
 
 import requests
 
+from comictaggerlib import ctversion
+from comictaggerlib.settings import ComicTaggerSettings
+
 try:
     from PyQt5 import QtCore, QtNetwork
 
     qt_available = True
 except ImportError:
     qt_available = False
-
-
-import logging
-
-from comictaggerlib import ctversion
-from comictaggerlib.settings import ComicTaggerSettings
 
 logger = logging.getLogger(__name__)
 
@@ -145,9 +143,8 @@ class ImageFetcher:
             timestamp = datetime.datetime.now()
 
             tmp_fd, filename = tempfile.mkstemp(dir=self.cache_folder, prefix="img")
-            f = os.fdopen(tmp_fd, "w+b")
-            f.write(image_data)
-            f.close()
+            with os.fdopen(tmp_fd, "w+b") as f:
+                f.write(image_data)
 
             cur.execute("INSERT or REPLACE INTO Images VALUES(?, ?, ?)", (url, filename, timestamp))
 
