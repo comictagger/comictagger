@@ -21,7 +21,6 @@ possible, however lossy it might be
 # limitations under the License.
 
 import logging
-from enum import Enum
 from typing import List, TypedDict
 
 from comicapi import utils
@@ -29,7 +28,7 @@ from comicapi import utils
 logger = logging.getLogger(__name__)
 
 
-class PageType(Enum):
+class PageType:
 
     """
     These page info classes are exactly the same as the CIX scheme, since
@@ -50,7 +49,7 @@ class PageType(Enum):
 
 
 class ImageMetadata(TypedDict, total=False):
-    Type: PageType
+    Type: str
     Bookmark: str
     DoublePage: bool
     Image: int

@@ -18,7 +18,7 @@ import logging
 import xml.etree.ElementTree as ET
 
 from comicapi import utils
-from comicapi.genericmetadata import GenericMetadata, PageType
+from comicapi.genericmetadata import GenericMetadata
 from comicapi.issuestring import IssueString
 
 logger = logging.getLogger(__name__)
@@ -171,8 +171,6 @@ class ComicInfoXml:
 
         for page_dict in md.pages:
             page = page_dict
-            if "Type" in page:
-                page["Type"] = page["Type"].value
             if "Image" in page:
                 page["Image"] = str(page["Image"])
             page_node = ET.SubElement(pages_node, "Page")
@@ -256,8 +254,6 @@ class ComicInfoXml:
         pages_node = root.find("Pages")
         if pages_node is not None:
             for page in pages_node:
-                if "Type" in page.attrib:
-                    page.attrib["Type"] = PageType(page.attrib["Type"])
                 if "Image" in page.attrib:
                     page.attrib["Image"] = int(page.attrib["Image"])
                 md.pages.append(page.attrib)
