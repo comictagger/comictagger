@@ -155,6 +155,7 @@ class ComicInfoXml:
         assign("LanguageISO", md.language)
         assign("Format", md.format)
         assign("AgeRating", md.maturity_rating)
+        assign("CommunityRating", md.community_rating)
         assign("BlackAndWhite", "Yes" if md.black_and_white else None)
         assign("Manga", md.manga)
         assign("Characters", md.characters)
@@ -225,6 +226,7 @@ class ComicInfoXml:
         md.story_arc = utils.xlate(get("StoryArc"))
         md.series_group = utils.xlate(get("SeriesGroup"))
         md.maturity_rating = utils.xlate(get("AgeRating"))
+        md.community_rating = utils.xlate(get("CommunityRating"))
 
         tmp = utils.xlate(get("BlackAndWhite"))
         if tmp is not None and tmp.lower() in ["yes", "true", "1"]:

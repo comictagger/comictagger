@@ -106,6 +106,7 @@ class GenericMetadata:
         self.black_and_white = None
         self.page_count = None
         self.maturity_rating = None
+        self.community_rating = None
 
         self.story_arc = None
         self.series_group = None
@@ -168,6 +169,7 @@ class GenericMetadata:
         assign("manga", new_md.manga)
         assign("black_and_white", new_md.black_and_white)
         assign("maturity_rating", new_md.maturity_rating)
+        assign("community_rating", new_md.community_rating)
         assign("story_arc", new_md.story_arc)
         assign("series_group", new_md.series_group)
         assign("scan_info", new_md.scan_info)
@@ -306,6 +308,7 @@ class GenericMetadata:
         if self.black_and_white:
             add_attr_string("black_and_white")
         add_attr_string("maturity_rating")
+        add_attr_string("community_rating")
         add_attr_string("story_arc")
         add_attr_string("series_group")
         add_attr_string("scan_info")
@@ -372,6 +375,7 @@ md_test.manga = "No"
 md_test.black_and_white = None
 md_test.page_count = 24
 md_test.maturity_rating = "Everyone 10+"
+md_test.community_rating = "3.0"
 md_test.story_arc = "Here and Now"
 md_test.series_group = "Futuristic Tales"
 md_test.scan_info = "(CC BY-NC-SA 3.0)"
