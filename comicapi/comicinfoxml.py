@@ -79,7 +79,7 @@ class ComicInfoXml:
             else:
                 et_entry = root.find(cix_entry)
                 if et_entry is not None:
-                    et_entry.clear()
+                    root.remove(et_entry)
 
         assign("Title", md.title)
         assign("Series", md.series)
