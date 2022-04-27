@@ -105,7 +105,7 @@ Accepts the following variables:
 {black_and_white} (boolean)
 {page_count}     (integer)
 {maturity_rating}    (string)
-{community_rating}     (float)
+{community_rating}     (string)
 {story_arc}      (string)
 {series_group}   (string)
 {scan_info}      (string)

@@ -888,7 +888,7 @@ Please choose options below, and select OK.
         md.notes = self.teNotes.toPlainText()
         md.maturity_rating = self.cbMaturityRating.currentText()
 
-        md.community_rating = utils.xlate("{:.1f}".format(self.dsbCommunityRating.value()))
+        md.community_rating = utils.xlate(self.dsbCommunityRating.cleanText())
         if md.community_rating == "0.0":
             md.community_rating = None
 
