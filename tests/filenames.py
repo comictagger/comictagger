@@ -1,35 +1,122 @@
-import pytest
-
 fnames = [
     (
-        "Monster_Island_v1_2__repaired__c2c.cbz",
-        "stuff",
+        "batman 3 title (DC).cbz",
+        "honorific and publisher in series",
+        {
+            "issue": "3",
+            "series": "batman",
+            "title": "title",
+            "publisher": "DC",
+            "volume": "",
+            "year": "",
+            "remainder": "",
+            "issue_count": "",
+            "alternate": "",
+        },
+    ),
+    (
+        "batman 3 title DC.cbz",
+        "honorific and publisher in series",
+        {
+            "issue": "3",
+            "series": "batman",
+            "title": "title DC",
+            "publisher": "DC",
+            "volume": "",
+            "year": "",
+            "remainder": "",
+            "issue_count": "",
+            "alternate": "",
+        },
+    ),
+    (
+        "ms. Marvel 3.cbz",
+        "honorific and publisher in series",
+        {
+            "issue": "3",
+            "series": "ms. Marvel",
+            "title": "",
+            "publisher": "Marvel",
+            "volume": "",
+            "year": "",
+            "remainder": "",
+            "issue_count": "",
+            "alternate": "",
+        },
+    ),
+    (
+        "january jones 2.cbz",
+        "month in series",
+        {
+            "issue": "2",
+            "series": "january jones",
+            "title": "",
+            "volume": "",
+            "year": "",
+            "remainder": "",
+            "issue_count": "",
+            "alternate": "",
+        },
+    ),
+    (
+        "52.cbz",
+        "issue number only",
+        {
+            "issue": "52",
+            "series": "",
+            "title": "",
+            "volume": "",
+            "year": "",
+            "remainder": "",
+            "issue_count": "",
+            "alternate": "",
+        },
+    ),
+    (
+        "52 Monster_Island_v1_2__repaired__c2c.cbz",
+        "leading alternate",
         {
             "issue": "2",
             "series": "Monster Island",
-            "title": "The Wrath of Foobar-Man, Part 1 of 2",
+            "title": "",
             "volume": "1",
             "year": "",
-            "remainder": "repaired c2c",
+            "remainder": "repaired",
             "issue_count": "",
+            "alternate": "52",
+            "c2c": True,
+        },
+    ),
+    (
+        "Monster_Island_v1_2__repaired__c2c.cbz",
+        "Example from userguide",
+        {
+            "issue": "2",
+            "series": "Monster Island",
+            "title": "",
+            "volume": "1",
+            "year": "",
+            "remainder": "repaired",
+            "issue_count": "",
+            "c2c": True,
         },
     ),
     (
         "Monster Island v1 3 (1957) -- The Revenge Of King Klong (noads).cbz",
-        "stuff",
+        "Example from userguide",
         {
             "issue": "3",
             "series": "Monster Island",
-            "title": "The Wrath of Foobar-Man, Part 1 of 2",
+            "title": "",
             "volume": "1",
             "year": "1957",
             "remainder": "The Revenge Of King Klong (noads)",
             "issue_count": "",
         },
     ),
-    pytest.param(
+    (
         "Foobar-Man Annual 121 - The Wrath of Foobar-Man, Part 1 of 2.cbz",
-        "stuff",
+        "Example from userguide",
         {
             "issue": "121",
             "series": "Foobar-Man Annual",
@@ -38,12 +125,12 @@ fnames = [
             "year": "",
             "remainder": "",
             "issue_count": "",
+            "annual": True,
         },
-        marks=pytest.mark.xfail,
     ),
     (
         "Plastic Man v1 002 (1942).cbz",
-        "stuff",
+        "Example from userguide",
         {
             "issue": "2",
             "series": "Plastic Man",
@@ -56,7 +143,7 @@ fnames = [
     ),
     (
         "Blue Beetle 02.cbr",
-        "stuff",
+        "Example from userguide",
         {
             "issue": "2",
             "series": "Blue Beetle",
@@ -69,7 +156,7 @@ fnames = [
     ),
     (
         "Monster Island vol. 2 #2.cbz",
-        "stuff",
+        "Example from userguide",
         {
             "issue": "2",
             "series": "Monster Island",
@@ -82,7 +169,7 @@ fnames = [
     ),
     (
         "Crazy Weird Comics 2 (of 2) (1969).rar",
-        "stuff",
+        "Example from userguide",
         {
             "issue": "2",
             "series": "Crazy Weird Comics",
@@ -95,7 +182,7 @@ fnames = [
     ),
     (
         "Super Strange Yarns (1957) #92 (1969).cbz",
-        "stuff",
+        "Example from userguide",
         {
             "issue": "92",
             "series": "Super Strange Yarns",
@@ -108,7 +195,7 @@ fnames = [
     ),
     (
         "Action Spy Tales v1965 #3.cbr",
-        "stuff",
+        "Example from userguide",
         {
             "issue": "3",
             "series": "Action Spy Tales",
@@ -119,9 +206,9 @@ fnames = [
             "issue_count": "",
         },
     ),
-    pytest.param(
+    (
         " X-Men-V1-067.cbr",
-        "hyphen separated with hyphen in series",
+        "hyphen separated with hyphen in series",  # only parses corretly because v1 designates the volume
         {
             "issue": "67",
             "series": "X-Men",
@@ -131,7 +218,6 @@ fnames = [
             "remainder": "",
             "issue_count": "",
         },
-        marks=pytest.mark.xfail,
     ),
     (
         "Amazing Spider-Man 078.BEY (2022) (Digital) (Zone-Empire).cbr",
@@ -139,15 +225,16 @@ fnames = [
         {
             "issue": "78.BEY",
             "series": "Amazing Spider-Man",
+            "title": "",
             "volume": "",
             "year": "2022",
             "remainder": "(Digital) (Zone-Empire)",
             "issue_count": "",
         },
     ),
-    pytest.param(
+    (
         "Angel Wings 02 - Black Widow (2015) (Scanlation) (phillywilly).cbr",
-        "title after-issue",
+        "title after issue",
         {
             "issue": "2",
             "series": "Angel Wings",
@@ -157,11 +244,10 @@ fnames = [
             "remainder": "(Scanlation) (phillywilly)",
             "issue_count": "",
         },
-        marks=pytest.mark.xfail,
     ),
-    pytest.param(
+    (
         "Angel Wings #02 - Black Widow (2015) (Scanlation) (phillywilly).cbr",
-        "title after-#issue",
+        "title after #issue",
         {
             "issue": "2",
             "series": "Angel Wings",
@@ -171,20 +257,19 @@ fnames = [
             "remainder": "(Scanlation) (phillywilly)",
             "issue_count": "",
         },
-        marks=pytest.mark.xfail,
     ),
-    pytest.param(
+    (
         "Aquaman - Green Arrow - Deep Target 01 (of 07) (2021) (digital) (Son of Ultron-Empire).cbr",
         "issue count",
         {
             "issue": "1",
             "series": "Aquaman - Green Arrow - Deep Target",
+            "title": "",
             "volume": "",
             "year": "2021",
             "issue_count": "7",
             "remainder": "(digital) (Son of Ultron-Empire)",
         },
-        marks=pytest.mark.xfail,
     ),
     (
         "Aquaman 80th Anniversary 100-Page Super Spectacular (2021) 001 (2021) (Digital) (BlackManta-Empire).cbz",
@@ -192,37 +277,39 @@ fnames = [
         {
             "issue": "1",
             "series": "Aquaman 80th Anniversary 100-Page Super Spectacular",
+            "title": "",
             "volume": "2021",
             "year": "2021",
             "remainder": "(Digital) (BlackManta-Empire)",
             "issue_count": "",
         },
     ),
-    pytest.param(
+    (
         "Avatar - The Last Airbender - The Legend of Korra (FCBD 2021) (Digital) (mv-DCP).cbr",
         "FCBD date",
         {
             "issue": "",
             "series": "Avatar - The Last Airbender - The Legend of Korra",
+            "title": "",
             "volume": "",
             "year": "2021",
-            "remainder": "(FCBD) (Digital) (mv-DCP)",
+            "remainder": "(Digital) (mv-DCP)",
             "issue_count": "",
+            "fcbd": True,
         },
-        marks=pytest.mark.xfail,
     ),
-    pytest.param(
+    (
         "Avengers By Brian Michael Bendis v03 (2013) (Digital) (F2) (Kileko-Empire).cbz",
         "volume without issue",
         {
             "issue": "",
             "series": "Avengers By Brian Michael Bendis",
+            "title": "",
             "volume": "3",
             "year": "2013",
             "remainder": "(Digital) (F2) (Kileko-Empire)",
             "issue_count": "",
         },
-        marks=pytest.mark.xfail,
     ),
     (
         "Batman '89 (2021) (Webrip) (The Last Kryptonian-DCP).cbr",
@@ -230,6 +317,7 @@ fnames = [
         {
             "issue": "",
             "series": "Batman '89",
+            "title": "",
             "volume": "",
             "year": "2021",
             "remainder": "(Webrip) (The Last Kryptonian-DCP)",
@@ -242,6 +330,7 @@ fnames = [
         {
             "issue": "20",
             "series": "Batman - Superman",
+            "title": "",
             "volume": "",
             "year": "2021",
             "remainder": "(digital) (NeverAngel-Empire)",
@@ -254,6 +343,7 @@ fnames = [
         {
             "issue": "9",
             "series": "Black Widow",
+            "title": "",
             "volume": "",
             "year": "2021",
             "remainder": "(Digital) (Zone-Empire)",
@@ -266,26 +356,28 @@ fnames = [
         {
             "issue": "6",
             "series": "Blade Runner 2029",
+            "title": "",
             "volume": "",
             "year": "2021",
             "remainder": "(3 covers) (digital) (Son of Ultron-Empire)",
             "issue_count": "",
         },
     ),
-    pytest.param(
+    (
         "Blade Runner Free Comic Book Day 2021 (2021) (digital-Empire).cbr",
         "FCBD year and (year)",
         {
             "issue": "",
             "series": "Blade Runner Free Comic Book Day 2021",
+            "title": "",
             "volume": "",
             "year": "2021",
             "remainder": "(digital-Empire)",
             "issue_count": "",
+            "fcbd": True,
         },
-        marks=pytest.mark.xfail,
     ),
-    pytest.param(
+    (
         "Bloodshot Book 03 (2020) (digital) (Son of Ultron-Empire).cbr",
         "book",
         {
@@ -297,9 +389,21 @@ fnames = [
             "remainder": "(digital) (Son of Ultron-Empire)",
             "issue_count": "",
         },
-        marks=pytest.mark.xfail,
     ),
-    pytest.param(
+    (
+        "book of eli (2020) (digital) (Son of Ultron-Empire).cbr",
+        "book",
+        {
+            "issue": "",
+            "series": "book of eli",
+            "title": "",
+            "volume": "",
+            "year": "2020",
+            "remainder": "(digital) (Son of Ultron-Empire)",
+            "issue_count": "",
+        },
+    ),
+    (
         "Cyberpunk 2077 - You Have My Word 02 (2021) (digital) (Son of Ultron-Empire).cbr",
         "title",
         {
@@ -311,9 +415,8 @@ fnames = [
             "issue_count": "",
             "remainder": "(digital) (Son of Ultron-Empire)",
         },
-        marks=pytest.mark.xfail,
     ),
-    pytest.param(
+    (
         "Elephantmen 2259 008 - Simple Truth 03 (of 06) (2021) (digital) (Son of Ultron-Empire).cbr",
         "volume count",
         {
@@ -326,9 +429,8 @@ fnames = [
             "remainder": "(digital) (Son of Ultron-Empire)",
             "issue_count": "",
         },
-        marks=pytest.mark.xfail,
     ),
-    pytest.param(
+    (
         "Elephantmen 2259 #008 - Simple Truth 03 (of 06) (2021) (digital) (Son of Ultron-Empire).cbr",
         "volume count",
         {
@@ -341,20 +443,20 @@ fnames = [
             "remainder": "(digital) (Son of Ultron-Empire)",
             "issue_count": "",
         },
-        marks=pytest.mark.xfail,
     ),
-    pytest.param(
+    (
         "Free Comic Book Day - Avengers.Hulk (2021) (2048px) (db).cbz",
         "'.' in name",
         {
             "issue": "",
             "series": "Free Comic Book Day - Avengers Hulk",
+            "title": "",
             "volume": "",
             "year": "2021",
             "remainder": "(2048px) (db)",
             "issue_count": "",
+            "fcbd": True,
         },
-        marks=pytest.mark.xfail,
     ),
     (
         "Goblin (2021) (digital) (Son of Ultron-Empire).cbr",
@@ -362,37 +464,41 @@ fnames = [
         {
             "issue": "",
             "series": "Goblin",
+            "title": "",
             "volume": "",
             "year": "2021",
             "remainder": "(digital) (Son of Ultron-Empire)",
             "issue_count": "",
         },
     ),
-    pytest.param(
+    (
         "Marvel Previews 002 (January 2022) (Digital-Empire).cbr",
         "(month year)",
         {
             "issue": "2",
             "series": "Marvel Previews",
+            "title": "",
+            "publisher": "Marvel",
             "volume": "",
             "year": "2022",
             "remainder": "(Digital-Empire)",
             "issue_count": "",
         },
-        marks=pytest.mark.xfail,
     ),
-    pytest.param(
+    (
         "Marvel Two In One V1 090  c2c (Comixbear-DCP).cbr",
         "volume issue ctc",
         {
             "issue": "90",
             "series": "Marvel Two In One",
+            "title": "",
+            "publisher": "Marvel",
             "volume": "1",
             "year": "",
-            "remainder": "c2c (Comixbear-DCP)",
+            "remainder": "(Comixbear-DCP)",
             "issue_count": "",
+            "c2c": True,
         },
-        marks=pytest.mark.xfail,
     ),
     (
         "Marvel Two In One V1 #090  c2c (Comixbear-DCP).cbr",
@@ -400,24 +506,27 @@ fnames = [
         {
             "issue": "90",
             "series": "Marvel Two In One",
+            "title": "",
+            "publisher": "Marvel",
             "volume": "1",
             "year": "",
-            "remainder": "c2c (Comixbear-DCP)",
+            "remainder": "(Comixbear-DCP)",
             "issue_count": "",
+            "c2c": True,
         },
     ),
-    pytest.param(
+    (
         "Star Wars - War of the Bounty Hunters - IG-88 (2021) (Digital) (Kileko-Empire).cbz",
         "number ends series, no-issue",
         {
             "issue": "",
             "series": "Star Wars - War of the Bounty Hunters - IG-88",
+            "title": "",
             "volume": "",
             "year": "2021",
             "remainder": "(Digital) (Kileko-Empire)",
             "issue_count": "",
         },
-        marks=pytest.mark.xfail,
     ),
     (
         "Star Wars - War of the Bounty Hunters - IG-88 #1 (2021) (Digital) (Kileko-Empire).cbz",
@@ -425,6 +534,7 @@ fnames = [
         {
             "issue": "1",
             "series": "Star Wars - War of the Bounty Hunters - IG-88",
+            "title": "",
             "volume": "",
             "year": "2021",
             "remainder": "(Digital) (Kileko-Empire)",
@@ -437,39 +547,41 @@ fnames = [
         {
             "issue": "58",
             "series": "The Defenders",
+            "title": "",
             "volume": "1",
             "year": "1978",
             "remainder": "(digital)",
             "issue_count": "",
         },
     ),
-    pytest.param(
+    (
         "The Defenders v1 Annual 01 (1976) (Digital) (Minutemen-Slayer).cbr",
         " v in series",
         {
             "issue": "1",
             "series": "The Defenders Annual",
+            "title": "",
             "volume": "1",
             "year": "1976",
             "remainder": "(Digital) (Minutemen-Slayer)",
             "issue_count": "",
+            "annual": True,
         },
-        marks=pytest.mark.xfail,
     ),
-    pytest.param(
+    (
         "The Magic Order 2 06 (2022) (Digital) (Zone-Empire)[__913302__].cbz",
         "ending id",
         {
             "issue": "6",
             "series": "The Magic Order 2",
+            "title": "",
             "volume": "",
             "year": "2022",
-            "remainder": "(Digital) (Zone-Empire)[__913302__]",
+            "remainder": "(Digital) (Zone-Empire)[913302]",  # Don't really care about double underscores
             "issue_count": "",
         },
-        marks=pytest.mark.xfail,
     ),
-    pytest.param(
+    (
         "Wonder Woman 001 Wonder Woman Day Special Edition (2021) (digital-Empire).cbr",
         "issue separates title",
         {
@@ -481,9 +593,8 @@ fnames = [
             "remainder": "(digital-Empire)",
             "issue_count": "",
         },
-        marks=pytest.mark.xfail,
     ),
-    pytest.param(
+    (
         "Wonder Woman #001 Wonder Woman Day Special Edition (2021) (digital-Empire).cbr",
         "issue separates title",
         {
@@ -495,46 +606,47 @@ fnames = [
             "remainder": "(digital-Empire)",
             "issue_count": "",
         },
-        marks=pytest.mark.xfail,
     ),
-    pytest.param(
+    (
         "Wonder Woman 49 DC Sep-Oct 1951 digital [downsized, lightened, 4 missing story pages restored] (Shadowcat-Empire).cbz",
         "date-range, no paren, braces",
         {
             "issue": "49",
             "series": "Wonder Woman",
+            "title": "digital",  # Don't have a way to get rid of this
+            "publisher": "DC",
             "volume": "",
             "year": "1951",
-            "remainder": "(Shadowcat-Empire)",
+            "remainder": "[downsized, lightened, 4 missing story pages restored] (Shadowcat-Empire)",
             "issue_count": "",
         },
-        marks=pytest.mark.xfail,
     ),
-    pytest.param(
+    (
         "Wonder Woman #49 DC Sep-Oct 1951 digital [downsized, lightened, 4 missing story pages restored] (Shadowcat-Empire).cbz",
         "date-range, no paren, braces",
         {
             "issue": "49",
             "series": "Wonder Woman",
+            "title": "digital",  # Don't have a way to get rid of this
+            "publisher": "DC",
             "volume": "",
             "year": "1951",
-            "remainder": "(Shadowcat-Empire)",
+            "remainder": "[downsized, lightened, 4 missing story pages restored] (Shadowcat-Empire)",
             "issue_count": "",
         },
-        marks=pytest.mark.xfail,
     ),
-    pytest.param(
+    (
         "X-Men, 2021-08-04 (#02) (digital) (Glorith-HD).cbz",
         "full-date, issue in parenthesis",
         {
             "issue": "2",
             "series": "X-Men",
+            "title": "",
             "volume": "",
             "year": "2021",
             "remainder": "(digital) (Glorith-HD)",
             "issue_count": "",
         },
-        marks=pytest.mark.xfail,
     ),
 ]
 

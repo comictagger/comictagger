@@ -63,6 +63,7 @@ class IssueIdentifier:
     result_multiple_good_matches = 5
 
     def __init__(self, comic_archive: ComicArchive, settings):
+        self.settings = settings
         self.comic_archive: ComicArchive = comic_archive
         self.image_hasher = 1
 
@@ -192,7 +193,12 @@ class IssueIdentifier:
             internal_metadata = ca.read_cbi()
 
         # try to get some metadata from filename
-        md_from_filename = ca.metadata_from_filename()
+        md_from_filename = ca.metadata_from_filename(
+            self.settings.complicated_parser,
+            self.settings.remove_c2c,
+            self.settings.remove_fcbd,
+            self.settings.remove_publisher,
+        )
 
         # preference order:
         # 1. Additional metadata

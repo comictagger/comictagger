@@ -42,10 +42,10 @@ try:
 except ImportError:
     pil_available = False
 
+from comicapi import filenamelexer, filenameparser
 from comicapi.comet import CoMet
 from comicapi.comicbookinfo import ComicBookInfo
 from comicapi.comicinfoxml import ComicInfoXml
-from comicapi.filenameparser import FileNameParser
 from comicapi.genericmetadata import GenericMetadata, PageType
 
 logger = logging.getLogger(__name__)
@@ -1127,25 +1127,46 @@ class ComicArchive:
                         data = self.get_page(idx)
                         p["ImageSize"] = str(len(data))
 
-    def metadata_from_filename(self, parse_scan_info=True):
+    def metadata_from_filename(
+        self, complicated_parser=False, remove_c2c=False, remove_fcbd=False, remove_publisher=False
+    ):
 
         metadata = GenericMetadata()
 
-        fnp = FileNameParser()
-        fnp.parse_filename(self.path)
+        if complicated_parser:
+            lex = filenamelexer.Lex(self.path)
+            p = filenameparser.Parse(
+                lex.items, remove_c2c=remove_c2c, remove_fcbd=remove_fcbd, remove_publisher=remove_publisher
+            )
+            metadata.alternate_number = p.filename_info["alternate"] or None
+            metadata.issue = p.filename_info["issue"] or None
+            metadata.issue_count = p.filename_info["issue_count"] or None
+            metadata.publisher = p.filename_info["publisher"] or None
+            metadata.series = p.filename_info["series"] or None
+            metadata.title = p.filename_info["title"] or None
+            metadata.volume = p.filename_info["volume"] or None
+            metadata.volume_count = p.filename_info["volume_count"] or None
+            metadata.year = p.filename_info["year"] or None
 
-        if fnp.issue != "":
-            metadata.issue = fnp.issue
-        if fnp.series != "":
-            metadata.series = fnp.series
-        if fnp.volume != "":
-            metadata.volume = fnp.volume
-        if fnp.year != "":
-            metadata.year = fnp.year
-        if fnp.issue_count != "":
-            metadata.issue_count = fnp.issue_count
-        if parse_scan_info:
-            if fnp.remainder != "":
+            metadata.scan_info = p.filename_info["remainder"] or None
+            metadata.format = "FCBD" if p.filename_info["fcbd"] else None
+            if p.filename_info["annual"]:
+                metadata.format = "Annual"
+        else:
+            fnp = filenameparser.FileNameParser()
+            fnp.parse_filename(self.path)
+
+            if fnp.issue:
+                metadata.issue = fnp.issue
+            if fnp.series:
+                metadata.series = fnp.series
+            if fnp.volume:
+                metadata.volume = fnp.volume
+            if fnp.year:
+                metadata.year = fnp.year
+            if fnp.issue_count:
+                metadata.issue_count = fnp.issue_count
+            if fnp.remainder:
                 metadata.scan_info = fnp.remainder
 
         metadata.is_empty = False

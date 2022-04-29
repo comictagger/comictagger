@@ -5,3 +5,4 @@ requests==2.*
 pathvalidate
 pycountry
 py7zr
+text2digits

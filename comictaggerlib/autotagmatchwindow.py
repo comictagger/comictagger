@@ -32,10 +32,12 @@ logger = logging.getLogger(__name__)
 class AutoTagMatchWindow(QtWidgets.QDialog):
     volume_id = 0
 
-    def __init__(self, parent, match_set_list: List[MultipleMatch], style, fetch_func):
+    def __init__(self, parent, match_set_list: List[MultipleMatch], style, fetch_func, settings):
         super().__init__(parent)
 
         uic.loadUi(ComicTaggerSettings.get_ui_file("matchselectionwindow.ui"), self)
+
+        self.settings = settings
 
         self.current_match_set: Optional[MultipleMatch] = None
 
@@ -221,7 +223,12 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
 
         md = ca.read_metadata(self.style)
         if md.is_empty:
-            md = ca.metadata_from_filename()
+            md = ca.metadata_from_filename(
+                self.settings.complicated_parser,
+                self.settings.remove_c2c,
+                self.settings.remove_fcbd,
+                self.settings.remove_publisher,
+            )
 
         # now get the particular issue data
         cv_md = self.fetch_func(match)
