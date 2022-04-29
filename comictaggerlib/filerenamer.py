@@ -52,8 +52,8 @@ class MetadataFormatter(string.Formatter):
                 if lstrip:
                     literal_text = literal_text.lstrip("-_)}]#")
                 if self.smart_cleanup:
-                    lspace = literal_text[0].isspace()
-                    rspace = literal_text[-1].isspace()
+                    lspace = literal_text[0].isspace() if literal_text else False
+                    rspace = literal_text[-1].isspace() if literal_text else False
                     literal_text = " ".join(literal_text.split())
                     if literal_text == "":
                         literal_text = " "
@@ -66,7 +66,7 @@ class MetadataFormatter(string.Formatter):
 
             lstrip = False
             # if there's a field, output it
-            if field_name is not None:
+            if field_name is not None and field_name != "":
                 field_name = field_name.lower()
                 # this is some markup, find the object and do the formatting
 
@@ -99,7 +99,8 @@ class MetadataFormatter(string.Formatter):
                 fmt_obj = self.format_field(obj, format_spec)
                 if fmt_obj == "" and len(result) > 0 and self.smart_cleanup:
                     lstrip = True
-                    result.pop()
+                    if result:
+                        result[-1] = result[-1].rstrip("-_({[#")
                 if self.smart_cleanup:
                     fmt_obj = " ".join(fmt_obj.split())
                     fmt_obj = sanitize_filename(fmt_obj, platform=self.platform)
@@ -164,7 +165,7 @@ class FileRenamer:
                 Component = Component.replace(":", "-")
 
             new_basename = sanitize_filename(
-                fmt.vformat(Component, args=[], kwargs=Default(md_dict)), platform=self.platform
+                fmt.vformat(Component, args=None, kwargs=Default(md_dict)), platform=self.platform
             ).strip()
             new_name = os.path.join(new_name, new_basename)
 
