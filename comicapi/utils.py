@@ -33,23 +33,6 @@ class UtilsVars:
     already_fixed_encoding = False
 
 
-def indent(elem, level=0):
-    # for making the XML output readable
-    i = "\n" + level * "  "
-    if len(elem):
-        if not elem.text or not elem.text.strip():
-            elem.text = i + "  "
-        if not elem.tail or not elem.tail.strip():
-            elem.tail = i
-        for ele in elem:
-            indent(ele, level + 1)
-        if not elem.tail or not elem.tail.strip():
-            elem.tail = i
-    else:
-        if level and (not elem.tail or not elem.tail.strip()):
-            elem.tail = i
-
-
 def get_actual_preferred_encoding():
     preferred_encoding = locale.getpreferredencoding()
     if platform.system() == "Darwin":
