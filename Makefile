@@ -78,7 +78,7 @@ $(INSTALL_GUI_STAMP): requirements-GUI.txt
 
 ins: $(PACKAGE_PATH)
 $(PACKAGE_PATH):
-	$(PIP) install .
+	$(PIP) install -e .
 
 dist: CI
 	pyinstaller -y comictagger.spec

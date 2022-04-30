@@ -1,4 +1,4 @@
 [flake8]
 max-line-length = 120
 extend-ignore = E203, E501, E722
-extend-exclude = venv, scripts
+extend-exclude = venv, scripts, build, dist
