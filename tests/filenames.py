@@ -551,26 +551,29 @@ rnames = [
         "universal",
         "Cory Doctorow's Futuristic Tales of the Here and Now - Anda's Game #001 (2007).cbz",
     ),
-    pytest.param(
+    (
         "{series}: {title} #{issue} ({year})",
         False,
         "Linux",
         "Cory Doctorow's Futuristic Tales of the Here and Now: Anda's Game #001 (2007).cbz",
-        marks=pytest.mark.xfail,
     ),
-    pytest.param(
+    (
         "{publisher}/  {series} #{issue} - {title} ({year})",
         True,
         "universal",
         "IDW Publishing/Cory Doctorow's Futuristic Tales of the Here and Now #001 - Anda's Game (2007).cbz",
-        marks=pytest.mark.xfail,
     ),
-    pytest.param(
+    (
         "{publisher}/  {series} #{issue} - {title} ({year})",
         False,
         "universal",
         "Cory Doctorow's Futuristic Tales of the Here and Now #001 - Anda's Game (2007).cbz",
-        marks=pytest.mark.xfail,
+    ),
+    (
+        r"{publisher}\  {series} #{issue} - {title} ({year})",
+        False,
+        "universal",
+        "Cory Doctorow's Futuristic Tales of the Here and Now #001 - Anda's Game (2007).cbz",
     ),
     (
         "{series} #  {issue} - {title} ({year})",
@@ -578,18 +581,16 @@ rnames = [
         "universal",
         "Cory Doctorow's Futuristic Tales of the Here and Now # 001 - Anda's Game (2007).cbz",
     ),
-    pytest.param(
+    (
         "{series} #  {issue} - {locations} ({year})",
         False,
         "universal",
         "Cory Doctorow's Futuristic Tales of the Here and Now # 001 - lonely cottage (2007).cbz",
-        marks=pytest.mark.xfail,
     ),
-    pytest.param(
+    (
         "{series} #{issue} - {title} - {WriteR}, {EDITOR} ({year})",
         False,
         "universal",
         "Cory Doctorow's Futuristic Tales of the Here and Now #001 - Anda's Game - Dara Naraghi, Ted Adams (2007).cbz",
-        marks=pytest.mark.xfail,
     ),
 ]

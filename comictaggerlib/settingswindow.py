@@ -17,7 +17,6 @@
 import logging
 import os
 import platform
-import re
 
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
@@ -25,7 +24,7 @@ from comicapi import utils
 from comicapi.genericmetadata import md_test
 from comictaggerlib.comicvinecacher import ComicVineCacher
 from comictaggerlib.comicvinetalker import ComicVineTalker
-from comictaggerlib.filerenamer import FileRenamer, FileRenamer2
+from comictaggerlib.filerenamer import FileRenamer
 from comictaggerlib.imagefetcher import ImageFetcher
 from comictaggerlib.settings import ComicTaggerSettings
 
@@ -57,24 +56,8 @@ macRarHelp = """
                  </p>Once homebrew is installed, run: <b>brew install caskroom/cask/rar</b></body></html>
                 """
 
-old_template_tooltip = """
-<html><head/><body><p>The template for the new filename. Accepts the following variables:</p><p>%series%<br/>%issue%<br/>%volume%<br/>%issuecount%<br/>%year%<br/>%month%<br/>%month_name%<br/>%publisher%<br/>%title%<br/>
-%genre%<br/>
-%language_code%<br/>
-%criticalrating%<br/>
-%alternateseries%<br/>
-%alternatenumber%<br/>
-%alternatecount%<br/>
-%imprint%<br/>
-%format%<br/>
-%maturityrating%<br/>
-%storyarc%<br/>
-%seriesgroup%<br/>
-%scaninfo%
-</p><p>Examples:</p><p><span style=&quot; font-style:italic;&quot;>%series% %issue% (%year%)</span><br/><span style=&quot; font-style:italic;&quot;>%series% #%issue% - %title%</span></p></body></html>
-"""
 
-new_template_tooltip = """
+template_tooltip = """
 <pre>The template for the new filename. Uses python format strings https://docs.python.org/3/library/string.html#format-string-syntax
 Accepts the following variables:
 {is_empty}       (boolean)
@@ -185,19 +168,11 @@ class SettingsWindow(QtWidgets.QDialog):
         validator = QtGui.QIntValidator(0, 99, self)
         self.leNameLengthDeltaThresh.setValidator(validator)
 
-        new_rename = self.settings.rename_new_renamer
-        self.cbxNewRenamer.setChecked(new_rename)
-        self.cbxMoveFiles.setEnabled(new_rename)
-        self.leDirectory.setEnabled(new_rename)
-        self.lblDirectory.setEnabled(new_rename)
-        if self.settings.rename_new_renamer:
-            self.leRenameTemplate.setToolTip(new_template_tooltip)
-
+        self.leRenameTemplate.setToolTip(template_tooltip)
         self.settings_to_form()
         self.rename_error = None
         self.rename_test()
 
-        self.cbxNewRenamer.clicked.connect(self.new_rename_toggle)
         self.btnBrowseRar.clicked.connect(self.select_rar)
         self.btnClearCache.clicked.connect(self.clear_cache)
         self.btnResetSettings.clicked.connect(self.reset_settings)
@@ -208,27 +183,12 @@ class SettingsWindow(QtWidgets.QDialog):
         self.cbxRenameStrict.clicked.connect(self.rename_test)
         self.leDirectory.textEdited.connect(self.rename_test)
 
-    def new_rename_toggle(self):
-        new_rename = self.cbxNewRenamer.isChecked()
-        if new_rename:
-            self.leRenameTemplate.setText(re.sub(r"%(\w+)%", r"{\1}", self.leRenameTemplate.text()))
-            self.leRenameTemplate.setToolTip(new_template_tooltip)
-        else:
-            self.leRenameTemplate.setText(re.sub(r"{(\w+)}", r"%\1%", self.leRenameTemplate.text()))
-            self.leRenameTemplate.setToolTip(old_template_tooltip)
-        self.cbxMoveFiles.setEnabled(new_rename)
-        self.leDirectory.setEnabled(new_rename)
-        self.lblDirectory.setEnabled(new_rename)
-        self.rename_test()
-
     def rename_test(self):
         self.rename__test(self.leRenameTemplate.text())
 
     def rename__test(self, template):
-        fr = FileRenamer(md_test)
-        if self.cbxNewRenamer.isChecked():
-            fr = FileRenamer2(md_test, platform="universal" if self.cbxRenameStrict.isChecked() else "auto")
-            fr.move = self.cbxMoveFiles.isChecked()
+        fr = FileRenamer(md_test, platform="universal" if self.cbxRenameStrict.isChecked() else "auto")
+        fr.move = self.cbxMoveFiles.isChecked()
         fr.set_template(template)
         fr.set_issue_zero_padding(int(self.leIssueNumPadding.text()))
         fr.set_smart_cleanup(self.cbxSmartCleanup.isChecked())
@@ -360,7 +320,6 @@ class SettingsWindow(QtWidgets.QDialog):
         self.settings.rename_move_dir = self.cbxMoveFiles.isChecked()
         self.settings.rename_dir = self.leDirectory.text()
 
-        self.settings.rename_new_renamer = self.cbxNewRenamer.isChecked()
         self.settings.rename_strict = self.cbxRenameStrict.isChecked()
 
         self.settings.save()
@@ -415,8 +374,6 @@ class SettingsWindow(QtWidgets.QDialog):
     def show_template_help(self):
         template_help_win = TemplateHelpWindow(self)
         template_help_win.setModal(False)
-        if not self.cbxNewRenamer.isChecked():
-            template_help_win.textEdit.setHtml(old_template_tooltip)
         template_help_win.show()
 
 

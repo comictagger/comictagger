@@ -246,15 +246,6 @@ Have fun!
 """,
             )
             self.settings.show_disclaimer = not checked
-        if not self.settings.hide_rename_message:
-            self.settings.hide_rename_message = OptionalMessageDialog.msg(
-                self,
-                "New rename template!",
-                "There is a new rename template format available. "
-                "Please use the settings window to enable and test if you use this feature.<br><br>"
-                "The old rename template format will be removed in the next release, "
-                "please reference the template help button in the settings or <a href='https://github.com/comictagger/comictagger/wiki/UserGuide#rename'>https://github.com/comictagger/comictagger/wiki/UserGuide#rename</a>",
-            )
 
         if self.settings.check_for_new_version:
             # self.checkLatestVersionOnline()

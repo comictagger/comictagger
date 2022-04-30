@@ -27,7 +27,7 @@ from comicapi.comicarchive import ComicArchive, MetaDataStyle
 from comicapi.genericmetadata import GenericMetadata
 from comictaggerlib.cbltransformer import CBLTransformer
 from comictaggerlib.comicvinetalker import ComicVineTalker, ComicVineTalkerException
-from comictaggerlib.filerenamer import FileRenamer, FileRenamer2
+from comictaggerlib.filerenamer import FileRenamer
 from comictaggerlib.issueidentifier import IssueIdentifier
 from comictaggerlib.resulttypes import MultipleMatch, OnlineMatchResults
 from comictaggerlib.settings import ComicTaggerSettings
@@ -155,13 +155,6 @@ def cli_mode(opts, settings):
         logger.error("You must specify at least one filename.  Use the -h option for more info")
         return
 
-    if not settings.hide_rename_message:
-        print(
-            "There is a new rename template format available. "
-            "Please use the settings window to enable and test if you use this feature.\n\n"
-            "The old rename template format will be removed in the next release, "
-            "please reference the template help button in the settings or https://github.com/comictagger/comictagger/wiki/UserGuide#rename",
-        )
     match_results = OnlineMatchResults()
 
     for f in opts.file_list:
@@ -452,10 +445,7 @@ def process_file_cli(filename, opts, settings, match_results: OnlineMatchResults
             elif ca.is_rar():
                 new_ext = ".cbr"
 
-        if settings.rename_new_renamer:
-            renamer = FileRenamer2(md, platform="universal" if settings.rename_strict else "auto")
-        else:
-            renamer = FileRenamer(md)
+        renamer = FileRenamer(md, platform="universal" if settings.rename_strict else "auto")
         renamer.set_template(settings.rename_template)
         renamer.set_issue_zero_padding(settings.rename_issue_number_padding)
         renamer.set_smart_cleanup(settings.rename_use_smart_string_cleanup)

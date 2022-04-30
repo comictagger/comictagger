@@ -86,7 +86,6 @@ class ComicTaggerSettings:
         self.show_disclaimer = True
         self.dont_notify_about_this_version = ""
         self.ask_about_usage_stats = True
-        self.hide_rename_message = False
 
         # filename parsing settings
         self.parse_scan_info = True
@@ -120,7 +119,6 @@ class ComicTaggerSettings:
         self.rename_extension_based_on_archive = True
         self.rename_dir = ""
         self.rename_move_dir = False
-        self.rename_new_renamer = False
         self.rename_strict = False
 
         # Auto-tag stickies
@@ -161,7 +159,6 @@ class ComicTaggerSettings:
         self.show_disclaimer = True
         self.dont_notify_about_this_version = ""
         self.ask_about_usage_stats = True
-        self.hide_rename_message = False
 
         # filename parsing settings
         self.parse_scan_info = True
@@ -195,7 +192,6 @@ class ComicTaggerSettings:
         self.rename_extension_based_on_archive = True
         self.rename_dir = ""
         self.rename_move_dir = False
-        self.rename_new_renamer = False
         self.rename_strict = False
 
         # Auto-tag stickies
@@ -302,8 +298,6 @@ class ComicTaggerSettings:
             self.dont_notify_about_this_version = self.config.get("dialogflags", "dont_notify_about_this_version")
         if self.config.has_option("dialogflags", "ask_about_usage_stats"):
             self.ask_about_usage_stats = self.config.getboolean("dialogflags", "ask_about_usage_stats")
-        if self.config.has_option("dialogflags", "hide_rename_message"):
-            self.hide_rename_message = self.config.getboolean("dialogflags", "hide_rename_message")
 
         if self.config.has_option("comicvine", "use_series_start_as_volume"):
             self.use_series_start_as_volume = self.config.getboolean("comicvine", "use_series_start_as_volume")
@@ -363,8 +357,6 @@ class ComicTaggerSettings:
             self.rename_dir = self.config.get("rename", "rename_dir")
         if self.config.has_option("rename", "rename_move_dir"):
             self.rename_move_dir = self.config.getboolean("rename", "rename_move_dir")
-        if self.config.has_option("rename", "rename_new_renamer"):
-            self.rename_new_renamer = self.config.getboolean("rename", "rename_new_renamer")
         if self.config.has_option("rename", "rename_strict"):
             self.rename_strict = self.config.getboolean("rename", "rename_strict")
 
@@ -423,7 +415,6 @@ class ComicTaggerSettings:
         self.config.set("dialogflags", "show_disclaimer", self.show_disclaimer)
         self.config.set("dialogflags", "dont_notify_about_this_version", self.dont_notify_about_this_version)
         self.config.set("dialogflags", "ask_about_usage_stats", self.ask_about_usage_stats)
-        self.config.set("dialogflags", "hide_rename_message", self.hide_rename_message)
 
         if not self.config.has_section("filenameparser"):
             self.config.add_section("filenameparser")
@@ -467,7 +458,6 @@ class ComicTaggerSettings:
         self.config.set("rename", "rename_extension_based_on_archive", self.rename_extension_based_on_archive)
         self.config.set("rename", "rename_dir", self.rename_dir)
         self.config.set("rename", "rename_move_dir", self.rename_move_dir)
-        self.config.set("rename", "rename_new_renamer", self.rename_new_renamer)
         self.config.set("rename", "rename_strict", self.rename_strict)
 
         if not self.config.has_section("autotag"):
