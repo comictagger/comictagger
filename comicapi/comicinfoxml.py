@@ -177,7 +177,7 @@ class ComicInfoXml:
             page_node = ET.SubElement(pages_node, "Page")
             page_node.attrib = dict(sorted(page_dict.items()))
 
-        utils.indent(root)
+        ET.indent(root)
 
         # wrap it in an ElementTree instance, and save as XML
         tree = ET.ElementTree(root)

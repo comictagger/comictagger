@@ -121,7 +121,7 @@ class CoMet:
             if credit["role"].lower() in set(self.editor_synonyms):
                 ET.SubElement(root, "editor").text = str(credit["person"])
 
-        utils.indent(root)
+        ET.indent(root)
 
         # wrap it in an ElementTree instance, and save as XML
         tree = ET.ElementTree(root)
