@@ -768,6 +768,11 @@ Please choose options below, and select OK.
         assign_text(self.teTeams, md.teams)
         assign_text(self.teLocations, md.locations)
 
+        try:
+            self.dsbCommunityRating.setValue(float(md.community_rating))
+        except:
+            self.dsbCommunityRating.setValue(0.0)
+
         if md.format is not None and md.format != "":
             i = self.cbFormat.findText(md.format)
             if i == -1:
@@ -882,6 +887,10 @@ Please choose options below, and select OK.
         md.comments = self.teComments.toPlainText()
         md.notes = self.teNotes.toPlainText()
         md.maturity_rating = self.cbMaturityRating.currentText()
+
+        md.community_rating = utils.xlate(self.dsbCommunityRating.cleanText())
+        if md.community_rating == "0.0":
+            md.community_rating = None
 
         md.story_arc = self.leStoryArc.text()
         md.scan_info = self.leScanInfo.text()
@@ -1181,6 +1190,7 @@ Please choose options below, and select OK.
             self.teLocations,
             self.cbMaturityRating,
             self.cbFormat,
+            self.dsbCommunityRating,
         ]
 
         if self.save_data_style == MetaDataStyle.CIX:

@@ -91,6 +91,7 @@ tr:nth-child(even) {
      &lt;tr&gt;&lt;td&gt;{black_and_white}&lt;/td&gt;&lt;td&gt;boolean&lt;/td&gt;&lt;/tr&gt;
      &lt;tr&gt;&lt;td&gt;{page_count}&lt;/td&gt;&lt;td&gt;integer&lt;/td&gt;&lt;/tr&gt;
      &lt;tr&gt;&lt;td&gt;{maturity_rating}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
+     &lt;tr&gt;&lt;td&gt;{community_rating}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
      &lt;tr&gt;&lt;td&gt;{story_arc}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
      &lt;tr&gt;&lt;td&gt;{series_group}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
      &lt;tr&gt;&lt;td&gt;{scan_info}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
