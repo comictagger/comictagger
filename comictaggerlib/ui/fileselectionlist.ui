@@ -28,11 +28,11 @@
      <property name="textElideMode">
       <enum>Qt::ElideMiddle</enum>
      </property>
-     <attribute name="horizontalHeaderDefaultSectionSize">
-      <number>61</number>
-     </attribute>
      <attribute name="horizontalHeaderMinimumSectionSize">
       <number>36</number>
+     </attribute>
+     <attribute name="horizontalHeaderDefaultSectionSize">
+      <number>61</number>
      </attribute>
      <attribute name="horizontalHeaderStretchLastSection">
       <bool>false</bool>
@@ -45,7 +45,7 @@
        <string>File Name</string>
       </property>
       <property name="textAlignment">
-       <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+       <set>AlignCenter</set>
       </property>
      </column>
      <column>
@@ -56,7 +56,7 @@
        <string>Has ComicRack Tags</string>
       </property>
       <property name="textAlignment">
-       <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+       <set>AlignCenter</set>
       </property>
      </column>
      <column>
@@ -67,7 +67,7 @@
        <string>Has ComicBookLover Tags</string>
       </property>
       <property name="textAlignment">
-       <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+       <set>AlignCenter</set>
       </property>
      </column>
      <column>
@@ -78,7 +78,7 @@
        <string>Archive Type</string>
       </property>
       <property name="textAlignment">
-       <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+       <set>AlignCenter</set>
       </property>
      </column>
      <column>
@@ -89,7 +89,7 @@
        <string>Read-Only</string>
       </property>
       <property name="textAlignment">
-       <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+       <set>AlignCenter</set>
       </property>
      </column>
      <column>
@@ -100,7 +100,7 @@
        <string>File Location</string>
       </property>
       <property name="textAlignment">
-       <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+       <set>AlignCenter</set>
       </property>
      </column>
     </widget>

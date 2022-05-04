@@ -123,7 +123,7 @@ Spider-Geddon #1 - New Players; Check In
      <property name="textInteractionFlags">
       <set>Qt::TextBrowserInteraction</set>
      </property>
-     <property name="openExternalLinks" stdset="0">
+     <property name="openExternalLinks">
       <bool>true</bool>
      </property>
     </widget>

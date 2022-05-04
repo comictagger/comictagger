@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>849</width>
+    <width>893</width>
     <height>476</height>
    </rect>
   </property>
@@ -86,7 +86,7 @@
             <string>Year</string>
            </property>
            <property name="textAlignment">
-            <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+            <set>AlignCenter</set>
            </property>
           </column>
           <column>
@@ -94,7 +94,7 @@
             <string>Issues</string>
            </property>
            <property name="textAlignment">
-            <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+            <set>AlignCenter</set>
            </property>
           </column>
           <column>
@@ -148,16 +148,16 @@
            </property>
           </widget>
          </item>
-        <item>
-         <widget class="QCheckBox" name="cbxFilter">
-          <property name="text">
-           <string>Filter Publishers</string>
-          </property>
-          <property name="toolTip">
-           <string>Filter the publishers based on the publisher filter.</string>
-          </property>
-         </widget>
-        </item>
+         <item>
+          <widget class="QCheckBox" name="cbxFilter">
+           <property name="toolTip">
+            <string>Filter the publishers based on the publisher filter.</string>
+           </property>
+           <property name="text">
+            <string>Filter Publishers</string>
+           </property>
+          </widget>
+         </item>
          <item>
           <widget class="QDialogButtonBox" name="buttonBox">
            <property name="orientation">
