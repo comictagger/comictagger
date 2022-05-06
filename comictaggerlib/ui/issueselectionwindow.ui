@@ -75,7 +75,7 @@
             <string>Title</string>
            </property>
            <property name="textAlignment">
-            <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+            <set>AlignCenter</set>
            </property>
           </column>
          </widget>

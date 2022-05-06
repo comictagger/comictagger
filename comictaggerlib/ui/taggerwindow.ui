@@ -108,7 +108,16 @@
              <enum>QFrame::Sunken</enum>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_4">
-             <property name="margin">
+             <property name="leftMargin">
+              <number>6</number>
+             </property>
+             <property name="topMargin">
+              <number>6</number>
+             </property>
+             <property name="rightMargin">
+              <number>6</number>
+             </property>
+             <property name="bottomMargin">
               <number>6</number>
              </property>
              <item>
@@ -807,7 +816,7 @@
                       <string>Primary</string>
                      </property>
                      <property name="textAlignment">
-                      <set>AlignHCenter|AlignVCenter|AlignCenter</set>
+                      <set>AlignCenter</set>
                      </property>
                     </column>
                     <column>
@@ -929,31 +938,31 @@
                  </widget>
                 </item>
                 <item row="2" column="1">
-                  <layout class="QGridLayout" name="gridLayout_7">
-                   <item row="0" column="0">
-                    <widget class="QLineEdit" name="leWebLink">
-                     <property name="acceptDrops">
-                      <bool>false</bool>
-                     </property>
-                    </widget>
-                   </item>
-                   <item row="0" column="1">
-                    <widget class="QPushButton" name="btnOpenWebLink">
-                     <property name="sizePolicy">
-                      <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-                       <horstretch>0</horstretch>
-                       <verstretch>0</verstretch>
-                      </sizepolicy>
-                     </property>
-                     <property name="maximumSize">
-                      <size>
-                       <width>40</width>
-                       <height>16777215</height>
-                      </size>
-                     </property>
-                    </widget>
-                   </item>
-                  </layout>
+                 <layout class="QGridLayout" name="gridLayout_7">
+                  <item row="0" column="0">
+                   <widget class="QLineEdit" name="leWebLink">
+                    <property name="acceptDrops">
+                     <bool>false</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="1">
+                   <widget class="QPushButton" name="btnOpenWebLink">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>40</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
                 </item>
                 <item row="3" column="0">
                  <widget class="QLabel" name="userRatingLabel">
@@ -1173,7 +1182,7 @@
      <x>0</x>
      <y>0</y>
      <width>1096</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuComicTagger">
