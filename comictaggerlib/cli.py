@@ -101,7 +101,7 @@ def display_match_set_for_choice(label, match_set: MultipleMatch, opts, settings
             # save the data!
             # we know at this point, that the file is all good to go
             ca = match_set.ca
-            md = create_local_metadata(opts, ca, ca.has_metadata(opts.data_style))
+            md = create_local_metadata(opts, ca, ca.has_metadata(opts.data_style), settings)
             cv_md = actual_issue_data_fetch(match_set.matches[int(i)], settings, opts)
             md.overlay(cv_md)
             actual_metadata_save(ca, opts, md)
@@ -164,13 +164,17 @@ def cli_mode(opts, settings):
     post_process_matches(match_results, opts, settings)
 
 
-def create_local_metadata(opts, ca: ComicArchive, has_desired_tags):
+def create_local_metadata(opts, ca: ComicArchive, has_desired_tags, settings):
     md = GenericMetadata()
     md.set_default_page_list(ca.get_number_of_pages())
 
     # now, overlay the parsed filename info
     if opts.parse_filename:
-        md.overlay(ca.metadata_from_filename())
+        md.overlay(
+            ca.metadata_from_filename(
+                settings.complicated_parser, settings.remove_c2c, settings.remove_fcbd, settings.remove_publisher
+            )
+        )
 
     if has_desired_tags:
         md = ca.read_metadata(opts.data_style)
@@ -319,7 +323,7 @@ def process_file_cli(filename, opts, settings, match_results: OnlineMatchResults
         if batch_mode:
             print(f"Processing {ca.path}...")
 
-        md = create_local_metadata(opts, ca, has[opts.data_style])
+        md = create_local_metadata(opts, ca, has[opts.data_style], settings)
         if md.issue is None or md.issue == "":
             if opts.assume_issue_is_one_if_not_set:
                 md.issue = "1"
@@ -430,7 +434,7 @@ def process_file_cli(filename, opts, settings, match_results: OnlineMatchResults
         else:
             use_tags = False
 
-        md = create_local_metadata(opts, ca, use_tags)
+        md = create_local_metadata(opts, ca, use_tags, settings)
 
         if md.series is None:
             logger.error(msg_hdr + "Can't rename without series name")

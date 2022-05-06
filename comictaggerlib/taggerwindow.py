@@ -557,7 +557,12 @@ Please choose options below, and select OK.
 
     def actual_load_current_archive(self):
         if self.metadata.is_empty:
-            self.metadata = self.comic_archive.metadata_from_filename(self.settings.parse_scan_info)
+            self.metadata = self.comic_archive.metadata_from_filename(
+                self.settings.complicated_parser,
+                self.settings.remove_c2c,
+                self.settings.remove_fcbd,
+                remove_publisher=self.settings.remove_publisher,
+            )
         if len(self.metadata.pages) == 0:
             self.metadata.set_default_page_list(self.comic_archive.get_number_of_pages())
 
@@ -928,7 +933,12 @@ Please choose options below, and select OK.
         if self.comic_archive is not None:
             # copy the form onto metadata object
             self.form_to_metadata()
-            new_metadata = self.comic_archive.metadata_from_filename(self.settings.parse_scan_info)
+            new_metadata = self.comic_archive.metadata_from_filename(
+                self.settings.complicated_parser,
+                self.settings.remove_c2c,
+                self.settings.remove_fcbd,
+                remove_publisher=self.settings.remove_publisher,
+            )
             if new_metadata is not None:
                 self.metadata.overlay(new_metadata)
                 self.metadata_to_form()
@@ -1654,7 +1664,12 @@ Please choose options below, and select OK.
         # read in metadata, and parse file name if not there
         md = ca.read_metadata(self.save_data_style)
         if md.is_empty:
-            md = ca.metadata_from_filename(self.settings.parse_scan_info)
+            md = ca.metadata_from_filename(
+                self.settings.complicated_parser,
+                self.settings.remove_c2c,
+                self.settings.remove_fcbd,
+                remove_publisher=self.settings.remove_publisher,
+            )
             if dlg.ignore_leading_digits_in_filename and md.series is not None:
                 # remove all leading numbers
                 md.series = re.sub(r"([\d.]*)(.*)", "\\2", md.series)
@@ -1846,7 +1861,9 @@ Please choose options below, and select OK to Auto-Tag.
 
             match_results.multiple_matches.extend(match_results.low_confidence_matches)
             if reply == QtWidgets.QMessageBox.StandardButton.Yes:
-                matchdlg = AutoTagMatchWindow(self, match_results.multiple_matches, style, self.actual_issue_data_fetch)
+                matchdlg = AutoTagMatchWindow(
+                    self, match_results.multiple_matches, style, self.actual_issue_data_fetch, self.settings
+                )
                 matchdlg.setModal(True)
                 matchdlg.exec()
                 self.fileSelectionList.update_selected_rows()

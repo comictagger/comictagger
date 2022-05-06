@@ -182,6 +182,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.cbxMoveFiles.clicked.connect(self.rename_test)
         self.cbxRenameStrict.clicked.connect(self.rename_test)
         self.leDirectory.textEdited.connect(self.rename_test)
+        self.cbxComplicatedParser.clicked.connect(self.switch_parser)
 
     def rename_test(self):
         self.rename__test(self.leRenameTemplate.text())
@@ -199,6 +200,13 @@ class SettingsWindow(QtWidgets.QDialog):
             self.rename_error = e
             self.lblRenameTest.setText(str(e))
 
+    def switch_parser(self):
+        complicated = self.cbxComplicatedParser.isChecked()
+
+        self.cbxRemoveC2C.setEnabled(complicated)
+        self.cbxRemoveFCBD.setEnabled(complicated)
+        self.cbxRemovePublisher.setEnabled(complicated)
+
     def settings_to_form(self):
         # Copy values from settings to form
         self.leRarExePath.setText(self.settings.rar_exe_path)
@@ -208,8 +216,11 @@ class SettingsWindow(QtWidgets.QDialog):
         if self.settings.check_for_new_version:
             self.cbxCheckForNewVersion.setCheckState(QtCore.Qt.CheckState.Checked)
 
-        if self.settings.parse_scan_info:
-            self.cbxParseScanInfo.setCheckState(QtCore.Qt.CheckState.Checked)
+        self.cbxComplicatedParser.setChecked(self.settings.complicated_parser)
+        self.cbxRemoveC2C.setChecked(self.settings.remove_c2c)
+        self.cbxRemoveFCBD.setChecked(self.settings.remove_fcbd)
+        self.cbxRemovePublisher.setChecked(self.settings.remove_publisher)
+        self.switch_parser()
 
         if self.settings.use_series_start_as_volume:
             self.cbxUseSeriesStartAsVolume.setCheckState(QtCore.Qt.CheckState.Checked)
@@ -291,7 +302,10 @@ class SettingsWindow(QtWidgets.QDialog):
         self.settings.id_length_delta_thresh = int(self.leNameLengthDeltaThresh.text())
         self.settings.id_publisher_filter = str(self.tePublisherFilter.toPlainText())
 
-        self.settings.parse_scan_info = self.cbxParseScanInfo.isChecked()
+        self.settings.complicated_parser = self.cbxComplicatedParser.isChecked()
+        self.settings.remove_c2c = self.cbxRemoveC2C.isChecked()
+        self.settings.remove_fcbd = self.cbxRemoveFCBD.isChecked()
+        self.settings.remove_publisher = self.cbxRemovePublisher.isChecked()
 
         self.settings.use_series_start_as_volume = self.cbxUseSeriesStartAsVolume.isChecked()
         self.settings.clear_form_before_populating_from_cv = self.cbxClearFormBeforePopulating.isChecked()

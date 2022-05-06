@@ -88,7 +88,10 @@ class ComicTaggerSettings:
         self.ask_about_usage_stats = True
 
         # filename parsing settings
-        self.parse_scan_info = True
+        self.complicated_parser = False
+        self.remove_c2c = False
+        self.remove_fcbd = False
+        self.remove_publisher = False
 
         # Comic Vine settings
         self.use_series_start_as_volume = False
@@ -161,7 +164,10 @@ class ComicTaggerSettings:
         self.ask_about_usage_stats = True
 
         # filename parsing settings
-        self.parse_scan_info = True
+        self.complicated_parser = False
+        self.remove_c2c = False
+        self.remove_fcbd = False
+        self.remove_publisher = False
 
         # Comic Vine settings
         self.use_series_start_as_volume = False
@@ -287,8 +293,14 @@ class ComicTaggerSettings:
         if self.config.has_option("identifier", "id_publisher_filter"):
             self.id_publisher_filter = self.config.get("identifier", "id_publisher_filter")
 
-        if self.config.has_option("filenameparser", "parse_scan_info"):
-            self.parse_scan_info = self.config.getboolean("filenameparser", "parse_scan_info")
+        if self.config.has_option("filenameparser", "complicated_parser"):
+            self.complicated_parser = self.config.getboolean("filenameparser", "complicated_parser")
+        if self.config.has_option("filenameparser", "remove_c2c"):
+            self.remove_c2c = self.config.getboolean("filenameparser", "remove_c2c")
+        if self.config.has_option("filenameparser", "remove_fcbd"):
+            self.remove_fcbd = self.config.getboolean("filenameparser", "remove_fcbd")
+        if self.config.has_option("filenameparser", "remove_publisher"):
+            self.remove_publisher = self.config.getboolean("filenameparser", "remove_publisher")
 
         if self.config.has_option("dialogflags", "ask_about_cbi_in_rar"):
             self.ask_about_cbi_in_rar = self.config.getboolean("dialogflags", "ask_about_cbi_in_rar")
@@ -419,7 +431,10 @@ class ComicTaggerSettings:
         if not self.config.has_section("filenameparser"):
             self.config.add_section("filenameparser")
 
-        self.config.set("filenameparser", "parse_scan_info", self.parse_scan_info)
+        self.config.set("filenameparser", "complicated_parser", self.complicated_parser)
+        self.config.set("filenameparser", "remove_c2c", self.remove_c2c)
+        self.config.set("filenameparser", "remove_fcbd", self.remove_fcbd)
+        self.config.set("filenameparser", "remove_publisher", self.remove_publisher)
 
         if not self.config.has_section("comicvine"):
             self.config.add_section("comicvine")

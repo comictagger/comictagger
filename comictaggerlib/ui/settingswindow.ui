@@ -229,19 +229,55 @@
         <attribute name="title">
          <string>Filename Parser</string>
         </attribute>
-        <widget class="QCheckBox" name="cbxParseScanInfo">
-         <property name="geometry">
-          <rect>
-           <x>30</x>
-           <y>30</y>
-           <width>421</width>
-           <height>25</height>
-          </rect>
-         </property>
-         <property name="text">
-          <string>Parse Scan Info From Filename (Experimental)</string>
-         </property>
-        </widget>
+        <layout class="QVBoxLayout" name="verticalLayout_6">
+         <item>
+          <widget class="QGroupBox" name="groupBox_2">
+           <layout class="QVBoxLayout" name="verticalLayout_7">
+            <item>
+             <widget class="QCheckBox" name="cbxComplicatedParser">
+              <property name="text">
+               <string>Use &quot;Complicated&quot; Parser</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="cbxRemoveC2C">
+              <property name="text">
+               <string>Remove 'C2C' from Scan Info</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="cbxRemoveFCBD">
+              <property name="text">
+               <string>Remove 'FCBD' from Scan Info</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="cbxRemovePublisher">
+              <property name="text">
+               <string>Remove Publisher from filename</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <spacer name="verticalSpacer_4">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
        </widget>
        <widget class="QWidget" name="tab_3">
         <attribute name="title">
