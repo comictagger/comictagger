@@ -3,6 +3,7 @@ import pytest
 import comicapi.issuestring
 
 issues = [
+    ("¼", 0.25),
     ("1½", 1.5),
     ("0.5", 0.5),
     ("0", 0.0),

@@ -21,6 +21,7 @@ comics industry throws at us.
 
 
 import logging
+import unicodedata
 
 logger = logging.getLogger(__name__)
 
@@ -113,9 +114,8 @@ class IssueString:
 
     def as_float(self):
         # return the float, with no suffix
-        if self.suffix == "½":
-            if self.num is not None:
-                return self.num + 0.5
+        if len(self.suffix) == 1 and self.suffix.isnumeric():
+            return (self.num or 0) + unicodedata.numeric(self.suffix)
 
             return 0.5
         return self.num
