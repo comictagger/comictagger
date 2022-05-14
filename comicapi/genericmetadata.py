@@ -383,12 +383,12 @@ md_test.characters = "Anda"
 md_test.teams = "Fahrenheit"
 md_test.locations = "lonely  cottage "
 md_test.credits = [
-    {"person": "Dara Naraghi", "role": "Writer"},
-    {"person": "Esteve Polls", "role": "Penciller"},
-    {"person": "Esteve Polls", "role": "Inker"},
-    {"person": "Neil Uyetake", "role": "Letterer"},
-    {"person": "Sam Kieth", "role": "Cover"},
-    {"person": "Ted Adams", "role": "Editor"},
+    CreditMetadata({"primary": False, "person": "Dara Naraghi", "role": "Writer"}),
+    CreditMetadata({"primary": False, "person": "Esteve Polls", "role": "Penciller"}),
+    CreditMetadata({"primary": False, "person": "Esteve Polls", "role": "Inker"}),
+    CreditMetadata({"primary": False, "person": "Neil Uyetake", "role": "Letterer"}),
+    CreditMetadata({"primary": False, "person": "Sam Kieth", "role": "Cover"}),
+    CreditMetadata({"primary": False, "person": "Ted Adams", "role": "Editor"}),
 ]
 md_test.tags = []
 md_test.pages = [
@@ -417,7 +417,7 @@ md_test.pages = [
     {"Image": 22, "ImageHeight": "2039", "ImageSize": "675078", "ImageWidth": "1326"},
     {
         "Bookmark": "Interview",
-        "Image": "23",
+        "Image": 23,
         "ImageHeight": "2032",
         "ImageSize": "800965",
         "ImageWidth": "1338",

@@ -42,6 +42,16 @@ def test_page_type_read():
     assert isinstance(md.pages[0]["Type"], str)
 
 
+def test_metadat_read():
+    c = ComicArchive(
+        join(thisdir, "data", "Cory Doctorow's Futuristic Tales of the Here and Now #001 - Anda's Game (2007).cbz")
+    )
+    md = c.read_cix()
+    md_dict = md.__dict__
+    md_test_dict = md_test.__dict__
+    assert md_dict == md_test_dict
+
+
 def test_save_cix(tmpdir):
     comic_path = tmpdir.mkdir("cbz").join(
         "Cory Doctorow's Futuristic Tales of the Here and Now #001 - Anda's Game (2007).cbz"
