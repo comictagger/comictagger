@@ -1824,7 +1824,9 @@ Please choose options below, and select OK to Auto-Tag.
             self.fileSelectionList.remove_archive_list(archives_to_remove)
         self.fileSelectionList.update_selected_rows()
 
-        self.load_archive(self.fileSelectionList.get_current_archive())
+        new_ca = self.fileSelectionList.get_current_archive()
+        if new_ca is not None:
+            self.load_archive(new_ca)
         self.atprogdialog = None
 
         summary = ""
