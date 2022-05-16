@@ -16,7 +16,7 @@
 
 import logging
 import os
-from typing import List
+from typing import List, Optional
 
 from PyQt5 import QtCore, QtWidgets, uic
 
@@ -105,20 +105,35 @@ class FileSelectionList(QtWidgets.QWidget):
 
     def remove_archive_list(self, ca_list):
         self.twList.setSortingEnabled(False)
+        current_removed = False
         for ca in ca_list:
             for row in range(self.twList.rowCount()):
                 row_ca = self.get_archive_by_row(row)
                 if row_ca == ca:
+                    if row == self.twList.currentRow():
+                        current_removed = True
                     self.twList.removeRow(row)
                     break
         self.twList.setSortingEnabled(True)
 
-    def get_archive_by_row(self, row):
-        fi = self.twList.item(row, FileSelectionList.dataColNum).data(QtCore.Qt.ItemDataRole.UserRole)
-        return fi.ca
+        if self.twList.rowCount() > 0 and current_removed:
+            # since on a removal, we select row 0, make sure callback occurs if
+            # we're already there
+            if self.twList.currentRow() == 0:
+                self.current_item_changed_cb(self.twList.currentItem(), None)
+            self.twList.selectRow(0)
+        elif self.twList.rowCount() <= 0:
+            self.listCleared.emit()
+
+    def get_archive_by_row(self, row: int) -> Optional[ComicArchive]:
+        if row >= 0:
+            fi = self.twList.item(row, FileSelectionList.dataColNum).data(QtCore.Qt.ItemDataRole.UserRole)
+            return fi.ca
+        return None
 
     def get_current_archive(self):
-        return self.get_archive_by_row(self.twList.currentRow())
+        if self.twList.currentRow() >= 0:
+            return self.get_archive_by_row(self.twList.currentRow())
 
     def remove_selection(self):
         row_list = []
@@ -279,59 +294,60 @@ class FileSelectionList(QtWidgets.QWidget):
             return row
         return -1
 
-    def update_row(self, row):
-        fi: FileInfo = self.twList.item(row, FileSelectionList.dataColNum).data(QtCore.Qt.ItemDataRole.UserRole)
+    def update_row(self, row: int) -> None:
+        if row >= 0:
+            fi: FileInfo = self.twList.item(row, FileSelectionList.dataColNum).data(QtCore.Qt.ItemDataRole.UserRole)
 
-        filename_item = self.twList.item(row, FileSelectionList.fileColNum)
-        folder_item = self.twList.item(row, FileSelectionList.folderColNum)
-        cix_item = self.twList.item(row, FileSelectionList.CRFlagColNum)
-        cbi_item = self.twList.item(row, FileSelectionList.CBLFlagColNum)
-        type_item = self.twList.item(row, FileSelectionList.typeColNum)
-        readonly_item = self.twList.item(row, FileSelectionList.readonlyColNum)
+            filename_item = self.twList.item(row, FileSelectionList.fileColNum)
+            folder_item = self.twList.item(row, FileSelectionList.folderColNum)
+            cix_item = self.twList.item(row, FileSelectionList.CRFlagColNum)
+            cbi_item = self.twList.item(row, FileSelectionList.CBLFlagColNum)
+            type_item = self.twList.item(row, FileSelectionList.typeColNum)
+            readonly_item = self.twList.item(row, FileSelectionList.readonlyColNum)
 
-        item_text = os.path.split(fi.ca.path)[0]
-        folder_item.setText(item_text)
-        folder_item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
+            item_text = os.path.split(fi.ca.path)[0]
+            folder_item.setText(item_text)
+            folder_item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
 
-        item_text = os.path.split(fi.ca.path)[1]
-        filename_item.setText(item_text)
-        filename_item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
+            item_text = os.path.split(fi.ca.path)[1]
+            filename_item.setText(item_text)
+            filename_item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
 
-        if fi.ca.is_sevenzip():
-            item_text = "7Z"
-        elif fi.ca.is_zip():
-            item_text = "ZIP"
-        elif fi.ca.is_rar():
-            item_text = "RAR"
-        else:
-            item_text = ""
-        type_item.setText(item_text)
-        type_item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
+            if fi.ca.is_sevenzip():
+                item_text = "7Z"
+            elif fi.ca.is_zip():
+                item_text = "ZIP"
+            elif fi.ca.is_rar():
+                item_text = "RAR"
+            else:
+                item_text = ""
+            type_item.setText(item_text)
+            type_item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
 
-        if fi.ca.has_cix():
-            cix_item.setCheckState(QtCore.Qt.CheckState.Checked)
-            cix_item.setData(QtCore.Qt.ItemDataRole.UserRole, True)
-        else:
-            cix_item.setData(QtCore.Qt.ItemDataRole.UserRole, False)
-            cix_item.setCheckState(QtCore.Qt.CheckState.Unchecked)
+            if fi.ca.has_cix():
+                cix_item.setCheckState(QtCore.Qt.CheckState.Checked)
+                cix_item.setData(QtCore.Qt.ItemDataRole.UserRole, True)
+            else:
+                cix_item.setData(QtCore.Qt.ItemDataRole.UserRole, False)
+                cix_item.setCheckState(QtCore.Qt.CheckState.Unchecked)
 
-        if fi.ca.has_cbi():
-            cbi_item.setCheckState(QtCore.Qt.CheckState.Checked)
-            cbi_item.setData(QtCore.Qt.ItemDataRole.UserRole, True)
-        else:
-            cbi_item.setData(QtCore.Qt.ItemDataRole.UserRole, False)
-            cbi_item.setCheckState(QtCore.Qt.CheckState.Unchecked)
+            if fi.ca.has_cbi():
+                cbi_item.setCheckState(QtCore.Qt.CheckState.Checked)
+                cbi_item.setData(QtCore.Qt.ItemDataRole.UserRole, True)
+            else:
+                cbi_item.setData(QtCore.Qt.ItemDataRole.UserRole, False)
+                cbi_item.setCheckState(QtCore.Qt.CheckState.Unchecked)
 
-        if not fi.ca.is_writable():
-            readonly_item.setCheckState(QtCore.Qt.CheckState.Checked)
-            readonly_item.setData(QtCore.Qt.ItemDataRole.UserRole, True)
-        else:
-            readonly_item.setData(QtCore.Qt.ItemDataRole.UserRole, False)
-            readonly_item.setCheckState(QtCore.Qt.CheckState.Unchecked)
+            if not fi.ca.is_writable():
+                readonly_item.setCheckState(QtCore.Qt.CheckState.Checked)
+                readonly_item.setData(QtCore.Qt.ItemDataRole.UserRole, True)
+            else:
+                readonly_item.setData(QtCore.Qt.ItemDataRole.UserRole, False)
+                readonly_item.setCheckState(QtCore.Qt.CheckState.Unchecked)
 
-        # Reading these will force them into the ComicArchive's cache
-        fi.ca.read_cix()
-        fi.ca.has_cbi()
+            # Reading these will force them into the ComicArchive's cache
+            fi.ca.read_cix()
+            fi.ca.has_cbi()
 
     def get_selected_archive_list(self) -> List[ComicArchive]:
         ca_list: List[ComicArchive] = []
@@ -355,29 +371,29 @@ class FileSelectionList(QtWidgets.QWidget):
         self.twList.setSortingEnabled(True)
 
     def current_item_changed_cb(self, curr, prev):
+        if curr is not None:
+            new_idx = curr.row()
+            old_idx = -1
+            if prev is not None:
+                old_idx = prev.row()
 
-        new_idx = curr.row()
-        old_idx = -1
-        if prev is not None:
-            old_idx = prev.row()
-
-        if old_idx == new_idx:
-            return
-
-        # don't allow change if modified
-        if prev is not None and new_idx != old_idx:
-            if not self.dirty_flag_verification(
-                "Change Archive", "If you change archives now, data in the form will be lost.  Are you sure?"
-            ):
-                self.twList.currentItemChanged.disconnect(self.current_item_changed_cb)
-                self.twList.setCurrentItem(prev)
-                self.twList.currentItemChanged.connect(self.current_item_changed_cb)
-                # Need to defer this revert selection, for some reason
-                QtCore.QTimer.singleShot(1, self.revert_selection)
+            if old_idx == new_idx:
                 return
 
-        fi = self.twList.item(new_idx, FileSelectionList.dataColNum).data(QtCore.Qt.ItemDataRole.UserRole)
-        self.selectionChanged.emit(QtCore.QVariant(fi))
+            # don't allow change if modified
+            if prev is not None and new_idx != old_idx:
+                if not self.dirty_flag_verification(
+                    "Change Archive", "If you change archives now, data in the form will be lost.  Are you sure?"
+                ):
+                    self.twList.currentItemChanged.disconnect(self.current_item_changed_cb)
+                    self.twList.setCurrentItem(prev)
+                    self.twList.currentItemChanged.connect(self.current_item_changed_cb)
+                    # Need to defer this revert selection, for some reason
+                    QtCore.QTimer.singleShot(1, self.revert_selection)
+                    return
+
+            fi = self.twList.item(new_idx, FileSelectionList.dataColNum).data(QtCore.Qt.ItemDataRole.UserRole)
+            self.selectionChanged.emit(QtCore.QVariant(fi))
 
     def revert_selection(self):
         self.twList.selectRow(self.twList.currentRow())
