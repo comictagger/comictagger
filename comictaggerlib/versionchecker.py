@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 
 class VersionChecker:
-    def get_request_url(self, uuid, use_stats):
+    def get_request_url(self, uuid: str, use_stats: bool) -> tuple[str, dict[str, str]]:
 
         base_url = "http://comictagger1.appspot.com/latest"
         params = {}
@@ -46,13 +46,13 @@ class VersionChecker:
 
         return base_url, params
 
-    def get_latest_version(self, uuid, use_stats=True):
+    def get_latest_version(self, uuid: str, use_stats: bool = True) -> str:
         try:
             url, params = self.get_request_url(uuid, use_stats)
             new_version = requests.get(url, params=params).text
         except Exception:
-            return None
+            return ""
 
         if new_version is None or new_version == "":
-            return None
+            return ""
         return new_version.strip()

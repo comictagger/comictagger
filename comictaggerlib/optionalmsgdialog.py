@@ -26,6 +26,7 @@ said_yes, checked = OptionalMessageDialog.question(self, "QtWidgets.Question",
 # limitations under the License.
 
 import logging
+from typing import Union
 
 from PyQt5 import QtCore, QtWidgets
 
@@ -36,7 +37,9 @@ StyleQuestion = 1
 
 
 class OptionalMessageDialog(QtWidgets.QDialog):
-    def __init__(self, parent, style, title, msg, check_state=QtCore.Qt.CheckState.Unchecked, check_text=None):
+    def __init__(
+        self, parent: QtWidgets.QWidget, style: int, title: str, msg: str, checked: bool = False, check_text: str = ""
+    ) -> None:
         super().__init__(parent)
 
         self.setWindowTitle(title)
@@ -56,7 +59,7 @@ class OptionalMessageDialog(QtWidgets.QDialog):
         layout.addWidget(self.theLabel)
         layout.insertSpacing(-1, 10)
 
-        if check_text is None:
+        if not check_text:
             if style == StyleQuestion:
                 check_text = "Remember this answer"
             else:
@@ -64,43 +67,47 @@ class OptionalMessageDialog(QtWidgets.QDialog):
 
         self.theCheckBox = QtWidgets.QCheckBox(check_text)
 
-        self.theCheckBox.setCheckState(check_state)
+        self.theCheckBox.setChecked(checked)
 
         layout.addWidget(self.theCheckBox)
 
-        btnbox_style = QtWidgets.QDialogButtonBox.StandardButton.Ok
+        btnbox_style: Union[QtWidgets.QDialogButtonBox.StandardButtons, QtWidgets.QDialogButtonBox.StandardButton]
         if style == StyleQuestion:
             btnbox_style = QtWidgets.QDialogButtonBox.StandardButton.Yes | QtWidgets.QDialogButtonBox.StandardButton.No
+        else:
+            btnbox_style = QtWidgets.QDialogButtonBox.StandardButton.Ok
 
         self.theButtonBox = QtWidgets.QDialogButtonBox(
             btnbox_style,
             parent=self,
-            accepted=self.accept,
-            rejected=self.reject,
         )
+        self.theButtonBox.accepted.connect(self.accept)
+        self.theButtonBox.rejected.connect(self.reject)
 
         layout.addWidget(self.theButtonBox)
 
-    def accept(self):
+    def accept(self) -> None:
         self.was_accepted = True
         QtWidgets.QDialog.accept(self)
 
-    def reject(self):
+    def reject(self) -> None:
         self.was_accepted = False
         QtWidgets.QDialog.reject(self)
 
     @staticmethod
-    def msg(parent, title, msg, check_state=QtCore.Qt.CheckState.Unchecked, check_text=None):
+    def msg(parent: QtWidgets.QWidget, title: str, msg: str, checked: bool = False, check_text: str = "") -> bool:
 
-        d = OptionalMessageDialog(parent, StyleMessage, title, msg, check_state=check_state, check_text=check_text)
+        d = OptionalMessageDialog(parent, StyleMessage, title, msg, checked=checked, check_text=check_text)
 
         d.exec()
         return d.theCheckBox.isChecked()
 
     @staticmethod
-    def question(parent, title, msg, check_state=QtCore.Qt.CheckState.Unchecked, check_text=None):
+    def question(
+        parent: QtWidgets.QWidget, title: str, msg: str, checked: bool = False, check_text: str = ""
+    ) -> tuple[bool, bool]:
 
-        d = OptionalMessageDialog(parent, StyleQuestion, title, msg, check_state=check_state, check_text=check_text)
+        d = OptionalMessageDialog(parent, StyleQuestion, title, msg, checked=checked, check_text=check_text)
 
         d.exec()
 

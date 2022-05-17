@@ -31,7 +31,7 @@ class ExportConflictOpts:
 
 
 class ExportWindow(QtWidgets.QDialog):
-    def __init__(self, parent, settings, msg):
+    def __init__(self, parent: QtWidgets.QWidget, settings: ComicTaggerSettings, msg: str) -> None:
         super().__init__(parent)
 
         uic.loadUi(ComicTaggerSettings.get_ui_file("exportwindow.ui"), self)
@@ -51,7 +51,7 @@ class ExportWindow(QtWidgets.QDialog):
         self.addToList = True
         self.fileConflictBehavior = ExportConflictOpts.dontCreate
 
-    def accept(self):
+    def accept(self) -> None:
         QtWidgets.QDialog.accept(self)
 
         self.deleteOriginal = self.cbxDeleteOriginal.isChecked()

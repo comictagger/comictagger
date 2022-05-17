@@ -24,7 +24,7 @@ import pprint
 import re
 import sys
 import webbrowser
-from typing import List, Optional, Union
+from typing import Any, Callable, List, Optional, Union, cast
 from urllib.parse import urlparse
 
 import natsort
@@ -49,6 +49,7 @@ from comictaggerlib.fileselectionlist import FileInfo, FileSelectionList
 from comictaggerlib.issueidentifier import IssueIdentifier
 from comictaggerlib.logwindow import LogWindow
 from comictaggerlib.optionalmsgdialog import OptionalMessageDialog
+from comictaggerlib.options import Options
 from comictaggerlib.pagebrowser import PageBrowserWindow
 from comictaggerlib.pagelisteditor import PageListEditor
 from comictaggerlib.renamewindow import RenameWindow
@@ -62,7 +63,7 @@ from comictaggerlib.volumeselectionwindow import VolumeSelectionWindow
 logger = logging.getLogger(__name__)
 
 
-def execute(f: callable):
+def execute(f: Callable[[], Any]) -> None:
     f()
 
 
@@ -70,7 +71,13 @@ class TaggerWindow(QtWidgets.QMainWindow):
     appName = "ComicTagger"
     version = ctversion.version
 
-    def __init__(self, file_list, settings, parent=None, opts=None):
+    def __init__(
+        self,
+        file_list: list[str],
+        settings: ComicTaggerSettings,
+        parent: Optional[QtWidgets.QWidget] = None,
+        opts: Optional[Options] = None,
+    ) -> None:
         super().__init__(parent)
 
         uic.loadUi(ComicTaggerSettings.get_ui_file("taggerwindow.ui"), self)
@@ -159,7 +166,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.dirty_flag = False
         self.droppedFile = None
         self.page_loader = None
-        self.droppedFiles = []
+        self.droppedFiles: list[str] = []
         self.metadata = GenericMetadata()
         self.atprogdialog: Optional[AutoTagProgressWindow] = None
         self.reset_app()
@@ -251,14 +258,14 @@ Have fun!
             # self.checkLatestVersionOnline()
             pass
 
-    def sigint_handler(self, *args):
+    def sigint_handler(self, *args: Any) -> None:
         # defer the actual close in the app loop thread
         QtCore.QTimer.singleShot(200, lambda: execute(self.close))
 
-    def reset_app(self):
+    def reset_app(self) -> None:
 
         self.archiveCoverWidget.clear()
-        self.comic_archive: Optional[ComicArchive] = None
+        self.comic_archive = None
         self.dirty_flag = False
         self.clear_form()
         self.page_list_editor.reset_page()
@@ -271,7 +278,7 @@ Have fun!
         self.droppedFile = None
         self.page_loader = None
 
-    def update_app_title(self):
+    def update_app_title(self) -> None:
 
         self.setWindowIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("app.png")))
 
@@ -287,9 +294,9 @@ Have fun!
             if not self.comic_archive.is_writable():
                 ro_str = " [read only]"
 
-            self.setWindowTitle(self.appName + " - " + self.comic_archive.path + mod_str + ro_str)
+            self.setWindowTitle(f"{self.appName} - {self.comic_archive.path}{mod_str}{ro_str}")
 
-    def config_menus(self):
+    def config_menus(self) -> None:
 
         # File Menu
         self.actionExit.setShortcut("Ctrl+Q")
@@ -405,7 +412,7 @@ Have fun!
         self.toolBar.addAction(self.actionClearEntryForm)
         self.toolBar.addAction(self.actionPageBrowser)
 
-    def repackage_archive(self):
+    def repackage_archive(self) -> None:
         ca_list = self.fileSelectionList.get_selected_archive_list()
         rar_count = 0
         for ca in ca_list:
@@ -426,7 +433,7 @@ Have fun!
             return
 
         if rar_count != 0:
-            dlg = ExportWindow(
+            EW = ExportWindow(
                 self,
                 self.settings,
                 f"""You have selected {rar_count} archive(s) to export  to Zip format.  New archives will be created in the same folder as the original.
@@ -434,9 +441,9 @@ Have fun!
 Please choose options below, and select OK.
 """,
             )
-            dlg.adjustSize()
-            dlg.setModal(True)
-            if not dlg.exec():
+            EW.adjustSize()
+            EW.setModal(True)
+            if not EW.exec():
                 return
 
             prog_dialog = QtWidgets.QProgressDialog("", "Cancel", 0, rar_count, self)
@@ -460,7 +467,7 @@ Please choose options below, and select OK.
                         break
                     prog_idx += 1
                     prog_dialog.setValue(prog_idx)
-                    prog_dialog.setLabelText(ca.path)
+                    prog_dialog.setLabelText(str(ca.path))
                     center_window_on_parent(prog_dialog)
                     QtCore.QCoreApplication.processEvents()
 
@@ -468,18 +475,18 @@ Please choose options below, and select OK.
                     export_name = os.path.splitext(original_path)[0] + ".cbz"
 
                     if os.path.lexists(export_name):
-                        if dlg.fileConflictBehavior == ExportConflictOpts.dontCreate:
-                            export_name = None
+                        if EW.fileConflictBehavior == ExportConflictOpts.dontCreate:
+                            export_name = ""
                             skipped_list.append(ca.path)
-                        elif dlg.fileConflictBehavior == ExportConflictOpts.createUnique:
+                        elif EW.fileConflictBehavior == ExportConflictOpts.createUnique:
                             export_name = utils.unique_file(export_name)
 
-                    if export_name is not None:
+                    if export_name:
                         if ca.export_as_zip(export_name):
                             success_count += 1
-                            if dlg.addToList:
+                            if EW.addToList:
                                 new_archives_to_add.append(export_name)
-                            if dlg.deleteOriginal:
+                            if EW.deleteOriginal:
                                 archives_to_remove.append(ca)
                                 os.unlink(ca.path)
 
@@ -514,7 +521,7 @@ Please choose options below, and select OK.
             dlg.setWindowTitle("Archive Export to Zip Summary")
             dlg.exec()
 
-    def about_app(self):
+    def about_app(self) -> None:
 
         website = "https://github.com/comictagger/comictagger"
         email = "comictagger@gmail.com"
@@ -539,7 +546,7 @@ Please choose options below, and select OK.
         msg_box.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Ok)
         msg_box.exec()
 
-    def dragEnterEvent(self, event):
+    def dragEnterEvent(self, event: QtGui.QDragEnterEvent) -> None:
         self.droppedFiles = []
         if event.mimeData().hasUrls():
 
@@ -551,39 +558,41 @@ Please choose options below, and select OK.
             if self.droppedFiles is not None:
                 event.accept()
 
-    def dropEvent(self, event):
+    def dropEvent(self, event: QtGui.QDropEvent) -> None:
         self.fileSelectionList.add_path_list(self.droppedFiles)
         event.accept()
 
-    def actual_load_current_archive(self):
-        if self.metadata.is_empty:
+    def actual_load_current_archive(self) -> None:
+        if self.metadata.is_empty and self.comic_archive is not None:
             self.metadata = self.comic_archive.metadata_from_filename(
                 self.settings.complicated_parser,
                 self.settings.remove_c2c,
                 self.settings.remove_fcbd,
                 remove_publisher=self.settings.remove_publisher,
             )
-        if len(self.metadata.pages) == 0:
+        if len(self.metadata.pages) == 0 and self.comic_archive is not None:
             self.metadata.set_default_page_list(self.comic_archive.get_number_of_pages())
 
         self.update_cover_image()
 
-        if self.page_browser is not None:
+        if self.page_browser is not None and self.comic_archive is not None:
             self.page_browser.set_comic_archive(self.comic_archive)
             self.page_browser.metadata = self.metadata
 
+        if self.comic_archive is not None:
+            self.page_list_editor.set_data(self.comic_archive, self.metadata.pages)
         self.metadata_to_form()
-        self.page_list_editor.set_data(self.comic_archive, self.metadata.pages)
         self.clear_dirty_flag()  # also updates the app title
         self.update_info_box()
         self.update_menus()
         self.update_app_title()
 
-    def update_cover_image(self):
+    def update_cover_image(self) -> None:
         cover_idx = self.metadata.get_cover_page_index_list()[0]
-        self.archiveCoverWidget.set_archive(self.comic_archive, cover_idx)
+        if self.comic_archive is not None:
+            self.archiveCoverWidget.set_archive(self.comic_archive, cover_idx)
 
-    def update_menus(self):
+    def update_menus(self) -> None:
 
         # First just disable all the questionable items
         self.actionAutoTag.setEnabled(False)
@@ -626,7 +635,7 @@ Please choose options below, and select OK.
             if self.comic_archive.is_writable():
                 self.actionWrite_Tags.setEnabled(True)
 
-    def update_info_box(self):
+    def update_info_box(self) -> None:
 
         ca = self.comic_archive
 
@@ -667,23 +676,23 @@ Please choose options below, and select OK.
 
         self.lblTagList.setText(tag_info)
 
-    def set_dirty_flag(self):
+    def set_dirty_flag(self) -> None:
         if not self.dirty_flag:
             self.dirty_flag = True
             self.fileSelectionList.set_modified_flag(True)
             self.update_app_title()
 
-    def clear_dirty_flag(self):
+    def clear_dirty_flag(self) -> None:
         if self.dirty_flag:
             self.dirty_flag = False
             self.fileSelectionList.set_modified_flag(False)
             self.update_app_title()
 
-    def connect_dirty_flag_signals(self):
+    def connect_dirty_flag_signals(self) -> None:
         # recursively connect the tab form child slots
         self.connect_child_dirty_flag_signals(self.tabWidget)
 
-    def connect_child_dirty_flag_signals(self, widget):
+    def connect_child_dirty_flag_signals(self, widget: QtCore.QObject) -> None:
 
         if isinstance(widget, QtWidgets.QLineEdit):
             widget.textEdited.connect(self.set_dirty_flag)
@@ -699,11 +708,12 @@ Please choose options below, and select OK.
             if child != self.page_list_editor:
                 self.connect_child_dirty_flag_signals(child)
 
-    def clear_form(self):
+    def clear_form(self) -> None:
         # get a minty fresh metadata object
         self.metadata = GenericMetadata()
         if self.comic_archive is not None:
             self.metadata.set_default_page_list(self.comic_archive.get_number_of_pages())
+            self.page_list_editor.set_data(self.comic_archive, self.metadata.pages)
 
         # recursively clear the tab form
         self.clear_children(self.tabWidget)
@@ -711,9 +721,7 @@ Please choose options below, and select OK.
         # clear the dirty flag, since there is nothing in there now to lose
         self.clear_dirty_flag()
 
-        self.page_list_editor.set_data(self.comic_archive, self.metadata.pages)
-
-    def clear_children(self, widget):
+    def clear_children(self, widget: QtCore.QObject) -> None:
 
         if isinstance(widget, (QtWidgets.QLineEdit, QtWidgets.QTextEdit)):
             widget.setText("")
@@ -731,8 +739,8 @@ Please choose options below, and select OK.
 
     # Copy all of the metadata object into the form.
     # Merging of metadata should be done via the overlay function
-    def metadata_to_form(self):
-        def assign_text(field: Union[QtWidgets.QLineEdit, QtWidgets.QTextEdit], value):
+    def metadata_to_form(self) -> None:
+        def assign_text(field: Union[QtWidgets.QLineEdit, QtWidgets.QTextEdit], value: Any) -> None:
             if value is not None:
                 field.setText(str(value))
 
@@ -765,7 +773,7 @@ Please choose options below, and select OK.
         assign_text(self.teLocations, md.locations)
 
         try:
-            self.dsbCommunityRating.setValue(float(md.community_rating))
+            self.dsbCommunityRating.setValue(md.community_rating)
         except:
             self.dsbCommunityRating.setValue(0.0)
 
@@ -831,7 +839,7 @@ Please choose options below, and select OK.
         self.twCredits.setSortingEnabled(True)
         self.update_credit_colors()
 
-    def add_new_credit_entry(self, row, role, name, primary_flag=False):
+    def add_new_credit_entry(self, row: int, role: str, name: str, primary_flag: bool = False) -> None:
         self.twCredits.insertRow(row)
 
         item_text = role
@@ -851,7 +859,7 @@ Please choose options below, and select OK.
         self.twCredits.setItem(row, 0, item)
         self.update_credit_primary_flag(row, primary_flag)
 
-    def is_dupe_credit(self, role, name):
+    def is_dupe_credit(self, role: str, name: str) -> bool:
         r = 0
         while r < self.twCredits.rowCount():
             if self.twCredits.item(r, 1).text() == role and self.twCredits.item(r, 2).text() == name:
@@ -860,7 +868,7 @@ Please choose options below, and select OK.
 
         return False
 
-    def form_to_metadata(self):
+    def form_to_metadata(self) -> None:
         # copy the data from the form into the metadata
         md = GenericMetadata()
         md.is_empty = False
@@ -908,7 +916,7 @@ Please choose options below, and select OK.
         tmp = self.teTags.toPlainText()
         if tmp is not None:
 
-            def strip_list(i):
+            def strip_list(i: list[str]) -> list[str]:
                 return [x.strip() for x in i]
 
             md.tags = strip_list(tmp.split(","))
@@ -929,7 +937,7 @@ Please choose options below, and select OK.
         md.pages = self.page_list_editor.get_page_list()
         self.metadata = md
 
-    def use_filename(self):
+    def use_filename(self) -> None:
         if self.comic_archive is not None:
             # copy the form onto metadata object
             self.form_to_metadata()
@@ -943,10 +951,10 @@ Please choose options below, and select OK.
                 self.metadata.overlay(new_metadata)
                 self.metadata_to_form()
 
-    def select_folder(self):
+    def select_folder(self) -> None:
         self.select_file(folder_mode=True)
 
-    def select_file(self, folder_mode=False):
+    def select_file(self, folder_mode: bool = False) -> None:
 
         dialog = QtWidgets.QFileDialog(self)
         if folder_mode:
@@ -966,14 +974,14 @@ Please choose options below, and select OK.
             file_list = dialog.selectedFiles()
             self.fileSelectionList.add_path_list(file_list)
 
-    def auto_identify_search(self):
+    def auto_identify_search(self) -> None:
         if self.comic_archive is None:
             QtWidgets.QMessageBox.warning(self, "Automatic Identify Search", "You need to load a comic first!")
             return
 
         self.query_online(autoselect=True)
 
-    def query_online(self, autoselect=False):
+    def query_online(self, autoselect: bool = False) -> None:
 
         issue_number = str(self.leIssueNum.text()).strip()
 
@@ -989,13 +997,9 @@ Please choose options below, and select OK.
             QtWidgets.QMessageBox.information(self, "Online Search", "Need to enter a series name to search.")
             return
 
-        year = str(self.lePubYear.text()).strip()
-        if year == "":
-            year = None
+        year = utils.xlate(self.lePubYear.text(), True)
 
-        issue_count = str(self.leIssueCount.text()).strip()
-        if issue_count == "":
-            issue_count = None
+        issue_count = utils.xlate(self.leIssueCount.text(), True)
 
         cover_index_list = self.metadata.get_cover_page_index_list()
         selector = VolumeSelectionWindow(
@@ -1005,7 +1009,7 @@ Please choose options below, and select OK.
             year,
             issue_count,
             cover_index_list,
-            self.comic_archive,
+            cast(ComicArchive, self.comic_archive),
             self.settings,
             autoselect,
         )
@@ -1050,7 +1054,7 @@ Please choose options below, and select OK.
                         self, "Search", f"Could not find an issue {selector.issue_number} for that series"
                     )
 
-    def commit_metadata(self):
+    def commit_metadata(self) -> None:
         if self.metadata is not None and self.comic_archive is not None:
             reply = QtWidgets.QMessageBox.question(
                 self,
@@ -1079,7 +1083,7 @@ Please choose options below, and select OK.
         else:
             QtWidgets.QMessageBox.information(self, "Whoops!", "No data to commit!")
 
-    def set_load_data_style(self, s):
+    def set_load_data_style(self, s: int) -> None:
         if self.dirty_flag_verification(
             "Change Tag Read Style", "If you change read tag style now, data in the form will be lost.  Are you sure?"
         ):
@@ -1093,13 +1097,13 @@ Please choose options below, and select OK.
             self.adjust_load_style_combo()
             self.cbLoadDataStyle.currentIndexChanged.connect(self.set_load_data_style)
 
-    def set_save_data_style(self, s):
+    def set_save_data_style(self, s: int) -> None:
         self.save_data_style = self.cbSaveDataStyle.itemData(s)
         self.settings.last_selected_save_data_style = self.save_data_style
         self.update_style_tweaks()
         self.update_menus()
 
-    def update_credit_colors(self):
+    def update_credit_colors(self) -> None:
         # !!!ATB qt5 porting TODO
         inactive_color = QtGui.QColor(255, 170, 150)
         active_palette = self.leSeries.palette()
@@ -1130,7 +1134,7 @@ Please choose options below, and select OK.
                 self.twCredits.item(r, 1).setBackground(active_brush)
                 r = r + 1
 
-    def update_style_tweaks(self):
+    def update_style_tweaks(self) -> None:
         # depending on the current data style, certain fields are disabled
 
         inactive_color = QtGui.QColor(255, 170, 150)
@@ -1147,7 +1151,7 @@ Please choose options below, and select OK.
         inactive_palette3.setColor(QtGui.QPalette.ColorRole.Base, inactive_color)
 
         # helper func
-        def enable_widget(widget, enable):
+        def enable_widget(widget: QtWidgets.QWidget, enable: bool) -> None:
             inactive_palette3.setColor(widget.backgroundRole(), inactive_color)
             inactive_palette2.setColor(widget.backgroundRole(), inactive_color)
             inactive_palette3.setColor(widget.foregroundRole(), inactive_color)
@@ -1159,7 +1163,7 @@ Please choose options below, and select OK.
                     widget.setEnabled(True)
                 elif isinstance(widget, QtWidgets.QComboBox):
                     widget.setEnabled(True)
-                else:
+                elif isinstance(widget, (QtWidgets.QTextEdit, QtWidgets.QLineEdit, QtWidgets.QAbstractSpinBox)):
                     widget.setReadOnly(False)
             else:
                 widget.setAutoFillBackground(True)
@@ -1169,7 +1173,7 @@ Please choose options below, and select OK.
                 elif isinstance(widget, QtWidgets.QComboBox):
                     widget.setPalette(inactive_palette3)
                     widget.setEnabled(False)
-                else:
+                elif isinstance(widget, (QtWidgets.QTextEdit, QtWidgets.QLineEdit, QtWidgets.QAbstractSpinBox)):
                     widget.setReadOnly(True)
                     widget.setPalette(inactive_palette1)
 
@@ -1209,17 +1213,17 @@ Please choose options below, and select OK.
         self.update_credit_colors()
         self.page_list_editor.set_metadata_style(self.save_data_style)
 
-    def cell_double_clicked(self, r, c):
+    def cell_double_clicked(self, r: int, c: int) -> None:
         self.edit_credit()
 
-    def add_credit(self):
-        self.modify_credits("add")
+    def add_credit(self) -> None:
+        self.modify_credits(False)
 
-    def edit_credit(self):
+    def edit_credit(self) -> None:
         if self.twCredits.currentRow() > -1:
-            self.modify_credits("edit")
+            self.modify_credits(True)
 
-    def update_credit_primary_flag(self, row, primary):
+    def update_credit_primary_flag(self, row: int, primary: bool) -> None:
         # if we're clearing a flag do it and quit
         if not primary:
             self.twCredits.item(row, 0).setText("")
@@ -1236,9 +1240,9 @@ Please choose options below, and select OK.
         # Now set our new primary
         self.twCredits.item(row, 0).setText("Yes")
 
-    def modify_credits(self, action):
+    def modify_credits(self, edit: bool) -> None:
 
-        if action == "edit":
+        if edit:
             row = self.twCredits.currentRow()
             role = self.twCredits.item(row, 1).text()
             name = self.twCredits.item(row, 2).text()
@@ -1268,17 +1272,17 @@ Please choose options below, and select OK.
             ok_to_mod = True
             if self.is_dupe_credit(new_role, new_name):
                 # delete the dupe credit from list
-                reply = QtWidgets.QMessageBox.question(
-                    self,
-                    "Duplicate Credit!",
-                    "This will create a duplicate credit entry. Would you like to merge the entries, or create a duplicate?",
-                    "Merge",
-                    "Duplicate",
+                qmsg = QtWidgets.QMessageBox()
+                qmsg.setText("Duplicate Credit!")
+                qmsg.setInformativeText(
+                    "This will create a duplicate credit entry. Would you like to merge the entries, or create a duplicate?"
                 )
+                qmsg.addButton("Merge", QtWidgets.QMessageBox.ButtonRole.AcceptRole)
+                qmsg.addButton("Duplicate", QtWidgets.QMessageBox.ButtonRole.NoRole)
 
-                if reply == 0:
+                if qmsg.exec() == 0:
                     # merge
-                    if action == "edit":
+                    if edit:
                         # just remove the row that would be same
                         self.twCredits.removeRow(row)
                         # TODO -- need to find the row of the dupe, and possible change the primary flag
@@ -1287,7 +1291,7 @@ Please choose options below, and select OK.
 
             if ok_to_mod:
                 # modify it
-                if action == "edit":
+                if edit:
                     self.twCredits.item(row, 1).setText(new_role)
                     self.twCredits.item(row, 2).setText(new_name)
                     self.update_credit_primary_flag(row, new_primary)
@@ -1299,13 +1303,13 @@ Please choose options below, and select OK.
             self.update_credit_colors()
             self.set_dirty_flag()
 
-    def remove_credit(self):
+    def remove_credit(self) -> None:
         row = self.twCredits.currentRow()
         if row != -1:
             self.twCredits.removeRow(row)
         self.set_dirty_flag()
 
-    def open_web_link(self):
+    def open_web_link(self) -> None:
         if self.leWebLink is not None:
             web_link = self.leWebLink.text().strip()
             valid = False
@@ -1320,7 +1324,7 @@ Please choose options below, and select OK.
             else:
                 QtWidgets.QMessageBox.warning(self, self.tr("Web Link"), self.tr("Web Link is invalid."))
 
-    def show_settings(self):
+    def show_settings(self) -> None:
 
         settingswin = SettingsWindow(self, self.settings)
         settingswin.setModal(True)
@@ -1328,7 +1332,7 @@ Please choose options below, and select OK.
         if settingswin.result():
             pass
 
-    def set_app_position(self):
+    def set_app_position(self) -> None:
         if self.settings.last_main_window_width != 0:
             self.move(self.settings.last_main_window_x, self.settings.last_main_window_y)
             self.resize(self.settings.last_main_window_width, self.settings.last_main_window_height)
@@ -1337,14 +1341,14 @@ Please choose options below, and select OK.
             size = self.frameGeometry()
             self.move(int((screen.width() - size.width()) / 2), int((screen.height() - size.height()) / 2))
 
-    def adjust_load_style_combo(self):
+    def adjust_load_style_combo(self) -> None:
         # select the current style
         if self.load_data_style == MetaDataStyle.CBI:
             self.cbLoadDataStyle.setCurrentIndex(0)
         elif self.load_data_style == MetaDataStyle.CIX:
             self.cbLoadDataStyle.setCurrentIndex(1)
 
-    def adjust_save_style_combo(self):
+    def adjust_save_style_combo(self) -> None:
         # select the current style
         if self.save_data_style == MetaDataStyle.CBI:
             self.cbSaveDataStyle.setCurrentIndex(0)
@@ -1352,7 +1356,7 @@ Please choose options below, and select OK.
             self.cbSaveDataStyle.setCurrentIndex(1)
         self.update_style_tweaks()
 
-    def populate_combo_boxes(self):
+    def populate_combo_boxes(self) -> None:
 
         # Add the entries to the tag style combobox
         self.cbLoadDataStyle.addItem("ComicBookLover", MetaDataStyle.CBI)
@@ -1453,16 +1457,16 @@ Please choose options below, and select OK.
         self.cbFormat.addItem("Year 1")
         self.cbFormat.addItem("Year One")
 
-    def remove_auto(self):
+    def remove_auto(self) -> None:
         self.remove_tags(self.save_data_style)
 
-    def remove_cbl_tags(self):
+    def remove_cbl_tags(self) -> None:
         self.remove_tags(MetaDataStyle.CBI)
 
-    def remove_cr_tags(self):
+    def remove_cr_tags(self) -> None:
         self.remove_tags(MetaDataStyle.CIX)
 
-    def remove_tags(self, style):
+    def remove_tags(self, style: int) -> None:
         # remove the indicated tags from the archive
         ca_list = self.fileSelectionList.get_selected_archive_list()
         has_md_count = 0
@@ -1509,7 +1513,7 @@ Please choose options below, and select OK.
                             break
                         prog_idx += 1
                         progdialog.setValue(prog_idx)
-                        progdialog.setLabelText(ca.path)
+                        progdialog.setLabelText(str(ca.path))
                         center_window_on_parent(progdialog)
                         QtCore.QCoreApplication.processEvents()
 
@@ -1537,7 +1541,7 @@ Please choose options below, and select OK.
                 dlg.setWindowTitle("Tag Remove Summary")
                 dlg.exec()
 
-    def copy_tags(self):
+    def copy_tags(self) -> None:
         # copy the indicated tags in the archive
         ca_list = self.fileSelectionList.get_selected_archive_list()
         has_src_count = 0
@@ -1591,7 +1595,7 @@ Please choose options below, and select OK.
                             break
                         prog_idx += 1
                         prog_dialog.setValue(prog_idx)
-                        prog_dialog.setLabelText(ca.path)
+                        prog_dialog.setLabelText(str(ca.path))
                         center_window_on_parent(prog_dialog)
                         QtCore.QCoreApplication.processEvents()
 
@@ -1625,10 +1629,10 @@ Please choose options below, and select OK.
                 dlg.setWindowTitle("Tag Copy Summary")
                 dlg.exec()
 
-    def actual_issue_data_fetch(self, match):
+    def actual_issue_data_fetch(self, match: IssueResult) -> GenericMetadata:
 
         # now get the particular issue data
-        cv_md = None
+        cv_md = GenericMetadata()
         QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
 
         try:
@@ -1638,7 +1642,7 @@ Please choose options below, and select OK.
         except ComicVineTalkerException:
             logger.exception("Network error while getting issue details. Save aborted")
 
-        if cv_md is not None:
+        if not cv_md.is_empty:
             if self.settings.apply_cbl_transform_on_cv_import:
                 cv_md = CBLTransformer(cv_md, self.settings).apply()
 
@@ -1646,7 +1650,7 @@ Please choose options below, and select OK.
 
         return cv_md
 
-    def auto_tag_log(self, text):
+    def auto_tag_log(self, text: str) -> None:
         IssueIdentifier.default_write_output(text)
         if self.atprogdialog is not None:
             self.atprogdialog.textEdit.append(text.rstrip())
@@ -1657,7 +1661,7 @@ Please choose options below, and select OK.
 
     def identify_and_tag_single_archive(
         self, ca: ComicArchive, match_results: OnlineMatchResults, dlg: AutoTagStartWindow
-    ):
+    ) -> tuple[bool, OnlineMatchResults]:
         success = False
         ii = IssueIdentifier(ca, self.settings)
 
@@ -1675,7 +1679,7 @@ Please choose options below, and select OK.
                 md.series = re.sub(r"([\d.]*)(.*)", "\\2", md.series)
 
         # use the dialog specified search string
-        if dlg.search_string is not None:
+        if dlg.search_string:
             md.series = dlg.search_string
 
         if md is None or md.is_empty:
@@ -1691,7 +1695,8 @@ Please choose options below, and select OK.
         ii.wait_and_retry_on_rate_limit = dlg.wait_and_retry_on_rate_limit
         ii.set_output_function(self.auto_tag_log)
         ii.cover_page_index = md.get_cover_page_index_list()[0]
-        ii.set_cover_url_callback(self.atprogdialog.set_test_image)
+        if self.atprogdialog is not None:
+            ii.set_cover_url_callback(self.atprogdialog.set_test_image)
         ii.set_name_length_delta_threshold(dlg.name_length_match_tolerance)
 
         matches: List[IssueResult] = ii.search()
@@ -1729,7 +1734,7 @@ Please choose options below, and select OK.
             match_results.low_confidence_matches.append(MultipleMatch(ca, matches))
         elif not found_match:
             self.auto_tag_log("Online search: No match found.  Save aborted\n")
-            match_results.no_matches.append(ca.path)
+            match_results.no_matches.append(str(ca.path.absolute()))
         else:
             # a single match!
             if low_confidence:
@@ -1738,23 +1743,23 @@ Please choose options below, and select OK.
             # now get the particular issue data
             cv_md = self.actual_issue_data_fetch(matches[0])
             if cv_md is None:
-                match_results.fetch_data_failures.append(ca.path)
+                match_results.fetch_data_failures.append(str(ca.path.absolute()))
 
             if cv_md is not None:
                 md.overlay(cv_md)
 
                 if not ca.write_metadata(md, self.save_data_style):
-                    match_results.write_failures.append(ca.path)
+                    match_results.write_failures.append(str(ca.path.absolute()))
                     self.auto_tag_log("Save failed ;-(\n")
                 else:
-                    match_results.good_matches.append(ca.path)
+                    match_results.good_matches.append(str(ca.path.absolute()))
                     success = True
                     self.auto_tag_log("Save complete!\n")
                 ca.load_cache([MetaDataStyle.CBI, MetaDataStyle.CIX])
 
         return success, match_results
 
-    def auto_tag(self):
+    def auto_tag(self) -> None:
         ca_list = self.fileSelectionList.get_selected_archive_list()
         style = self.save_data_style
 
@@ -1801,14 +1806,14 @@ Please choose options below, and select OK to Auto-Tag.
             cover_idx = ca.read_metadata(style).get_cover_page_index_list()[0]
             image_data = ca.get_page(cover_idx)
             self.atprogdialog.set_archive_image(image_data)
-            self.atprogdialog.set_test_image(None)
+            self.atprogdialog.set_test_image(bytes())
 
             QtCore.QCoreApplication.processEvents()
             if self.atprogdialog.isdone:
                 break
             self.atprogdialog.progressBar.setValue(prog_idx)
             prog_idx += 1
-            self.atprogdialog.label.setText(ca.path)
+            self.atprogdialog.label.setText(str(ca.path))
             center_window_on_parent(self.atprogdialog)
             QtCore.QCoreApplication.processEvents()
 
@@ -1869,13 +1874,15 @@ Please choose options below, and select OK to Auto-Tag.
                 matchdlg.setModal(True)
                 matchdlg.exec()
                 self.fileSelectionList.update_selected_rows()
-                self.load_archive(self.fileSelectionList.get_current_archive())
+                new_ca = self.fileSelectionList.get_current_archive()
+                if new_ca is not None:
+                    self.load_archive(new_ca)
 
         else:
             QtWidgets.QMessageBox.information(self, self.tr("Auto-Tag Summary"), self.tr(summary))
         logger.info(summary)
 
-    def dirty_flag_verification(self, title, desc):
+    def dirty_flag_verification(self, title: str, desc: str) -> bool:
         if self.dirty_flag:
             reply = QtWidgets.QMessageBox.question(
                 self,
@@ -1897,7 +1904,7 @@ Please choose options below, and select OK to Auto-Tag.
             return False
         return True
 
-    def closeEvent(self, event):
+    def closeEvent(self, event: QtGui.QCloseEvent) -> None:
         if self.dirty_flag_verification(
             f"Exit {self.appName}", "If you quit now, data in the form will be lost.  Are you sure?"
         ):
@@ -1918,24 +1925,24 @@ Please choose options below, and select OK to Auto-Tag.
         else:
             event.ignore()
 
-    def show_page_browser(self):
+    def show_page_browser(self) -> None:
         if self.page_browser is None:
             self.page_browser = PageBrowserWindow(self, self.metadata)
             if self.comic_archive is not None:
                 self.page_browser.set_comic_archive(self.comic_archive)
             self.page_browser.finished.connect(self.page_browser_closed)
 
-    def page_browser_closed(self):
+    def page_browser_closed(self) -> None:
         self.page_browser = None
 
-    def view_raw_cr_tags(self):
+    def view_raw_cr_tags(self) -> None:
         if self.comic_archive is not None and self.comic_archive.has_cix():
             dlg = LogWindow(self)
             dlg.set_text(self.comic_archive.read_raw_cix())
             dlg.setWindowTitle("Raw ComicRack Tag View")
             dlg.exec()
 
-    def view_raw_cbl_tags(self):
+    def view_raw_cbl_tags(self) -> None:
         if self.comic_archive is not None and self.comic_archive.has_cbi():
             dlg = LogWindow(self)
             text = pprint.pformat(json.loads(self.comic_archive.read_raw_cbi()), indent=4)
@@ -1943,28 +1950,28 @@ Please choose options below, and select OK to Auto-Tag.
             dlg.setWindowTitle("Raw ComicBookLover Tag View")
             dlg.exec()
 
-    def show_wiki(self):
+    def show_wiki(self) -> None:
         webbrowser.open("https://github.com/comictagger/comictagger/wiki")
 
-    def report_bug(self):
+    def report_bug(self) -> None:
         webbrowser.open("https://github.com/comictagger/comictagger/issues")
 
-    def show_forum(self):
+    def show_forum(self) -> None:
         webbrowser.open("http://comictagger.forumotion.com/")
 
-    def front_cover_changed(self):
+    def front_cover_changed(self) -> None:
         self.metadata.pages = self.page_list_editor.get_page_list()
         self.update_cover_image()
 
-    def page_list_order_changed(self):
+    def page_list_order_changed(self) -> None:
         self.metadata.pages = self.page_list_editor.get_page_list()
 
-    def apply_cbl_transform(self):
+    def apply_cbl_transform(self) -> None:
         self.form_to_metadata()
         self.metadata = CBLTransformer(self.metadata, self.settings).apply()
         self.metadata_to_form()
 
-    def recalc_page_dimensions(self):
+    def recalc_page_dimensions(self) -> None:
         QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
         for p in self.metadata.pages:
             if "ImageSize" in p:
@@ -1976,7 +1983,7 @@ Please choose options below, and select OK to Auto-Tag.
         self.set_dirty_flag()
         QtWidgets.QApplication.restoreOverrideCursor()
 
-    def rename_archive(self):
+    def rename_archive(self) -> None:
         ca_list = self.fileSelectionList.get_selected_archive_list()
 
         if len(ca_list) == 0:
@@ -1989,14 +1996,14 @@ Please choose options below, and select OK to Auto-Tag.
 
             dlg = RenameWindow(self, ca_list, self.load_data_style, self.settings)
             dlg.setModal(True)
-            if dlg.exec():
+            if dlg.exec() and self.comic_archive is not None:
                 self.fileSelectionList.update_selected_rows()
                 self.load_archive(self.comic_archive)
 
-    def file_list_selection_changed(self, fi: FileInfo):
+    def file_list_selection_changed(self, fi: FileInfo) -> None:
         self.load_archive(fi.ca)
 
-    def load_archive(self, comic_archive: ComicArchive):
+    def load_archive(self, comic_archive: ComicArchive) -> None:
         self.comic_archive = None
         self.clear_form()
 
@@ -2014,10 +2021,10 @@ Please choose options below, and select OK to Auto-Tag.
 
         self.actual_load_current_archive()
 
-    def file_list_cleared(self):
+    def file_list_cleared(self) -> None:
         self.reset_app()
 
-    def splitter_moved_event(self, w1, w2):
+    def splitter_moved_event(self, w1: int, w2: int) -> None:
         scrollbar_w = 0
         if self.scrollArea.verticalScrollBar().isVisible():
             scrollbar_w = self.scrollArea.verticalScrollBar().width()
@@ -2025,20 +2032,20 @@ Please choose options below, and select OK to Auto-Tag.
         new_w = self.scrollArea.width() - scrollbar_w - 5
         self.scrollAreaWidgetContents.resize(new_w, self.scrollAreaWidgetContents.height())
 
-    def resizeEvent(self, ev):
+    def resizeEvent(self, ev: Optional[QtGui.QResizeEvent]) -> None:
         self.splitter_moved_event(0, 0)
 
-    def tab_changed(self, idx):
+    def tab_changed(self, idx: int) -> None:
         if idx == 0:
             self.splitter_moved_event(0, 0)
 
-    def check_latest_version_online(self):
+    def check_latest_version_online(self) -> None:
         version_checker = VersionChecker()
         self.version_check_complete(
             version_checker.get_latest_version(self.settings.install_id, self.settings.send_usage_stats)
         )
 
-    def version_check_complete(self, new_version):
+    def version_check_complete(self, new_version: str) -> None:
         if new_version not in (self.version, self.settings.dont_notify_about_this_version):
             website = "https://github.com/comictagger/comictagger"
             checked = OptionalMessageDialog.msg(
@@ -2046,13 +2053,13 @@ Please choose options below, and select OK to Auto-Tag.
                 "New version available!",
                 f"New version ({new_version}) available!<br>(You are currently running {self.version})<br><br>"
                 f"Visit <a href='{website}'>{website}</a> for more info.<br><br>",
-                QtCore.Qt.CheckState.Unchecked,
+                False,
                 "Don't tell me about this version again",
             )
             if checked:
                 self.settings.dont_notify_about_this_version = new_version
 
-    def on_incoming_socket_connection(self):
+    def on_incoming_socket_connection(self) -> None:
         # Accept connection from other instance.
         # Read in the file list if they're giving it, and add to our own list
         local_socket = self.socketServer.nextPendingConnection()
@@ -2066,7 +2073,7 @@ Please choose options below, and select OK to Auto-Tag.
 
         self.bring_to_top()
 
-    def bring_to_top(self):
+    def bring_to_top(self) -> None:
         if platform.system() == "Windows":
             self.showNormal()
             self.raise_()

@@ -16,12 +16,14 @@
 
 
 import logging
+from typing import Optional
 
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
 from comicapi.issuestring import IssueString
 from comictaggerlib.comicvinetalker import ComicVineTalker, ComicVineTalkerException
 from comictaggerlib.coverimagewidget import CoverImageWidget
+from comictaggerlib.resulttypes import CVIssuesResults
 from comictaggerlib.settings import ComicTaggerSettings
 from comictaggerlib.ui.qtutils import reduce_widget_font_size
 
@@ -29,16 +31,19 @@ logger = logging.getLogger(__name__)
 
 
 class IssueNumberTableWidgetItem(QtWidgets.QTableWidgetItem):
-    def __lt__(self, other):
-        self_str = self.data(QtCore.Qt.ItemDataRole.DisplayRole)
-        other_str = other.data(QtCore.Qt.ItemDataRole.DisplayRole)
-        return IssueString(self_str).as_float() < IssueString(other_str).as_float()
+    def __lt__(self, other: object) -> bool:
+        assert isinstance(other, QtWidgets.QTableWidgetItem)
+        self_str: str = self.data(QtCore.Qt.ItemDataRole.DisplayRole)
+        other_str: str = other.data(QtCore.Qt.ItemDataRole.DisplayRole)
+        return (IssueString(self_str).as_float() or 0) < (IssueString(other_str).as_float() or 0)
 
 
 class IssueSelectionWindow(QtWidgets.QDialog):
     volume_id = 0
 
-    def __init__(self, parent, settings, series_id, issue_number):
+    def __init__(
+        self, parent: QtWidgets.QWidget, settings: ComicTaggerSettings, series_id: int, issue_number: str
+    ) -> None:
         super().__init__(parent)
 
         uic.loadUi(ComicTaggerSettings.get_ui_file("issueselectionwindow.ui"), self)
@@ -60,17 +65,17 @@ class IssueSelectionWindow(QtWidgets.QDialog):
         )
 
         self.series_id = series_id
-        self.issue_id = None
+        self.issue_id: Optional[int] = None
         self.settings = settings
         self.url_fetch_thread = None
-        self.issue_list = []
+        self.issue_list: list[CVIssuesResults] = []
 
         if issue_number is None or issue_number == "":
-            self.issue_number = 1
+            self.issue_number = "1"
         else:
             self.issue_number = issue_number
 
-        self.initial_id = None
+        self.initial_id: Optional[int] = None
         self.perform_query()
 
         self.twList.resizeColumnsToContents()
@@ -88,7 +93,7 @@ class IssueSelectionWindow(QtWidgets.QDialog):
                     self.twList.selectRow(r)
                     break
 
-    def perform_query(self):
+    def perform_query(self) -> None:
 
         QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
 
@@ -129,18 +134,18 @@ class IssueSelectionWindow(QtWidgets.QDialog):
             if len(parts) > 1:
                 item_text = parts[0] + "-" + parts[1]
 
-            item = QtWidgets.QTableWidgetItem(item_text)
-            item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
-            item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
-            self.twList.setItem(row, 1, item)
+            QTW_item = QtWidgets.QTableWidgetItem(item_text)
+            QTW_item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
+            QTW_item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
+            self.twList.setItem(row, 1, QTW_item)
 
             item_text = record["name"]
             if item_text is None:
                 item_text = ""
-            item = QtWidgets.QTableWidgetItem(item_text)
-            item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
-            item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
-            self.twList.setItem(row, 2, item)
+            QTW_item = QtWidgets.QTableWidgetItem(item_text)
+            QTW_item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
+            QTW_item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
+            self.twList.setItem(row, 2, QTW_item)
 
             if (
                 IssueString(record["issue_number"]).as_string().lower()
@@ -155,10 +160,10 @@ class IssueSelectionWindow(QtWidgets.QDialog):
 
         QtWidgets.QApplication.restoreOverrideCursor()
 
-    def cell_double_clicked(self, r, c):
+    def cell_double_clicked(self, r: int, c: int) -> None:
         self.accept()
 
-    def current_item_changed(self, curr, prev):
+    def current_item_changed(self, curr: Optional[QtCore.QModelIndex], prev: Optional[QtCore.QModelIndex]) -> None:
 
         if curr is None:
             return
@@ -171,7 +176,7 @@ class IssueSelectionWindow(QtWidgets.QDialog):
         for record in self.issue_list:
             if record["id"] == self.issue_id:
                 self.issue_number = record["issue_number"]
-                self.coverWidget.set_issue_id(int(self.issue_id))
+                self.coverWidget.set_issue_id(self.issue_id)
                 if record["description"] is None:
                     self.teDescription.setText("")
                 else:

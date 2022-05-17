@@ -21,7 +21,7 @@ possible, however lossy it might be
 # limitations under the License.
 
 import logging
-from typing import List, TypedDict
+from typing import Any, List, Optional, TypedDict
 
 from comicapi import utils
 
@@ -73,76 +73,75 @@ class GenericMetadata:
     cover_synonyms = ["cover", "covers", "coverartist", "cover artist"]
     editor_synonyms = ["editor"]
 
-    def __init__(self):
+    def __init__(self) -> None:
 
-        self.is_empty = True
-        self.tag_origin = None
+        self.is_empty: bool = True
+        self.tag_origin: Optional[str] = None
 
-        self.series = None
-        self.issue = None
-        self.title = None
-        self.publisher = None
-        self.month = None
-        self.year = None
-        self.day = None
-        self.issue_count = None
-        self.volume = None
-        self.genre = None
-        self.language = None  # 2 letter iso code
-        self.comments = None  # use same way as Summary in CIX
+        self.series: Optional[str] = None
+        self.issue: Optional[str] = None
+        self.title: Optional[str] = None
+        self.publisher: Optional[str] = None
+        self.month: Optional[int] = None
+        self.year: Optional[int] = None
+        self.day: Optional[int] = None
+        self.issue_count: Optional[int] = None
+        self.volume: Optional[int] = None
+        self.genre: Optional[str] = None
+        self.language: Optional[str] = None  # 2 letter iso code
+        self.comments: Optional[str] = None  # use same way as Summary in CIX
 
-        self.volume_count = None
-        self.critical_rating = None
-        self.country = None
+        self.volume_count: Optional[int] = None
+        self.critical_rating: Optional[str] = None
+        self.country: Optional[str] = None
 
-        self.alternate_series = None
-        self.alternate_number = None
-        self.alternate_count = None
-        self.imprint = None
-        self.notes = None
-        self.web_link = None
-        self.format = None
-        self.manga = None
-        self.black_and_white = None
-        self.page_count = None
-        self.maturity_rating = None
-        self.community_rating = None
+        self.alternate_series: Optional[str] = None
+        self.alternate_number: Optional[str] = None
+        self.alternate_count: Optional[int] = None
+        self.imprint: Optional[str] = None
+        self.notes: Optional[str] = None
+        self.web_link: Optional[str] = None
+        self.format: Optional[str] = None
+        self.manga: Optional[str] = None
+        self.black_and_white: Optional[bool] = None
+        self.page_count: Optional[int] = None
+        self.maturity_rating: Optional[str] = None
+        self.community_rating: Optional[str] = None
 
-        self.story_arc = None
-        self.series_group = None
-        self.scan_info = None
+        self.story_arc: Optional[str] = None
+        self.series_group: Optional[str] = None
+        self.scan_info: Optional[str] = None
 
-        self.characters = None
-        self.teams = None
-        self.locations = None
+        self.characters: Optional[str] = None
+        self.teams: Optional[str] = None
+        self.locations: Optional[str] = None
 
         self.credits: List[CreditMetadata] = []
         self.tags: List[str] = []
         self.pages: List[ImageMetadata] = []
 
         # Some CoMet-only items
-        self.price = None
-        self.is_version_of = None
-        self.rights = None
-        self.identifier = None
-        self.last_mark = None
-        self.cover_image = None
+        self.price: Optional[str] = None
+        self.is_version_of: Optional[str] = None
+        self.rights: Optional[str] = None
+        self.identifier: Optional[str] = None
+        self.last_mark: Optional[str] = None
+        self.cover_image: Optional[str] = None
 
-    def overlay(self, new_md):
+    def overlay(self, new_md: "GenericMetadata") -> None:
         """Overlay a metadata object on this one
 
         That is, when the new object has non-None values, over-write them
         to this one.
         """
 
-        def assign(cur, new):
+        def assign(cur: str, new: Any) -> None:
             if new is not None:
                 if isinstance(new, str) and len(new) == 0:
                     setattr(self, cur, None)
                 else:
                     setattr(self, cur, new)
 
-        new_md: GenericMetadata
         if not new_md.is_empty:
             self.is_empty = False
 
@@ -199,7 +198,7 @@ class GenericMetadata:
         if len(new_md.pages) > 0:
             assign("pages", new_md.pages)
 
-    def overlay_credits(self, new_credits):
+    def overlay_credits(self, new_credits: List[CreditMetadata]) -> None:
         for c in new_credits:
             primary = bool("primary" in c and c["primary"])
 
@@ -212,7 +211,7 @@ class GenericMetadata:
             else:
                 self.add_credit(c["person"], c["role"], primary)
 
-    def set_default_page_list(self, count):
+    def set_default_page_list(self, count: int) -> None:
         # generate a default page list, with the first page marked as the cover
         for i in range(count):
             page_dict = ImageMetadata(Image=i)
@@ -220,7 +219,7 @@ class GenericMetadata:
                 page_dict["Type"] = PageType.FrontCover
             self.pages.append(page_dict)
 
-    def get_archive_page_index(self, pagenum):
+    def get_archive_page_index(self, pagenum: int) -> int:
         # convert the displayed page number to the page index of the file in
         # the archive
         if pagenum < len(self.pages):
@@ -228,7 +227,7 @@ class GenericMetadata:
 
         return 0
 
-    def get_cover_page_index_list(self):
+    def get_cover_page_index_list(self) -> list[int]:
         # return a list of archive page indices of cover pages
         coverlist = []
         for p in self.pages:
@@ -240,7 +239,7 @@ class GenericMetadata:
 
         return coverlist
 
-    def add_credit(self, person, role, primary=False):
+    def add_credit(self, person: str, role: str, primary: bool = False) -> None:
 
         credit: CreditMetadata = {"person": person, "role": role, "primary": primary}
 
@@ -256,7 +255,7 @@ class GenericMetadata:
         if not found:
             self.credits.append(credit)
 
-    def get_primary_credit(self, role):
+    def get_primary_credit(self, role: str) -> str:
         primary = ""
         for credit in self.credits:
             if (primary == "" and credit["role"].lower() == role.lower()) or (
@@ -265,16 +264,16 @@ class GenericMetadata:
                 primary = credit["person"]
         return primary
 
-    def __str__(self):
-        vals = []
+    def __str__(self) -> str:
+        vals: list[tuple[str, Any]] = []
         if self.is_empty:
             return "No metadata"
 
-        def add_string(tag, val):
+        def add_string(tag: str, val: Any) -> None:
             if val is not None and str(val) != "":
                 vals.append((tag, val))
 
-        def add_attr_string(tag):
+        def add_attr_string(tag: str) -> None:
             add_string(tag, getattr(self, tag))
 
         add_attr_string("series")

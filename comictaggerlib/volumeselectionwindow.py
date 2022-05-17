@@ -15,11 +15,13 @@
 # limitations under the License.
 
 import logging
+from typing import Optional
 
 from PyQt5 import QtCore, QtWidgets, uic
 from PyQt5.QtCore import pyqtSignal
 
 from comicapi import utils
+from comicapi.comicarchive import ComicArchive
 from comicapi.genericmetadata import GenericMetadata
 from comictaggerlib.comicvinetalker import ComicVineTalker, ComicVineTalkerException
 from comictaggerlib.coverimagewidget import CoverImageWidget
@@ -27,6 +29,7 @@ from comictaggerlib.issueidentifier import IssueIdentifier
 from comictaggerlib.issueselectionwindow import IssueSelectionWindow
 from comictaggerlib.matchselectionwindow import MatchSelectionWindow
 from comictaggerlib.progresswindow import IDProgressWindow
+from comictaggerlib.resulttypes import CVVolumeResults
 from comictaggerlib.settings import ComicTaggerSettings
 from comictaggerlib.ui.qtutils import reduce_widget_font_size
 
@@ -37,15 +40,15 @@ class SearchThread(QtCore.QThread):
     searchComplete = pyqtSignal()
     progressUpdate = pyqtSignal(int, int)
 
-    def __init__(self, series_name, refresh):
+    def __init__(self, series_name: str, refresh: bool) -> None:
         QtCore.QThread.__init__(self)
         self.series_name = series_name
-        self.refresh = refresh
-        self.error_code = None
+        self.refresh: bool = refresh
+        self.error_code: Optional[int] = None
         self.cv_error = False
-        self.cv_search_results = []
+        self.cv_search_results: list[CVVolumeResults] = []
 
-    def run(self):
+    def run(self) -> None:
         comic_vine = ComicVineTalker()
         try:
             self.cv_error = False
@@ -60,7 +63,7 @@ class SearchThread(QtCore.QThread):
         finally:
             self.searchComplete.emit()
 
-    def prog_callback(self, current, total):
+    def prog_callback(self, current: int, total: int) -> None:
         self.progressUpdate.emit(current, total)
 
 
@@ -69,19 +72,19 @@ class IdentifyThread(QtCore.QThread):
     identifyLogMsg = pyqtSignal(str)
     identifyProgress = pyqtSignal(int, int)
 
-    def __init__(self, identifier: IssueIdentifier):
+    def __init__(self, identifier: IssueIdentifier) -> None:
         QtCore.QThread.__init__(self)
         self.identifier = identifier
         self.identifier.set_output_function(self.log_output)
         self.identifier.set_progress_callback(self.progress_callback)
 
-    def log_output(self, text: str):
+    def log_output(self, text: str) -> None:
         self.identifyLogMsg.emit(str(text))
 
-    def progress_callback(self, cur, total):
+    def progress_callback(self, cur: int, total: int) -> None:
         self.identifyProgress.emit(cur, total)
 
-    def run(self):
+    def run(self) -> None:
         self.identifier.search()
         self.identifyComplete.emit()
 
@@ -89,16 +92,16 @@ class IdentifyThread(QtCore.QThread):
 class VolumeSelectionWindow(QtWidgets.QDialog):
     def __init__(
         self,
-        parent,
-        series_name,
-        issue_number,
-        year,
-        issue_count,
-        cover_index_list,
-        comic_archive,
-        settings,
-        autoselect=False,
-    ):
+        parent: QtWidgets.QWidget,
+        series_name: str,
+        issue_number: str,
+        year: Optional[int],
+        issue_count: int,
+        cover_index_list: list[int],
+        comic_archive: ComicArchive,
+        settings: ComicTaggerSettings,
+        autoselect: bool = False,
+    ) -> None:
         super().__init__(parent)
 
         uic.loadUi(ComicTaggerSettings.get_ui_file("volumeselectionwindow.ui"), self)
@@ -120,7 +123,6 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
         )
 
         self.settings = settings
-        self.parent = parent
         self.series_name = series_name
         self.issue_number = issue_number
         self.year = year
@@ -129,12 +131,12 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
         self.comic_archive = comic_archive
         self.immediate_autoselect = autoselect
         self.cover_index_list = cover_index_list
-        self.cv_search_results = None
-        self.ii = None
-        self.iddialog = None
-        self.id_thread = None
-        self.progdialog = None
-        self.search_thread = None
+        self.cv_search_results: list[CVVolumeResults] = []
+        self.ii: Optional[IssueIdentifier] = None
+        self.iddialog: Optional[IDProgressWindow] = None
+        self.id_thread: Optional[IdentifyThread] = None
+        self.progdialog: Optional[QtWidgets.QProgressDialog] = None
+        self.search_thread: Optional[SearchThread] = None
 
         self.use_filter = self.settings.always_use_publisher_filter
 
@@ -152,23 +154,23 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
         self.perform_query()
         self.twList.selectRow(0)
 
-    def update_buttons(self):
-        enabled = self.cv_search_results is not None and len(self.cv_search_results) > 0
+    def update_buttons(self) -> None:
+        enabled = bool(self.cv_search_results and len(self.cv_search_results) > 0)
 
         self.btnRequery.setEnabled(enabled)
         self.btnIssues.setEnabled(enabled)
         self.btnAutoSelect.setEnabled(enabled)
         self.buttonBox.button(QtWidgets.QDialogButtonBox.StandardButton.Ok).setEnabled(enabled)
 
-    def requery(self):
+    def requery(self) -> None:
         self.perform_query(refresh=True)
         self.twList.selectRow(0)
 
-    def filter_toggled(self):
+    def filter_toggled(self) -> None:
         self.use_filter = not self.use_filter
         self.perform_query(refresh=False)
 
-    def auto_select(self):
+    def auto_select(self) -> None:
 
         if self.comic_archive is None:
             QtWidgets.QMessageBox.information(self, "Auto-Select", "You need to load a comic first!")
@@ -205,67 +207,73 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
 
         self.iddialog.exec()
 
-    def log_id_output(self, text):
-        print(str(text), end=" ")
-        self.iddialog.textEdit.ensureCursorVisible()
-        self.iddialog.textEdit.insertPlainText(text)
+    def log_id_output(self, text: str) -> None:
+        if self.iddialog is not None:
+            print(text, end=" ")
+            self.iddialog.textEdit.ensureCursorVisible()
+            self.iddialog.textEdit.insertPlainText(text)
 
-    def identify_progress(self, cur, total):
-        self.iddialog.progressBar.setMaximum(total)
-        self.iddialog.progressBar.setValue(cur)
+    def identify_progress(self, cur: int, total: int) -> None:
+        if self.iddialog is not None:
+            self.iddialog.progressBar.setMaximum(total)
+            self.iddialog.progressBar.setValue(cur)
 
-    def identify_cancel(self):
-        self.ii.cancel = True
+    def identify_cancel(self) -> None:
+        if self.ii is not None:
+            self.ii.cancel = True
 
-    def identify_complete(self):
+    def identify_complete(self) -> None:
+        if self.ii is not None and self.iddialog is not None:
 
-        matches = self.ii.match_list
-        result = self.ii.search_result
+            matches = self.ii.match_list
+            result = self.ii.search_result
 
-        found_match = None
-        choices = False
-        if result == self.ii.result_no_matches:
-            QtWidgets.QMessageBox.information(self, "Auto-Select Result", " No matches found :-(")
-        elif result == self.ii.result_found_match_but_bad_cover_score:
-            QtWidgets.QMessageBox.information(
-                self, "Auto-Select Result", " Found a match, but cover doesn't seem the same.  Verify before commiting!"
-            )
-            found_match = matches[0]
-        elif result == self.ii.result_found_match_but_not_first_page:
-            QtWidgets.QMessageBox.information(
-                self, "Auto-Select Result", " Found a match, but not with the first page of the archive."
-            )
-            found_match = matches[0]
-        elif result == self.ii.result_multiple_matches_with_bad_image_scores:
-            QtWidgets.QMessageBox.information(
-                self, "Auto-Select Result", " Found some possibilities, but no confidence. Proceed manually."
-            )
-            choices = True
-        elif result == self.ii.result_one_good_match:
-            found_match = matches[0]
-        elif result == self.ii.result_multiple_good_matches:
-            QtWidgets.QMessageBox.information(
-                self, "Auto-Select Result", " Found multiple likely matches.  Please select."
-            )
-            choices = True
+            found_match = None
+            choices = False
+            if result == self.ii.result_no_matches:
+                QtWidgets.QMessageBox.information(self, "Auto-Select Result", " No matches found :-(")
+            elif result == self.ii.result_found_match_but_bad_cover_score:
+                QtWidgets.QMessageBox.information(
+                    self,
+                    "Auto-Select Result",
+                    " Found a match, but cover doesn't seem the same.  Verify before commiting!",
+                )
+                found_match = matches[0]
+            elif result == self.ii.result_found_match_but_not_first_page:
+                QtWidgets.QMessageBox.information(
+                    self, "Auto-Select Result", " Found a match, but not with the first page of the archive."
+                )
+                found_match = matches[0]
+            elif result == self.ii.result_multiple_matches_with_bad_image_scores:
+                QtWidgets.QMessageBox.information(
+                    self, "Auto-Select Result", " Found some possibilities, but no confidence. Proceed manually."
+                )
+                choices = True
+            elif result == self.ii.result_one_good_match:
+                found_match = matches[0]
+            elif result == self.ii.result_multiple_good_matches:
+                QtWidgets.QMessageBox.information(
+                    self, "Auto-Select Result", " Found multiple likely matches.  Please select."
+                )
+                choices = True
 
-        if choices:
-            selector = MatchSelectionWindow(self, matches, self.comic_archive)
-            selector.setModal(True)
-            selector.exec()
-            if selector.result():
-                # we should now have a list index
-                found_match = selector.current_match()
+            if choices:
+                selector = MatchSelectionWindow(self, matches, self.comic_archive)
+                selector.setModal(True)
+                selector.exec()
+                if selector.result():
+                    # we should now have a list index
+                    found_match = selector.current_match()
 
-        if found_match is not None:
-            self.iddialog.accept()
+            if found_match is not None:
+                self.iddialog.accept()
 
-            self.volume_id = found_match["volume_id"]
-            self.issue_number = found_match["issue_number"]
-            self.select_by_id()
-            self.show_issues()
+                self.volume_id = utils.xlate(found_match["volume_id"])
+                self.issue_number = found_match["issue_number"]
+                self.select_by_id()
+                self.show_issues()
 
-    def show_issues(self):
+    def show_issues(self) -> None:
         selector = IssueSelectionWindow(self, self.settings, self.volume_id, self.issue_number)
         title = ""
         for record in self.cv_search_results:
@@ -283,14 +291,14 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
             self.issue_number = selector.issue_number
             self.accept()
 
-    def select_by_id(self):
+    def select_by_id(self) -> None:
         for r in range(0, self.twList.rowCount()):
             volume_id = self.twList.item(r, 0).data(QtCore.Qt.ItemDataRole.UserRole)
             if volume_id == self.volume_id:
                 self.twList.selectRow(r)
                 break
 
-    def perform_query(self, refresh=False):
+    def perform_query(self, refresh: bool = False) -> None:
 
         self.progdialog = QtWidgets.QProgressDialog("Searching Online", "Cancel", 0, 100, self)
         self.progdialog.setWindowTitle("Online Search")
@@ -303,146 +311,150 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
         self.search_thread.start()
         self.progdialog.exec()
 
-    def search_canceled(self):
-        logger.info("query cancelled")
-        self.search_thread.searchComplete.disconnect(self.search_complete)
-        self.search_thread.progressUpdate.disconnect(self.search_progress_update)
-        self.progdialog.canceled.disconnect(self.search_canceled)
-        self.progdialog.reject()
-        QtCore.QTimer.singleShot(200, self.close_me)
-
-    def close_me(self):
-        self.reject()
-
-    def search_progress_update(self, current, total):
-        self.progdialog.setMaximum(total)
-        self.progdialog.setValue(current + 1)
-
-    def search_complete(self):
-        self.progdialog.accept()
-        del self.progdialog
-        if self.search_thread.cv_error:
-            if self.search_thread.error_code == ComicVineTalkerException.RateLimit:
-                QtWidgets.QMessageBox.critical(self, "Comic Vine Error", ComicVineTalker.get_rate_limit_message())
-            else:
-                QtWidgets.QMessageBox.critical(
-                    self, "Network Issue", "Could not connect to Comic Vine to search for series!"
-                )
-            return
-
-        self.cv_search_results = self.search_thread.cv_search_results
-        # filter the publishers if enabled set
-        if self.use_filter:
-            try:
-                publisher_filter = {s.strip().lower() for s in self.settings.id_publisher_filter.split(",")}
-                # use '' as publisher name if None
-                self.cv_search_results = list(
-                    filter(
-                        lambda d: ("" if d["publisher"] is None else str(d["publisher"]["name"]).lower())
-                        not in publisher_filter,
-                        self.cv_search_results,
-                    )
-                )
-            except:
-                logger.exception("bad data error filtering filter publishers")
-
-        # pre sort the data - so that we can put exact matches first afterwards
-        # compare as str incase extra chars ie. '1976?'
-        # - missing (none) values being converted to 'None' - consistent with prior behaviour in v1.2.3
-        # sort by start_year if set
-        if self.settings.sort_series_by_year:
-            try:
-                self.cv_search_results = sorted(
-                    self.cv_search_results,
-                    key=lambda i: (str(i["start_year"]), str(i["count_of_issues"])),
-                    reverse=True,
-                )
-            except:
-                logger.exception("bad data error sorting results by start_year,count_of_issues")
-        else:
-            try:
-                self.cv_search_results = sorted(
-                    self.cv_search_results, key=lambda i: str(i["count_of_issues"]), reverse=True
-                )
-            except:
-                logger.exception("bad data error sorting results by count_of_issues")
-
-        # move sanitized matches to the front
-        if self.settings.exact_series_matches_first:
-            try:
-                sanitized = utils.sanitize_title(self.series_name)
-                exact_matches = list(
-                    filter(lambda d: utils.sanitize_title(str(d["name"])) in sanitized, self.cv_search_results)
-                )
-                non_matches = list(
-                    filter(lambda d: utils.sanitize_title(str(d["name"])) not in sanitized, self.cv_search_results)
-                )
-                self.cv_search_results = exact_matches + non_matches
-            except:
-                logger.exception("bad data error filtering exact/near matches")
-
-        self.update_buttons()
-
-        self.twList.setSortingEnabled(False)
-
-        while self.twList.rowCount() > 0:
-            self.twList.removeRow(0)
-
-        row = 0
-        for record in self.cv_search_results:
-            self.twList.insertRow(row)
-
-            item_text = record["name"]
-            item = QtWidgets.QTableWidgetItem(item_text)
-            item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
-            item.setData(QtCore.Qt.ItemDataRole.UserRole, record["id"])
-            item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
-            self.twList.setItem(row, 0, item)
-
-            item_text = str(record["start_year"])
-            item = QtWidgets.QTableWidgetItem(item_text)
-            item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
-            item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
-            self.twList.setItem(row, 1, item)
-
-            item_text = record["count_of_issues"]
-            item = QtWidgets.QTableWidgetItem(item_text)
-            item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
-            item.setData(QtCore.Qt.ItemDataRole.DisplayRole, record["count_of_issues"])
-            item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
-            self.twList.setItem(row, 2, item)
-
-            if record["publisher"] is not None:
-                item_text = record["publisher"]["name"]
-                item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
-                item = QtWidgets.QTableWidgetItem(item_text)
-                item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
-                self.twList.setItem(row, 3, item)
-
-            row += 1
-
-        self.twList.setSortingEnabled(True)
-        self.twList.selectRow(0)
-        self.twList.resizeColumnsToContents()
-
-        if len(self.cv_search_results) == 0:
-            QtCore.QCoreApplication.processEvents()
-            QtWidgets.QMessageBox.information(self, "Search Result", "No matches found!")
+    def search_canceled(self) -> None:
+        if self.progdialog is not None:
+            logger.info("query cancelled")
+            if self.search_thread is not None:
+                self.search_thread.searchComplete.disconnect()
+                self.search_thread.progressUpdate.disconnect()
+            self.progdialog.canceled.disconnect()
+            self.progdialog.reject()
             QtCore.QTimer.singleShot(200, self.close_me)
 
-        if self.immediate_autoselect and len(self.cv_search_results) > 0:
-            # defer the immediate autoselect so this dialog has time to pop up
-            QtCore.QCoreApplication.processEvents()
-            QtCore.QTimer.singleShot(10, self.do_immediate_autoselect)
+    def close_me(self) -> None:
+        self.reject()
 
-    def do_immediate_autoselect(self):
+    def search_progress_update(self, current: int, total: int) -> None:
+        if self.progdialog is not None:
+            self.progdialog.setMaximum(total)
+            self.progdialog.setValue(current + 1)
+
+    def search_complete(self) -> None:
+        if self.progdialog is not None:
+            self.progdialog.accept()
+            del self.progdialog
+            if self.search_thread is not None and self.search_thread.cv_error:
+                if self.search_thread.error_code == ComicVineTalkerException.RateLimit:
+                    QtWidgets.QMessageBox.critical(self, "Comic Vine Error", ComicVineTalker.get_rate_limit_message())
+                else:
+                    QtWidgets.QMessageBox.critical(
+                        self, "Network Issue", "Could not connect to Comic Vine to search for series!"
+                    )
+                return
+
+            self.cv_search_results = self.search_thread.cv_search_results if self.search_thread is not None else []
+            # filter the publishers if enabled set
+            if self.use_filter:
+                try:
+                    publisher_filter = {s.strip().lower() for s in self.settings.id_publisher_filter.split(",")}
+                    # use '' as publisher name if None
+                    self.cv_search_results = list(
+                        filter(
+                            lambda d: ("" if d["publisher"] is None else str(d["publisher"]["name"]).lower())
+                            not in publisher_filter,
+                            self.cv_search_results,
+                        )
+                    )
+                except:
+                    logger.exception("bad data error filtering filter publishers")
+
+            # pre sort the data - so that we can put exact matches first afterwards
+            # compare as str incase extra chars ie. '1976?'
+            # - missing (none) values being converted to 'None' - consistent with prior behaviour in v1.2.3
+            # sort by start_year if set
+            if self.settings.sort_series_by_year:
+                try:
+                    self.cv_search_results = sorted(
+                        self.cv_search_results,
+                        key=lambda i: (str(i["start_year"]), str(i["count_of_issues"])),
+                        reverse=True,
+                    )
+                except:
+                    logger.exception("bad data error sorting results by start_year,count_of_issues")
+            else:
+                try:
+                    self.cv_search_results = sorted(
+                        self.cv_search_results, key=lambda i: str(i["count_of_issues"]), reverse=True
+                    )
+                except:
+                    logger.exception("bad data error sorting results by count_of_issues")
+
+            # move sanitized matches to the front
+            if self.settings.exact_series_matches_first:
+                try:
+                    sanitized = utils.sanitize_title(self.series_name)
+                    exact_matches = list(
+                        filter(lambda d: utils.sanitize_title(str(d["name"])) in sanitized, self.cv_search_results)
+                    )
+                    non_matches = list(
+                        filter(lambda d: utils.sanitize_title(str(d["name"])) not in sanitized, self.cv_search_results)
+                    )
+                    self.cv_search_results = exact_matches + non_matches
+                except:
+                    logger.exception("bad data error filtering exact/near matches")
+
+            self.update_buttons()
+
+            self.twList.setSortingEnabled(False)
+
+            while self.twList.rowCount() > 0:
+                self.twList.removeRow(0)
+
+            row = 0
+            for record in self.cv_search_results:
+                self.twList.insertRow(row)
+
+                item_text = record["name"]
+                item = QtWidgets.QTableWidgetItem(item_text)
+                item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
+                item.setData(QtCore.Qt.ItemDataRole.UserRole, record["id"])
+                item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
+                self.twList.setItem(row, 0, item)
+
+                item_text = str(record["start_year"])
+                item = QtWidgets.QTableWidgetItem(item_text)
+                item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
+                item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
+                self.twList.setItem(row, 1, item)
+
+                item_text = str(record["count_of_issues"])
+                item = QtWidgets.QTableWidgetItem(item_text)
+                item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
+                item.setData(QtCore.Qt.ItemDataRole.DisplayRole, record["count_of_issues"])
+                item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
+                self.twList.setItem(row, 2, item)
+
+                if record["publisher"] is not None:
+                    item_text = record["publisher"]["name"]
+                    item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
+                    item = QtWidgets.QTableWidgetItem(item_text)
+                    item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
+                    self.twList.setItem(row, 3, item)
+
+                row += 1
+
+            self.twList.setSortingEnabled(True)
+            self.twList.selectRow(0)
+            self.twList.resizeColumnsToContents()
+
+            if len(self.cv_search_results) == 0:
+                QtCore.QCoreApplication.processEvents()
+                QtWidgets.QMessageBox.information(self, "Search Result", "No matches found!")
+                QtCore.QTimer.singleShot(200, self.close_me)
+
+            if self.immediate_autoselect and len(self.cv_search_results) > 0:
+                # defer the immediate autoselect so this dialog has time to pop up
+                QtCore.QCoreApplication.processEvents()
+                QtCore.QTimer.singleShot(10, self.do_immediate_autoselect)
+
+    def do_immediate_autoselect(self) -> None:
         self.immediate_autoselect = False
         self.auto_select()
 
-    def cell_double_clicked(self, r, c):
+    def cell_double_clicked(self, r: int, c: int) -> None:
         self.show_issues()
 
-    def current_item_changed(self, curr, prev):
+    def current_item_changed(self, curr: Optional[QtCore.QModelIndex], prev: Optional[QtCore.QModelIndex]) -> None:
 
         if curr is None:
             return

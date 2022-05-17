@@ -24,7 +24,7 @@ import logging
 import os
 import re
 from operator import itemgetter
-from typing import TypedDict
+from typing import Callable, Match, Optional, TypedDict
 from urllib.parse import unquote
 
 from text2digits import text2digits
@@ -38,7 +38,7 @@ logger = logging.getLogger(__name__)
 
 
 class FileNameParser:
-    def __init__(self):
+    def __init__(self) -> None:
         self.series = ""
         self.volume = ""
         self.year = ""
@@ -46,10 +46,10 @@ class FileNameParser:
         self.remainder = ""
         self.issue = ""
 
-    def repl(self, m):
+    def repl(self, m: Match[str]) -> str:
         return " " * len(m.group())
 
-    def fix_spaces(self, string, remove_dashes=True):
+    def fix_spaces(self, string: str, remove_dashes: bool = True) -> str:
         if remove_dashes:
             placeholders = [r"[-_]", r"  +"]
         else:
@@ -58,7 +58,7 @@ class FileNameParser:
             string = re.sub(ph, self.repl, string)
         return string  # .strip()
 
-    def get_issue_count(self, filename, issue_end):
+    def get_issue_count(self, filename: str, issue_end: int) -> str:
 
         count = ""
         filename = filename[issue_end:]
@@ -79,7 +79,7 @@ class FileNameParser:
 
         return count.lstrip("0")
 
-    def get_issue_number(self, filename):
+    def get_issue_number(self, filename: str) -> tuple[str, int, int]:
         """Returns a tuple of issue number string, and start and end indexes in the filename
         (The indexes will be used to split the string up for further parsing)
         """
@@ -161,7 +161,7 @@ class FileNameParser:
 
         return issue, start, end
 
-    def get_series_name(self, filename, issue_start):
+    def get_series_name(self, filename: str, issue_start: int) -> tuple[str, str]:
         """Use the issue number string index to split the filename string"""
 
         if issue_start != 0:
@@ -223,7 +223,7 @@ class FileNameParser:
 
         return series, volume.strip()
 
-    def get_year(self, filename, issue_end):
+    def get_year(self, filename: str, issue_end: int) -> str:
 
         filename = filename[issue_end:]
 
@@ -236,7 +236,7 @@ class FileNameParser:
             year = re.sub(r"[^0-9]", "", year)
         return year
 
-    def get_remainder(self, filename, year, count, volume, issue_end):
+    def get_remainder(self, filename: str, year: str, count: str, volume: str, issue_end: int) -> str:
         """Make a guess at where the the non-interesting stuff begins"""
 
         remainder = ""
@@ -261,7 +261,7 @@ class FileNameParser:
 
         return remainder.strip()
 
-    def parse_filename(self, filename):
+    def parse_filename(self, filename: str) -> None:
 
         # remove the path
         filename = os.path.basename(filename)
@@ -325,12 +325,12 @@ class Parser:
     def __init__(
         self,
         lexer_result: list[filenamelexer.Item],
-        first_is_alt=False,
-        remove_c2c=False,
-        remove_fcbd=False,
-        remove_publisher=False,
-    ):
-        self.state = None
+        first_is_alt: bool = False,
+        remove_c2c: bool = False,
+        remove_fcbd: bool = False,
+        remove_publisher: bool = False,
+    ) -> None:
+        self.state: Optional[Callable[[Parser], Optional[Callable]]] = None
         self.pos = -1
 
         self.firstItem = True
@@ -384,16 +384,16 @@ class Parser:
         return self.input[self.pos - 1]
 
     # Backup steps back one Item.
-    def backup(self):
+    def backup(self) -> None:
         self.pos -= 1
 
-    def run(self):
+    def run(self) -> None:
         self.state = parse
         while self.state is not None:
             self.state = self.state(self)
 
 
-def parse(p: Parser):
+def parse(p: Parser) -> Optional[Callable[[Parser], Optional[Callable]]]:
     item: filenamelexer.Item = p.get()
 
     # We're done, time to do final processing
@@ -644,7 +644,7 @@ def parse(p: Parser):
 
 
 # TODO: What about more esoteric numbers???
-def parse_issue_number(p: Parser):
+def parse_issue_number(p: Parser) -> Optional[Callable[[Parser], Optional[Callable]]]:
     item = p.input[p.pos]
 
     if "issue" in p.filename_info:
@@ -677,7 +677,7 @@ def parse_issue_number(p: Parser):
     return parse
 
 
-def parse_series(p: Parser):
+def parse_series(p: Parser) -> Optional[Callable[[Parser], Optional[Callable]]]:
     item = p.input[p.pos]
 
     series: list[list[filenamelexer.Item]] = [[]]
@@ -812,7 +812,7 @@ def parse_series(p: Parser):
     return parse
 
 
-def resolve_year(p: Parser):
+def resolve_year(p: Parser) -> None:
     if len(p.year_candidates) > 0:
         # Sort by likely_year boolean
         p.year_candidates.sort(key=itemgetter(0))
@@ -842,7 +842,7 @@ def resolve_year(p: Parser):
             p.title_parts.remove(selected_year)
 
 
-def parse_finish(p: Parser):
+def parse_finish(p: Parser) -> Optional[Callable[[Parser], Optional[Callable]]]:
     resolve_year(p)
 
     # If we don't have an issue try to find it in the series
@@ -924,13 +924,14 @@ def parse_finish(p: Parser):
         "publisher",
     ]:
         if s not in p.filename_info:
-            p.filename_info[s] = ""
+            p.filename_info[s] = ""  # type: ignore
     for s in ["fcbd", "c2c", "annual"]:
         if s not in p.filename_info:
-            p.filename_info[s] = False
+            p.filename_info[s] = False  # type: ignore
+    return None
 
 
-def get_remainder(p: Parser):
+def get_remainder(p: Parser) -> str:
     remainder = ""
     rem = []
 
@@ -988,7 +989,7 @@ def get_remainder(p: Parser):
     return remainder.strip()
 
 
-def parse_info_specifier(p: Parser):
+def parse_info_specifier(p: Parser) -> Optional[Callable[[Parser], Optional[Callable]]]:
     item = p.input[p.pos]
     index = p.pos
 
@@ -1009,32 +1010,32 @@ def parse_info_specifier(p: Parser):
         # 'of' is only special if it is inside a parenthesis.
         elif item.val.lower() == "of":
             i = get_number(p, index)
-            if p.in_something > 0:
-                if p.issue_number_at is None:
-                    # TODO: Figure out what to do here if it ever happens
-                    p.filename_info["issue_count"] = str(int(t2do.convert(number.val)))
-                    p.used_items.append(item)
-                    p.used_items.append(number)
+            if i is not None:
+                if p.in_something > 0:
+                    if p.issue_number_at is None:
+                        # TODO: Figure out what to do here if it ever happens
+                        p.filename_info["issue_count"] = str(int(t2do.convert(number.val)))
+                        p.used_items.append(item)
+                        p.used_items.append(number)
 
-                # This is definitely the issue number
-                elif p.issue_number_at == i.pos:
-                    p.filename_info["issue_count"] = str(int(t2do.convert(number.val)))
-                    p.used_items.append(item)
-                    p.used_items.append(number)
+                    # This is definitely the issue number
+                    elif p.issue_number_at == i.pos:
+                        p.filename_info["issue_count"] = str(int(t2do.convert(number.val)))
+                        p.used_items.append(item)
+                        p.used_items.append(number)
 
-                # This is not for the issue number it is not in either the issue or the title, assume it is the volume number and count
-                elif p.issue_number_at != i.pos and i not in p.series_parts and i not in p.title_parts:
-                    p.filename_info["volume"] = i.val
-                    p.filename_info["volume_count"] = str(int(t2do.convert(number.val)))
-                    p.used_items.append(i)
-                    p.used_items.append(item)
-                    p.used_items.append(number)
+                    # This is not for the issue number it is not in either the issue or the title, assume it is the volume number and count
+                    elif p.issue_number_at != i.pos and i not in p.series_parts and i not in p.title_parts:
+                        p.filename_info["volume"] = i.val
+                        p.filename_info["volume_count"] = str(int(t2do.convert(number.val)))
+                        p.used_items.append(i)
+                        p.used_items.append(item)
+                        p.used_items.append(number)
+                    else:
+                        # TODO: Figure out what to do here if it ever happens
+                        pass
                 else:
-                    # TODO: Figure out what to do here if it ever happens
-                    pass
-            else:
-                # Lets 'The Wrath of Foobar-Man, Part 1 of 2' parse correctly as the title
-                if i is not None:
+                    # Lets 'The Wrath of Foobar-Man, Part 1 of 2' parse correctly as the title
                     p.pos = [ind for ind, x in enumerate(p.input) if x == i][0]
 
             if not p.in_something:
@@ -1043,7 +1044,7 @@ def parse_info_specifier(p: Parser):
 
 
 # Gets 03 in '03 of 6'
-def get_number(p: Parser, index: int):
+def get_number(p: Parser, index: int) -> Optional[filenamelexer.Item]:
     # Go backward through the filename to see if we can find what this is of eg '03 (of 6)' or '008 title 03 (of 6)'
     rev = p.input[:index]
     rev.reverse()
@@ -1064,7 +1065,7 @@ def get_number(p: Parser, index: int):
     return None
 
 
-def join_title(lst: list[filenamelexer.Item]):
+def join_title(lst: list[filenamelexer.Item]) -> str:
     title = ""
     for i, item in enumerate(lst):
         if i + 1 == len(lst) and item.val == ",":  # We ignore commas on the end
@@ -1094,11 +1095,11 @@ def join_title(lst: list[filenamelexer.Item]):
 
 def Parse(
     lexer_result: list[filenamelexer.Item],
-    first_is_alt=False,
-    remove_c2c=False,
-    remove_fcbd=False,
-    remove_publisher=False,
-):
+    first_is_alt: bool = False,
+    remove_c2c: bool = False,
+    remove_fcbd: bool = False,
+    remove_publisher: bool = False,
+) -> Parser:
     p = Parser(
         lexer_result=lexer_result,
         first_is_alt=first_is_alt,

@@ -17,6 +17,7 @@
 import logging
 import os
 import platform
+from typing import Optional
 
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
@@ -119,7 +120,7 @@ Spider-Geddon #1 - New Players; Check In
 
 
 class SettingsWindow(QtWidgets.QDialog):
-    def __init__(self, parent, settings):
+    def __init__(self, parent: QtWidgets.QWidget, settings: ComicTaggerSettings) -> None:
         super().__init__(parent)
 
         uic.loadUi(ComicTaggerSettings.get_ui_file("settingswindow.ui"), self)
@@ -170,7 +171,7 @@ class SettingsWindow(QtWidgets.QDialog):
 
         self.leRenameTemplate.setToolTip(template_tooltip)
         self.settings_to_form()
-        self.rename_error = None
+        self.rename_error: Optional[Exception] = None
         self.rename_test()
 
         self.btnBrowseRar.clicked.connect(self.select_rar)
@@ -184,10 +185,10 @@ class SettingsWindow(QtWidgets.QDialog):
         self.leDirectory.textEdited.connect(self.rename_test)
         self.cbxComplicatedParser.clicked.connect(self.switch_parser)
 
-    def rename_test(self):
+    def rename_test(self) -> None:
         self.rename__test(self.leRenameTemplate.text())
 
-    def rename__test(self, template):
+    def rename__test(self, template: str) -> None:
         fr = FileRenamer(md_test, platform="universal" if self.cbxRenameStrict.isChecked() else "auto")
         fr.move = self.cbxMoveFiles.isChecked()
         fr.set_template(template)
@@ -200,14 +201,14 @@ class SettingsWindow(QtWidgets.QDialog):
             self.rename_error = e
             self.lblRenameTest.setText(str(e))
 
-    def switch_parser(self):
+    def switch_parser(self) -> None:
         complicated = self.cbxComplicatedParser.isChecked()
 
         self.cbxRemoveC2C.setEnabled(complicated)
         self.cbxRemoveFCBD.setEnabled(complicated)
         self.cbxRemovePublisher.setEnabled(complicated)
 
-    def settings_to_form(self):
+    def settings_to_form(self) -> None:
         # Copy values from settings to form
         self.leRarExePath.setText(self.settings.rar_exe_path)
         self.leNameLengthDeltaThresh.setText(str(self.settings.id_length_delta_thresh))
@@ -269,7 +270,7 @@ class SettingsWindow(QtWidgets.QDialog):
         if self.settings.rename_strict:
             self.cbxRenameStrict.setCheckState(QtCore.Qt.CheckState.Checked)
 
-    def accept(self):
+    def accept(self) -> None:
         self.rename_test()
         if self.rename_error is not None:
             QtWidgets.QMessageBox.critical(
@@ -339,26 +340,26 @@ class SettingsWindow(QtWidgets.QDialog):
         self.settings.save()
         QtWidgets.QDialog.accept(self)
 
-    def select_rar(self):
+    def select_rar(self) -> None:
         self.select_file(self.leRarExePath, "RAR")
 
-    def clear_cache(self):
+    def clear_cache(self) -> None:
         ImageFetcher().clear_cache()
         ComicVineCacher().clear_cache()
         QtWidgets.QMessageBox.information(self, self.name, "Cache has been cleared.")
 
-    def test_api_key(self):
+    def test_api_key(self) -> None:
         if ComicVineTalker().test_key(str(self.leKey.text()).strip()):
             QtWidgets.QMessageBox.information(self, "API Key Test", "Key is valid!")
         else:
             QtWidgets.QMessageBox.warning(self, "API Key Test", "Key is NOT valid.")
 
-    def reset_settings(self):
+    def reset_settings(self) -> None:
         self.settings.reset()
         self.settings_to_form()
         QtWidgets.QMessageBox.information(self, self.name, self.name + " have been returned to default values.")
 
-    def select_file(self, control: QtWidgets.QLineEdit, name):
+    def select_file(self, control: QtWidgets.QLineEdit, name: str) -> None:
 
         dialog = QtWidgets.QFileDialog(self)
         dialog.setFileMode(QtWidgets.QFileDialog.FileMode.ExistingFile)
@@ -382,17 +383,17 @@ class SettingsWindow(QtWidgets.QDialog):
             file_list = dialog.selectedFiles()
             control.setText(str(file_list[0]))
 
-    def show_rename_tab(self):
+    def show_rename_tab(self) -> None:
         self.tabWidget.setCurrentIndex(5)
 
-    def show_template_help(self):
+    def show_template_help(self) -> None:
         template_help_win = TemplateHelpWindow(self)
         template_help_win.setModal(False)
         template_help_win.show()
 
 
 class TemplateHelpWindow(QtWidgets.QDialog):
-    def __init__(self, parent):
+    def __init__(self, parent: QtWidgets.QWidget) -> None:
         super(TemplateHelpWindow, self).__init__(parent)
 
         uic.loadUi(ComicTaggerSettings.get_ui_file("TemplateHelp.ui"), self)

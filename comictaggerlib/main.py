@@ -22,6 +22,8 @@ import platform
 import signal
 import sys
 import traceback
+import types
+from typing import Optional
 
 import pkg_resources
 
@@ -39,7 +41,7 @@ try:
     qt_available = True
     from PyQt5 import QtCore, QtGui, QtWidgets
 
-    def show_exception_box(log_msg):
+    def show_exception_box(log_msg: str) -> None:
         """Checks if a QApplication instance is available and shows a messagebox with the exception message.
         If unavailable (non-console application), log an additional notice.
         """
@@ -54,8 +56,8 @@ try:
     class UncaughtHook(QtCore.QObject):
         _exception_caught = QtCore.pyqtSignal(object)
 
-        def __init__(self, *args, **kwargs):
-            super().__init__(*args, **kwargs)
+        def __init__(self) -> None:
+            super().__init__()
 
             # this registers the exception_hook() function as hook with the Python interpreter
             sys.excepthook = self.exception_hook
@@ -63,7 +65,9 @@ try:
             # connect signal to execute the message box function always on main thread
             self._exception_caught.connect(show_exception_box)
 
-        def exception_hook(self, exc_type, exc_value, exc_traceback):
+        def exception_hook(
+            self, exc_type: type[BaseException], exc_value: BaseException, exc_traceback: Optional[types.TracebackType]
+        ) -> None:
             """Function handling uncaught exceptions.
             It is triggered each time an uncaught exception occurs.
             """
@@ -85,12 +89,12 @@ except ImportError as e:
     qt_available = False
 
 
-def rotate(handler: logging.handlers.RotatingFileHandler, filename: pathlib.Path):
+def rotate(handler: logging.handlers.RotatingFileHandler, filename: pathlib.Path) -> None:
     if filename.is_file() and filename.stat().st_size > 0:
         handler.doRollover()
 
 
-def ctmain():
+def ctmain() -> None:
     opts = Options()
     opts.parse_cmd_line_args()
     SETTINGS = ComicTaggerSettings(opts.config_path)
@@ -177,7 +181,7 @@ def ctmain():
             splash = QtWidgets.QSplashScreen(img)
             splash.show()
             splash.raise_()
-            app.processEvents()
+            QtWidgets.QApplication.processEvents()
 
         try:
             tagger_window = TaggerWindow(opts.file_list, SETTINGS, opts=opts)

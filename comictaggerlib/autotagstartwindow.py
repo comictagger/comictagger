@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 class AutoTagStartWindow(QtWidgets.QDialog):
-    def __init__(self, parent, settings, msg):
+    def __init__(self, parent: QtWidgets.QWidget, settings: ComicTaggerSettings, msg: str) -> None:
         super().__init__(parent)
 
         uic.loadUi(ComicTaggerSettings.get_ui_file("autotagstartwindow.ui"), self)
@@ -86,14 +86,14 @@ class AutoTagStartWindow(QtWidgets.QDialog):
         self.ignore_leading_digits_in_filename = False
         self.remove_after_success = False
         self.wait_and_retry_on_rate_limit = False
-        self.search_string = None
+        self.search_string = ""
         self.name_length_match_tolerance = self.settings.id_length_delta_thresh
 
-    def search_string_toggle(self):
+    def search_string_toggle(self) -> None:
         enable = self.cbxSpecifySearchString.isChecked()
         self.leSearchString.setEnabled(enable)
 
-    def accept(self):
+    def accept(self) -> None:
         QtWidgets.QDialog.accept(self)
 
         self.auto_save_on_low = self.cbxSaveOnLowConfidence.isChecked()
@@ -113,6 +113,4 @@ class AutoTagStartWindow(QtWidgets.QDialog):
         self.settings.wait_and_retry_on_rate_limit = self.wait_and_retry_on_rate_limit
 
         if self.cbxSpecifySearchString.isChecked():
-            self.search_string = str(self.leSearchString.text())
-            if len(self.search_string) == 0:
-                self.search_string = None
+            self.search_string = self.leSearchString.text()

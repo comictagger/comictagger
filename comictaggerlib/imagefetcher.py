@@ -20,6 +20,7 @@ import os
 import shutil
 import sqlite3 as lite
 import tempfile
+from typing import Union
 
 import requests
 
@@ -40,7 +41,7 @@ class ImageFetcherException(Exception):
     pass
 
 
-def fetch_complete(this, image_data):
+def fetch_complete(image_data: Union[bytes, QtCore.QByteArray]) -> None:
     ...
 
 
@@ -48,7 +49,7 @@ class ImageFetcher:
 
     image_fetch_complete = fetch_complete
 
-    def __init__(self):
+    def __init__(self) -> None:
 
         self.settings_folder = ComicTaggerSettings.get_settings_folder()
         self.db_file = os.path.join(self.settings_folder, "image_url_cache.db")
@@ -63,12 +64,12 @@ class ImageFetcher:
         if qt_available:
             self.nam = QtNetwork.QNetworkAccessManager()
 
-    def clear_cache(self):
+    def clear_cache(self) -> None:
         os.unlink(self.db_file)
         if os.path.isdir(self.cache_folder):
             shutil.rmtree(self.cache_folder)
 
-    def fetch(self, url, blocking=False):
+    def fetch(self, url: str, blocking: bool = False) -> bytes:
         """
         If called with blocking=True, this will block until the image is
         fetched.
@@ -81,7 +82,7 @@ class ImageFetcher:
         # first look in the DB
         image_data = self.get_image_from_cache(url)
         if blocking or not qt_available:
-            if image_data is None:
+            if not image_data:
                 try:
                     image_data = requests.get(url, headers={"user-agent": "comictagger/" + ctversion.version}).content
                 except Exception as e:
@@ -94,8 +95,8 @@ class ImageFetcher:
 
         if qt_available:
             # if we found it, just emit the signal asap
-            if image_data is not None:
-                self.image_fetch_complete(QtCore.QByteArray(image_data))
+            if image_data:
+                ImageFetcher.image_fetch_complete(QtCore.QByteArray(image_data))
                 return bytes()
 
             # didn't find it.  look online
@@ -105,7 +106,7 @@ class ImageFetcher:
             # we'll get called back when done...
         return bytes()
 
-    def finish_request(self, reply):
+    def finish_request(self, reply: QtNetwork.QNetworkReply) -> None:
         # read in the image data
         logger.debug("request finished")
         image_data = reply.readAll()
@@ -113,9 +114,9 @@ class ImageFetcher:
         # save the image to the cache
         self.add_image_to_cache(self.fetched_url, image_data)
 
-        self.image_fetch_complete(image_data)
+        ImageFetcher.image_fetch_complete(image_data)
 
-    def create_image_db(self):
+    def create_image_db(self) -> None:
 
         # this will wipe out any existing version
         open(self.db_file, "wb").close()
@@ -133,7 +134,7 @@ class ImageFetcher:
 
             cur.execute("CREATE TABLE Images(url TEXT,filename TEXT,timestamp TEXT,PRIMARY KEY (url))")
 
-    def add_image_to_cache(self, url, image_data):
+    def add_image_to_cache(self, url: str, image_data: Union[bytes, QtCore.QByteArray]) -> None:
 
         con = lite.connect(self.db_file)
 
@@ -144,11 +145,11 @@ class ImageFetcher:
 
             tmp_fd, filename = tempfile.mkstemp(dir=self.cache_folder, prefix="img")
             with os.fdopen(tmp_fd, "w+b") as f:
-                f.write(image_data)
+                f.write(bytes(image_data))
 
             cur.execute("INSERT or REPLACE INTO Images VALUES(?, ?, ?)", (url, filename, timestamp))
 
-    def get_image_from_cache(self, url):
+    def get_image_from_cache(self, url: str) -> bytes:
 
         con = lite.connect(self.db_file)
         with con:
@@ -158,10 +159,10 @@ class ImageFetcher:
             row = cur.fetchone()
 
             if row is None:
-                return None
+                return bytes()
 
             filename = row[0]
-            image_data = None
+            image_data = bytes()
 
             try:
                 with open(filename, "rb") as f:

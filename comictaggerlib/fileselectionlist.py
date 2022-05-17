@@ -16,7 +16,7 @@
 
 import logging
 import os
-from typing import List, Optional
+from typing import Callable, List, Optional, cast
 
 from PyQt5 import QtCore, QtWidgets, uic
 
@@ -29,12 +29,12 @@ logger = logging.getLogger(__name__)
 
 
 class FileTableWidgetItem(QtWidgets.QTableWidgetItem):
-    def __lt__(self, other):
-        return self.data(QtCore.Qt.ItemDataRole.UserRole) < other.data(QtCore.Qt.ItemDataRole.UserRole)
+    def __lt__(self, other: object) -> bool:
+        return self.data(QtCore.Qt.ItemDataRole.UserRole) < other.data(QtCore.Qt.ItemDataRole.UserRole)  # type: ignore
 
 
 class FileInfo:
-    def __init__(self, ca: ComicArchive):
+    def __init__(self, ca: ComicArchive) -> None:
         self.ca: ComicArchive = ca
 
 
@@ -50,7 +50,12 @@ class FileSelectionList(QtWidgets.QWidget):
     folderColNum = 5
     dataColNum = fileColNum
 
-    def __init__(self, parent, settings, dirty_flag_verification):
+    def __init__(
+        self,
+        parent: QtWidgets.QWidget,
+        settings: ComicTaggerSettings,
+        dirty_flag_verification: Callable[[str, str], bool],
+    ) -> None:
         super().__init__(parent)
 
         uic.loadUi(ComicTaggerSettings.get_ui_file("fileselectionlist.ui"), self)
@@ -83,27 +88,27 @@ class FileSelectionList(QtWidgets.QWidget):
 
         self.dirty_flag_verification = dirty_flag_verification
 
-    def get_sorting(self) -> (int, int):
+    def get_sorting(self) -> tuple[int, int]:
         col = self.twList.horizontalHeader().sortIndicatorSection()
         order = self.twList.horizontalHeader().sortIndicatorOrder()
         return int(col), int(order)
 
-    def set_sorting(self, col: int, order: QtCore.Qt.SortOrder):
+    def set_sorting(self, col: int, order: QtCore.Qt.SortOrder) -> None:
         self.twList.horizontalHeader().setSortIndicator(col, order)
 
-    def add_app_action(self, action):
+    def add_app_action(self, action: QtWidgets.QAction) -> None:
         self.insertAction(QtWidgets.QAction(), action)
 
-    def set_modified_flag(self, modified):
+    def set_modified_flag(self, modified: bool) -> None:
         self.dirty_flag = modified
 
-    def select_all(self):
+    def select_all(self) -> None:
         self.twList.setRangeSelected(QtWidgets.QTableWidgetSelectionRange(0, 0, self.twList.rowCount() - 1, 5), True)
 
-    def deselect_all(self):
+    def deselect_all(self) -> None:
         self.twList.setRangeSelected(QtWidgets.QTableWidgetSelectionRange(0, 0, self.twList.rowCount() - 1, 5), False)
 
-    def remove_archive_list(self, ca_list):
+    def remove_archive_list(self, ca_list: list[ComicArchive]) -> None:
         self.twList.setSortingEnabled(False)
         current_removed = False
         for ca in ca_list:
@@ -127,15 +132,14 @@ class FileSelectionList(QtWidgets.QWidget):
 
     def get_archive_by_row(self, row: int) -> Optional[ComicArchive]:
         if row >= 0:
-            fi = self.twList.item(row, FileSelectionList.dataColNum).data(QtCore.Qt.ItemDataRole.UserRole)
+            fi: FileInfo = self.twList.item(row, FileSelectionList.dataColNum).data(QtCore.Qt.ItemDataRole.UserRole)
             return fi.ca
         return None
 
-    def get_current_archive(self):
-        if self.twList.currentRow() >= 0:
-            return self.get_archive_by_row(self.twList.currentRow())
+    def get_current_archive(self) -> Optional[ComicArchive]:
+        return self.get_archive_by_row(self.twList.currentRow())
 
-    def remove_selection(self):
+    def remove_selection(self) -> None:
         row_list = []
         for item in self.twList.selectedItems():
             if item.column() == 0:
@@ -171,7 +175,7 @@ class FileSelectionList(QtWidgets.QWidget):
         else:
             self.listCleared.emit()
 
-    def add_path_list(self, pathlist):
+    def add_path_list(self, pathlist: list[str]) -> None:
 
         filelist = utils.get_recursive_filelist(pathlist)
         # we now have a list of files to add
@@ -224,27 +228,20 @@ class FileSelectionList(QtWidgets.QWidget):
         if self.twList.columnWidth(FileSelectionList.folderColNum) > 200:
             self.twList.setColumnWidth(FileSelectionList.folderColNum, 200)
 
-    def is_list_dupe(self, path):
+    def is_list_dupe(self, path: str) -> bool:
+        return self.get_current_list_row(path) >= 0
+
+    def get_current_list_row(self, path: str) -> int:
         r = 0
         while r < self.twList.rowCount():
-            ca = self.get_archive_by_row(r)
-            if ca.path == path:
-                return True
-            r = r + 1
-
-        return False
-
-    def get_current_list_row(self, path):
-        r = 0
-        while r < self.twList.rowCount():
-            ca = self.get_archive_by_row(r)
+            ca = cast(ComicArchive, self.get_archive_by_row(r))
             if ca.path == path:
                 return r
             r = r + 1
 
         return -1
 
-    def add_path_item(self, path):
+    def add_path_item(self, path: str) -> int:
         path = str(path)
         path = os.path.abspath(path)
         # print "processing", path
@@ -255,7 +252,7 @@ class FileSelectionList(QtWidgets.QWidget):
         ca = ComicArchive(path, self.settings.rar_exe_path, ComicTaggerSettings.get_graphic("nocover.png"))
 
         if ca.seems_to_be_a_comic_archive():
-            row = self.twList.rowCount()
+            row: int = self.twList.rowCount()
             self.twList.insertRow(row)
 
             fi = FileInfo(ca)
@@ -359,10 +356,10 @@ class FileSelectionList(QtWidgets.QWidget):
 
         return ca_list
 
-    def update_current_row(self):
+    def update_current_row(self) -> None:
         self.update_row(self.twList.currentRow())
 
-    def update_selected_rows(self):
+    def update_selected_rows(self) -> None:
         self.twList.setSortingEnabled(False)
         for r in range(self.twList.rowCount()):
             item = self.twList.item(r, FileSelectionList.dataColNum)
@@ -370,7 +367,7 @@ class FileSelectionList(QtWidgets.QWidget):
                 self.update_row(r)
         self.twList.setSortingEnabled(True)
 
-    def current_item_changed_cb(self, curr, prev):
+    def current_item_changed_cb(self, curr: Optional[QtCore.QModelIndex], prev: Optional[QtCore.QModelIndex]) -> None:
         if curr is not None:
             new_idx = curr.row()
             old_idx = -1
@@ -395,5 +392,5 @@ class FileSelectionList(QtWidgets.QWidget):
             fi = self.twList.item(new_idx, FileSelectionList.dataColNum).data(QtCore.Qt.ItemDataRole.UserRole)
             self.selectionChanged.emit(QtCore.QVariant(fi))
 
-    def revert_selection(self):
+    def revert_selection(self) -> None:
         self.twList.selectRow(self.twList.currentRow())

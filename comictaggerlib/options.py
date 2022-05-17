@@ -19,6 +19,7 @@ import logging
 import os
 import platform
 import sys
+from typing import Optional
 
 from comicapi import utils
 from comicapi.comicarchive import MetaDataStyle
@@ -98,25 +99,26 @@ If no options are given, {0} will run in windowed mode.
     --terse                 Don't say much (for print mode).
     --darkmode              Windows only. Force a dark pallet
     --config=CONFIG_DIR     Config directory defaults to ~/.ComicTagger
+                            on Linux/Mac and %APPDATA% on Windows
     --version               Display version.
 -h, --help                  Display this message.
 
 For more help visit the wiki at: https://github.com/comictagger/comictagger/wiki
 """
 
-    def __init__(self):
-        self.data_style = None
+    def __init__(self) -> None:
+        self.data_style: Optional[int] = None
         self.no_gui = False
-        self.filename = None
+        self.filename: Optional[str] = None
         self.verbose = False
         self.terse = False
-        self.metadata = None
+        self.metadata = GenericMetadata()
         self.print_tags = False
         self.copy_tags = False
         self.delete_tags = False
         self.export_to_zip = False
         self.abort_export_on_conflict = False
-        self.delete_rar_after_export = False
+        self.delete_after_zip_export = False
         self.search_online = False
         self.dryrun = False
         self.abortOnLowConfidence = True
@@ -124,23 +126,23 @@ For more help visit the wiki at: https://github.com/comictagger/comictagger/wiki
         self.parse_filename = False
         self.show_save_summary = True
         self.raw = False
-        self.cv_api_key = None
+        self.cv_api_key: Optional[str] = None
         self.only_set_key = False
         self.rename_file = False
         self.no_overwrite = False
         self.interactive = False
-        self.issue_id = None
+        self.issue_id: Optional[str] = None
         self.recursive = False
         self.run_script = False
-        self.script = None
+        self.script: Optional[str] = None
         self.wait_and_retry_on_rate_limit = False
         self.assume_issue_is_one_if_not_set = False
-        self.file_list = []
+        self.file_list: list[str] = []
         self.darkmode = False
-        self.copy_source = None
+        self.copy_source: Optional[int] = None
         self.config_path = ""
 
-    def display_msg_and_quit(self, msg, code, show_help=False):
+    def display_msg_and_quit(self, msg: Optional[str], code: int, show_help: bool = False) -> None:
         appname = os.path.basename(sys.argv[0])
         if msg is not None:
             print(msg)
@@ -150,7 +152,7 @@ For more help visit the wiki at: https://github.com/comictagger/comictagger/wiki
             print("For more help, run with '--help'")
         sys.exit(code)
 
-    def parse_metadata_from_string(self, mdstr):
+    def parse_metadata_from_string(self, mdstr: str) -> GenericMetadata:
         """The metadata string is a comma separated list of name-value pairs
         The names match the attributes of the internal metadata struct (for now)
         The caret is the special "escape character", since it's not common in
@@ -199,7 +201,7 @@ For more help visit the wiki at: https://github.com/comictagger/comictagger/wiki
                 setattr(md, key, value)
         return md
 
-    def launch_script(self, scriptfile):
+    def launch_script(self, scriptfile: str) -> None:
         # we were given a script.  special case for the args:
         # 1. ignore everything before the -S,
         # 2. pass all the ones that follow (including script name) to the script
@@ -232,7 +234,7 @@ For more help visit the wiki at: https://github.com/comictagger/comictagger/wiki
 
         sys.exit(0)
 
-    def parse_cmd_line_args(self):
+    def parse_cmd_line_args(self) -> None:
 
         if platform.system() == "Darwin" and hasattr(sys, "frozen") and sys.frozen == 1:
             # remove the PSN (process serial number) argument from OS/X
@@ -332,7 +334,7 @@ For more help visit the wiki at: https://github.com/comictagger/comictagger/wiki
             if o in ("-e", "--export_to_zip"):
                 self.export_to_zip = True
             if o == "--delete-rar":
-                self.delete_rar_after_export = True
+                self.delete_after_zip_export = True
             if o == "--abort-on-conflict":
                 self.abort_export_on_conflict = True
             if o in ("-f", "--parsefilename"):

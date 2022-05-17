@@ -3,6 +3,7 @@
 import io
 import logging
 import traceback
+from typing import Optional
 
 from comictaggerlib.settings import ComicTaggerSettings
 
@@ -23,13 +24,13 @@ if qt_available:
     except ImportError:
         pil_available = False
 
-    def reduce_widget_font_size(widget, delta=2):
+    def reduce_widget_font_size(widget: QtWidgets.QWidget, delta: int = 2) -> None:
         f = widget.font()
         if f.pointSize() > 10:
             f.setPointSize(f.pointSize() - delta)
         widget.setFont(f)
 
-    def center_window_on_screen(window):
+    def center_window_on_screen(window: QtWidgets.QWidget) -> None:
         """Center the window on screen.
 
         This implementation will handle the window
@@ -44,11 +45,13 @@ if qt_available:
         # And the move call repositions the window
         window.move(hpos, vpos)
 
-    def center_window_on_parent(window):
+    def center_window_on_parent(window: QtWidgets.QWidget) -> None:
 
         top_level = window
         while top_level.parent() is not None:
-            top_level = top_level.parent()
+            parent = top_level.parent()
+            if isinstance(parent, QtWidgets.QWidget):
+                top_level = parent
 
         # Get the current screens' dimensions...
         main_window_size = top_level.geometry()
@@ -60,7 +63,7 @@ if qt_available:
         # And the move call repositions the window
         window.move(hpos + main_window_size.left(), vpos + main_window_size.top())
 
-    def get_qimage_from_data(image_data):
+    def get_qimage_from_data(image_data: bytes) -> QtGui.QImage:
         img = QtGui.QImage()
         success = img.loadFromData(image_data)
         if not success:
@@ -76,7 +79,7 @@ if qt_available:
             img.load(ComicTaggerSettings.get_graphic("nocover.png"))
         return img
 
-    def qt_error(msg: str, e: Exception = None):
+    def qt_error(msg: str, e: Optional[Exception] = None) -> None:
         trace = ""
         if e:
             trace = "\n".join(traceback.format_exception(type(e), e, e.__traceback__))

@@ -17,6 +17,7 @@
 import io
 import logging
 from functools import reduce
+from typing import Optional, TypeVar
 
 try:
     from PIL import Image
@@ -28,11 +29,11 @@ logger = logging.getLogger(__name__)
 
 
 class ImageHasher:
-    def __init__(self, path=None, data=None, width=8, height=8):
+    def __init__(self, path: Optional[str] = None, data: bytes = bytes(), width: int = 8, height: int = 8) -> None:
         self.width = width
         self.height = height
 
-        if path is None and data is None:
+        if path is None and not data:
             raise IOError
 
         try:
@@ -45,32 +46,31 @@ class ImageHasher:
             # just generate a bogus image
             self.image = Image.new("L", (1, 1))
 
-    def average_hash(self):
+    def average_hash(self) -> int:
         try:
             image = self.image.resize((self.width, self.height), Image.ANTIALIAS).convert("L")
         except Exception:
             logger.exception("average_hash error")
-            return int(0)
+            return 0
 
         pixels = list(image.getdata())
         avg = sum(pixels) / len(pixels)
 
-        def compare_value_to_avg(i):
+        def compare_value_to_avg(i: int) -> int:
             return 1 if i > avg else 0
 
         bitlist = list(map(compare_value_to_avg, pixels))
 
         # build up an int value from the bit list, one bit at a time
-        def set_bit(x, idx_val):
+        def set_bit(x: int, idx_val: tuple[int, int]) -> int:
             (idx, val) = idx_val
             return x | (val << idx)
 
         result = reduce(set_bit, enumerate(bitlist), 0)
 
-        # print("{0:016x}".format(result))
         return result
 
-    def average_hash2(self):
+    def average_hash2(self) -> None:
         """
         # Got this one from somewhere on the net.  Not a clue how the 'convolve2d' works!
 
@@ -90,7 +90,7 @@ class ImageHasher:
         return result
         """
 
-    def dct_average_hash(self):
+    def dct_average_hash(self) -> None:
         """
         # Algorithm source: http://syntaxcandy.blogspot.com/2012/08/perceptual-hash.html
 
@@ -170,8 +170,10 @@ class ImageHasher:
 
     # accepts 2 hashes (longs or hex strings) and returns the hamming distance
 
+    T = TypeVar("T", int, str)
+
     @staticmethod
-    def hamming_distance(h1, h2):
+    def hamming_distance(h1: T, h2: T) -> int:
         if isinstance(h1, int) or isinstance(h2, int):
             n1 = h1
             n2 = h2

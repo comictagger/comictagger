@@ -15,25 +15,27 @@
 # limitations under the License.
 
 import logging
+from typing import Optional
 
-from comicapi.genericmetadata import GenericMetadata
+from comicapi.genericmetadata import CreditMetadata, GenericMetadata
+from comictaggerlib.settings import ComicTaggerSettings
 
 logger = logging.getLogger(__name__)
 
 
 class CBLTransformer:
-    def __init__(self, metadata: GenericMetadata, settings):
+    def __init__(self, metadata: GenericMetadata, settings: ComicTaggerSettings) -> None:
         self.metadata = metadata
         self.settings = settings
 
-    def apply(self):
+    def apply(self) -> GenericMetadata:
         # helper funcs
-        def append_to_tags_if_unique(item):
+        def append_to_tags_if_unique(item: str) -> None:
             if item.lower() not in (tag.lower() for tag in self.metadata.tags):
                 self.metadata.tags.append(item)
 
-        def add_string_list_to_tags(str_list):
-            if str_list is not None and str_list != "":
+        def add_string_list_to_tags(str_list: Optional[str]) -> None:
+            if str_list:
                 items = [s.strip() for s in str_list.split(",")]
                 for item in items:
                     append_to_tags_if_unique(item)
@@ -41,8 +43,8 @@ class CBLTransformer:
         if self.settings.assume_lone_credit_is_primary:
 
             # helper
-            def set_lone_primary(role_list):
-                lone_credit = None
+            def set_lone_primary(role_list: list[str]) -> tuple[Optional[CreditMetadata], int]:
+                lone_credit: Optional[CreditMetadata] = None
                 count = 0
                 for c in self.metadata.credits:
                     if c["role"].lower() in role_list:

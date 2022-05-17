@@ -16,6 +16,7 @@
 
 
 import logging
+from typing import Any
 
 from PyQt5 import QtCore, QtWidgets, uic
 
@@ -28,7 +29,7 @@ class CreditEditorWindow(QtWidgets.QDialog):
     ModeEdit = 0
     ModeNew = 1
 
-    def __init__(self, parent, mode, role, name, primary):
+    def __init__(self, parent: QtWidgets.QWidget, mode: int, role: str, name: str, primary: bool) -> None:
         super().__init__(parent)
 
         uic.loadUi(ComicTaggerSettings.get_ui_file("crediteditorwindow.ui"), self)
@@ -71,25 +72,25 @@ class CreditEditorWindow(QtWidgets.QDialog):
 
         self.update_primary_button()
 
-    def update_primary_button(self):
+    def update_primary_button(self) -> None:
         enabled = self.current_role_can_be_primary()
         self.cbPrimary.setEnabled(enabled)
 
-    def current_role_can_be_primary(self):
+    def current_role_can_be_primary(self) -> bool:
         role = self.cbRole.currentText()
         if str(role).lower() == "writer" or str(role).lower() == "artist":
             return True
 
         return False
 
-    def role_changed(self, s):
+    def role_changed(self, s: Any) -> None:
         self.update_primary_button()
 
-    def get_credits(self):
+    def get_credits(self) -> tuple[str, str, bool]:
         primary = self.current_role_can_be_primary() and self.cbPrimary.isChecked()
         return self.cbRole.currentText(), self.leName.text(), primary
 
-    def accept(self):
+    def accept(self) -> None:
         if self.cbRole.currentText() == "" or self.leName.text() == "":
             QtWidgets.QMessageBox.warning(self, "Whoops", "You need to enter both role and name for a credit.")
         else:

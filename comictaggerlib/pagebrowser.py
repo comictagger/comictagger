@@ -16,10 +16,12 @@
 
 import logging
 import platform
+from typing import Optional
 
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
 from comicapi.comicarchive import ComicArchive
+from comicapi.genericmetadata import GenericMetadata
 from comictaggerlib.coverimagewidget import CoverImageWidget
 from comictaggerlib.settings import ComicTaggerSettings
 
@@ -27,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 
 class PageBrowserWindow(QtWidgets.QDialog):
-    def __init__(self, parent, metadata):
+    def __init__(self, parent: QtWidgets.QWidget, metadata: GenericMetadata) -> None:
         super().__init__(parent)
 
         uic.loadUi(ComicTaggerSettings.get_ui_file("pagebrowser.ui"), self)
@@ -46,7 +48,7 @@ class PageBrowserWindow(QtWidgets.QDialog):
             )
         )
 
-        self.comic_archive = None
+        self.comic_archive: Optional[ComicArchive] = None
         self.page_count = 0
         self.current_page_num = 0
         self.metadata = metadata
@@ -66,17 +68,17 @@ class PageBrowserWindow(QtWidgets.QDialog):
         self.btnNext.setEnabled(False)
         self.btnPrev.setEnabled(False)
 
-    def reset(self):
+    def reset(self) -> None:
         self.comic_archive = None
         self.page_count = 0
         self.current_page_num = 0
-        self.metadata = None
+        self.metadata = GenericMetadata()
 
         self.btnNext.setEnabled(False)
         self.btnPrev.setEnabled(False)
         self.pageWidget.clear()
 
-    def set_comic_archive(self, ca: ComicArchive):
+    def set_comic_archive(self, ca: ComicArchive) -> None:
 
         self.comic_archive = ca
         self.page_count = ca.get_number_of_pages()
@@ -88,7 +90,7 @@ class PageBrowserWindow(QtWidgets.QDialog):
             self.btnNext.setEnabled(True)
             self.btnPrev.setEnabled(True)
 
-    def next_page(self):
+    def next_page(self) -> None:
 
         if self.current_page_num + 1 < self.page_count:
             self.current_page_num += 1
@@ -96,7 +98,7 @@ class PageBrowserWindow(QtWidgets.QDialog):
             self.current_page_num = 0
         self.set_page()
 
-    def prev_page(self):
+    def prev_page(self) -> None:
 
         if self.current_page_num - 1 >= 0:
             self.current_page_num -= 1
@@ -104,8 +106,8 @@ class PageBrowserWindow(QtWidgets.QDialog):
             self.current_page_num = self.page_count - 1
         self.set_page()
 
-    def set_page(self):
-        if self.metadata is not None:
+    def set_page(self) -> None:
+        if not self.metadata.is_empty:
             archive_page_index = self.metadata.get_archive_page_index(self.current_page_num)
         else:
             archive_page_index = self.current_page_num

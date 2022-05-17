@@ -16,6 +16,7 @@
 
 import logging
 import xml.etree.ElementTree as ET
+from typing import Any
 
 from comicapi import utils
 from comicapi.genericmetadata import GenericMetadata
@@ -33,19 +34,16 @@ class CoMet:
     cover_synonyms = ["cover", "covers", "coverartist", "cover artist"]
     editor_synonyms = ["editor"]
 
-    def metadata_from_string(self, string):
+    def metadata_from_string(self, string: str) -> GenericMetadata:
 
         tree = ET.ElementTree(ET.fromstring(string))
         return self.convert_xml_to_metadata(tree)
 
-    def string_from_metadata(self, metadata):
-
-        header = '<?xml version="1.0" encoding="UTF-8"?>\n'
-
+    def string_from_metadata(self, metadata: GenericMetadata) -> str:
         tree = self.convert_metadata_to_xml(metadata)
-        return header + ET.tostring(tree.getroot())
+        return str(ET.tostring(tree.getroot(), encoding="utf-8", xml_declaration=True).decode("utf-8"))
 
-    def convert_metadata_to_xml(self, metadata):
+    def convert_metadata_to_xml(self, metadata: GenericMetadata) -> ET.ElementTree:
 
         # shorthand for the metadata
         md = metadata
@@ -57,7 +55,7 @@ class CoMet:
         root.attrib["xsi:schemaLocation"] = "http://www.denvog.com http://www.denvog.com/comet/comet.xsd"
 
         # helper func
-        def assign(comet_entry, md_entry):
+        def assign(comet_entry: str, md_entry: Any) -> None:
             if md_entry is not None:
                 ET.SubElement(root, comet_entry).text = str(md_entry)
 
@@ -127,41 +125,41 @@ class CoMet:
         tree = ET.ElementTree(root)
         return tree
 
-    def convert_xml_to_metadata(self, tree):
+    def convert_xml_to_metadata(self, tree: ET.ElementTree) -> GenericMetadata:
 
         root = tree.getroot()
 
         if root.tag != "comet":
-            raise "1"
+            raise Exception("Not a CoMet file")
 
         metadata = GenericMetadata()
         md = metadata
 
         # Helper function
-        def xlate(tag):
+        def get(tag: str) -> Any:
             node = root.find(tag)
             if node is not None:
                 return node.text
             return None
 
-        md.series = xlate("series")
-        md.title = xlate("title")
-        md.issue = xlate("issue")
-        md.volume = xlate("volume")
-        md.comments = xlate("description")
-        md.publisher = xlate("publisher")
-        md.language = xlate("language")
-        md.format = xlate("format")
-        md.page_count = xlate("pages")
-        md.maturity_rating = xlate("rating")
-        md.price = xlate("price")
-        md.is_version_of = xlate("isVersionOf")
-        md.rights = xlate("rights")
-        md.identifier = xlate("identifier")
-        md.last_mark = xlate("lastMark")
-        md.genre = xlate("genre")  # TODO - repeatable field
+        md.series = get("series")
+        md.title = get("title")
+        md.issue = get("issue")
+        md.volume = get("volume")
+        md.comments = get("description")
+        md.publisher = get("publisher")
+        md.language = get("language")
+        md.format = get("format")
+        md.page_count = get("pages")
+        md.maturity_rating = get("rating")
+        md.price = get("price")
+        md.is_version_of = get("isVersionOf")
+        md.rights = get("rights")
+        md.identifier = get("identifier")
+        md.last_mark = get("lastMark")
+        md.genre = get("genre")  # TODO - repeatable field
 
-        date = xlate("date")
+        date = get("date")
         if date is not None:
             parts = date.split("-")
             if len(parts) > 0:
@@ -169,9 +167,9 @@ class CoMet:
             if len(parts) > 1:
                 md.month = parts[1]
 
-        md.cover_image = xlate("coverImage")
+        md.cover_image = get("coverImage")
 
-        reading_direction = xlate("readingDirection")
+        reading_direction = get("readingDirection")
         if reading_direction is not None and reading_direction == "rtl":
             md.manga = "YesAndRightToLeft"
 
@@ -179,7 +177,7 @@ class CoMet:
         char_list = []
         for n in root:
             if n.tag == "character":
-                char_list.append(n.text.strip())
+                char_list.append((n.text or "").strip())
         md.characters = utils.list_to_string(char_list)
 
         # Now extract the credit info
@@ -194,17 +192,17 @@ class CoMet:
                     n.tag == "editor",
                 ]
             ):
-                metadata.add_credit(n.text.strip(), n.tag.title())
+                metadata.add_credit((n.text or "").strip(), n.tag.title())
 
             if n.tag == "coverDesigner":
-                metadata.add_credit(n.text.strip(), "Cover")
+                metadata.add_credit((n.text or "").strip(), "Cover")
 
         metadata.is_empty = False
 
         return metadata
 
     # verify that the string actually contains CoMet data in XML format
-    def validate_string(self, string):
+    def validate_string(self, string: str) -> bool:
         try:
             tree = ET.ElementTree(ET.fromstring(string))
             root = tree.getroot()
@@ -215,12 +213,12 @@ class CoMet:
 
         return True
 
-    def write_to_external_file(self, filename, metadata):
+    def write_to_external_file(self, filename: str, metadata: GenericMetadata) -> None:
 
         tree = self.convert_metadata_to_xml(metadata)
         tree.write(filename, encoding="utf-8")
 
-    def read_from_external_file(self, filename):
+    def read_from_external_file(self, filename: str) -> GenericMetadata:
 
         tree = ET.parse(filename)
         return self.convert_xml_to_metadata(tree)

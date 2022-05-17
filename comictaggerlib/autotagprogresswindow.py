@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 
 class AutoTagProgressWindow(QtWidgets.QDialog):
-    def __init__(self, parent):
+    def __init__(self, parent: QtWidgets.QWidget) -> None:
         super().__init__(parent)
 
         uic.loadUi(ComicTaggerSettings.get_ui_file("autotagprogresswindow.ui"), self)
@@ -54,17 +54,17 @@ class AutoTagProgressWindow(QtWidgets.QDialog):
 
         reduce_widget_font_size(self.textEdit)
 
-    def set_archive_image(self, img_data):
+    def set_archive_image(self, img_data: bytes) -> None:
         self.set_cover_image(img_data, self.archiveCoverWidget)
 
-    def set_test_image(self, img_data):
+    def set_test_image(self, img_data: bytes) -> None:
         self.set_cover_image(img_data, self.testCoverWidget)
 
-    def set_cover_image(self, img_data, widget):
+    def set_cover_image(self, img_data: bytes, widget: CoverImageWidget) -> None:
         widget.set_image_data(img_data)
         QtCore.QCoreApplication.processEvents()
         QtCore.QCoreApplication.processEvents()
 
-    def reject(self):
+    def reject(self) -> None:
         QtWidgets.QDialog.reject(self)
         self.isdone = True

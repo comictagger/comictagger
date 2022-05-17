@@ -16,6 +16,7 @@
 
 
 import logging
+from typing import Union
 
 from PyQt5 import QtCore, QtWidgets, uic
 
@@ -26,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 
 class LogWindow(QtWidgets.QDialog):
-    def __init__(self, parent):
+    def __init__(self, parent: QtWidgets.QWidget) -> None:
         super().__init__(parent)
 
         uic.loadUi(ComicTaggerSettings.get_ui_file("logwindow.ui"), self)
@@ -39,10 +40,12 @@ class LogWindow(QtWidgets.QDialog):
             )
         )
 
-    def set_text(self, text):
+    def set_text(self, text: Union[str, bytes, None]) -> None:
         try:
-            text = text.decode()
-            self.textEdit.setPlainText(text)
+            if text is not None:
+                if isinstance(text, bytes):
+                    text = text.decode("utf-8")
+                self.textEdit.setPlainText(text)
         except AttributeError:
             pass
         except Exception as e:

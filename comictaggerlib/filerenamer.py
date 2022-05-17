@@ -20,6 +20,7 @@ import os
 import pathlib
 import string
 import sys
+from typing import Any, Optional, cast
 
 from pathvalidate import sanitize_filename
 
@@ -30,17 +31,25 @@ logger = logging.getLogger(__name__)
 
 
 class MetadataFormatter(string.Formatter):
-    def __init__(self, smart_cleanup=False, platform="auto"):
+    def __init__(self, smart_cleanup: bool = False, platform: str = "auto") -> None:
         super().__init__()
         self.smart_cleanup = smart_cleanup
         self.platform = platform
 
-    def format_field(self, value, format_spec):
+    def format_field(self, value: Any, format_spec: str) -> str:
         if value is None or value == "":
             return ""
-        return super().format_field(value, format_spec)
+        return cast(str, super().format_field(value, format_spec))
 
-    def _vformat(self, format_string, args, kwargs, used_args, recursion_depth, auto_arg_index=0):
+    def _vformat(
+        self,
+        format_string: str,
+        args: list[Any],
+        kwargs: dict[str, Any],
+        used_args: set[Any],
+        recursion_depth: int,
+        auto_arg_index: int = 0,
+    ) -> tuple[str, int]:
         if recursion_depth < 0:
             raise ValueError("Max string recursion exceeded")
         result = []
@@ -88,11 +97,11 @@ class MetadataFormatter(string.Formatter):
                 used_args.add(arg_used)
 
                 # do any conversion on the resulting object
-                obj = self.convert_field(obj, conversion)
+                obj = self.convert_field(obj, conversion)  # type: ignore
 
                 # expand the format spec, if needed
                 format_spec, auto_arg_index = self._vformat(
-                    format_spec, args, kwargs, used_args, recursion_depth - 1, auto_arg_index=auto_arg_index
+                    cast(str, format_spec), args, kwargs, used_args, recursion_depth - 1, auto_arg_index=auto_arg_index
                 )
 
                 # format the object and append to the result
@@ -103,36 +112,36 @@ class MetadataFormatter(string.Formatter):
                         result[-1] = result[-1].rstrip("-_({[#")
                 if self.smart_cleanup:
                     fmt_obj = " ".join(fmt_obj.split())
-                    fmt_obj = sanitize_filename(fmt_obj, platform=self.platform)
+                    fmt_obj = str(sanitize_filename(fmt_obj, platform=self.platform))
                 result.append(fmt_obj)
 
         return "".join(result), auto_arg_index
 
 
 class FileRenamer:
-    def __init__(self, metadata, platform="auto"):
+    def __init__(self, metadata: Optional[GenericMetadata], platform: str = "auto") -> None:
         self.template = "{publisher}/{series}/{series} v{volume} #{issue} (of {issue_count}) ({year})"
         self.smart_cleanup = True
         self.issue_zero_padding = 3
-        self.metadata = metadata
+        self.metadata = metadata or GenericMetadata()
         self.move = False
         self.platform = platform
 
-    def set_metadata(self, metadata: GenericMetadata):
+    def set_metadata(self, metadata: GenericMetadata) -> None:
         self.metadata = metadata
 
-    def set_issue_zero_padding(self, count):
+    def set_issue_zero_padding(self, count: int) -> None:
         self.issue_zero_padding = count
 
-    def set_smart_cleanup(self, on):
+    def set_smart_cleanup(self, on: bool) -> None:
         self.smart_cleanup = on
 
-    def set_template(self, template: str):
+    def set_template(self, template: str) -> None:
         self.template = template
 
-    def determine_name(self, ext):
+    def determine_name(self, ext: str) -> str:
         class Default(dict):
-            def __missing__(self, key):
+            def __missing__(self, key: str) -> str:
                 return "{" + key + "}"
 
         md = self.metadata
@@ -164,8 +173,8 @@ class FileRenamer:
                 Component = Component.replace(": ", " - ")
                 Component = Component.replace(":", "-")
 
-            new_basename = sanitize_filename(
-                fmt.vformat(Component, args=None, kwargs=Default(md_dict)), platform=self.platform
+            new_basename = str(
+                sanitize_filename(fmt.vformat(Component, args=[], kwargs=Default(md_dict)), platform=self.platform)
             ).strip()
             new_name = os.path.join(new_name, new_basename)
 

@@ -16,13 +16,12 @@
 
 import logging
 import os
-from typing import List
+from typing import List, TypedDict
 
 from PyQt5 import QtCore, QtWidgets, uic
 
-import comicapi.comicarchive
 from comicapi import utils
-from comicapi.comicarchive import MetaDataStyle
+from comicapi.comicarchive import ComicArchive, MetaDataStyle
 from comictaggerlib.filerenamer import FileRenamer
 from comictaggerlib.settings import ComicTaggerSettings
 from comictaggerlib.settingswindow import SettingsWindow
@@ -31,8 +30,19 @@ from comictaggerlib.ui.qtutils import center_window_on_parent
 logger = logging.getLogger(__name__)
 
 
+class RenameItem(TypedDict):
+    archive: ComicArchive
+    new_name: str
+
+
 class RenameWindow(QtWidgets.QDialog):
-    def __init__(self, parent, comic_archive_list: List[comicapi.comicarchive.ComicArchive], data_style, settings):
+    def __init__(
+        self,
+        parent: QtWidgets.QWidget,
+        comic_archive_list: List[ComicArchive],
+        data_style: int,
+        settings: ComicTaggerSettings,
+    ) -> None:
         super().__init__(parent)
 
         uic.loadUi(ComicTaggerSettings.get_ui_file("renamewindow.ui"), self)
@@ -49,7 +59,7 @@ class RenameWindow(QtWidgets.QDialog):
         self.settings = settings
         self.comic_archive_list = comic_archive_list
         self.data_style = data_style
-        self.rename_list = []
+        self.rename_list: list[RenameItem] = []
 
         self.btnSettings.clicked.connect(self.modify_settings)
         self.renamer = FileRenamer(None, platform="universal" if self.settings.rename_strict else "auto")
@@ -57,12 +67,12 @@ class RenameWindow(QtWidgets.QDialog):
         self.config_renamer()
         self.do_preview()
 
-    def config_renamer(self):
+    def config_renamer(self) -> None:
         self.renamer.set_template(self.settings.rename_template)
         self.renamer.set_issue_zero_padding(self.settings.rename_issue_number_padding)
         self.renamer.set_smart_cleanup(self.settings.rename_use_smart_string_cleanup)
 
-    def do_preview(self):
+    def do_preview(self) -> None:
         while self.twList.rowCount() > 0:
             self.twList.removeRow(0)
 
@@ -70,7 +80,7 @@ class RenameWindow(QtWidgets.QDialog):
 
         for ca in self.comic_archive_list:
 
-            new_ext = None  # default
+            new_ext = ca.path.suffix  # default
             if self.settings.rename_extension_based_on_archive:
                 if ca.is_sevenzip():
                     new_ext = ".cb7"
@@ -128,9 +138,12 @@ class RenameWindow(QtWidgets.QDialog):
             new_name_item.setText(new_name)
             new_name_item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, new_name)
 
-            dict_item = {}
-            dict_item["archive"] = ca
-            dict_item["new_name"] = new_name
+            dict_item = RenameItem(
+                {
+                    "archive": ca,
+                    "new_name": new_name,
+                }
+            )
             self.rename_list.append(dict_item)
 
         # Adjust column sizes
@@ -142,7 +155,7 @@ class RenameWindow(QtWidgets.QDialog):
 
         self.twList.setSortingEnabled(True)
 
-    def modify_settings(self):
+    def modify_settings(self) -> None:
         settingswin = SettingsWindow(self, self.settings)
         settingswin.setModal(True)
         settingswin.show_rename_tab()
@@ -151,7 +164,7 @@ class RenameWindow(QtWidgets.QDialog):
             self.config_renamer()
             self.do_preview()
 
-    def accept(self):
+    def accept(self) -> None:
 
         prog_dialog = QtWidgets.QProgressDialog("", "Cancel", 0, len(self.rename_list), self)
         prog_dialog.setWindowTitle("Renaming Archives")

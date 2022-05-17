@@ -20,9 +20,11 @@ TODO: This should be re-factored using subclasses!
 
 
 import logging
+from typing import Callable, Optional, Union, cast
 
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
+from comicapi import utils
 from comicapi.comicarchive import ComicArchive
 from comictaggerlib.comicvinetalker import ComicVineTalker
 from comictaggerlib.imagefetcher import ImageFetcher
@@ -34,20 +36,18 @@ from comictaggerlib.ui.qtutils import get_qimage_from_data, reduce_widget_font_s
 logger = logging.getLogger(__name__)
 
 
-def clickable(widget):
+def clickable(widget: QtWidgets.QWidget) -> QtCore.pyqtBoundSignal:
     """Allow a label to be clickable"""
 
     class Filter(QtCore.QObject):
 
         dblclicked = QtCore.pyqtSignal()
 
-        def eventFilter(self, obj, event):
-
+        def eventFilter(self, obj: QtCore.QObject, event: QtCore.QEvent) -> bool:
             if obj == widget:
                 if event.type() == QtCore.QEvent.Type.MouseButtonDblClick:
                     self.dblclicked.emit()
                     return True
-
             return False
 
     flt = Filter(widget)
@@ -60,19 +60,24 @@ class Signal(QtCore.QObject):
     url_fetch_complete = QtCore.pyqtSignal(str, str)
     image_fetch_complete = QtCore.pyqtSignal(QtCore.QByteArray)
 
-    def __init__(self, list_fetch, url_fetch, image_fetch):
+    def __init__(
+        self,
+        list_fetch: Callable[[list[str]], None],
+        url_fetch: Callable[[str, str], None],
+        image_fetch: Callable[[bytes], None],
+    ) -> None:
         super().__init__()
         self.alt_url_list_fetch_complete.connect(list_fetch)
         self.url_fetch_complete.connect(url_fetch)
         self.image_fetch_complete.connect(image_fetch)
 
-    def emit_list(self, url_list: list):
+    def emit_list(self, url_list: list[str]) -> None:
         self.alt_url_list_fetch_complete.emit(url_list)
 
-    def emit_url(self, image_url: str, thumb_url: str):
+    def emit_url(self, image_url: str, thumb_url: Optional[str]) -> None:
         self.url_fetch_complete.emit(image_url, thumb_url)
 
-    def emit_image(self, image_data: QtCore.QByteArray):
+    def emit_image(self, image_data: Union[bytes, QtCore.QByteArray]) -> None:
         self.image_fetch_complete.emit(image_data)
 
 
@@ -82,7 +87,7 @@ class CoverImageWidget(QtWidgets.QWidget):
     URLMode = 1
     DataMode = 3
 
-    def __init__(self, parent, mode, expand_on_click=True):
+    def __init__(self, parent: QtWidgets.QWidget, mode: int, expand_on_click: bool = True) -> None:
         super().__init__(parent)
 
         uic.loadUi(ComicTaggerSettings.get_ui_file("coverimagewidget.ui"), self)
@@ -93,22 +98,21 @@ class CoverImageWidget(QtWidgets.QWidget):
             self.alt_cover_url_list_fetch_complete, self.primary_url_fetch_complete, self.cover_remote_fetch_complete
         )
 
-        self.mode = mode
-        self.page_loader = None
+        self.mode: int = mode
+        self.page_loader: Optional[PageLoader] = None
         self.showControls = True
 
         self.current_pixmap = QtGui.QPixmap()
 
-        self.comic_archive = None
-        self.issue_id = None
-        self.cover_fetcher = None
-        self.url_list = []
+        self.comic_archive: Optional[ComicArchive] = None
+        self.issue_id: Optional[int] = None
+        self.url_list: list[str] = []
         if self.page_loader is not None:
             self.page_loader.abandoned = True
         self.page_loader = None
         self.imageIndex = -1
         self.imageCount = 1
-        self.imageData = None
+        self.imageData = bytes()
 
         self.btnLeft.setIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("left.png")))
         self.btnRight.setIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("right.png")))
@@ -122,35 +126,34 @@ class CoverImageWidget(QtWidgets.QWidget):
 
         self.update_content()
 
-    def reset_widget(self):
+    def reset_widget(self) -> None:
         self.comic_archive = None
         self.issue_id = None
-        self.cover_fetcher = None
         self.url_list = []
         if self.page_loader is not None:
             self.page_loader.abandoned = True
         self.page_loader = None
         self.imageIndex = -1
         self.imageCount = 1
-        self.imageData = None
+        self.imageData = bytes()
 
-    def clear(self):
+    def clear(self) -> None:
         self.reset_widget()
         self.update_content()
 
-    def increment_image(self):
+    def increment_image(self) -> None:
         self.imageIndex += 1
         if self.imageIndex == self.imageCount:
             self.imageIndex = 0
         self.update_content()
 
-    def decrement_image(self):
+    def decrement_image(self) -> None:
         self.imageIndex -= 1
         if self.imageIndex == -1:
             self.imageIndex = self.imageCount - 1
         self.update_content()
 
-    def set_archive(self, ca: ComicArchive, page=0):
+    def set_archive(self, ca: ComicArchive, page: int = 0) -> None:
         if self.mode == CoverImageWidget.ArchiveMode:
             self.reset_widget()
             self.comic_archive = ca
@@ -158,7 +161,7 @@ class CoverImageWidget(QtWidgets.QWidget):
             self.imageCount = ca.get_number_of_pages()
             self.update_content()
 
-    def set_url(self, url):
+    def set_url(self, url: str) -> None:
         if self.mode == CoverImageWidget.URLMode:
             self.reset_widget()
             self.update_content()
@@ -168,29 +171,29 @@ class CoverImageWidget(QtWidgets.QWidget):
             self.imageCount = 1
             self.update_content()
 
-    def set_issue_id(self, issue_id):
+    def set_issue_id(self, issue_id: int) -> None:
         if self.mode == CoverImageWidget.AltCoverMode:
             self.reset_widget()
             self.update_content()
             self.issue_id = issue_id
 
             comic_vine = ComicVineTalker()
-            comic_vine.url_fetch_complete = self.sig.emit_url
-            comic_vine.async_fetch_issue_cover_urls(int(self.issue_id))
+            ComicVineTalker.url_fetch_complete = self.sig.emit_url
+            comic_vine.async_fetch_issue_cover_urls(self.issue_id)
 
-    def set_image_data(self, image_data):
+    def set_image_data(self, image_data: bytes) -> None:
         if self.mode == CoverImageWidget.DataMode:
             self.reset_widget()
 
-            if image_data is None:
-                self.imageIndex = -1
-            else:
+            if image_data:
                 self.imageIndex = 0
                 self.imageData = image_data
+            else:
+                self.imageIndex = -1
 
             self.update_content()
 
-    def primary_url_fetch_complete(self, primary_url, thumb_url):
+    def primary_url_fetch_complete(self, primary_url: str, thumb_url: Optional[str]) -> None:
         self.url_list.append(str(primary_url))
         self.imageIndex = 0
         self.imageCount = len(self.url_list)
@@ -199,33 +202,34 @@ class CoverImageWidget(QtWidgets.QWidget):
         # defer the alt cover search
         QtCore.QTimer.singleShot(1, self.start_alt_cover_search)
 
-    def start_alt_cover_search(self):
+    def start_alt_cover_search(self) -> None:
 
-        # now we need to get the list of alt cover URLs
-        self.label.setText("Searching for alt. covers...")
+        if self.issue_id is not None:
+            # now we need to get the list of alt cover URLs
+            self.label.setText("Searching for alt. covers...")
 
-        # page URL should already be cached, so no need to defer
-        comic_vine = ComicVineTalker()
-        issue_page_url = comic_vine.fetch_issue_page_url(self.issue_id)
-        comic_vine.alt_url_list_fetch_complete = self.sig.emit_list
-        comic_vine.async_fetch_alternate_cover_urls(int(self.issue_id), issue_page_url)
+            # page URL should already be cached, so no need to defer
+            comic_vine = ComicVineTalker()
+            issue_page_url = comic_vine.fetch_issue_page_url(self.issue_id)
+            ComicVineTalker.alt_url_list_fetch_complete = self.sig.emit_list
+            comic_vine.async_fetch_alternate_cover_urls(utils.xlate(self.issue_id), cast(str, issue_page_url))
 
-    def alt_cover_url_list_fetch_complete(self, url_list):
+    def alt_cover_url_list_fetch_complete(self, url_list: list[str]) -> None:
         if len(url_list) > 0:
             self.url_list.extend(url_list)
             self.imageCount = len(self.url_list)
         self.update_controls()
 
-    def set_page(self, pagenum):
+    def set_page(self, pagenum: int) -> None:
         if self.mode == CoverImageWidget.ArchiveMode:
             self.imageIndex = pagenum
             self.update_content()
 
-    def update_content(self):
+    def update_content(self) -> None:
         self.update_image()
         self.update_controls()
 
-    def update_image(self):
+    def update_image(self) -> None:
         if self.imageIndex == -1:
             self.load_default()
         elif self.mode in [CoverImageWidget.AltCoverMode, CoverImageWidget.URLMode]:
@@ -235,7 +239,7 @@ class CoverImageWidget(QtWidgets.QWidget):
         else:
             self.load_page()
 
-    def update_controls(self):
+    def update_controls(self) -> None:
         if not self.showControls or self.mode == CoverImageWidget.DataMode:
             self.btnLeft.hide()
             self.btnRight.hide()
@@ -260,19 +264,19 @@ class CoverImageWidget(QtWidgets.QWidget):
         else:
             self.label.setText(f"Page {self.imageIndex + 1} (of {self.imageCount})")
 
-    def load_url(self):
+    def load_url(self) -> None:
         self.load_default()
         self.cover_fetcher = ImageFetcher()
-        self.cover_fetcher.image_fetch_complete = self.sig.emit_image
+        ImageFetcher.image_fetch_complete = self.sig.emit_image
         self.cover_fetcher.fetch(self.url_list[self.imageIndex])
 
     # called when the image is done loading from internet
-    def cover_remote_fetch_complete(self, image_data):
+    def cover_remote_fetch_complete(self, image_data: bytes) -> None:
         img = get_qimage_from_data(image_data)
         self.current_pixmap = QtGui.QPixmap.fromImage(img)
         self.set_display_pixmap()
 
-    def load_page(self):
+    def load_page(self) -> None:
         if self.comic_archive is not None:
             if self.page_loader is not None:
                 self.page_loader.abandoned = True
@@ -280,21 +284,21 @@ class CoverImageWidget(QtWidgets.QWidget):
             self.page_loader.loadComplete.connect(self.page_load_complete)
             self.page_loader.start()
 
-    def page_load_complete(self, image_data):
+    def page_load_complete(self, image_data: bytes) -> None:
         img = get_qimage_from_data(image_data)
         self.current_pixmap = QtGui.QPixmap.fromImage(img)
         self.set_display_pixmap()
         self.page_loader = None
 
-    def load_default(self):
+    def load_default(self) -> None:
         self.current_pixmap = QtGui.QPixmap(ComicTaggerSettings.get_graphic("nocover.png"))
         self.set_display_pixmap()
 
-    def resizeEvent(self, resize_event):
+    def resizeEvent(self, resize_event: QtGui.QResizeEvent) -> None:
         if self.current_pixmap is not None:
             self.set_display_pixmap()
 
-    def set_display_pixmap(self):
+    def set_display_pixmap(self) -> None:
         """The deltas let us know what the new width and height of the label will be"""
 
         new_h = self.frame.height()
@@ -318,5 +322,5 @@ class CoverImageWidget(QtWidgets.QWidget):
         self.lblImage.resize(img_w, img_h)
         self.lblImage.move(int((frame_w - img_w) / 2), int((frame_h - img_h) / 2))
 
-    def show_popup(self):
+    def show_popup(self) -> None:
         ImagePopup(self, self.current_pixmap)

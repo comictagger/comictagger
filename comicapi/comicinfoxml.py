@@ -16,9 +16,12 @@
 
 import logging
 import xml.etree.ElementTree as ET
+from collections import OrderedDict
+from typing import Any, List, Optional, cast
+from xml.etree.ElementTree import ElementTree
 
 from comicapi import utils
-from comicapi.genericmetadata import GenericMetadata
+from comicapi.genericmetadata import GenericMetadata, ImageMetadata
 from comicapi.issuestring import IssueString
 
 logger = logging.getLogger(__name__)
@@ -34,7 +37,7 @@ class ComicInfoXml:
     cover_synonyms = ["cover", "covers", "coverartist", "cover artist"]
     editor_synonyms = ["editor"]
 
-    def get_parseable_credits(self):
+    def get_parseable_credits(self) -> List[str]:
         parsable_credits = []
         parsable_credits.extend(self.writer_synonyms)
         parsable_credits.extend(self.penciller_synonyms)
@@ -45,17 +48,19 @@ class ComicInfoXml:
         parsable_credits.extend(self.editor_synonyms)
         return parsable_credits
 
-    def metadata_from_string(self, string):
+    def metadata_from_string(self, string: bytes) -> GenericMetadata:
 
         tree = ET.ElementTree(ET.fromstring(string))
         return self.convert_xml_to_metadata(tree)
 
-    def string_from_metadata(self, metadata, xml=None):
+    def string_from_metadata(self, metadata: GenericMetadata, xml: bytes = b"") -> str:
         tree = self.convert_metadata_to_xml(self, metadata, xml)
-        tree_str = ET.tostring(tree.getroot(), encoding="utf-8", xml_declaration=True).decode()
-        return tree_str
+        tree_str = ET.tostring(tree.getroot(), encoding="utf-8", xml_declaration=True).decode("utf-8")
+        return str(tree_str)
 
-    def convert_metadata_to_xml(self, filename, metadata, xml=None):
+    def convert_metadata_to_xml(
+        self, filename: "ComicInfoXml", metadata: GenericMetadata, xml: bytes = b""
+    ) -> ElementTree:
 
         # shorthand for the metadata
         md = metadata
@@ -69,7 +74,7 @@ class ComicInfoXml:
             root.attrib["xmlns:xsd"] = "http://www.w3.org/2001/XMLSchema"
         # helper func
 
-        def assign(cix_entry, md_entry):
+        def assign(cix_entry: str, md_entry: Any) -> None:
             if md_entry is not None and md_entry:
                 et_entry = root.find(cix_entry)
                 if et_entry is not None:
@@ -171,11 +176,8 @@ class ComicInfoXml:
             pages_node = ET.SubElement(root, "Pages")
 
         for page_dict in md.pages:
-            page = page_dict
-            if "Image" in page:
-                page["Image"] = str(page["Image"])
             page_node = ET.SubElement(pages_node, "Page")
-            page_node.attrib = dict(sorted(page_dict.items()))
+            page_node.attrib = OrderedDict(sorted((k, str(v)) for k, v in page_dict.items()))
 
         ET.indent(root)
 
@@ -183,14 +185,14 @@ class ComicInfoXml:
         tree = ET.ElementTree(root)
         return tree
 
-    def convert_xml_to_metadata(self, tree):
+    def convert_xml_to_metadata(self, tree: ElementTree) -> GenericMetadata:
 
         root = tree.getroot()
 
         if root.tag != "ComicInfo":
-            raise "1"
+            raise Exception("Not a ComicInfo file")
 
-        def get(name):
+        def get(name: str) -> Optional[str]:
             tag = root.find(name)
             if tag is None:
                 return None
@@ -256,20 +258,21 @@ class ComicInfoXml:
         pages_node = root.find("Pages")
         if pages_node is not None:
             for page in pages_node:
-                if "Image" in page.attrib:
-                    page.attrib["Image"] = int(page.attrib["Image"])
-                md.pages.append(page.attrib)
+                p: dict[str, Any] = page.attrib
+                if "Image" in p:
+                    p["Image"] = int(p["Image"])
+                md.pages.append(cast(ImageMetadata, p))
 
         md.is_empty = False
 
         return md
 
-    def write_to_external_file(self, filename, metadata, xml=None):
+    def write_to_external_file(self, filename: str, metadata: GenericMetadata, xml: bytes = b"") -> None:
 
         tree = self.convert_metadata_to_xml(self, metadata, xml)
         tree.write(filename, encoding="utf-8", xml_declaration=True)
 
-    def read_from_external_file(self, filename):
+    def read_from_external_file(self, filename: str) -> GenericMetadata:
 
         tree = ET.parse(filename)
         return self.convert_xml_to_metadata(tree)

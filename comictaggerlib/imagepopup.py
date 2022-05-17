@@ -17,7 +17,7 @@
 
 import logging
 
-from PyQt5 import QtCore, QtGui, QtWidgets, uic
+from PyQt5 import QtCore, QtGui, QtWidgets, sip, uic
 
 from comictaggerlib.settings import ComicTaggerSettings
 
@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 class ImagePopup(QtWidgets.QDialog):
-    def __init__(self, parent, image_pixmap):
+    def __init__(self, parent: QtWidgets.QWidget, image_pixmap: QtGui.QPixmap) -> None:
         super(ImagePopup, self).__init__(parent)
 
         uic.loadUi(ComicTaggerSettings.get_ui_file("imagepopup.ui"), self)
@@ -46,7 +46,7 @@ class ImagePopup(QtWidgets.QDialog):
         # translucent screen over it.  Probably can do it better by setting opacity of a widget
         # TODO: macOS denies this
         screen = QtWidgets.QApplication.primaryScreen()
-        self.desktopBg = screen.grabWindow(0, 0, 0, screen_size.width(), screen_size.height())
+        self.desktopBg = screen.grabWindow(sip.voidptr(0), 0, 0, screen_size.width(), screen_size.height())
         bg = QtGui.QPixmap(ComicTaggerSettings.get_graphic("popup_bg.png"))
         self.clientBgPixmap = bg.scaled(screen_size.width(), screen_size.height())
         self.setMask(self.clientBgPixmap.mask())
@@ -56,14 +56,14 @@ class ImagePopup(QtWidgets.QDialog):
         self.raise_()
         QtWidgets.QApplication.restoreOverrideCursor()
 
-    def paintEvent(self, event):
+    def paintEvent(self, event: QtGui.QPaintEvent) -> None:
         painter = QtGui.QPainter(self)
         painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
         painter.drawPixmap(0, 0, self.desktopBg)
         painter.drawPixmap(0, 0, self.clientBgPixmap)
         painter.end()
 
-    def apply_image_pixmap(self):
+    def apply_image_pixmap(self) -> None:
         win_h = self.height()
         win_w = self.width()
 
@@ -81,5 +81,5 @@ class ImagePopup(QtWidgets.QDialog):
         self.lblImage.resize(img_w, img_h)
         self.lblImage.move(int((win_w - img_w) / 2), int((win_h - img_h) / 2))
 
-    def mousePressEvent(self, event):
+    def mousePressEvent(self, event: QtGui.QMouseEvent) -> None:
         self.close()

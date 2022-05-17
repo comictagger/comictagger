@@ -2,6 +2,7 @@ import calendar
 import os
 import unicodedata
 from enum import Enum, auto
+from typing import Any, Callable, Optional, Set
 
 
 class ItemType(Enum):
@@ -73,26 +74,26 @@ key = {
 
 
 class Item:
-    def __init__(self, typ: ItemType, pos: int, val: str):
+    def __init__(self, typ: ItemType, pos: int, val: str) -> None:
         self.typ: ItemType = typ
         self.pos: int = pos
         self.val: str = val
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.val}: index: {self.pos}: {self.typ}"
 
 
 class Lexer:
-    def __init__(self, string):
+    def __init__(self, string: str) -> None:
         self.input: str = string  # The string being scanned
-        self.state = None  # The next lexing function to enter
+        self.state: Optional[Callable[[Lexer], Optional[Callable]]] = None  # The next lexing function to enter
         self.pos: int = -1  # Current position in the input
         self.start: int = 0  # Start position of this item
         self.lastPos: int = 0  # Position of most recent item returned by nextItem
         self.paren_depth: int = 0  # Nesting depth of ( ) exprs
         self.brace_depth: int = 0  # Nesting depth of { }
         self.sbrace_depth: int = 0  # Nesting depth of [ ]
-        self.items = []
+        self.items: list[Item] = []
 
     # Next returns the next rune in the input.
     def get(self) -> str:
@@ -110,20 +111,20 @@ class Lexer:
 
         return self.input[self.pos + 1]
 
-    def backup(self):
+    def backup(self) -> None:
         self.pos -= 1
 
     # Emit passes an item back to the client.
-    def emit(self, t: ItemType):
+    def emit(self, t: ItemType) -> None:
         self.items.append(Item(t, self.start, self.input[self.start : self.pos + 1]))
         self.start = self.pos + 1
 
     # Ignore skips over the pending input before this point.
-    def ignore(self):
+    def ignore(self) -> None:
         self.start = self.pos
 
     # Accept consumes the next rune if it's from the valid se:
-    def accept(self, valid: str):
+    def accept(self, valid: str) -> bool:
         if self.get() in valid:
             return True
 
@@ -131,16 +132,11 @@ class Lexer:
         return False
 
     # AcceptRun consumes a run of runes from the valid set.
-    def accept_run(self, valid: str):
+    def accept_run(self, valid: str) -> None:
         while self.get() in valid:
             pass
 
         self.backup()
-
-    # Errorf returns an error token and terminates the scan by passing
-    # Back a nil pointer that will be the next state, terminating self.nextItem.
-    def errorf(self, message: str):
-        self.items.append(Item(ItemType.Error, self.start, message))
 
     # NextItem returns the next item from the input.
     # Called by the parser, not in the lexing goroutine.
@@ -149,7 +145,7 @@ class Lexer:
     #     self.lastPos = item.pos
     #     return item
 
-    def scan_number(self):
+    def scan_number(self) -> bool:
         digits = "0123456789"
 
         self.accept_run(digits)
@@ -171,21 +167,28 @@ class Lexer:
         return True
 
     # Runs the state machine for the lexer.
-    def run(self):
+    def run(self) -> None:
         self.state = lex_filename
         while self.state is not None:
             self.state = self.state(self)
 
 
+# Errorf returns an error token and terminates the scan by passing
+# Back a nil pointer that will be the next state, terminating self.nextItem.
+def errorf(lex: Lexer, message: str) -> Optional[Callable[[Lexer], Optional[Callable]]]:
+    lex.items.append(Item(ItemType.Error, lex.start, message))
+    return None
+
+
 # Scans the elements inside action delimiters.
-def lex_filename(lex: Lexer):
+def lex_filename(lex: Lexer) -> Optional[Callable[[Lexer], Optional[Callable]]]:
     r = lex.get()
     if r == eof:
         if lex.paren_depth != 0:
-            return lex.errorf("unclosed left paren")
+            return errorf(lex, "unclosed left paren")
 
         if lex.brace_depth != 0:
-            return lex.errorf("unclosed left paren")
+            return errorf(lex, "unclosed left paren")
         lex.emit(ItemType.EOF)
         return None
     elif is_space(r):
@@ -230,7 +233,7 @@ def lex_filename(lex: Lexer):
         lex.emit(ItemType.RightParen)
         lex.paren_depth -= 1
         if lex.paren_depth < 0:
-            return lex.errorf("unexpected right paren " + r)
+            return errorf(lex, "unexpected right paren " + r)
 
     elif r == "{":
         lex.emit(ItemType.LeftBrace)
@@ -239,7 +242,7 @@ def lex_filename(lex: Lexer):
         lex.emit(ItemType.RightBrace)
         lex.brace_depth -= 1
         if lex.brace_depth < 0:
-            return lex.errorf("unexpected right brace " + r)
+            return errorf(lex, "unexpected right brace " + r)
 
     elif r == "[":
         lex.emit(ItemType.LeftSBrace)
@@ -248,17 +251,17 @@ def lex_filename(lex: Lexer):
         lex.emit(ItemType.RightSBrace)
         lex.sbrace_depth -= 1
         if lex.sbrace_depth < 0:
-            return lex.errorf("unexpected right brace " + r)
+            return errorf(lex, "unexpected right brace " + r)
     elif is_symbol(r):
         # L.backup()
         lex.emit(ItemType.Symbol)
     else:
-        return lex.errorf("unrecognized character in action: " + r)
+        return errorf(lex, "unrecognized character in action: " + r)
 
     return lex_filename
 
 
-def lex_operator(lex: Lexer):
+def lex_operator(lex: Lexer) -> Callable:
     lex.accept_run("-|:;")
     lex.emit(ItemType.Operator)
     return lex_filename
@@ -266,7 +269,7 @@ def lex_operator(lex: Lexer):
 
 # LexSpace scans a run of space characters.
 # One space has already been seen.
-def lex_space(lex: Lexer):
+def lex_space(lex: Lexer) -> Callable:
     while is_space(lex.peek()):
         lex.get()
 
@@ -275,7 +278,7 @@ def lex_space(lex: Lexer):
 
 
 # Lex_text scans an alphanumeric.
-def lex_text(lex: Lexer):
+def lex_text(lex: Lexer) -> Callable:
     while True:
         r = lex.get()
         if is_alpha_numeric(r):
@@ -306,7 +309,7 @@ def lex_text(lex: Lexer):
     return lex_filename
 
 
-def cal(value: str):
+def cal(value: str) -> Set[Any]:
     month_abbr = [i for i, x in enumerate(calendar.month_abbr) if x == value.title()]
     month_name = [i for i, x in enumerate(calendar.month_name) if x == value.title()]
     day_abbr = [i for i, x in enumerate(calendar.day_abbr) if x == value.title()]
@@ -314,9 +317,9 @@ def cal(value: str):
     return set(month_abbr + month_name + day_abbr + day_name)
 
 
-def lex_number(lex: Lexer):
+def lex_number(lex: Lexer) -> Optional[Callable[[Lexer], Optional[Callable]]]:
     if not lex.scan_number():
-        return lex.errorf("bad number syntax: " + lex.input[lex.start : lex.pos])
+        return errorf(lex, "bad number syntax: " + lex.input[lex.start : lex.pos])
     # Complex number logic removed. Messes with math operations without space
 
     if lex.input[lex.start] == "#":
@@ -330,24 +333,24 @@ def lex_number(lex: Lexer):
     return lex_filename
 
 
-def is_space(character: str):
+def is_space(character: str) -> bool:
     return character in "_ \t"
 
 
 # IsAlphaNumeric reports whether r is an alphabetic, digit, or underscore.
-def is_alpha_numeric(character: str):
+def is_alpha_numeric(character: str) -> bool:
     return character.isalpha() or character.isnumeric()
 
 
-def is_operator(character: str):
+def is_operator(character: str) -> bool:
     return character in "-|:;/\\"
 
 
-def is_symbol(character: str):
+def is_symbol(character: str) -> bool:
     return unicodedata.category(character)[0] in "PS"
 
 
-def Lex(filename: str):
+def Lex(filename: str) -> Lexer:
     lex = Lexer(string=os.path.basename(filename))
     lex.run()
     return lex

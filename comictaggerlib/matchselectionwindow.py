@@ -19,7 +19,9 @@ import os
 
 from PyQt5 import QtCore, QtWidgets, uic
 
+from comicapi.comicarchive import ComicArchive
 from comictaggerlib.coverimagewidget import CoverImageWidget
+from comictaggerlib.resulttypes import IssueResult
 from comictaggerlib.settings import ComicTaggerSettings
 from comictaggerlib.ui.qtutils import reduce_widget_font_size
 
@@ -29,7 +31,7 @@ logger = logging.getLogger(__name__)
 class MatchSelectionWindow(QtWidgets.QDialog):
     volume_id = 0
 
-    def __init__(self, parent, matches, comic_archive):
+    def __init__(self, parent: QtWidgets.QWidget, matches: list[IssueResult], comic_archive: ComicArchive) -> None:
         super().__init__(parent)
 
         uic.loadUi(ComicTaggerSettings.get_ui_file("matchselectionwindow.ui"), self)
@@ -55,7 +57,7 @@ class MatchSelectionWindow(QtWidgets.QDialog):
             )
         )
 
-        self.matches = matches
+        self.matches: list[IssueResult] = matches
         self.comic_archive = comic_archive
 
         self.twList.currentItemChanged.connect(self.current_item_changed)
@@ -63,7 +65,7 @@ class MatchSelectionWindow(QtWidgets.QDialog):
 
         self.update_data()
 
-    def update_data(self):
+    def update_data(self) -> None:
 
         self.set_cover_image()
         self.populate_table()
@@ -73,7 +75,7 @@ class MatchSelectionWindow(QtWidgets.QDialog):
         path = self.comic_archive.path
         self.setWindowTitle(f"Select correct match: {os.path.split(path)[1]}")
 
-    def populate_table(self):
+    def populate_table(self) -> None:
 
         while self.twList.rowCount() > 0:
             self.twList.removeRow(0)
@@ -130,10 +132,10 @@ class MatchSelectionWindow(QtWidgets.QDialog):
         self.twList.resizeColumnsToContents()
         self.twList.horizontalHeader().setStretchLastSection(True)
 
-    def cell_double_clicked(self, r, c):
+    def cell_double_clicked(self, r: int, c: int) -> None:
         self.accept()
 
-    def current_item_changed(self, curr, prev):
+    def current_item_changed(self, curr: QtCore.QModelIndex, prev: QtCore.QModelIndex) -> None:
 
         if curr is None:
             return
@@ -146,10 +148,10 @@ class MatchSelectionWindow(QtWidgets.QDialog):
         else:
             self.teDescription.setText(self.current_match()["description"])
 
-    def set_cover_image(self):
+    def set_cover_image(self) -> None:
         self.archiveCoverWidget.set_archive(self.comic_archive)
 
-    def current_match(self):
+    def current_match(self) -> IssueResult:
         row = self.twList.currentRow()
-        match = self.twList.item(row, 0).data(QtCore.Qt.ItemDataRole.UserRole)[0]
+        match: IssueResult = self.twList.item(row, 0).data(QtCore.Qt.ItemDataRole.UserRole)[0]
         return match

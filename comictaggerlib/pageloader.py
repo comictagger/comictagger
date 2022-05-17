@@ -34,17 +34,17 @@ class PageLoader(QtCore.QThread):
 
     loadComplete = QtCore.pyqtSignal(bytes)
 
-    instanceList = []
+    instanceList: list[QtCore.QThread] = []
     mutex = QtCore.QMutex()
 
     # Remove all finished threads from the list
     @staticmethod
-    def reap_instances():
+    def reap_instances() -> None:
         for obj in reversed(PageLoader.instanceList):
             if obj.isFinished():
                 PageLoader.instanceList.remove(obj)
 
-    def __init__(self, ca: ComicArchive, page_num):
+    def __init__(self, ca: ComicArchive, page_num: int) -> None:
         QtCore.QThread.__init__(self)
         self.ca: ComicArchive = ca
         self.page_num: int = page_num
@@ -56,12 +56,12 @@ class PageLoader(QtCore.QThread):
         PageLoader.instanceList.append(self)
         PageLoader.mutex.unlock()
 
-    def run(self):
+    def run(self) -> None:
         image_data = self.ca.get_page(self.page_num)
         if self.abandoned:
             return
 
-        if image_data is not None:
+        if image_data:
             if self.abandoned:
                 return
             self.loadComplete.emit(image_data)

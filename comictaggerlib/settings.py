@@ -21,6 +21,7 @@ import pathlib
 import platform
 import sys
 import uuid
+from typing import Iterator, TextIO, Union, no_type_check
 
 from comicapi import utils
 
@@ -28,111 +29,33 @@ logger = logging.getLogger(__name__)
 
 
 class ComicTaggerSettings:
-    folder = ""
+    folder: Union[pathlib.Path, str] = ""
 
     @staticmethod
-    def get_settings_folder():
+    def get_settings_folder() -> pathlib.Path:
         if not ComicTaggerSettings.folder:
             if platform.system() == "Windows":
-                ComicTaggerSettings.folder = os.path.join(os.environ["APPDATA"], "ComicTagger")
+                ComicTaggerSettings.folder = pathlib.Path(os.environ["APPDATA"]) / "ComicTagger"
             else:
-                ComicTaggerSettings.folder = os.path.join(os.path.expanduser("~"), ".ComicTagger")
+                ComicTaggerSettings.folder = pathlib.Path(os.path.expanduser("~")) / ".ComicTagger"
         return pathlib.Path(ComicTaggerSettings.folder)
 
     @staticmethod
-    def base_dir():
+    def base_dir() -> pathlib.Path:
         if getattr(sys, "frozen", None):
-            return sys._MEIPASS
+            return pathlib.Path(sys._MEIPASS)
 
         return pathlib.Path(__file__).parent
 
     @staticmethod
-    def get_graphic(filename):
-        graphic_folder = pathlib.Path(os.path.join(ComicTaggerSettings.base_dir(), "graphics"))
-        return os.path.join(graphic_folder, filename)
+    def get_graphic(filename: Union[str, pathlib.Path]) -> str:
+        return str(ComicTaggerSettings.base_dir() / "graphics" / filename)
 
     @staticmethod
-    def get_ui_file(filename):
-        ui_folder = os.path.join(ComicTaggerSettings.base_dir(), "ui")
-        return os.path.join(ui_folder, filename)
+    def get_ui_file(filename: Union[str, pathlib.Path]) -> pathlib.Path:
+        return ComicTaggerSettings.base_dir() / "ui" / filename
 
-    def set_default_values(self):
-        # General Settings
-        self.rar_exe_path = ""
-        self.allow_cbi_in_rar = True
-        self.check_for_new_version = False
-        self.send_usage_stats = False
-
-        # automatic settings
-        self.install_id = uuid.uuid4().hex
-        self.last_selected_save_data_style = 0
-        self.last_selected_load_data_style = 0
-        self.last_opened_folder = ""
-        self.last_main_window_width = 0
-        self.last_main_window_height = 0
-        self.last_main_window_x = 0
-        self.last_main_window_y = 0
-        self.last_form_side_width = -1
-        self.last_list_side_width = -1
-        self.last_filelist_sorted_column = -1
-        self.last_filelist_sorted_order = 0
-
-        # identifier settings
-        self.id_length_delta_thresh = 5
-        self.id_publisher_filter = "Panini Comics, Abril, Planeta DeAgostini, Editorial Televisa, Dino Comics"
-
-        # Show/ask dialog flags
-        self.ask_about_cbi_in_rar = True
-        self.show_disclaimer = True
-        self.dont_notify_about_this_version = ""
-        self.ask_about_usage_stats = True
-
-        # filename parsing settings
-        self.complicated_parser = False
-        self.remove_c2c = False
-        self.remove_fcbd = False
-        self.remove_publisher = False
-
-        # Comic Vine settings
-        self.use_series_start_as_volume = False
-        self.clear_form_before_populating_from_cv = False
-        self.remove_html_tables = False
-        self.cv_api_key = ""
-
-        self.sort_series_by_year = True
-        self.exact_series_matches_first = True
-        self.always_use_publisher_filter = False
-
-        # CBL Tranform settings
-
-        self.assume_lone_credit_is_primary = False
-        self.copy_characters_to_tags = False
-        self.copy_teams_to_tags = False
-        self.copy_locations_to_tags = False
-        self.copy_storyarcs_to_tags = False
-        self.copy_notes_to_comments = False
-        self.copy_weblink_to_comments = False
-        self.apply_cbl_transform_on_cv_import = False
-        self.apply_cbl_transform_on_bulk_operation = False
-
-        # Rename settings
-        self.rename_template = "%series% #%issue% (%year%)"
-        self.rename_issue_number_padding = 3
-        self.rename_use_smart_string_cleanup = True
-        self.rename_extension_based_on_archive = True
-        self.rename_dir = ""
-        self.rename_move_dir = False
-        self.rename_strict = False
-
-        # Auto-tag stickies
-        self.save_on_low_confidence = False
-        self.dont_use_year_when_identifying = False
-        self.assume_1_if_no_issue_num = False
-        self.ignore_leading_numbers_in_filename = False
-        self.remove_archive_after_successful_match = False
-        self.wait_and_retry_on_rate_limit = False
-
-    def __init__(self, folder):
+    def __init__(self, folder: Union[str, pathlib.Path, None]) -> None:
         # General Settings
         self.rar_exe_path = ""
         self.allow_cbi_in_rar = True
@@ -235,20 +158,17 @@ class ComicTaggerSettings:
                     self.rar_exe_path = r"C:\Program Files (x86)\WinRAR\Rar.exe"
             else:
                 # see if it's in the path of unix user
-                if utils.which("rar") is not None:
-                    self.rar_exe_path = utils.which("rar")
+                rarpath = utils.which("rar")
+                if rarpath is not None:
+                    self.rar_exe_path = rarpath
             if self.rar_exe_path != "":
                 self.save()
         if self.rar_exe_path != "":
             # make sure rar program is now in the path for the rar class
             utils.add_to_path(os.path.dirname(self.rar_exe_path))
 
-    def reset(self):
-        os.unlink(self.settings_file)
-        self.__init__(ComicTaggerSettings.folder)
-
-    def load(self):
-        def readline_generator(f):
+    def load(self) -> None:
+        def readline_generator(f: TextIO) -> Iterator[str]:
             line = f.readline()
             while line:
                 yield line
@@ -389,7 +309,8 @@ class ComicTaggerSettings:
         if self.config.has_option("autotag", "wait_and_retry_on_rate_limit"):
             self.wait_and_retry_on_rate_limit = self.config.getboolean("autotag", "wait_and_retry_on_rate_limit")
 
-    def save(self):
+    @no_type_check
+    def save(self) -> None:
 
         if not self.config.has_section("settings"):
             self.config.add_section("settings")
@@ -461,7 +382,9 @@ class ComicTaggerSettings:
         self.config.set("cbl_transform", "copy_weblink_to_comments", self.copy_weblink_to_comments)
         self.config.set("cbl_transform", "apply_cbl_transform_on_cv_import", self.apply_cbl_transform_on_cv_import)
         self.config.set(
-            "cbl_transform", "apply_cbl_transform_on_bulk_operation", self.apply_cbl_transform_on_bulk_operation
+            "cbl_transform",
+            "apply_cbl_transform_on_bulk_operation",
+            self.apply_cbl_transform_on_bulk_operation,
         )
 
         if not self.config.has_section("rename"):
