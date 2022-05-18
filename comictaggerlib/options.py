@@ -66,6 +66,8 @@ If no options are given, {0} will run in windowed mode.
 -o, --online                Search online and attempt to identify file
                             using existing metadata and images in archive.
                             May be used in conjunction with -f and -m.
+    --overwrite             Overwite any existing metadata.
+                            May be used in conjunction with -o, -f and -m.
     --id=ID                 Use the issue ID when searching online.
                             Overrides all other metadata.
 -m, --metadata=LIST         Explicitly define, as a list, some tags to be
@@ -146,6 +148,7 @@ For more help visit the wiki at: https://github.com/comictagger/comictagger/wiki
         self.darkmode = False
         self.copy_source: Optional[int] = None
         self.config_path = ""
+        self.overwrite_metadata = False
 
     def display_msg_and_quit(self, msg: Optional[str], code: int, show_help: bool = False) -> None:
         appname = os.path.basename(sys.argv[0])
@@ -292,6 +295,7 @@ For more help visit the wiki at: https://github.com/comictagger/comictagger/wiki
                     "wait-on-cv-rate-limit",
                     "darkmode",
                     "config=",
+                    "overwrite",
                 ],
             )
 
@@ -330,6 +334,8 @@ For more help visit the wiki at: https://github.com/comictagger/comictagger/wiki
                     self.display_msg_and_quit("Invalid copy tag source type", 1)
             if o in ("-o", "--online"):
                 self.search_online = True
+            if o == "--overwrite":
+                self.overwrite_metadata = True
             if o in ("-n", "--dryrun"):
                 self.dryrun = True
             if o in ("-m", "--metadata"):
