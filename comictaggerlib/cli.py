@@ -108,7 +108,10 @@ def display_match_set_for_choice(
                 opts, ca, ca.has_metadata(opts.data_style if opts.data_style is not None else 0), settings
             )
             cv_md = actual_issue_data_fetch(match_set.matches[int(i) - 1], settings, opts)
-            md.overlay(cv_md)
+            if opts.overwrite_metadata:
+                md = cv_md
+            else:
+                md.overlay(cv_md)
 
             if opts.auto_imprint:
                 md.fix_publisher()
@@ -181,17 +184,22 @@ def create_local_metadata(
 
     # now, overlay the parsed filename info
     if opts.parse_filename:
-        md.overlay(
-            ca.metadata_from_filename(
-                settings.complicated_parser, settings.remove_c2c, settings.remove_fcbd, settings.remove_publisher
-            )
+        f_md = ca.metadata_from_filename(
+            settings.complicated_parser, settings.remove_c2c, settings.remove_fcbd, settings.remove_publisher
         )
+        if opts.overwrite_metadata:
+            md = f_md
+        else:
+            md.overlay(f_md)
 
     if has_desired_tags:
         md = ca.read_metadata(opts.data_style if opts.data_style is not None else 0)
 
     # finally, use explicit stuff
-    md.overlay(opts.metadata)
+    if opts.overwrite_metadata and not opts.metadata.is_empty:
+        md = opts.metadata
+    else:
+        md.overlay(opts.metadata)
 
     return md
 
@@ -427,7 +435,10 @@ def process_file_cli(
                     match_results.fetch_data_failures.append(str(ca.path.absolute()))
                     return
 
-            md.overlay(cv_md)
+            if opts.overwrite_metadata:
+                md = cv_md
+            else:
+                md.overlay(cv_md)
 
             if opts.auto_imprint:
                 md.fix_publisher()

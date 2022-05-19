@@ -1750,7 +1750,10 @@ Please choose options below, and select OK.
                 match_results.fetch_data_failures.append(str(ca.path.absolute()))
 
             if cv_md is not None:
-                md.overlay(cv_md)
+                if dlg.cbxRemoveMetadata.isChecked():
+                    md = cv_md
+                else:
+                    md.overlay(cv_md)
 
                 if self.settings.auto_imprint:
                     md.fix_publisher()
