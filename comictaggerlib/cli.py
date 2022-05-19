@@ -109,6 +109,10 @@ def display_match_set_for_choice(
             )
             cv_md = actual_issue_data_fetch(match_set.matches[int(i) - 1], settings, opts)
             md.overlay(cv_md)
+
+            if opts.auto_imprint:
+                md.fix_publisher()
+
             actual_metadata_save(ca, opts, md)
 
 
@@ -424,6 +428,9 @@ def process_file_cli(
                     return
 
             md.overlay(cv_md)
+
+            if opts.auto_imprint:
+                md.fix_publisher()
 
         # ok, done building our metadata. time to save
         if not actual_metadata_save(ca, opts, md):

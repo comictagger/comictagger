@@ -14,9 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
 import locale
 import logging
 import os
+import pathlib
 import platform
 import re
 import unicodedata
@@ -221,3 +223,56 @@ def get_language(string: Optional[str]) -> Optional[str]:
         except:
             return None
     return lang
+
+
+def get_publisher(publisher: str) -> tuple[str, str]:
+    if publisher is None:
+        return ("", "")
+    imprint = ""
+
+    for pub in publishers.values():
+        imprint, publisher, ok = pub[publisher]
+        if ok:
+            break
+
+    return (imprint, publisher)
+
+
+def update_publishers(new_publishers: dict[str, dict[str, str]]) -> None:
+    for publisher in new_publishers:
+        if publisher in publishers:
+            publishers[publisher].update(new_publishers[publisher])
+        else:
+            publishers[publisher] = ImprintDict(publisher, new_publishers[publisher])
+
+
+class ImprintDict(dict):
+    """
+    ImprintDict takes a publisher and a dict or mapping of lowercased
+    imprint names to the proper imprint name. Retreiving a value from an
+    ImprintDict returns a tuple of (imprint, publisher, keyExists).
+    if the key does not exist the key is returned as the publisher unchanged
+    """
+
+    def __init__(self, publisher, mapping=(), **kwargs):
+        super().__init__(mapping, **kwargs)
+        self.publisher = publisher
+
+    def __missing__(self, key: str) -> None:
+        return None
+
+    def __getitem__(self, k: str) -> tuple[str, str, bool]:
+        item = super().__getitem__(k.casefold())
+        if k.casefold() == self.publisher.casefold():
+            return ("", self.publisher, True)
+        if item is None:
+            return ("", k, False)
+        else:
+            return (item, self.publisher, True)
+
+
+publishers: dict[str, ImprintDict] = {}
+
+
+def load_publishers() -> None:
+    update_publishers(json.loads((pathlib.Path(__file__).parent / "data" / "publishers.json").read_text("utf-8")))

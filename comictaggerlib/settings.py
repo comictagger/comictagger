@@ -97,6 +97,7 @@ class ComicTaggerSettings:
         self.clear_form_before_populating_from_cv = False
         self.remove_html_tables = False
         self.cv_api_key = ""
+        self.auto_imprint = False
 
         self.sort_series_by_year = True
         self.exact_series_matches_first = True
@@ -308,6 +309,8 @@ class ComicTaggerSettings:
             )
         if self.config.has_option("autotag", "wait_and_retry_on_rate_limit"):
             self.wait_and_retry_on_rate_limit = self.config.getboolean("autotag", "wait_and_retry_on_rate_limit")
+        if self.config.has_option("autotag", "auto_imprint"):
+            self.auto_imprint = self.config.getboolean("autotag", "auto_imprint")
 
     @no_type_check
     def save(self) -> None:
@@ -406,6 +409,7 @@ class ComicTaggerSettings:
         self.config.set("autotag", "ignore_leading_numbers_in_filename", self.ignore_leading_numbers_in_filename)
         self.config.set("autotag", "remove_archive_after_successful_match", self.remove_archive_after_successful_match)
         self.config.set("autotag", "wait_and_retry_on_rate_limit", self.wait_and_retry_on_rate_limit)
+        self.config.set("autotag", "auto_imprint", self.auto_imprint)
 
         with open(self.settings_file, "w", encoding="utf-8") as configfile:
             self.config.write(configfile)

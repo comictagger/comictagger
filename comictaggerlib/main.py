@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
 import logging
 import logging.handlers
 import os
@@ -27,6 +28,7 @@ from typing import Optional
 
 import pkg_resources
 
+from comicapi import utils
 from comictaggerlib import cli
 from comictaggerlib.comicvinetalker import ComicVineTalker
 from comictaggerlib.ctversion import version
@@ -94,6 +96,15 @@ def rotate(handler: logging.handlers.RotatingFileHandler, filename: pathlib.Path
         handler.doRollover()
 
 
+def update_publishers() -> None:
+    json_file = ComicTaggerSettings.get_settings_folder() / "publishers.json"
+    if json_file.exists():
+        try:
+            utils.update_publishers(json.loads(json_file.read_text("utf-8")))
+        except Exception:
+            logger.exception("Failed to load publishers from %s", json_file)
+
+
 def ctmain() -> None:
     opts = Options()
     opts.parse_cmd_line_args()
@@ -140,6 +151,9 @@ def ctmain() -> None:
     logger.debug("Installed Packages")
     for pkg in sorted(pkg_resources.working_set, key=lambda x: x.project_name):
         logger.debug("%s\t%s", pkg.project_name, pkg.version)
+
+    utils.load_publishers()
+    update_publishers()
 
     if not qt_available and not opts.no_gui:
         opts.no_gui = True

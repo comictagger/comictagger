@@ -339,6 +339,24 @@ class GenericMetadata:
 
         return outstr
 
+    def fix_publisher(self) -> None:
+        if self.publisher is None:
+            return
+        if self.imprint is None:
+            self.imprint = ""
+
+        imprint, publisher = utils.get_publisher(self.publisher)
+
+        self.publisher = publisher
+
+        if self.imprint.lower() in publisher.lower():
+            self.imprint = None
+
+        if self.imprint is None or self.imprint == "":
+            self.imprint = imprint
+        elif self.imprint.lower() in imprint.lower():
+            self.imprint = imprint
+
 
 md_test = GenericMetadata()
 

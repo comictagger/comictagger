@@ -77,6 +77,10 @@ If no options are given, {0} will run in windowed mode.
                             the example above.  Some names that can be
                             used: series, issue, issueCount, year,
                             publisher, title
+-a, --auto-imprint          Enables the auto imprint functionality.
+                            e.g. if the publisher is set to 'vertigo' it
+                            will be updated to 'DC Comics' and the imprint
+                            property will be set to 'Vertigo'.
 -r, --rename                Rename the file based on specified tag style.
     --noabort               Don't abort save operation when online match
                             is of low confidence.
@@ -113,6 +117,7 @@ For more help visit the wiki at: https://github.com/comictagger/comictagger/wiki
         self.verbose = False
         self.terse = False
         self.metadata = GenericMetadata()
+        self.auto_imprint = False
         self.print_tags = False
         self.copy_tags = False
         self.delete_tags = False
@@ -310,6 +315,8 @@ For more help visit the wiki at: https://github.com/comictagger/comictagger/wiki
                 self.delete_tags = True
             if o in ("-i", "--interactive"):
                 self.interactive = True
+            if o in ("-a", "--auto-imprint"):
+                self.auto_imprint = True
             if o in ("-c", "--copy"):
                 self.copy_tags = True
 

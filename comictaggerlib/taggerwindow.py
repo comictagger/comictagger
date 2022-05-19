@@ -360,6 +360,8 @@ Have fun!
         self.actionSearchOnline.setStatusTip("Search online for tags")
         self.actionSearchOnline.triggered.connect(self.query_online)
 
+        self.actionAutoImprint.triggered.connect(self.auto_imprint)
+
         self.actionAutoIdentify.setShortcut("Ctrl+I")
         self.actionAutoIdentify.triggered.connect(self.auto_identify_search)
 
@@ -400,6 +402,7 @@ Have fun!
         self.actionSearchOnline.setIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("search.png")))
         self.actionAutoIdentify.setIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("auto.png")))
         self.actionAutoTag.setIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("autotag.png")))
+        self.actionAutoImprint.setIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("autotag.png")))
         self.actionClearEntryForm.setIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("clear.png")))
         self.actionPageBrowser.setIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("browse.png")))
 
@@ -411,6 +414,7 @@ Have fun!
         self.toolBar.addAction(self.actionAutoTag)
         self.toolBar.addAction(self.actionClearEntryForm)
         self.toolBar.addAction(self.actionPageBrowser)
+        self.toolBar.addAction(self.actionAutoImprint)
 
     def repackage_archive(self) -> None:
         ca_list = self.fileSelectionList.get_selected_archive_list()
@@ -1748,6 +1752,9 @@ Please choose options below, and select OK.
             if cv_md is not None:
                 md.overlay(cv_md)
 
+                if self.settings.auto_imprint:
+                    md.fix_publisher()
+
                 if not ca.write_metadata(md, self.save_data_style):
                     match_results.write_failures.append(str(ca.path.absolute()))
                     self.auto_tag_log("Save failed ;-(\n")
@@ -2106,3 +2113,8 @@ Please choose options below, and select OK to Auto-Tag.
             QtCore.QCoreApplication.processEvents()
             self.setWindowFlags(flags)
             self.show()
+
+    def auto_imprint(self):
+        self.form_to_metadata()
+        self.metadata.fix_publisher()
+        self.metadata_to_form()
