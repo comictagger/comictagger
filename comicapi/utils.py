@@ -275,4 +275,7 @@ publishers: dict[str, ImprintDict] = {}
 
 
 def load_publishers() -> None:
-    update_publishers(json.loads((pathlib.Path(__file__).parent / "data" / "publishers.json").read_text("utf-8")))
+    try:
+        update_publishers(json.loads((pathlib.Path(__file__).parent / "data" / "publishers.json").read_text("utf-8")))
+    except Exception:
+        logger.exception("Failed to load publishers.json; The are no publishers or imprints loaded")

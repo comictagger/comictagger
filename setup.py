@@ -55,7 +55,7 @@ setup(
     url="https://github.com/comictagger/comictagger",
     packages=["comictaggerlib", "comicapi"],
     package_data={
-        "comictaggerlib": ["ui/*", "graphics/*"],
+        "comictaggerlib": ["ui/*", "graphics/*", "data/*"],
     },
     entry_points=dict(console_scripts=["comictagger=comictaggerlib.main:ctmain"]),
     classifiers=[

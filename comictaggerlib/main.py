@@ -87,6 +87,10 @@ try:
     qt_exception_hook = UncaughtHook()
     from comictaggerlib.taggerwindow import TaggerWindow
 except ImportError as e:
+
+    def show_exception_box(log_msg: str):
+        pass
+
     logger.error(str(e))
     qt_available = False
 
@@ -101,8 +105,9 @@ def update_publishers() -> None:
     if json_file.exists():
         try:
             utils.update_publishers(json.loads(json_file.read_text("utf-8")))
-        except Exception:
+        except Exception as e:
             logger.exception("Failed to load publishers from %s", json_file)
+            show_exception_box(str(e))
 
 
 def ctmain() -> None:
