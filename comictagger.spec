@@ -3,6 +3,7 @@
 import platform
 from os.path import join
 from comictaggerlib import ctversion
+from PyInstaller.utils.hooks import get_module_file_attribute
 
 enable_console = False
 binaries = []
@@ -13,7 +14,7 @@ if platform.system() == "Windows":
 
 a = Analysis(['comictagger.py'],
              binaries=binaries,
-             datas=[('comictaggerlib/ui/*.ui', 'ui'), ('comictaggerlib/graphics', 'graphics')],
+             datas=[('comictaggerlib/ui/*.ui', 'ui'), ('comictaggerlib/graphics', 'graphics'), ('comicapi/data', 'comicapi/data'),(os.path.join(os.path.dirname(get_module_file_attribute('wordninja')),"wordninja"), "wordninja")],
              hiddenimports=['PIL'],
              hookspath=[],
              runtime_hooks=[],
