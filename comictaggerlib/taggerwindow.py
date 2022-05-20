@@ -356,6 +356,10 @@ Have fun!
         self.actionParse_Filename.setStatusTip("Try to extract tags from filename")
         self.actionParse_Filename.triggered.connect(self.use_filename)
 
+        self.actionParse_Filename_split_words.setShortcut("Ctrl+Shift+F")
+        self.actionParse_Filename_split_words.setStatusTip("Try to extract tags from filename and split words")
+        self.actionParse_Filename_split_words.triggered.connect(self.use_filename_split)
+
         self.actionSearchOnline.setShortcut("Ctrl+W")
         self.actionSearchOnline.setStatusTip("Search online for tags")
         self.actionSearchOnline.triggered.connect(self.query_online)
@@ -399,6 +403,7 @@ Have fun!
         self.actionLoadFolder.setIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("longbox.png")))
         self.actionWrite_Tags.setIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("save.png")))
         self.actionParse_Filename.setIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("parse.png")))
+        self.actionParse_Filename_split_words.setIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("parse.png")))
         self.actionSearchOnline.setIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("search.png")))
         self.actionAutoIdentify.setIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("auto.png")))
         self.actionAutoTag.setIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("autotag.png")))
@@ -572,7 +577,7 @@ Please choose options below, and select OK.
                 self.settings.complicated_parser,
                 self.settings.remove_c2c,
                 self.settings.remove_fcbd,
-                remove_publisher=self.settings.remove_publisher,
+                self.settings.remove_publisher,
             )
         if len(self.metadata.pages) == 0 and self.comic_archive is not None:
             self.metadata.set_default_page_list(self.comic_archive.get_number_of_pages())
@@ -609,6 +614,7 @@ Please choose options below, and select OK.
         self.actionViewRawCBLTags.setEnabled(False)
         self.actionViewRawCRTags.setEnabled(False)
         self.actionParse_Filename.setEnabled(False)
+        self.actionParse_Filename_split_words.setEnabled(False)
         self.actionAutoIdentify.setEnabled(False)
         self.actionRename.setEnabled(False)
         self.actionApplyCBLTransform.setEnabled(False)
@@ -620,6 +626,7 @@ Please choose options below, and select OK.
             has_cbi = self.comic_archive.has_cbi()
 
             self.actionParse_Filename.setEnabled(True)
+            self.actionParse_Filename_split_words.setEnabled(True)
             self.actionAutoIdentify.setEnabled(True)
             self.actionAutoTag.setEnabled(True)
             self.actionRename.setEnabled(True)
@@ -942,6 +949,9 @@ Please choose options below, and select OK.
         self.metadata = md
 
     def use_filename(self) -> None:
+        self._use_filename()
+
+    def _use_filename(self, split_words: bool = False) -> None:
         if self.comic_archive is not None:
             # copy the form onto metadata object
             self.form_to_metadata()
@@ -949,11 +959,15 @@ Please choose options below, and select OK.
                 self.settings.complicated_parser,
                 self.settings.remove_c2c,
                 self.settings.remove_fcbd,
-                remove_publisher=self.settings.remove_publisher,
+                self.settings.remove_publisher,
+                split_words,
             )
             if new_metadata is not None:
                 self.metadata.overlay(new_metadata)
                 self.metadata_to_form()
+
+    def use_filename_split(self) -> None:
+        self._use_filename(True)
 
     def select_folder(self) -> None:
         self.select_file(folder_mode=True)
@@ -1676,7 +1690,8 @@ Please choose options below, and select OK.
                 self.settings.complicated_parser,
                 self.settings.remove_c2c,
                 self.settings.remove_fcbd,
-                remove_publisher=self.settings.remove_publisher,
+                self.settings.remove_publisher,
+                dlg.split_words,
             )
             if dlg.ignore_leading_digits_in_filename and md.series is not None:
                 # remove all leading numbers

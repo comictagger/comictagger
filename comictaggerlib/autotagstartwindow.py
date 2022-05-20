@@ -44,6 +44,7 @@ class AutoTagStartWindow(QtWidgets.QDialog):
         self.cbxRemoveAfterSuccess.setCheckState(QtCore.Qt.CheckState.Unchecked)
         self.cbxSpecifySearchString.setCheckState(QtCore.Qt.CheckState.Unchecked)
         self.cbxAutoImprint.setCheckState(QtCore.Qt.CheckState.Unchecked)
+        self.cbxSplitWords.setCheckState(QtCore.Qt.Unchecked)
         self.leNameLengthMatchTolerance.setText(str(self.settings.id_length_delta_thresh))
         self.leSearchString.setEnabled(False)
 
@@ -91,6 +92,7 @@ class AutoTagStartWindow(QtWidgets.QDialog):
         self.wait_and_retry_on_rate_limit = False
         self.search_string = ""
         self.name_length_match_tolerance = self.settings.id_length_delta_thresh
+        self.split_words = self.cbxSplitWords.isChecked()
 
     def search_string_toggle(self) -> None:
         enable = self.cbxSpecifySearchString.isChecked()
@@ -106,6 +108,7 @@ class AutoTagStartWindow(QtWidgets.QDialog):
         self.remove_after_success = self.cbxRemoveAfterSuccess.isChecked()
         self.name_length_match_tolerance = int(self.leNameLengthMatchTolerance.text())
         self.wait_and_retry_on_rate_limit = self.cbxWaitForRateLimit.isChecked()
+        self.splitWords = self.cbxSplitWords.isChecked()
 
         # persist some settings
         self.settings.save_on_low_confidence = self.auto_save_on_low

@@ -59,6 +59,8 @@ If no options are given, {0} will run in windowed mode.
 -f, --parsefilename         Parse the filename to get some info,
                             specifically series name, issue number,
                             volume, and publication year.
+    --split-words           Splits words before parsing the filename.
+                            e.g. 'judgedredd' to 'judge dredd'
 -i, --interactive           Interactively query the user when there are
                             multiple matches for an online search.
     --nosummary             Suppress the default summary after a save
@@ -149,6 +151,7 @@ For more help visit the wiki at: https://github.com/comictagger/comictagger/wiki
         self.copy_source: Optional[int] = None
         self.config_path = ""
         self.overwrite_metadata = False
+        self.split_words = False
 
     def display_msg_and_quit(self, msg: Optional[str], code: int, show_help: bool = False) -> None:
         appname = os.path.basename(sys.argv[0])
@@ -296,6 +299,7 @@ For more help visit the wiki at: https://github.com/comictagger/comictagger/wiki
                     "darkmode",
                     "config=",
                     "overwrite",
+                    "split-words",
                 ],
             )
 
@@ -352,6 +356,8 @@ For more help visit the wiki at: https://github.com/comictagger/comictagger/wiki
                 self.abort_export_on_conflict = True
             if o in ("-f", "--parsefilename"):
                 self.parse_filename = True
+            if o == "--split-words":
+                self.split_words = True
             if o in ("-w", "--wait-on-cv-rate-limit"):
                 self.wait_and_retry_on_rate_limit = True
             if o == "--config":

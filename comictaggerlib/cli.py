@@ -185,7 +185,11 @@ def create_local_metadata(
     # now, overlay the parsed filename info
     if opts.parse_filename:
         f_md = ca.metadata_from_filename(
-            settings.complicated_parser, settings.remove_c2c, settings.remove_fcbd, settings.remove_publisher
+            settings.complicated_parser,
+            settings.remove_c2c,
+            settings.remove_fcbd,
+            settings.remove_publisher,
+            opts.split_words,
         )
         if opts.overwrite_metadata:
             md = f_md
@@ -193,7 +197,8 @@ def create_local_metadata(
             md.overlay(f_md)
 
     if has_desired_tags:
-        md = ca.read_metadata(opts.data_style if opts.data_style is not None else 0)
+        t_md = ca.read_metadata(opts.data_style if opts.data_style is not None else 0)
+        md.overlay(t_md)
 
     # finally, use explicit stuff
     if opts.overwrite_metadata and not opts.metadata.is_empty:

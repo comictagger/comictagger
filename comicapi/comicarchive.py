@@ -28,6 +28,7 @@ import zipfile
 
 import natsort
 import py7zr
+import wordninja
 
 try:
     from unrar.cffi import rarfile
@@ -1134,12 +1135,17 @@ class ComicArchive:
         remove_c2c: bool = False,
         remove_fcbd: bool = False,
         remove_publisher: bool = False,
+        split_words: bool = False,
     ) -> GenericMetadata:
 
         metadata = GenericMetadata()
 
+        filename = self.path.name
+        if split_words:
+            filename = " ".join(wordninja.split(self.path.stem)) + self.path.suffix
+
         if complicated_parser:
-            lex = filenamelexer.Lex(self.path.name)
+            lex = filenamelexer.Lex(filename)
             p = filenameparser.Parse(
                 lex.items, remove_c2c=remove_c2c, remove_fcbd=remove_fcbd, remove_publisher=remove_publisher
             )
@@ -1159,7 +1165,7 @@ class ComicArchive:
                 metadata.format = "Annual"
         else:
             fnp = filenameparser.FileNameParser()
-            fnp.parse_filename(str(self.path))
+            fnp.parse_filename(filename)
 
             if fnp.issue:
                 metadata.issue = fnp.issue

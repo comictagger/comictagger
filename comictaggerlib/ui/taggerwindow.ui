@@ -1232,6 +1232,7 @@
     </property>
     <addaction name="actionClearEntryForm"/>
     <addaction name="actionParse_Filename"/>
+    <addaction name="actionParse_Filename_split_words"/>
     <addaction name="actionSearchOnline"/>
     <addaction name="actionAutoIdentify"/>
     <addaction name="actionAutoImprint"/>
@@ -1444,6 +1445,14 @@
    </property>
    <property name="toolTip">
     <string>Normalize the publisher and map imprints to their parent publisher (e.g. Vertigo is an imprint of DC Comics)</string>
+   </property>
+  </action>
+  <action name="actionParse_Filename_split_words">
+   <property name="text">
+    <string>Parse Filename and split words</string>
+   </property>
+   <property name="toolTip">
+    <string>Parse Filename and split words</string>
    </property>
   </action>
  </widget>
