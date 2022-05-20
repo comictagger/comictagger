@@ -736,7 +736,7 @@ class ComicVineTalker:
         self.nam.finished.connect(self.async_fetch_issue_cover_url_complete)
         self.nam.get(QtNetwork.QNetworkRequest(QtCore.QUrl(issue_url)))
 
-    def async_fetch_issue_cover_url_complete(self, reply: QtNetwork.QNetworkReply) -> None:
+    def async_fetch_issue_cover_url_complete(self, reply: "QtNetwork.QNetworkReply") -> None:
         # read in the response
         data = reply.readAll()
 
@@ -772,7 +772,7 @@ class ComicVineTalker:
         self.nam.finished.connect(self.async_fetch_alternate_cover_urls_complete)
         self.nam.get(QtNetwork.QNetworkRequest(QtCore.QUrl(str(issue_page_url))))
 
-    def async_fetch_alternate_cover_urls_complete(self, reply: QtNetwork.QNetworkReply) -> None:
+    def async_fetch_alternate_cover_urls_complete(self, reply: "QtNetwork.QNetworkReply") -> None:
         # read in the response
         html = str(reply.readAll())
         alt_cover_url_list = self.parse_out_alt_cover_urls(html)

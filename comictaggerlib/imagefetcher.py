@@ -41,7 +41,7 @@ class ImageFetcherException(Exception):
     pass
 
 
-def fetch_complete(image_data: Union[bytes, QtCore.QByteArray]) -> None:
+def fetch_complete(image_data: "Union[bytes, QtCore.QByteArray]") -> None:
     ...
 
 
@@ -106,7 +106,7 @@ class ImageFetcher:
             # we'll get called back when done...
         return bytes()
 
-    def finish_request(self, reply: QtNetwork.QNetworkReply) -> None:
+    def finish_request(self, reply: "QtNetwork.QNetworkReply") -> None:
         # read in the image data
         logger.debug("request finished")
         image_data = reply.readAll()
@@ -134,7 +134,7 @@ class ImageFetcher:
 
             cur.execute("CREATE TABLE Images(url TEXT,filename TEXT,timestamp TEXT,PRIMARY KEY (url))")
 
-    def add_image_to_cache(self, url: str, image_data: Union[bytes, QtCore.QByteArray]) -> None:
+    def add_image_to_cache(self, url: str, image_data: "Union[bytes, QtCore.QByteArray]") -> None:
 
         con = lite.connect(self.db_file)
 
