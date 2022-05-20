@@ -537,7 +537,7 @@ class RarArchiver(UnknownArchiver):
 
         return namelist
 
-    def get_rar_obj(self) -> Optional[rarfile.RarFile]:
+    def get_rar_obj(self) -> "Optional[rarfile.RarFile]":
         try:
             rarc = rarfile.RarFile(str(self.path))
         except (OSError, IOError) as e:

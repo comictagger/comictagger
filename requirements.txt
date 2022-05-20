@@ -6,3 +6,4 @@ pathvalidate
 pycountry
 py7zr
 text2digits
+wordninja
