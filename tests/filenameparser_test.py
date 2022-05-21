@@ -4,8 +4,8 @@ from filenames import fnames
 import comicapi.filenameparser
 
 
-@pytest.mark.parametrize("filename,reason,expected", fnames)
-def test_file_name_parser_new(filename, reason, expected):
+@pytest.mark.parametrize("filename, reason, expected, xfail", fnames)
+def test_file_name_parser_new(filename, reason, expected, xfail):
     p = comicapi.filenameparser.Parse(
         comicapi.filenamelexer.Lex(filename).items,
         first_is_alt=True,
@@ -28,15 +28,20 @@ def test_file_name_parser_new(filename, reason, expected):
     assert fp == expected
 
 
-@pytest.mark.parametrize("filename,reason,expected", fnames)
-def test_file_name_parser(filename, reason, expected):
+@pytest.mark.parametrize("filename, reason, expected, xfail", fnames)
+def test_file_name_parser(filename, reason, expected, xfail):
     p = comicapi.filenameparser.FileNameParser()
     p.parse_filename(filename)
     fp = p.__dict__
-    for s in ["title", "alternate", "publisher", "fcbd", "c2c", "annual", "volume_count"]:
+    # These are currently not tracked in this parser
+    for s in ["title", "alternate", "publisher", "fcbd", "c2c", "annual", "volume_count", "remainder"]:
         if s in expected:
             del expected[s]
 
-    if fp != expected:
+    # The remainder is not considered compatible between parsers
+    if "remainder" in fp:
+        del fp["remainder"]
+
+    if xfail and fp != expected:
         pytest.xfail("old parser")
     assert fp == expected

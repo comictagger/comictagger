@@ -1,3 +1,14 @@
+"""
+format is
+(
+    "filename",
+    "reason or unique case",
+    {
+        "expected": "Dictionary of properties extracted from filename",
+    },
+    bool(xfail: expected failure on the old parser)
+)
+"""
 fnames = [
     (
         "batman 3 title (DC).cbz",
@@ -13,6 +24,7 @@ fnames = [
             "issue_count": "",
             "alternate": "",
         },
+        True,
     ),
     (
         "batman 3 title DC.cbz",
@@ -28,6 +40,7 @@ fnames = [
             "issue_count": "",
             "alternate": "",
         },
+        True,
     ),
     (
         "ms. Marvel 3.cbz",
@@ -43,6 +56,7 @@ fnames = [
             "issue_count": "",
             "alternate": "",
         },
+        False,
     ),
     (
         "january jones 2.cbz",
@@ -57,6 +71,7 @@ fnames = [
             "issue_count": "",
             "alternate": "",
         },
+        False,
     ),
     (
         "52.cbz",
@@ -71,6 +86,7 @@ fnames = [
             "issue_count": "",
             "alternate": "",
         },
+        True,
     ),
     (
         "52 Monster_Island_v1_2__repaired__c2c.cbz",
@@ -86,6 +102,7 @@ fnames = [
             "alternate": "52",
             "c2c": True,
         },
+        True,
     ),
     (
         "Monster_Island_v1_2__repaired__c2c.cbz",
@@ -100,6 +117,7 @@ fnames = [
             "issue_count": "",
             "c2c": True,
         },
+        False,
     ),
     (
         "Monster Island v1 3 (1957) -- The Revenge Of King Klong (noads).cbz",
@@ -113,6 +131,7 @@ fnames = [
             "remainder": "The Revenge Of King Klong (noads)",
             "issue_count": "",
         },
+        False,
     ),
     (
         "Foobar-Man Annual 121 - The Wrath of Foobar-Man, Part 1 of 2.cbz",
@@ -127,6 +146,7 @@ fnames = [
             "issue_count": "",
             "annual": True,
         },
+        True,
     ),
     (
         "Plastic Man v1 002 (1942).cbz",
@@ -140,6 +160,7 @@ fnames = [
             "remainder": "",
             "issue_count": "",
         },
+        False,
     ),
     (
         "Blue Beetle 02.cbr",
@@ -153,6 +174,7 @@ fnames = [
             "remainder": "",
             "issue_count": "",
         },
+        False,
     ),
     (
         "Monster Island vol. 2 #2.cbz",
@@ -166,6 +188,7 @@ fnames = [
             "remainder": "",
             "issue_count": "",
         },
+        False,
     ),
     (
         "Crazy Weird Comics 2 (of 2) (1969).rar",
@@ -179,6 +202,7 @@ fnames = [
             "remainder": "",
             "issue_count": "2",
         },
+        False,
     ),
     (
         "Super Strange Yarns (1957) #92 (1969).cbz",
@@ -192,6 +216,7 @@ fnames = [
             "remainder": "",
             "issue_count": "",
         },
+        False,
     ),
     (
         "Action Spy Tales v1965 #3.cbr",
@@ -205,6 +230,7 @@ fnames = [
             "remainder": "",
             "issue_count": "",
         },
+        False,
     ),
     (
         " X-Men-V1-067.cbr",
@@ -218,6 +244,7 @@ fnames = [
             "remainder": "",
             "issue_count": "",
         },
+        True,
     ),
     (
         "Amazing Spider-Man 078.BEY (2022) (Digital) (Zone-Empire).cbr",
@@ -231,6 +258,7 @@ fnames = [
             "remainder": "(Digital) (Zone-Empire)",
             "issue_count": "",
         },
+        False,
     ),
     (
         "Angel Wings 02 - Black Widow (2015) (Scanlation) (phillywilly).cbr",
@@ -244,6 +272,7 @@ fnames = [
             "remainder": "(Scanlation) (phillywilly)",
             "issue_count": "",
         },
+        True,
     ),
     (
         "Angel Wings #02 - Black Widow (2015) (Scanlation) (phillywilly).cbr",
@@ -257,6 +286,7 @@ fnames = [
             "remainder": "(Scanlation) (phillywilly)",
             "issue_count": "",
         },
+        False,
     ),
     (
         "Aquaman - Green Arrow - Deep Target 01 (of 07) (2021) (digital) (Son of Ultron-Empire).cbr",
@@ -270,6 +300,7 @@ fnames = [
             "issue_count": "7",
             "remainder": "(digital) (Son of Ultron-Empire)",
         },
+        False,
     ),
     (
         "Aquaman 80th Anniversary 100-Page Super Spectacular (2021) 001 (2021) (Digital) (BlackManta-Empire).cbz",
@@ -283,6 +314,7 @@ fnames = [
             "remainder": "(Digital) (BlackManta-Empire)",
             "issue_count": "",
         },
+        False,
     ),
     (
         "Avatar - The Last Airbender - The Legend of Korra (FCBD 2021) (Digital) (mv-DCP).cbr",
@@ -297,6 +329,21 @@ fnames = [
             "issue_count": "",
             "fcbd": True,
         },
+        True,
+    ),
+    (
+        "Avengers By Brian Michael Bendis volume 03 (2013) (Digital) (F2) (Kileko-Empire).cbz",
+        "volume without issue",
+        {
+            "issue": "3",
+            "series": "Avengers By Brian Michael Bendis",
+            "title": "",
+            "volume": "3",
+            "year": "2013",
+            "remainder": "(Digital) (F2) (Kileko-Empire)",
+            "issue_count": "",
+        },
+        False,
     ),
     (
         "Avengers By Brian Michael Bendis v03 (2013) (Digital) (F2) (Kileko-Empire).cbz",
@@ -310,6 +357,7 @@ fnames = [
             "remainder": "(Digital) (F2) (Kileko-Empire)",
             "issue_count": "",
         },
+        False,
     ),
     (
         "Batman '89 (2021) (Webrip) (The Last Kryptonian-DCP).cbr",
@@ -323,6 +371,7 @@ fnames = [
             "remainder": "(Webrip) (The Last Kryptonian-DCP)",
             "issue_count": "",
         },
+        False,
     ),
     (
         "Batman_-_Superman_020_(2021)_(digital)_(NeverAngel-Empire).cbr",
@@ -336,6 +385,7 @@ fnames = [
             "remainder": "(digital) (NeverAngel-Empire)",
             "issue_count": "",
         },
+        False,
     ),
     (
         "Black Widow 009 (2021) (Digital) (Zone-Empire).cbr",
@@ -349,6 +399,7 @@ fnames = [
             "remainder": "(Digital) (Zone-Empire)",
             "issue_count": "",
         },
+        False,
     ),
     (
         "Blade Runner 2029 006 (2021) (3 covers) (digital) (Son of Ultron-Empire).cbr",
@@ -362,6 +413,7 @@ fnames = [
             "remainder": "(3 covers) (digital) (Son of Ultron-Empire)",
             "issue_count": "",
         },
+        False,
     ),
     (
         "Blade Runner Free Comic Book Day 2021 (2021) (digital-Empire).cbr",
@@ -376,6 +428,7 @@ fnames = [
             "issue_count": "",
             "fcbd": True,
         },
+        True,
     ),
     (
         "Bloodshot Book 03 (2020) (digital) (Son of Ultron-Empire).cbr",
@@ -389,6 +442,7 @@ fnames = [
             "remainder": "(digital) (Son of Ultron-Empire)",
             "issue_count": "",
         },
+        True,
     ),
     (
         "book of eli (2020) (digital) (Son of Ultron-Empire).cbr",
@@ -402,6 +456,7 @@ fnames = [
             "remainder": "(digital) (Son of Ultron-Empire)",
             "issue_count": "",
         },
+        False,
     ),
     (
         "Cyberpunk 2077 - You Have My Word 02 (2021) (digital) (Son of Ultron-Empire).cbr",
@@ -415,6 +470,7 @@ fnames = [
             "issue_count": "",
             "remainder": "(digital) (Son of Ultron-Empire)",
         },
+        True,
     ),
     (
         "Elephantmen 2259 008 - Simple Truth 03 (of 06) (2021) (digital) (Son of Ultron-Empire).cbr",
@@ -429,6 +485,7 @@ fnames = [
             "remainder": "(digital) (Son of Ultron-Empire)",
             "issue_count": "",
         },
+        True,
     ),
     (
         "Elephantmen 2259 #008 - Simple Truth 03 (of 06) (2021) (digital) (Son of Ultron-Empire).cbr",
@@ -443,6 +500,7 @@ fnames = [
             "remainder": "(digital) (Son of Ultron-Empire)",
             "issue_count": "",
         },
+        True,
     ),
     (
         "Free Comic Book Day - Avengers.Hulk (2021) (2048px) (db).cbz",
@@ -457,6 +515,7 @@ fnames = [
             "issue_count": "",
             "fcbd": True,
         },
+        True,
     ),
     (
         "Goblin (2021) (digital) (Son of Ultron-Empire).cbr",
@@ -470,6 +529,7 @@ fnames = [
             "remainder": "(digital) (Son of Ultron-Empire)",
             "issue_count": "",
         },
+        False,
     ),
     (
         "Marvel Previews 002 (January 2022) (Digital-Empire).cbr",
@@ -484,6 +544,7 @@ fnames = [
             "remainder": "(Digital-Empire)",
             "issue_count": "",
         },
+        True,
     ),
     (
         "Marvel Two In One V1 090  c2c (Comixbear-DCP).cbr",
@@ -499,6 +560,7 @@ fnames = [
             "issue_count": "",
             "c2c": True,
         },
+        True,
     ),
     (
         "Marvel Two In One V1 #090  c2c (Comixbear-DCP).cbr",
@@ -514,6 +576,7 @@ fnames = [
             "issue_count": "",
             "c2c": True,
         },
+        False,
     ),
     (
         "Star Wars - War of the Bounty Hunters - IG-88 (2021) (Digital) (Kileko-Empire).cbz",
@@ -527,6 +590,7 @@ fnames = [
             "remainder": "(Digital) (Kileko-Empire)",
             "issue_count": "",
         },
+        True,
     ),
     (
         "Star Wars - War of the Bounty Hunters - IG-88 #1 (2021) (Digital) (Kileko-Empire).cbz",
@@ -540,6 +604,7 @@ fnames = [
             "remainder": "(Digital) (Kileko-Empire)",
             "issue_count": "",
         },
+        False,
     ),
     (
         "The Defenders v1 058 (1978) (digital).cbz",
@@ -553,6 +618,7 @@ fnames = [
             "remainder": "(digital)",
             "issue_count": "",
         },
+        False,
     ),
     (
         "The Defenders v1 Annual 01 (1976) (Digital) (Minutemen-Slayer).cbr",
@@ -567,6 +633,7 @@ fnames = [
             "issue_count": "",
             "annual": True,
         },
+        True,
     ),
     (
         "The Magic Order 2 06 (2022) (Digital) (Zone-Empire)[__913302__].cbz",
@@ -580,6 +647,7 @@ fnames = [
             "remainder": "(Digital) (Zone-Empire)[913302]",  # Don't really care about double underscores
             "issue_count": "",
         },
+        False,
     ),
     (
         "Wonder Woman 001 Wonder Woman Day Special Edition (2021) (digital-Empire).cbr",
@@ -593,6 +661,7 @@ fnames = [
             "remainder": "(digital-Empire)",
             "issue_count": "",
         },
+        True,
     ),
     (
         "Wonder Woman #001 Wonder Woman Day Special Edition (2021) (digital-Empire).cbr",
@@ -606,6 +675,7 @@ fnames = [
             "remainder": "(digital-Empire)",
             "issue_count": "",
         },
+        False,
     ),
     (
         "Wonder Woman 49 DC Sep-Oct 1951 digital [downsized, lightened, 4 missing story pages restored] (Shadowcat-Empire).cbz",
@@ -620,6 +690,7 @@ fnames = [
             "remainder": "[downsized, lightened, 4 missing story pages restored] (Shadowcat-Empire)",
             "issue_count": "",
         },
+        True,
     ),
     (
         "Wonder Woman #49 DC Sep-Oct 1951 digital [downsized, lightened, 4 missing story pages restored] (Shadowcat-Empire).cbz",
@@ -634,6 +705,7 @@ fnames = [
             "remainder": "[downsized, lightened, 4 missing story pages restored] (Shadowcat-Empire)",
             "issue_count": "",
         },
+        True,
     ),
     (
         "X-Men, 2021-08-04 (#02) (digital) (Glorith-HD).cbz",
@@ -647,6 +719,7 @@ fnames = [
             "remainder": "(digital) (Glorith-HD)",
             "issue_count": "",
         },
+        True,
     ),
 ]
 
