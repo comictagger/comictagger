@@ -273,10 +273,12 @@ class PageListEditor(QtWidgets.QWidget):
         cbx = self.sender()
 
         if isinstance(cbx, QtWidgets.QCheckBox) and cbx.isChecked():
-            page_dict["DoublePage"] = True
+            if "DoublePage" not in page_dict:
+                page_dict["DoublePage"] = True
+                self.modified.emit()
         elif "DoublePage" in page_dict:
             del page_dict["DoublePage"]
-        self.modified.emit()
+            self.modified.emit()
 
         item = self.listWidget.item(row)
         # wrap the dict in a tuple to keep from being converted to QStrings
