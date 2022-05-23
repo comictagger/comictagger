@@ -214,8 +214,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.leNameLengthDeltaThresh.setText(str(self.settings.id_length_delta_thresh))
         self.tePublisherFilter.setPlainText(self.settings.id_publisher_filter)
 
-        if self.settings.check_for_new_version:
-            self.cbxCheckForNewVersion.setCheckState(QtCore.Qt.CheckState.Checked)
+        self.cbxCheckForNewVersion.setChecked(self.settings.check_for_new_version)
 
         self.cbxComplicatedParser.setChecked(self.settings.complicated_parser)
         self.cbxRemoveC2C.setChecked(self.settings.remove_c2c)
@@ -223,52 +222,33 @@ class SettingsWindow(QtWidgets.QDialog):
         self.cbxRemovePublisher.setChecked(self.settings.remove_publisher)
         self.switch_parser()
 
-        if self.settings.use_series_start_as_volume:
-            self.cbxUseSeriesStartAsVolume.setCheckState(QtCore.Qt.CheckState.Checked)
-        if self.settings.clear_form_before_populating_from_cv:
-            self.cbxClearFormBeforePopulating.setCheckState(QtCore.Qt.CheckState.Checked)
-        if self.settings.remove_html_tables:
-            self.cbxRemoveHtmlTables.setCheckState(QtCore.Qt.CheckState.Checked)
+        self.cbxUseSeriesStartAsVolume.setChecked(self.settings.use_series_start_as_volume)
+        self.cbxClearFormBeforePopulating.setChecked(self.settings.clear_form_before_populating_from_cv)
+        self.cbxRemoveHtmlTables.setChecked(self.settings.remove_html_tables)
 
-        if self.settings.always_use_publisher_filter:
-            self.cbxUseFilter.setCheckState(QtCore.Qt.CheckState.Checked)
-        if self.settings.sort_series_by_year:
-            self.cbxSortByYear.setCheckState(QtCore.Qt.CheckState.Checked)
-        if self.settings.exact_series_matches_first:
-            self.cbxExactMatches.setCheckState(QtCore.Qt.CheckState.Checked)
+        self.cbxUseFilter.setChecked(self.settings.always_use_publisher_filter)
+        self.cbxSortByYear.setChecked(self.settings.sort_series_by_year)
+        self.cbxExactMatches.setChecked(self.settings.exact_series_matches_first)
 
         self.leKey.setText(str(self.settings.cv_api_key))
 
-        if self.settings.assume_lone_credit_is_primary:
-            self.cbxAssumeLoneCreditIsPrimary.setCheckState(QtCore.Qt.CheckState.Checked)
-        if self.settings.copy_characters_to_tags:
-            self.cbxCopyCharactersToTags.setCheckState(QtCore.Qt.CheckState.Checked)
-        if self.settings.copy_teams_to_tags:
-            self.cbxCopyTeamsToTags.setCheckState(QtCore.Qt.CheckState.Checked)
-        if self.settings.copy_locations_to_tags:
-            self.cbxCopyLocationsToTags.setCheckState(QtCore.Qt.CheckState.Checked)
-        if self.settings.copy_storyarcs_to_tags:
-            self.cbxCopyStoryArcsToTags.setCheckState(QtCore.Qt.CheckState.Checked)
-        if self.settings.copy_notes_to_comments:
-            self.cbxCopyNotesToComments.setCheckState(QtCore.Qt.CheckState.Checked)
-        if self.settings.copy_weblink_to_comments:
-            self.cbxCopyWebLinkToComments.setCheckState(QtCore.Qt.CheckState.Checked)
-        if self.settings.apply_cbl_transform_on_cv_import:
-            self.cbxApplyCBLTransformOnCVIMport.setCheckState(QtCore.Qt.CheckState.Checked)
-        if self.settings.apply_cbl_transform_on_bulk_operation:
-            self.cbxApplyCBLTransformOnBatchOperation.setCheckState(QtCore.Qt.CheckState.Checked)
+        self.cbxAssumeLoneCreditIsPrimary.setChecked(self.settings.assume_lone_credit_is_primary)
+        self.cbxCopyCharactersToTags.setChecked(self.settings.copy_characters_to_tags)
+        self.cbxCopyTeamsToTags.setChecked(self.settings.copy_teams_to_tags)
+        self.cbxCopyLocationsToTags.setChecked(self.settings.copy_locations_to_tags)
+        self.cbxCopyStoryArcsToTags.setChecked(self.settings.copy_storyarcs_to_tags)
+        self.cbxCopyNotesToComments.setChecked(self.settings.copy_notes_to_comments)
+        self.cbxCopyWebLinkToComments.setChecked(self.settings.copy_weblink_to_comments)
+        self.cbxApplyCBLTransformOnCVIMport.setChecked(self.settings.apply_cbl_transform_on_cv_import)
+        self.cbxApplyCBLTransformOnBatchOperation.setChecked(self.settings.apply_cbl_transform_on_bulk_operation)
 
         self.leRenameTemplate.setText(self.settings.rename_template)
         self.leIssueNumPadding.setText(str(self.settings.rename_issue_number_padding))
-        if self.settings.rename_use_smart_string_cleanup:
-            self.cbxSmartCleanup.setCheckState(QtCore.Qt.CheckState.Checked)
-        if self.settings.rename_extension_based_on_archive:
-            self.cbxChangeExtension.setCheckState(QtCore.Qt.CheckState.Checked)
-        if self.settings.rename_move_dir:
-            self.cbxMoveFiles.setCheckState(QtCore.Qt.CheckState.Checked)
+        self.cbxSmartCleanup.setChecked(self.settings.rename_use_smart_string_cleanup)
+        self.cbxChangeExtension.setChecked(self.settings.rename_extension_based_on_archive)
+        self.cbxMoveFiles.setChecked(self.settings.rename_move_dir)
         self.leDirectory.setText(self.settings.rename_dir)
-        if self.settings.rename_strict:
-            self.cbxRenameStrict.setCheckState(QtCore.Qt.CheckState.Checked)
+        self.cbxRenameStrict.setChecked(self.settings.rename_strict)
 
     def accept(self) -> None:
         self.rename_test()

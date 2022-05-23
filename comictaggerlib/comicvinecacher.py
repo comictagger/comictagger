@@ -311,7 +311,6 @@ class ComicVineCacher:
                     "name": row[1],
                     "count_of_issues": row[3],
                     "start_year": row[4],
-                    # "issues": [],
                     "publisher": {"name": row[2]},
                 }
             )

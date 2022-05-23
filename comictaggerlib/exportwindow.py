@@ -43,8 +43,8 @@ class ExportWindow(QtWidgets.QDialog):
 
         self.settings = settings
 
-        self.cbxDeleteOriginal.setCheckState(QtCore.Qt.CheckState.Unchecked)
-        self.cbxAddToList.setCheckState(QtCore.Qt.CheckState.Checked)
+        self.cbxDeleteOriginal.setChecked(False)
+        self.cbxAddToList.setChecked(True)
         self.radioDontCreate.setChecked(True)
 
         self.deleteOriginal = False

@@ -255,7 +255,6 @@ Have fun!
             self.settings.show_disclaimer = not checked
 
         if self.settings.check_for_new_version:
-            # self.checkLatestVersionOnline()
             pass
 
     def sigint_handler(self, *args: Any) -> None:

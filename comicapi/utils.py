@@ -34,25 +34,6 @@ class UtilsVars:
     already_fixed_encoding = False
 
 
-def get_actual_preferred_encoding() -> str:
-    preferred_encoding = locale.getpreferredencoding()
-    if platform.system() == "Darwin":
-        preferred_encoding = "utf-8"
-    return preferred_encoding
-
-
-# def fix_output_encoding() -> None:
-#     if not UtilsVars.already_fixed_encoding:
-#         # this reads the environment and inits the right locale
-#         locale.setlocale(locale.LC_ALL, "")
-
-#         # try to make stdout/stderr encodings happy for unicode printing
-#         preferred_encoding = get_actual_preferred_encoding()
-#         sys.stdout = codecs.getwriter(preferred_encoding)(sys.stdout)
-#         sys.stderr = codecs.getwriter(preferred_encoding)(sys.stderr)
-#         UtilsVars.already_fixed_encoding = True
-
-
 def get_recursive_filelist(pathlist: List[str]) -> List[str]:
     """Get a recursive list of of all files under all path items in the list"""
 

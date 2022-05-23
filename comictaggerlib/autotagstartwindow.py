@@ -37,31 +37,18 @@ class AutoTagStartWindow(QtWidgets.QDialog):
 
         self.settings = settings
 
-        self.cbxSaveOnLowConfidence.setCheckState(QtCore.Qt.CheckState.Unchecked)
-        self.cbxDontUseYear.setCheckState(QtCore.Qt.CheckState.Unchecked)
-        self.cbxAssumeIssueOne.setCheckState(QtCore.Qt.CheckState.Unchecked)
-        self.cbxIgnoreLeadingDigitsInFilename.setCheckState(QtCore.Qt.CheckState.Unchecked)
-        self.cbxRemoveAfterSuccess.setCheckState(QtCore.Qt.CheckState.Unchecked)
-        self.cbxSpecifySearchString.setCheckState(QtCore.Qt.CheckState.Unchecked)
-        self.cbxAutoImprint.setCheckState(QtCore.Qt.CheckState.Unchecked)
-        self.cbxSplitWords.setCheckState(QtCore.Qt.Unchecked)
+        self.cbxSpecifySearchString.setChecked(False)
+        self.cbxSplitWords.setChecked(False)
         self.leNameLengthMatchTolerance.setText(str(self.settings.id_length_delta_thresh))
         self.leSearchString.setEnabled(False)
 
-        if self.settings.save_on_low_confidence:
-            self.cbxSaveOnLowConfidence.setCheckState(QtCore.Qt.CheckState.Checked)
-        if self.settings.dont_use_year_when_identifying:
-            self.cbxDontUseYear.setCheckState(QtCore.Qt.CheckState.Checked)
-        if self.settings.assume_1_if_no_issue_num:
-            self.cbxAssumeIssueOne.setCheckState(QtCore.Qt.CheckState.Checked)
-        if self.settings.ignore_leading_numbers_in_filename:
-            self.cbxIgnoreLeadingDigitsInFilename.setCheckState(QtCore.Qt.CheckState.Checked)
-        if self.settings.remove_archive_after_successful_match:
-            self.cbxRemoveAfterSuccess.setCheckState(QtCore.Qt.CheckState.Checked)
-        if self.settings.wait_and_retry_on_rate_limit:
-            self.cbxWaitForRateLimit.setCheckState(QtCore.Qt.CheckState.Checked)
-        if self.settings.auto_imprint:
-            self.cbxAutoImprint.setCheckState(QtCore.Qt.CheckState.Checked)
+        self.cbxSaveOnLowConfidence.setChecked(self.settings.save_on_low_confidence)
+        self.cbxDontUseYear.setChecked(self.settings.dont_use_year_when_identifying)
+        self.cbxAssumeIssueOne.setChecked(self.settings.assume_1_if_no_issue_num)
+        self.cbxIgnoreLeadingDigitsInFilename.setChecked(self.settings.ignore_leading_numbers_in_filename)
+        self.cbxRemoveAfterSuccess.setChecked(self.settings.remove_archive_after_successful_match)
+        self.cbxWaitForRateLimit.setChecked(self.settings.wait_and_retry_on_rate_limit)
+        self.cbxAutoImprint.setChecked(self.settings.auto_imprint)
 
         nlmt_tip = """ <html>The <b>Name Length Match Tolerance</b> is for eliminating automatic
                 search matches that are too long compared to your series name search. The higher
@@ -108,7 +95,7 @@ class AutoTagStartWindow(QtWidgets.QDialog):
         self.remove_after_success = self.cbxRemoveAfterSuccess.isChecked()
         self.name_length_match_tolerance = int(self.leNameLengthMatchTolerance.text())
         self.wait_and_retry_on_rate_limit = self.cbxWaitForRateLimit.isChecked()
-        self.splitWords = self.cbxSplitWords.isChecked()
+        self.split_words = self.cbxSplitWords.isChecked()
 
         # persist some settings
         self.settings.save_on_low_confidence = self.auto_save_on_low
