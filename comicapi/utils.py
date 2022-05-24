@@ -15,11 +15,9 @@
 # limitations under the License.
 
 import json
-import locale
 import logging
 import os
 import pathlib
-import platform
 import re
 import unicodedata
 from collections import defaultdict
