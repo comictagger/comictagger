@@ -270,6 +270,9 @@ class ImprintDict(dict):
         else:
             return (item, self.publisher, True)
 
+    def copy(self) -> "ImprintDict":
+        return ImprintDict(self.publisher, super().copy())
+
 
 publishers: dict[str, ImprintDict] = {}
 

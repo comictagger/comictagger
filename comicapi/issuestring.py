@@ -120,9 +120,3 @@ class IssueString:
 
             return 0.5
         return self.num
-
-    def as_int(self) -> Optional[int]:
-        # return the int version of the float
-        if self.num is None:
-            return None
-        return int(self.num)
