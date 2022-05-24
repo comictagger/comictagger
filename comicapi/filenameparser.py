@@ -38,6 +38,8 @@ logger = logging.getLogger(__name__)
 
 
 class FileNameParser:
+    volume_regex = r"v(?:|ol|olume)\.?\s?"
+
     def __init__(self) -> None:
         self.series = ""
         self.volume = ""
@@ -117,6 +119,11 @@ class FileNameParser:
         # we should now have a cleaned up filename version with all the words in
         # the same positions as original filename
 
+        # search for volume number
+        match = re.search(self.volume_regex + r"(\d+)", filename, re.IGNORECASE)
+        if match:
+            self.volume = match.group(1)
+
         # make a list of each word and its position
         word_list = []
         for m in re.finditer(r"\S+", filename):
@@ -194,10 +201,12 @@ class FileNameParser:
         series = re.sub(r"\(.*?\)", "", series)
 
         # search for volume number
-        match = re.search(r"(.+)([vV]|[Vv][oO][Ll]\.?\s?)(\d+)\s*$", series)
+        match = re.search(r"(.+)" + self.volume_regex + r"(\d+)", series, re.IGNORECASE)
         if match:
             series = match.group(1)
-            volume = match.group(3)
+            volume = match.group(2)
+        if self.volume:
+            volume = self.volume
 
         # if a volume wasn't found, see if the last word is a year in parentheses
         # since that's a common way to designate the volume
@@ -220,6 +229,9 @@ class FileNameParser:
                     series = series.rsplit(" ", 1)[0]
             except:
                 pass
+
+        if volume:
+            series = re.sub(r"\s+v(|ol|olume)$", "", series)
 
         return series, volume.strip()
 
@@ -250,7 +262,7 @@ class FileNameParser:
 
         remainder = self.fix_spaces(remainder, remove_dashes=False)
         if volume != "":
-            remainder = remainder.replace("Vol." + volume, "", 1)
+            remainder = re.sub(r"(?i)(.+)((?:v(?:|ol|olume))\.?\s?)" + volume, "", remainder, count=1)
         if year != "":
             remainder = remainder.replace(year, "", 1)
         if count != "":
@@ -282,6 +294,9 @@ class FileNameParser:
         self.issue, issue_start, issue_end = self.get_issue_number(filename)
         self.series, self.volume = self.get_series_name(filename, issue_start)
 
+        if self.issue == "":
+            self.issue = self.volume
+
         # provides proper value when the filename doesn't have a issue number
         if issue_end == 0:
             issue_end = len(self.series)
@@ -290,13 +305,11 @@ class FileNameParser:
         self.issue_count = self.get_issue_count(filename, issue_end)
         self.remainder = self.get_remainder(filename, self.year, self.issue_count, self.volume, issue_end)
 
+        if self.volume != "":
+            self.volume = issuestring.IssueString(self.volume).as_string()
         if self.issue != "":
-            # strip off leading zeros
-            self.issue = self.issue.lstrip("0")
-            if self.issue == "":
-                self.issue = "0"
-            if self.issue[0] == ".":
-                self.issue = "0" + self.issue
+            self.issue = issuestring.IssueString(self.issue).as_string()
+        print(self.issue, self.volume)
 
 
 class FilenameInfo(TypedDict, total=False):
@@ -892,12 +905,9 @@ def parse_finish(p: Parser) -> Optional[Callable[[Parser], Optional[Callable]]]:
         if "alternate" in p.filename_info:
             p.filename_info["issue"] = p.filename_info["alternate"]
             p.filename_info["alternate"] = ""
-        else:
-            # TODO: This never happens
-            inp = [x for x in p.input if x not in p.irrelevant and x not in p.used_items and x.typ != eof.typ]
-            if len(inp) == 1 and inp[0].typ == filenamelexer.ItemType.Number:
-                p.filename_info["issue"] = inp[0].val
-                p.used_items.append(inp[0])
+
+        if "volume" in p.filename_info:
+            p.filename_info["issue"] = p.filename_info["volume"]
 
     remove_items = []
     if p.remove_fcbd:

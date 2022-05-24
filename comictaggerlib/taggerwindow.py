@@ -1707,8 +1707,11 @@ Please choose options below, and select OK.
 
         if dlg.dont_use_year:
             md.year = None
-        if dlg.assume_issue_one and (md.issue is None or md.issue == ""):
-            md.issue = "1"
+        if md.issue is None or md.issue == "":
+            if dlg.assume_issue_one:
+                md.issue = "1"
+            else:
+                md.issue = utils.xlate(md.volume)
         ii.set_additional_metadata(md)
         ii.only_use_additional_meta_data = True
         ii.wait_and_retry_on_rate_limit = dlg.wait_and_retry_on_rate_limit

@@ -302,7 +302,7 @@ fnames = [
         "Avengers By Brian Michael Bendis v03 (2013) (Digital) (F2) (Kileko-Empire).cbz",
         "volume without issue",
         {
-            "issue": "",
+            "issue": "3",
             "series": "Avengers By Brian Michael Bendis",
             "title": "",
             "volume": "3",
