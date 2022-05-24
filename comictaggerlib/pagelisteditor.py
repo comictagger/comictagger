@@ -97,7 +97,7 @@ class PageListEditor(QtWidgets.QWidget):
         self.listWidget.itemSelectionChanged.connect(self.change_page)
         item_move_events(self.listWidget).connect(self.item_move_event)
         self.cbPageType.activated.connect(self.change_page_type)
-        self.chkDoublePage.toggled.connect(self.toggle_double_page)
+        self.chkDoublePage.clicked.connect(self.toggle_double_page)
         self.leBookmark.editingFinished.connect(self.save_bookmark)
         self.btnUp.clicked.connect(self.move_current_up)
         self.btnDown.clicked.connect(self.move_current_down)
@@ -273,10 +273,12 @@ class PageListEditor(QtWidgets.QWidget):
         cbx = self.sender()
 
         if isinstance(cbx, QtWidgets.QCheckBox) and cbx.isChecked():
-            page_dict["DoublePage"] = True
+            if "DoublePage" not in page_dict:
+                page_dict["DoublePage"] = True
+                self.modified.emit()
         elif "DoublePage" in page_dict:
             del page_dict["DoublePage"]
-        self.modified.emit()
+            self.modified.emit()
 
         item = self.listWidget.item(row)
         # wrap the dict in a tuple to keep from being converted to QStrings
