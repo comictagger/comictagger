@@ -244,7 +244,6 @@ class FileSelectionList(QtWidgets.QWidget):
     def add_path_item(self, path: str) -> int:
         path = str(path)
         path = os.path.abspath(path)
-        # print "processing", path
 
         if self.is_list_dupe(path):
             return self.get_current_list_row(path)

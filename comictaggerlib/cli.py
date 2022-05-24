@@ -34,7 +34,6 @@ from comictaggerlib.options import Options
 from comictaggerlib.resulttypes import IssueResult, MultipleMatch, OnlineMatchResults
 from comictaggerlib.settings import ComicTaggerSettings
 
-filename_encoding = sys.getfilesystemencoding()
 logger = logging.getLogger(__name__)
 
 

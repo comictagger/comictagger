@@ -15,11 +15,9 @@
 # limitations under the License.
 
 import json
-import locale
 import logging
 import os
 import pathlib
-import platform
 import re
 import unicodedata
 from collections import defaultdict
@@ -32,25 +30,6 @@ logger = logging.getLogger(__name__)
 
 class UtilsVars:
     already_fixed_encoding = False
-
-
-def get_actual_preferred_encoding() -> str:
-    preferred_encoding = locale.getpreferredencoding()
-    if platform.system() == "Darwin":
-        preferred_encoding = "utf-8"
-    return preferred_encoding
-
-
-# def fix_output_encoding() -> None:
-#     if not UtilsVars.already_fixed_encoding:
-#         # this reads the environment and inits the right locale
-#         locale.setlocale(locale.LC_ALL, "")
-
-#         # try to make stdout/stderr encodings happy for unicode printing
-#         preferred_encoding = get_actual_preferred_encoding()
-#         sys.stdout = codecs.getwriter(preferred_encoding)(sys.stdout)
-#         sys.stderr = codecs.getwriter(preferred_encoding)(sys.stderr)
-#         UtilsVars.already_fixed_encoding = True
 
 
 def get_recursive_filelist(pathlist: List[str]) -> List[str]:

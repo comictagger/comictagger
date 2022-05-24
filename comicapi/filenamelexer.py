@@ -138,13 +138,6 @@ class Lexer:
 
         self.backup()
 
-    # NextItem returns the next item from the input.
-    # Called by the parser, not in the lexing goroutine.
-    # def next_item(self) -> Item:
-    #     item: Item = self.items.get()
-    #     self.lastPos = item.pos
-    #     return item
-
     def scan_number(self) -> bool:
         digits = "0123456789"
 
@@ -253,7 +246,6 @@ def lex_filename(lex: Lexer) -> Optional[Callable[[Lexer], Optional[Callable]]]:
         if lex.sbrace_depth < 0:
             return errorf(lex, "unexpected right brace " + r)
     elif is_symbol(r):
-        # L.backup()
         lex.emit(ItemType.Symbol)
     else:
         return errorf(lex, "unrecognized character in action: " + r)

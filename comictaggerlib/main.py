@@ -88,7 +88,7 @@ try:
     from comictaggerlib.taggerwindow import TaggerWindow
 except ImportError as e:
 
-    def show_exception_box(log_msg: str):
+    def show_exception_box(log_msg: str) -> None:
         pass
 
     logger.error(str(e))

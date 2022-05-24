@@ -417,7 +417,6 @@ def parse(p: Parser) -> Optional[Callable[[Parser], Optional[Callable]]]:
     if item.typ == filenamelexer.ItemType.Number:
         likely_year = False
         if p.firstItem and p.first_is_alt:
-            # raise Exception("fuck you")
             p.alt = True
             return parse_issue_number
 

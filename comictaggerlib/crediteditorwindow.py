@@ -18,7 +18,7 @@
 import logging
 from typing import Any
 
-from PyQt5 import QtCore, QtWidgets, uic
+from PyQt5 import QtWidgets, uic
 
 from comictaggerlib.settings import ComicTaggerSettings
 
@@ -64,8 +64,7 @@ class CreditEditorWindow(QtWidgets.QDialog):
             else:
                 self.cbRole.setCurrentIndex(i)
 
-        if primary:
-            self.cbPrimary.setCheckState(QtCore.Qt.CheckState.Checked)
+        self.cbPrimary.setChecked(primary)
 
         self.cbRole.currentIndexChanged.connect(self.role_changed)
         self.cbRole.editTextChanged.connect(self.role_changed)
