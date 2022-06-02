@@ -117,7 +117,7 @@ class ComicTaggerSettings:
         self.apply_cbl_transform_on_bulk_operation = False
 
         # Rename settings
-        self.rename_template = "%series% #%issue% (%year%)"
+        self.rename_template = "{series} #{issue} ({year})"
         self.rename_issue_number_padding = 3
         self.rename_use_smart_string_cleanup = True
         self.rename_extension_based_on_archive = True

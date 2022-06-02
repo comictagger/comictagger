@@ -15,6 +15,7 @@
 # limitations under the License.
 from __future__ import annotations
 
+import html
 import logging
 import os
 import platform
@@ -59,54 +60,61 @@ macRarHelp = """
 
 
 template_tooltip = """
-<pre>The template for the new filename. Uses python format strings https://docs.python.org/3/library/string.html#format-string-syntax
+The template for the new filename. Uses python format strings https://docs.python.org/3/library/string.html#format-string-syntax
 Accepts the following variables:
-{is_empty}       (boolean)
-{tag_origin}     (string)
-{series}        (string)
-{issue}     (string)
-{title}     (string)
-{publisher}     (string)
-{month}     (integer)
-{year}      (integer)
-{day}       (integer)
-{issue_count}    (integer)
-{volume}        (integer)
-{genre}     (string)
-{language}      (string)
-{comments}      (string)
-{volume_count}   (integer)
-{critical_rating}    (string)
-{country}       (string)
-{alternate_series}   (string)
-{alternate_number}   (string)
-{alternate_count}    (integer)
-{imprint}       (string)
-{notes}     (string)
-{web_link}       (string)
-{format}        (string)
-{manga}     (string)
-{black_and_white} (boolean)
-{page_count}     (integer)
-{maturity_rating}    (string)
-{community_rating}     (string)
-{story_arc}      (string)
-{series_group}   (string)
-{scan_info}      (string)
-{characters}    (string)
-{teams}     (string)
-{locations}     (string)
-{credits}       (list of dict({&apos;role&apos;: string, &apos;person&apos;: string, &apos;primary&apos;: boolean}))
-{tags}      (list of str)
-{pages}     (list of dict({&apos;Image&apos;: string(int), &apos;Type&apos;: string}))
+{is_empty}         (boolean)
+{tag_origin}       (string)
+{series}           (string)
+{issue}            (string)
+{title}            (string)
+{publisher}        (string)
+{month}            (integer)
+{year}             (integer)
+{day}              (integer)
+{issue_count}      (integer)
+{volume}           (integer)
+{genre}            (string)
+{language}         (string)
+{comments}         (string)
+{volume_count}     (integer)
+{critical_rating}  (string)
+{country}          (string)
+{alternate_series} (string)
+{alternate_number} (string)
+{alternate_count}  (integer)
+{imprint}          (string)
+{notes}            (string)
+{web_link}         (string)
+{format}           (string)
+{manga}            (string)
+{black_and_white}  (boolean)
+{page_count}       (integer)
+{maturity_rating}  (string)
+{community_rating} (string)
+{story_arc}        (string)
+{series_group}     (string)
+{scan_info}        (string)
+{characters}       (string)
+{teams}            (string)
+{locations}        (string)
+{credits}          (list of dict({'role': string, 'person': string, 'primary': boolean}))
+{writer}           (string)
+{penciller}        (string)
+{inker}            (string)
+{colorist}         (string)
+{letterer}         (string)
+{cover artist}     (string)
+{editor}           (string)
+{tags}             (list of str)
+{pages}            (list of dict({'Image': string(int), 'Type': string, 'Bookmark': string, 'DoublePage': string}))
 
 CoMet-only items:
-{price}     (float)
-{is_version_of}   (string)
-{rights}        (string)
-{identifier}    (string)
-{last_mark}  (string)
-{cover_image}    (string)
+{price}            (float)
+{is_version_of}    (string)
+{rights}           (string)
+{identifier}       (string)
+{last_mark}        (string)
+{cover_image}      (string)
 
 Examples:
 
@@ -115,7 +123,6 @@ Spider-Geddon 1 (2018)
 
 {series} #{issue} - {title}
 Spider-Geddon #1 - New Players; Check In
-</pre>
 """
 
 
@@ -169,7 +176,7 @@ class SettingsWindow(QtWidgets.QDialog):
         validator = QtGui.QIntValidator(0, 99, self)
         self.leNameLengthDeltaThresh.setValidator(validator)
 
-        self.leRenameTemplate.setToolTip(template_tooltip)
+        self.leRenameTemplate.setToolTip(f"<pre>{html.escape(template_tooltip)}</pre>")
         self.settings_to_form()
         self.rename_error: Exception | None = None
         self.rename_test()
