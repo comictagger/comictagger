@@ -115,7 +115,6 @@ class ComicBookInfo:
         return metadata
 
     def string_from_metadata(self, metadata: GenericMetadata) -> str:
-
         cbi_container = self.create_json_dictionary(metadata)
         return json.dumps(cbi_container)
 
@@ -165,7 +164,6 @@ class ComicBookInfo:
         return cbi_container
 
     def write_to_external_file(self, filename: str, metadata: GenericMetadata) -> None:
-
         cbi_container = self.create_json_dictionary(metadata)
 
         with open(filename, "w", encoding="utf-8") as f:

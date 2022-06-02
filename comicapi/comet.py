@@ -36,7 +36,6 @@ class CoMet:
     editor_synonyms = ["editor"]
 
     def metadata_from_string(self, string: str) -> GenericMetadata:
-
         tree = ET.ElementTree(ET.fromstring(string))
         return self.convert_xml_to_metadata(tree)
 
@@ -127,7 +126,6 @@ class CoMet:
         return tree
 
     def convert_xml_to_metadata(self, tree: ET.ElementTree) -> GenericMetadata:
-
         root = tree.getroot()
 
         if root.tag != "comet":
@@ -143,24 +141,24 @@ class CoMet:
                 return node.text
             return None
 
-        md.series = get("series")
-        md.title = get("title")
-        md.issue = get("issue")
-        md.volume = get("volume")
-        md.comments = get("description")
-        md.publisher = get("publisher")
-        md.language = get("language")
-        md.format = get("format")
-        md.page_count = get("pages")
-        md.maturity_rating = get("rating")
-        md.price = get("price")
-        md.is_version_of = get("isVersionOf")
-        md.rights = get("rights")
-        md.identifier = get("identifier")
-        md.last_mark = get("lastMark")
-        md.genre = get("genre")  # TODO - repeatable field
+        md.series = utils.xlate(get("series"))
+        md.title = utils.xlate(get("title"))
+        md.issue = utils.xlate(get("issue"))
+        md.volume = utils.xlate(get("volume"))
+        md.comments = utils.xlate(get("description"))
+        md.publisher = utils.xlate(get("publisher"))
+        md.language = utils.xlate(get("language"))
+        md.format = utils.xlate(get("format"))
+        md.page_count = utils.xlate(get("pages"))
+        md.maturity_rating = utils.xlate(get("rating"))
+        md.price = utils.xlate(get("price"))
+        md.is_version_of = utils.xlate(get("isVersionOf"))
+        md.rights = utils.xlate(get("rights"))
+        md.identifier = utils.xlate(get("identifier"))
+        md.last_mark = utils.xlate(get("lastMark"))
+        md.genre = utils.xlate(get("genre"))  # TODO - repeatable field
 
-        date = get("date")
+        date = utils.xlate(get("date"))
         if date is not None:
             parts = date.split("-")
             if len(parts) > 0:
@@ -168,9 +166,9 @@ class CoMet:
             if len(parts) > 1:
                 md.month = parts[1]
 
-        md.cover_image = get("coverImage")
+        md.cover_image = utils.xlate(get("coverImage"))
 
-        reading_direction = get("readingDirection")
+        reading_direction = utils.xlate(get("readingDirection"))
         if reading_direction is not None and reading_direction == "rtl":
             md.manga = "YesAndRightToLeft"
 
@@ -208,18 +206,16 @@ class CoMet:
             tree = ET.ElementTree(ET.fromstring(string))
             root = tree.getroot()
             if root.tag != "comet":
-                raise Exception
+                return False
         except ET.ParseError:
             return False
 
         return True
 
     def write_to_external_file(self, filename: str, metadata: GenericMetadata) -> None:
-
         tree = self.convert_metadata_to_xml(metadata)
         tree.write(filename, encoding="utf-8")
 
     def read_from_external_file(self, filename: str) -> GenericMetadata:
-
         tree = ET.parse(filename)
         return self.convert_xml_to_metadata(tree)

@@ -268,11 +268,9 @@ class ComicInfoXml:
         return md
 
     def write_to_external_file(self, filename: str, metadata: GenericMetadata, xml: bytes = b"") -> None:
-
         tree = self.convert_metadata_to_xml(self, metadata, xml)
         tree.write(filename, encoding="utf-8", xml_declaration=True)
 
     def read_from_external_file(self, filename: str) -> GenericMetadata:
-
         tree = ET.parse(filename)
         return self.convert_xml_to_metadata(tree)

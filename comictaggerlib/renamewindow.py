@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import logging
 import os
+import shutil
 from typing import TypedDict
 
 from PyQt5 import QtCore, QtWidgets, uic
@@ -199,7 +200,7 @@ class RenameWindow(QtWidgets.QDialog):
                 continue
 
             os.makedirs(os.path.dirname(new_abs_path), 0o777, True)
-            os.rename(item["archive"].path, new_abs_path)
+            shutil.move(item["archive"].path, new_abs_path)
 
             item["archive"].rename(new_abs_path)
 

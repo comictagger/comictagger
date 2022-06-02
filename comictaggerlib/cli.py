@@ -20,6 +20,7 @@ import argparse
 import json
 import logging
 import os
+import shutil
 import sys
 from pprint import pprint
 
@@ -507,7 +508,7 @@ def process_file_cli(
         if not opts.dryrun:
             # rename the file
             os.makedirs(os.path.dirname(new_abs_path), 0o777, True)
-            os.rename(filename, new_abs_path)
+            shutil.move(filename, new_abs_path)
         else:
             suffix = " (dry-run, no change)"
 
