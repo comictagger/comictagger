@@ -1,23 +1,24 @@
 """A class to automatically identify a comic archive"""
-
+#
 # Copyright 2012-2014 Anthony Beville
-
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
 
 import io
 import logging
 import sys
-from typing import Any, Callable, List, Optional
+from typing import Any, Callable
 
 from typing_extensions import NotRequired, TypedDict
 
@@ -42,11 +43,11 @@ except ImportError:
 
 
 class SearchKeys(TypedDict):
-    series: Optional[str]
-    issue_number: Optional[str]
-    month: Optional[int]
-    year: Optional[int]
-    issue_count: Optional[int]
+    series: str | None
+    issue_number: str | None
+    month: int | None
+    year: int | None
+    issue_count: int | None
 
 
 class Score(TypedDict):
@@ -101,8 +102,8 @@ class IssueIdentifier:
 
         self.additional_metadata = GenericMetadata()
         self.output_function: Callable[[str], None] = IssueIdentifier.default_write_output
-        self.callback: Optional[Callable[[int, int], None]] = None
-        self.cover_url_callback: Optional[Callable[[bytes], None]] = None
+        self.callback: Callable[[int, int], None] | None = None
+        self.cover_url_callback: Callable[[bytes], None] | None = None
         self.search_result = self.result_no_matches
         self.cover_page_index = 0
         self.cancel = False
@@ -122,7 +123,7 @@ class IssueIdentifier:
     def set_name_length_delta_threshold(self, delta: int) -> None:
         self.length_delta_thresh = delta
 
-    def set_publisher_filter(self, flt: List[str]) -> None:
+    def set_publisher_filter(self, flt: list[str]) -> None:
         self.publisher_filter = flt
 
     def set_hasher_algorithm(self, algo: int) -> None:
@@ -144,7 +145,7 @@ class IssueIdentifier:
             im = Image.open(io.BytesIO(image_data))
             w, h = im.size
             return float(h) / float(w)
-        except:
+        except Exception:
             return 1.5
 
     def crop_cover(self, image_data: bytes) -> bytes:
@@ -154,7 +155,7 @@ class IssueIdentifier:
 
         try:
             cropped_im = im.crop((int(w / 2), 0, w, h))
-        except:
+        except Exception:
             logger.exception("cropCover() error")
             return bytes()
 
@@ -348,7 +349,7 @@ class IssueIdentifier:
 
         return best_score_item
 
-    def search(self) -> List[IssueResult]:
+    def search(self) -> list[IssueResult]:
         ca = self.comic_archive
         self.match_list = []
         self.cancel = False
@@ -524,7 +525,7 @@ class IssueIdentifier:
                     hash_list,
                     use_remote_alternates=False,
                 )
-            except:
+            except Exception:
                 self.match_list = []
                 return self.match_list
 
@@ -612,7 +613,7 @@ class IssueIdentifier:
                         hash_list,
                         use_remote_alternates=True,
                     )
-                except:
+                except Exception:
                     self.match_list = []
                     return self.match_list
                 self.log_msg(f"--->{score_item['score']}")

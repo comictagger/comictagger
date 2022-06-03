@@ -1,22 +1,21 @@
 """A PyQT4 dialog to select specific issue from list"""
-
+#
 # Copyright 2012-2014 Anthony Beville
-
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+from __future__ import annotations
 
 import logging
-from typing import Optional
 
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
@@ -65,7 +64,7 @@ class IssueSelectionWindow(QtWidgets.QDialog):
         )
 
         self.series_id = series_id
-        self.issue_id: Optional[int] = None
+        self.issue_id: int | None = None
         self.settings = settings
         self.url_fetch_thread = None
         self.issue_list: list[CVIssuesResults] = []
@@ -75,7 +74,7 @@ class IssueSelectionWindow(QtWidgets.QDialog):
         else:
             self.issue_number = issue_number
 
-        self.initial_id: Optional[int] = None
+        self.initial_id: int | None = None
         self.perform_query()
 
         self.twList.resizeColumnsToContents()
@@ -163,7 +162,7 @@ class IssueSelectionWindow(QtWidgets.QDialog):
     def cell_double_clicked(self, r: int, c: int) -> None:
         self.accept()
 
-    def current_item_changed(self, curr: Optional[QtCore.QModelIndex], prev: Optional[QtCore.QModelIndex]) -> None:
+    def current_item_changed(self, curr: QtCore.QModelIndex | None, prev: QtCore.QModelIndex | None) -> None:
 
         if curr is None:
             return

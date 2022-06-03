@@ -4,31 +4,29 @@ Class for handling the odd permutations of an 'issue number' that the
 comics industry throws at us.
   e.g.: "12", "12.1", "0", "-1", "5AU", "100-2"
 """
-
 # Copyright 2012-2014 Anthony Beville
-
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+from __future__ import annotations
 
 import logging
 import unicodedata
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 
 
 class IssueString:
-    def __init__(self, text: Optional[str]) -> None:
+    def __init__(self, text: str | None) -> None:
 
         # break up the issue number string into 2 parts: the numeric and suffix string.
         # (assumes that the numeric portion is always first)
@@ -52,8 +50,7 @@ class IssueString:
 
         # if it's still not numeric at start skip it
         if text[start].isdigit() or text[start] == ".":
-            # walk through the string, look for split point (the first
-            # non-numeric)
+            # walk through the string, look for split point (the first non-numeric)
             decimal_count = 0
             for idx in range(start, len(text)):
                 if text[idx] not in "0123456789.":
@@ -71,8 +68,7 @@ class IssueString:
             if text[idx - 1] == "." and len(text) != idx:
                 idx = idx - 1
 
-            # if there is no numeric after the minus, make the minus part of
-            # the suffix
+            # if there is no numeric after the minus, make the minus part of the suffix
             if idx == 1 and start == 1:
                 idx = 0
 
@@ -113,7 +109,7 @@ class IssueString:
 
         return num_s
 
-    def as_float(self) -> Optional[float]:
+    def as_float(self) -> float | None:
         # return the float, with no suffix
         if len(self.suffix) == 1 and self.suffix.isnumeric():
             return (self.num or 0) + unicodedata.numeric(self.suffix)

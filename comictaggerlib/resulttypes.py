@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import List, Optional, Union
-
 from typing_extensions import NotRequired, Required, TypedDict
 
 from comicapi.comicarchive import ComicArchive
@@ -16,9 +14,9 @@ class IssueResult(TypedDict):
     issue_title: str
     issue_id: int  # int?
     volume_id: int  # int?
-    month: Optional[int]
-    year: Optional[int]
-    publisher: Optional[str]
+    month: int | None
+    year: int | None
+    publisher: str | None
     image_url: str
     thumb_url: str
     page_url: str
@@ -27,25 +25,25 @@ class IssueResult(TypedDict):
 
 class OnlineMatchResults:
     def __init__(self) -> None:
-        self.good_matches: List[str] = []
-        self.no_matches: List[str] = []
-        self.multiple_matches: List[MultipleMatch] = []
-        self.low_confidence_matches: List[MultipleMatch] = []
-        self.write_failures: List[str] = []
-        self.fetch_data_failures: List[str] = []
+        self.good_matches: list[str] = []
+        self.no_matches: list[str] = []
+        self.multiple_matches: list[MultipleMatch] = []
+        self.low_confidence_matches: list[MultipleMatch] = []
+        self.write_failures: list[str] = []
+        self.fetch_data_failures: list[str] = []
 
 
 class MultipleMatch:
-    def __init__(self, ca: ComicArchive, match_list: List[IssueResult]) -> None:
+    def __init__(self, ca: ComicArchive, match_list: list[IssueResult]) -> None:
         self.ca: ComicArchive = ca
         self.matches: list[IssueResult] = match_list
 
 
 class SelectDetails(TypedDict):
-    image_url: Optional[str]
-    thumb_image_url: Optional[str]
-    cover_date: Optional[str]
-    site_detail_url: Optional[str]
+    image_url: str | None
+    thumb_image_url: str | None
+    cover_date: str | None
+    site_detail_url: str | None
 
 
 class CVResult(TypedDict):
@@ -55,14 +53,14 @@ class CVResult(TypedDict):
     number_of_page_results: int
     number_of_total_results: int
     status_code: int
-    results: Union[
-        CVIssuesResults,
-        CVIssueDetailResults,
-        CVVolumeResults,
-        list[CVIssuesResults],
-        list[CVVolumeResults],
-        list[CVIssueDetailResults],
-    ]
+    results: (
+        CVIssuesResults
+        | CVIssueDetailResults
+        | CVVolumeResults
+        | list[CVIssuesResults]
+        | list[CVVolumeResults]
+        | list[CVIssueDetailResults]
+    )
     version: str
 
 

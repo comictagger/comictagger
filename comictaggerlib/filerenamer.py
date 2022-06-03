@@ -1,18 +1,19 @@
 """Functions for renaming files based on metadata"""
-
+#
 # Copyright 2012-2014 Anthony Beville
-
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
 
 import calendar
 import logging
@@ -20,7 +21,7 @@ import os
 import pathlib
 import string
 import sys
-from typing import Any, Optional, cast
+from typing import Any, cast
 
 from pathvalidate import sanitize_filename
 
@@ -119,7 +120,7 @@ class MetadataFormatter(string.Formatter):
 
 
 class FileRenamer:
-    def __init__(self, metadata: Optional[GenericMetadata], platform: str = "auto") -> None:
+    def __init__(self, metadata: GenericMetadata | None, platform: str = "auto") -> None:
         self.template = "{publisher}/{series}/{series} v{volume} #{issue} (of {issue_count}) ({year})"
         self.smart_cleanup = True
         self.issue_zero_padding = 3

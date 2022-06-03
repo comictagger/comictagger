@@ -1,23 +1,24 @@
 """A class to manage creating image content hashes, and calculate hamming distances"""
-
+#
 # Copyright 2013 Anthony Beville
-
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
 
 import io
 import logging
 from functools import reduce
-from typing import Optional, TypeVar
+from typing import TypeVar
 
 try:
     from PIL import Image
@@ -29,12 +30,12 @@ logger = logging.getLogger(__name__)
 
 
 class ImageHasher:
-    def __init__(self, path: Optional[str] = None, data: bytes = bytes(), width: int = 8, height: int = 8) -> None:
+    def __init__(self, path: str | None = None, data: bytes = bytes(), width: int = 8, height: int = 8) -> None:
         self.width = width
         self.height = height
 
         if path is None and not data:
-            raise IOError
+            raise OSError
 
         try:
             if path is not None:
@@ -86,7 +87,6 @@ class ImageHasher:
         result = reduce(lambda x, (y, z): x | (z << y),
                          enumerate(map(lambda i: 0 if i < 0 else 1, filt_data)),
                          0)
-        #print("{0:016x}".format(result))
         return result
         """
 
@@ -164,7 +164,6 @@ class ImageHasher:
         result = reduce(set_bit, enumerate(bitlist), long(0))
 
 
-        #print("{0:016x}".format(result))
         return result
         """
 

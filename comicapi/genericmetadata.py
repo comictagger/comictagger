@@ -5,23 +5,23 @@ tagging schemes and databases, such as ComicVine or GCD.  This makes conversion
 possible, however lossy it might be
 
 """
-
 # Copyright 2012-2014 Anthony Beville
-
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
 
 import logging
-from typing import Any, List, Optional, TypedDict
+from typing import Any, TypedDict
 
 from comicapi import utils
 
@@ -76,59 +76,59 @@ class GenericMetadata:
     def __init__(self) -> None:
 
         self.is_empty: bool = True
-        self.tag_origin: Optional[str] = None
+        self.tag_origin: str | None = None
 
-        self.series: Optional[str] = None
-        self.issue: Optional[str] = None
-        self.title: Optional[str] = None
-        self.publisher: Optional[str] = None
-        self.month: Optional[int] = None
-        self.year: Optional[int] = None
-        self.day: Optional[int] = None
-        self.issue_count: Optional[int] = None
-        self.volume: Optional[int] = None
-        self.genre: Optional[str] = None
-        self.language: Optional[str] = None  # 2 letter iso code
-        self.comments: Optional[str] = None  # use same way as Summary in CIX
+        self.series: str | None = None
+        self.issue: str | None = None
+        self.title: str | None = None
+        self.publisher: str | None = None
+        self.month: int | None = None
+        self.year: int | None = None
+        self.day: int | None = None
+        self.issue_count: int | None = None
+        self.volume: int | None = None
+        self.genre: str | None = None
+        self.language: str | None = None  # 2 letter iso code
+        self.comments: str | None = None  # use same way as Summary in CIX
 
-        self.volume_count: Optional[int] = None
-        self.critical_rating: Optional[str] = None
-        self.country: Optional[str] = None
+        self.volume_count: int | None = None
+        self.critical_rating: str | None = None
+        self.country: str | None = None
 
-        self.alternate_series: Optional[str] = None
-        self.alternate_number: Optional[str] = None
-        self.alternate_count: Optional[int] = None
-        self.imprint: Optional[str] = None
-        self.notes: Optional[str] = None
-        self.web_link: Optional[str] = None
-        self.format: Optional[str] = None
-        self.manga: Optional[str] = None
-        self.black_and_white: Optional[bool] = None
-        self.page_count: Optional[int] = None
-        self.maturity_rating: Optional[str] = None
-        self.community_rating: Optional[str] = None
+        self.alternate_series: str | None = None
+        self.alternate_number: str | None = None
+        self.alternate_count: int | None = None
+        self.imprint: str | None = None
+        self.notes: str | None = None
+        self.web_link: str | None = None
+        self.format: str | None = None
+        self.manga: str | None = None
+        self.black_and_white: bool | None = None
+        self.page_count: int | None = None
+        self.maturity_rating: str | None = None
+        self.community_rating: str | None = None
 
-        self.story_arc: Optional[str] = None
-        self.series_group: Optional[str] = None
-        self.scan_info: Optional[str] = None
+        self.story_arc: str | None = None
+        self.series_group: str | None = None
+        self.scan_info: str | None = None
 
-        self.characters: Optional[str] = None
-        self.teams: Optional[str] = None
-        self.locations: Optional[str] = None
+        self.characters: str | None = None
+        self.teams: str | None = None
+        self.locations: str | None = None
 
-        self.credits: List[CreditMetadata] = []
-        self.tags: List[str] = []
-        self.pages: List[ImageMetadata] = []
+        self.credits: list[CreditMetadata] = []
+        self.tags: list[str] = []
+        self.pages: list[ImageMetadata] = []
 
         # Some CoMet-only items
-        self.price: Optional[str] = None
-        self.is_version_of: Optional[str] = None
-        self.rights: Optional[str] = None
-        self.identifier: Optional[str] = None
-        self.last_mark: Optional[str] = None
-        self.cover_image: Optional[str] = None
+        self.price: str | None = None
+        self.is_version_of: str | None = None
+        self.rights: str | None = None
+        self.identifier: str | None = None
+        self.last_mark: str | None = None
+        self.cover_image: str | None = None
 
-    def overlay(self, new_md: "GenericMetadata") -> None:
+    def overlay(self, new_md: GenericMetadata) -> None:
         """Overlay a metadata object on this one
 
         That is, when the new object has non-None values, over-write them
@@ -198,7 +198,7 @@ class GenericMetadata:
         if len(new_md.pages) > 0:
             assign("pages", new_md.pages)
 
-    def overlay_credits(self, new_credits: List[CreditMetadata]) -> None:
+    def overlay_credits(self, new_credits: list[CreditMetadata]) -> None:
         for c in new_credits:
             primary = bool("primary" in c and c["primary"])
 
@@ -220,8 +220,7 @@ class GenericMetadata:
             self.pages.append(page_dict)
 
     def get_archive_page_index(self, pagenum: int) -> int:
-        # convert the displayed page number to the page index of the file in
-        # the archive
+        # convert the displayed page number to the page index of the file in the archive
         if pagenum < len(self.pages):
             return int(self.pages[pagenum]["Image"])
 
@@ -374,9 +373,9 @@ md_test.volume = 1
 md_test.genre = "Sci-Fi"
 md_test.language = "en"
 md_test.comments = (
-    "For 12-year-old Anda, getting paid real money to kill the characters of players who were cheating in her favorite online "
-    "computer game was a win-win situation. Until she found out who was paying her, and what those characters meant to the "
-    "livelihood of children around the world."
+    "For 12-year-old Anda, getting paid real money to kill the characters of players who were cheating"
+    " in her favorite online computer game was a win-win situation. Until she found out who was paying her,"
+    " and what those characters meant to the livelihood of children around the world."
 )
 md_test.volume_count = None
 md_test.critical_rating = None

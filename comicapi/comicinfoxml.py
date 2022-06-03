@@ -1,23 +1,23 @@
 """A class to encapsulate ComicRack's ComicInfo.xml data"""
-
 # Copyright 2012-2014 Anthony Beville
-
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
 
 import logging
 import xml.etree.ElementTree as ET
 from collections import OrderedDict
-from typing import Any, List, Optional, cast
+from typing import Any, cast
 from xml.etree.ElementTree import ElementTree
 
 from comicapi import utils
@@ -37,7 +37,7 @@ class ComicInfoXml:
     cover_synonyms = ["cover", "covers", "coverartist", "cover artist"]
     editor_synonyms = ["editor"]
 
-    def get_parseable_credits(self) -> List[str]:
+    def get_parseable_credits(self) -> list[str]:
         parsable_credits = []
         parsable_credits.extend(self.writer_synonyms)
         parsable_credits.extend(self.penciller_synonyms)
@@ -59,7 +59,7 @@ class ComicInfoXml:
         return str(tree_str)
 
     def convert_metadata_to_xml(
-        self, filename: "ComicInfoXml", metadata: GenericMetadata, xml: bytes = b""
+        self, filename: ComicInfoXml, metadata: GenericMetadata, xml: bytes = b""
     ) -> ElementTree:
 
         # shorthand for the metadata
@@ -192,7 +192,7 @@ class ComicInfoXml:
         if root.tag != "ComicInfo":
             raise Exception("Not a ComicInfo file")
 
-        def get(name: str) -> Optional[str]:
+        def get(name: str) -> str | None:
             tag = root.find(name)
             if tag is None:
                 return None

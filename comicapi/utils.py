@@ -1,18 +1,18 @@
 """Some generic utilities"""
-
 # Copyright 2012-2014 Anthony Beville
-
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
 
 import json
 import logging
@@ -21,7 +21,7 @@ import pathlib
 import re
 import unicodedata
 from collections import defaultdict
-from typing import Any, Iterable, List, Optional, Union
+from typing import Any, Mapping
 
 import pycountry
 
@@ -32,7 +32,7 @@ class UtilsVars:
     already_fixed_encoding = False
 
 
-def get_recursive_filelist(pathlist: List[str]) -> List[str]:
+def get_recursive_filelist(pathlist: list[str]) -> list[str]:
     """Get a recursive list of of all files under all path items in the list"""
 
     filelist = []
@@ -55,7 +55,7 @@ def get_recursive_filelist(pathlist: List[str]) -> List[str]:
     return filelist
 
 
-def list_to_string(lst: List[Union[str, Any]]) -> str:
+def list_to_string(lst: list[str | Any]) -> str:
     string = ""
     if lst is not None:
         for item in lst:
@@ -77,7 +77,7 @@ def add_to_path(dirname: str) -> None:
             os.environ["PATH"] = dirname + os.pathsep + os.environ["PATH"]
 
 
-def which(program: str) -> Optional[str]:
+def which(program: str) -> str | None:
     """Returns path of the executable, if it exists"""
 
     def is_exe(fpath: str) -> bool:
@@ -173,9 +173,9 @@ def unique_file(file_name: str) -> str:
         counter += 1
 
 
-languages: dict[Optional[str], Optional[str]] = defaultdict(lambda: None)
+languages: dict[str | None, str | None] = defaultdict(lambda: None)
 
-countries: dict[Optional[str], Optional[str]] = defaultdict(lambda: None)
+countries: dict[str | None, str | None] = defaultdict(lambda: None)
 
 for c in pycountry.countries:
     if "alpha_2" in c._fields:
@@ -186,11 +186,11 @@ for lng in pycountry.languages:
         languages[lng.alpha_2] = lng.name
 
 
-def get_language_from_iso(iso: Optional[str]) -> Optional[str]:
+def get_language_from_iso(iso: str | None) -> str | None:
     return languages[iso]
 
 
-def get_language(string: Optional[str]) -> Optional[str]:
+def get_language(string: str | None) -> str | None:
     if string is None:
         return None
 
@@ -199,7 +199,7 @@ def get_language(string: Optional[str]) -> Optional[str]:
     if lang is None:
         try:
             return str(pycountry.languages.lookup(string).name)
-        except:
+        except LookupError:
             return None
     return lang
 
@@ -217,7 +217,7 @@ def get_publisher(publisher: str) -> tuple[str, str]:
     return (imprint, publisher)
 
 
-def update_publishers(new_publishers: dict[str, dict[str, str]]) -> None:
+def update_publishers(new_publishers: Mapping[str, Mapping[str, str]]) -> None:
     for publisher in new_publishers:
         if publisher in publishers:
             publishers[publisher].update(new_publishers[publisher])
@@ -233,7 +233,7 @@ class ImprintDict(dict):
     if the key does not exist the key is returned as the publisher unchanged
     """
 
-    def __init__(self, publisher: str, mapping: Iterable = (), **kwargs: Any):
+    def __init__(self, publisher: str, mapping=(), **kwargs) -> None:
         super().__init__(mapping, **kwargs)
         self.publisher = publisher
 
@@ -249,7 +249,7 @@ class ImprintDict(dict):
         else:
             return (item, self.publisher, True)
 
-    def copy(self) -> "ImprintDict":
+    def copy(self) -> ImprintDict:
         return ImprintDict(self.publisher, super().copy())
 
 

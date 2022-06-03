@@ -1,18 +1,19 @@
 """A class to manage fetching and caching of images by URL"""
-
+#
 # Copyright 2012-2014 Anthony Beville
-
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
 
 import datetime
 import logging
@@ -20,7 +21,6 @@ import os
 import shutil
 import sqlite3 as lite
 import tempfile
-from typing import Union
 
 import requests
 
@@ -41,7 +41,7 @@ class ImageFetcherException(Exception):
     pass
 
 
-def fetch_complete(image_data: "Union[bytes, QtCore.QByteArray]") -> None:
+def fetch_complete(image_data: bytes | QtCore.QByteArray) -> None:
     ...
 
 
@@ -106,7 +106,7 @@ class ImageFetcher:
             # we'll get called back when done...
         return bytes()
 
-    def finish_request(self, reply: "QtNetwork.QNetworkReply") -> None:
+    def finish_request(self, reply: QtNetwork.QNetworkReply) -> None:
         # read in the image data
         logger.debug("request finished")
         image_data = reply.readAll()
@@ -134,7 +134,7 @@ class ImageFetcher:
 
             cur.execute("CREATE TABLE Images(url TEXT,filename TEXT,timestamp TEXT,PRIMARY KEY (url))")
 
-    def add_image_to_cache(self, url: str, image_data: "Union[bytes, QtCore.QByteArray]") -> None:
+    def add_image_to_cache(self, url: str, image_data: bytes | QtCore.QByteArray) -> None:
 
         con = lite.connect(self.db_file)
 
@@ -168,7 +168,7 @@ class ImageFetcher:
                 with open(filename, "rb") as f:
                     image_data = f.read()
                     f.close()
-            except IOError:
+            except OSError:
                 pass
 
             return image_data

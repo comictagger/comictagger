@@ -9,6 +9,8 @@ format is
     bool(xfail: expected failure on the old parser)
 )
 """
+from __future__ import annotations
+
 fnames = [
     (
         "batman 3 title (DC).cbz",

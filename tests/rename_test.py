@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 import pathlib
 
 import pytest
-from filenames import rnames
 
 from comicapi.genericmetadata import md_test
 from comictaggerlib.filerenamer import FileRenamer
+from testing.filenames import rnames
 
 
 @pytest.mark.parametrize("template, move, platform, expected", rnames)

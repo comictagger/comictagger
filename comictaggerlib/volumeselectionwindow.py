@@ -1,21 +1,21 @@
 """A PyQT4 dialog to select specific series/volume from list"""
-
+#
 # Copyright 2012-2014 Anthony Beville
-
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
 
 import logging
-from typing import Optional
 
 from PyQt5 import QtCore, QtWidgets, uic
 from PyQt5.QtCore import pyqtSignal
@@ -44,7 +44,7 @@ class SearchThread(QtCore.QThread):
         QtCore.QThread.__init__(self)
         self.series_name = series_name
         self.refresh: bool = refresh
-        self.error_code: Optional[int] = None
+        self.error_code: int | None = None
         self.cv_error = False
         self.cv_search_results: list[CVVolumeResults] = []
 
@@ -95,7 +95,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
         parent: QtWidgets.QWidget,
         series_name: str,
         issue_number: str,
-        year: Optional[int],
+        year: int | None,
         issue_count: int,
         cover_index_list: list[int],
         comic_archive: ComicArchive,
@@ -132,11 +132,11 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
         self.immediate_autoselect = autoselect
         self.cover_index_list = cover_index_list
         self.cv_search_results: list[CVVolumeResults] = []
-        self.ii: Optional[IssueIdentifier] = None
-        self.iddialog: Optional[IDProgressWindow] = None
-        self.id_thread: Optional[IdentifyThread] = None
-        self.progdialog: Optional[QtWidgets.QProgressDialog] = None
-        self.search_thread: Optional[SearchThread] = None
+        self.ii: IssueIdentifier | None = None
+        self.iddialog: IDProgressWindow | None = None
+        self.id_thread: IdentifyThread | None = None
+        self.progdialog: QtWidgets.QProgressDialog | None = None
+        self.search_thread: SearchThread | None = None
 
         self.use_filter = self.settings.always_use_publisher_filter
 
@@ -355,8 +355,8 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
                             self.cv_search_results,
                         )
                     )
-                except:
-                    logger.exception("bad data error filtering filter publishers")
+                except Exception:
+                    logger.exception("bad data error filtering publishers")
 
             # pre sort the data - so that we can put exact matches first afterwards
             # compare as str incase extra chars ie. '1976?'
@@ -369,14 +369,14 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
                         key=lambda i: (str(i["start_year"]), str(i["count_of_issues"])),
                         reverse=True,
                     )
-                except:
+                except Exception:
                     logger.exception("bad data error sorting results by start_year,count_of_issues")
             else:
                 try:
                     self.cv_search_results = sorted(
                         self.cv_search_results, key=lambda i: str(i["count_of_issues"]), reverse=True
                     )
-                except:
+                except Exception:
                     logger.exception("bad data error sorting results by count_of_issues")
 
             # move sanitized matches to the front
@@ -390,7 +390,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
                         filter(lambda d: utils.sanitize_title(str(d["name"])) not in sanitized, self.cv_search_results)
                     )
                     self.cv_search_results = exact_matches + non_matches
-                except:
+                except Exception:
                     logger.exception("bad data error filtering exact/near matches")
 
             self.update_buttons()
@@ -454,7 +454,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
     def cell_double_clicked(self, r: int, c: int) -> None:
         self.show_issues()
 
-    def current_item_changed(self, curr: Optional[QtCore.QModelIndex], prev: Optional[QtCore.QModelIndex]) -> None:
+    def current_item_changed(self, curr: QtCore.QModelIndex | None, prev: QtCore.QModelIndex | None) -> None:
 
         if curr is None:
             return

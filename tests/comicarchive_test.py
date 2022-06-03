@@ -1,12 +1,14 @@
+from __future__ import annotations
+
 import shutil
-from os.path import abspath, dirname, join
+from os.path import dirname, join
 
 import pytest
 
 from comicapi.comicarchive import ComicArchive, rar_support
 from comicapi.genericmetadata import GenericMetadata, md_test
 
-thisdir = dirname(abspath(__file__))
+thisdir = dirname(__file__)
 
 
 @pytest.mark.xfail(not rar_support, reason="rar support")

@@ -1,23 +1,23 @@
 """A PyQT4 dialog to enter app settings"""
-
+#
 # Copyright 2012-2014 Anthony Beville
-
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
 
 import logging
 import os
 import platform
-from typing import Optional
 
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
@@ -171,7 +171,7 @@ class SettingsWindow(QtWidgets.QDialog):
 
         self.leRenameTemplate.setToolTip(template_tooltip)
         self.settings_to_form()
-        self.rename_error: Optional[Exception] = None
+        self.rename_error: Exception | None = None
         self.rename_test()
 
         self.btnBrowseRar.clicked.connect(self.select_rar)
@@ -374,6 +374,6 @@ class SettingsWindow(QtWidgets.QDialog):
 
 class TemplateHelpWindow(QtWidgets.QDialog):
     def __init__(self, parent: QtWidgets.QWidget) -> None:
-        super(TemplateHelpWindow, self).__init__(parent)
+        super().__init__(parent)
 
         uic.loadUi(ComicTaggerSettings.get_ui_file("TemplateHelp.ui"), self)

@@ -33,7 +33,7 @@
      </property>
      <property name="html">
       <string>&lt;html&gt;
-	&lt;head&gt;
+     &lt;head&gt;
      &lt;style&gt;
 table {
   font-family: arial, sans-serif;
@@ -52,12 +52,12 @@ tr:nth-child(even) {
 }
 &lt;/style&gt;
      &lt;/head&gt;
-	&lt;body&gt;
-		&lt;h1 style="text-align: center"&gt;Template help&lt;/h1&gt;
-		&lt;p&gt;The template uses Python format strings, in the simplest use it replaces the field (e.g. {issue}) with the value for that particular comic (e.g. 1) for advanced formatting please reference the
+     &lt;body&gt;
+          &lt;h1 style="text-align: center"&gt;Template help&lt;/h1&gt;
+          &lt;p&gt;The template uses Python format strings, in the simplest use it replaces the field (e.g. {issue}) with the value for that particular comic (e.g. 1) for advanced formatting please reference the
 
-			&lt;a href="https://docs.python.org/3/library/string.html#format-string-syntax"&gt;Python 3 documentation&lt;/a&gt;&lt;/p&gt;
-		Accepts the following variables:
+               &lt;a href="https://docs.python.org/3/library/string.html#format-string-syntax"&gt;Python 3 documentation&lt;/a&gt;&lt;/p&gt;
+          Accepts the following variables:
 &lt;table&gt;
      &lt;tr&gt;
           &lt;th&gt;Tag name&lt;/th&gt;
@@ -118,7 +118,7 @@ Spider-Geddon 1 (2018)
 Spider-Geddon #1 - New Players; Check In
 
 &lt;/pre&gt;
-	&lt;/body&gt;
+     &lt;/body&gt;
 &lt;/html&gt;</string></property>
      <property name="textInteractionFlags">
       <set>Qt::TextBrowserInteraction</set>

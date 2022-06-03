@@ -1,21 +1,21 @@
 """A PyQt5 widget for editing the page list info"""
-
+#
 # Copyright 2012-2014 Anthony Beville
-
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
 
 import logging
-from typing import Optional
 
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
@@ -102,9 +102,9 @@ class PageListEditor(QtWidgets.QWidget):
         self.btnUp.clicked.connect(self.move_current_up)
         self.btnDown.clicked.connect(self.move_current_down)
         self.pre_move_row = -1
-        self.first_front_page: Optional[int] = None
+        self.first_front_page: int | None = None
 
-        self.comic_archive: Optional[ComicArchive] = None
+        self.comic_archive: ComicArchive | None = None
         self.pages_list: list[ImageMetadata] = []
 
     def reset_page(self) -> None:

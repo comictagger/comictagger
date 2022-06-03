@@ -1,24 +1,25 @@
 """A python class to manage caching of data from Comic Vine"""
-
+#
 # Copyright 2012-2014 Anthony Beville
-
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
 
 import datetime
 import logging
 import os
 import sqlite3 as lite
-from typing import Any, Optional
+from typing import Any
 
 from comicapi import utils
 from comictaggerlib import ctversion
@@ -40,7 +41,7 @@ class ComicVineCacher:
             with open(self.version_file, "rb") as f:
                 data = f.read().decode("utf-8")
                 f.close()
-        except:
+        except Exception:
             pass
         if data != ctversion.version:
             self.clear_cache()
@@ -51,11 +52,11 @@ class ComicVineCacher:
     def clear_cache(self) -> None:
         try:
             os.unlink(self.db_file)
-        except:
+        except Exception:
             pass
         try:
             os.unlink(self.version_file)
-        except:
+        except Exception:
             pass
 
     def create_cache_db(self) -> None:
@@ -283,9 +284,9 @@ class ComicVineCacher:
                 }
                 self.upsert(cur, "issues", "id", issue["id"], data)
 
-    def get_volume_info(self, volume_id: int) -> Optional[CVVolumeResults]:
+    def get_volume_info(self, volume_id: int) -> CVVolumeResults | None:
 
-        result: Optional[CVVolumeResults] = None
+        result: CVVolumeResults | None = None
 
         con = lite.connect(self.db_file)
         with con:
@@ -333,7 +334,10 @@ class ComicVineCacher:
             results: list[CVIssuesResults] = []
 
             cur.execute(
-                "SELECT id,name,issue_number,site_detail_url,cover_date,super_url,thumb_url,description FROM Issues WHERE volume_id = ?",
+                (
+                    "SELECT id,name,issue_number,site_detail_url,cover_date,super_url,thumb_url,description"
+                    " FROM Issues WHERE volume_id = ?"
+                ),
                 [volume_id],
             )
             rows = cur.fetchall()

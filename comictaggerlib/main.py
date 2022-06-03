@@ -1,21 +1,21 @@
 """A python app to (automatically) tag comic archives"""
-
+#
 # Copyright 2012-2014 Anthony Beville
-
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
 
 import json
-import logging
 import logging.handlers
 import os
 import pathlib
@@ -24,7 +24,6 @@ import signal
 import sys
 import traceback
 import types
-from typing import Optional
 
 import pkg_resources
 
@@ -68,7 +67,7 @@ try:
             self._exception_caught.connect(show_exception_box)
 
         def exception_hook(
-            self, exc_type: type[BaseException], exc_value: BaseException, exc_traceback: Optional[types.TracebackType]
+            self, exc_type: type[BaseException], exc_value: BaseException, exc_traceback: types.TracebackType | None
         ) -> None:
             """Function handling uncaught exceptions.
             It is triggered each time an uncaught exception occurs.
@@ -167,7 +166,7 @@ def ctmain() -> None:
     if opts.no_gui:
         try:
             cli.cli_mode(opts, SETTINGS)
-        except:
+        except Exception:
             logger.exception("CLI mode failed")
     else:
         os.environ["QtWidgets.QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
@@ -186,12 +185,12 @@ def ctmain() -> None:
             import ctypes
 
             myappid = "comictagger"  # arbitrary string
-            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)  # type: ignore[attr-defined]
             # force close of console window
             swp_hidewindow = 0x0080
-            console_wnd = ctypes.windll.kernel32.GetConsoleWindow()
+            console_wnd = ctypes.windll.kernel32.GetConsoleWindow()  # type: ignore[attr-defined]
             if console_wnd != 0:
-                ctypes.windll.user32.SetWindowPos(console_wnd, None, 0, 0, 0, 0, swp_hidewindow)
+                ctypes.windll.user32.SetWindowPos(console_wnd, None, 0, 0, 0, 0, swp_hidewindow)  # type: ignore[attr-defined]
 
         if platform.system() != "Linux":
             img = QtGui.QPixmap(ComicTaggerSettings.get_graphic("tags.png"))

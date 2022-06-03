@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import pytest
-from filenames import fnames
 
 import comicapi.filenameparser
+from testing.filenames import fnames
 
 
 @pytest.mark.parametrize("filename, reason, expected, xfail", fnames)

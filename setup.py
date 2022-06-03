@@ -6,6 +6,8 @@
 # It seems that post installation tweaks are broken by wheel files.
 # Kept here for further research
 
+from __future__ import annotations
+
 import glob
 import os
 

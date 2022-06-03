@@ -3,24 +3,24 @@
 Display cover images from either a local archive, or from Comic Vine.
 TODO: This should be re-factored using subclasses!
 """
-
+#
 # Copyright 2012-2014 Anthony Beville
-
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+from __future__ import annotations
 
 import logging
-from typing import Callable, Optional, Union, cast
+from typing import Callable, cast
 
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
@@ -74,10 +74,10 @@ class Signal(QtCore.QObject):
     def emit_list(self, url_list: list[str]) -> None:
         self.alt_url_list_fetch_complete.emit(url_list)
 
-    def emit_url(self, image_url: str, thumb_url: Optional[str]) -> None:
+    def emit_url(self, image_url: str, thumb_url: str | None) -> None:
         self.url_fetch_complete.emit(image_url, thumb_url)
 
-    def emit_image(self, image_data: Union[bytes, QtCore.QByteArray]) -> None:
+    def emit_image(self, image_data: bytes | QtCore.QByteArray) -> None:
         self.image_fetch_complete.emit(image_data)
 
 
@@ -99,13 +99,13 @@ class CoverImageWidget(QtWidgets.QWidget):
         )
 
         self.mode: int = mode
-        self.page_loader: Optional[PageLoader] = None
+        self.page_loader: PageLoader | None = None
         self.showControls = True
 
         self.current_pixmap = QtGui.QPixmap()
 
-        self.comic_archive: Optional[ComicArchive] = None
-        self.issue_id: Optional[int] = None
+        self.comic_archive: ComicArchive | None = None
+        self.issue_id: int | None = None
         self.url_list: list[str] = []
         if self.page_loader is not None:
             self.page_loader.abandoned = True
@@ -193,7 +193,7 @@ class CoverImageWidget(QtWidgets.QWidget):
 
             self.update_content()
 
-    def primary_url_fetch_complete(self, primary_url: str, thumb_url: Optional[str]) -> None:
+    def primary_url_fetch_complete(self, primary_url: str, thumb_url: str | None) -> None:
         self.url_list.append(str(primary_url))
         self.imageIndex = 0
         self.imageCount = len(self.url_list)

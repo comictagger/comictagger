@@ -1,18 +1,19 @@
 """Settings class for ComicTagger app"""
-
+#
 # Copyright 2012-2014 Anthony Beville
-
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
 
 import configparser
 import logging
@@ -21,7 +22,7 @@ import pathlib
 import platform
 import sys
 import uuid
-from typing import Iterator, TextIO, Union, no_type_check
+from typing import Iterator, TextIO, no_type_check
 
 from comicapi import utils
 
@@ -29,7 +30,7 @@ logger = logging.getLogger(__name__)
 
 
 class ComicTaggerSettings:
-    folder: Union[pathlib.Path, str] = ""
+    folder: pathlib.Path | str = ""
 
     @staticmethod
     def get_settings_folder() -> pathlib.Path:
@@ -42,20 +43,20 @@ class ComicTaggerSettings:
 
     @staticmethod
     def base_dir() -> pathlib.Path:
-        if getattr(sys, "frozen", None):
-            return pathlib.Path(sys._MEIPASS)
+        if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+            return pathlib.Path(sys._MEIPASS)  # type: ignore[attr-defined]
 
         return pathlib.Path(__file__).parent
 
     @staticmethod
-    def get_graphic(filename: Union[str, pathlib.Path]) -> str:
+    def get_graphic(filename: str | pathlib.Path) -> str:
         return str(ComicTaggerSettings.base_dir() / "graphics" / filename)
 
     @staticmethod
-    def get_ui_file(filename: Union[str, pathlib.Path]) -> pathlib.Path:
+    def get_ui_file(filename: str | pathlib.Path) -> pathlib.Path:
         return ComicTaggerSettings.base_dir() / "ui" / filename
 
-    def __init__(self, folder: Union[str, pathlib.Path, None]) -> None:
+    def __init__(self, folder: str | pathlib.Path | None) -> None:
         # General Settings
         self.rar_exe_path = ""
         self.allow_cbi_in_rar = True
@@ -168,6 +169,10 @@ class ComicTaggerSettings:
             # make sure rar program is now in the path for the rar class
             utils.add_to_path(os.path.dirname(self.rar_exe_path))
 
+    def reset(self):
+        os.unlink(self.settings_file)
+        self.__init__(ComicTaggerSettings.folder)
+
     def load(self) -> None:
         def readline_generator(f: TextIO) -> Iterator[str]:
             line = f.readline()
@@ -175,7 +180,7 @@ class ComicTaggerSettings:
                 yield line
                 line = f.readline()
 
-        with open(self.settings_file, "r", encoding="utf-8") as f:
+        with open(self.settings_file, encoding="utf-8") as f:
             self.config.read_file(readline_generator(f))
 
         self.rar_exe_path = self.config.get("settings", "rar_exe_path")

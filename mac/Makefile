@@ -63,4 +63,3 @@ diskimage:
 	# move finished product to release folder
 	mkdir -p $(TAGGER_BASE)/release
 	mv $(DMG_FILE) $(TAGGER_BASE)/release
-

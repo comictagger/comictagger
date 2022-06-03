@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 import calendar
 import os
 import unicodedata
 from enum import Enum, auto
-from typing import Any, Callable, Optional, Set
+from typing import Any, Callable
 
 
 class ItemType(Enum):
@@ -86,7 +88,7 @@ class Item:
 class Lexer:
     def __init__(self, string: str) -> None:
         self.input: str = string  # The string being scanned
-        self.state: Optional[Callable[[Lexer], Optional[Callable]]] = None  # The next lexing function to enter
+        self.state: Callable[[Lexer], Callable | None] | None = None  # The next lexing function to enter
         self.pos: int = -1  # Current position in the input
         self.start: int = 0  # Start position of this item
         self.lastPos: int = 0  # Position of most recent item returned by nextItem
@@ -168,13 +170,13 @@ class Lexer:
 
 # Errorf returns an error token and terminates the scan by passing
 # Back a nil pointer that will be the next state, terminating self.nextItem.
-def errorf(lex: Lexer, message: str) -> Optional[Callable[[Lexer], Optional[Callable]]]:
+def errorf(lex: Lexer, message: str) -> Callable[[Lexer], Callable | None] | None:
     lex.items.append(Item(ItemType.Error, lex.start, message))
     return None
 
 
 # Scans the elements inside action delimiters.
-def lex_filename(lex: Lexer) -> Optional[Callable[[Lexer], Optional[Callable]]]:
+def lex_filename(lex: Lexer) -> Callable[[Lexer], Callable | None] | None:
     r = lex.get()
     if r == eof:
         if lex.paren_depth != 0:
@@ -301,7 +303,7 @@ def lex_text(lex: Lexer) -> Callable:
     return lex_filename
 
 
-def cal(value: str) -> Set[Any]:
+def cal(value: str) -> set[Any]:
     month_abbr = [i for i, x in enumerate(calendar.month_abbr) if x == value.title()]
     month_name = [i for i, x in enumerate(calendar.month_name) if x == value.title()]
     day_abbr = [i for i, x in enumerate(calendar.day_abbr) if x == value.title()]
@@ -309,7 +311,7 @@ def cal(value: str) -> Set[Any]:
     return set(month_abbr + month_name + day_abbr + day_name)
 
 
-def lex_number(lex: Lexer) -> Optional[Callable[[Lexer], Optional[Callable]]]:
+def lex_number(lex: Lexer) -> Callable[[Lexer], Callable | None] | None:
     if not lex.scan_number():
         return errorf(lex, "bad number syntax: " + lex.input[lex.start : lex.pos])
     # Complex number logic removed. Messes with math operations without space

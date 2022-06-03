@@ -1,9 +1,10 @@
 """Some utilities for the GUI"""
 
+from __future__ import annotations
+
 import io
 import logging
 import traceback
-from typing import Optional
 
 from comictaggerlib.settings import ComicTaggerSettings
 
@@ -79,7 +80,7 @@ if qt_available:
             img.load(ComicTaggerSettings.get_graphic("nocover.png"))
         return img
 
-    def qt_error(msg: str, e: Optional[Exception] = None) -> None:
+    def qt_error(msg: str, e: Exception | None = None) -> None:
         trace = ""
         if e:
             trace = "\n".join(traceback.format_exception(type(e), e, e.__traceback__))

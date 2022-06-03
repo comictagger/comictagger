@@ -1,21 +1,21 @@
 """A class to manage modifying metadata specifically for CBL/CBI"""
-
+#
 # Copyright 2012-2014 Anthony Beville
-
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
 
 import logging
-from typing import Optional
 
 from comicapi.genericmetadata import CreditMetadata, GenericMetadata
 from comictaggerlib.settings import ComicTaggerSettings
@@ -34,7 +34,7 @@ class CBLTransformer:
             if item.lower() not in (tag.lower() for tag in self.metadata.tags):
                 self.metadata.tags.append(item)
 
-        def add_string_list_to_tags(str_list: Optional[str]) -> None:
+        def add_string_list_to_tags(str_list: str | None) -> None:
             if str_list:
                 items = [s.strip() for s in str_list.split(",")]
                 for item in items:
@@ -43,8 +43,8 @@ class CBLTransformer:
         if self.settings.assume_lone_credit_is_primary:
 
             # helper
-            def set_lone_primary(role_list: list[str]) -> tuple[Optional[CreditMetadata], int]:
-                lone_credit: Optional[CreditMetadata] = None
+            def set_lone_primary(role_list: list[str]) -> tuple[CreditMetadata | None, int]:
+                lone_credit: CreditMetadata | None = None
                 count = 0
                 for c in self.metadata.credits:
                     if c["role"].lower() in role_list:

@@ -1,18 +1,19 @@
 """The main window of the ComicTagger app"""
-
+#
 # Copyright 2012-2014 Anthony Beville
-
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
 
 import argparse
 import json
@@ -25,7 +26,7 @@ import pprint
 import re
 import sys
 import webbrowser
-from typing import Any, Callable, List, Optional, Union, cast
+from typing import Any, Callable, cast
 from urllib.parse import urlparse
 
 import natsort
@@ -75,8 +76,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self,
         file_list: list[str],
         settings: ComicTaggerSettings,
-        parent: Optional[QtWidgets.QWidget] = None,
-        opts: Optional[argparse.Namespace] = None,
+        parent: QtWidgets.QWidget | None = None,
+        opts: argparse.Namespace | None = None,
     ) -> None:
         super().__init__(parent)
 
@@ -161,14 +162,14 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.statusBar()
         self.populate_combo_boxes()
 
-        self.page_browser: Optional[PageBrowserWindow] = None
-        self.comic_archive: Optional[ComicArchive] = None
+        self.page_browser: PageBrowserWindow | None = None
+        self.comic_archive: ComicArchive | None = None
         self.dirty_flag = False
         self.droppedFile = None
         self.page_loader = None
         self.droppedFiles: list[str] = []
         self.metadata = GenericMetadata()
-        self.atprogdialog: Optional[AutoTagProgressWindow] = None
+        self.atprogdialog: AutoTagProgressWindow | None = None
         self.reset_app()
 
         # set up some basic field validators
@@ -444,10 +445,13 @@ Have fun!
             EW = ExportWindow(
                 self,
                 self.settings,
-                f"""You have selected {rar_count} archive(s) to export  to Zip format.  New archives will be created in the same folder as the original.
+                (
+                    f"You have selected {rar_count} archive(s) to export  to Zip format. "
+                    """ New archives will be created in the same folder as the original.
 
-Please choose options below, and select OK.
-""",
+   Please choose options below, and select OK.
+   """
+                ),
             )
             EW.adjustSize()
             EW.setModal(True)
@@ -537,7 +541,7 @@ Please choose options below, and select OK.
         license_name = "Apache License 2.0"
 
         msg_box = QtWidgets.QMessageBox()
-        msg_box.setWindowTitle(("About " + self.appName))
+        msg_box.setWindowTitle("About " + self.appName)
         msg_box.setTextFormat(QtCore.Qt.TextFormat.RichText)
         msg_box.setIconPixmap(QtGui.QPixmap(ComicTaggerSettings.get_graphic("about.png")))
         msg_box.setText(
@@ -750,7 +754,7 @@ Please choose options below, and select OK.
     # Copy all of the metadata object into the form.
     # Merging of metadata should be done via the overlay function
     def metadata_to_form(self) -> None:
-        def assign_text(field: Union[QtWidgets.QLineEdit, QtWidgets.QTextEdit], value: Any) -> None:
+        def assign_text(field: QtWidgets.QLineEdit | QtWidgets.QTextEdit, value: Any) -> None:
             if value is not None:
                 field.setText(str(value))
 
@@ -784,7 +788,7 @@ Please choose options below, and select OK.
 
         try:
             self.dsbCommunityRating.setValue(md.community_rating)
-        except:
+        except ValueError:
             self.dsbCommunityRating.setValue(0.0)
 
         if md.format is not None and md.format != "":
@@ -1333,7 +1337,7 @@ Please choose options below, and select OK.
             try:
                 result = urlparse(web_link)
                 valid = all([result.scheme in ["http", "https"], result.netloc])
-            except:
+            except ValueError:
                 pass
 
             if valid:
@@ -1720,7 +1724,7 @@ Please choose options below, and select OK.
             ii.set_cover_url_callback(self.atprogdialog.set_test_image)
         ii.set_name_length_delta_threshold(dlg.name_length_match_tolerance)
 
-        matches: List[IssueResult] = ii.search()
+        matches: list[IssueResult] = ii.search()
 
         result = ii.search_result
 
@@ -1802,10 +1806,10 @@ Please choose options below, and select OK.
         atstartdlg = AutoTagStartWindow(
             self,
             self.settings,
-            f"""You have selected {len(ca_list)} archive(s) to automatically identify and write {MetaDataStyle.name[style]} tags to.
-
-Please choose options below, and select OK to Auto-Tag.
-""",
+            (
+                f"You have selected {len(ca_list)} archive(s) to automatically identify and write {MetaDataStyle.name[style]} tags to."
+                "\n\nPlease choose options below, and select OK to Auto-Tag."
+            ),
         )
 
         atstartdlg.adjustSize()
@@ -2059,7 +2063,7 @@ Please choose options below, and select OK to Auto-Tag.
         new_w = self.scrollArea.width() - scrollbar_w - 5
         self.scrollAreaWidgetContents.resize(new_w, self.scrollAreaWidgetContents.height())
 
-    def resizeEvent(self, ev: Optional[QtGui.QResizeEvent]) -> None:
+    def resizeEvent(self, ev: QtGui.QResizeEvent | None) -> None:
         self.splitter_moved_event(0, 0)
 
     def tab_changed(self, idx: int) -> None:

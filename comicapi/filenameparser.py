@@ -2,29 +2,29 @@
 
 This should probably be re-written, but, well, it mostly works!
 """
-
 # Copyright 2012-2014 Anthony Beville
-
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+#
 # Some portions of this code were modified from pyComicMetaThis project
 # http://code.google.com/p/pycomicmetathis/
+from __future__ import annotations
 
 import logging
 import os
 import re
 from operator import itemgetter
-from typing import Callable, Match, Optional, TypedDict
+from typing import Callable, Match, TypedDict
 from urllib.parse import unquote
 
 from text2digits import text2digits
@@ -58,7 +58,7 @@ class FileNameParser:
             placeholders = [r"[_]", r"  +"]
         for ph in placeholders:
             string = re.sub(ph, self.repl, string)
-        return string  # .strip()
+        return string
 
     def get_issue_count(self, filename: str, issue_end: int) -> str:
 
@@ -176,13 +176,11 @@ class FileNameParser:
 
         # in case there is no issue number, remove some obvious stuff
         if "--" in filename:
-            # the pattern seems to be that anything to left of the first "--"
-            # is the series name followed by issue
+            # the pattern seems to be that anything to left of the first "--" is the series name followed by issue
             filename = re.sub(r"--.*", self.repl, filename)
 
         elif "__" in filename:
-            # the pattern seems to be that anything to left of the first "__"
-            # is the series name followed by issue
+            # the pattern seems to be that anything to left of the first "__" is the series name followed by issue
             filename = re.sub(r"__.*", self.repl, filename)
 
         filename = filename.replace("+", " ")
@@ -192,9 +190,10 @@ class FileNameParser:
         volume = ""
 
         # save the last word
-        try:
-            last_word = series.split()[-1]
-        except:
+        split = series.split()
+        if split:
+            last_word = split[-1]
+        else:
             last_word = ""
 
         # remove any parenthetical phrases
@@ -223,12 +222,11 @@ class FileNameParser:
         # be removed to help search online
         if issue_start == 0:
             one_shot_words = ["tpb", "os", "one-shot", "ogn", "gn"]
-            try:
-                last_word = series.split()[-1]
-                if last_word.lower() in one_shot_words:
-                    series = series.rsplit(" ", 1)[0]
-            except:
-                pass
+            split = series.split()
+            if split:
+                last_word = split[-1]
+                if last_word.casefold() in one_shot_words:
+                    series, _, _ = series.rpartition(" ")
 
         if volume:
             series = re.sub(r"\s+v(|ol|olume)$", "", series)
@@ -343,7 +341,7 @@ class Parser:
         remove_fcbd: bool = False,
         remove_publisher: bool = False,
     ) -> None:
-        self.state: Optional[Callable[[Parser], Optional[Callable]]] = None
+        self.state: Callable[[Parser], Callable | None] | None = None
         self.pos = -1
 
         self.firstItem = True
@@ -406,7 +404,7 @@ class Parser:
             self.state = self.state(self)
 
 
-def parse(p: Parser) -> Optional[Callable[[Parser], Optional[Callable]]]:
+def parse(p: Parser) -> Callable[[Parser], Callable | None] | None:
     item: filenamelexer.Item = p.get()
 
     # We're done, time to do final processing
@@ -430,7 +428,8 @@ def parse(p: Parser) -> Optional[Callable[[Parser], Optional[Callable]]]:
                     if len(item.val.lstrip("0")) < 4:
                         # An issue number starting with # Was not found and no previous number was found
                         if p.issue_number_at is None:
-                            # Series has already been started/parsed, filters out leading alternate numbers leading alternate number
+                            # Series has already been started/parsed,
+                            # filters out leading alternate numbers leading alternate number
                             if len(p.series_parts) > 0:
                                 # Unset first item
                                 if p.firstItem:
@@ -526,7 +525,8 @@ def parse(p: Parser) -> Optional[Callable[[Parser], Optional[Callable]]]:
         if p.peek_back().typ == filenamelexer.ItemType.Dot:
             p.used_items.append(p.peek_back())
 
-    # Allows removing DC from 'Wonder Woman 49 DC Sep-Oct 1951' dependent on publisher being in a static list in the lexer
+    # Allows removing DC from 'Wonder Woman 49 DC Sep-Oct 1951'
+    # dependent on publisher being in a static list in the lexer
     elif item.typ == filenamelexer.ItemType.Publisher:
         p.filename_info["publisher"] = item.val
         p.used_items.append(item)
@@ -656,7 +656,7 @@ def parse(p: Parser) -> Optional[Callable[[Parser], Optional[Callable]]]:
 
 
 # TODO: What about more esoteric numbers???
-def parse_issue_number(p: Parser) -> Optional[Callable[[Parser], Optional[Callable]]]:
+def parse_issue_number(p: Parser) -> Callable[[Parser], Callable | None] | None:
     item = p.input[p.pos]
 
     if "issue" in p.filename_info:
@@ -689,7 +689,7 @@ def parse_issue_number(p: Parser) -> Optional[Callable[[Parser], Optional[Callab
     return parse
 
 
-def parse_series(p: Parser) -> Optional[Callable[[Parser], Optional[Callable]]]:
+def parse_series(p: Parser) -> Callable[[Parser], Callable | None] | None:
     item = p.input[p.pos]
 
     series: list[list[filenamelexer.Item]] = [[]]
@@ -854,7 +854,7 @@ def resolve_year(p: Parser) -> None:
             p.title_parts.remove(selected_year)
 
 
-def parse_finish(p: Parser) -> Optional[Callable[[Parser], Optional[Callable]]]:
+def parse_finish(p: Parser) -> Callable[[Parser], Callable | None] | None:
     resolve_year(p)
 
     # If we don't have an issue try to find it in the series
@@ -865,14 +865,16 @@ def parse_finish(p: Parser) -> Optional[Callable[[Parser], Optional[Callable]]]:
         if issue_num in [x[1] for x in p.year_candidates]:
             p.series_parts.append(issue_num)
         else:
-            # If this number was rejected because of an operator and the operator is still there add it back e.g. 'IG-88'
+            # If this number was rejected because of an operator and the operator is still there add it back
+            # e.g. 'IG-88'
             if (
                 issue_num in p.operator_rejected
                 and p.series_parts
                 and p.series_parts[-1].typ == filenamelexer.ItemType.Operator
             ):
                 p.series_parts.append(issue_num)
-            # We have no reason to not use this number as the issue number. Specifically happens when parsing 'X-Men-V1-067.cbr'
+            # We have no reason to not use this number as the issue number.
+            # Specifically happens when parsing 'X-Men-V1-067.cbr'
             else:
                 p.filename_info["issue"] = issue_num.val
                 p.used_items.append(issue_num)
@@ -998,7 +1000,7 @@ def get_remainder(p: Parser) -> str:
     return remainder.strip()
 
 
-def parse_info_specifier(p: Parser) -> Optional[Callable[[Parser], Optional[Callable]]]:
+def parse_info_specifier(p: Parser) -> Callable[[Parser], Callable | None] | None:
     item = p.input[p.pos]
     index = p.pos
 
@@ -1033,7 +1035,8 @@ def parse_info_specifier(p: Parser) -> Optional[Callable[[Parser], Optional[Call
                         p.used_items.append(item)
                         p.used_items.append(number)
 
-                    # This is not for the issue number it is not in either the issue or the title, assume it is the volume number and count
+                    # This is not for the issue number it is not in either the issue or the title,
+                    # assume it is the volume number and count
                     elif p.issue_number_at != i.pos and i not in p.series_parts and i not in p.title_parts:
                         p.filename_info["volume"] = i.val
                         p.filename_info["volume_count"] = str(int(t2do.convert(number.val)))
@@ -1053,12 +1056,13 @@ def parse_info_specifier(p: Parser) -> Optional[Callable[[Parser], Optional[Call
 
 
 # Gets 03 in '03 of 6'
-def get_number(p: Parser, index: int) -> Optional[filenamelexer.Item]:
+def get_number(p: Parser, index: int) -> filenamelexer.Item | None:
     # Go backward through the filename to see if we can find what this is of eg '03 (of 6)' or '008 title 03 (of 6)'
     rev = p.input[:index]
     rev.reverse()
     for i in rev:
-        # We don't care about these types, we are looking to see if there is a number that is possibly different from the issue number for this count
+        # We don't care about these types, we are looking to see if there is a number that is possibly different from
+        # the issue number for this count
         if i.typ in [
             filenamelexer.ItemType.LeftParen,
             filenamelexer.ItemType.LeftBrace,

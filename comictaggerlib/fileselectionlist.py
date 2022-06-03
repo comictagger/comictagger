@@ -1,22 +1,23 @@
 """A PyQt5 widget for managing list of comic archive files"""
-
+#
 # Copyright 2012-2014 Anthony Beville
-
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import annotations
 
 import logging
 import os
-from typing import Callable, List, Optional, cast
+from typing import Callable, cast
 
 from PyQt5 import QtCore, QtWidgets, uic
 
@@ -130,13 +131,13 @@ class FileSelectionList(QtWidgets.QWidget):
         elif self.twList.rowCount() <= 0:
             self.listCleared.emit()
 
-    def get_archive_by_row(self, row: int) -> Optional[ComicArchive]:
+    def get_archive_by_row(self, row: int) -> ComicArchive | None:
         if row >= 0:
             fi: FileInfo = self.twList.item(row, FileSelectionList.dataColNum).data(QtCore.Qt.ItemDataRole.UserRole)
             return fi.ca
         return None
 
-    def get_current_archive(self) -> Optional[ComicArchive]:
+    def get_current_archive(self) -> ComicArchive | None:
         return self.get_archive_by_row(self.twList.currentRow())
 
     def remove_selection(self) -> None:
@@ -345,8 +346,8 @@ class FileSelectionList(QtWidgets.QWidget):
             fi.ca.read_cix()
             fi.ca.has_cbi()
 
-    def get_selected_archive_list(self) -> List[ComicArchive]:
-        ca_list: List[ComicArchive] = []
+    def get_selected_archive_list(self) -> list[ComicArchive]:
+        ca_list: list[ComicArchive] = []
         for r in range(self.twList.rowCount()):
             item = self.twList.item(r, FileSelectionList.dataColNum)
             if item.isSelected():
@@ -366,7 +367,7 @@ class FileSelectionList(QtWidgets.QWidget):
                 self.update_row(r)
         self.twList.setSortingEnabled(True)
 
-    def current_item_changed_cb(self, curr: Optional[QtCore.QModelIndex], prev: Optional[QtCore.QModelIndex]) -> None:
+    def current_item_changed_cb(self, curr: QtCore.QModelIndex | None, prev: QtCore.QModelIndex | None) -> None:
         if curr is not None:
             new_idx = curr.row()
             old_idx = -1
