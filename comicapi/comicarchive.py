@@ -64,6 +64,7 @@ class MetaDataStyle:
     CIX = 1
     COMET = 2
     name = ["ComicBookLover", "ComicRack", "CoMet"]
+    short_name = ["cbl", "cr", "comet"]
 
 
 class UnknownArchiver:

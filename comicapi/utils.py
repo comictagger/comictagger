@@ -21,7 +21,7 @@ import pathlib
 import re
 import unicodedata
 from collections import defaultdict
-from typing import Any, List, Optional, Union
+from typing import Any, Iterable, List, Optional, Union
 
 import pycountry
 
@@ -233,7 +233,7 @@ class ImprintDict(dict):
     if the key does not exist the key is returned as the publisher unchanged
     """
 
-    def __init__(self, publisher, mapping=(), **kwargs):
+    def __init__(self, publisher: str, mapping: Iterable = (), **kwargs: Any):
         super().__init__(mapping, **kwargs)
         self.publisher = publisher
 

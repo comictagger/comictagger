@@ -438,9 +438,9 @@ class ComicVineTalker:
         # Now, map the Comic Vine data to generic metadata
         return self.map_cv_data_to_metadata(volume_results, issue_results, settings)
 
-    def fetch_issue_data_by_issue_id(self, issue_id: str, settings: ComicTaggerSettings) -> GenericMetadata:
+    def fetch_issue_data_by_issue_id(self, issue_id: int, settings: ComicTaggerSettings) -> GenericMetadata:
 
-        issue_url = self.api_base_url + "/issue/" + CVTypeID.Issue + "-" + issue_id
+        issue_url = self.api_base_url + "/issue/" + CVTypeID.Issue + "-" + str(issue_id)
         params = {"api_key": self.api_key, "format": "json"}
         cv_response = self.get_cv_content(issue_url, params)
 

@@ -38,7 +38,7 @@ class OnlineMatchResults:
 class MultipleMatch:
     def __init__(self, ca: ComicArchive, match_list: List[IssueResult]) -> None:
         self.ca: ComicArchive = ca
-        self.matches = match_list
+        self.matches: list[IssueResult] = match_list
 
 
 class SelectDetails(TypedDict):

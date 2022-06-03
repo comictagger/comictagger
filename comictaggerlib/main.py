@@ -32,7 +32,7 @@ from comicapi import utils
 from comictaggerlib import cli
 from comictaggerlib.comicvinetalker import ComicVineTalker
 from comictaggerlib.ctversion import version
-from comictaggerlib.options import Options
+from comictaggerlib.options import parse_cmd_line
 from comictaggerlib.settings import ComicTaggerSettings
 
 logger = logging.getLogger("comictagger")
@@ -111,8 +111,7 @@ def update_publishers() -> None:
 
 
 def ctmain() -> None:
-    opts = Options()
-    opts.parse_cmd_line_args()
+    opts = parse_cmd_line()
     SETTINGS = ComicTaggerSettings(opts.config_path)
 
     os.makedirs(ComicTaggerSettings.get_settings_folder() / "logs", exist_ok=True)
@@ -138,7 +137,7 @@ def ctmain() -> None:
         if opts.cv_api_key != SETTINGS.cv_api_key:
             SETTINGS.cv_api_key = opts.cv_api_key
             SETTINGS.save()
-    if opts.only_set_key:
+    if opts.only_set_cv_key:
         print("Key set")
         return
 
@@ -203,7 +202,7 @@ def ctmain() -> None:
             QtWidgets.QApplication.processEvents()
 
         try:
-            tagger_window = TaggerWindow(opts.file_list, SETTINGS, opts=opts)
+            tagger_window = TaggerWindow(opts.files, SETTINGS, opts=opts)
             tagger_window.setWindowIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("app.png")))
             tagger_window.show()
 

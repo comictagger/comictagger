@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import argparse
 import json
 import logging
 import operator
@@ -49,7 +50,6 @@ from comictaggerlib.fileselectionlist import FileInfo, FileSelectionList
 from comictaggerlib.issueidentifier import IssueIdentifier
 from comictaggerlib.logwindow import LogWindow
 from comictaggerlib.optionalmsgdialog import OptionalMessageDialog
-from comictaggerlib.options import Options
 from comictaggerlib.pagebrowser import PageBrowserWindow
 from comictaggerlib.pagelisteditor import PageListEditor
 from comictaggerlib.renamewindow import RenameWindow
@@ -76,7 +76,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         file_list: list[str],
         settings: ComicTaggerSettings,
         parent: Optional[QtWidgets.QWidget] = None,
-        opts: Optional[Options] = None,
+        opts: Optional[argparse.Namespace] = None,
     ) -> None:
         super().__init__(parent)
 
@@ -148,10 +148,10 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
         self.setWindowIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("app.png")))
         # TODO: this needs to be looked at
-        if opts is not None and opts.data_style is not None:
+        if opts is not None and opts.type is not None:
             # respect the command line option tag type
-            settings.last_selected_save_data_style = opts.data_style
-            settings.last_selected_load_data_style = opts.data_style
+            settings.last_selected_save_data_style = opts.type
+            settings.last_selected_load_data_style = opts.type
 
         self.save_data_style = settings.last_selected_save_data_style
         self.load_data_style = settings.last_selected_load_data_style
@@ -2134,7 +2134,7 @@ Please choose options below, and select OK to Auto-Tag.
             self.setWindowFlags(flags)
             self.show()
 
-    def auto_imprint(self):
+    def auto_imprint(self) -> None:
         self.form_to_metadata()
         self.metadata.fix_publisher()
         self.metadata_to_form()
