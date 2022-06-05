@@ -397,8 +397,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
 
             self.twList.setSortingEnabled(False)
 
-            while self.twList.rowCount() > 0:
-                self.twList.removeRow(0)
+            self.twList.setRowCount(0)
 
             row = 0
             for record in self.cv_search_results:

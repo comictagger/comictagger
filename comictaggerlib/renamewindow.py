@@ -75,8 +75,7 @@ class RenameWindow(QtWidgets.QDialog):
         self.renamer.set_smart_cleanup(self.settings.rename_use_smart_string_cleanup)
 
     def do_preview(self) -> None:
-        while self.twList.rowCount() > 0:
-            self.twList.removeRow(0)
+        self.twList.setRowCount(0)
 
         self.twList.setSortingEnabled(False)
 

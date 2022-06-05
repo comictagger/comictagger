@@ -78,8 +78,7 @@ class MatchSelectionWindow(QtWidgets.QDialog):
 
     def populate_table(self) -> None:
 
-        while self.twList.rowCount() > 0:
-            self.twList.removeRow(0)
+        self.twList.setRowCount(0)
 
         self.twList.setSortingEnabled(False)
 

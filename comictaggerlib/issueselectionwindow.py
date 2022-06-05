@@ -108,8 +108,7 @@ class IssueSelectionWindow(QtWidgets.QDialog):
                 QtWidgets.QMessageBox.critical(self, "Network Issue", "Could not connect to Comic Vine to list issues!")
             return
 
-        while self.twList.rowCount() > 0:
-            self.twList.removeRow(0)
+        self.twList.setRowCount(0)
 
         self.twList.setSortingEnabled(False)
 

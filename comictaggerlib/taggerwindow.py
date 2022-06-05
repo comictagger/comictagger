@@ -744,8 +744,7 @@ Have fun!
         if isinstance(widget, QtWidgets.QCheckBox):
             widget.setChecked(False)
         if isinstance(widget, QtWidgets.QTableWidget):
-            while widget.rowCount() > 0:
-                widget.removeRow(0)
+            widget.setRowCount(0)
 
         # recursive call on children
         for child in widget.children():
@@ -787,7 +786,7 @@ Have fun!
         assign_text(self.teLocations, md.locations)
 
         try:
-            self.dsbCommunityRating.setValue(md.community_rating)
+            self.dsbCommunityRating.setValue(md.community_rating or 0.0)
         except ValueError:
             self.dsbCommunityRating.setValue(0.0)
 
@@ -832,8 +831,7 @@ Have fun!
 
         self.teTags.setText(utils.list_to_string(md.tags))
 
-        while self.twCredits.rowCount() > 0:
-            self.twCredits.removeRow(0)
+        self.twCredits.setRowCount(0)
 
         if md.credits is not None and len(md.credits) != 0:
             self.twCredits.setSortingEnabled(False)
@@ -874,11 +872,9 @@ Have fun!
         self.update_credit_primary_flag(row, primary_flag)
 
     def is_dupe_credit(self, role: str, name: str) -> bool:
-        r = 0
-        while r < self.twCredits.rowCount():
+        for r in range(self.twCredits.rowCount()):
             if self.twCredits.item(r, 1).text() == role and self.twCredits.item(r, 2).text() == name:
                 return True
-            r = r + 1
 
         return False
 
@@ -939,14 +935,12 @@ Have fun!
 
         # get the credits from the table
         md.credits = []
-        row = 0
-        while row < self.twCredits.rowCount():
+        for row in range(self.twCredits.rowCount()):
             role = self.twCredits.item(row, 1).text()
             name = self.twCredits.item(row, 2).text()
             primary_flag = self.twCredits.item(row, 0).text() != ""
 
             md.add_credit(name, role, bool(primary_flag))
-            row += 1
 
         md.pages = self.page_list_editor.get_page_list()
         self.metadata = md
@@ -1138,22 +1132,20 @@ Have fun!
         if self.save_data_style == MetaDataStyle.CIX:
             # loop over credit table, mark selected rows
             r = 0
-            while r < self.twCredits.rowCount():
+            for r in range(self.twCredits.rowCount()):
                 if str(self.twCredits.item(r, 1).text()).lower() not in cix_credits:
                     self.twCredits.item(r, 1).setBackground(inactive_brush)
                 else:
                     self.twCredits.item(r, 1).setBackground(active_brush)
                 # turn off entire primary column
                 self.twCredits.item(r, 0).setBackground(inactive_brush)
-                r = r + 1
 
         if self.save_data_style == MetaDataStyle.CBI:
             # loop over credit table, make all active color
             r = 0
-            while r < self.twCredits.rowCount():
+            for r in range(self.twCredits.rowCount()):
                 self.twCredits.item(r, 0).setBackground(active_brush)
                 self.twCredits.item(r, 1).setBackground(active_brush)
-                r = r + 1
 
     def update_style_tweaks(self) -> None:
         # depending on the current data style, certain fields are disabled
@@ -1253,10 +1245,9 @@ Have fun!
         # otherwise, we need to check for, and clear, other primaries with same role
         role = str(self.twCredits.item(row, 1).text())
         r = 0
-        while r < self.twCredits.rowCount():
+        for r in range(self.twCredits.rowCount()):
             if self.twCredits.item(r, 0).text() != "" and str(self.twCredits.item(r, 1).text()).lower() == role.lower():
                 self.twCredits.item(r, 0).setText("")
-            r = r + 1
 
         # Now set our new primary
         self.twCredits.item(row, 0).setText("Yes")

@@ -113,8 +113,7 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
         if not self.current_match_set:
             return
 
-        while self.twList.rowCount() > 0:
-            self.twList.removeRow(0)
+        self.twList.setRowCount(0)
 
         self.twList.setSortingEnabled(False)
 
