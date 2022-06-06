@@ -1678,7 +1678,11 @@ Have fun!
         ii = IssueIdentifier(ca, self.settings)
 
         # read in metadata, and parse file name if not there
-        md = ca.read_metadata(self.save_data_style)
+        try:
+            md = ca.read_metadata(self.save_data_style)
+        except Exception as e:
+            md = GenericMetadata()
+            logger.error("Failed to load metadata for %s: %s", ca.path, e)
         if md.is_empty:
             md = ca.metadata_from_filename(
                 self.settings.complicated_parser,
@@ -1825,7 +1829,11 @@ Have fun!
             self.auto_tag_log("==========================================================================\n")
             self.auto_tag_log(f"Auto-Tagging {prog_idx + 1} of {len(ca_list)}\n")
             self.auto_tag_log(f"{ca.path}\n")
-            cover_idx = ca.read_metadata(style).get_cover_page_index_list()[0]
+            try:
+                cover_idx = ca.read_metadata(style).get_cover_page_index_list()[0]
+            except Exception as e:
+                cover_idx = 0
+                logger.error("Failed to load metadata for %s: %s", ca.path, e)
             image_data = ca.get_page(cover_idx)
             self.atprogdialog.set_archive_image(image_data)
             self.atprogdialog.set_test_image(bytes())
@@ -1903,6 +1911,11 @@ Have fun!
         else:
             QtWidgets.QMessageBox.information(self, self.tr("Auto-Tag Summary"), self.tr(summary))
         logger.info(summary)
+
+    def exception(self, message):
+        errorbox = QtWidgets.QMessageBox()
+        errorbox.setText(message)
+        errorbox.exec()
 
     def dirty_flag_verification(self, title: str, desc: str) -> bool:
         if self.dirty_flag:
@@ -2037,8 +2050,11 @@ Have fun!
 
         self.settings.last_opened_folder = os.path.abspath(os.path.split(comic_archive.path)[0])
         self.comic_archive = comic_archive
-        self.metadata = self.comic_archive.read_metadata(self.load_data_style)
-        if self.metadata is None:
+        try:
+            self.metadata = self.comic_archive.read_metadata(self.load_data_style)
+        except Exception as e:
+            logger.error("Failed to load metadata for %s: %s", self.comic_archive.path, e)
+            self.exception(f"Failed to load metadata for {self.comic_archive.path}:\n\n{e}")
             self.metadata = GenericMetadata()
 
         self.actual_load_current_archive()

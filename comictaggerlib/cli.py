@@ -196,8 +196,11 @@ def create_local_metadata(
         md.overlay(f_md)
 
     if has_desired_tags:
-        t_md = ca.read_metadata(opts.type if opts.type is not None else 0)
-        md.overlay(t_md)
+        try:
+            t_md = ca.read_metadata(opts.type if opts.type is not None else 0)
+            md.overlay(t_md)
+        except Exception as e:
+            logger.error("Failed to load metadata for %s: %s", ca.path, e)
 
     # finally, use explicit stuff
     md.overlay(opts.metadata)
@@ -275,26 +278,35 @@ def process_file_cli(
         if opts.type is None or opts.type == MetaDataStyle.CIX:
             if has[MetaDataStyle.CIX]:
                 print("--------- ComicRack tags ---------")
-                if opts.raw:
-                    print(ca.read_raw_cix())
-                else:
-                    print(ca.read_cix())
+                try:
+                    if opts.raw:
+                        print(ca.read_raw_cix())
+                    else:
+                        print(ca.read_cix())
+                except Exception as e:
+                    logger.error("Failed to load metadata for %s: %s", ca.path, e)
 
         if opts.type is None or opts.type == MetaDataStyle.CBI:
             if has[MetaDataStyle.CBI]:
                 print("------- ComicBookLover tags -------")
-                if opts.raw:
-                    pprint(json.loads(ca.read_raw_cbi()))
-                else:
-                    print(ca.read_cbi())
+                try:
+                    if opts.raw:
+                        pprint(json.loads(ca.read_raw_cbi()))
+                    else:
+                        print(ca.read_cbi())
+                except Exception as e:
+                    logger.error("Failed to load metadata for %s: %s", ca.path, e)
 
         if opts.type is None or opts.type == MetaDataStyle.COMET:
             if has[MetaDataStyle.COMET]:
                 print("----------- CoMet tags -----------")
-                if opts.raw:
-                    print(ca.read_raw_comet())
-                else:
-                    print(ca.read_comet())
+                try:
+                    if opts.raw:
+                        print(ca.read_raw_comet())
+                    else:
+                        print(ca.read_comet())
+                except Exception as e:
+                    logger.error("Failed to load metadata for %s: %s", ca.path, e)
 
     elif opts.delete:
         style_name = MetaDataStyle.name[opts.type]
@@ -321,7 +333,11 @@ def process_file_cli(
         src_style_name = MetaDataStyle.name[opts.copy]
         if has[opts.copy]:
             if not opts.dryrun:
-                md = ca.read_metadata(opts.copy)
+                try:
+                    md = ca.read_metadata(opts.copy)
+                except Exception as e:
+                    md = GenericMetadata()
+                    logger.error("Failed to load metadata for %s: %s", ca.path, e)
 
                 if settings.apply_cbl_transform_on_bulk_operation and opts.type == MetaDataStyle.CBI:
                     md = CBLTransformer(md, settings).apply()

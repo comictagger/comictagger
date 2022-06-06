@@ -341,7 +341,10 @@ class FileSelectionList(QtWidgets.QWidget):
                 readonly_item.setCheckState(QtCore.Qt.CheckState.Unchecked)
 
             # Reading these will force them into the ComicArchive's cache
-            fi.ca.read_cix()
+            try:
+                fi.ca.read_cix()
+            except Exception:
+                ...
             fi.ca.has_cbi()
 
     def get_selected_archive_list(self) -> list[ComicArchive]:

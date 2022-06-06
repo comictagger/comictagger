@@ -196,7 +196,10 @@ class IssueIdentifier:
 
         # see if the archive has any useful meta data for searching with
         if ca.has_cix():
-            internal_metadata = ca.read_cix()
+            try:
+                internal_metadata = ca.read_cix()
+            except Exception as e:
+                logger.error("Failed to load metadata for %s: %s", ca.path, e)
         elif ca.has_cbi():
             internal_metadata = ca.read_cbi()
         else:

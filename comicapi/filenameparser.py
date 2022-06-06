@@ -307,7 +307,6 @@ class FileNameParser:
             self.volume = issuestring.IssueString(self.volume).as_string()
         if self.issue != "":
             self.issue = issuestring.IssueString(self.issue).as_string()
-        print(self.issue, self.volume)
 
 
 class FilenameInfo(TypedDict, total=False):

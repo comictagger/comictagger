@@ -36,6 +36,7 @@ from comictaggerlib.settings import ComicTaggerSettings
 
 logger = logging.getLogger("comictagger")
 logging.getLogger("comicapi").setLevel(logging.DEBUG)
+logging.getLogger("comictaggerlib").setLevel(logging.DEBUG)
 logger.setLevel(logging.DEBUG)
 
 try:

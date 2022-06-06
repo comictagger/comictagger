@@ -55,7 +55,6 @@ def test_metadata_read():
 
 def test_save_cix(tmpdir):
     comic_path = tmpdir.mkdir("cbz") / cbz_path.name
-    print(comic_path)
     shutil.copy(cbz_path, comic_path)
 
     c = comicapi.comicarchive.ComicArchive(comic_path)
@@ -69,7 +68,6 @@ def test_save_cix(tmpdir):
 
 def test_page_type_save(tmpdir):
     comic_path = tmpdir.mkdir("cbz") / cbz_path.name
-    print(comic_path)
 
     shutil.copy(cbz_path, comic_path)
 
