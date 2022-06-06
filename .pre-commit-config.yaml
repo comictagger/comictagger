@@ -1,3 +1,4 @@
+exclude: ^scripts
 repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.2.0
@@ -41,3 +42,5 @@ repos:
     hooks:
     -   id: mypy
         additional_dependencies: [types-setuptools, types-requests]
+ci:
+    skip: [mypy]
