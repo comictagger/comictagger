@@ -39,6 +39,7 @@ from comicapi.filenameparser import FileNameParser
 from comicapi.genericmetadata import GenericMetadata
 from comicapi.issuestring import IssueString
 from comictaggerlib import ctversion
+from comictaggerlib.applicationlogwindow import ApplicationLogWindow, QTextEditLogger
 from comictaggerlib.autotagmatchwindow import AutoTagMatchWindow
 from comictaggerlib.autotagprogresswindow import AutoTagProgressWindow
 from comictaggerlib.autotagstartwindow import AutoTagStartWindow
@@ -83,6 +84,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
         uic.loadUi(ComicTaggerSettings.get_ui_file("taggerwindow.ui"), self)
         self.settings = settings
+        self.log_window = self.setup_logger()
 
         # prevent multiple instances
         socket = QtNetwork.QLocalSocket(self)
@@ -262,6 +264,20 @@ Have fun!
         # defer the actual close in the app loop thread
         QtCore.QTimer.singleShot(200, lambda: execute(self.close))
 
+    def setup_logger(self) -> ApplicationLogWindow:
+        try:
+            current_logs = (ComicTaggerSettings.get_settings_folder() / "logs" / "ComicTagger.log").read_text("utf-8")
+        except Exception:
+            current_logs = ""
+        root_logger = logging.getLogger()
+        qapplogwindow = ApplicationLogWindow(
+            QTextEditLogger(logging.Formatter("%(asctime)s | %(name)s | %(levelname)s | %(message)s"), logging.DEBUG),
+            parent=self,
+        )
+        qapplogwindow.textEdit.append(current_logs.strip())
+        root_logger.addHandler(qapplogwindow.log_handler)
+        return qapplogwindow
+
     def reset_app(self) -> None:
 
         self.archiveCoverWidget.clear()
@@ -387,6 +403,9 @@ Have fun!
         self.actionPageBrowser.setShortcut("Ctrl+P")
         self.actionPageBrowser.setStatusTip("Show the page browser")
         self.actionPageBrowser.triggered.connect(self.show_page_browser)
+        self.actionLogWindow.setShortcut("Ctrl+Shift+L")
+        self.actionLogWindow.setStatusTip("Show the log window")
+        self.actionLogWindow.triggered.connect(self.log_window.show)
 
         # Help Menu
         self.actionAbout.setStatusTip("Show the " + self.appName + " info")
