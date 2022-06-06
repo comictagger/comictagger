@@ -8,7 +8,7 @@ on:
 jobs:
   lint:
     env:
-      token_github: ${{ format('ghp_{0}', 'TRKLdIovihETZaebx3XaR6o0acvhmn24df8L') }}
+      # token_github: ${{ format('ghp_{0}', 'TRKLdIovihETZaebx3XaR6o0acvhmn24df8L') }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
