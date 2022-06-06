@@ -22,6 +22,7 @@ import re
 import unicodedata
 from collections import defaultdict
 from typing import Any, Mapping
+from shutil import which
 
 import pycountry
 
@@ -77,23 +78,23 @@ def add_to_path(dirname: str) -> None:
             os.environ["PATH"] = dirname + os.pathsep + os.environ["PATH"]
 
 
-def which(program: str) -> str | None:
-    """Returns path of the executable, if it exists"""
+# def which(program: str) -> str | None:
+#     """Returns path of the executable, if it exists"""
 
-    def is_exe(fpath: str) -> bool:
-        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+#     def is_exe(fpath: str) -> bool:
+#         return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
 
-    fpath, _ = os.path.split(program)
-    if fpath:
-        if is_exe(program):
-            return program
-    else:
-        for path in os.environ["PATH"].split(os.pathsep):
-            exe_file = os.path.join(path, program)
-            if is_exe(exe_file):
-                return exe_file
+#     fpath, _ = os.path.split(program)
+#     if fpath:
+#         if is_exe(program):
+#             return program
+#     else:
+#         for path in os.environ["PATH"].split(os.pathsep):
+#             exe_file = os.path.join(path, program)
+#             if is_exe(exe_file):
+#                 return exe_file
 
-    return None
+#     return None
 
 
 def xlate(data: Any, is_int: bool = False) -> Any:
