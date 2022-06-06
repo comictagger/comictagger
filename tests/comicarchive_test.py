@@ -89,7 +89,7 @@ archivers = [
     comicapi.comicarchive.FolderArchiver,
     pytest.param(
         comicapi.comicarchive.RarArchiver,
-        marks=pytest.mark.xfail(not comicapi.comicarchive.rar_support, reason="rar support"),
+        marks=pytest.mark.xfail(not (comicapi.comicarchive.rar_support and shutil.which("rar")), reason="rar support"),
     ),
 ]
 
