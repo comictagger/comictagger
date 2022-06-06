@@ -46,21 +46,18 @@ jobs:
       - name: Annotate isort diff changes using reviewdog
         uses: reviewdog/action-suggester@v1
         with:
-          github_token: ${{ env.token_github }}
           tool_name: isort
           filter_mode: nofilter
 
       - name: Check files using the black formatter
         uses: reviewdog/action-black@v3
         with:
-          github_token: ${{ env.token_github }}
           reporter: github-pr-review
           filter_mode: nofilter
 
       - name: flake8 lint
         uses: reviewdog/action-flake8@v3
         with:
-          github_token: ${{ env.token_github }}
           filter_mode: nofilter
           reporter: github-pr-review
   build:
