@@ -385,6 +385,8 @@ Have fun!
         self.actionAutoIdentify.setShortcut("Ctrl+I")
         self.actionAutoIdentify.triggered.connect(self.auto_identify_search)
 
+        self.actionLiteralSearch.triggered.connect(self.literal_search)
+
         self.actionApplyCBLTransform.setShortcut("Ctrl+L")
         self.actionApplyCBLTransform.setStatusTip("Modify tags specifically for CBL format")
         self.actionApplyCBLTransform.triggered.connect(self.apply_cbl_transform)
@@ -424,6 +426,7 @@ Have fun!
         self.actionParse_Filename.setIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("parse.png")))
         self.actionParse_Filename_split_words.setIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("parse.png")))
         self.actionSearchOnline.setIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("search.png")))
+        self.actionLiteralSearch.setIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("search.png")))
         self.actionAutoIdentify.setIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("auto.png")))
         self.actionAutoTag.setIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("autotag.png")))
         self.actionAutoImprint.setIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("autotag.png")))
@@ -434,6 +437,7 @@ Have fun!
         self.toolBar.addAction(self.actionLoadFolder)
         self.toolBar.addAction(self.actionWrite_Tags)
         self.toolBar.addAction(self.actionSearchOnline)
+        self.toolBar.addAction(self.actionLiteralSearch)
         self.toolBar.addAction(self.actionAutoIdentify)
         self.toolBar.addAction(self.actionAutoTag)
         self.toolBar.addAction(self.actionClearEntryForm)
@@ -1015,7 +1019,10 @@ Have fun!
 
         self.query_online(autoselect=True)
 
-    def query_online(self, autoselect: bool = False) -> None:
+    def literal_search(self):
+        self.query_online(autoselect=False, literal=True)
+
+    def query_online(self, autoselect: bool = False, literal: bool = False) -> None:
 
         issue_number = str(self.leIssueNum.text()).strip()
 
@@ -1046,6 +1053,7 @@ Have fun!
             cast(ComicArchive, self.comic_archive),
             self.settings,
             autoselect,
+            literal,
         )
 
         selector.setWindowTitle(f"Search: '{series_name}' - Select Series")

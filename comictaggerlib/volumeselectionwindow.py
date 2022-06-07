@@ -15,7 +15,9 @@
 # limitations under the License.
 from __future__ import annotations
 
+import itertools
 import logging
+from collections import deque
 
 from PyQt5 import QtCore, QtWidgets, uic
 from PyQt5.QtCore import pyqtSignal
@@ -40,20 +42,21 @@ class SearchThread(QtCore.QThread):
     searchComplete = pyqtSignal()
     progressUpdate = pyqtSignal(int, int)
 
-    def __init__(self, series_name: str, refresh: bool) -> None:
+    def __init__(self, series_name: str, refresh: bool, literal: bool = False) -> None:
         QtCore.QThread.__init__(self)
         self.series_name = series_name
         self.refresh: bool = refresh
         self.error_code: int | None = None
         self.cv_error = False
         self.cv_search_results: list[CVVolumeResults] = []
+        self.literal = literal
 
     def run(self) -> None:
         comic_vine = ComicVineTalker()
         try:
             self.cv_error = False
             self.cv_search_results = comic_vine.search_for_series(
-                self.series_name, callback=self.prog_callback, refresh_cache=self.refresh
+                self.series_name, self.prog_callback, self.refresh, self.literal
             )
         except ComicVineTalkerException as e:
             self.cv_search_results = []
@@ -101,6 +104,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
         comic_archive: ComicArchive,
         settings: ComicTaggerSettings,
         autoselect: bool = False,
+        literal: bool = False,
     ) -> None:
         super().__init__(parent)
 
@@ -132,6 +136,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
         self.immediate_autoselect = autoselect
         self.cover_index_list = cover_index_list
         self.cv_search_results: list[CVVolumeResults] = []
+        self.literal = literal
         self.ii: IssueIdentifier | None = None
         self.iddialog: IDProgressWindow | None = None
         self.id_thread: IdentifyThread | None = None
@@ -155,7 +160,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
         self.twList.selectRow(0)
 
     def update_buttons(self) -> None:
-        enabled = bool(self.cv_search_results and len(self.cv_search_results) > 0)
+        enabled = bool(self.cv_search_results)
 
         self.btnRequery.setEnabled(enabled)
         self.btnIssues.setEnabled(enabled)
@@ -305,7 +310,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
         self.progdialog.canceled.connect(self.search_canceled)
         self.progdialog.setModal(True)
         self.progdialog.setMinimumDuration(300)
-        self.search_thread = SearchThread(self.series_name, refresh)
+        self.search_thread = SearchThread(self.series_name, refresh, self.literal)
         self.search_thread.searchComplete.connect(self.search_complete)
         self.search_thread.progressUpdate.connect(self.search_progress_update)
         self.search_thread.start()
@@ -382,14 +387,25 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
             # move sanitized matches to the front
             if self.settings.exact_series_matches_first:
                 try:
-                    sanitized = utils.sanitize_title(self.series_name)
-                    exact_matches = list(
-                        filter(lambda d: utils.sanitize_title(str(d["name"])) in sanitized, self.cv_search_results)
-                    )
-                    non_matches = list(
-                        filter(lambda d: utils.sanitize_title(str(d["name"])) not in sanitized, self.cv_search_results)
-                    )
-                    self.cv_search_results = exact_matches + non_matches
+                    sanitized = utils.sanitize_title(self.series_name, False).casefold()
+                    sanitized_no_articles = utils.sanitize_title(self.series_name, True).casefold()
+
+                    deques: list[deque[CVVolumeResults]] = [deque(), deque(), deque()]
+
+                    def categorize(result):
+                        # We don't remove anything on this one so that we only get exact matches
+                        if utils.sanitize_title(result["name"], True).casefold() == sanitized_no_articles:
+                            return 0
+
+                        # this ensures that 'The Joker' is near the top even if you search 'Joker'
+                        if utils.sanitize_title(result["name"], False).casefold() in sanitized:
+                            return 1
+                        return 2
+
+                    for comic in self.cv_search_results:
+                        deques[categorize(comic)].append(comic)
+                    logger.info("Length: %d, %d, %d", len(deques[0]), len(deques[1]), len(deques[2]))
+                    self.cv_search_results = list(itertools.chain.from_iterable(deques))
                 except Exception:
                     logger.exception("bad data error filtering exact/near matches")
 
@@ -436,12 +452,12 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
             self.twList.selectRow(0)
             self.twList.resizeColumnsToContents()
 
-            if len(self.cv_search_results) == 0:
+            if not self.cv_search_results:
                 QtCore.QCoreApplication.processEvents()
                 QtWidgets.QMessageBox.information(self, "Search Result", "No matches found!")
                 QtCore.QTimer.singleShot(200, self.close_me)
 
-            if self.immediate_autoselect and len(self.cv_search_results) > 0:
+            if self.immediate_autoselect and self.cv_search_results:
                 # defer the immediate autoselect so this dialog has time to pop up
                 QtCore.QCoreApplication.processEvents()
                 QtCore.QTimer.singleShot(10, self.do_immediate_autoselect)

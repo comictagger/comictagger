@@ -130,17 +130,17 @@ def remove_articles(text: str) -> str:
     return new_text
 
 
-def sanitize_title(text: str) -> str:
+def sanitize_title(text: str, basic: bool = False) -> str:
     # normalize unicode and convert to ascii. Does not work for everything eg ½ to 1⁄2 not 1/2
-    # this will probably cause issues with titles in other character sets e.g. chinese, japanese
-    text = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode("ascii")
+    text = unicodedata.normalize("NFKD", text)
     # comicvine keeps apostrophes a part of the word
     text = text.replace("'", "")
     text = text.replace('"', "")
-    # comicvine ignores punctuation and accents
-    text = re.sub(r"[^A-Za-z0-9]+", " ", text)
-    # remove extra space and articles and all lower case
-    text = remove_articles(text).lower().strip()
+    if not basic:
+        # comicvine ignores punctuation and accents, TODO: only remove punctuation accents and similar
+        text = re.sub(r"[^A-Za-z0-9]+", " ", text)
+        # remove extra space and articles and all lower case
+        text = remove_articles(text).casefold().strip()
 
     return text
 

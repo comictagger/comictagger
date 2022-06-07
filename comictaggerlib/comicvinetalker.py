@@ -200,15 +200,21 @@ class ComicVineTalker:
         raise ComicVineTalkerException(ComicVineTalkerException.Unknown, "Error on Comic Vine server")
 
     def search_for_series(
-        self, series_name: str, callback: Callable[[int, int], None] | None = None, refresh_cache: bool = False
+        self,
+        series_name: str,
+        callback: Callable[[int, int], None] | None = None,
+        refresh_cache: bool = False,
+        literal: bool = False,
     ) -> list[CVVolumeResults]:
 
         # Sanitize the series name for comicvine searching, comicvine search ignore symbols
-        search_series_name = utils.sanitize_title(series_name)
+        search_series_name = utils.sanitize_title(series_name, literal)
+        logger.info("Searching: %s", search_series_name)
 
-        # before we search online, look in our cache, since we might have done this same search recently
+        # Before we search online, look in our cache, since we might have done this same search recently
+        # For literal searches always retrieve from online
         cvc = ComicVineCacher()
-        if not refresh_cache:
+        if not refresh_cache and not literal:
             cached_search_results = cvc.get_search_results(series_name)
 
             if len(cached_search_results) > 0:
@@ -258,24 +264,23 @@ class ComicVineTalker:
         stop_searching = False
         while current_result_count < total_result_count:
 
-            last_result = search_results[-1]["name"]
+            if not literal:
+                # Sanitize the series name for comicvine searching, comicvine search ignore symbols
+                last_result = utils.sanitize_title(search_results[-1]["name"])
 
-            # Sanitize the series name for comicvine searching, comicvine search ignore symbols
-            last_result = utils.sanitize_title(last_result)
+                # See if the last result's name has all the of the search terms.
+                # If not, break out of this, loop, we're done.
+                for term in search_series_name.split():
+                    if term not in last_result:
+                        stop_searching = True
+                        break
 
-            # See if the last result's name has all the of the search terms.
-            # If not, break out of this, loop, we're done.
-            for term in search_series_name.split():
-                if term not in last_result.lower():
+                # Also, stop searching when the word count of last results is too much longer than our search terms list
+                if len(last_result) > result_word_count_max:
                     stop_searching = True
+
+                if stop_searching:
                     break
-
-            # Also, stop searching when the word count of last results is too much longer than our search terms list
-            if len(last_result) > result_word_count_max:
-                stop_searching = True
-
-            if stop_searching:
-                break
 
             if callback is None:
                 self.write_log(f"getting another page of results {current_result_count} of {total_result_count}...\n")
@@ -290,18 +295,19 @@ class ComicVineTalker:
             if callback is not None:
                 callback(current_result_count, total_result_count)
 
-        # Remove any search results that don't contain all the search terms (iterate backwards for easy removal)
-        for i in range(len(search_results) - 1, -1, -1):
-            record = search_results[i]
-            # Sanitize the series name for comicvine searching, comicvine search ignore symbols
-            record_name = utils.sanitize_title(record["name"])
-            for term in search_series_name.split():
+        # Literal searches simply return the matches no extra processing is doneo
+        if not literal:
+            # Remove any search results that don't contain all the search terms (iterate backwards for easy removal)
+            for record in reversed(search_results):
+                # Sanitize the series name for comicvine searching, comicvine search ignore symbols
+                record_name = utils.sanitize_title(record["name"])
+                for term in search_series_name.split():
+                    if term not in record_name:
+                        search_results.remove(record)
+                        break
 
-                if term not in record_name:
-                    del search_results[i]
-                    break
-
-        # cache these search results
+        # Cache these search results, even if it's literal we cache the results
+        # The most it will cause is extra processing time
         cvc.add_search_results(series_name, search_results)
 
         return search_results

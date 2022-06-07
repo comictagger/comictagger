@@ -1236,6 +1236,7 @@
     <addaction name="actionSearchOnline"/>
     <addaction name="actionAutoIdentify"/>
     <addaction name="actionAutoImprint"/>
+    <addaction name="actionLiteralSearch"/>
     <addaction name="separator"/>
     <addaction name="actionApplyCBLTransform"/>
     <addaction name="actionReCalcPageDims"/>
@@ -1459,6 +1460,14 @@
   <action name="actionLogWindow">
    <property name="text">
     <string>Show Log Window</string>
+   </property>
+  </action>
+  <action name="actionLiteralSearch">
+   <property name="text">
+    <string>Literal Search</string>
+   </property>
+   <property name="toolTip">
+    <string>perform a literal search on the series and return the first 50 results</string>
    </property>
   </action>
  </widget>
