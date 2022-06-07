@@ -171,7 +171,10 @@ class SevenZipArchiver(UnknownArchiver):
                     with py7zr.SevenZipFile(self.path, mode="r") as zin:
                         for filename, buffer in zin.read(targets).items():
                             zout.writef(buffer, filename)
-                os.remove(self.path)
+
+                self.path.unlink(missing_ok=True)
+                tmp_file.close()  # Required on windows
+
                 shutil.move(tmp_file.name, self.path)
         except (py7zr.Bad7zFile, OSError) as e:
             logger.error("Error rebuilding 7zip file [%s]: %s", e, self.path)
@@ -270,7 +273,9 @@ class ZipArchiver(UnknownArchiver):
                     zout.comment = zin.comment
 
                 # replace with the new file
-                os.remove(self.path)
+                self.path.unlink(missing_ok=True)
+                zout.close()  # Required on windows
+
                 shutil.move(cast(str, zout.filename), self.path)
 
         except (zipfile.BadZipfile, OSError) as e:
@@ -558,6 +563,7 @@ class RarArchiver(UnknownArchiver):
                     logger.error("Error while copying to rar archive [exitcode: %d]: %s", result.returncode, self.path)
                     return False
 
+                self.path.unlink(missing_ok=True)
                 shutil.move(rar_path, self.path)
         except Exception as e:
             logger.exception("Error while copying to rar archive [%s]: from %s to %s", e, other_archive.path, self.path)
@@ -608,7 +614,7 @@ class FolderArchiver(UnknownArchiver):
 
     def remove_file(self, archive_file: str) -> bool:
         try:
-            os.remove(self.path / archive_file)
+            (self.path / archive_file).unlink(missing_ok=True)
         except OSError as e:
             logger.error("Error removing file for folder archive [%s]: %s :: %s", e, self.path, archive_file)
             return False
@@ -632,7 +638,7 @@ class FolderArchiver(UnknownArchiver):
         try:
             for root, dirs, files in os.walk(self.path):
                 for f in files:
-                    filenames.append(os.path.relpath(os.path.join(root, f), self.path))
+                    filenames.append(os.path.relpath(os.path.join(root, f), self.path).replace(os.path.sep, "/"))
             return filenames
         except OSError as e:
             logger.error("Error listing files in folder archive [%s]: %s", e, self.path)
