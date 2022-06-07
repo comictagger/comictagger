@@ -27,7 +27,7 @@ def test_getPageNameList():
     ]
 
 
-def test_set_default_page_list(tmpdir):
+def test_set_default_page_list(tmp_path):
     md = comicapi.genericmetadata.GenericMetadata()
     md.overlay(comicapi.genericmetadata.md_test)
     md.pages = []
@@ -53,9 +53,8 @@ def test_metadata_read():
     assert md_dict == md_test_dict
 
 
-def test_save_cix(tmpdir):
-    comic_path = tmpdir.mkdir("cbz") / cbz_path.name
-    print(comic_path)
+def test_save_cix(tmp_path):
+    comic_path = tmp_path / cbz_path.name
     shutil.copy(cbz_path, comic_path)
 
     c = comicapi.comicarchive.ComicArchive(comic_path)
@@ -67,9 +66,8 @@ def test_save_cix(tmpdir):
     md = c.read_cix()
 
 
-def test_page_type_save(tmpdir):
-    comic_path = tmpdir.mkdir("cbz") / cbz_path.name
-    print(comic_path)
+def test_page_type_save(tmp_path):
+    comic_path = tmp_path / cbz_path.name
 
     shutil.copy(cbz_path, comic_path)
 
@@ -81,6 +79,17 @@ def test_page_type_save(tmpdir):
     assert c.write_cix(md)
 
     md = c.read_cix()
+
+
+def test_invalid_zip(tmp_path):
+    comic_path = tmp_path / cbz_path.name
+
+    with open(cbz_path, mode="b+r") as f:
+        comic_path.write_bytes(b"PK\003\004" + f.read()[4:].replace(b"PK\003\004", b"PK\000\000"))
+
+    c = comicapi.comicarchive.ComicArchive(comic_path)
+
+    assert not c.write_cix(comicapi.genericmetadata.md_test)
 
 
 archivers = [
@@ -95,8 +104,8 @@ archivers = [
 
 
 @pytest.mark.parametrize("archiver", archivers)
-def test_copy_to_archive(archiver, tmpdir):
-    comic_path = tmpdir / cbz_path.with_suffix("").name
+def test_copy_to_archive(archiver, tmp_path):
+    comic_path = tmp_path / cbz_path.with_suffix("").name
 
     cbz = comicapi.comicarchive.ComicArchive(cbz_path)
     archive = archiver(comic_path)

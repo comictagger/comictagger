@@ -133,7 +133,8 @@ class SevenZipArchiver(UnknownArchiver):
         # another solution can be found
         files = self.get_filename_list()
         if archive_file in files:
-            self.rebuild([archive_file])
+            if not self.rebuild([archive_file]):
+                return False
 
         try:
             # now just add the archive file as a new one
@@ -229,7 +230,8 @@ class ZipArchiver(UnknownArchiver):
         # another solution can be found
         files = self.get_filename_list()
         if archive_file in files:
-            self.rebuild([archive_file])
+            if not self.rebuild([archive_file]):
+                return False
 
         try:
             # now just add the archive file as a new one
@@ -614,7 +616,6 @@ class FolderArchiver(UnknownArchiver):
             return True
 
     def write_file(self, archive_file: str, data: bytes) -> bool:
-        logger.error("Fuck this: %s", archive_file)
         try:
             file_path = self.path / archive_file
             file_path.parent.mkdir(exist_ok=True, parents=True)
@@ -848,8 +849,8 @@ class ComicArchive:
         if filename:
             try:
                 image_data = self.archiver.read_file(filename) or bytes()
-            except OSError:
-                logger.exception("Error reading in page %d. Substituting logo page.", index)
+            except (OSError, Exception):
+                logger.error("Error reading in page %d. Substituting logo page.", index)
                 image_data = ComicArchive.logo_data
 
         return image_data
@@ -970,14 +971,17 @@ class ComicArchive:
 
     def write_cbi(self, metadata: GenericMetadata) -> bool:
         if metadata is not None:
-            self.apply_archive_info_to_metadata(metadata)
-            cbi_string = ComicBookInfo().string_from_metadata(metadata)
-            write_success = self.archiver.set_comment(cbi_string)
-            if write_success:
-                self._has_cbi = True
-                self.cbi_md = metadata
-            self.reset_cache()
-            return write_success
+            try:
+                self.apply_archive_info_to_metadata(metadata)
+                cbi_string = ComicBookInfo().string_from_metadata(metadata)
+                write_success = self.archiver.set_comment(cbi_string)
+                if write_success:
+                    self._has_cbi = True
+                    self.cbi_md = metadata
+                self.reset_cache()
+                return write_success
+            except Exception as e:
+                logger.error("Error saving CBI! for %s: %s", self.path, e)
 
         return False
 
@@ -1016,22 +1020,25 @@ class ComicArchive:
             return b""
         try:
             raw_cix = self.archiver.read_file(self.ci_xml_filename) or b""
-        except OSError as e:
+        except (OSError, Exception) as e:
             logger.error("Error reading in raw CIX! for %s: %s", self.path, e)
             raw_cix = bytes()
         return raw_cix
 
     def write_cix(self, metadata: GenericMetadata) -> bool:
         if metadata is not None:
-            self.apply_archive_info_to_metadata(metadata, calc_page_sizes=True)
-            raw_cix = self.read_raw_cix()
-            cix_string = ComicInfoXml().string_from_metadata(metadata, xml=raw_cix)
-            write_success = self.archiver.write_file(self.ci_xml_filename, cix_string.encode("utf-8"))
-            if write_success:
-                self._has_cix = True
-                self.cix_md = metadata
-            self.reset_cache()
-            return write_success
+            try:
+                self.apply_archive_info_to_metadata(metadata, calc_page_sizes=True)
+                raw_cix = self.read_raw_cix()
+                cix_string = ComicInfoXml().string_from_metadata(metadata, xml=raw_cix)
+                write_success = self.archiver.write_file(self.ci_xml_filename, cix_string.encode("utf-8"))
+                if write_success:
+                    self._has_cix = True
+                    self.cix_md = metadata
+                self.reset_cache()
+                return write_success
+            except Exception as e:
+                logger.error("Error saving CIX! for %s: %s", self.path, e)
 
         return False
 
