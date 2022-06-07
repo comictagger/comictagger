@@ -91,7 +91,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         socket.connectToServer(settings.install_id)
         alive = socket.waitForConnected(3000)
         if alive:
-            print(f"Another application with key [{settings.install_id}] is already running")
+            logger.setLevel(logging.INFO)
             logger.info("Another application with key [%s] is already running", settings.install_id)
             # send file list to other instance
             if file_list:

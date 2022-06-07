@@ -209,7 +209,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
 
     def log_id_output(self, text: str) -> None:
         if self.iddialog is not None:
-            print(text, end=" ")
+            print(text, end=" ")  # noqa: T201
             self.iddialog.textEdit.ensureCursorVisible()
             self.iddialog.textEdit.insertPlainText(text)
 

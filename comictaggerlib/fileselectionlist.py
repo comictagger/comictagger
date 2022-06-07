@@ -235,7 +235,7 @@ class FileSelectionList(QtWidgets.QWidget):
     def get_current_list_row(self, path: str) -> int:
         for r in range(self.twList.rowCount()):
             ca = cast(ComicArchive, self.get_archive_by_row(r))
-            if ca.path == path:
+            if str(ca.path) == path:
                 return r
 
         return -1

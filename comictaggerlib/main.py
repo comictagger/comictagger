@@ -138,7 +138,7 @@ def ctmain() -> None:
             SETTINGS.cv_api_key = opts.cv_api_key
             SETTINGS.save()
     if opts.only_set_cv_key:
-        print("Key set")
+        print("Key set")  # noqa: T201
         return
 
     ComicVineTalker.api_key = SETTINGS.cv_api_key
@@ -161,8 +161,7 @@ def ctmain() -> None:
 
     if not qt_available and not opts.no_gui:
         opts.no_gui = True
-        print("PyQt5 is not available. ComicTagger is limited to command-line mode.")
-        logger.info("PyQt5 is not available. ComicTagger is limited to command-line mode.")
+        logger.warn("PyQt5 is not available. ComicTagger is limited to command-line mode.")
 
     if opts.no_gui:
         try:

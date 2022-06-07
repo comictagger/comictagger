@@ -2,3 +2,5 @@
 max-line-length = 120
 extend-ignore = E203, E501, A003
 extend-exclude = venv, scripts, build, dist
+per-file-ignores =
+    comictaggerlib/cli.py: T20
