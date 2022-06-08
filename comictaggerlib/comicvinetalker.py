@@ -86,7 +86,7 @@ class ComicVineTalker:
     @staticmethod
     def get_rate_limit_message() -> str:
         if ComicVineTalker.api_key == "":
-            return "Comic Vine rate limit exceeded.  You should configue your own Comic Vine API key."
+            return "Comic Vine rate limit exceeded.  You should configure your own Comic Vine API key."
 
         return "Comic Vine rate limit exceeded.  Please wait a bit."
 

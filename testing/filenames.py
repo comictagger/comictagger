@@ -236,7 +236,7 @@ fnames = [
     ),
     (
         " X-Men-V1-067.cbr",
-        "hyphen separated with hyphen in series",  # only parses corretly because v1 designates the volume
+        "hyphen separated with hyphen in series",  # only parses correctly because v1 designates the volume
         {
             "issue": "67",
             "series": "X-Men",

@@ -318,7 +318,7 @@ class ZipArchiver(UnknownArchiver):
         file_length = statinfo.st_size
 
         try:
-            with open(filename, mode="r+b") as fo:
+            with open(filename, mode="r+b") as file:
 
                 # the starting position, relative to EOF
                 pos = -4
@@ -327,8 +327,8 @@ class ZipArchiver(UnknownArchiver):
                 # walk backwards to find the "End of Central Directory" record
                 while (not found) and (-pos != file_length):
                     # seek, relative to EOF
-                    fo.seek(pos, 2)
-                    value = fo.read(4)
+                    file.seek(pos, 2)
+                    value = file.read(4)
 
                     # look for the end of central directory signature
                     if bytearray(value) == bytearray([0x50, 0x4B, 0x05, 0x06]):
@@ -341,19 +341,19 @@ class ZipArchiver(UnknownArchiver):
 
                     # now skip forward 20 bytes to the comment length word
                     pos += 20
-                    fo.seek(pos, 2)
+                    file.seek(pos, 2)
 
                     # Pack the length of the comment string
                     fmt = "H"  # one 2-byte integer
                     comment_length = struct.pack(fmt, len(comment))  # pack integer in a binary string
 
                     # write out the length
-                    fo.write(comment_length)
-                    fo.seek(pos + 2, 2)
+                    file.write(comment_length)
+                    file.seek(pos + 2, 2)
 
                     # write out the comment itself
-                    fo.write(comment.encode("utf-8"))
-                    fo.truncate()
+                    file.write(comment.encode("utf-8"))
+                    file.truncate()
                 else:
                     raise Exception("Could not find the End of Central Directory record!")
         except Exception as e:
@@ -636,7 +636,7 @@ class FolderArchiver(UnknownArchiver):
     def get_filename_list(self) -> list[str]:
         filenames = []
         try:
-            for root, dirs, files in os.walk(self.path):
+            for root, _dirs, files in os.walk(self.path):
                 for f in files:
                     filenames.append(os.path.relpath(os.path.join(root, f), self.path).replace(os.path.sep, "/"))
             return filenames
@@ -855,7 +855,7 @@ class ComicArchive:
         if filename:
             try:
                 image_data = self.archiver.read_file(filename) or bytes()
-            except (OSError, Exception):
+            except Exception:
                 logger.error("Error reading in page %d. Substituting logo page.", index)
                 image_data = ComicArchive.logo_data
 
@@ -1026,7 +1026,7 @@ class ComicArchive:
             return b""
         try:
             raw_cix = self.archiver.read_file(self.ci_xml_filename) or b""
-        except (OSError, Exception) as e:
+        except Exception as e:
             logger.error("Error reading in raw CIX! for %s: %s", self.path, e)
             raw_cix = bytes()
         return raw_cix

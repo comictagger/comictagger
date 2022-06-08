@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 
 
 class ImageHasher:
-    def __init__(self, path: str | None = None, data: bytes = bytes(), width: int = 8, height: int = 8) -> None:
+    def __init__(self, path: str | None = None, data: bytes = b"", width: int = 8, height: int = 8) -> None:
         self.width = width
         self.height = height
 

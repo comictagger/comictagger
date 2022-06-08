@@ -77,7 +77,7 @@ pip install -r requirements-GUI.txt -r requirements-CBR.txt
 pip install .
 ```
 
-6. (optionall) run pytest to ensure that their are no failures (xfailed means expected failure)
+6. (optionally) run pytest to ensure that their are no failures (xfailed means expected failure)
 ```
 $ pytest
 ============================= test session starts ==============================

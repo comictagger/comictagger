@@ -241,7 +241,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
                 QtWidgets.QMessageBox.information(
                     self,
                     "Auto-Select Result",
-                    " Found a match, but cover doesn't seem the same.  Verify before commiting!",
+                    " Found a match, but cover doesn't seem the same.  Verify before committing!",
                 )
                 found_match = matches[0]
             elif result == self.ii.result_found_match_but_not_first_page:
@@ -364,7 +364,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
                     logger.exception("bad data error filtering publishers")
 
             # pre sort the data - so that we can put exact matches first afterwards
-            # compare as str incase extra chars ie. '1976?'
+            # compare as str in case extra chars ie. '1976?'
             # - missing (none) values being converted to 'None' - consistent with prior behaviour in v1.2.3
             # sort by start_year if set
             if self.settings.sort_series_by_year:

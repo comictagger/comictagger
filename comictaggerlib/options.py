@@ -177,7 +177,7 @@ def define_args() -> argparse.ArgumentParser:
     parser.add_argument(
         "--overwrite",
         action="store_true",
-        help="""Overwite all existing metadata.\nMay be used in conjunction with -o, -f and -m.\n\n""",
+        help="""Overwrite all existing metadata.\nMay be used in conjunction with -o, -f and -m.\n\n""",
     )
     parser.add_argument(
         "--raw", action="store_true", help="""With -p, will print out the raw tag block(s)\nfrom the file.\n"""

@@ -277,7 +277,7 @@ class IssueIdentifier:
         use_remote_alternates: bool = False,
         use_log: bool = True,
     ) -> Score:
-        # local_cover_hash_list is a list of pre-calculated hashs.
+        # local_cover_hash_list is a list of pre-calculated hashes.
         # use_remote_alternates - indicates to use alternate covers from CV
 
         try:

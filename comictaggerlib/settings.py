@@ -104,7 +104,7 @@ class ComicTaggerSettings:
         self.exact_series_matches_first = True
         self.always_use_publisher_filter = False
 
-        # CBL Tranform settings
+        # CBL Transform settings
 
         self.assume_lone_credit_is_primary = False
         self.copy_characters_to_tags = False

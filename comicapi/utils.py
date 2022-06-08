@@ -210,7 +210,7 @@ def update_publishers(new_publishers: Mapping[str, Mapping[str, str]]) -> None:
 class ImprintDict(dict):
     """
     ImprintDict takes a publisher and a dict or mapping of lowercased
-    imprint names to the proper imprint name. Retreiving a value from an
+    imprint names to the proper imprint name. Retrieving a value from an
     ImprintDict returns a tuple of (imprint, publisher, keyExists).
     if the key does not exist the key is returned as the publisher unchanged
     """

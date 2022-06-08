@@ -332,14 +332,14 @@
               <item>
                <widget class="QCheckBox" name="cbxSortByYear">
                 <property name="text">
-                 <string>Initally sort Series search results by Starting Year instead of No. Issues</string>
+                 <string>Initially sort Series search results by Starting Year instead of No. Issues</string>
                 </property>
                </widget>
               </item>
               <item>
                <widget class="QCheckBox" name="cbxExactMatches">
                 <property name="text">
-                 <string>Initally show Series Name exact matches first</string>
+                 <string>Initially show Series Name exact matches first</string>
                 </property>
                </widget>
               </item>

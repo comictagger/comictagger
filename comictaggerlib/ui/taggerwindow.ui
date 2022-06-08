@@ -1392,7 +1392,7 @@
   </action>
   <action name="actionComicTaggerForum">
    <property name="text">
-    <string>ComicTagger Forum...</string>
+    <string>ComicTagger Discussions...</string>
    </property>
   </action>
   <action name="actionWiki">

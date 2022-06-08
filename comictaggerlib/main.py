@@ -49,7 +49,7 @@ try:
         """
         if QtWidgets.QApplication.instance() is not None:
             errorbox = QtWidgets.QMessageBox()
-            errorbox.setText(f"Oops. An unexpected error occured:\n{log_msg}")
+            errorbox.setText(f"Oops. An unexpected error occurred:\n{log_msg}")
             errorbox.exec()
             QtWidgets.QApplication.exit(1)
         else:

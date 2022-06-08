@@ -397,7 +397,7 @@ def process_file_cli(
                     if opts.verbose:
                         IssueIdentifier.default_write_output(text)
 
-                # use our overlayed MD struct to search
+                # use our overlaid MD struct to search
                 ii.set_additional_metadata(md)
                 ii.only_use_additional_meta_data = True
                 ii.wait_and_retry_on_rate_limit = opts.wait_on_cv_rate_limit
@@ -568,7 +568,7 @@ def process_file_cli(
         else:
             msg = msg_hdr + f"Dry-run:  Would try to create {os.path.split(new_file)[1]}"
             if opts.delete_after_zip_export:
-                msg += " and delete orginal."
+                msg += " and delete original."
             print(msg)
             return
 

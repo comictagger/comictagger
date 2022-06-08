@@ -2019,7 +2019,7 @@ Have fun!
         webbrowser.open("https://github.com/comictagger/comictagger/issues")
 
     def show_forum(self) -> None:
-        webbrowser.open("http://comictagger.forumotion.com/")
+        webbrowser.open("https://github.com/comictagger/comictagger/discussions")
 
     def front_cover_changed(self) -> None:
         self.metadata.pages = self.page_list_editor.get_page_list()

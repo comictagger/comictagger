@@ -112,7 +112,7 @@
         </sizepolicy>
        </property>
        <property name="text">
-        <string>Don't use publication year in indentification process</string>
+        <string>Don't use publication year in identification process</string>
        </property>
       </widget>
      </item>
