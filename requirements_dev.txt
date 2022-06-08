@@ -1,6 +1,9 @@
 black>=22
+build
 flake8==4.*
+flake8-black
 flake8-encodings
+flake8-isort
 isort>=5.10
 pyinstaller>=4.10
 pytest==7.*
