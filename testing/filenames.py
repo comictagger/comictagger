@@ -80,7 +80,7 @@ fnames = [
         "issue number only",
         {
             "issue": "52",
-            "series": "",
+            "series": "52",
             "title": "",
             "volume": "",
             "year": "",
@@ -88,7 +88,7 @@ fnames = [
             "issue_count": "",
             "alternate": "",
         },
-        True,
+        False,
     ),
     (
         "52 Monster_Island_v1_2__repaired__c2c.cbz",

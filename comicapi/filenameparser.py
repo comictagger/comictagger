@@ -129,11 +129,13 @@ class FileNameParser:
         for m in re.finditer(r"\S+", filename):
             word_list.append((m.group(0), m.start(), m.end()))
 
-        # remove the first word, since it can't be the issue number
+        # remove the first word, since it shouldn't be the issue number
         if len(word_list) > 1:
             word_list = word_list[1:]
         else:
-            # only one word??  just bail.
+            # only one word? Check to see if there is a digit, if so use it as the issue number and the series
+            if any(char.isnumeric() for char in word_list[0][0]):
+                issue = word_list[0][0]
             return issue, start, end
 
         # Now try to search for the likely issue number word in the list
@@ -365,6 +367,12 @@ class Parser:
         self.remove_fcbd = remove_fcbd
         self.remove_publisher = remove_publisher
 
+        self.remove_from_remainder = []
+        if remove_c2c:
+            self.remove_from_remainder.append(filenamelexer.ItemType.C2C)
+        if remove_fcbd:
+            self.remove_from_remainder.append(filenamelexer.ItemType.FCBD)
+
         self.input = lexer_result
         for i, item in enumerate(self.input):
             if item.typ == filenamelexer.ItemType.IssueNumber:
@@ -520,9 +528,9 @@ def parse(p: Parser) -> Callable[[Parser], Callable | None] | None:
     # Matches the extension if it is known to be an archive format e.g. cbt,cbz,zip,rar
     elif item.typ == filenamelexer.ItemType.ArchiveType:
         p.filename_info["archive"] = item.val.lower()
-        p.used_items.append(item)
         if p.peek_back().typ == filenamelexer.ItemType.Dot:
             p.used_items.append(p.peek_back())
+        p.used_items.append(item)
 
     # Allows removing DC from 'Wonder Woman 49 DC Sep-Oct 1951'
     # dependent on publisher being in a static list in the lexer
@@ -669,21 +677,20 @@ def parse_issue_number(p: Parser) -> Callable[[Parser], Callable | None] | None:
             p.filename_info["issue"] = item.val
             p.issue_number_at = item.pos
         p.used_items.append(item)
-        item = p.get()
-        if item.typ == filenamelexer.ItemType.Dot:
-            p.used_items.append(item)
-            item = p.get()
-            if item.typ in [filenamelexer.ItemType.Text, filenamelexer.ItemType.Number]:
+
+        if p.peek().typ == filenamelexer.ItemType.Dot:
+            p.used_items.append(p.get())  # Add the Dot to used items
+            if p.peek().typ in [filenamelexer.ItemType.Text, filenamelexer.ItemType.Number]:
+                item = p.get()
                 if p.alt:
                     p.filename_info["alternate"] += "." + item.val
                 else:
                     p.filename_info["issue"] += "." + item.val
                 p.used_items.append(item)
             else:
-                p.backup()
-                p.backup()
-        else:
-            p.backup()
+                p.backup()  # We don't use the Dot so don't consume it
+                p.used_items.pop()  # we also don't add it to used items
+
     p.alt = False
     return parse
 
@@ -853,9 +860,7 @@ def resolve_year(p: Parser) -> None:
             p.title_parts.remove(selected_year)
 
 
-def parse_finish(p: Parser) -> Callable[[Parser], Callable | None] | None:
-    resolve_year(p)
-
+def resolve_issue(p: Parser) -> None:
     # If we don't have an issue try to find it in the series
     if "issue" not in p.filename_info and p.series_parts and p.series_parts[-1].typ == filenamelexer.ItemType.Number:
         issue_num = p.series_parts.pop()
@@ -879,21 +884,6 @@ def parse_finish(p: Parser) -> Callable[[Parser], Callable | None] | None:
                 p.used_items.append(issue_num)
                 p.issue_number_at = issue_num.pos
 
-    # Remove publishers, currently only marvel and dc are defined,
-    # this is an option specifically because this can drastically screw up parsing
-    if p.remove_publisher:
-        for item in p.publisher_removed:
-            if item in p.series_parts:
-                p.series_parts.remove(item)
-            if item in p.title_parts:
-                p.title_parts.remove(item)
-
-    p.filename_info["series"] = join_title(p.series_parts)
-    p.used_items.extend(p.series_parts)
-
-    p.filename_info["title"] = join_title(p.title_parts)
-    p.used_items.extend(p.title_parts)
-
     if "issue" in p.filename_info:
         p.filename_info["issue"] = issuestring.IssueString(p.filename_info["issue"].lstrip("#")).as_string()
 
@@ -909,13 +899,30 @@ def parse_finish(p: Parser) -> Callable[[Parser], Callable | None] | None:
         if "volume" in p.filename_info:
             p.filename_info["issue"] = p.filename_info["volume"]
 
-    remove_items = []
-    if p.remove_fcbd:
-        remove_items.append(filenamelexer.ItemType.FCBD)
-    if p.remove_c2c:
-        remove_items.append(filenamelexer.ItemType.C2C)
 
-    p.irrelevant.extend([x for x in p.input if x.typ in remove_items])
+def parse_finish(p: Parser) -> Callable[[Parser], Callable | None] | None:
+    resolve_year(p)
+    resolve_issue(p)
+
+    # Remove publishers, currently only marvel and dc are defined,
+    # this is an option specifically because this can drastically screw up parsing
+    if p.remove_publisher:
+        for item in p.publisher_removed:
+            if item in p.series_parts:
+                p.series_parts.remove(item)
+            if item in p.title_parts:
+                p.title_parts.remove(item)
+
+    if p.series_parts:
+        p.filename_info["series"] = join_title(p.series_parts)
+        p.used_items.extend(p.series_parts)
+    else:
+        p.filename_info["series"] = p.filename_info["issue"]
+
+    p.filename_info["title"] = join_title(p.title_parts)
+    p.used_items.extend(p.title_parts)
+
+    p.irrelevant.extend([x for x in p.input if x.typ in p.remove_from_remainder])
 
     p.filename_info["remainder"] = get_remainder(p)
 

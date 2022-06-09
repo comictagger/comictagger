@@ -313,7 +313,9 @@ class CoverImageWidget(QtWidgets.QWidget):
         new_w = max(new_w, 0)
 
         # scale the pixmap to fit in the frame
-        scaled_pixmap = self.current_pixmap.scaled(new_w, new_h, QtCore.Qt.AspectRatioMode.KeepAspectRatio)
+        scaled_pixmap = self.current_pixmap.scaled(
+            new_w, new_h, QtCore.Qt.AspectRatioMode.KeepAspectRatio, QtCore.Qt.SmoothTransformation
+        )
         self.lblImage.setPixmap(scaled_pixmap)
 
         # move and resize the label to be centered in the fame

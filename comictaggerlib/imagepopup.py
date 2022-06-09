@@ -48,7 +48,7 @@ class ImagePopup(QtWidgets.QDialog):
         screen = QtWidgets.QApplication.primaryScreen()
         self.desktopBg = screen.grabWindow(sip.voidptr(0), 0, 0, screen_size.width(), screen_size.height())
         bg = QtGui.QPixmap(ComicTaggerSettings.get_graphic("popup_bg.png"))
-        self.clientBgPixmap = bg.scaled(screen_size.width(), screen_size.height())
+        self.clientBgPixmap = bg.scaled(screen_size.width(), screen_size.height(), QtCore.Qt.SmoothTransformation)
         self.setMask(self.clientBgPixmap.mask())
 
         self.apply_image_pixmap()
@@ -69,7 +69,9 @@ class ImagePopup(QtWidgets.QDialog):
 
         if self.imagePixmap.width() > win_w or self.imagePixmap.height() > win_h:
             # scale the pixmap to fit in the frame
-            display_pixmap = self.imagePixmap.scaled(win_w, win_h, QtCore.Qt.AspectRatioMode.KeepAspectRatio)
+            display_pixmap = self.imagePixmap.scaled(
+                win_w, win_h, QtCore.Qt.AspectRatioMode.KeepAspectRatio, QtCore.Qt.SmoothTransformation
+            )
             self.lblImage.setPixmap(display_pixmap)
         else:
             display_pixmap = self.imagePixmap
