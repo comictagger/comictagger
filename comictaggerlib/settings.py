@@ -98,6 +98,7 @@ class ComicTaggerSettings:
         self.clear_form_before_populating_from_cv = False
         self.remove_html_tables = False
         self.cv_api_key = ""
+        self.cv_url = ""
         self.auto_imprint = False
 
         self.sort_series_by_year = True
@@ -256,6 +257,9 @@ class ComicTaggerSettings:
         if self.config.has_option("comicvine", "cv_api_key"):
             self.cv_api_key = self.config.get("comicvine", "cv_api_key")
 
+        if self.config.has_option("comicvine", "cv_url"):
+            self.cv_url = self.config.get("comicvine", "cv_url")
+
         if self.config.has_option("cbl_transform", "assume_lone_credit_is_primary"):
             self.assume_lone_credit_is_primary = self.config.getboolean(
                 "cbl_transform", "assume_lone_credit_is_primary"
@@ -377,6 +381,7 @@ class ComicTaggerSettings:
         self.config.set("comicvine", "always_use_publisher_filter", self.always_use_publisher_filter)
 
         self.config.set("comicvine", "cv_api_key", self.cv_api_key)
+        self.config.set("comicvine", "cv_url", self.cv_url)
 
         if not self.config.has_section("cbl_transform"):
             self.config.add_section("cbl_transform")

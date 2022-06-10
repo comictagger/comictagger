@@ -79,6 +79,7 @@ def url_fetch_complete(image_url: str, thumb_url: str | None) -> None:
 class ComicVineTalker:
     logo_url = "http://static.comicvine.com/bundles/comicvinesite/images/logo.png"
     api_key = ""
+    api_base_url = ""
 
     alt_url_list_fetch_complete = list_fetch_complete
     url_fetch_complete = url_fetch_complete
@@ -91,19 +92,16 @@ class ComicVineTalker:
         return "Comic Vine rate limit exceeded.  Please wait a bit."
 
     def __init__(self) -> None:
-
-        self.api_base_url = "https://comicvine.gamespot.com/api"
         self.wait_for_rate_limit = False
 
         # key that is registered to comictagger
         default_api_key = "27431e6787042105bd3e47e169a624521f89f3a4"
+        default_url = "https://comicvine.gamespot.com/api"
 
         self.issue_id: int | None = None
 
-        if ComicVineTalker.api_key == "":
-            self.api_key = default_api_key
-        else:
-            self.api_key = ComicVineTalker.api_key
+        self.api_key = ComicVineTalker.api_key or default_api_key
+        self.api_base_url = ComicVineTalker.api_base_url or default_url
 
         self.log_func: Callable[[str], None] | None = None
 
@@ -132,10 +130,11 @@ class ComicVineTalker:
                     day = utils.xlate(parts[2], True)
         return day, month, year
 
-    def test_key(self, key: str) -> bool:
-
+    def test_key(self, key: str, url: str) -> bool:
+        if not url:
+            url = self.api_base_url
         try:
-            test_url = self.api_base_url + "/issue/1/?api_key=" + key + "&format=json&field_list=name"
+            test_url = url + "/issue/1/?api_key=" + key + "&format=json&field_list=name"
 
             cv_response: CVResult = requests.get(
                 test_url, headers={"user-agent": "comictagger/" + ctversion.version}

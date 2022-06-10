@@ -237,7 +237,8 @@ class SettingsWindow(QtWidgets.QDialog):
         self.cbxSortByYear.setChecked(self.settings.sort_series_by_year)
         self.cbxExactMatches.setChecked(self.settings.exact_series_matches_first)
 
-        self.leKey.setText(str(self.settings.cv_api_key))
+        self.leKey.setText(self.settings.cv_api_key)
+        self.leURL.setText(self.settings.cv_url)
 
         self.cbxAssumeLoneCreditIsPrimary.setChecked(self.settings.assume_lone_credit_is_primary)
         self.cbxCopyCharactersToTags.setChecked(self.settings.copy_characters_to_tags)
@@ -303,8 +304,10 @@ class SettingsWindow(QtWidgets.QDialog):
         self.settings.sort_series_by_year = self.cbxSortByYear.isChecked()
         self.settings.exact_series_matches_first = self.cbxExactMatches.isChecked()
 
-        self.settings.cv_api_key = str(self.leKey.text())
-        ComicVineTalker.api_key = self.settings.cv_api_key.strip()
+        self.settings.cv_api_key = self.leKey.text().strip()
+        ComicVineTalker.api_key = self.settings.cv_api_key
+        self.settings.cv_url = self.leURL.text().strip()
+        ComicVineTalker.api_base_url = self.settings.cv_url
         self.settings.assume_lone_credit_is_primary = self.cbxAssumeLoneCreditIsPrimary.isChecked()
         self.settings.copy_characters_to_tags = self.cbxCopyCharactersToTags.isChecked()
         self.settings.copy_teams_to_tags = self.cbxCopyTeamsToTags.isChecked()
@@ -336,7 +339,7 @@ class SettingsWindow(QtWidgets.QDialog):
         QtWidgets.QMessageBox.information(self, self.name, "Cache has been cleared.")
 
     def test_api_key(self) -> None:
-        if ComicVineTalker().test_key(str(self.leKey.text()).strip()):
+        if ComicVineTalker().test_key(self.leKey.text().strip(), self.leURL.text().strip()):
             QtWidgets.QMessageBox.information(self, "API Key Test", "Key is valid!")
         else:
             QtWidgets.QMessageBox.warning(self, "API Key Test", "Key is NOT valid.")

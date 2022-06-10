@@ -112,6 +112,10 @@ def define_args() -> argparse.ArgumentParser:
         help="Use the given Comic Vine API Key (persisted in settings).",
     )
     parser.add_argument(
+        "--cv-url",
+        help="Use the given Comic Vine URL (persisted in settings).",
+    )
+    parser.add_argument(
         "--delete-rar",
         action="store_true",
         dest="delete_after_zip_export",
@@ -376,8 +380,8 @@ def parse_cmd_line() -> argparse.Namespace:
         for item in globs:
             opts.files.extend(glob.glob(item))
 
-    if opts.only_set_cv_key and opts.cv_api_key is None:
-        parser.exit(message="Key not given!", status=1)
+    if opts.only_set_cv_key and opts.cv_api_key is None and opts.cv_url is None:
+        parser.exit(message="Key not given!\n", status=1)
 
     if not opts.only_set_cv_key and opts.no_gui and not opts.files:
         parser.exit(message="Command requires at least one filename!\n", status=1)
