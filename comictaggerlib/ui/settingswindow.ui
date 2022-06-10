@@ -30,7 +30,7 @@
        <property name="currentIndex">
         <number>0</number>
        </property>
-       <widget class="QWidget" name="tab">
+       <widget class="QWidget" name="tGeneral">
         <attribute name="title">
          <string>General</string>
         </attribute>
@@ -131,7 +131,7 @@
          </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="tab_2">
+       <widget class="QWidget" name="tSearching">
         <attribute name="title">
          <string>Searching</string>
         </attribute>
@@ -225,7 +225,7 @@
          </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="tab_6">
+       <widget class="QWidget" name="tFilenameParser">
         <attribute name="title">
          <string>Filename Parser</string>
         </attribute>
@@ -279,7 +279,7 @@
          </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="tab_3">
+       <widget class="QWidget" name="tComicVine">
         <attribute name="title">
          <string>Comic Vine</string>
         </attribute>
@@ -471,7 +471,7 @@
          </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="tab_4">
+       <widget class="QWidget" name="tCBL">
         <attribute name="title">
          <string>CBL</string>
         </attribute>
@@ -582,7 +582,7 @@
          </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="tab_5">
+       <widget class="QWidget" name="tRename">
         <attribute name="title">
          <string>Rename</string>
         </attribute>
@@ -700,7 +700,7 @@ By default only removes restricted characters and filenames for the current Oper
          </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="tab_7">
+       <widget class="QWidget" name="tRARTools">
         <attribute name="title">
          <string>RAR Tools</string>
         </attribute>

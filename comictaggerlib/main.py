@@ -15,6 +15,7 @@
 # limitations under the License.
 from __future__ import annotations
 
+import importlib.metadata
 import json
 import logging.handlers
 import os
@@ -24,8 +25,6 @@ import signal
 import sys
 import traceback
 import types
-
-import pkg_resources
 
 from comicapi import utils
 from comictaggerlib import cli
@@ -155,8 +154,8 @@ def ctmain() -> None:
     )
 
     logger.debug("Installed Packages")
-    for pkg in sorted(pkg_resources.working_set, key=lambda x: x.project_name):
-        logger.debug("%s\t%s", pkg.project_name, pkg.version)
+    for pkg in sorted(importlib.metadata.distributions(), key=lambda x: x.name):
+        logger.debug("%s\t%s", pkg.name, pkg.version)
 
     utils.load_publishers()
     update_publishers()
