@@ -57,10 +57,11 @@ def actual_issue_data_fetch(
 
 def actual_metadata_save(ca: ComicArchive, opts: argparse.Namespace, md: GenericMetadata) -> bool:
     if not opts.dryrun:
-        # write out the new data
-        if not ca.write_metadata(md, opts.type if opts.type is not None else 0):
-            logger.error("The tag save seemed to fail!")
-            return False
+        for metadata_style in opts.type:
+            # write out the new data
+            if not ca.write_metadata(md, metadata_style):
+                logger.error("The tag save seemed to fail for style: %s!", MetaDataStyle.name[metadata_style])
+                return False
 
         print("Save complete.")
         logger.info("Save complete.")
@@ -105,7 +106,7 @@ def display_match_set_for_choice(
             # save the data!
             # we know at this point, that the file is all good to go
             ca = match_set.ca
-            md = create_local_metadata(opts, ca, ca.has_metadata(opts.type if opts.type is not None else 0), settings)
+            md = create_local_metadata(opts, ca, settings)
             cv_md = actual_issue_data_fetch(match_set.matches[int(i) - 1], settings, opts)
             if opts.overwrite:
                 md = cv_md
@@ -177,9 +178,7 @@ def cli_mode(opts: argparse.Namespace, settings: ComicTaggerSettings) -> None:
     post_process_matches(match_results, opts, settings)
 
 
-def create_local_metadata(
-    opts: argparse.Namespace, ca: ComicArchive, has_desired_tags: bool, settings: ComicTaggerSettings
-) -> GenericMetadata:
+def create_local_metadata(opts: argparse.Namespace, ca: ComicArchive, settings: ComicTaggerSettings) -> GenericMetadata:
     md = GenericMetadata()
     md.set_default_page_list(ca.get_number_of_pages())
 
@@ -195,12 +194,14 @@ def create_local_metadata(
 
         md.overlay(f_md)
 
-    if has_desired_tags:
-        try:
-            t_md = ca.read_metadata(opts.type if opts.type is not None else 0)
-            md.overlay(t_md)
-        except Exception as e:
-            logger.error("Failed to load metadata for %s: %s", ca.path, e)
+    for metadata_style in opts.type:
+        if ca.has_metadata(metadata_style):
+            try:
+                t_md = ca.read_metadata(metadata_style)
+                md.overlay(t_md)
+                break
+            except Exception as e:
+                logger.error("Failed to load metadata for %s: %s", ca.path, e)
 
     # finally, use explicit stuff
     md.overlay(opts.metadata)
@@ -224,7 +225,7 @@ def process_file_cli(
         return
 
     if not ca.is_writable() and (opts.delete or opts.copy or opts.save or opts.rename):
-        logger.error("This archive is not writable for that tag type")
+        logger.error("This archive is not writable")
         return
 
     has = [False, False, False]
@@ -237,7 +238,7 @@ def process_file_cli(
 
     if opts.print:
 
-        if opts.type is None:
+        if not opts.type:
             page_count = ca.get_number_of_pages()
 
             brief = ""
@@ -275,7 +276,7 @@ def process_file_cli(
 
         print()
 
-        if opts.type is None or opts.type == MetaDataStyle.CIX:
+        if not opts.type or MetaDataStyle.CIX in opts.type:
             if has[MetaDataStyle.CIX]:
                 print("--------- ComicRack tags ---------")
                 try:
@@ -286,7 +287,7 @@ def process_file_cli(
                 except Exception as e:
                     logger.error("Failed to load metadata for %s: %s", ca.path, e)
 
-        if opts.type is None or opts.type == MetaDataStyle.CBI:
+        if not opts.type or MetaDataStyle.CBI in opts.type:
             if has[MetaDataStyle.CBI]:
                 print("------- ComicBookLover tags -------")
                 try:
@@ -297,7 +298,7 @@ def process_file_cli(
                 except Exception as e:
                     logger.error("Failed to load metadata for %s: %s", ca.path, e)
 
-        if opts.type is None or opts.type == MetaDataStyle.COMET:
+        if not opts.type or MetaDataStyle.COMET in opts.type:
             if has[MetaDataStyle.COMET]:
                 print("----------- CoMet tags -----------")
                 try:
@@ -309,58 +310,62 @@ def process_file_cli(
                     logger.error("Failed to load metadata for %s: %s", ca.path, e)
 
     elif opts.delete:
-        style_name = MetaDataStyle.name[opts.type]
-        if has[opts.type]:
-            if not opts.dryrun:
-                if not ca.remove_metadata(opts.type):
-                    print(f"{filename}: Tag removal seemed to fail!")
+        for metadata_style in opts.type:
+            style_name = MetaDataStyle.name[metadata_style]
+            if has[metadata_style]:
+                if not opts.dryrun:
+                    if not ca.remove_metadata(metadata_style):
+                        print(f"{filename}: Tag removal seemed to fail!")
+                    else:
+                        print(f"{filename}: Removed {style_name} tags.")
                 else:
-                    print(f"{filename}: Removed {style_name} tags.")
+                    print(f"{filename}: dry-run. {style_name} tags not removed")
             else:
-                print(f"{filename}: dry-run. {style_name} tags not removed")
-        else:
-            print(f"{filename}: This archive doesn't have {style_name} tags to remove.")
+                print(f"{filename}: This archive doesn't have {style_name} tags to remove.")
 
-    elif opts.copy:
-        dst_style_name = MetaDataStyle.name[opts.type]
-        if opts.no_overwrite and has[opts.type]:
-            print(f"{filename}: Already has {dst_style_name} tags. Not overwriting.")
-            return
-        if opts.copy == opts.type:
-            print(f"{filename}: Destination and source are same: {dst_style_name}. Nothing to do.")
-            return
+    elif opts.copy is not None:
+        for metadata_style in opts.type:
+            dst_style_name = MetaDataStyle.name[metadata_style]
+            if opts.no_overwrite and has[metadata_style]:
+                print(f"{filename}: Already has {dst_style_name} tags. Not overwriting.")
+                return
+            if opts.copy == metadata_style:
+                print(f"{filename}: Destination and source are same: {dst_style_name}. Nothing to do.")
+                return
 
-        src_style_name = MetaDataStyle.name[opts.copy]
-        if has[opts.copy]:
-            if not opts.dryrun:
-                try:
-                    md = ca.read_metadata(opts.copy)
-                except Exception as e:
-                    md = GenericMetadata()
-                    logger.error("Failed to load metadata for %s: %s", ca.path, e)
+            src_style_name = MetaDataStyle.name[opts.copy]
+            if has[opts.copy]:
+                if not opts.dryrun:
+                    try:
+                        md = ca.read_metadata(opts.copy)
+                    except Exception as e:
+                        md = GenericMetadata()
+                        logger.error("Failed to load metadata for %s: %s", ca.path, e)
 
-                if settings.apply_cbl_transform_on_bulk_operation and opts.type == MetaDataStyle.CBI:
-                    md = CBLTransformer(md, settings).apply()
+                    if settings.apply_cbl_transform_on_bulk_operation and metadata_style == MetaDataStyle.CBI:
+                        md = CBLTransformer(md, settings).apply()
 
-                if not ca.write_metadata(md, opts.type):
-                    print(f"{filename}: Tag copy seemed to fail!")
+                    if not ca.write_metadata(md, metadata_style):
+                        print(f"{filename}: Tag copy seemed to fail!")
+                    else:
+                        print(f"{filename}: Copied {src_style_name} tags to {dst_style_name}.")
                 else:
-                    print(f"{filename}: Copied {src_style_name} tags to {dst_style_name}.")
+                    print(f"{filename}: dry-run.  {src_style_name} tags not copied")
             else:
-                print(f"{filename}: dry-run.  {src_style_name} tags not copied")
-        else:
-            print(f"{filename}: This archive doesn't have {src_style_name} tags to copy.")
+                print(f"{filename}: This archive doesn't have {src_style_name} tags to copy.")
 
     elif opts.save:
 
-        if opts.no_overwrite and has[opts.type]:
-            print(f"{filename}: Already has {MetaDataStyle.name[opts.type]} tags. Not overwriting.")
-            return
+        if opts.no_overwrite:
+            for metadata_style in opts.type:
+                if has[metadata_style]:
+                    print(f"{filename}: Already has {MetaDataStyle.name[metadata_style]} tags. Not overwriting.")
+                    return
 
         if batch_mode:
             print(f"Processing {ca.path}...")
 
-        md = create_local_metadata(opts, ca, has[opts.type], settings)
+        md = create_local_metadata(opts, ca, settings)
         if md.issue is None or md.issue == "":
             if opts.assume_issue_one:
                 md.issue = "1"
@@ -472,12 +477,7 @@ def process_file_cli(
         if batch_mode:
             msg_hdr = f"{ca.path}: "
 
-        if opts.type is not None:
-            use_tags = has[opts.type]
-        else:
-            use_tags = False
-
-        md = create_local_metadata(opts, ca, use_tags, settings)
+        md = create_local_metadata(opts, ca, settings)
 
         if md.series is None:
             logger.error(msg_hdr + "Can't rename without series name")

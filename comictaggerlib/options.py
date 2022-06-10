@@ -138,8 +138,9 @@ def define_args() -> argparse.ArgumentParser:
         "-t",
         "--type",
         metavar="{CR,CBL,COMET}",
+        default=[],
         type=metadata_type,
-        help="""Specify TYPE as either CR, CBL, COMET\n(as either ComicRack, ComicBookLover,\nor CoMet style tags, respectively).\n\n""",
+        help="""Specify TYPE as either CR, CBL or COMET\n(as either ComicRack, ComicBookLover,\nor CoMet style tags, respectively).\nUse commas for multiple types.\nFor searching the metadata will use the first listed:\neg '-t cbl,cr' with no CBL tags, CR will be used if they exist\n\n""",
     )
     parser.add_argument(
         "-o",
@@ -237,12 +238,16 @@ def define_args() -> argparse.ArgumentParser:
     return parser
 
 
-def metadata_type(typ: str) -> int:
-    typ = typ.casefold()
-    if typ not in MetaDataStyle.short_name:
-        choices = ", ".join(MetaDataStyle.short_name)
-        raise argparse.ArgumentTypeError(f"invalid choice: {typ} (choose from {choices.upper()})")
-    return MetaDataStyle.short_name.index(typ)
+def metadata_type(types: str) -> list[int]:
+    result = []
+    types = types.casefold()
+    for typ in types.split(","):
+        typ = typ.strip()
+        if typ not in MetaDataStyle.short_name:
+            choices = ", ".join(MetaDataStyle.short_name)
+            raise argparse.ArgumentTypeError(f"invalid choice: {typ} (choose from {choices.upper()})")
+        result.append(MetaDataStyle.short_name.index(typ))
+    return result
 
 
 def parse_metadata_from_string(mdstr: str) -> GenericMetadata:
@@ -386,14 +391,18 @@ def parse_cmd_line() -> argparse.Namespace:
     if not opts.only_set_cv_key and opts.no_gui and not opts.files:
         parser.exit(message="Command requires at least one filename!\n", status=1)
 
-    if opts.delete and opts.type is None:
+    if opts.delete and not opts.type:
         parser.exit(message="Please specify the type to delete with -t\n", status=1)
 
-    if opts.save and opts.type is None:
+    if opts.save and not opts.type:
         parser.exit(message="Please specify the type to save with -t\n", status=1)
 
-    if opts.copy and opts.type is None:
-        parser.exit(message="Please specify the type to copy to with -t\n", status=1)
+    if opts.copy:
+        if not opts.type:
+            parser.exit(message="Please specify the type to copy to with -t\n", status=1)
+        if len(opts.copy) > 1:
+            parser.exit(message="Please specify only one type to copy to with -c\n", status=1)
+        opts.copy = opts.copy[0]
 
     if opts.recursive:
         opts.file_list = utils.get_recursive_filelist(opts.file_list)

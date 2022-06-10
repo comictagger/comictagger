@@ -151,10 +151,10 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
         self.setWindowIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("app.png")))
         # TODO: this needs to be looked at
-        if opts is not None and opts.type is not None:
+        if opts is not None and opts.type:
             # respect the command line option tag type
-            settings.last_selected_save_data_style = opts.type
-            settings.last_selected_load_data_style = opts.type
+            settings.last_selected_save_data_style = opts.type[0]
+            settings.last_selected_load_data_style = opts.type[0]
 
         self.save_data_style = settings.last_selected_save_data_style
         self.load_data_style = settings.last_selected_load_data_style
