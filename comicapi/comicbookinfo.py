@@ -95,7 +95,7 @@ class ComicBookInfo:
         metadata.volume_count = utils.xlate(cbi["numberOfVolumes"], True)
         metadata.language = utils.xlate(cbi["language"])
         metadata.country = utils.xlate(cbi["country"])
-        metadata.critical_rating = utils.xlate(cbi["rating"])
+        metadata.critical_rating = utils.xlate(cbi["rating"], True)
 
         metadata.credits = cbi["credits"]
         metadata.tags = cbi["tags"]
@@ -157,7 +157,7 @@ class ComicBookInfo:
         assign("numberOfVolumes", utils.xlate(metadata.volume_count, True))
         assign("language", utils.xlate(utils.get_language_from_iso(metadata.language)))
         assign("country", utils.xlate(metadata.country))
-        assign("rating", utils.xlate(metadata.critical_rating))
+        assign("rating", utils.xlate(metadata.critical_rating, True))
         assign("credits", metadata.credits)
         assign("tags", metadata.tags)
 

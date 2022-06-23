@@ -796,7 +796,6 @@ Have fun!
         assign_text(self.leImprint, md.imprint)
         assign_text(self.teComments, md.comments)
         assign_text(self.teNotes, md.notes)
-        assign_text(self.leCriticalRating, md.critical_rating)
         assign_text(self.leStoryArc, md.story_arc)
         assign_text(self.leScanInfo, md.scan_info)
         assign_text(self.leSeriesGroup, md.series_group)
@@ -808,10 +807,7 @@ Have fun!
         assign_text(self.teTeams, md.teams)
         assign_text(self.teLocations, md.locations)
 
-        try:
-            self.dsbCommunityRating.setValue(md.community_rating or 0.0)
-        except ValueError:
-            self.dsbCommunityRating.setValue(0.0)
+        self.dsbCriticalRating.setValue(md.critical_rating or 0.0)
 
         if md.format is not None and md.format != "":
             i = self.cbFormat.findText(md.format)
@@ -913,7 +909,6 @@ Have fun!
         md.month = utils.xlate(self.lePubMonth.text(), True)
         md.year = utils.xlate(self.lePubYear.text(), True)
         md.day = utils.xlate(self.lePubDay.text(), True)
-        md.critical_rating = utils.xlate(self.leCriticalRating.text(), True)
         md.alternate_count = utils.xlate(self.leAltIssueCount.text(), True)
 
         md.series = self.leSeries.text()
@@ -925,9 +920,9 @@ Have fun!
         md.notes = self.teNotes.toPlainText()
         md.maturity_rating = self.cbMaturityRating.currentText()
 
-        md.community_rating = utils.xlate(self.dsbCommunityRating.cleanText())
-        if md.community_rating == "0.0":
-            md.community_rating = None
+        md.critical_rating = utils.xlate(self.dsbCriticalRating.cleanText(), is_float=True)
+        if md.critical_rating == 0.0:
+            md.critical_rating = None
 
         md.story_arc = self.leStoryArc.text()
         md.scan_info = self.leScanInfo.text()
@@ -1122,6 +1117,8 @@ Have fun!
                     self.update_menus()
                 self.fileSelectionList.update_current_row()
 
+            self.metadata = self.comic_archive.read_metadata(self.load_data_style)
+            self.actual_load_current_archive()
         else:
             QtWidgets.QMessageBox.information(self, "Whoops!", "No data to commit!")
 
@@ -1217,7 +1214,7 @@ Have fun!
                     widget.setReadOnly(True)
                     widget.setPalette(inactive_palette1)
 
-        cbi_only = [self.leVolumeCount, self.cbCountry, self.leCriticalRating, self.teTags]
+        cbi_only = [self.leVolumeCount, self.cbCountry, self.teTags]
         cix_only = [
             self.leImprint,
             self.teNotes,
@@ -1235,7 +1232,6 @@ Have fun!
             self.teLocations,
             self.cbMaturityRating,
             self.cbFormat,
-            self.dsbCommunityRating,
         ]
 
         if self.save_data_style == MetaDataStyle.CIX:
