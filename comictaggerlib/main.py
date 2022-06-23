@@ -15,7 +15,6 @@
 # limitations under the License.
 from __future__ import annotations
 
-import importlib.metadata
 import json
 import logging.handlers
 import os
@@ -32,6 +31,11 @@ from comictaggerlib.comicvinetalker import ComicVineTalker
 from comictaggerlib.ctversion import version
 from comictaggerlib.options import parse_cmd_line
 from comictaggerlib.settings import ComicTaggerSettings
+
+if sys.version_info < (3, 10):
+    import importlib_metadata
+else:
+    import importlib.metadata as importlib_metadata
 
 logger = logging.getLogger("comictagger")
 logging.getLogger("comicapi").setLevel(logging.DEBUG)
@@ -154,7 +158,7 @@ def ctmain() -> None:
     )
 
     logger.debug("Installed Packages")
-    for pkg in sorted(importlib.metadata.distributions(), key=lambda x: x.name):
+    for pkg in sorted(importlib_metadata.distributions(), key=lambda x: x.name):
         logger.debug("%s\t%s", pkg.name, pkg.version)
 
     utils.load_publishers()
