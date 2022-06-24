@@ -331,6 +331,8 @@ class FilenameInfo(TypedDict, total=False):
 eof = filenamelexer.Item(filenamelexer.ItemType.EOF, -1, "")
 
 
+# Extracted and mutilated from https://github.com/lordwelch/wsfmt
+# Which was extracted and mutliated from https://github.com/golang/go/tree/master/src/text/template/parse
 class Parser:
     """docstring for FilenameParser"""
 

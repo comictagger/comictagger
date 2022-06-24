@@ -1,4 +1,5 @@
 beautifulsoup4 >= 4.1
+importlib_metadata
 natsort>=8.1.0
 pathvalidate
 pillow>=4.3.0

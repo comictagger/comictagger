@@ -1,3 +1,5 @@
+# Extracted and mutilated from https://github.com/lordwelch/wsfmt
+# Which was extracted and mutliated from https://github.com/golang/go/tree/master/src/text/template/parse
 from __future__ import annotations
 
 import calendar
@@ -11,10 +13,10 @@ class ItemType(Enum):
     Error = auto()  # Error occurred; value is text of error
     EOF = auto()
     Text = auto()  # Text
-    LeftParen = auto()  # '(' inside action
+    LeftParen = auto()
     Number = auto()  # Simple number
     IssueNumber = auto()  # Preceded by a # Symbol
-    RightParen = auto()  # ')' inside action
+    RightParen = auto()
     Space = auto()  # Run of spaces separating arguments
     Dot = auto()
     LeftBrace = auto()
