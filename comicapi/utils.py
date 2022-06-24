@@ -78,16 +78,20 @@ def add_to_path(dirname: str) -> None:
             os.environ["PATH"] = dirname + os.pathsep + os.environ["PATH"]
 
 
-def xlate(data: Any, is_int: bool = False) -> Any:
+def xlate(data: Any, is_int: bool = False, is_float: bool = False) -> Any:
     if data is None or data == "":
         return None
-    if is_int:
-        i = str(data).translate(defaultdict(lambda: None, zip((ord(c) for c in "1234567890"), "1234567890")))
-        if i == "0":
-            return "0"
+    if is_int or is_float:
+        i: str | int | float
+        if isinstance(data, (int, float)):
+            i = data
+        else:
+            i = str(data).translate(defaultdict(lambda: None, zip((ord(c) for c in "1234567890."), "1234567890.")))
         if i == "":
             return None
-        return int(i)
+        if is_float:
+            return float(i)
+        return int(float(i))
 
     return str(data)
 

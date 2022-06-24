@@ -92,7 +92,7 @@ class GenericMetadata:
         self.comments: str | None = None  # use same way as Summary in CIX
 
         self.volume_count: int | None = None
-        self.critical_rating: str | None = None
+        self.critical_rating: float | None = None  # rating in cbl; CommunityRating in CIX
         self.country: str | None = None
 
         self.alternate_series: str | None = None
@@ -106,7 +106,6 @@ class GenericMetadata:
         self.black_and_white: bool | None = None
         self.page_count: int | None = None
         self.maturity_rating: str | None = None
-        self.community_rating: str | None = None
 
         self.story_arc: str | None = None
         self.series_group: str | None = None
@@ -168,7 +167,6 @@ class GenericMetadata:
         assign("manga", new_md.manga)
         assign("black_and_white", new_md.black_and_white)
         assign("maturity_rating", new_md.maturity_rating)
-        assign("community_rating", new_md.community_rating)
         assign("story_arc", new_md.story_arc)
         assign("series_group", new_md.series_group)
         assign("scan_info", new_md.scan_info)
@@ -306,7 +304,6 @@ class GenericMetadata:
         if self.black_and_white:
             add_attr_string("black_and_white")
         add_attr_string("maturity_rating")
-        add_attr_string("community_rating")
         add_attr_string("story_arc")
         add_attr_string("series_group")
         add_attr_string("scan_info")
@@ -378,7 +375,7 @@ md_test.comments = (
     " and what those characters meant to the livelihood of children around the world."
 )
 md_test.volume_count = None
-md_test.critical_rating = None
+md_test.critical_rating = 3.0
 md_test.country = None
 md_test.alternate_series = "Tales"
 md_test.alternate_number = "2"
@@ -391,7 +388,6 @@ md_test.manga = "No"
 md_test.black_and_white = None
 md_test.page_count = 24
 md_test.maturity_rating = "Everyone 10+"
-md_test.community_rating = "3.0"
 md_test.story_arc = "Here and Now"
 md_test.series_group = "Futuristic Tales"
 md_test.scan_info = "(CC BY-NC-SA 3.0)"

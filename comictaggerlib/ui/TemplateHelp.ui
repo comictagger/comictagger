@@ -78,7 +78,7 @@ tr:nth-child(even) {
      &lt;tr&gt;&lt;td&gt;{language}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
      &lt;tr&gt;&lt;td&gt;{comments}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
      &lt;tr&gt;&lt;td&gt;{volume_count}&lt;/td&gt;&lt;td&gt;integer&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{critical_rating}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
+     &lt;tr&gt;&lt;td&gt;{critical_rating}&lt;/td&gt;&lt;td&gt;float&lt;/td&gt;&lt;/tr&gt;
      &lt;tr&gt;&lt;td&gt;{country}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
      &lt;tr&gt;&lt;td&gt;{alternate_series}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
      &lt;tr&gt;&lt;td&gt;{alternate_number}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
@@ -91,7 +91,6 @@ tr:nth-child(even) {
      &lt;tr&gt;&lt;td&gt;{black_and_white}&lt;/td&gt;&lt;td&gt;boolean&lt;/td&gt;&lt;/tr&gt;
      &lt;tr&gt;&lt;td&gt;{page_count}&lt;/td&gt;&lt;td&gt;integer&lt;/td&gt;&lt;/tr&gt;
      &lt;tr&gt;&lt;td&gt;{maturity_rating}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{community_rating}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
      &lt;tr&gt;&lt;td&gt;{story_arc}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
      &lt;tr&gt;&lt;td&gt;{series_group}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
      &lt;tr&gt;&lt;td&gt;{scan_info}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
