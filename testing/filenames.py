@@ -733,43 +733,55 @@ rnames = [
         "Cory Doctorow's Futuristic Tales of the Here and Now #001 - Anda's Game (2007).cbz",
     ),
     (
+        "{series} #{issue} - {title} ({year})({price})",  # price should be none, test no  space between ')('
+        False,
+        "universal",
+        "Cory Doctorow's Futuristic Tales of the Here and Now #001 - Anda's Game (2007).cbz",
+    ),
+    (
+        "{series} #{issue} - {title} ({year})  ({price})",  # price should be none, test double space ')  ('
+        False,
+        "universal",
+        "Cory Doctorow's Futuristic Tales of the Here and Now #001 - Anda's Game (2007).cbz",
+    ),
+    (
         "{series} #{issue} - {title} ({year})",
         False,
         "universal",
         "Cory Doctorow's Futuristic Tales of the Here and Now #001 - Anda's Game (2007).cbz",
     ),
     (
-        "{series}: {title} #{issue} ({year})",
+        "{series}: {title} #{issue} ({year})",  # on windows the ':' is replaced
         False,
         "universal",
         "Cory Doctorow's Futuristic Tales of the Here and Now - Anda's Game #001 (2007).cbz",
     ),
     (
-        "{series}: {title} #{issue} ({year})",
+        "{series}: {title} #{issue} ({year})",  # on linux the ':' is preserved
         False,
         "Linux",
         "Cory Doctorow's Futuristic Tales of the Here and Now: Anda's Game #001 (2007).cbz",
     ),
     (
-        "{publisher}/  {series} #{issue} - {title} ({year})",
+        "{publisher}/  {series} #{issue} - {title} ({year})",  # leading whitespace is removed when moving
         True,
         "universal",
         "IDW Publishing/Cory Doctorow's Futuristic Tales of the Here and Now #001 - Anda's Game (2007).cbz",
     ),
     (
-        "{publisher}/  {series} #{issue} - {title} ({year})",
+        "{publisher}/  {series} #{issue} - {title} ({year})",  # leading whitespace is removed when only renaming
         False,
         "universal",
         "Cory Doctorow's Futuristic Tales of the Here and Now #001 - Anda's Game (2007).cbz",
     ),
     (
-        r"{publisher}\  {series} #{issue} - {title} ({year})",
+        r"{publisher}\  {series} #{issue} - {title} ({year})",  # backslashes separate directories
         False,
         "universal",
         "Cory Doctorow's Futuristic Tales of the Here and Now #001 - Anda's Game (2007).cbz",
     ),
     (
-        "{series} #  {issue} - {title} ({year})",
+        "{series} #  {issue} - {title} ({year})",  # double spaces are reduced to one
         False,
         "universal",
         "Cory Doctorow's Futuristic Tales of the Here and Now # 001 - Anda's Game (2007).cbz",
@@ -781,9 +793,27 @@ rnames = [
         "Cory Doctorow's Futuristic Tales of the Here and Now # 001 - lonely cottage (2007).cbz",
     ),
     (
-        "{series} #{issue} - {title} - {WriteR}, {EDITOR} ({year})",
+        "{series} #{issue} - {title} - {WriteR}, {EDITOR} ({year})",  # fields are case in-sensitive
         False,
         "universal",
         "Cory Doctorow's Futuristic Tales of the Here and Now #001 - Anda's Game - Dara Naraghi, Ted Adams (2007).cbz",
+    ),
+    (
+        "{series} v{price} #{issue} ({year})",  # Remove previous text if value is ""
+        False,
+        "universal",
+        "Cory Doctorow's Futuristic Tales of the Here and Now #001 (2007).cbz",
+    ),
+    (
+        "{series} {price} #{issue} ({year})",  # Ensure that a single space remains
+        False,
+        "universal",
+        "Cory Doctorow's Futuristic Tales of the Here and Now #001 (2007).cbz",
+    ),
+    (
+        "{series} - {title}{price} #{issue} ({year})",  # Ensure removal before None values only impacts literal text
+        False,
+        "universal",
+        "Cory Doctorow's Futuristic Tales of the Here and Now - Anda's Game #001 (2007).cbz",
     ),
 ]

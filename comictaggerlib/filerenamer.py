@@ -107,9 +107,11 @@ class MetadataFormatter(string.Formatter):
 
                 # format the object and append to the result
                 fmt_obj = self.format_field(obj, format_spec)
-                if fmt_obj == "" and len(result) > 0 and self.smart_cleanup:
+                if fmt_obj == "" and len(result) > 0 and self.smart_cleanup and literal_text:
                     lstrip = True
                     if result:
+                        if " " in result[-1]:
+                            result[-1], _, _ = result[-1].rpartition(" ")
                         result[-1] = result[-1].rstrip("-_({[#")
                 if self.smart_cleanup:
                     fmt_obj = " ".join(fmt_obj.split())
