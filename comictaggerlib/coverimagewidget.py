@@ -26,12 +26,12 @@ from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
 from comicapi import utils
 from comicapi.comicarchive import ComicArchive
-from comictaggerlib.comicvinetalker import ComicVineTalker
 from comictaggerlib.imagefetcher import ImageFetcher
 from comictaggerlib.imagepopup import ImagePopup
 from comictaggerlib.pageloader import PageLoader
 from comictaggerlib.settings import ComicTaggerSettings
 from comictaggerlib.ui.qtutils import get_qimage_from_data, reduce_widget_font_size
+from comictalker.comictalker import ComicTalker
 
 logger = logging.getLogger(__name__)
 
@@ -87,7 +87,9 @@ class CoverImageWidget(QtWidgets.QWidget):
     URLMode = 1
     DataMode = 3
 
-    def __init__(self, parent: QtWidgets.QWidget, mode: int, expand_on_click: bool = True) -> None:
+    def __init__(
+        self, parent: QtWidgets.QWidget, talker_api: ComicTalker, mode: int, expand_on_click: bool = True
+    ) -> None:
         super().__init__(parent)
 
         uic.loadUi(ComicTaggerSettings.get_ui_file("coverimagewidget.ui"), self)
@@ -98,6 +100,7 @@ class CoverImageWidget(QtWidgets.QWidget):
             self.alt_cover_url_list_fetch_complete, self.primary_url_fetch_complete, self.cover_remote_fetch_complete
         )
 
+        self.talker_api = talker_api
         self.mode: int = mode
         self.page_loader: PageLoader | None = None
         self.showControls = True
@@ -177,9 +180,8 @@ class CoverImageWidget(QtWidgets.QWidget):
             self.update_content()
             self.issue_id = issue_id
 
-            comic_vine = ComicVineTalker()
-            ComicVineTalker.url_fetch_complete = self.sig.emit_url
-            comic_vine.async_fetch_issue_cover_urls(self.issue_id)
+            ComicTalker.url_fetch_complete = self.sig.emit_url
+            self.talker_api.async_fetch_issue_cover_urls(self.issue_id)
 
     def set_image_data(self, image_data: bytes) -> None:
         if self.mode == CoverImageWidget.DataMode:
@@ -209,10 +211,9 @@ class CoverImageWidget(QtWidgets.QWidget):
             self.label.setText("Searching for alt. covers...")
 
             # page URL should already be cached, so no need to defer
-            comic_vine = ComicVineTalker()
-            issue_page_url = comic_vine.fetch_issue_page_url(self.issue_id)
-            ComicVineTalker.alt_url_list_fetch_complete = self.sig.emit_list
-            comic_vine.async_fetch_alternate_cover_urls(utils.xlate(self.issue_id), cast(str, issue_page_url))
+            issue_page_url = self.talker_api.fetch_issue_page_url(self.issue_id)
+            ComicTalker.alt_url_list_fetch_complete = self.sig.emit_list
+            self.talker_api.async_fetch_alternate_cover_urls(utils.xlate(self.issue_id), cast(str, issue_page_url))
 
     def alt_cover_url_list_fetch_complete(self, url_list: list[str]) -> None:
         if url_list:
@@ -269,6 +270,8 @@ class CoverImageWidget(QtWidgets.QWidget):
         self.cover_fetcher = ImageFetcher()
         ImageFetcher.image_fetch_complete = self.sig.emit_image
         self.cover_fetcher.fetch(self.url_list[self.imageIndex])
+        # TODO: Figure out async
+        self.sig.emit_image(self.cover_fetcher.fetch(self.url_list[self.imageIndex]))
 
     # called when the image is done loading from internet
     def cover_remote_fetch_complete(self, image_data: bytes) -> None:

@@ -28,31 +28,30 @@ from comicapi import utils
 from comicapi.comicarchive import ComicArchive, MetaDataStyle
 from comicapi.genericmetadata import GenericMetadata
 from comictaggerlib.cbltransformer import CBLTransformer
-from comictaggerlib.comicvinetalker import ComicVineTalker, ComicVineTalkerException
 from comictaggerlib.filerenamer import FileRenamer
 from comictaggerlib.issueidentifier import IssueIdentifier
 from comictaggerlib.resulttypes import IssueResult, MultipleMatch, OnlineMatchResults
 from comictaggerlib.settings import ComicTaggerSettings
+from comictalker.comictalker import ComicTalker
+from comictalker.talkerbase import TalkerError
 
 logger = logging.getLogger(__name__)
 
 
 def actual_issue_data_fetch(
-    match: IssueResult, settings: ComicTaggerSettings, opts: argparse.Namespace
+    match: IssueResult, settings: ComicTaggerSettings, opts: argparse.Namespace, talker_api: ComicTalker
 ) -> GenericMetadata:
     # now get the particular issue data
     try:
-        comic_vine = ComicVineTalker()
-        comic_vine.wait_for_rate_limit = opts.wait_on_cv_rate_limit
-        cv_md = comic_vine.fetch_issue_data(match["volume_id"], match["issue_number"], settings)
-    except ComicVineTalkerException:
-        logger.exception("Network error while getting issue details.  Save aborted")
+        ct_md = talker_api.fetch_issue_data(match["volume_id"], match["issue_number"])
+    except TalkerError as e:
+        logger.exception(f"Error retrieving issue details. Save aborted.\n{e}")
         return GenericMetadata()
 
-    if settings.apply_cbl_transform_on_cv_import:
-        cv_md = CBLTransformer(cv_md, settings).apply()
+    if settings.apply_cbl_transform_on_ct_import:
+        ct_md = CBLTransformer(ct_md, settings).apply()
 
-    return cv_md
+    return ct_md
 
 
 def actual_metadata_save(ca: ComicArchive, opts: argparse.Namespace, md: GenericMetadata) -> bool:
@@ -77,7 +76,11 @@ def actual_metadata_save(ca: ComicArchive, opts: argparse.Namespace, md: Generic
 
 
 def display_match_set_for_choice(
-    label: str, match_set: MultipleMatch, opts: argparse.Namespace, settings: ComicTaggerSettings
+    label: str,
+    match_set: MultipleMatch,
+    opts: argparse.Namespace,
+    settings: ComicTaggerSettings,
+    talker_api: ComicTalker,
 ) -> None:
     print(f"{match_set.ca.path} -- {label}:")
 
@@ -107,11 +110,11 @@ def display_match_set_for_choice(
             # we know at this point, that the file is all good to go
             ca = match_set.ca
             md = create_local_metadata(opts, ca, settings)
-            cv_md = actual_issue_data_fetch(match_set.matches[int(i) - 1], settings, opts)
+            ct_md = actual_issue_data_fetch(match_set.matches[int(i) - 1], settings, opts, talker_api)
             if opts.overwrite:
-                md = cv_md
+                md = ct_md
             else:
-                md.overlay(cv_md)
+                md.overlay(ct_md)
 
             if opts.auto_imprint:
                 md.fix_publisher()
@@ -120,7 +123,7 @@ def display_match_set_for_choice(
 
 
 def post_process_matches(
-    match_results: OnlineMatchResults, opts: argparse.Namespace, settings: ComicTaggerSettings
+    match_results: OnlineMatchResults, opts: argparse.Namespace, settings: ComicTaggerSettings, talker_api: ComicTalker
 ) -> None:
     # now go through the match results
     if opts.show_save_summary:
@@ -151,7 +154,7 @@ def post_process_matches(
     if len(match_results.multiple_matches) > 0:
         print("\nArchives with multiple high-confidence matches:\n------------------")
         for match_set in match_results.multiple_matches:
-            display_match_set_for_choice("Multiple high-confidence matches", match_set, opts, settings)
+            display_match_set_for_choice("Multiple high-confidence matches", match_set, opts, settings, talker_api)
 
     if len(match_results.low_confidence_matches) > 0:
         print("\nArchives with low-confidence matches:\n------------------")
@@ -161,10 +164,10 @@ def post_process_matches(
             else:
                 label = "Multiple low-confidence matches"
 
-            display_match_set_for_choice(label, match_set, opts, settings)
+            display_match_set_for_choice(label, match_set, opts, settings, talker_api)
 
 
-def cli_mode(opts: argparse.Namespace, settings: ComicTaggerSettings) -> None:
+def cli_mode(opts: argparse.Namespace, settings: ComicTaggerSettings, talker_api: ComicTalker) -> None:
     if len(opts.files) < 1:
         logger.error("You must specify at least one filename.  Use the -h option for more info")
         return
@@ -172,10 +175,10 @@ def cli_mode(opts: argparse.Namespace, settings: ComicTaggerSettings) -> None:
     match_results = OnlineMatchResults()
 
     for f in opts.files:
-        process_file_cli(f, opts, settings, match_results)
+        process_file_cli(f, opts, settings, talker_api, match_results)
         sys.stdout.flush()
 
-    post_process_matches(match_results, opts, settings)
+    post_process_matches(match_results, opts, settings, talker_api)
 
 
 def create_local_metadata(opts: argparse.Namespace, ca: ComicArchive, settings: ComicTaggerSettings) -> GenericMetadata:
@@ -210,7 +213,11 @@ def create_local_metadata(opts: argparse.Namespace, ca: ComicArchive, settings: 
 
 
 def process_file_cli(
-    filename: str, opts: argparse.Namespace, settings: ComicTaggerSettings, match_results: OnlineMatchResults
+    filename: str,
+    opts: argparse.Namespace,
+    settings: ComicTaggerSettings,
+    talker_api: ComicTalker,
+    match_results: OnlineMatchResults,
 ) -> None:
     batch_mode = len(opts.files) > 1
 
@@ -373,30 +380,28 @@ def process_file_cli(
         # now, search online
         if opts.online:
             if opts.issue_id is not None:
-                # we were given the actual ID to search with
+                # we were given the actual issue ID to search with.
                 try:
-                    comic_vine = ComicVineTalker()
-                    comic_vine.wait_for_rate_limit = opts.wait_on_cv_rate_limit
-                    cv_md = comic_vine.fetch_issue_data_by_issue_id(opts.issue_id, settings)
-                except ComicVineTalkerException:
-                    logger.exception("Network error while getting issue details. Save aborted")
+                    ct_md = talker_api.fetch_issue_data_by_issue_id(opts.issue_id)
+                except TalkerError as e:
+                    logger.exception(f"Error retrieving issue details. Save aborted.\n{e}")
                     match_results.fetch_data_failures.append(str(ca.path.absolute()))
                     return
 
-                if cv_md is None:
+                if ct_md is None:
                     logger.error("No match for ID %s was found.", opts.issue_id)
                     match_results.no_matches.append(str(ca.path.absolute()))
                     return
 
-                if settings.apply_cbl_transform_on_cv_import:
-                    cv_md = CBLTransformer(cv_md, settings).apply()
+                if settings.apply_cbl_transform_on_ct_import:
+                    ct_md = CBLTransformer(ct_md, settings).apply()
             else:
-                ii = IssueIdentifier(ca, settings)
-
                 if md is None or md.is_empty:
                     logger.error("No metadata given to search online with!")
                     match_results.no_matches.append(str(ca.path.absolute()))
                     return
+
+                ii = IssueIdentifier(ca, settings, talker_api)
 
                 def myoutput(text: str) -> None:
                     if opts.verbose:
@@ -405,7 +410,6 @@ def process_file_cli(
                 # use our overlaid MD struct to search
                 ii.set_additional_metadata(md)
                 ii.only_use_additional_meta_data = True
-                ii.wait_and_retry_on_rate_limit = opts.wait_on_cv_rate_limit
                 ii.set_output_function(myoutput)
                 ii.cover_page_index = md.get_cover_page_index_list()[0]
                 matches = ii.search()
@@ -452,15 +456,15 @@ def process_file_cli(
                 # we got here, so we have a single match
 
                 # now get the particular issue data
-                cv_md = actual_issue_data_fetch(matches[0], settings, opts)
-                if cv_md.is_empty:
+                ct_md = actual_issue_data_fetch(matches[0], settings, opts, talker_api)
+                if ct_md.is_empty:
                     match_results.fetch_data_failures.append(str(ca.path.absolute()))
                     return
 
             if opts.overwrite:
-                md = cv_md
+                md = ct_md
             else:
-                md.overlay(cv_md)
+                md.overlay(ct_md)
 
             if opts.auto_imprint:
                 md.fix_publisher()

@@ -27,10 +27,10 @@ import types
 
 from comicapi import utils
 from comictaggerlib import cli
-from comictaggerlib.comicvinetalker import ComicVineTalker
 from comictaggerlib.ctversion import version
 from comictaggerlib.options import parse_cmd_line
 from comictaggerlib.settings import ComicTaggerSettings
+from comictalker.comictalker import ComicTalker
 
 if sys.version_info < (3, 10):
     import importlib_metadata
@@ -40,6 +40,7 @@ else:
 logger = logging.getLogger("comictagger")
 logging.getLogger("comicapi").setLevel(logging.DEBUG)
 logging.getLogger("comictaggerlib").setLevel(logging.DEBUG)
+logging.getLogger("sourcesapi").setLevel(logging.DEBUG)
 logger.setLevel(logging.DEBUG)
 
 try:
@@ -135,19 +136,6 @@ def ctmain() -> None:
     )
     # Need to load setting before anything else
 
-    # manage the CV API key
-    # None comparison is used so that the empty string can unset the value
-    if opts.cv_api_key is not None or opts.cv_url is not None:
-        SETTINGS.cv_api_key = opts.cv_api_key if opts.cv_api_key is not None else SETTINGS.cv_api_key
-        SETTINGS.cv_url = opts.cv_url if opts.cv_url is not None else SETTINGS.cv_url
-        SETTINGS.save()
-    if opts.only_set_cv_key:
-        print("Key set")  # noqa: T201
-        return
-
-    ComicVineTalker.api_key = SETTINGS.cv_api_key
-    ComicVineTalker.api_base_url = SETTINGS.cv_url
-
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
     logger.info(
@@ -161,6 +149,8 @@ def ctmain() -> None:
     for pkg in sorted(importlib_metadata.distributions(), key=lambda x: x.name):
         logger.debug("%s\t%s", pkg.name, pkg.version)
 
+    talker_api = ComicTalker(SETTINGS.comic_info_source)
+
     utils.load_publishers()
     update_publishers()
 
@@ -170,7 +160,7 @@ def ctmain() -> None:
 
     if opts.no_gui:
         try:
-            cli.cli_mode(opts, SETTINGS)
+            cli.cli_mode(opts, SETTINGS, talker_api)
         except Exception:
             logger.exception("CLI mode failed")
     else:
@@ -206,7 +196,7 @@ def ctmain() -> None:
             QtWidgets.QApplication.processEvents()
 
         try:
-            tagger_window = TaggerWindow(opts.files, SETTINGS, opts=opts)
+            tagger_window = TaggerWindow(opts.files, SETTINGS, talker_api, opts=opts)
             tagger_window.setWindowIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("app.png")))
             tagger_window.show()
 

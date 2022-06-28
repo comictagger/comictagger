@@ -25,6 +25,7 @@ from comictaggerlib.coverimagewidget import CoverImageWidget
 from comictaggerlib.resulttypes import IssueResult
 from comictaggerlib.settings import ComicTaggerSettings
 from comictaggerlib.ui.qtutils import reduce_widget_font_size
+from comictalker.comictalker import ComicTalker
 
 logger = logging.getLogger(__name__)
 
@@ -32,17 +33,23 @@ logger = logging.getLogger(__name__)
 class MatchSelectionWindow(QtWidgets.QDialog):
     volume_id = 0
 
-    def __init__(self, parent: QtWidgets.QWidget, matches: list[IssueResult], comic_archive: ComicArchive) -> None:
+    def __init__(
+        self,
+        parent: QtWidgets.QWidget,
+        matches: list[IssueResult],
+        comic_archive: ComicArchive,
+        talker_api: ComicTalker,
+    ) -> None:
         super().__init__(parent)
 
         uic.loadUi(ComicTaggerSettings.get_ui_file("matchselectionwindow.ui"), self)
 
-        self.altCoverWidget = CoverImageWidget(self.altCoverContainer, CoverImageWidget.AltCoverMode)
+        self.altCoverWidget = CoverImageWidget(self.altCoverContainer, talker_api, CoverImageWidget.AltCoverMode)
         gridlayout = QtWidgets.QGridLayout(self.altCoverContainer)
         gridlayout.addWidget(self.altCoverWidget)
         gridlayout.setContentsMargins(0, 0, 0, 0)
 
-        self.archiveCoverWidget = CoverImageWidget(self.archiveCoverContainer, CoverImageWidget.ArchiveMode)
+        self.archiveCoverWidget = CoverImageWidget(self.archiveCoverContainer, talker_api, CoverImageWidget.ArchiveMode)
         gridlayout = QtWidgets.QGridLayout(self.archiveCoverContainer)
         gridlayout.addWidget(self.archiveCoverWidget)
         gridlayout.setContentsMargins(0, 0, 0, 0)

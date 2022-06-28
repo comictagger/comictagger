@@ -24,17 +24,18 @@ from comicapi.comicarchive import ComicArchive
 from comicapi.genericmetadata import GenericMetadata
 from comictaggerlib.coverimagewidget import CoverImageWidget
 from comictaggerlib.settings import ComicTaggerSettings
+from comictalker.comictalker import ComicTalker
 
 logger = logging.getLogger(__name__)
 
 
 class PageBrowserWindow(QtWidgets.QDialog):
-    def __init__(self, parent: QtWidgets.QWidget, metadata: GenericMetadata) -> None:
+    def __init__(self, parent: QtWidgets.QWidget, talker_api: ComicTalker, metadata: GenericMetadata) -> None:
         super().__init__(parent)
 
         uic.loadUi(ComicTaggerSettings.get_ui_file("pagebrowser.ui"), self)
 
-        self.pageWidget = CoverImageWidget(self.pageContainer, CoverImageWidget.ArchiveMode)
+        self.pageWidget = CoverImageWidget(self.pageContainer, talker_api, CoverImageWidget.ArchiveMode)
         gridlayout = QtWidgets.QGridLayout(self.pageContainer)
         gridlayout.addWidget(self.pageWidget)
         gridlayout.setContentsMargins(0, 0, 0, 0)

@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>519</width>
-    <height>440</height>
+    <height>452</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -44,8 +44,28 @@
    </item>
    <item row="1" column="0">
     <layout class="QGridLayout" name="gridLayout">
-     <item row="9" column="0">
-      <widget class="QCheckBox" name="cbxSpecifySearchString">
+     <item row="6" column="0">
+      <widget class="QCheckBox" name="cbxRemoveMetadata">
+       <property name="toolTip">
+        <string>Removes existing metadata before applying retrieved metadata</string>
+       </property>
+       <property name="text">
+        <string>Overwrite metadata</string>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="0">
+      <widget class="QCheckBox" name="cbxAutoImprint">
+       <property name="toolTip">
+        <string>Checks the publisher against a list of imprints.</string>
+       </property>
+       <property name="text">
+        <string>Auto Imprint</string>
+       </property>
+      </widget>
+     </item>
+     <item row="7" column="0">
+      <widget class="QCheckBox" name="cbxSplitWords">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -53,24 +73,11 @@
         </sizepolicy>
        </property>
        <property name="text">
-        <string>Specify series search string for all selected archives:</string>
+        <string>Split words in filenames (e.g. 'judgedredd' to 'judge dredd') (Experimental)</string>
        </property>
       </widget>
      </item>
-     <item row="0" column="0">
-      <widget class="QCheckBox" name="cbxSaveOnLowConfidence">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="text">
-        <string>Save on low confidence match</string>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="0">
+     <item row="3" column="0">
       <widget class="QCheckBox" name="cbxIgnoreLeadingDigitsInFilename">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
@@ -80,26 +87,6 @@
        </property>
        <property name="text">
         <string>Ignore leading (sequence) numbers in filename</string>
-       </property>
-      </widget>
-     </item>
-     <item row="5" column="0">
-      <widget class="QCheckBox" name="cbxRemoveAfterSuccess">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="text">
-        <string>Remove archives from list after successful tagging</string>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="0">
-      <widget class="QCheckBox" name="cbxWaitForRateLimit">
-       <property name="text">
-        <string>Wait and retry when Comic Vine rate limit is exceeded (experimental)</string>
        </property>
       </widget>
      </item>
@@ -129,28 +116,8 @@
        </property>
       </widget>
      </item>
-     <item row="6" column="0">
-      <widget class="QCheckBox" name="cbxAutoImprint">
-       <property name="toolTip">
-        <string>Checks the publisher against a list of imprints.</string>
-       </property>
-       <property name="text">
-        <string>Auto Imprint</string>
-       </property>
-      </widget>
-     </item>
-     <item row="7" column="0">
-      <widget class="QCheckBox" name="cbxRemoveMetadata">
-       <property name="toolTip">
-        <string>Removes existing metadata before applying retrieved metadata</string>
-       </property>
-       <property name="text">
-        <string>Overwrite metadata</string>
-       </property>
-      </widget>
-     </item>
-     <item row="8" column="0">
-      <widget class="QCheckBox" name="cbxSplitWords">
+     <item row="0" column="0">
+      <widget class="QCheckBox" name="cbxSaveOnLowConfidence">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -158,11 +125,47 @@
         </sizepolicy>
        </property>
        <property name="text">
-        <string>Split words in filenames (e.g. 'judgedredd' to 'judge dredd') (Experimental)</string>
+        <string>Save on low confidence match</string>
        </property>
       </widget>
      </item>
-     <item row="12" column="0">
+     <item row="4" column="0">
+      <widget class="QCheckBox" name="cbxRemoveAfterSuccess">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>Remove archives from list after successful tagging</string>
+       </property>
+      </widget>
+     </item>
+     <item row="8" column="0">
+      <widget class="QCheckBox" name="cbxSpecifySearchString">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>Specify series search string for all selected archives:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="9" column="0">
+      <widget class="QLineEdit" name="leSearchString">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+      </widget>
+     </item>
+     <item row="11" column="0">
       <widget class="QLineEdit" name="leNameLengthMatchTolerance">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -179,16 +182,6 @@
       </widget>
      </item>
      <item row="10" column="0">
-      <widget class="QLineEdit" name="leSearchString">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-      </widget>
-     </item>
-     <item row="11" column="0">
       <widget class="QLabel" name="label_3">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">

@@ -80,6 +80,7 @@ def define_args() -> argparse.ArgumentParser:
         action="store_true",
         help="Export RAR archive to Zip format.",
     )
+    # TODO: update for new api
     commands.add_argument(
         "--only-set-cv-key",
         action="store_true",
@@ -107,10 +108,12 @@ def define_args() -> argparse.ArgumentParser:
         dest="config_path",
         help="""Config directory defaults to ~/.ComicTagger\non Linux/Mac and %%APPDATA%% on Windows\n""",
     )
+    # TODO: update for new api
     parser.add_argument(
         "--cv-api-key",
         help="Use the given Comic Vine API Key (persisted in settings).",
     )
+    # TODO: update for new api
     parser.add_argument(
         "--cv-url",
         help="Use the given Comic Vine URL (persisted in settings).",
@@ -214,6 +217,7 @@ def define_args() -> argparse.ArgumentParser:
         action="store_true",
         help="Be noisy when doing what it does.",
     )
+    # TODO: update for new api
     parser.add_argument(
         "-w",
         "--wait-on-cv-rate-limit",
@@ -369,7 +373,7 @@ def parse_cmd_line() -> argparse.Namespace:
             opts.copy,
             opts.rename,
             opts.export_to_zip,
-            opts.only_set_cv_key,
+            opts.only_set_cv_key,  # TODO: update for new api
         ]
     )
 
@@ -385,9 +389,11 @@ def parse_cmd_line() -> argparse.Namespace:
         for item in globs:
             opts.files.extend(glob.glob(item))
 
+    # TODO: update for new api
     if opts.only_set_cv_key and opts.cv_api_key is None and opts.cv_url is None:
         parser.exit(message="Key not given!\n", status=1)
 
+    # TODO: update for new api
     if not opts.only_set_cv_key and opts.no_gui and not opts.files:
         parser.exit(message="Command requires at least one filename!\n", status=1)
 
