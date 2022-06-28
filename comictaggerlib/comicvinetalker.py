@@ -29,7 +29,7 @@ from comicapi import utils
 from comicapi.genericmetadata import GenericMetadata
 from comicapi.issuestring import IssueString
 from comictaggerlib import ctversion
-from comictaggerlib.comicvinecacher import ComicVineCacher
+from comictaggerlib.comiccacher import ComicCacher
 from comictaggerlib.resulttypes import CVIssueDetailResults, CVIssuesResults, CVResult, CVVolumeResults, SelectDetails
 from comictaggerlib.settings import ComicTaggerSettings
 
@@ -92,6 +92,9 @@ class ComicVineTalker:
         return "Comic Vine rate limit exceeded.  Please wait a bit."
 
     def __init__(self) -> None:
+        # Identity name for the information source
+        self.source_name = 'comicvine'
+
         self.wait_for_rate_limit = False
 
         # key that is registered to comictagger
@@ -212,9 +215,9 @@ class ComicVineTalker:
 
         # Before we search online, look in our cache, since we might have done this same search recently
         # For literal searches always retrieve from online
-        cvc = ComicVineCacher()
+        cvc = ComicCacher()
         if not refresh_cache and not literal:
-            cached_search_results = cvc.get_search_results(series_name)
+            cached_search_results = cvc.get_search_results(self.source_name, series_name)
 
             if len(cached_search_results) > 0:
                 return cached_search_results
@@ -307,15 +310,15 @@ class ComicVineTalker:
 
         # Cache these search results, even if it's literal we cache the results
         # The most it will cause is extra processing time
-        cvc.add_search_results(series_name, search_results)
+        cvc.add_search_results(self.source_name, series_name, search_results)
 
         return search_results
 
     def fetch_volume_data(self, series_id: int) -> CVVolumeResults:
 
         # before we search online, look in our cache, since we might already have this info
-        cvc = ComicVineCacher()
-        cached_volume_result = cvc.get_volume_info(series_id)
+        cvc = ComicCacher()
+        cached_volume_result = cvc.get_volume_info(series_id, self.source_name)
 
         if cached_volume_result is not None:
             return cached_volume_result
@@ -332,14 +335,14 @@ class ComicVineTalker:
         volume_results = cast(CVVolumeResults, cv_response["results"])
 
         if volume_results:
-            cvc.add_volume_info(volume_results)
+            cvc.add_volume_info(self.source_name, volume_results)
 
         return volume_results
 
     def fetch_issues_by_volume(self, series_id: int) -> list[CVIssuesResults]:
         # before we search online, look in our cache, since we might already have this info
-        cvc = ComicVineCacher()
-        cached_volume_issues_result = cvc.get_volume_issues_info(series_id)
+        cvc = ComicCacher()
+        cached_volume_issues_result = cvc.get_volume_issues_info(series_id, self.source_name)
 
         if cached_volume_issues_result:
             return cached_volume_issues_result
@@ -373,7 +376,7 @@ class ComicVineTalker:
 
         self.repair_urls(volume_issues_result)
 
-        cvc.add_volume_issues_info(series_id, volume_issues_result)
+        cvc.add_volume_issues_info(self.source_name, series_id, volume_issues_result)
 
         return volume_issues_result
 
@@ -667,13 +670,13 @@ class ComicVineTalker:
     def fetch_cached_issue_select_details(self, issue_id: int) -> SelectDetails:
 
         # before we search online, look in our cache, since we might already have this info
-        cvc = ComicVineCacher()
-        return cvc.get_issue_select_details(issue_id)
+        cvc = ComicCacher()
+        return cvc.get_issue_select_details(issue_id, self.source_name)
 
     def cache_issue_select_details(
         self, issue_id: int, image_url: str, thumb_url: str, cover_date: str, page_url: str
     ) -> None:
-        cvc = ComicVineCacher()
+        cvc = ComicCacher()
         cvc.add_issue_select_details(issue_id, image_url, thumb_url, cover_date, page_url)
 
     def fetch_alternate_cover_urls(self, issue_id: int, issue_page_url: str) -> list[str]:
@@ -717,14 +720,14 @@ class ComicVineTalker:
     def fetch_cached_alternate_cover_urls(self, issue_id: int) -> list[str]:
 
         # before we search online, look in our cache, since we might already have this info
-        cvc = ComicVineCacher()
-        url_list = cvc.get_alt_covers(issue_id)
+        cvc = ComicCacher()
+        url_list = cvc.get_alt_covers(self.source_name, issue_id)
 
         return url_list
 
     def cache_alternate_cover_urls(self, issue_id: int, url_list: list[str]) -> None:
-        cvc = ComicVineCacher()
-        cvc.add_alt_covers(issue_id, url_list)
+        cvc = ComicCacher()
+        cvc.add_alt_covers(self.source_name, issue_id, url_list)
 
     def async_fetch_issue_cover_urls(self, issue_id: int) -> None:
 
