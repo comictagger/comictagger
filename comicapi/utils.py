@@ -14,6 +14,7 @@
 # limitations under the License.
 from __future__ import annotations
 
+import glob
 import json
 import logging
 import os
@@ -36,34 +37,15 @@ class UtilsVars:
 def get_recursive_filelist(pathlist: list[str]) -> list[str]:
     """Get a recursive list of of all files under all path items in the list"""
 
-    filelist = []
+    filelist: list[str] = []
     for p in pathlist:
-        # if path is a folder, walk it recursively, and all files underneath
-        if not isinstance(p, str):
-            # it's probably a QString
-            p = str(p)
 
         if os.path.isdir(p):
-            for root, _, files in os.walk(p):
-                for f in files:
-                    if not isinstance(f, str):
-                        # it's probably a QString
-                        f = str(f)
-                    filelist.append(os.path.join(root, f))
+            filelist.extend(x for x in glob.glob(f"{p}{os.sep}/**", recursive=True) if not os.path.isdir(x))
         else:
             filelist.append(p)
 
     return filelist
-
-
-def list_to_string(lst: list[str | Any]) -> str:
-    string = ""
-    if lst is not None:
-        for item in lst:
-            if len(string) > 0:
-                string += ", "
-            string += item
-    return string
 
 
 def add_to_path(dirname: str) -> None:
@@ -89,15 +71,18 @@ def xlate(data: Any, is_int: bool = False, is_float: bool = False) -> Any:
             i = str(data).translate(defaultdict(lambda: None, zip((ord(c) for c in "1234567890."), "1234567890.")))
         if i == "":
             return None
-        if is_float:
-            return float(i)
-        return int(float(i))
+        try:
+            if is_float:
+                return float(i)
+            return int(float(i))
+        except ValueError:
+            return None
 
     return str(data)
 
 
 def remove_articles(text: str) -> str:
-    text = text.lower()
+    text = text.casefold()
     articles = [
         "&",
         "a",

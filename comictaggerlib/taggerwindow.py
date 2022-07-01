@@ -848,7 +848,7 @@ Have fun!
         else:
             self.cbBW.setChecked(False)
 
-        self.teTags.setText(utils.list_to_string(md.tags))
+        self.teTags.setText(", ".join(md.tags))
 
         self.twCredits.setRowCount(0)
 
@@ -1157,7 +1157,7 @@ Have fun!
             # loop over credit table, mark selected rows
             r = 0
             for r in range(self.twCredits.rowCount()):
-                if str(self.twCredits.item(r, 1).text()).lower() not in cix_credits:
+                if str(self.twCredits.item(r, 1).text()).casefold() not in cix_credits:
                     self.twCredits.item(r, 1).setBackground(inactive_brush)
                 else:
                     self.twCredits.item(r, 1).setBackground(active_brush)
@@ -1269,7 +1269,10 @@ Have fun!
         role = str(self.twCredits.item(row, 1).text())
         r = 0
         for r in range(self.twCredits.rowCount()):
-            if self.twCredits.item(r, 0).text() != "" and str(self.twCredits.item(r, 1).text()).lower() == role.lower():
+            if (
+                self.twCredits.item(r, 0).text() != ""
+                and str(self.twCredits.item(r, 1).text()).casefold() == role.casefold()
+            ):
                 self.twCredits.item(r, 0).setText("")
 
         # Now set our new primary

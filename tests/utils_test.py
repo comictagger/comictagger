@@ -34,6 +34,7 @@ values = [
     ({"data": None, "is_int": True, "is_float": False}, None),
     ({"data": " ", "is_int": True, "is_float": False}, None),
     ({"data": "", "is_int": True, "is_float": False}, None),
+    ({"data": "9..", "is_int": True, "is_float": False}, None),
     ({"data": "9", "is_int": False, "is_float": False}, "9"),
     ({"data": 9, "is_int": False, "is_float": False}, "9"),
     ({"data": 9, "is_int": True, "is_float": False}, 9),

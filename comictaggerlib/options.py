@@ -281,7 +281,7 @@ def parse_metadata_from_string(mdstr: str) -> GenericMetadata:
         key, value = i.split("=")
         value = value.replace(replacement_token, "=").strip()
         key = key.strip()
-        if key.lower() == "credit":
+        if key.casefold() == "credit":
             cred_attribs = value.split(":")
             role = cred_attribs[0]
             person = cred_attribs[1] if len(cred_attribs) > 1 else ""

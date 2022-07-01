@@ -351,11 +351,11 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
             # filter the publishers if enabled set
             if self.use_filter:
                 try:
-                    publisher_filter = {s.strip().lower() for s in self.settings.id_publisher_filter.split(",")}
+                    publisher_filter = {s.strip().casefold() for s in self.settings.id_publisher_filter.split(",")}
                     # use '' as publisher name if None
                     self.cv_search_results = list(
                         filter(
-                            lambda d: ("" if d["publisher"] is None else str(d["publisher"]["name"]).lower())
+                            lambda d: ("" if d["publisher"] is None else str(d["publisher"]["name"]).casefold())
                             not in publisher_filter,
                             self.cv_search_results,
                         )

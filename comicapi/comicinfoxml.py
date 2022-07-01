@@ -116,41 +116,41 @@ class ComicInfoXml:
         # supports
         for credit in metadata.credits:
 
-            if credit["role"].lower() in set(self.writer_synonyms):
+            if credit["role"].casefold() in set(self.writer_synonyms):
                 credit_writer_list.append(credit["person"].replace(",", ""))
 
-            if credit["role"].lower() in set(self.penciller_synonyms):
+            if credit["role"].casefold() in set(self.penciller_synonyms):
                 credit_penciller_list.append(credit["person"].replace(",", ""))
 
-            if credit["role"].lower() in set(self.inker_synonyms):
+            if credit["role"].casefold() in set(self.inker_synonyms):
                 credit_inker_list.append(credit["person"].replace(",", ""))
 
-            if credit["role"].lower() in set(self.colorist_synonyms):
+            if credit["role"].casefold() in set(self.colorist_synonyms):
                 credit_colorist_list.append(credit["person"].replace(",", ""))
 
-            if credit["role"].lower() in set(self.letterer_synonyms):
+            if credit["role"].casefold() in set(self.letterer_synonyms):
                 credit_letterer_list.append(credit["person"].replace(",", ""))
 
-            if credit["role"].lower() in set(self.cover_synonyms):
+            if credit["role"].casefold() in set(self.cover_synonyms):
                 credit_cover_list.append(credit["person"].replace(",", ""))
 
-            if credit["role"].lower() in set(self.editor_synonyms):
+            if credit["role"].casefold() in set(self.editor_synonyms):
                 credit_editor_list.append(credit["person"].replace(",", ""))
 
         # second, convert each list to string, and add to XML struct
-        assign("Writer", utils.list_to_string(credit_writer_list))
+        assign("Writer", ", ".join(credit_writer_list))
 
-        assign("Penciller", utils.list_to_string(credit_penciller_list))
+        assign("Penciller", ", ".join(credit_penciller_list))
 
-        assign("Inker", utils.list_to_string(credit_inker_list))
+        assign("Inker", ", ".join(credit_inker_list))
 
-        assign("Colorist", utils.list_to_string(credit_colorist_list))
+        assign("Colorist", ", ".join(credit_colorist_list))
 
-        assign("Letterer", utils.list_to_string(credit_letterer_list))
+        assign("Letterer", ", ".join(credit_letterer_list))
 
-        assign("CoverArtist", utils.list_to_string(credit_cover_list))
+        assign("CoverArtist", ", ".join(credit_cover_list))
 
-        assign("Editor", utils.list_to_string(credit_editor_list))
+        assign("Editor", ", ".join(credit_editor_list))
 
         assign("Publisher", md.publisher)
         assign("Imprint", md.imprint)
@@ -231,7 +231,7 @@ class ComicInfoXml:
         md.critical_rating = utils.xlate(get("CommunityRating"), is_float=True)
 
         tmp = utils.xlate(get("BlackAndWhite"))
-        if tmp is not None and tmp.lower() in ["yes", "true", "1"]:
+        if tmp is not None and tmp.casefold() in ["yes", "true", "1"]:
             md.black_and_white = True
         # Now extract the credit info
         for n in root:

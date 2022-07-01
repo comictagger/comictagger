@@ -98,7 +98,7 @@ class IssueIdentifier:
         self.length_delta_thresh = settings.id_length_delta_thresh
 
         # used to eliminate unlikely publishers
-        self.publisher_filter = [s.strip().lower() for s in settings.id_publisher_filter.split(",")]
+        self.publisher_filter = [s.strip().casefold() for s in settings.id_publisher_filter.split(",")]
 
         self.additional_metadata = GenericMetadata()
         self.output_function: Callable[[str], None] = IssueIdentifier.default_write_output
@@ -445,7 +445,7 @@ class IssueIdentifier:
             # remove any series from publishers on the filter
             if item["publisher"] is not None:
                 publisher = item["publisher"]["name"]
-                if publisher is not None and publisher.lower() in self.publisher_filter:
+                if publisher is not None and publisher.casefold() in self.publisher_filter:
                     publisher_approved = False
 
             if length_approved and publisher_approved and date_approved:

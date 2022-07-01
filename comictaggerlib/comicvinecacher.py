@@ -21,7 +21,6 @@ import os
 import sqlite3 as lite
 from typing import Any
 
-from comicapi import utils
 from comictaggerlib import ctversion
 from comictaggerlib.resulttypes import CVIssuesResults, CVVolumeResults, SelectDetails
 from comictaggerlib.settings import ComicTaggerSettings
@@ -130,7 +129,7 @@ class ComicVineCacher:
             cur = con.cursor()
 
             # remove all previous entries with this search term
-            cur.execute("DELETE FROM VolumeSearchCache WHERE search_term = ?", [search_term.lower()])
+            cur.execute("DELETE FROM VolumeSearchCache WHERE search_term = ?", [search_term.casefold()])
 
             # now add in new results
             for record in cv_search_results:
@@ -150,7 +149,7 @@ class ComicVineCacher:
                     + "(search_term, id, name, start_year, publisher, count_of_issues, image_url, description) "
                     + "VALUES(?, ?, ?, ?, ?, ?, ?, ?)",
                     (
-                        search_term.lower(),
+                        search_term.casefold(),
                         record["id"],
                         record["name"],
                         record["start_year"],
@@ -174,7 +173,7 @@ class ComicVineCacher:
             cur.execute("DELETE FROM VolumeSearchCache WHERE timestamp  < ?", [str(a_day_ago)])
 
             # fetch
-            cur.execute("SELECT * FROM VolumeSearchCache WHERE search_term=?", [search_term.lower()])
+            cur.execute("SELECT * FROM VolumeSearchCache WHERE search_term=?", [search_term.casefold()])
             rows = cur.fetchall()
             # now process the results
             for record in rows:
@@ -205,7 +204,7 @@ class ComicVineCacher:
             # remove all previous entries with this search term
             cur.execute("DELETE FROM AltCovers WHERE issue_id = ?", [issue_id])
 
-            url_list_str = utils.list_to_string(url_list)
+            url_list_str = ", ".join(url_list)
             # now add in new record
             cur.execute("INSERT INTO AltCovers (issue_id, url_list) VALUES(?, ?)", (issue_id, url_list_str))
 

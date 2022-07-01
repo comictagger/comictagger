@@ -209,7 +209,7 @@ class GenericMetadata:
             # Remove credit role if person is blank
             if c["person"] == "":
                 for r in reversed(self.credits):
-                    if r["role"].lower() == c["role"].lower():
+                    if r["role"].casefold() == c["role"].casefold():
                         self.credits.remove(r)
             # otherwise, add it!
             else:
@@ -249,7 +249,7 @@ class GenericMetadata:
         # look to see if it's not already there...
         found = False
         for c in self.credits:
-            if c["person"].lower() == person.lower() and c["role"].lower() == role.lower():
+            if c["person"].casefold() == person.casefold() and c["role"].casefold() == role.casefold():
                 # no need to add it. just adjust the "primary" flag as needed
                 c["primary"] = primary
                 found = True
@@ -261,8 +261,8 @@ class GenericMetadata:
     def get_primary_credit(self, role: str) -> str:
         primary = ""
         for credit in self.credits:
-            if (primary == "" and credit["role"].lower() == role.lower()) or (
-                credit["role"].lower() == role.lower() and credit["primary"]
+            if (primary == "" and credit["role"].casefold() == role.casefold()) or (
+                credit["role"].casefold() == role.casefold() and credit["primary"]
             ):
                 primary = credit["person"]
         return primary
@@ -319,7 +319,7 @@ class GenericMetadata:
         add_attr_string("comments")
         add_attr_string("notes")
 
-        add_string("tags", utils.list_to_string(self.tags))
+        add_string("tags", ", ".join(self.tags))
 
         for c in self.credits:
             primary = ""
@@ -351,12 +351,12 @@ class GenericMetadata:
 
         self.publisher = publisher
 
-        if self.imprint.lower() in publisher.lower():
+        if self.imprint.casefold() in publisher.casefold():
             self.imprint = None
 
         if self.imprint is None or self.imprint == "":
             self.imprint = imprint
-        elif self.imprint.lower() in imprint.lower():
+        elif self.imprint.casefold() in imprint.casefold():
             self.imprint = imprint
 
 

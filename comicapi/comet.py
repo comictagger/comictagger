@@ -98,25 +98,25 @@ class CoMet:
         # loop thru credits, and build a list for each role that CoMet supports
         for credit in metadata.credits:
 
-            if credit["role"].lower() in set(self.writer_synonyms):
+            if credit["role"].casefold() in set(self.writer_synonyms):
                 ET.SubElement(root, "writer").text = str(credit["person"])
 
-            if credit["role"].lower() in set(self.penciller_synonyms):
+            if credit["role"].casefold() in set(self.penciller_synonyms):
                 ET.SubElement(root, "penciller").text = str(credit["person"])
 
-            if credit["role"].lower() in set(self.inker_synonyms):
+            if credit["role"].casefold() in set(self.inker_synonyms):
                 ET.SubElement(root, "inker").text = str(credit["person"])
 
-            if credit["role"].lower() in set(self.colorist_synonyms):
+            if credit["role"].casefold() in set(self.colorist_synonyms):
                 ET.SubElement(root, "colorist").text = str(credit["person"])
 
-            if credit["role"].lower() in set(self.letterer_synonyms):
+            if credit["role"].casefold() in set(self.letterer_synonyms):
                 ET.SubElement(root, "letterer").text = str(credit["person"])
 
-            if credit["role"].lower() in set(self.cover_synonyms):
+            if credit["role"].casefold() in set(self.cover_synonyms):
                 ET.SubElement(root, "coverDesigner").text = str(credit["person"])
 
-            if credit["role"].lower() in set(self.editor_synonyms):
+            if credit["role"].casefold() in set(self.editor_synonyms):
                 ET.SubElement(root, "editor").text = str(credit["person"])
 
         ET.indent(root)
@@ -177,7 +177,7 @@ class CoMet:
         for n in root:
             if n.tag == "character":
                 char_list.append((n.text or "").strip())
-        md.characters = utils.list_to_string(char_list)
+        md.characters = ", ".join(char_list)
 
         # Now extract the credit info
         for n in root:

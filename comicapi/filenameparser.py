@@ -529,7 +529,7 @@ def parse(p: Parser) -> Callable[[Parser], Callable | None] | None:
 
     # Matches the extension if it is known to be an archive format e.g. cbt,cbz,zip,rar
     elif item.typ == filenamelexer.ItemType.ArchiveType:
-        p.filename_info["archive"] = item.val.lower()
+        p.filename_info["archive"] = item.val.casefold()
         if p.peek_back().typ == filenamelexer.ItemType.Dot:
             p.used_items.append(p.peek_back())
         p.used_items.append(item)
@@ -554,7 +554,10 @@ def parse(p: Parser) -> Callable[[Parser], Callable | None] | None:
         if p.peek().typ == filenamelexer.ItemType.Space:
             p.get()
 
-        if p.series_parts and "free comic book" in (" ".join([x.val for x in p.series_parts]) + " " + item.val).lower():
+        if (
+            p.series_parts
+            and "free comic book" in (" ".join([x.val for x in p.series_parts]) + " " + item.val).casefold()
+        ):
             p.filename_info["fcbd"] = True
             series_append = True
         # If the next item is a number it's probably the volume
@@ -563,7 +566,7 @@ def parse(p: Parser) -> Callable[[Parser], Callable | None] | None:
         ):
             number = p.get()
             # Mark volume info. Text will be added to the title/series later
-            if item.val.lower() in ["book", "tpb"]:
+            if item.val.casefold() in ["book", "tpb"]:
                 p.title_parts.extend([item, number])
                 p.filename_info["volume"] = t2do.convert(number.val)
                 p.filename_info["issue"] = t2do.convert(number.val)
@@ -572,7 +575,7 @@ def parse(p: Parser) -> Callable[[Parser], Callable | None] | None:
                 series_append = False
 
             # Annuals usually mean the year
-            elif item.val.lower() in ["annual"]:
+            elif item.val.casefold() in ["annual"]:
                 p.filename_info["annual"] = True
                 num = t2d.convert(number.val)
                 if num.isnumeric() and len(num) == 4:
@@ -580,7 +583,7 @@ def parse(p: Parser) -> Callable[[Parser], Callable | None] | None:
                 else:
                     p.backup()
 
-        elif item.val.lower() in ["annual"]:
+        elif item.val.casefold() in ["annual"]:
             p.filename_info["annual"] = True
 
         # If we don't have a reason to exclude it from the series go back to parsing the series immediately
@@ -717,7 +720,7 @@ def parse_series(p: Parser) -> Callable[[Parser], Callable | None] | None:
     # We stop parsing the series when certain things come up if nothing was done with them continue where we left off
     if (
         p.series_parts
-        and p.series_parts[-1].val.lower() == "book"
+        and p.series_parts[-1].val.casefold() == "book"
         or p.peek_back().typ == filenamelexer.ItemType.Number
         or item.typ == filenamelexer.ItemType.Calendar
     ):
@@ -746,7 +749,7 @@ def parse_series(p: Parser) -> Callable[[Parser], Callable | None] | None:
         # Handle Volume
         elif item.typ == filenamelexer.ItemType.InfoSpecifier:
             # Exception for 'of'
-            if item.val.lower() == "of":
+            if item.val.casefold() == "of":
                 series[current_part].append(item)
             else:
                 # This specifically lets 'X-Men-V1-067' parse correctly as Series: X-Men Volume: 1 Issue: 67
@@ -789,7 +792,7 @@ def parse_series(p: Parser) -> Callable[[Parser], Callable | None] | None:
                 p.backup()  # The number
                 break
             # This is 6 in '1 of 6'
-            if series[current_part] and series[current_part][-1].val.lower() == "of":
+            if series[current_part] and series[current_part][-1].val.casefold() == "of":
                 series[current_part].append(item)
 
             # We have 1 number break here, it's possible it's the issue
@@ -1021,13 +1024,13 @@ def parse_info_specifier(p: Parser) -> Callable[[Parser], Callable | None] | Non
     ):
 
         number = p.get()
-        if item.val.lower() in ["volume", "vol", "vol.", "v"]:
+        if item.val.casefold() in ["volume", "vol", "vol.", "v"]:
             p.filename_info["volume"] = t2do.convert(number.val)
             p.used_items.append(item)
             p.used_items.append(number)
 
         # 'of' is only special if it is inside a parenthesis.
-        elif item.val.lower() == "of":
+        elif item.val.casefold() == "of":
             i = get_number(p, index)
             if i is not None:
                 if p.in_something > 0:

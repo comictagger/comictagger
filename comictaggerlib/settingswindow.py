@@ -151,7 +151,7 @@ class SettingsWindow(QtWidgets.QDialog):
             self.name = "Preferences"
 
         self.setWindowTitle("ComicTagger " + self.name)
-        self.lblDefaultSettings.setText("Revert to default " + self.name.lower())
+        self.lblDefaultSettings.setText("Revert to default " + self.name.casefold())
         self.btnResetSettings.setText("Default " + self.name)
 
         nldt_tip = """<html>The <b>Default Name Length Match Tolerance</b> is for eliminating automatic

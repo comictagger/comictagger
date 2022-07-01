@@ -31,7 +31,7 @@ class CBLTransformer:
     def apply(self) -> GenericMetadata:
         # helper funcs
         def append_to_tags_if_unique(item: str) -> None:
-            if item.lower() not in (tag.lower() for tag in self.metadata.tags):
+            if item.casefold() not in (tag.casefold() for tag in self.metadata.tags):
                 self.metadata.tags.append(item)
 
         def add_string_list_to_tags(str_list: str | None) -> None:
@@ -47,7 +47,7 @@ class CBLTransformer:
                 lone_credit: CreditMetadata | None = None
                 count = 0
                 for c in self.metadata.credits:
-                    if c["role"].lower() in role_list:
+                    if c["role"].casefold() in role_list:
                         count += 1
                         lone_credit = c
                     if count > 1:

@@ -77,7 +77,7 @@ class CreditEditorWindow(QtWidgets.QDialog):
 
     def current_role_can_be_primary(self) -> bool:
         role = self.cbRole.currentText()
-        if str(role).lower() == "writer" or str(role).lower() == "artist":
+        if role.casefold() in ("artist", "writer"):
             return True
 
         return False

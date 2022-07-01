@@ -935,7 +935,7 @@ class ComicArchive:
             self.page_list = []
             for name in files:
                 if (
-                    os.path.splitext(name)[1].lower() in [".jpg", ".jpeg", ".png", ".gif", ".webp"]
+                    os.path.splitext(name)[1].casefold() in [".jpg", ".jpeg", ".png", ".gif", ".webp"]
                     and os.path.basename(name)[0] != "."
                 ):
                     self.page_list.append(name)
@@ -1146,7 +1146,7 @@ class ComicArchive:
 
             # look at all xml files in root, and search for CoMet data, get first
             for n in self.archiver.get_filename_list():
-                if os.path.dirname(n) == "" and os.path.splitext(n)[1].lower() == ".xml":
+                if os.path.dirname(n) == "" and os.path.splitext(n)[1].casefold() == ".xml":
                     # read in XML file, and validate it
                     try:
                         data = ""

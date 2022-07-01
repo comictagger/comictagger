@@ -428,7 +428,10 @@ class ComicVineTalker:
         for record in issues_list_results:
             if IssueString(issue_number).as_string() is None:
                 issue_number = "1"
-            if IssueString(record["issue_number"]).as_string().lower() == IssueString(issue_number).as_string().lower():
+            if (
+                IssueString(record["issue_number"]).as_string().casefold()
+                == IssueString(issue_number).as_string().casefold()
+            ):
                 f_record = record
                 break
 
@@ -497,26 +500,26 @@ class ComicVineTalker:
         character_list = []
         for character in character_credits:
             character_list.append(character["name"])
-        metadata.characters = utils.list_to_string(character_list)
+        metadata.characters = ", ".join(character_list)
 
         team_credits = issue_results["team_credits"]
         team_list = []
         for team in team_credits:
             team_list.append(team["name"])
-        metadata.teams = utils.list_to_string(team_list)
+        metadata.teams = ", ".join(team_list)
 
         location_credits = issue_results["location_credits"]
         location_list = []
         for location in location_credits:
             location_list.append(location["name"])
-        metadata.locations = utils.list_to_string(location_list)
+        metadata.locations = ", ".join(location_list)
 
         story_arc_credits = issue_results["story_arc_credits"]
         arc_list = []
         for arc in story_arc_credits:
             arc_list.append(arc["name"])
         if len(arc_list) > 0:
-            metadata.story_arc = utils.list_to_string(arc_list)
+            metadata.story_arc = ", ".join(arc_list)
 
         return metadata
 

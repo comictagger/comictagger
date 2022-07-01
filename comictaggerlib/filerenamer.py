@@ -77,7 +77,7 @@ class MetadataFormatter(string.Formatter):
             lstrip = False
             # if there's a field, output it
             if field_name is not None and field_name != "":
-                field_name = field_name.lower()
+                field_name = field_name.casefold()
                 # this is some markup, find the object and do the formatting
 
                 # handle arg indexing when empty field_names are given.
@@ -170,7 +170,7 @@ class FileRenamer:
 
         for Component in pathlib.PureWindowsPath(template).parts:
             if (
-                self.platform.lower() in ["universal", "windows"] or sys.platform.lower() in ["windows"]
+                self.platform.casefold() in ["universal", "windows"] or sys.platform.casefold() in ["windows"]
             ) and self.smart_cleanup:
                 # colons get special treatment
                 Component = Component.replace(": ", " - ")

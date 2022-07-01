@@ -71,7 +71,7 @@ def main():
 
     # now sort the list by issue, and then series
     metadata_list.sort(key=lambda x: IssueString(x[1].issue).asString(3), reverse=False)
-    metadata_list.sort(key=lambda x: unicode(x[1].series).lower() + str(x[1].year), reverse=False)
+    metadata_list.sort(key=lambda x: unicode(x[1].series).casefold() + str(x[1].year), reverse=False)
 
     # now print
     for filename, md in metadata_list:

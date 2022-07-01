@@ -280,9 +280,9 @@ def lex_text(lex: Lexer) -> Callable:
         if is_alpha_numeric(r):
             if r.isnumeric():  # E.g. v1
                 word = lex.input[lex.start : lex.pos]
-                if word.lower() in key and key[word.lower()] == ItemType.InfoSpecifier:
+                if word.casefold() in key and key[word.casefold()] == ItemType.InfoSpecifier:
                     lex.backup()
-                    lex.emit(key[word.lower()])
+                    lex.emit(key[word.casefold()])
                     return lex_filename
         else:
             if r == "'" and lex.peek() == "s":
@@ -290,12 +290,12 @@ def lex_text(lex: Lexer) -> Callable:
             else:
                 lex.backup()
             word = lex.input[lex.start : lex.pos + 1]
-            if word.lower() == "vol" and lex.peek() == ".":
+            if word.casefold() == "vol" and lex.peek() == ".":
                 lex.get()
             word = lex.input[lex.start : lex.pos + 1]
 
-            if word.lower() in key:
-                lex.emit(key[word.lower()])
+            if word.casefold() in key:
+                lex.emit(key[word.casefold()])
             elif cal(word):
                 lex.emit(ItemType.Calendar)
             else:
