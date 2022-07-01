@@ -48,9 +48,7 @@ def test_metadata_read():
         thisdir / "data" / "Cory Doctorow's Futuristic Tales of the Here and Now #001 - Anda's Game (2007).cbz"
     )
     md = c.read_cix()
-    md_dict = md.__dict__
-    md_test_dict = comicapi.genericmetadata.md_test.__dict__
-    assert md_dict == md_test_dict
+    assert md == comicapi.genericmetadata.md_test
 
 
 def test_save_cix(tmp_path):
@@ -118,9 +116,7 @@ def test_copy_to_archive(archiver, tmp_path):
     assert set(cbz.archiver.get_filename_list()) == set(comic_archive.archiver.get_filename_list())
 
     md = comic_archive.read_cix()
-    md_dict = md.__dict__
-    md_test_dict = comicapi.genericmetadata.md_test.__dict__
-    assert md_dict == md_test_dict
+    assert md == comicapi.genericmetadata.md_test
 
     md = comicapi.genericmetadata.GenericMetadata()
     md.overlay(comicapi.genericmetadata.md_test)
@@ -129,6 +125,4 @@ def test_copy_to_archive(archiver, tmp_path):
     assert comic_archive.write_cix(md)
 
     test_md = comic_archive.read_cix()
-    md_dict = md.__dict__
-    test_md_dict = test_md.__dict__
-    assert md_dict == test_md_dict
+    assert md == test_md
