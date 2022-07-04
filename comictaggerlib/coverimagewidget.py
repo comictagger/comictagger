@@ -215,7 +215,7 @@ class CoverImageWidget(QtWidgets.QWidget):
             comic_vine.async_fetch_alternate_cover_urls(utils.xlate(self.issue_id), cast(str, issue_page_url))
 
     def alt_cover_url_list_fetch_complete(self, url_list: list[str]) -> None:
-        if len(url_list) > 0:
+        if url_list:
             self.url_list.extend(url_list)
             self.imageCount = len(self.url_list)
         self.update_controls()

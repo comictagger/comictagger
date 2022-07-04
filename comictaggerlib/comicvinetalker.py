@@ -777,7 +777,7 @@ class ComicVineTalker:
         # This async version requires the issue page url to be provided!
         self.issue_id = issue_id
         url_list = self.fetch_cached_alternate_cover_urls(issue_id)
-        if url_list is not None:
+        if url_list:
             ComicVineTalker.alt_url_list_fetch_complete(url_list)
             return
 
