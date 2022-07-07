@@ -51,7 +51,7 @@ class ImagePopup(QtWidgets.QDialog):
         self.clientBgPixmap = bg.scaled(
             screen_size.width(),
             screen_size.height(),
-            QtCore.Qt.AspectRatioMode.KeepAspectRatio,
+            QtCore.Qt.AspectRatioMode.IgnoreAspectRatio,
             QtCore.Qt.SmoothTransformation,
         )
         self.setMask(self.clientBgPixmap.mask())
