@@ -26,6 +26,7 @@ from shutil import which  # noqa: F401
 from typing import Any, Mapping
 
 import pycountry
+import thefuzz.fuzz
 
 logger = logging.getLogger(__name__)
 
@@ -108,6 +109,10 @@ def remove_articles(text: str) -> str:
         "the",
         "the",
         "with",
+        "ms",
+        "mrs",
+        "mr",
+        "dr",
     ]
     new_text = ""
     for word in text.split(" "):
@@ -142,13 +147,18 @@ def sanitize_title(text: str, basic: bool = False) -> str:
     return text
 
 
-def titles_match(search_title, record_title):
+def titles_match(search_title: str, record_title: str, threshold: int = 90):
     sanitized_search = sanitize_title(search_title)
     sanitized_record = sanitize_title(record_title)
-    for term in sanitized_search.split():
-        if term not in sanitized_record:
-            return False
-    return True
+    ratio = thefuzz.fuzz.ratio(sanitized_search, sanitized_record)
+    logger.debug(
+        "search title: %s ; record title: %s ; ratio: %d ; match threshold: %d",
+        search_title,
+        record_title,
+        ratio,
+        threshold,
+    )
+    return ratio >= threshold
 
 
 def unique_file(file_name: pathlib.Path) -> pathlib.Path:

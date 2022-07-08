@@ -42,7 +42,7 @@ def actual_issue_data_fetch(
 ) -> GenericMetadata:
     # now get the particular issue data
     try:
-        comic_vine = ComicVineTalker()
+        comic_vine = ComicVineTalker(settings.id_series_match_search_thresh)
         comic_vine.wait_for_rate_limit = opts.wait_on_cv_rate_limit
         cv_md = comic_vine.fetch_issue_data(match["volume_id"], match["issue_number"], settings)
     except ComicVineTalkerException:
@@ -375,7 +375,7 @@ def process_file_cli(
             if opts.issue_id is not None:
                 # we were given the actual ID to search with
                 try:
-                    comic_vine = ComicVineTalker()
+                    comic_vine = ComicVineTalker(settings.id_series_match_search_thresh)
                     comic_vine.wait_for_rate_limit = opts.wait_on_cv_rate_limit
                     cv_md = comic_vine.fetch_issue_data_by_issue_id(opts.issue_id, settings)
                 except ComicVineTalkerException:

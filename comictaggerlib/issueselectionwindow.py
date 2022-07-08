@@ -97,7 +97,7 @@ class IssueSelectionWindow(QtWidgets.QDialog):
         QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
 
         try:
-            comic_vine = ComicVineTalker()
+            comic_vine = ComicVineTalker(self.settings.id_series_match_search_thresh)
             comic_vine.fetch_volume_data(self.series_id)
             self.issue_list = comic_vine.fetch_issues_by_volume(self.series_id)
         except ComicVineTalkerException as e:

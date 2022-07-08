@@ -139,7 +139,7 @@
          <item row="0" column="0">
           <widget class="QLabel" name="label_5">
            <property name="text">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;These settings are for the automatic issue identifier which searches online for matches. They will not affect &amp;quot;manual&amp;quot; searching.&lt;/p&gt;&lt;p&gt;Hover the mouse over an entry field for more info.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;These settings are for the automatic issue identifier which searches online for matches. &lt;/p&gt;&lt;p&gt;Hover the mouse over an entry field for more info.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="wordWrap">
             <bool>true</bool>
@@ -164,47 +164,28 @@
               <string/>
              </property>
              <property name="text">
-              <string>Default Name Length Match Tolerance:</string>
+              <string>Default Name Match Ratio Threshold: Search:</string>
              </property>
             </widget>
            </item>
-           <item row="0" column="1">
-            <widget class="QLineEdit" name="leNameLengthDeltaThresh">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
+           <item row="1" column="0">
+            <widget class="QLabel" name="label">
+             <property name="text">
+              <string>Default Name Match Ratio Threshold: Auto-Identify:</string>
              </property>
-             <property name="maximumSize">
-              <size>
-               <width>50</width>
-               <height>16777215</height>
-              </size>
-             </property>
-             <property name="toolTip">
-              <string/>
+             <property name="alignment">
+              <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
              </property>
             </widget>
            </item>
            <item row="2" column="0">
-            <widget class="QLabel" name="label_4">
+            <widget class="QLabel" name="label_9">
              <property name="text">
-              <string>Publisher Filter:</string>
+              <string>Always use Publisher Filter on &quot;manual&quot; searches:</string>
              </property>
             </widget>
            </item>
            <item row="2" column="1">
-            <widget class="QPlainTextEdit" name="tePublisherFilter">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="1">
             <widget class="QCheckBox" name="cbxUseFilter">
              <property name="toolTip">
               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Applies the &lt;span style=&quot; font-weight:600;&quot;&gt;Publisher Filter&lt;/span&gt; on all searches.&lt;br/&gt;The search window has a dynamic toggle to show the unfiltered results.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -214,10 +195,58 @@
              </property>
             </widget>
            </item>
-           <item row="1" column="0">
-            <widget class="QLabel" name="label_9">
+           <item row="3" column="0">
+            <widget class="QLabel" name="label_4">
              <property name="text">
-              <string>Always use Publisher Filter on &quot;manual&quot; searches:</string>
+              <string>Publisher Filter:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1">
+            <widget class="QPlainTextEdit" name="tePublisherFilter">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QSpinBox" name="sbNameMatchSearchThresh">
+             <property name="maximumSize">
+              <size>
+               <width>60</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="suffix">
+              <string>%</string>
+             </property>
+             <property name="minimum">
+              <number>1</number>
+             </property>
+             <property name="maximum">
+              <number>100</number>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QSpinBox" name="sbNameMatchIdentifyThresh">
+             <property name="maximumSize">
+              <size>
+               <width>60</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="suffix">
+              <string>%</string>
+             </property>
+             <property name="minimum">
+              <number>1</number>
+             </property>
+             <property name="maximum">
+              <number>100</number>
              </property>
             </widget>
            </item>

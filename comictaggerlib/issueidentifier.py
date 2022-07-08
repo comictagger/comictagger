@@ -95,7 +95,7 @@ class IssueIdentifier:
 
         # used to eliminate series names that are too long based on our search
         # string
-        self.length_delta_thresh = settings.id_length_delta_thresh
+        self.series_match_thresh = settings.id_series_match_identify_thresh
 
         # used to eliminate unlikely publishers
         self.publisher_filter = [s.strip().casefold() for s in settings.id_publisher_filter.split(",")]
@@ -120,8 +120,8 @@ class IssueIdentifier:
     def set_additional_metadata(self, md: GenericMetadata) -> None:
         self.additional_metadata = md
 
-    def set_name_length_delta_threshold(self, delta: int) -> None:
-        self.length_delta_thresh = delta
+    def set_name_series_match_threshold(self, delta: int) -> None:
+        self.series_match_thresh = delta
 
     def set_publisher_filter(self, flt: list[str]) -> None:
         self.publisher_filter = flt
@@ -398,7 +398,7 @@ class IssueIdentifier:
         if keys["month"] is not None:
             self.log_msg("\tMonth:  " + str(keys["month"]))
 
-        comic_vine = ComicVineTalker()
+        comic_vine = ComicVineTalker(self.settings.id_series_match_search_thresh)
         comic_vine.wait_for_rate_limit = self.wait_and_retry_on_rate_limit
 
         comic_vine.set_log_func(self.output_function)
@@ -433,15 +433,13 @@ class IssueIdentifier:
                 if int(keys["year"]) < int(item["start_year"]):
                     date_approved = False
 
-            # assume that our search name is close to the actual name, say
-            # within ,e.g. 5 chars
-            # sanitize both the search string and the result so that
-            # we are comparing the same type of data
-            shortened_key = utils.sanitize_title(keys["series"])
-            shortened_item_name = utils.sanitize_title(item["name"])
-            if len(shortened_item_name) < (len(shortened_key) + self.length_delta_thresh):
-                length_approved = True
-
+            aliases = []
+            if item["aliases"]:
+                aliases = item["aliases"].split("\n")
+            for name in [item["name"], *aliases]:
+                if utils.titles_match(keys["series"], name, self.series_match_thresh):
+                    length_approved = True
+                    break
             # remove any series from publishers on the filter
             if item["publisher"] is not None:
                 publisher = item["publisher"]["name"]
