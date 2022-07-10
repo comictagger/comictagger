@@ -25,10 +25,20 @@ from typing import Any, cast
 
 from pathvalidate import sanitize_filename
 
+from comicapi.comicarchive import ComicArchive
 from comicapi.genericmetadata import GenericMetadata
 from comicapi.issuestring import IssueString
 
 logger = logging.getLogger(__name__)
+
+
+def get_rename_dir(ca: ComicArchive, rename_dir: str | pathlib.Path | None) -> pathlib.Path:
+    folder = ca.path.parent.absolute()
+    if rename_dir is not None:
+        if isinstance(rename_dir, str):
+            rename_dir = rename_dir.strip()
+        folder = pathlib.Path(rename_dir).absolute()
+    return folder
 
 
 class MetadataFormatter(string.Formatter):

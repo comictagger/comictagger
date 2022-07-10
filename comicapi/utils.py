@@ -134,13 +134,13 @@ def sanitize_title(text: str, basic: bool = False) -> str:
     return text
 
 
-def unique_file(file_name: str) -> str:
+def unique_file(file_name: pathlib.Path) -> pathlib.Path:
+    name = file_name.name
     counter = 1
-    file_name_parts = os.path.splitext(file_name)
     while True:
-        if not os.path.lexists(file_name):
+        if not file_name.exists():
             return file_name
-        file_name = file_name_parts[0] + " (" + str(counter) + ")" + file_name_parts[1]
+        file_name = file_name.with_name(name + " (" + str(counter) + ")")
         counter += 1
 
 

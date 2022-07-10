@@ -18,6 +18,7 @@ from __future__ import annotations
 import html
 import logging
 import os
+import pathlib
 import platform
 
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
@@ -179,22 +180,29 @@ class SettingsWindow(QtWidgets.QDialog):
         self.settings_to_form()
         self.rename_error: Exception | None = None
         self.rename_test()
+        self.dir_test()
 
         self.btnBrowseRar.clicked.connect(self.select_rar)
         self.btnClearCache.clicked.connect(self.clear_cache)
         self.btnResetSettings.clicked.connect(self.reset_settings)
         self.btnTestKey.clicked.connect(self.test_api_key)
         self.btnTemplateHelp.clicked.connect(self.show_template_help)
-        self.leRenameTemplate.textEdited.connect(self.rename__test)
+        self.leRenameTemplate.textEdited.connect(self._rename_test)
         self.cbxMoveFiles.clicked.connect(self.rename_test)
+        self.cbxMoveFiles.clicked.connect(self.dir_test)
         self.cbxRenameStrict.clicked.connect(self.rename_test)
-        self.leDirectory.textEdited.connect(self.rename_test)
+        self.leDirectory.textEdited.connect(self.dir_test)
         self.cbxComplicatedParser.clicked.connect(self.switch_parser)
 
     def rename_test(self) -> None:
-        self.rename__test(self.leRenameTemplate.text())
+        self._rename_test(self.leRenameTemplate.text())
 
-    def rename__test(self, template: str) -> None:
+    def dir_test(self) -> None:
+        self.lblDir.setText(
+            str(pathlib.Path(self.leDirectory.text().strip()).absolute()) if self.cbxMoveFiles.isChecked() else ""
+        )
+
+    def _rename_test(self, template: str) -> None:
         fr = FileRenamer(md_test, platform="universal" if self.cbxRenameStrict.isChecked() else "auto")
         fr.move = self.cbxMoveFiles.isChecked()
         fr.set_template(template)

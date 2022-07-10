@@ -20,7 +20,7 @@ import argparse
 import json
 import logging
 import os
-import shutil
+import pathlib
 import sys
 from pprint import pprint
 
@@ -29,7 +29,7 @@ from comicapi.comicarchive import ComicArchive, MetaDataStyle
 from comicapi.genericmetadata import GenericMetadata
 from comictaggerlib.cbltransformer import CBLTransformer
 from comictaggerlib.comicvinetalker import ComicVineTalker, ComicVineTalkerException
-from comictaggerlib.filerenamer import FileRenamer
+from comictaggerlib.filerenamer import FileRenamer, get_rename_dir
 from comictaggerlib.issueidentifier import IssueIdentifier
 from comictaggerlib.resulttypes import IssueResult, MultipleMatch, OnlineMatchResults
 from comictaggerlib.settings import ComicTaggerSettings
@@ -510,21 +510,18 @@ def process_file_cli(
             )
             return
 
-        folder = os.path.dirname(os.path.abspath(filename))
-        if settings.rename_move_dir and len(settings.rename_dir.strip()) > 3:
-            folder = settings.rename_dir.strip()
+        folder = get_rename_dir(ca, settings.rename_dir if settings.rename_move_dir else None)
 
-        new_abs_path = utils.unique_file(os.path.join(folder, new_name))
+        full_path = folder / new_name
 
-        if os.path.join(folder, new_name) == os.path.abspath(filename):
+        if full_path == ca.path:
             print(msg_hdr + "Filename is already good!", file=sys.stderr)
             return
 
         suffix = ""
         if not opts.dryrun:
             # rename the file
-            os.makedirs(os.path.dirname(new_abs_path), 0o777, True)
-            shutil.move(filename, new_abs_path)
+            ca.rename(utils.unique_file(full_path))
         else:
             suffix = " (dry-run, no change)"
 
@@ -535,18 +532,18 @@ def process_file_cli(
         if batch_mode:
             msg_hdr = f"{ca.path}: "
 
-        if not ca.is_rar():
-            logger.error(msg_hdr + "Archive is not a RAR.")
+        if ca.is_zip():
+            logger.error(msg_hdr + "Archive is already a zip file.")
             return
 
-        rar_file = os.path.abspath(os.path.abspath(filename))
-        new_file = os.path.splitext(rar_file)[0] + ".cbz"
+        filename_path = pathlib.Path(filename).absolute()
+        new_file = filename_path.with_suffix(".cbz")
 
-        if opts.abort_on_conflict and os.path.lexists(new_file):
-            print(msg_hdr + f"{os.path.split(new_file)[1]} already exists in the that folder.")
+        if opts.abort_on_conflict and new_file.exists():
+            print(msg_hdr + f"{new_file.name} already exists in the that folder.")
             return
 
-        new_file = utils.unique_file(os.path.join(new_file))
+        new_file = utils.unique_file(new_file)
 
         delete_success = False
         export_success = False
@@ -555,16 +552,14 @@ def process_file_cli(
                 export_success = True
                 if opts.delete_after_zip_export:
                     try:
-                        os.unlink(rar_file)
-                    except OSError:
-                        logger.exception(msg_hdr + "Error deleting original RAR after export")
-                        delete_success = False
-                    else:
+                        filename_path.unlink(missing_ok=True)
                         delete_success = True
+                    except OSError:
+                        logger.exception(msg_hdr + "Error deleting original archive after export")
+                        delete_success = False
             else:
                 # last export failed, so remove the zip, if it exists
-                if os.path.lexists(new_file):
-                    os.remove(new_file)
+                new_file.unlink(missing_ok=True)
         else:
             msg = msg_hdr + f"Dry-run:  Would try to create {os.path.split(new_file)[1]}"
             if opts.delete_after_zip_export:

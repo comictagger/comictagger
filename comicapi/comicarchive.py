@@ -746,7 +746,12 @@ class ComicArchive:
             self.read_metadata(style)
 
     def rename(self, path: pathlib.Path | str) -> None:
-        self.path = pathlib.Path(path)
+        new_path = pathlib.Path(path).absolute()
+        if new_path == self.path:
+            return
+        os.makedirs(new_path.parent, 0o777, True)
+        shutil.move(path, new_path)
+        self.path = new_path
         self.archiver.path = pathlib.Path(path)
 
     def sevenzip_test(self) -> bool:
@@ -1247,10 +1252,10 @@ class ComicArchive:
 
         return metadata
 
-    def export_as_zip(self, zipfilename: str) -> bool:
+    def export_as_zip(self, zip_filename: pathlib.Path | str) -> bool:
         if self.archive_type == self.ArchiveType.Zip:
             # nothing to do, we're already a zip
             return True
 
-        zip_archiver = ZipArchiver(zipfilename)
+        zip_archiver = ZipArchiver(zip_filename)
         return zip_archiver.copy_from_archive(self.archiver)

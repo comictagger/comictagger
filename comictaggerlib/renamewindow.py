@@ -16,25 +16,18 @@
 from __future__ import annotations
 
 import logging
-import os
-import shutil
-from typing import TypedDict
 
 from PyQt5 import QtCore, QtWidgets, uic
 
 from comicapi import utils
 from comicapi.comicarchive import ComicArchive, MetaDataStyle
-from comictaggerlib.filerenamer import FileRenamer
+from comicapi.genericmetadata import GenericMetadata
+from comictaggerlib.filerenamer import FileRenamer, get_rename_dir
 from comictaggerlib.settings import ComicTaggerSettings
 from comictaggerlib.settingswindow import SettingsWindow
 from comictaggerlib.ui.qtutils import center_window_on_parent
 
 logger = logging.getLogger(__name__)
-
-
-class RenameItem(TypedDict):
-    archive: ComicArchive
-    new_name: str
 
 
 class RenameWindow(QtWidgets.QDialog):
@@ -61,35 +54,28 @@ class RenameWindow(QtWidgets.QDialog):
         self.settings = settings
         self.comic_archive_list = comic_archive_list
         self.data_style = data_style
-        self.rename_list: list[RenameItem] = []
+        self.rename_list: list[str] = []
 
         self.btnSettings.clicked.connect(self.modify_settings)
         self.renamer = FileRenamer(None, platform="universal" if self.settings.rename_strict else "auto")
 
-        self.config_renamer()
         self.do_preview()
 
-    def config_renamer(self) -> None:
+    def config_renamer(self, ca: ComicArchive, md: GenericMetadata | None = None) -> str:
         self.renamer.set_template(self.settings.rename_template)
         self.renamer.set_issue_zero_padding(self.settings.rename_issue_number_padding)
         self.renamer.set_smart_cleanup(self.settings.rename_use_smart_string_cleanup)
 
-    def do_preview(self) -> None:
-        self.twList.setRowCount(0)
+        new_ext = ca.path.suffix  # default
+        if self.settings.rename_extension_based_on_archive:
+            if ca.is_sevenzip():
+                new_ext = ".cb7"
+            elif ca.is_zip():
+                new_ext = ".cbz"
+            elif ca.is_rar():
+                new_ext = ".cbr"
 
-        self.twList.setSortingEnabled(False)
-
-        for ca in self.comic_archive_list:
-
-            new_ext = ca.path.suffix  # default
-            if self.settings.rename_extension_based_on_archive:
-                if ca.is_sevenzip():
-                    new_ext = ".cb7"
-                elif ca.is_zip():
-                    new_ext = ".cbz"
-                elif ca.is_rar():
-                    new_ext = ".cbr"
-
+        if md is None:
             md = ca.read_metadata(self.data_style)
             if md.is_empty:
                 md = ca.metadata_from_filename(
@@ -98,9 +84,17 @@ class RenameWindow(QtWidgets.QDialog):
                     self.settings.remove_fcbd,
                     self.settings.remove_publisher,
                 )
-            self.renamer.set_metadata(md)
-            self.renamer.move = self.settings.rename_move_dir
+        self.renamer.set_metadata(md)
+        self.renamer.move = self.settings.rename_move_dir
+        return new_ext
 
+    def do_preview(self) -> None:
+        self.twList.setRowCount(0)
+
+        self.twList.setSortingEnabled(False)
+
+        for ca in self.comic_archive_list:
+            new_ext = self.config_renamer(ca)
             try:
                 new_name = self.renamer.determine_name(new_ext)
             except Exception as e:
@@ -122,13 +116,13 @@ class RenameWindow(QtWidgets.QDialog):
             old_name_item = QtWidgets.QTableWidgetItem()
             new_name_item = QtWidgets.QTableWidgetItem()
 
-            item_text = os.path.split(ca.path)[0]
+            item_text = str(ca.path.parent)
             folder_item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
             self.twList.setItem(row, 0, folder_item)
             folder_item.setText(item_text)
             folder_item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
 
-            item_text = os.path.split(ca.path)[1]
+            item_text = str(ca.path.name)
             old_name_item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
             self.twList.setItem(row, 1, old_name_item)
             old_name_item.setText(item_text)
@@ -139,13 +133,7 @@ class RenameWindow(QtWidgets.QDialog):
             new_name_item.setText(new_name)
             new_name_item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, new_name)
 
-            dict_item = RenameItem(
-                {
-                    "archive": ca,
-                    "new_name": new_name,
-                }
-            )
-            self.rename_list.append(dict_item)
+            self.rename_list.append(new_name)
 
         # Adjust column sizes
         self.twList.setVisible(False)
@@ -162,7 +150,6 @@ class RenameWindow(QtWidgets.QDialog):
         settingswin.show_rename_tab()
         settingswin.exec()
         if settingswin.result():
-            self.config_renamer()
             self.do_preview()
 
     def accept(self) -> None:
@@ -174,34 +161,29 @@ class RenameWindow(QtWidgets.QDialog):
         center_window_on_parent(prog_dialog)
         QtCore.QCoreApplication.processEvents()
 
-        for idx, item in enumerate(self.rename_list):
+        for idx, comic in enumerate(zip(self.comic_archive_list, self.rename_list)):
 
             QtCore.QCoreApplication.processEvents()
             if prog_dialog.wasCanceled():
                 break
             idx += 1
             prog_dialog.setValue(idx)
-            prog_dialog.setLabelText(item["new_name"])
+            prog_dialog.setLabelText(comic[1])
             center_window_on_parent(prog_dialog)
             QtCore.QCoreApplication.processEvents()
 
-            folder = os.path.dirname(os.path.abspath(item["archive"].path))
-            if self.settings.rename_move_dir and len(self.settings.rename_dir.strip()) > 3:
-                folder = self.settings.rename_dir.strip()
+            folder = get_rename_dir(comic[0], self.settings.rename_dir if self.settings.rename_move_dir else None)
 
-            new_abs_path = utils.unique_file(os.path.join(folder, item["new_name"]))
+            full_path = folder / comic[1]
 
-            if os.path.join(folder, item["new_name"]) == item["archive"].path:
-                logger.info(item["new_name"], "Filename is already good!")
+            if full_path == comic[0].path:
+                logger.info("%s: Filename is already good!", comic[1])
                 continue
 
-            if not item["archive"].is_writable(check_rar_status=False):
+            if not comic[0].is_writable(check_rar_status=False):
                 continue
 
-            os.makedirs(os.path.dirname(new_abs_path), 0o777, True)
-            shutil.move(item["archive"].path, new_abs_path)
-
-            item["archive"].rename(new_abs_path)
+            comic[0].rename(utils.unique_file(full_path))
 
         prog_dialog.hide()
         QtCore.QCoreApplication.processEvents()

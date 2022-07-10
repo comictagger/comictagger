@@ -446,16 +446,16 @@ Have fun!
 
     def repackage_archive(self) -> None:
         ca_list = self.fileSelectionList.get_selected_archive_list()
-        rar_count = 0
+        non_zip_count = 0
         for ca in ca_list:
-            if ca.is_rar():
-                rar_count += 1
+            if not ca.is_zip():
+                non_zip_count += 1
 
-        if rar_count == 0:
+        if non_zip_count == 0:
             QtWidgets.QMessageBox.information(
-                self, self.tr("Export as Zip Archive"), self.tr("No RAR archives selected!")
+                self, self.tr("Export as Zip Archive"), self.tr("Only ZIP archives are selected!")
             )
-            logger.warning("Export as Zip Archive. No RAR archives selected")
+            logger.warning("Export as Zip Archive. Only ZIP archives are selected")
             return
 
         if not self.dirty_flag_verification(
@@ -464,12 +464,12 @@ Have fun!
         ):
             return
 
-        if rar_count != 0:
+        if non_zip_count != 0:
             EW = ExportWindow(
                 self,
                 self.settings,
                 (
-                    f"You have selected {rar_count} archive(s) to export  to Zip format. "
+                    f"You have selected {non_zip_count} archive(s) to export  to Zip format. "
                     """ New archives will be created in the same folder as the original.
 
    Please choose options below, and select OK.
@@ -481,7 +481,7 @@ Have fun!
             if not EW.exec():
                 return
 
-            prog_dialog = QtWidgets.QProgressDialog("", "Cancel", 0, rar_count, self)
+            prog_dialog = QtWidgets.QProgressDialog("", "Cancel", 0, non_zip_count, self)
             prog_dialog.setWindowTitle("Exporting as ZIP")
             prog_dialog.setWindowModality(QtCore.Qt.WindowModality.ApplicationModal)
             prog_dialog.setMinimumDuration(300)
@@ -496,7 +496,7 @@ Have fun!
             success_count = 0
 
             for ca in ca_list:
-                if ca.is_rar():
+                if not ca.is_zip():
                     QtCore.QCoreApplication.processEvents()
                     if prog_dialog.wasCanceled():
                         break
@@ -506,30 +506,30 @@ Have fun!
                     center_window_on_parent(prog_dialog)
                     QtCore.QCoreApplication.processEvents()
 
-                    original_path = os.path.abspath(ca.path)
-                    export_name = os.path.splitext(original_path)[0] + ".cbz"
+                    export_name = ca.path.with_suffix(".cbz")
+                    export = True
 
-                    if os.path.lexists(export_name):
+                    if export_name.exists():
                         if EW.fileConflictBehavior == ExportConflictOpts.dontCreate:
-                            export_name = ""
+                            export = False
                             skipped_list.append(ca.path)
                         elif EW.fileConflictBehavior == ExportConflictOpts.createUnique:
                             export_name = utils.unique_file(export_name)
 
-                    if export_name:
+                    if export:
                         if ca.export_as_zip(export_name):
                             success_count += 1
                             if EW.addToList:
-                                new_archives_to_add.append(export_name)
+                                new_archives_to_add.append(str(export_name))
                             if EW.deleteOriginal:
                                 archives_to_remove.append(ca)
-                                os.unlink(ca.path)
+                                ca.path.unlink(missing_ok=True)
 
                         else:
                             # last export failed, so remove the zip, if it exists
                             failed_list.append(ca.path)
-                            if os.path.lexists(export_name):
-                                os.remove(export_name)
+                            if export_name.exists():
+                                export_name.unlink(missing_ok=True)
 
             prog_dialog.hide()
             QtCore.QCoreApplication.processEvents()
@@ -539,13 +539,13 @@ Have fun!
             summary = f"Successfully created {success_count} Zip archive(s)."
             if len(skipped_list) > 0:
                 summary += (
-                    f"\n\nThe following {len(skipped_list)} RAR archive(s) were skipped due to file name conflicts:\n"
+                    f"\n\nThe following {len(skipped_list)} archive(s) were skipped due to file name conflicts:\n"
                 )
                 for f in skipped_list:
                     summary += f"\t{f}\n"
             if len(failed_list) > 0:
                 summary += (
-                    f"\n\nThe following {len(failed_list)} RAR archive(s) failed to export due to read/write errors:\n"
+                    f"\n\nThe following {len(failed_list)} archive(s) failed to export due to read/write errors:\n"
                 )
                 for f in failed_list:
                     summary += f"\t{f}\n"
