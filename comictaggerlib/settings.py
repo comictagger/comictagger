@@ -163,7 +163,7 @@ class ComicTaggerSettings:
                 # see if it's in the path of unix user
                 rarpath = utils.which("rar")
                 if rarpath is not None:
-                    self.rar_exe_path = rarpath
+                    self.rar_exe_path = "rar"
             if self.rar_exe_path != "":
                 self.save()
         if self.rar_exe_path != "":

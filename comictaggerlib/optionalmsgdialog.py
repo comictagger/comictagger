@@ -112,3 +112,14 @@ class OptionalMessageDialog(QtWidgets.QDialog):
         d.exec()
 
         return d.was_accepted, d.theCheckBox.isChecked()
+
+    @staticmethod
+    def msg_no_checkbox(
+        parent: QtWidgets.QWidget, title: str, msg: str, checked: bool = False, check_text: str = ""
+    ) -> bool:
+
+        d = OptionalMessageDialog(parent, StyleMessage, title, msg, checked=checked, check_text=check_text)
+        d.theCheckBox.hide()
+
+        d.exec()
+        return d.theCheckBox.isChecked()

@@ -34,29 +34,29 @@ from comictaggerlib.settings import ComicTaggerSettings
 logger = logging.getLogger(__name__)
 
 windowsRarHelp = """
-                 <html><head/><body><p>To write to CBR/RAR archives,
-                 you will need to have the tools from
-                 <span style=" text-decoration: underline; color:#0000ff;">
-                 <a href="http://www.win-rar.com/download.html">WINRar</a></span>
-                 installed. (ComicTagger only uses the command-line rar tool,
-                 which is free to use.)</p></body></html>
+                <html><head/><body><p>To write to CBR/RAR archives,
+                you will need to have the tools from
+                <span style=" text-decoration: underline; color:#0000ff;">
+                <a href="http://www.win-rar.com/download.html">WINRar</a></span>
+                installed. (ComicTagger only uses the command-line rar tool.)
+                </p></body></html>
                 """
 
 linuxRarHelp = """
-               <html><head/><body><p>To write to CBR/RAR archives,
-               you will need to have the shareware rar tool from RARLab installed.
-               Your package manager should have rar (e.g. "apt-get install rar"). If not, download it
-               <span style=" text-decoration: underline; color:#0000ff;">
-               <a href="https://www.rarlab.com/download.htm">here</a></span>,
-               and install in your path. </p></body></html>
-               """
+                <html><head/><body><p>To write to CBR/RAR archives,
+                you will need to have the shareware rar tool from RARLab installed.
+                Your package manager should have rar (e.g. "apt-get install rar"). If not, download it
+                <span style=" text-decoration: underline; color:#0000ff;">
+                <a href="https://www.rarlab.com/download.htm">here</a></span>,
+                and install in your path. </p></body></html>
+                """
 
 macRarHelp = """
-                 <html><head/><body><p>To write to CBR/RAR archives,
-                 you will need the rar tool.  The easiest way to get this is
-                 to install <span style=" text-decoration: underline; color:#0000ff;">
-                 <a href="https://brew.sh/">homebrew</a></span>.
-                 </p>Once homebrew is installed, run: <b>brew install caskroom/cask/rar</b></body></html>
+                <html><head/><body><p>To write to CBR/RAR archives,
+                you will need the rar tool.  The easiest way to get this is
+                to install <span style=" text-decoration: underline; color:#0000ff;">
+                <a href="https://brew.sh/">homebrew</a></span>.
+                </p>Once homebrew is installed, run: <b>brew install caskroom/cask/rar</b></body></html>
                 """
 
 

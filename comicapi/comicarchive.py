@@ -368,7 +368,7 @@ class RarArchiver(UnknownArchiver):
 
     def __init__(self, path: pathlib.Path | str, rar_exe_path: str = "rar") -> None:
         super().__init__(path)
-        self.rar_exe_path = rar_exe_path
+        self.rar_exe_path = shutil.which(rar_exe_path) or ""
 
         # windows only, keeps the cmd.exe from popping up
         if platform.system() == "Windows":
@@ -687,7 +687,7 @@ class ComicArchive:
         self.page_count: int | None = None
         self.page_list: list[str] = []
 
-        self.rar_exe_path = rar_exe_path
+        self.rar_exe_path = shutil.which(rar_exe_path or "rar") or ""
         self.ci_xml_filename = "ComicInfo.xml"
         self.comet_default_filename = "CoMet.xml"
         self.reset_cache()
