@@ -227,7 +227,7 @@ class ComicVineTalker:
             "format": "json",
             "resources": "volume",
             "query": search_series_name,
-            "field_list": "volume,name,id,start_year,publisher,image,description,count_of_issues",
+            "field_list": "volume,name,id,start_year,publisher,image,description,count_of_issues,aliases",
             "page": 1,
             "limit": 100,
         }
@@ -272,10 +272,7 @@ class ComicVineTalker:
 
                 # See if the last result's name has all the of the search terms.
                 # If not, break out of this, loop, we're done.
-                for term in search_series_name.split():
-                    if term not in last_result:
-                        stop_searching = True
-                        break
+                stop_searching = utils.titles_match(search_series_name, last_result)
 
                 # Also, stop searching when the word count of last results is too much longer than our search terms list
                 if len(last_result) > result_word_count_max:
@@ -301,12 +298,8 @@ class ComicVineTalker:
         if not literal:
             # Remove any search results that don't contain all the search terms (iterate backwards for easy removal)
             for record in reversed(search_results):
-                # Sanitize the series name for comicvine searching, comicvine search ignore symbols
-                record_name = utils.sanitize_title(record["name"])
-                for term in search_series_name.split():
-                    if term not in record_name:
-                        search_results.remove(record)
-                        break
+                if not utils.titles_match(search_series_name, record["name"]):
+                    search_results.remove(record)
 
         # Cache these search results, even if it's literal we cache the results
         # The most it will cause is extra processing time

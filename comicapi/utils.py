@@ -121,17 +121,34 @@ def remove_articles(text: str) -> str:
 
 def sanitize_title(text: str, basic: bool = False) -> str:
     # normalize unicode and convert to ascii. Does not work for everything eg ½ to 1⁄2 not 1/2
-    text = unicodedata.normalize("NFKD", text)
-    # comicvine keeps apostrophes a part of the word
-    text = text.replace("'", "")
-    text = text.replace('"', "")
-    if not basic:
-        # comicvine ignores punctuation and accents, TODO: only remove punctuation accents and similar
-        text = re.sub(r"[^A-Za-z0-9]+", " ", text)
+    text = unicodedata.normalize("NFKD", text).casefold()
+    if basic:
+        # comicvine keeps apostrophes a part of the word
+        text = text.replace("'", "")
+        text = text.replace('"', "")
+    else:
+        # comicvine ignores punctuation and accents
+        # remove all characters that are not a letter, separator (space) or number
+        # replace any "dash punctuation" with a space
+        # makes sure that batman-superman and self-proclaimed stay separate words
+        text = "".join(
+            c if not unicodedata.category(c) in ("Pd") else " "
+            for c in text
+            if unicodedata.category(c)[0] in "LZN" or unicodedata.category(c) in ("Pd")
+        )
         # remove extra space and articles and all lower case
-        text = remove_articles(text).casefold().strip()
+        text = remove_articles(text).strip()
 
     return text
+
+
+def titles_match(search_title, record_title):
+    sanitized_search = sanitize_title(search_title)
+    sanitized_record = sanitize_title(record_title)
+    for term in sanitized_search.split():
+        if term not in sanitized_record:
+            return False
+    return True
 
 
 def unique_file(file_name: pathlib.Path) -> pathlib.Path:
