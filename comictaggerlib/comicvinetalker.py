@@ -93,7 +93,7 @@ class ComicVineTalker:
 
     def __init__(self) -> None:
         # Identity name for the information source
-        self.source_name = 'comicvine'
+        self.source_name = "comicvine"
 
         self.wait_for_rate_limit = False
 

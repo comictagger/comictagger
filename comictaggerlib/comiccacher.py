@@ -178,7 +178,10 @@ class ComicCacher:
             cur.execute("DELETE FROM VolumeSearchCache WHERE timestamp  < ?", [str(a_day_ago)])
 
             # fetch
-            cur.execute("SELECT * FROM VolumeSearchCache WHERE search_term=? AND source_name=?", [search_term.casefold(), source_name])
+            cur.execute(
+                "SELECT * FROM VolumeSearchCache WHERE search_term=? AND source_name=?",
+                [search_term.casefold(), source_name],
+            )
             rows = cur.fetchall()
             # now process the results
             for record in rows:
@@ -191,7 +194,6 @@ class ComicCacher:
                         "description": record[7],
                         "publisher": {"name": record[4]},
                         "image": {"super_url": record[6]},
-                        "source": record[9],
                     }
                 )
 
@@ -212,7 +214,10 @@ class ComicCacher:
 
             url_list_str = ", ".join(url_list)
             # now add in new record
-            cur.execute("INSERT INTO AltCovers (source_name, issue_id, url_list) VALUES(?, ?, ?)", (source_name, issue_id, url_list_str))
+            cur.execute(
+                "INSERT INTO AltCovers (source_name, issue_id, url_list) VALUES(?, ?, ?)",
+                (source_name, issue_id, url_list_str),
+            )
 
     def get_alt_covers(self, source_name: str, issue_id: int) -> list[str]:
 
@@ -307,7 +312,10 @@ class ComicCacher:
             cur.execute("DELETE FROM Volumes WHERE timestamp  < ?", [str(a_week_ago)])
 
             # fetch
-            cur.execute("SELECT source_name,id,name,publisher,count_of_issues,start_year FROM Volumes WHERE id=? AND source_name=?", [volume_id, source_name])
+            cur.execute(
+                "SELECT source_name,id,name,publisher,count_of_issues,start_year FROM Volumes WHERE id=? AND source_name=?",
+                [volume_id, source_name],
+            )
 
             row = cur.fetchone()
 
@@ -317,7 +325,6 @@ class ComicCacher:
             # since ID is primary key, there is only one row
             result = CVVolumeResults(
                 {
-                    "source_name": row[0],
                     "id": row[1],
                     "name": row[2],
                     "count_of_issues": row[4],
@@ -348,7 +355,7 @@ class ComicCacher:
                     "SELECT source_name,id,name,issue_number,site_detail_url,cover_date,super_url,thumb_url,description"
                     " FROM Issues WHERE volume_id=? AND source_name=?"
                 ),
-                [volume_id, source_name]
+                [volume_id, source_name],
             )
             rows = cur.fetchall()
 
@@ -363,7 +370,6 @@ class ComicCacher:
                         "cover_date": row[5],
                         "image": {"super_url": row[6], "thumb_url": row[7]},
                         "description": row[8],
-                        "source_name": row[0],
                     }
                 )
 
@@ -399,7 +405,10 @@ class ComicCacher:
             cur = con.cursor()
             con.text_factory = str
 
-            cur.execute("SELECT super_url,thumb_url,cover_date,site_detail_url FROM Issues WHERE id=? AND source_name=?", [issue_id, source_name])
+            cur.execute(
+                "SELECT super_url,thumb_url,cover_date,site_detail_url FROM Issues WHERE id=? AND source_name=?",
+                [issue_id, source_name],
+            )
             row = cur.fetchone()
 
             details = SelectDetails(
