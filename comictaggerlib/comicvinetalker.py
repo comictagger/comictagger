@@ -677,7 +677,7 @@ class ComicVineTalker:
         self, issue_id: int, image_url: str, thumb_url: str, cover_date: str, page_url: str
     ) -> None:
         cvc = ComicCacher()
-        cvc.add_issue_select_details(issue_id, image_url, thumb_url, cover_date, page_url)
+        cvc.add_issue_select_details(issue_id, self.source_name, image_url, thumb_url, cover_date, page_url)
 
     def fetch_alternate_cover_urls(self, issue_id: int, issue_page_url: str) -> list[str]:
         url_list = self.fetch_cached_alternate_cover_urls(issue_id)

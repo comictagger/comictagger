@@ -378,7 +378,13 @@ class ComicCacher:
         return results
 
     def add_issue_select_details(
-        self, issue_id: int, image_url: str, thumb_image_url: str, cover_date: str, site_detail_url: str
+        self,
+        source_name: str,
+        issue_id: int,
+        image_url: str,
+        thumb_image_url: str,
+        cover_date: str,
+        site_detail_url: str,
     ) -> None:
 
         con = lite.connect(self.db_file)
@@ -390,6 +396,7 @@ class ComicCacher:
 
             data = {
                 "id": issue_id,
+                "source_name": source_name,
                 "super_url": image_url,
                 "thumb_url": thumb_image_url,
                 "cover_date": cover_date,
