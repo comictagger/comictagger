@@ -16,7 +16,7 @@ def test_fetch_volume_data(comicvine_api, settings, mock_now, comic_cache):
     assert volume == comic_cache.get_volume_info(23437, ct.source_name)
 
 
-def test_fetch_issue_data_by_issue_id(comicvine_api, settings, mock_now):
+def test_fetch_issue_data_by_issue_id(comicvine_api, settings, mock_now, mock_version):
     ct = comictaggerlib.comicvinetalker.ComicVineTalker()
     md = ct.fetch_issue_data_by_issue_id(311811, settings)
     assert md == testing.comicvine.cv_md

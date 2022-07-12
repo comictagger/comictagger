@@ -57,6 +57,17 @@ def mock_now(monkeypatch):
 
 
 @pytest.fixture
+def mock_version(monkeypatch):
+    version = "1.4.4a9.dev20"
+    version_tuple = (1, 4, 4, "dev20")
+
+    monkeypatch.setattr(comictaggerlib.ctversion, "version", version)
+    monkeypatch.setattr(comictaggerlib.ctversion, "__version__", version)
+    monkeypatch.setattr(comictaggerlib.ctversion, "version_tuple", version_tuple)
+    monkeypatch.setattr(comictaggerlib.ctversion, "__version_tuple__", version_tuple)
+
+
+@pytest.fixture
 def md():
     yield dataclasses.replace(comicapi.genericmetadata.md_test)
 

@@ -38,7 +38,7 @@ def test_volume_info(comic_cache, volume_info):
 
 @pytest.mark.parametrize("details", select_details)
 def test_issue_select_details(comic_cache, details):
-    comic_cache.add_issue_select_details(**details)
+    comic_cache.add_issue_select_details(**details, source_name="test")
     det = details.copy()
     del det["issue_id"]
     assert det == comic_cache.get_issue_select_details(details["issue_id"], "test")
