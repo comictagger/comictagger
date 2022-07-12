@@ -133,7 +133,10 @@ class ComicCacher:
             cur = con.cursor()
 
             # remove all previous entries with this search term
-            cur.execute("DELETE FROM VolumeSearchCache WHERE search_term = ?", [search_term.casefold()])
+            cur.execute(
+                "DELETE FROM VolumeSearchCache WHERE search_term = ? AND source_name = ?",
+                [search_term.casefold(), source_name],
+            )
 
             # now add in new results
             for record in cv_search_results:
@@ -212,7 +215,7 @@ class ComicCacher:
             # remove all previous entries with this search term
             cur.execute("DELETE FROM AltCovers WHERE issue_id=? AND source_name=?", [issue_id, source_name])
 
-            url_list_str = ", ".join(url_list)
+            url_list_str = ",".join(url_list)
             # now add in new record
             cur.execute(
                 "INSERT INTO AltCovers (source_name, issue_id, url_list) VALUES(?, ?, ?)",
@@ -237,12 +240,9 @@ class ComicCacher:
                 return []
 
             url_list_str = row[0]
-            if len(url_list_str) == 0:
+            if not url_list_str:
                 return []
-            raw_list = url_list_str.split(",")
-            url_list = []
-            for item in raw_list:
-                url_list.append(str(item).strip())
+            url_list = url_list_str.split(",")
             return url_list
 
     def add_volume_info(self, source_name: str, cv_volume_record: CVVolumeResults) -> None:
