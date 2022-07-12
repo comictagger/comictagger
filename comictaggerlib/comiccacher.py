@@ -379,8 +379,8 @@ class ComicCacher:
 
     def add_issue_select_details(
         self,
-        source_name: str,
         issue_id: int,
+        source_name: str,
         image_url: str,
         thumb_image_url: str,
         cover_date: str,
