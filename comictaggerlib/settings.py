@@ -160,6 +160,8 @@ class ComicTaggerSettings:
                 elif os.path.exists(r"C:\Program Files (x86)\WinRAR\Rar.exe"):
                     self.rar_exe_path = r"C:\Program Files (x86)\WinRAR\Rar.exe"
             else:
+                if os.path.exists("/opt/homebrew/bin"):
+                    utils.add_to_path("/opt/homebrew/bin")
                 # see if it's in the path of unix user
                 rarpath = utils.which("rar")
                 if rarpath is not None:
