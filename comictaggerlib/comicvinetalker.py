@@ -91,11 +91,12 @@ class ComicVineTalker:
 
         return "Comic Vine rate limit exceeded.  Please wait a bit."
 
-    def __init__(self) -> None:
+    def __init__(self, series_match_thresh: int = 90) -> None:
         # Identity name for the information source
         self.source_name = "comicvine"
 
         self.wait_for_rate_limit = False
+        self.series_match_thresh = series_match_thresh
 
         # key that is registered to comictagger
         default_api_key = "27431e6787042105bd3e47e169a624521f89f3a4"
@@ -227,7 +228,7 @@ class ComicVineTalker:
             "format": "json",
             "resources": "volume",
             "query": search_series_name,
-            "field_list": "volume,name,id,start_year,publisher,image,description,count_of_issues",
+            "field_list": "volume,name,id,start_year,publisher,image,description,count_of_issues,aliases",
             "page": 1,
             "limit": 100,
         }
@@ -245,10 +246,8 @@ class ComicVineTalker:
         # ORed together, and we get thousands of results.  Good news is the
         # results are sorted by relevance, so we can be smart about halting the search.
         # 1. Don't fetch more than some sane amount of pages.
-        max_results = 500
-        # 2. Halt when not all of our search terms are present in a result
-        # 3. Halt when the results contain more (plus threshold) words than our search
-        result_word_count_max = len(search_series_name.split()) + 3
+        # 2. Halt when any result on the current page is less than or equal to a set ratio using thefuzz
+        max_results = 500  # 5 pages
 
         total_result_count = min(total_result_count, max_results)
 
@@ -267,19 +266,11 @@ class ComicVineTalker:
         while current_result_count < total_result_count:
 
             if not literal:
-                # Sanitize the series name for comicvine searching, comicvine search ignore symbols
-                last_result = utils.sanitize_title(search_results[-1]["name"])
-
-                # See if the last result's name has all the of the search terms.
-                # If not, break out of this, loop, we're done.
-                for term in search_series_name.split():
-                    if term not in last_result:
-                        stop_searching = True
-                        break
-
-                # Also, stop searching when the word count of last results is too much longer than our search terms list
-                if len(last_result) > result_word_count_max:
-                    stop_searching = True
+                # Stop searching once any entry falls below the threshold
+                stop_searching = any(
+                    not utils.titles_match(search_series_name, volume["name"], self.series_match_thresh)
+                    for volume in cast(list[CVVolumeResults], cv_response["results"])
+                )
 
                 if stop_searching:
                     break
@@ -296,17 +287,6 @@ class ComicVineTalker:
 
             if callback is not None:
                 callback(current_result_count, total_result_count)
-
-        # Literal searches simply return the matches no extra processing is doneo
-        if not literal:
-            # Remove any search results that don't contain all the search terms (iterate backwards for easy removal)
-            for record in reversed(search_results):
-                # Sanitize the series name for comicvine searching, comicvine search ignore symbols
-                record_name = utils.sanitize_title(record["name"])
-                for term in search_series_name.split():
-                    if term not in record_name:
-                        search_results.remove(record)
-                        break
 
         # Cache these search results, even if it's literal we cache the results
         # The most it will cause is extra processing time
@@ -328,7 +308,7 @@ class ComicVineTalker:
         params = {
             "api_key": self.api_key,
             "format": "json",
-            "field_list": "name,id,start_year,publisher,count_of_issues",
+            "field_list": "name,id,start_year,publisher,count_of_issues,aliases",
         }
         cv_response = self.get_cv_content(volume_url, params)
 
@@ -351,7 +331,7 @@ class ComicVineTalker:
             "api_key": self.api_key,
             "filter": "volume:" + str(series_id),
             "format": "json",
-            "field_list": "id,volume,issue_number,name,image,cover_date,site_detail_url,description",
+            "field_list": "id,volume,issue_number,name,image,cover_date,site_detail_url,description,aliases",
             "offset": 0,
         }
         cv_response = self.get_cv_content(self.api_base_url + "/issues/", params)
@@ -395,7 +375,7 @@ class ComicVineTalker:
         params: dict[str, str | int] = {
             "api_key": self.api_key,
             "format": "json",
-            "field_list": "id,volume,issue_number,name,image,cover_date,site_detail_url,description",
+            "field_list": "id,volume,issue_number,name,image,cover_date,site_detail_url,description,aliases",
             "filter": flt,
         }
 

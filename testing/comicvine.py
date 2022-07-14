@@ -98,6 +98,7 @@ cv_volume_result: dict[str, Any] = {
         "count_of_issues": 6,
         "id": 23437,
         "name": "Cory Doctorow's Futuristic Tales of the Here and Now",
+        "aliases": None,
         "publisher": {
             "api_detail_url": "https://comicvine.gamespot.com/api/publisher/4010-1190/",
             "id": 1190,

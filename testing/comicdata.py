@@ -15,6 +15,7 @@ search_results = [
         name="test",
         publisher=comictaggerlib.resulttypes.CVPublisher(name="test"),
         start_year="",  # This is currently submitted as a string and returned as an int
+        aliases=None,
     ),
     comictaggerlib.resulttypes.CVVolumeResults(
         count_of_issues=1,
@@ -24,6 +25,7 @@ search_results = [
         name="test 2",
         publisher=comictaggerlib.resulttypes.CVPublisher(name="test"),
         start_year="",  # This is currently submitted as a string and returned as an int
+        aliases=None,
     ),
 ]
 

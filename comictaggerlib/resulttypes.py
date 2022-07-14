@@ -93,6 +93,7 @@ class CVIssuesResults(TypedDict):
     name: str
     site_detail_url: str
     volume: NotRequired[CVVolume]
+    aliases: str
 
 
 class CVPublisher(TypedDict, total=False):
@@ -110,6 +111,7 @@ class CVVolumeResults(TypedDict):
     publisher: CVPublisher
     start_year: str
     resource_type: NotRequired[str]
+    aliases: NotRequired[str | None]
 
 
 class CVCredits(TypedDict):

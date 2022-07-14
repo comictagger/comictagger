@@ -1064,7 +1064,7 @@ Have fun!
             self.form_to_metadata()
 
             try:
-                comic_vine = ComicVineTalker()
+                comic_vine = ComicVineTalker(self.settings.id_series_match_search_thresh)
                 new_metadata = comic_vine.fetch_issue_data(selector.volume_id, selector.issue_number, self.settings)
             except ComicVineTalkerException as e:
                 QtWidgets.QApplication.restoreOverrideCursor()
@@ -1674,7 +1674,7 @@ Have fun!
         QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
 
         try:
-            comic_vine = ComicVineTalker()
+            comic_vine = ComicVineTalker(self.settings.id_series_match_search_thresh)
             comic_vine.wait_for_rate_limit = self.settings.wait_and_retry_on_rate_limit
             cv_md = comic_vine.fetch_issue_data(match["volume_id"], match["issue_number"], self.settings)
         except ComicVineTalkerException:
@@ -1743,7 +1743,7 @@ Have fun!
         ii.cover_page_index = md.get_cover_page_index_list()[0]
         if self.atprogdialog is not None:
             ii.set_cover_url_callback(self.atprogdialog.set_test_image)
-        ii.set_name_length_delta_threshold(dlg.name_length_match_tolerance)
+        ii.set_name_series_match_threshold(dlg.name_length_match_tolerance)
 
         matches: list[IssueResult] = ii.search()
 

@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import logging
 
-from PyQt5 import QtCore, QtGui, QtWidgets, uic
+from PyQt5 import QtCore, QtWidgets, uic
 
 from comictaggerlib.settings import ComicTaggerSettings
 
@@ -39,7 +39,7 @@ class AutoTagStartWindow(QtWidgets.QDialog):
 
         self.cbxSpecifySearchString.setChecked(False)
         self.cbxSplitWords.setChecked(False)
-        self.leNameLengthMatchTolerance.setText(str(self.settings.id_length_delta_thresh))
+        self.sbNameMatchSearchThresh.setValue(self.settings.id_series_match_identify_thresh)
         self.leSearchString.setEnabled(False)
 
         self.cbxSaveOnLowConfidence.setChecked(self.settings.save_on_low_confidence)
@@ -50,13 +50,12 @@ class AutoTagStartWindow(QtWidgets.QDialog):
         self.cbxWaitForRateLimit.setChecked(self.settings.wait_and_retry_on_rate_limit)
         self.cbxAutoImprint.setChecked(self.settings.auto_imprint)
 
-        nlmt_tip = """ <html>The <b>Name Length Match Tolerance</b> is for eliminating automatic
-                search matches that are too long compared to your series name search. The higher
+        nlmt_tip = """<html>The <b>Name Match Ratio Threshold: Auto-Identify</b> is for eliminating automatic
+                search matches that are too long compared to your series name search. The lower
                 it is, the more likely to have a good match, but each search will take longer and
-                use more bandwidth. Too low, and only the very closest lexical matches will be
-                explored.</html>"""
+                use more bandwidth. Too high, and only the very closest matches will be explored.</html>"""
 
-        self.leNameLengthMatchTolerance.setToolTip(nlmt_tip)
+        self.sbNameMatchSearchThresh.setToolTip(nlmt_tip)
 
         ss_tip = """<html>
             The <b>series search string</b> specifies the search string to be used for all selected archives.
@@ -65,9 +64,6 @@ class AutoTagStartWindow(QtWidgets.QDialog):
             </html>"""
         self.leSearchString.setToolTip(ss_tip)
         self.cbxSpecifySearchString.setToolTip(ss_tip)
-
-        validator = QtGui.QIntValidator(0, 99, self)
-        self.leNameLengthMatchTolerance.setValidator(validator)
 
         self.cbxSpecifySearchString.stateChanged.connect(self.search_string_toggle)
 
@@ -78,7 +74,7 @@ class AutoTagStartWindow(QtWidgets.QDialog):
         self.remove_after_success = False
         self.wait_and_retry_on_rate_limit = False
         self.search_string = ""
-        self.name_length_match_tolerance = self.settings.id_length_delta_thresh
+        self.name_length_match_tolerance = self.settings.id_series_match_search_thresh
         self.split_words = self.cbxSplitWords.isChecked()
 
     def search_string_toggle(self) -> None:
@@ -93,7 +89,7 @@ class AutoTagStartWindow(QtWidgets.QDialog):
         self.assume_issue_one = self.cbxAssumeIssueOne.isChecked()
         self.ignore_leading_digits_in_filename = self.cbxIgnoreLeadingDigitsInFilename.isChecked()
         self.remove_after_success = self.cbxRemoveAfterSuccess.isChecked()
-        self.name_length_match_tolerance = int(self.leNameLengthMatchTolerance.text())
+        self.name_length_match_tolerance = int(self.leNameMatchThresh.text())
         self.wait_and_retry_on_rate_limit = self.cbxWaitForRateLimit.isChecked()
         self.split_words = self.cbxSplitWords.isChecked()
 

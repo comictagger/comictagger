@@ -78,7 +78,8 @@ class ComicTaggerSettings:
         self.last_filelist_sorted_order = 0
 
         # identifier settings
-        self.id_length_delta_thresh = 5
+        self.id_series_match_search_thresh = 90
+        self.id_series_match_identify_thresh = 91
         self.id_publisher_filter = "Panini Comics, Abril, Planeta DeAgostini, Editorial Televisa, Dino Comics"
 
         # Show/ask dialog flags
@@ -217,8 +218,10 @@ class ComicTaggerSettings:
         if self.config.has_option("auto", "last_filelist_sorted_order"):
             self.last_filelist_sorted_order = self.config.getint("auto", "last_filelist_sorted_order")
 
-        if self.config.has_option("identifier", "id_length_delta_thresh"):
-            self.id_length_delta_thresh = self.config.getint("identifier", "id_length_delta_thresh")
+        if self.config.has_option("identifier", "id_series_match_search_thresh"):
+            self.id_series_match_search_thresh = self.config.getint("identifier", "id_series_match_search_thresh")
+        if self.config.has_option("identifier", "id_series_match_identify_thresh"):
+            self.id_series_match_identify_thresh = self.config.getint("identifier", "id_series_match_identify_thresh")
         if self.config.has_option("identifier", "id_publisher_filter"):
             self.id_publisher_filter = self.config.get("identifier", "id_publisher_filter")
 
@@ -352,7 +355,8 @@ class ComicTaggerSettings:
         if not self.config.has_section("identifier"):
             self.config.add_section("identifier")
 
-        self.config.set("identifier", "id_length_delta_thresh", self.id_length_delta_thresh)
+        self.config.set("identifier", "id_series_match_search_thresh", self.id_series_match_search_thresh)
+        self.config.set("identifier", "id_series_match_identify_thresh", self.id_series_match_identify_thresh)
         self.config.set("identifier", "id_publisher_filter", self.id_publisher_filter)
 
         if not self.config.has_section("dialogflags"):

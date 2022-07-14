@@ -42,7 +42,7 @@ class SearchThread(QtCore.QThread):
     searchComplete = pyqtSignal()
     progressUpdate = pyqtSignal(int, int)
 
-    def __init__(self, series_name: str, refresh: bool, literal: bool = False) -> None:
+    def __init__(self, series_name: str, refresh: bool, literal: bool = False, series_match_thresh: int = 90) -> None:
         QtCore.QThread.__init__(self)
         self.series_name = series_name
         self.refresh: bool = refresh
@@ -50,9 +50,10 @@ class SearchThread(QtCore.QThread):
         self.cv_error = False
         self.cv_search_results: list[CVVolumeResults] = []
         self.literal = literal
+        self.series_match_thresh = series_match_thresh
 
     def run(self) -> None:
-        comic_vine = ComicVineTalker()
+        comic_vine = ComicVineTalker(self.series_match_thresh)
         try:
             self.cv_error = False
             self.cv_search_results = comic_vine.search_for_series(
@@ -176,7 +177,6 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
         self.perform_query(refresh=False)
 
     def auto_select(self) -> None:
-
         if self.comic_archive is None:
             QtWidgets.QMessageBox.information(self, "Auto-Select", "You need to load a comic first!")
             return
@@ -310,7 +310,9 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
         self.progdialog.canceled.connect(self.search_canceled)
         self.progdialog.setModal(True)
         self.progdialog.setMinimumDuration(300)
-        self.search_thread = SearchThread(self.series_name, refresh, self.literal)
+        self.search_thread = SearchThread(
+            self.series_name, refresh, self.literal, self.settings.id_series_match_search_thresh
+        )
         self.search_thread.searchComplete.connect(self.search_complete)
         self.search_thread.progressUpdate.connect(self.search_progress_update)
         self.search_thread.start()
