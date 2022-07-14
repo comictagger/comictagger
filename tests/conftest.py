@@ -8,13 +8,19 @@ from typing import Any, Generator
 import pytest
 import requests
 
+import comicapi.comicarchive
 import comicapi.genericmetadata
 import comictaggerlib.comiccacher
 import comictaggerlib.comicvinetalker
 import comictaggerlib.settings
 from comicapi import utils
-from testing import comicvine
+from testing import comicvine, filenames
 from testing.comicdata import all_seed_imprints, seed_imprints
+
+
+@pytest.fixture
+def cbz():
+    yield comicapi.comicarchive.ComicArchive(filenames.cbz_path)
 
 
 @pytest.fixture(autouse=True)
@@ -35,7 +41,18 @@ def comicvine_api(monkeypatch) -> unittest.mock.Mock:
                 return comicvine.MockResponse(comicvine.cv_volume_result)
             if args[0].startswith("https://comicvine.gamespot.com/api/issue/4000-311811"):
                 return comicvine.MockResponse(comicvine.cv_issue_result)
-        return comicvine.MockResponse({})
+            if (
+                args[0].startswith("https://comicvine.gamespot.com/api/issues/")
+                and "params" in kwargs
+                and "filter" in kwargs["params"]
+                and "23437" in kwargs["params"]["filter"]
+            ):
+                cv_list = comicvine.cv_issue_result.copy()
+                cv_list["results"] = cv_list["results"].copy()
+                comicvine.filter_field_list(cv_list["results"], kwargs)
+                cv_list["results"] = [cv_list["results"]]
+                return comicvine.MockResponse(cv_list)
+        return comicvine.MockResponse(comicvine.cv_not_found)
 
     m_get = unittest.mock.Mock(side_effect=mock_get)
 

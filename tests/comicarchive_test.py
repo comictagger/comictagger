@@ -1,16 +1,12 @@
 from __future__ import annotations
 
-import pathlib
 import shutil
 
 import pytest
 
 import comicapi.comicarchive
 import comicapi.genericmetadata
-import testing
-
-datadir = pathlib.Path(testing.__file__).parent / "data"
-cbz_path = datadir / "Cory Doctorow's Futuristic Tales of the Here and Now #001 - Anda's Game (2007).cbz"
+from testing.filenames import cbz_path, datadir
 
 
 @pytest.mark.xfail(not comicapi.comicarchive.rar_support, reason="rar support")
@@ -28,25 +24,14 @@ def test_getPageNameList():
     ]
 
 
-def test_set_default_page_list(tmp_path):
-    md = comicapi.genericmetadata.GenericMetadata()
-    md.overlay(comicapi.genericmetadata.md_test)
-    md.pages = []
-    md.set_default_page_list(len(comicapi.genericmetadata.md_test.pages))
-
-    assert isinstance(md.pages[0]["Image"], int)
-
-
-def test_page_type_read():
-    c = comicapi.comicarchive.ComicArchive(cbz_path)
-    md = c.read_cix()
+def test_page_type_read(cbz):
+    md = cbz.read_cix()
 
     assert isinstance(md.pages[0]["Type"], str)
 
 
-def test_metadata_read():
-    c = comicapi.comicarchive.ComicArchive(cbz_path)
-    md = c.read_cix()
+def test_metadata_read(cbz):
+    md = cbz.read_cix()
     assert md == comicapi.genericmetadata.md_test
 
 
@@ -101,10 +86,9 @@ archivers = [
 
 
 @pytest.mark.parametrize("archiver", archivers)
-def test_copy_to_archive(archiver, tmp_path):
-    comic_path = tmp_path / cbz_path.with_suffix("").name
+def test_copy_to_archive(archiver, tmp_path, cbz):
+    comic_path = tmp_path / cbz.path.with_suffix("").name
 
-    cbz = comicapi.comicarchive.ComicArchive(cbz_path)
     archive = archiver(comic_path)
 
     assert archive.copy_from_archive(cbz.archiver)

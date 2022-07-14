@@ -11,6 +11,16 @@ format is
 """
 from __future__ import annotations
 
+import os
+import os.path
+import pathlib
+from contextlib import nullcontext as does_not_raise
+
+import pytest
+
+datadir = pathlib.Path(__file__).parent / "data"
+cbz_path = datadir / "Cory Doctorow's Futuristic Tales of the Here and Now #001 - Anda's Game (2007).cbz"
+
 fnames = [
     (
         "batman 3 title (DC).cbz",
@@ -731,89 +741,125 @@ rnames = [
         False,
         "universal",
         "Cory Doctorow's Futuristic Tales of the Here and Now #001 - Anda's Game (2007).cbz",
+        does_not_raise(),
     ),
     (
         "{series} #{issue} - {title} ({year})({price})",  # price should be none, test no  space between ')('
         False,
         "universal",
         "Cory Doctorow's Futuristic Tales of the Here and Now #001 - Anda's Game (2007).cbz",
+        does_not_raise(),
     ),
     (
         "{series} #{issue} - {title} ({year})  ({price})",  # price should be none, test double space ')  ('
         False,
         "universal",
         "Cory Doctorow's Futuristic Tales of the Here and Now #001 - Anda's Game (2007).cbz",
+        does_not_raise(),
     ),
     (
         "{series} #{issue} - {title} ({year})",
         False,
         "universal",
         "Cory Doctorow's Futuristic Tales of the Here and Now #001 - Anda's Game (2007).cbz",
+        does_not_raise(),
     ),
     (
         "{series}: {title} #{issue} ({year})",  # on windows the ':' is replaced
         False,
         "universal",
         "Cory Doctorow's Futuristic Tales of the Here and Now - Anda's Game #001 (2007).cbz",
+        does_not_raise(),
     ),
     (
         "{series}: {title} #{issue} ({year})",  # on linux the ':' is preserved
         False,
         "Linux",
         "Cory Doctorow's Futuristic Tales of the Here and Now: Anda's Game #001 (2007).cbz",
+        does_not_raise(),
     ),
     (
         "{publisher}/  {series} #{issue} - {title} ({year})",  # leading whitespace is removed when moving
         True,
         "universal",
         "IDW Publishing/Cory Doctorow's Futuristic Tales of the Here and Now #001 - Anda's Game (2007).cbz",
+        does_not_raise(),
     ),
     (
         "{publisher}/  {series} #{issue} - {title} ({year})",  # leading whitespace is removed when only renaming
         False,
         "universal",
         "Cory Doctorow's Futuristic Tales of the Here and Now #001 - Anda's Game (2007).cbz",
+        does_not_raise(),
     ),
     (
         r"{publisher}\  {series} #{issue} - {title} ({year})",  # backslashes separate directories
         False,
         "universal",
         "Cory Doctorow's Futuristic Tales of the Here and Now #001 - Anda's Game (2007).cbz",
+        does_not_raise(),
     ),
     (
         "{series} #  {issue} - {title} ({year})",  # double spaces are reduced to one
         False,
         "universal",
         "Cory Doctorow's Futuristic Tales of the Here and Now # 001 - Anda's Game (2007).cbz",
+        does_not_raise(),
     ),
     (
         "{series} #  {issue} - {locations} ({year})",
         False,
         "universal",
         "Cory Doctorow's Futuristic Tales of the Here and Now # 001 - lonely cottage (2007).cbz",
+        does_not_raise(),
     ),
     (
         "{series} #{issue} - {title} - {WriteR}, {EDITOR} ({year})",  # fields are case in-sensitive
         False,
         "universal",
         "Cory Doctorow's Futuristic Tales of the Here and Now #001 - Anda's Game - Dara Naraghi, Ted Adams (2007).cbz",
+        does_not_raise(),
     ),
     (
         "{series} v{price} #{issue} ({year})",  # Remove previous text if value is ""
         False,
         "universal",
         "Cory Doctorow's Futuristic Tales of the Here and Now #001 (2007).cbz",
+        does_not_raise(),
     ),
     (
         "{series} {price} #{issue} ({year})",  # Ensure that a single space remains
         False,
         "universal",
         "Cory Doctorow's Futuristic Tales of the Here and Now #001 (2007).cbz",
+        does_not_raise(),
     ),
     (
         "{series} - {title}{price} #{issue} ({year})",  # Ensure removal before None values only impacts literal text
         False,
         "universal",
         "Cory Doctorow's Futuristic Tales of the Here and Now - Anda's Game #001 (2007).cbz",
+        does_not_raise(),
     ),
+    (
+        "{series} - {title} {test} #{issue} ({year})",  # Test non-existent key
+        False,
+        "universal",
+        "Cory Doctorow's Futuristic Tales of the Here and Now - Anda's Game {test} #001 (2007).cbz",
+        does_not_raise(),
+    ),
+    (
+        "{series} - {title} {1} #{issue} ({year})",  # Test numeric key
+        False,
+        "universal",
+        "Cory Doctorow's Futuristic Tales of the Here and Now - Anda's Game {test} #001 (2007).cbz",
+        pytest.raises(ValueError),
+    ),
+]
+
+rfnames = [
+    (None, lambda x: x.path.parent.absolute()),
+    ("", lambda x: pathlib.Path(os.getcwd())),
+    ("test", lambda x: (pathlib.Path(os.getcwd()) / "test")),
+    (pathlib.Path(os.getcwd()) / "test", lambda x: pathlib.Path(os.getcwd()) / "test"),
 ]

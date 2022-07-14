@@ -5,6 +5,14 @@ from typing import Any
 import comicapi.genericmetadata
 import comictaggerlib.comicvinetalker
 
+
+def filter_field_list(cv_result, kwargs):
+    if "field_list" in kwargs["params"]:
+        for key in list(cv_result.keys()):
+            if key not in kwargs["params"]["field_list"]:
+                del cv_result[key]
+
+
 cv_issue_result: dict[str, Any] = {
     "error": "OK",
     "limit": 1,
@@ -98,6 +106,15 @@ cv_volume_result: dict[str, Any] = {
         "start_year": "2007",
     },
     "version": "1.0",
+}
+cv_not_found = {
+    "error": "Object Not Found",
+    "limit": 0,
+    "offset": 0,
+    "number_of_page_results": 0,
+    "number_of_total_results": 0,
+    "status_code": 101,
+    "results": [],
 }
 date = comictaggerlib.comicvinetalker.ComicVineTalker().parse_date_str(cv_issue_result["results"]["cover_date"])
 

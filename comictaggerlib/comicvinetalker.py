@@ -399,7 +399,7 @@ class ComicVineTalker:
             "filter": flt,
         }
 
-        cv_response = self.get_cv_content(self.api_base_url + "/issues", params)
+        cv_response = self.get_cv_content(self.api_base_url + "/issues/", params)
 
         current_result_count = cv_response["number_of_page_results"]
         total_result_count = cv_response["number_of_total_results"]
@@ -429,7 +429,7 @@ class ComicVineTalker:
 
         f_record = None
         for record in issues_list_results:
-            if IssueString(issue_number).as_string() is None:
+            if not IssueString(issue_number).as_string():
                 issue_number = "1"
             if (
                 IssueString(record["issue_number"]).as_string().casefold()

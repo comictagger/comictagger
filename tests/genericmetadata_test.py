@@ -6,6 +6,15 @@ import comicapi.genericmetadata
 from testing.comicdata import credits, metadata
 
 
+def test_set_default_page_list(tmp_path):
+    md = comicapi.genericmetadata.GenericMetadata()
+    md.overlay(comicapi.genericmetadata.md_test)
+    md.pages = []
+    md.set_default_page_list(len(comicapi.genericmetadata.md_test.pages))
+
+    assert isinstance(md.pages[0]["Image"], int)
+
+
 @pytest.mark.parametrize("replaced, expected", metadata)
 def test_metadata_overlay(md: comicapi.genericmetadata.GenericMetadata, replaced, expected):
     md.overlay(replaced)

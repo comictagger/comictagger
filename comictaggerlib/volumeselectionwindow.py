@@ -19,7 +19,7 @@ import itertools
 import logging
 from collections import deque
 
-from PyQt5 import QtCore, QtWidgets, uic
+from PyQt5 import QtCore, QtGui, QtWidgets, uic
 from PyQt5.QtCore import pyqtSignal
 
 from comicapi import utils
@@ -452,15 +452,16 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
             self.twList.selectRow(0)
             self.twList.resizeColumnsToContents()
 
-            if not self.cv_search_results:
-                QtCore.QCoreApplication.processEvents()
-                QtWidgets.QMessageBox.information(self, "Search Result", "No matches found!")
-                QtCore.QTimer.singleShot(200, self.close_me)
+    def showEvent(self, event: QtGui.QShowEvent):
+        if not self.cv_search_results:
+            QtCore.QCoreApplication.processEvents()
+            QtWidgets.QMessageBox.information(self, "Search Result", "No matches found!")
+            QtCore.QTimer.singleShot(200, self.close_me)
 
-            if self.immediate_autoselect and self.cv_search_results:
-                # defer the immediate autoselect so this dialog has time to pop up
-                QtCore.QCoreApplication.processEvents()
-                QtCore.QTimer.singleShot(10, self.do_immediate_autoselect)
+        elif self.immediate_autoselect:
+            # defer the immediate autoselect so this dialog has time to pop up
+            QtCore.QCoreApplication.processEvents()
+            QtCore.QTimer.singleShot(10, self.do_immediate_autoselect)
 
     def do_immediate_autoselect(self) -> None:
         self.immediate_autoselect = False

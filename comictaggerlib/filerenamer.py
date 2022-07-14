@@ -90,17 +90,9 @@ class MetadataFormatter(string.Formatter):
                 field_name = field_name.casefold()
                 # this is some markup, find the object and do the formatting
 
-                # handle arg indexing when empty field_names are given.
-                if field_name == "":
-                    if auto_arg_index is False:
-                        raise ValueError("cannot switch from manual field specification to automatic field numbering")
-                    field_name = str(auto_arg_index)
-                    auto_arg_index += 1
-                elif field_name.isdigit():
-                    if auto_arg_index:
-                        raise ValueError("cannot switch from manual field specification to automatic field numbering")
-                    # disable auto arg incrementing, if it gets used later on, then an exception will be raised
-                    auto_arg_index = False
+                # handle arg indexing when digit field_names are given.
+                if field_name.isdigit():
+                    raise ValueError("cannot use a number as a field name")
 
                 # given the field_name, find the object it references
                 #  and the argument it came from
@@ -111,8 +103,8 @@ class MetadataFormatter(string.Formatter):
                 obj = self.convert_field(obj, conversion)  # type: ignore
 
                 # expand the format spec, if needed
-                format_spec, auto_arg_index = self._vformat(
-                    cast(str, format_spec), args, kwargs, used_args, recursion_depth - 1, auto_arg_index=auto_arg_index
+                format_spec, _ = self._vformat(
+                    cast(str, format_spec), args, kwargs, used_args, recursion_depth - 1, auto_arg_index=False
                 )
 
                 # format the object and append to the result
@@ -128,7 +120,7 @@ class MetadataFormatter(string.Formatter):
                     fmt_obj = str(sanitize_filename(fmt_obj, platform=self.platform))
                 result.append(fmt_obj)
 
-        return "".join(result), auto_arg_index
+        return "".join(result), False
 
 
 class FileRenamer:
