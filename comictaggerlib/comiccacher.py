@@ -84,7 +84,8 @@ class ComicCacher:
                 + "image_url TEXT,"
                 + "description TEXT,"
                 + "timestamp DATE DEFAULT (datetime('now','localtime')),"
-                + "source_name TEXT NOT NULL)"
+                + "source_name TEXT NOT NULL,"
+                + "aliases TEXT)"  # Newline separated
             )
 
             cur.execute(
@@ -96,6 +97,7 @@ class ComicCacher:
                 + "start_year INT,"
                 + "timestamp DATE DEFAULT (datetime('now','localtime')), "
                 + "source_name TEXT NOT NULL,"
+                + "aliases TEXT,"  # Newline separated
                 + "PRIMARY KEY (id, source_name))"
             )
 
@@ -105,6 +107,7 @@ class ComicCacher:
                 + "url_list TEXT,"
                 + "timestamp DATE DEFAULT (datetime('now','localtime')), "
                 + "source_name TEXT NOT NULL,"
+                + "aliases TEXT,"  # Newline separated
                 + "PRIMARY KEY (issue_id, source_name))"
             )
 
@@ -121,6 +124,7 @@ class ComicCacher:
                 + "description TEXT,"
                 + "timestamp DATE DEFAULT (datetime('now','localtime')), "
                 + "source_name TEXT NOT NULL,"
+                + "aliases TEXT,"  # Newline separated
                 + "PRIMARY KEY (id, source_name))"
             )
 
@@ -153,8 +157,8 @@ class ComicCacher:
 
                 cur.execute(
                     "INSERT INTO VolumeSearchCache "
-                    + "(source_name, search_term, id, name, start_year, publisher, count_of_issues, image_url, description) "
-                    + "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    + "(source_name, search_term, id, name, start_year, publisher, count_of_issues, image_url, description, aliases) "
+                    + "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     (
                         source_name,
                         search_term.casefold(),
@@ -165,6 +169,7 @@ class ComicCacher:
                         record["count_of_issues"],
                         url,
                         record["description"],
+                        record["aliases"],
                     ),
                 )
 
@@ -197,6 +202,7 @@ class ComicCacher:
                         "description": record[7],
                         "publisher": {"name": record[4]},
                         "image": {"super_url": record[6]},
+                        "aliases": record[10],
                     }
                 )
 
@@ -268,6 +274,7 @@ class ComicCacher:
                 "count_of_issues": cv_volume_record["count_of_issues"],
                 "start_year": cv_volume_record["start_year"],
                 "timestamp": timestamp,
+                "aliases": cv_volume_record["aliases"],
             }
             self.upsert(cur, "volumes", data)
 
@@ -295,6 +302,7 @@ class ComicCacher:
                     "thumb_url": issue["image"]["thumb_url"],
                     "description": issue["description"],
                     "timestamp": timestamp,
+                    "aliases": issue["aliases"],
                 }
                 self.upsert(cur, "issues", data)
 
@@ -313,7 +321,8 @@ class ComicCacher:
 
             # fetch
             cur.execute(
-                "SELECT source_name,id,name,publisher,count_of_issues,start_year FROM Volumes WHERE id=? AND source_name=?",
+                "SELECT source_name,id,name,publisher,count_of_issues,start_year,aliases FROM Volumes"
+                " WHERE id=? AND source_name=?",
                 [volume_id, source_name],
             )
 
@@ -330,6 +339,7 @@ class ComicCacher:
                     "count_of_issues": row[4],
                     "start_year": row[5],
                     "publisher": {"name": row[3]},
+                    "aliases": row[6],
                 }
             )
 
@@ -352,7 +362,7 @@ class ComicCacher:
 
             cur.execute(
                 (
-                    "SELECT source_name,id,name,issue_number,site_detail_url,cover_date,super_url,thumb_url,description"
+                    "SELECT source_name,id,name,issue_number,site_detail_url,cover_date,super_url,thumb_url,description,aliases"
                     " FROM Issues WHERE volume_id=? AND source_name=?"
                 ),
                 [volume_id, source_name],
@@ -370,6 +380,7 @@ class ComicCacher:
                         "cover_date": row[5],
                         "image": {"super_url": row[6], "thumb_url": row[7]},
                         "description": row[8],
+                        "aliases": row[9],
                     }
                 )
 

@@ -298,7 +298,17 @@ class ComicVineTalker:
         if not literal:
             # Remove any search results that don't contain all the search terms (iterate backwards for easy removal)
             for record in reversed(search_results):
-                if not utils.titles_match(search_series_name, record["name"]):
+                matched = False
+                aliases = []
+                if record["aliases"]:
+                    aliases = record["aliases"].split("\n")
+                aliases.append(record["name"])
+
+                for name in aliases:
+                    if utils.titles_match(search_series_name, name):
+                        matched = True
+                        break
+                if not matched:
                     search_results.remove(record)
 
         # Cache these search results, even if it's literal we cache the results
@@ -321,7 +331,7 @@ class ComicVineTalker:
         params = {
             "api_key": self.api_key,
             "format": "json",
-            "field_list": "name,id,start_year,publisher,count_of_issues",
+            "field_list": "name,id,start_year,publisher,count_of_issues,aliases",
         }
         cv_response = self.get_cv_content(volume_url, params)
 
@@ -344,7 +354,7 @@ class ComicVineTalker:
             "api_key": self.api_key,
             "filter": "volume:" + str(series_id),
             "format": "json",
-            "field_list": "id,volume,issue_number,name,image,cover_date,site_detail_url,description",
+            "field_list": "id,volume,issue_number,name,image,cover_date,site_detail_url,description,aliases",
             "offset": 0,
         }
         cv_response = self.get_cv_content(self.api_base_url + "/issues/", params)
@@ -388,7 +398,7 @@ class ComicVineTalker:
         params: dict[str, str | int] = {
             "api_key": self.api_key,
             "format": "json",
-            "field_list": "id,volume,issue_number,name,image,cover_date,site_detail_url,description",
+            "field_list": "id,volume,issue_number,name,image,cover_date,site_detail_url,description,aliases",
             "filter": flt,
         }
 

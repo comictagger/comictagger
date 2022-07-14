@@ -39,7 +39,7 @@ def test_fetch_issues_by_volume_issue_num_and_year(comicvine_api):
     cv_expected = testing.comicvine.cv_issue_result["results"].copy()
     testing.comicvine.filter_field_list(
         cv_expected,
-        {"params": {"field_list": "id,volume,issue_number,name,image,cover_date,site_detail_url,description"}},
+        {"params": {"field_list": "id,volume,issue_number,name,image,cover_date,site_detail_url,description,aliases"}},
     )
     assert cv[0] == cv_expected
 
