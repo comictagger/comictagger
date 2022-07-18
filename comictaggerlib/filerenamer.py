@@ -170,16 +170,17 @@ class FileRenamer:
             md_dict["month_name"] = ""
             md_dict["month_abbr"] = ""
 
-        for Component in pathlib.PureWindowsPath(template).parts:
+        new_basename = ""
+        for component in pathlib.PureWindowsPath(template).parts:
             if (
                 self.platform.casefold() in ["universal", "windows"] or sys.platform.casefold() in ["windows"]
             ) and self.smart_cleanup:
                 # colons get special treatment
-                Component = Component.replace(": ", " - ")
-                Component = Component.replace(":", "-")
+                component = component.replace(": ", " - ")
+                component = component.replace(":", "-")
 
             new_basename = str(
-                sanitize_filename(fmt.vformat(Component, args=[], kwargs=Default(md_dict)), platform=self.platform)
+                sanitize_filename(fmt.vformat(component, args=[], kwargs=Default(md_dict)), platform=self.platform)
             ).strip()
             new_name = os.path.join(new_name, new_basename)
 

@@ -57,11 +57,11 @@ class Score(TypedDict):
 
 
 class IssueIdentifierNetworkError(Exception):
-    pass
+    ...
 
 
 class IssueIdentifierCancelled(Exception):
-    pass
+    ...
 
 
 class IssueIdentifier:
@@ -175,35 +175,29 @@ class IssueIdentifier:
     def get_search_keys(self) -> SearchKeys:
 
         ca = self.comic_archive
-        search_keys: SearchKeys = {
-            "series": None,
-            "issue_number": None,
-            "month": None,
-            "year": None,
-            "issue_count": None,
-        }
 
         if ca is None:
             return None
-
+        search_keys: SearchKeys
         if self.only_use_additional_meta_data:
-            search_keys["series"] = self.additional_metadata.series
-            search_keys["issue_number"] = self.additional_metadata.issue
-            search_keys["year"] = self.additional_metadata.year
-            search_keys["month"] = self.additional_metadata.month
-            search_keys["issue_count"] = self.additional_metadata.issue_count
+            search_keys = SearchKeys(
+                series=self.additional_metadata.series,
+                issue_number=self.additional_metadata.issue,
+                year=self.additional_metadata.year,
+                month=self.additional_metadata.month,
+                issue_count=self.additional_metadata.issue_count,
+            )
             return search_keys
 
         # see if the archive has any useful meta data for searching with
-        if ca.has_cix():
-            try:
+        try:
+            if ca.has_cix():
                 internal_metadata = ca.read_cix()
-            except Exception as e:
-                logger.error("Failed to load metadata for %s: %s", ca.path, e)
-        elif ca.has_cbi():
-            internal_metadata = ca.read_cbi()
-        else:
-            internal_metadata = ca.read_cbi()
+            else:
+                internal_metadata = ca.read_cbi()
+        except Exception as e:
+            internal_metadata = GenericMetadata()
+            logger.error("Failed to load metadata for %s: %s", ca.path, e)
 
         # try to get some metadata from filename
         md_from_filename = ca.metadata_from_filename(
@@ -213,45 +207,22 @@ class IssueIdentifier:
             self.settings.remove_publisher,
         )
 
+        working_md = md_from_filename.copy()
+
+        working_md.overlay(internal_metadata)
+        working_md.overlay(self.additional_metadata)
+
         # preference order:
         # 1. Additional metadata
         # 1. Internal metadata
         # 1. Filename metadata
-
-        if self.additional_metadata.series is not None:
-            search_keys["series"] = self.additional_metadata.series
-        elif internal_metadata.series is not None:
-            search_keys["series"] = internal_metadata.series
-        else:
-            search_keys["series"] = md_from_filename.series
-
-        if self.additional_metadata.issue is not None:
-            search_keys["issue_number"] = self.additional_metadata.issue
-        elif internal_metadata.issue is not None:
-            search_keys["issue_number"] = internal_metadata.issue
-        else:
-            search_keys["issue_number"] = md_from_filename.issue
-
-        if self.additional_metadata.year is not None:
-            search_keys["year"] = self.additional_metadata.year
-        elif internal_metadata.year is not None:
-            search_keys["year"] = internal_metadata.year
-        else:
-            search_keys["year"] = md_from_filename.year
-
-        if self.additional_metadata.month is not None:
-            search_keys["month"] = self.additional_metadata.month
-        elif internal_metadata.month is not None:
-            search_keys["month"] = internal_metadata.month
-        else:
-            search_keys["month"] = md_from_filename.month
-
-        if self.additional_metadata.issue_count is not None:
-            search_keys["issue_count"] = self.additional_metadata.issue_count
-        elif internal_metadata.issue_count is not None:
-            search_keys["issue_count"] = internal_metadata.issue_count
-        else:
-            search_keys["issue_count"] = md_from_filename.issue_count
+        search_keys = SearchKeys(
+            series=working_md.series,
+            issue_number=working_md.issue,
+            year=working_md.year,
+            month=working_md.month,
+            issue_count=working_md.issue_count,
+        )
 
         return search_keys
 
@@ -293,9 +264,7 @@ class IssueIdentifier:
         if self.cover_url_callback is not None:
             self.cover_url_callback(url_image_data)
 
-        remote_cover_list = []
-
-        remote_cover_list.append(Score({"url": primary_img_url, "hash": self.calculate_hash(url_image_data)}))
+        remote_cover_list = [Score(url=primary_img_url, hash=self.calculate_hash(url_image_data))]
 
         if self.cancel:
             raise IssueIdentifierCancelled
@@ -316,7 +285,7 @@ class IssueIdentifier:
                 if self.cover_url_callback is not None:
                     self.cover_url_callback(alt_url_image_data)
 
-                remote_cover_list.append(Score({"url": alt_url, "hash": self.calculate_hash(alt_url_image_data)}))
+                remote_cover_list.append(Score(url=alt_url, hash=self.calculate_hash(alt_url_image_data)))
 
                 if self.cancel:
                     raise IssueIdentifierCancelled
@@ -331,9 +300,7 @@ class IssueIdentifier:
         for local_cover_hash in local_cover_hash_list:
             for remote_cover_item in remote_cover_list:
                 score = ImageHasher.hamming_distance(local_cover_hash, remote_cover_item["hash"])
-                score_list.append(
-                    Score({"score": score, "url": remote_cover_item["url"], "hash": remote_cover_item["hash"]})
-                )
+                score_list.append(Score(score=score, url=remote_cover_item["url"], hash=remote_cover_item["hash"]))
                 if use_log:
                     self.log_msg(score, False)
 

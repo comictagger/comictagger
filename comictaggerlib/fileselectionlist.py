@@ -246,11 +246,11 @@ class FileSelectionList(QtWidgets.QWidget):
             if platform.system() == "Windows":
                 rar_help = windowsRarHelp
 
-            elif platform.system() == "Linux":
-                rar_help = linuxRarHelp
-
             elif platform.system() == "Darwin":
                 rar_help = macRarHelp
+
+            else:
+                rar_help = linuxRarHelp
 
             OptionalMessageDialog.msg_no_checkbox(
                 self,
@@ -376,7 +376,7 @@ class FileSelectionList(QtWidgets.QWidget):
             try:
                 fi.ca.read_cix()
             except Exception:
-                ...
+                pass
             fi.ca.has_cbi()
 
     def get_selected_archive_list(self) -> list[ComicArchive]:

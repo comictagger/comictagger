@@ -394,7 +394,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
 
                     deques: list[deque[CVVolumeResults]] = [deque(), deque(), deque()]
 
-                    def categorize(result):
+                    def categorize(result: CVVolumeResults) -> int:
                         # We don't remove anything on this one so that we only get exact matches
                         if utils.sanitize_title(result["name"], True).casefold() == sanitized_no_articles:
                             return 0
@@ -454,7 +454,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
             self.twList.selectRow(0)
             self.twList.resizeColumnsToContents()
 
-    def showEvent(self, event: QtGui.QShowEvent):
+    def showEvent(self, event: QtGui.QShowEvent) -> None:
         if not self.cv_search_results:
             QtCore.QCoreApplication.processEvents()
             QtWidgets.QMessageBox.information(self, "Search Result", "No matches found!")

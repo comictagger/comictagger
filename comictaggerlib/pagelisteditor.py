@@ -119,10 +119,10 @@ class PageListEditor(QtWidgets.QWidget):
         if show_shortcut:
             text = text + " (" + shortcut + ")"
         self.cbPageType.addItem(text, user_data)
-        actionItem = QtWidgets.QAction(shortcut, self)
-        actionItem.triggered.connect(lambda: self.select_page_type_item(self.cbPageType.findData(user_data)))
-        actionItem.setShortcut(shortcut)
-        self.addAction(actionItem)
+        action_item = QtWidgets.QAction(shortcut, self)
+        action_item.triggered.connect(lambda: self.select_page_type_item(self.cbPageType.findData(user_data)))
+        action_item.setShortcut(shortcut)
+        self.addAction(action_item)
 
     def select_page_type_item(self, idx: int) -> None:
         if self.cbPageType.isEnabled():
@@ -132,19 +132,19 @@ class PageListEditor(QtWidgets.QWidget):
     def get_new_indexes(self, movement: int) -> list[tuple[int, int]]:
         selection = self.listWidget.selectionModel().selectedRows()
         selection.sort(reverse=movement > 0)
-        newindexes: list[int] = []
-        oldindexes: list[int] = []
+        new_indexes: list[int] = []
+        old_indexes: list[int] = []
         for x in selection:
             current = x.row()
-            oldindexes.append(current)
+            old_indexes.append(current)
             if 0 <= current + movement <= self.listWidget.count() - 1:
-                if len(newindexes) < 1 or current + movement != newindexes[-1]:
+                if len(new_indexes) < 1 or current + movement != new_indexes[-1]:
                     current += movement
 
-            newindexes.append(current)
-        oldindexes.sort()
-        newindexes.sort()
-        return list(zip(newindexes, oldindexes))
+            new_indexes.append(current)
+        old_indexes.sort()
+        new_indexes.sort()
+        return list(zip(new_indexes, old_indexes))
 
     def set_selection(self, indexes: list[tuple[int, int]]) -> list[tuple[int, int]]:
         selection_ranges: list[tuple[int, int]] = []

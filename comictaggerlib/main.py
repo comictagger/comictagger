@@ -92,7 +92,7 @@ try:
 except ImportError as e:
 
     def show_exception_box(log_msg: str) -> None:
-        pass
+        ...
 
     logger.error(str(e))
     qt_available = False
@@ -115,7 +115,7 @@ def update_publishers() -> None:
 
 def ctmain() -> None:
     opts = parse_cmd_line()
-    SETTINGS = ComicTaggerSettings(opts.config_path)
+    settings = ComicTaggerSettings(opts.config_path)
 
     os.makedirs(ComicTaggerSettings.get_settings_folder() / "logs", exist_ok=True)
     stream_handler = logging.StreamHandler()
@@ -138,15 +138,15 @@ def ctmain() -> None:
     # manage the CV API key
     # None comparison is used so that the empty string can unset the value
     if opts.cv_api_key is not None or opts.cv_url is not None:
-        SETTINGS.cv_api_key = opts.cv_api_key if opts.cv_api_key is not None else SETTINGS.cv_api_key
-        SETTINGS.cv_url = opts.cv_url if opts.cv_url is not None else SETTINGS.cv_url
-        SETTINGS.save()
+        settings.cv_api_key = opts.cv_api_key if opts.cv_api_key is not None else settings.cv_api_key
+        settings.cv_url = opts.cv_url if opts.cv_url is not None else settings.cv_url
+        settings.save()
     if opts.only_set_cv_key:
         print("Key set")  # noqa: T201
         return
 
-    ComicVineTalker.api_key = SETTINGS.cv_api_key
-    ComicVineTalker.api_base_url = SETTINGS.cv_url
+    ComicVineTalker.api_key = settings.cv_api_key
+    ComicVineTalker.api_base_url = settings.cv_url
 
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
@@ -166,11 +166,11 @@ def ctmain() -> None:
 
     if not qt_available and not opts.no_gui:
         opts.no_gui = True
-        logger.warn("PyQt5 is not available. ComicTagger is limited to command-line mode.")
+        logger.warning("PyQt5 is not available. ComicTagger is limited to command-line mode.")
 
     if opts.no_gui:
         try:
-            cli.cli_mode(opts, SETTINGS)
+            cli.cli_mode(opts, settings)
         except Exception:
             logger.exception("CLI mode failed")
     else:
@@ -206,7 +206,7 @@ def ctmain() -> None:
             QtWidgets.QApplication.processEvents()
 
         try:
-            tagger_window = TaggerWindow(opts.files, SETTINGS, opts=opts)
+            tagger_window = TaggerWindow(opts.files, settings, opts=opts)
             tagger_window.setWindowIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("app.png")))
             tagger_window.show()
 

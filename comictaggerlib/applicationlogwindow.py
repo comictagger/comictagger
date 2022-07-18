@@ -12,18 +12,18 @@ logger = logging.getLogger(__name__)
 class QTextEditLogger(QtCore.QObject, logging.Handler):
     qlog = QtCore.pyqtSignal(str)
 
-    def __init__(self, formatter: logging.Formatter, level: int):
+    def __init__(self, formatter: logging.Formatter, level: int) -> None:
         super().__init__()
         self.setFormatter(formatter)
         self.setLevel(level)
 
-    def emit(self, record):
+    def emit(self, record: logging.LogRecord) -> None:
         msg = self.format(record)
         self.qlog.emit(msg.strip())
 
 
 class ApplicationLogWindow(QtWidgets.QDialog):
-    def __init__(self, log_handler: QTextEditLogger, parent=None):
+    def __init__(self, log_handler: QTextEditLogger, parent: QtCore.QObject = None) -> None:
         super().__init__(parent)
         uic.loadUi(ComicTaggerSettings.get_ui_file("logwindow.ui"), self)
 
@@ -43,7 +43,7 @@ class ApplicationLogWindow(QtWidgets.QDialog):
         self._button.clicked.connect(self.test)
         self.textEdit.setTabStopDistance(self.textEdit.tabStopDistance() * 2)
 
-    def test(self):
+    def test(self) -> None:
         logger.debug("damn, a bug")
         logger.info("something to remember")
         logger.warning("that's not right")

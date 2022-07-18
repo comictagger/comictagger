@@ -868,7 +868,7 @@ class ComicArchive:
 
     def get_page_name(self, index: int) -> str:
         if index is None:
-            return None
+            return ""
 
         page_list = self.get_page_name_list()
 
@@ -1153,8 +1153,8 @@ class ComicArchive:
             for n in self.archiver.get_filename_list():
                 if os.path.dirname(n) == "" and os.path.splitext(n)[1].casefold() == ".xml":
                     # read in XML file, and validate it
+                    data = ""
                     try:
-                        data = ""
                         d = self.archiver.read_file(n)
                         if d:
                             data = d.decode("utf-8")

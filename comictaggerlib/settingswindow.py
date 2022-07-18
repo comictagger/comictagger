@@ -106,7 +106,7 @@ Accepts the following variables:
 {cover artist}     (string)
 {editor}           (string)
 {tags}             (list of str)
-{pages}            (list of dict({'Image': string(int), 'Type': string, 'Bookmark': string, 'DoublePage': string}))
+{pages}            (list of dict({'Image': string(int), 'Type': string, 'Bookmark': string, 'DoublePage': boolean}))
 
 CoMet-only items:
 {price}            (float)

@@ -137,7 +137,7 @@ class GenericMetadata:
     def copy(self) -> GenericMetadata:
         return copy.deepcopy(self)
 
-    def replace(self, /, **kwargs) -> GenericMetadata:
+    def replace(self, /, **kwargs: Any) -> GenericMetadata:
         tmp = self.copy()
         tmp.__dict__.update(kwargs)
         return tmp
@@ -253,7 +253,7 @@ class GenericMetadata:
 
     def add_credit(self, person: str, role: str, primary: bool = False) -> None:
 
-        credit: CreditMetadata = {"person": person, "role": role, "primary": primary}
+        credit = CreditMetadata(person=person, role=role, primary=primary)
 
         # look to see if it's not already there...
         found = False
@@ -369,91 +369,91 @@ class GenericMetadata:
             self.imprint = imprint
 
 
-md_test = GenericMetadata()
-
-md_test.is_empty = False
-md_test.tag_origin = None
-md_test.series = "Cory Doctorow's Futuristic Tales of the Here and Now"
-md_test.issue = "1"
-md_test.title = "Anda's Game"
-md_test.publisher = "IDW Publishing"
-md_test.month = 10
-md_test.year = 2007
-md_test.day = 1
-md_test.issue_count = 6
-md_test.volume = 1
-md_test.genre = "Sci-Fi"
-md_test.language = "en"
-md_test.comments = (
-    "For 12-year-old Anda, getting paid real money to kill the characters of players who were cheating"
-    " in her favorite online computer game was a win-win situation. Until she found out who was paying her,"
-    " and what those characters meant to the livelihood of children around the world."
+md_test: GenericMetadata = GenericMetadata(
+    is_empty=False,
+    tag_origin=None,
+    series="Cory Doctorow's Futuristic Tales of the Here and Now",
+    issue="1",
+    title="Anda's Game",
+    publisher="IDW Publishing",
+    month=10,
+    year=2007,
+    day=1,
+    issue_count=6,
+    volume=1,
+    genre="Sci-Fi",
+    language="en",
+    comments=(
+        "For 12-year-old Anda, getting paid real money to kill the characters of players who were cheating"
+        " in her favorite online computer game was a win-win situation. Until she found out who was paying her,"
+        " and what those characters meant to the livelihood of children around the world."
+    ),
+    volume_count=None,
+    critical_rating=3.0,
+    country=None,
+    alternate_series="Tales",
+    alternate_number="2",
+    alternate_count=7,
+    imprint="craphound.com",
+    notes="Tagged with ComicTagger 1.3.2a5 using info from Comic Vine on 2022-04-16 15:52:26. [Issue ID 140529]",
+    web_link="https://comicvine.gamespot.com/cory-doctorows-futuristic-tales-of-the-here-and-no/4000-140529/",
+    format="Series",
+    manga="No",
+    black_and_white=None,
+    page_count=24,
+    maturity_rating="Everyone 10+",
+    story_arc="Here and Now",
+    series_group="Futuristic Tales",
+    scan_info="(CC BY-NC-SA 3.0)",
+    characters="Anda",
+    teams="Fahrenheit",
+    locations="lonely  cottage ",
+    credits=[
+        CreditMetadata(primary=False, person="Dara Naraghi", role="Writer"),
+        CreditMetadata(primary=False, person="Esteve Polls", role="Penciller"),
+        CreditMetadata(primary=False, person="Esteve Polls", role="Inker"),
+        CreditMetadata(primary=False, person="Neil Uyetake", role="Letterer"),
+        CreditMetadata(primary=False, person="Sam Kieth", role="Cover"),
+        CreditMetadata(primary=False, person="Ted Adams", role="Editor"),
+    ],
+    tags=set(),
+    pages=[
+        ImageMetadata(Image=0, ImageHeight="1280", ImageSize="195977", ImageWidth="800", Type=PageType.FrontCover),
+        ImageMetadata(Image=1, ImageHeight="2039", ImageSize="611993", ImageWidth="1327"),
+        ImageMetadata(Image=2, ImageHeight="2039", ImageSize="783726", ImageWidth="1327"),
+        ImageMetadata(Image=3, ImageHeight="2039", ImageSize="679584", ImageWidth="1327"),
+        ImageMetadata(Image=4, ImageHeight="2039", ImageSize="788179", ImageWidth="1327"),
+        ImageMetadata(Image=5, ImageHeight="2039", ImageSize="864433", ImageWidth="1327"),
+        ImageMetadata(Image=6, ImageHeight="2039", ImageSize="765606", ImageWidth="1327"),
+        ImageMetadata(Image=7, ImageHeight="2039", ImageSize="876427", ImageWidth="1327"),
+        ImageMetadata(Image=8, ImageHeight="2039", ImageSize="852622", ImageWidth="1327"),
+        ImageMetadata(Image=9, ImageHeight="2039", ImageSize="800205", ImageWidth="1327"),
+        ImageMetadata(Image=10, ImageHeight="2039", ImageSize="746243", ImageWidth="1326"),
+        ImageMetadata(Image=11, ImageHeight="2039", ImageSize="718062", ImageWidth="1327"),
+        ImageMetadata(Image=12, ImageHeight="2039", ImageSize="532179", ImageWidth="1326"),
+        ImageMetadata(Image=13, ImageHeight="2039", ImageSize="686708", ImageWidth="1327"),
+        ImageMetadata(Image=14, ImageHeight="2039", ImageSize="641907", ImageWidth="1327"),
+        ImageMetadata(Image=15, ImageHeight="2039", ImageSize="805388", ImageWidth="1327"),
+        ImageMetadata(Image=16, ImageHeight="2039", ImageSize="668927", ImageWidth="1326"),
+        ImageMetadata(Image=17, ImageHeight="2039", ImageSize="710605", ImageWidth="1327"),
+        ImageMetadata(Image=18, ImageHeight="2039", ImageSize="761398", ImageWidth="1326"),
+        ImageMetadata(Image=19, ImageHeight="2039", ImageSize="743807", ImageWidth="1327"),
+        ImageMetadata(Image=20, ImageHeight="2039", ImageSize="552911", ImageWidth="1326"),
+        ImageMetadata(Image=21, ImageHeight="2039", ImageSize="556827", ImageWidth="1327"),
+        ImageMetadata(Image=22, ImageHeight="2039", ImageSize="675078", ImageWidth="1326"),
+        ImageMetadata(
+            Bookmark="Interview",
+            Image=23,
+            ImageHeight="2032",
+            ImageSize="800965",
+            ImageWidth="1338",
+            Type=PageType.Letters,
+        ),
+    ],
+    price=None,
+    is_version_of=None,
+    rights=None,
+    identifier=None,
+    last_mark=None,
+    cover_image=None,
 )
-md_test.volume_count = None
-md_test.critical_rating = 3.0
-md_test.country = None
-md_test.alternate_series = "Tales"
-md_test.alternate_number = "2"
-md_test.alternate_count = 7
-md_test.imprint = "craphound.com"
-md_test.notes = "Tagged with ComicTagger 1.3.2a5 using info from Comic Vine on 2022-04-16 15:52:26. [Issue ID 140529]"
-md_test.web_link = "https://comicvine.gamespot.com/cory-doctorows-futuristic-tales-of-the-here-and-no/4000-140529/"
-md_test.format = "Series"
-md_test.manga = "No"
-md_test.black_and_white = None
-md_test.page_count = 24
-md_test.maturity_rating = "Everyone 10+"
-md_test.story_arc = "Here and Now"
-md_test.series_group = "Futuristic Tales"
-md_test.scan_info = "(CC BY-NC-SA 3.0)"
-md_test.characters = "Anda"
-md_test.teams = "Fahrenheit"
-md_test.locations = "lonely  cottage "
-md_test.credits = [
-    CreditMetadata({"primary": False, "person": "Dara Naraghi", "role": "Writer"}),
-    CreditMetadata({"primary": False, "person": "Esteve Polls", "role": "Penciller"}),
-    CreditMetadata({"primary": False, "person": "Esteve Polls", "role": "Inker"}),
-    CreditMetadata({"primary": False, "person": "Neil Uyetake", "role": "Letterer"}),
-    CreditMetadata({"primary": False, "person": "Sam Kieth", "role": "Cover"}),
-    CreditMetadata({"primary": False, "person": "Ted Adams", "role": "Editor"}),
-]
-md_test.tags = set()
-md_test.pages = [
-    {"Image": 0, "ImageHeight": "1280", "ImageSize": "195977", "ImageWidth": "800", "Type": PageType.FrontCover},
-    {"Image": 1, "ImageHeight": "2039", "ImageSize": "611993", "ImageWidth": "1327"},
-    {"Image": 2, "ImageHeight": "2039", "ImageSize": "783726", "ImageWidth": "1327"},
-    {"Image": 3, "ImageHeight": "2039", "ImageSize": "679584", "ImageWidth": "1327"},
-    {"Image": 4, "ImageHeight": "2039", "ImageSize": "788179", "ImageWidth": "1327"},
-    {"Image": 5, "ImageHeight": "2039", "ImageSize": "864433", "ImageWidth": "1327"},
-    {"Image": 6, "ImageHeight": "2039", "ImageSize": "765606", "ImageWidth": "1327"},
-    {"Image": 7, "ImageHeight": "2039", "ImageSize": "876427", "ImageWidth": "1327"},
-    {"Image": 8, "ImageHeight": "2039", "ImageSize": "852622", "ImageWidth": "1327"},
-    {"Image": 9, "ImageHeight": "2039", "ImageSize": "800205", "ImageWidth": "1327"},
-    {"Image": 10, "ImageHeight": "2039", "ImageSize": "746243", "ImageWidth": "1326"},
-    {"Image": 11, "ImageHeight": "2039", "ImageSize": "718062", "ImageWidth": "1327"},
-    {"Image": 12, "ImageHeight": "2039", "ImageSize": "532179", "ImageWidth": "1326"},
-    {"Image": 13, "ImageHeight": "2039", "ImageSize": "686708", "ImageWidth": "1327"},
-    {"Image": 14, "ImageHeight": "2039", "ImageSize": "641907", "ImageWidth": "1327"},
-    {"Image": 15, "ImageHeight": "2039", "ImageSize": "805388", "ImageWidth": "1327"},
-    {"Image": 16, "ImageHeight": "2039", "ImageSize": "668927", "ImageWidth": "1326"},
-    {"Image": 17, "ImageHeight": "2039", "ImageSize": "710605", "ImageWidth": "1327"},
-    {"Image": 18, "ImageHeight": "2039", "ImageSize": "761398", "ImageWidth": "1326"},
-    {"Image": 19, "ImageHeight": "2039", "ImageSize": "743807", "ImageWidth": "1327"},
-    {"Image": 20, "ImageHeight": "2039", "ImageSize": "552911", "ImageWidth": "1326"},
-    {"Image": 21, "ImageHeight": "2039", "ImageSize": "556827", "ImageWidth": "1327"},
-    {"Image": 22, "ImageHeight": "2039", "ImageSize": "675078", "ImageWidth": "1326"},
-    {
-        "Bookmark": "Interview",
-        "Image": 23,
-        "ImageHeight": "2032",
-        "ImageSize": "800965",
-        "ImageWidth": "1338",
-        "Type": PageType.Letters,
-    },
-]
-md_test.price = None
-md_test.is_version_of = None
-md_test.rights = None
-md_test.identifier = None
-md_test.last_mark = None
-md_test.cover_image = None

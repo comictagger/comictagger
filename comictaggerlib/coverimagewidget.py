@@ -90,6 +90,7 @@ class CoverImageWidget(QtWidgets.QWidget):
     def __init__(self, parent: QtWidgets.QWidget, mode: int, expand_on_click: bool = True) -> None:
         super().__init__(parent)
 
+        self.cover_fetcher = ImageFetcher()
         uic.loadUi(ComicTaggerSettings.get_ui_file("coverimagewidget.ui"), self)
 
         reduce_widget_font_size(self.label)
@@ -193,7 +194,7 @@ class CoverImageWidget(QtWidgets.QWidget):
 
             self.update_content()
 
-    def primary_url_fetch_complete(self, primary_url: str, thumb_url: str | None) -> None:
+    def primary_url_fetch_complete(self, primary_url: str, thumb_url: str | None = None) -> None:
         self.url_list.append(str(primary_url))
         self.imageIndex = 0
         self.imageCount = len(self.url_list)

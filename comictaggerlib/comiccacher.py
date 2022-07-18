@@ -22,7 +22,7 @@ import sqlite3 as lite
 from typing import Any
 
 from comictaggerlib import ctversion
-from comictaggerlib.resulttypes import CVIssuesResults, CVVolumeResults, SelectDetails
+from comictaggerlib.resulttypes import CVImage, CVIssuesResults, CVPublisher, CVVolumeResults, SelectDetails
 from comictaggerlib.settings import ComicTaggerSettings
 
 logger = logging.getLogger(__name__)
@@ -194,16 +194,14 @@ class ComicCacher:
             # now process the results
             for record in rows:
                 result = CVVolumeResults(
-                    {
-                        "id": record[1],
-                        "name": record[2],
-                        "start_year": record[3],
-                        "count_of_issues": record[5],
-                        "description": record[7],
-                        "publisher": {"name": record[4]},
-                        "image": {"super_url": record[6]},
-                        "aliases": record[10],
-                    }
+                    id=record[1],
+                    name=record[2],
+                    start_year=record[3],
+                    count_of_issues=record[5],
+                    description=record[7],
+                    publisher=CVPublisher(name=record[4]),
+                    image=CVImage(super_url=record[6]),
+                    aliases=record[10],
                 )
 
                 results.append(result)
@@ -248,7 +246,7 @@ class ComicCacher:
             url_list_str = row[0]
             if not url_list_str:
                 return []
-            url_list = url_list_str.split(",")
+            url_list = str(url_list_str).split(",")
             return url_list
 
     def add_volume_info(self, source_name: str, cv_volume_record: CVVolumeResults) -> None:
@@ -333,14 +331,12 @@ class ComicCacher:
 
             # since ID is primary key, there is only one row
             result = CVVolumeResults(
-                {
-                    "id": row[1],
-                    "name": row[2],
-                    "count_of_issues": row[4],
-                    "start_year": row[5],
-                    "publisher": {"name": row[3]},
-                    "aliases": row[6],
-                }
+                id=row[1],
+                name=row[2],
+                count_of_issues=row[4],
+                start_year=row[5],
+                publisher=CVPublisher(name=row[3]),
+                aliases=row[6],
             )
 
         return result
@@ -372,16 +368,14 @@ class ComicCacher:
             # now process the results
             for row in rows:
                 record = CVIssuesResults(
-                    {
-                        "id": row[1],
-                        "name": row[2],
-                        "issue_number": row[3],
-                        "site_detail_url": row[4],
-                        "cover_date": row[5],
-                        "image": {"super_url": row[6], "thumb_url": row[7]},
-                        "description": row[8],
-                        "aliases": row[9],
-                    }
+                    id=row[1],
+                    name=row[2],
+                    issue_number=row[3],
+                    site_detail_url=row[4],
+                    cover_date=row[5],
+                    image=CVImage(super_url=row[6], thumb_url=row[7]),
+                    description=row[8],
+                    aliases=row[9],
                 )
 
                 results.append(record)
@@ -430,12 +424,10 @@ class ComicCacher:
             row = cur.fetchone()
 
             details = SelectDetails(
-                {
-                    "image_url": None,
-                    "thumb_image_url": None,
-                    "cover_date": None,
-                    "site_detail_url": None,
-                }
+                image_url=None,
+                thumb_image_url=None,
+                cover_date=None,
+                site_detail_url=None,
             )
             if row is not None and row[0] is not None:
                 details["image_url"] = row[0]

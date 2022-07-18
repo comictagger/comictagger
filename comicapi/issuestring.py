@@ -113,6 +113,4 @@ class IssueString:
         # return the float, with no suffix
         if len(self.suffix) == 1 and self.suffix.isnumeric():
             return (self.num or 0) + unicodedata.numeric(self.suffix)
-
-            return 0.5
         return self.num

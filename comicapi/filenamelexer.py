@@ -1,5 +1,5 @@
 # Extracted and mutilated from https://github.com/lordwelch/wsfmt
-# Which was extracted and mutliated from https://github.com/golang/go/tree/master/src/text/template/parse
+# Which was extracted and mutilated from https://github.com/golang/go/tree/master/src/text/template/parse
 from __future__ import annotations
 
 import calendar
@@ -138,7 +138,7 @@ class Lexer:
     # AcceptRun consumes a run of runes from the valid set.
     def accept_run(self, valid: str) -> None:
         while self.get() in valid:
-            pass
+            continue
 
         self.backup()
 

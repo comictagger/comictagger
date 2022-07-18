@@ -137,9 +137,9 @@ def sanitize_title(text: str, basic: bool = False) -> str:
         # replace any "dash punctuation" with a space
         # makes sure that batman-superman and self-proclaimed stay separate words
         text = "".join(
-            c if not unicodedata.category(c) in ("Pd") else " "
+            c if not unicodedata.category(c) in ("Pd",) else " "
             for c in text
-            if unicodedata.category(c)[0] in "LZN" or unicodedata.category(c) in ("Pd")
+            if unicodedata.category(c)[0] in "LZN" or unicodedata.category(c) in ("Pd",)
         )
         # remove extra space and articles and all lower case
         text = remove_articles(text).strip()
@@ -147,7 +147,7 @@ def sanitize_title(text: str, basic: bool = False) -> str:
     return text
 
 
-def titles_match(search_title: str, record_title: str, threshold: int = 90):
+def titles_match(search_title: str, record_title: str, threshold: int = 90) -> int:
     sanitized_search = sanitize_title(search_title)
     sanitized_record = sanitize_title(record_title)
     ratio = thefuzz.fuzz.ratio(sanitized_search, sanitized_record)
@@ -231,7 +231,7 @@ class ImprintDict(dict):
     if the key does not exist the key is returned as the publisher unchanged
     """
 
-    def __init__(self, publisher: str, mapping=(), **kwargs) -> None:
+    def __init__(self, publisher: str, mapping: tuple | Mapping = (), **kwargs: dict) -> None:
         super().__init__(mapping, **kwargs)
         self.publisher = publisher
 

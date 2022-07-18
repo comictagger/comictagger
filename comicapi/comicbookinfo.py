@@ -131,7 +131,7 @@ class ComicBookInfo:
 
         cbi_container = CBIContainer(
             {
-                "appID": "ComicTagger/" + "1.0.0",
+                "appID": "ComicTagger/1.0.0",
                 "lastModified": str(datetime.now()),
                 "ComicBookInfo/1.0": {},
             }
