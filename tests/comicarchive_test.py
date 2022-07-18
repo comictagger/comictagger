@@ -6,7 +6,7 @@ import pytest
 
 import comicapi.comicarchive
 import comicapi.genericmetadata
-from testing.filenames import cbz_path, datadir
+from testing.filenames import datadir
 
 
 @pytest.mark.xfail(not comicapi.comicarchive.rar_support, reason="rar support")
@@ -35,43 +35,31 @@ def test_metadata_read(cbz):
     assert md == comicapi.genericmetadata.md_test
 
 
-def test_save_cix(tmp_path):
-    comic_path = tmp_path / cbz_path.name
-    shutil.copy(cbz_path, comic_path)
+def test_save_cix(tmp_comic):
+    md = tmp_comic.read_cix()
+    md.set_default_page_list(tmp_comic.get_number_of_pages())
 
-    c = comicapi.comicarchive.ComicArchive(comic_path)
-    md = c.read_cix()
-    md.set_default_page_list(c.get_number_of_pages())
+    assert tmp_comic.write_cix(md)
 
-    assert c.write_cix(md)
-
-    md = c.read_cix()
+    md = tmp_comic.read_cix()
 
 
-def test_page_type_save(tmp_path):
-    comic_path = tmp_path / cbz_path.name
-
-    shutil.copy(cbz_path, comic_path)
-
-    c = comicapi.comicarchive.ComicArchive(comic_path)
-    md = c.read_cix()
+def test_page_type_save(tmp_comic):
+    md = tmp_comic.read_cix()
     t = md.pages[0]
     t["Type"] = ""
 
-    assert c.write_cix(md)
+    assert tmp_comic.write_cix(md)
 
-    md = c.read_cix()
+    md = tmp_comic.read_cix()
 
 
-def test_invalid_zip(tmp_path):
-    comic_path = tmp_path / cbz_path.name
+def test_invalid_zip(tmp_comic):
+    with open(tmp_comic.path, mode="b+r") as f:
+        f.write(b"PK\000\000")
 
-    with open(cbz_path, mode="b+r") as f:
-        comic_path.write_bytes(b"PK\003\004" + f.read()[4:].replace(b"PK\003\004", b"PK\000\000"))
-
-    c = comicapi.comicarchive.ComicArchive(comic_path)
-
-    assert not c.write_cix(comicapi.genericmetadata.md_test)
+    result = tmp_comic.write_cix(comicapi.genericmetadata.md_test)
+    assert not result
 
 
 archivers = [
@@ -86,7 +74,7 @@ archivers = [
 
 
 @pytest.mark.parametrize("archiver", archivers)
-def test_copy_to_archive(archiver, tmp_path, cbz):
+def test_copy_from_archive(archiver, tmp_path, cbz):
     comic_path = tmp_path / cbz.path.with_suffix("").name
 
     archive = archiver(comic_path)
@@ -100,12 +88,3 @@ def test_copy_to_archive(archiver, tmp_path, cbz):
 
     md = comic_archive.read_cix()
     assert md == comicapi.genericmetadata.md_test
-
-    md = comicapi.genericmetadata.GenericMetadata()
-    md.overlay(comicapi.genericmetadata.md_test)
-    md.series = "test"
-
-    assert comic_archive.write_cix(md)
-
-    test_md = comic_archive.read_cix()
-    assert md == test_md

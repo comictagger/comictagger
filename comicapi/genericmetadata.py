@@ -20,8 +20,9 @@ possible, however lossy it might be
 # limitations under the License.
 from __future__ import annotations
 
+import copy
+import dataclasses
 import logging
-from dataclasses import dataclass, field
 from typing import Any, TypedDict
 
 from comicapi import utils
@@ -65,7 +66,7 @@ class CreditMetadata(TypedDict):
     primary: bool
 
 
-@dataclass
+@dataclasses.dataclass
 class GenericMetadata:
     writer_synonyms = ["writer", "plotter", "scripter"]
     penciller_synonyms = ["artist", "penciller", "penciler", "breakdowns"]
@@ -115,9 +116,9 @@ class GenericMetadata:
     teams: str | None = None
     locations: str | None = None
 
-    credits: list[CreditMetadata] = field(default_factory=list)
-    tags: list[str] = field(default_factory=list)
-    pages: list[ImageMetadata] = field(default_factory=list)
+    credits: list[CreditMetadata] = dataclasses.field(default_factory=list)
+    tags: set[str] = dataclasses.field(default_factory=set)
+    pages: list[ImageMetadata] = dataclasses.field(default_factory=list)
 
     # Some CoMet-only items
     price: str | None = None
@@ -132,6 +133,14 @@ class GenericMetadata:
             if value and key != "is_empty":
                 self.is_empty = False
                 break
+
+    def copy(self) -> GenericMetadata:
+        return copy.deepcopy(self)
+
+    def replace(self, /, **kwargs) -> GenericMetadata:
+        tmp = self.copy()
+        tmp.__dict__.update(kwargs)
+        return tmp
 
     def overlay(self, new_md: GenericMetadata) -> None:
         """Overlay a metadata object on this one
@@ -408,7 +417,7 @@ md_test.credits = [
     CreditMetadata({"primary": False, "person": "Sam Kieth", "role": "Cover"}),
     CreditMetadata({"primary": False, "person": "Ted Adams", "role": "Editor"}),
 ]
-md_test.tags = []
+md_test.tags = set()
 md_test.pages = [
     {"Image": 0, "ImageHeight": "1280", "ImageSize": "195977", "ImageWidth": "800", "Type": PageType.FrontCover},
     {"Image": 1, "ImageHeight": "2039", "ImageSize": "611993", "ImageWidth": "1327"},

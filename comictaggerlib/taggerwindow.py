@@ -26,7 +26,7 @@ import pprint
 import re
 import sys
 import webbrowser
-from typing import Any, Callable, cast
+from typing import Any, Callable, Iterable, cast
 from urllib.parse import urlparse
 
 import natsort
@@ -944,8 +944,8 @@ Have fun!
         tmp = self.teTags.toPlainText()
         if tmp is not None:
 
-            def strip_list(i: list[str]) -> list[str]:
-                return [x.strip() for x in i]
+            def strip_list(i: Iterable[str]) -> set[str]:
+                return {x.strip() for x in i}
 
             md.tags = strip_list(tmp.split(","))
 

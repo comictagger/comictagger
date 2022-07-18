@@ -26,7 +26,7 @@ def test_add_credit():
     md = comicapi.genericmetadata.GenericMetadata()
 
     md.add_credit(person="test", role="writer", primary=False)
-    md.credits == [{"person": "test", "role": "writer", "primary": False}]
+    assert md.credits == [comicapi.genericmetadata.CreditMetadata(person="test", role="writer", primary=False)]
 
 
 def test_add_credit_primary():
@@ -34,7 +34,7 @@ def test_add_credit_primary():
 
     md.add_credit(person="test", role="writer", primary=False)
     md.add_credit(person="test", role="writer", primary=True)
-    md.credits == [{"person": "test", "role": "writer", "primary": True}]
+    assert md.credits == [comicapi.genericmetadata.CreditMetadata(person="test", role="writer", primary=True)]
 
 
 @pytest.mark.parametrize("role, expected", credits)

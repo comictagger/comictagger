@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import dataclasses
-
 import comicapi.genericmetadata
 import comictaggerlib.resulttypes
 from comicapi import utils
@@ -55,15 +53,48 @@ select_details = [
 metadata = [
     (
         comicapi.genericmetadata.GenericMetadata(series="test", issue="2", title="never"),
-        dataclasses.replace(comicapi.genericmetadata.md_test, series="test", issue="2", title="never"),
+        comicapi.genericmetadata.md_test.replace(series="test", issue="2", title="never"),
     ),
     (
         comicapi.genericmetadata.GenericMetadata(series="", issue="2", title="never"),
-        dataclasses.replace(comicapi.genericmetadata.md_test, series=None, issue="2", title="never"),
+        comicapi.genericmetadata.md_test.replace(series=None, issue="2", title="never"),
     ),
     (
         comicapi.genericmetadata.GenericMetadata(),
-        dataclasses.replace(comicapi.genericmetadata.md_test),
+        comicapi.genericmetadata.md_test.copy(),
+    ),
+]
+
+metadata_keys = [
+    (
+        comicapi.genericmetadata.GenericMetadata(),
+        {
+            "issue_count": 6,
+            "issue_number": "1",
+            "month": 10,
+            "series": "Cory Doctorow's Futuristic Tales of the Here and Now",
+            "year": 2007,
+        },
+    ),
+    (
+        comicapi.genericmetadata.GenericMetadata(series="test"),
+        {
+            "issue_count": 6,
+            "issue_number": "1",
+            "month": 10,
+            "series": "test",
+            "year": 2007,
+        },
+    ),
+    (
+        comicapi.genericmetadata.GenericMetadata(series="test", issue="3"),
+        {
+            "issue_count": 6,
+            "issue_number": "3",
+            "month": 10,
+            "series": "test",
+            "year": 2007,
+        },
     ),
 ]
 
