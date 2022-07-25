@@ -35,6 +35,20 @@ class UtilsVars:
     already_fixed_encoding = False
 
 
+def parse_date_str(date_str: str) -> tuple[int | None, int | None, int | None]:
+    day = None
+    month = None
+    year = None
+    if date_str:
+        parts = date_str.split("-")
+        year = xlate(parts[0], True)
+        if len(parts) > 1:
+            month = xlate(parts[1], True)
+            if len(parts) > 2:
+                day = xlate(parts[2], True)
+    return day, month, year
+
+
 def get_recursive_filelist(pathlist: list[str]) -> list[str]:
     """Get a recursive list of of all files under all path items in the list"""
 

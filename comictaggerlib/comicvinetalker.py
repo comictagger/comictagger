@@ -121,17 +121,7 @@ class ComicVineTalker:
             self.log_func(text)
 
     def parse_date_str(self, date_str: str) -> tuple[int | None, int | None, int | None]:
-        day = None
-        month = None
-        year = None
-        if date_str:
-            parts = date_str.split("-")
-            year = utils.xlate(parts[0], True)
-            if len(parts) > 1:
-                month = utils.xlate(parts[1], True)
-                if len(parts) > 2:
-                    day = utils.xlate(parts[2], True)
-        return day, month, year
+        return utils.parse_date_str(date_str)
 
     def test_key(self, key: str, url: str) -> bool:
         if not url:

@@ -157,7 +157,7 @@ class ComicBookInfo:
         assign("country", utils.xlate(metadata.country))
         assign("rating", utils.xlate(metadata.critical_rating, True))
         assign("credits", metadata.credits)
-        assign("tags", metadata.tags)
+        assign("tags", list(metadata.tags))
 
         return cbi_container
 
