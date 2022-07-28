@@ -37,6 +37,6 @@ def test_add_credit_primary():
     assert md.credits == [comicapi.genericmetadata.CreditMetadata(person="test", role="writer", primary=True)]
 
 
-@pytest.mark.parametrize("role, expected", credits)
+@pytest.mark.parametrize("md, role, expected", credits)
 def test_get_primary_credit(md, role, expected):
     assert md.get_primary_credit(role) == expected

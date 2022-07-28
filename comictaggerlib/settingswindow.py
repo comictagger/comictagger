@@ -269,17 +269,32 @@ class SettingsWindow(QtWidgets.QDialog):
     def accept(self) -> None:
         self.rename_test()
         if self.rename_error is not None:
-            QtWidgets.QMessageBox.critical(
-                self,
-                "Invalid format string!",
-                "Your rename template is invalid!"
-                f"<br/><br/>{self.rename_error}<br/><br/>"
-                "Please consult the template help in the "
-                "settings and the documentation on the format at "
-                "<a href='https://docs.python.org/3/library/string.html#format-string-syntax'>"
-                "https://docs.python.org/3/library/string.html#format-string-syntax</a>",
-            )
-            return
+            if isinstance(self.rename_error, ValueError):
+                logger.exception("Invalid format string: %s", self.settings.rename_template)
+                QtWidgets.QMessageBox.critical(
+                    self,
+                    "Invalid format string!",
+                    "Your rename template is invalid!"
+                    f"<br/><br/>{self.rename_error}<br/><br/>"
+                    "Please consult the template help in the "
+                    "settings and the documentation on the format at "
+                    "<a href='https://docs.python.org/3/library/string.html#format-string-syntax'>"
+                    "https://docs.python.org/3/library/string.html#format-string-syntax</a>",
+                )
+                return
+            else:
+                logger.exception(
+                    "Formatter failure: %s metadata: %s", self.settings.rename_template, self.renamer.metadata
+                )
+                QtWidgets.QMessageBox.critical(
+                    self,
+                    "The formatter had an issue!",
+                    "The formatter has experienced an unexpected error!"
+                    f"<br/><br/>{type(self.rename_error).__name__}: {self.rename_error}<br/><br/>"
+                    "Please open an issue at "
+                    "<a href='https://github.com/comictagger/comictagger'>"
+                    "https://github.com/comictagger/comictagger</a>",
+                )
 
         # Copy values from form to settings and save
         self.settings.rar_exe_path = str(self.leRarExePath.text())

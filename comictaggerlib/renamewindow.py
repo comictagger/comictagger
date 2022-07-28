@@ -97,7 +97,8 @@ class RenameWindow(QtWidgets.QDialog):
             new_ext = self.config_renamer(ca)
             try:
                 new_name = self.renamer.determine_name(new_ext)
-            except Exception as e:
+            except ValueError as e:
+                logger.exception("Invalid format string: %s", self.settings.rename_template)
                 QtWidgets.QMessageBox.critical(
                     self,
                     "Invalid format string!",
@@ -109,6 +110,19 @@ class RenameWindow(QtWidgets.QDialog):
                     "https://docs.python.org/3/library/string.html#format-string-syntax</a>",
                 )
                 return
+            except Exception as e:
+                logger.exception(
+                    "Formatter failure: %s metadata: %s", self.settings.rename_template, self.renamer.metadata
+                )
+                QtWidgets.QMessageBox.critical(
+                    self,
+                    "The formatter had an issue!",
+                    "The formatter has experienced an unexpected error!"
+                    f"<br/><br/>{type(e).__name__}: {e}<br/><br/>"
+                    "Please open an issue at "
+                    "<a href='https://github.com/comictagger/comictagger'>"
+                    "https://github.com/comictagger/comictagger</a>",
+                )
 
             row = self.twList.rowCount()
             self.twList.insertRow(row)

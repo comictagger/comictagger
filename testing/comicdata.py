@@ -99,8 +99,15 @@ metadata_keys = [
 ]
 
 credits = [
-    ("writer", "Dara Naraghi"),
-    ("writeR", "Dara Naraghi"),
+    (comicapi.genericmetadata.md_test, "writer", "Dara Naraghi"),
+    (comicapi.genericmetadata.md_test, "writeR", "Dara Naraghi"),
+    (
+        comicapi.genericmetadata.md_test.replace(
+            credits=[{"person": "Dara Naraghi", "role": "writer"}, {"person": "Dara Naraghi", "role": "writer"}]
+        ),
+        "writeR",
+        "Dara Naraghi",
+    ),
 ]
 
 imprints = [

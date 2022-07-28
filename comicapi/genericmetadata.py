@@ -270,8 +270,10 @@ class GenericMetadata:
     def get_primary_credit(self, role: str) -> str:
         primary = ""
         for credit in self.credits:
+            if "role" not in credit or "person" not in credit:
+                continue
             if (primary == "" and credit["role"].casefold() == role.casefold()) or (
-                credit["role"].casefold() == role.casefold() and credit["primary"]
+                credit["role"].casefold() == role.casefold() and "primary" in credit and credit["primary"]
             ):
                 primary = credit["person"]
         return primary

@@ -500,15 +500,19 @@ def process_file_cli(
 
         try:
             new_name = renamer.determine_name(ext=new_ext)
-        except Exception:
+        except ValueError:
             logger.exception(
                 msg_hdr + "Invalid format string!\n"
                 "Your rename template is invalid!\n\n"
+                "%s\n\n"
                 "Please consult the template help in the settings "
                 "and the documentation on the format at "
-                "https://docs.python.org/3/library/string.html#format-string-syntax"
+                "https://docs.python.org/3/library/string.html#format-string-syntax",
+                settings.rename_template,
             )
             return
+        except Exception:
+            logger.exception("Formatter failure: %s metadata: %s", settings.rename_template, renamer.metadata)
 
         folder = get_rename_dir(ca, settings.rename_dir if settings.rename_move_dir else None)
 
