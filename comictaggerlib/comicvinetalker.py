@@ -21,6 +21,7 @@ import re
 import time
 from datetime import datetime
 from typing import Any, Callable, cast
+from urllib.parse import urlencode, urljoin, urlsplit
 
 import requests
 from bs4 import BeautifulSoup
@@ -104,7 +105,13 @@ class ComicVineTalker:
         self.issue_id: int | None = None
 
         self.api_key = ComicVineTalker.api_key or default_api_key
-        self.api_base_url = ComicVineTalker.api_base_url or default_url
+        tmp_url = urlsplit(ComicVineTalker.api_base_url or default_url)
+
+        # joinurl only works properly if there is a trailing slash
+        if tmp_url.path and tmp_url.path[-1] != "/":
+            tmp_url = tmp_url._replace(path=tmp_url.path + "/")
+
+        self.api_base_url = tmp_url.geturl()
 
         self.log_func: Callable[[str], None] | None = None
 
@@ -127,10 +134,16 @@ class ComicVineTalker:
         if not url:
             url = self.api_base_url
         try:
-            test_url = url + "/issue/1/?api_key=" + key + "&format=json&field_list=name"
+            test_url = urljoin(url, "issue/1/")
 
             cv_response: resulttypes.CVResult = requests.get(
-                test_url, headers={"user-agent": "comictagger/" + ctversion.version}
+                test_url,
+                headers={"user-agent": "comictagger/" + ctversion.version},
+                params={
+                    "api_key": key,
+                    "format": "json",
+                    "field_list": "name",
+                },
             ).json()
 
             # Bogus request, but if the key is wrong, you get error 100: "Invalid API Key"
@@ -222,7 +235,7 @@ class ComicVineTalker:
             "limit": 100,
         }
 
-        cv_response = self.get_cv_content(self.api_base_url + "/search", params)
+        cv_response = self.get_cv_content(urljoin(self.api_base_url, "search"), params)
 
         search_results: list[resulttypes.CVVolumeResults] = []
 
@@ -268,7 +281,7 @@ class ComicVineTalker:
             page += 1
 
             params["page"] = page
-            cv_response = self.get_cv_content(self.api_base_url + "/search", params)
+            cv_response = self.get_cv_content(urljoin(self.api_base_url, "search"), params)
 
             search_results.extend(cast(list[resulttypes.CVVolumeResults], cv_response["results"]))
             current_result_count += cv_response["number_of_page_results"]
@@ -291,7 +304,7 @@ class ComicVineTalker:
         if cached_volume_result is not None:
             return cached_volume_result
 
-        volume_url = self.api_base_url + "/volume/" + CVTypeID.Volume + "-" + str(series_id)
+        volume_url = urljoin(self.api_base_url, f"volume/{CVTypeID.Volume}-{series_id}")
 
         params = {
             "api_key": self.api_key,
@@ -317,12 +330,12 @@ class ComicVineTalker:
 
         params = {
             "api_key": self.api_key,
-            "filter": "volume:" + str(series_id),
+            "filter": f"volume:{series_id}",
             "format": "json",
             "field_list": "id,volume,issue_number,name,image,cover_date,site_detail_url,description,aliases",
             "offset": 0,
         }
-        cv_response = self.get_cv_content(self.api_base_url + "/issues/", params)
+        cv_response = self.get_cv_content(urljoin(self.api_base_url, "issues/"), params)
 
         current_result_count = cv_response["number_of_page_results"]
         total_result_count = cv_response["number_of_total_results"]
@@ -337,7 +350,7 @@ class ComicVineTalker:
             offset += cv_response["number_of_page_results"]
 
             params["offset"] = offset
-            cv_response = self.get_cv_content(self.api_base_url + "/issues/", params)
+            cv_response = self.get_cv_content(urljoin(self.api_base_url, "issues/"), params)
 
             volume_issues_result.extend(cast(list[resulttypes.CVIssuesResults], cv_response["results"]))
             current_result_count += cv_response["number_of_page_results"]
@@ -367,7 +380,7 @@ class ComicVineTalker:
             "filter": flt,
         }
 
-        cv_response = self.get_cv_content(self.api_base_url + "/issues/", params)
+        cv_response = self.get_cv_content(urljoin(self.api_base_url, "issues/"), params)
 
         current_result_count = cv_response["number_of_page_results"]
         total_result_count = cv_response["number_of_total_results"]
@@ -382,7 +395,7 @@ class ComicVineTalker:
             offset += cv_response["number_of_page_results"]
 
             params["offset"] = offset
-            cv_response = self.get_cv_content(self.api_base_url + "/issues/", params)
+            cv_response = self.get_cv_content(urljoin(self.api_base_url, "issues/"), params)
 
             filtered_issues_result.extend(cast(list[resulttypes.CVIssuesResults], cv_response["results"]))
             current_result_count += cv_response["number_of_page_results"]
@@ -407,7 +420,7 @@ class ComicVineTalker:
                 break
 
         if f_record is not None:
-            issue_url = self.api_base_url + "/issue/" + CVTypeID.Issue + "-" + str(f_record["id"])
+            issue_url = urljoin(self.api_base_url, f"issue/{CVTypeID.Issue}-{f_record['id']}")
             params = {"api_key": self.api_key, "format": "json"}
             cv_response = self.get_cv_content(issue_url, params)
             issue_results = cast(resulttypes.CVIssueDetailResults, cv_response["results"])
@@ -420,7 +433,7 @@ class ComicVineTalker:
 
     def fetch_issue_data_by_issue_id(self, issue_id: int, settings: ComicTaggerSettings) -> GenericMetadata:
 
-        issue_url = self.api_base_url + "/issue/" + CVTypeID.Issue + "-" + str(issue_id)
+        issue_url = urljoin(self.api_base_url, f"issue/{CVTypeID.Issue}-{issue_id}")
         params = {"api_key": self.api_key, "format": "json"}
         cv_response = self.get_cv_content(issue_url, params)
 
@@ -609,7 +622,8 @@ class ComicVineTalker:
         if cached_details["image_url"] is not None:
             return cached_details
 
-        issue_url = self.api_base_url + "/issue/" + CVTypeID.Issue + "-" + str(issue_id)
+        issue_url = urljoin(self.api_base_url, f"issue/{CVTypeID.Issue}-{issue_id}")
+        logger.error("%s, %s", self.api_base_url, issue_url)
 
         params = {"api_key": self.api_key, "format": "json", "field_list": "image,cover_date,site_detail_url"}
 
@@ -708,15 +722,16 @@ class ComicVineTalker:
             ComicVineTalker.url_fetch_complete(details["image_url"], details["thumb_image_url"])
             return
 
-        issue_url = (
-            self.api_base_url
-            + "/issue/"
-            + CVTypeID.Issue
-            + "-"
-            + str(issue_id)
-            + "/?api_key="
-            + self.api_key
-            + "&format=json&field_list=image,cover_date,site_detail_url"
+        issue_url = urlsplit(self.api_base_url)
+        issue_url = issue_url._replace(
+            query=urlencode(
+                {
+                    "api_key": self.api_key,
+                    "format": "json",
+                    "field_list": "image,cover_date,site_detail_url",
+                }
+            ),
+            path=f"issue/{CVTypeID.Issue}-{issue_id}",
         )
 
         self.nam.finished.connect(self.async_fetch_issue_cover_url_complete)
