@@ -750,7 +750,7 @@ class ComicArchive:
         if new_path == self.path:
             return
         os.makedirs(new_path.parent, 0o777, True)
-        shutil.move(path, new_path)
+        shutil.move(self.path, new_path)
         self.path = new_path
         self.archiver.path = pathlib.Path(path)
 

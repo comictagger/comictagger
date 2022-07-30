@@ -88,3 +88,11 @@ def test_copy_from_archive(archiver, tmp_path, cbz):
 
     md = comic_archive.read_cix()
     assert md == comicapi.genericmetadata.md_test
+
+
+def test_rename(tmp_comic, tmp_path):
+    old_path = tmp_comic.path
+    tmp_comic.rename(tmp_path / "test.cbz")
+    assert not old_path.exists()
+    assert tmp_comic.path.exists()
+    assert tmp_comic.path != old_path
