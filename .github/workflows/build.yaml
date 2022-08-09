@@ -84,7 +84,7 @@ jobs:
       - name: Build and install PyPi packages
         run: |
           make clean pydist
-          python -m pip install "dist/$(python setup.py --fullname)-py3-none-any.whl[GUI,CBR]"
+          python -m pip install "dist/$(python setup.py --fullname)-py3-none-any.whl[all]"
 
       - name: build
         run: |

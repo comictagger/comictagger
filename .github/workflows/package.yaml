@@ -45,7 +45,7 @@ jobs:
       - name: Build, Install and Test PyPi packages
         run: |
           make clean pydist
-          python -m pip install "dist/$(python setup.py --fullname)-py3-none-any.whl[GUI,CBR]"
+          python -m pip install "dist/$(python setup.py --fullname)-py3-none-any.whl[all]"
           echo "CT_FULL_NAME=$(python setup.py --fullname)" >> $GITHUB_ENV
           python -m flake8
           python -m pytest
