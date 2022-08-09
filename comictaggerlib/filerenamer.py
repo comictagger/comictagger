@@ -109,11 +109,12 @@ class MetadataFormatter(string.Formatter):
 
                 # format the object and append to the result
                 fmt_obj = self.format_field(obj, format_spec)
-                if fmt_obj == "" and len(result) > 0 and self.smart_cleanup and literal_text:
-                    lstrip = True
+                if fmt_obj == "" and result and self.smart_cleanup and literal_text:
+                    if self.str_contains(result[-1], "({["):
+                        lstrip = True
                     if result:
                         if " " in result[-1]:
-                            result[-1], _, _ = result[-1].rpartition(" ")
+                            result[-1], _, _ = result[-1].rstrip().rpartition(" ")
                         result[-1] = result[-1].rstrip("-_({[#")
                 if self.smart_cleanup:
                     fmt_obj = " ".join(fmt_obj.split())
@@ -121,6 +122,12 @@ class MetadataFormatter(string.Formatter):
                 result.append(fmt_obj)
 
         return "".join(result), False
+
+    def str_contains(self, chars: str, string: str) -> bool:
+        for char in chars:
+            if char in string:
+                return True
+        return False
 
 
 class FileRenamer:

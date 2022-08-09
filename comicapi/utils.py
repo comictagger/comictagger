@@ -19,7 +19,6 @@ import json
 import logging
 import os
 import pathlib
-import re
 import unicodedata
 from collections import defaultdict
 from shutil import which  # noqa: F401
@@ -57,22 +56,20 @@ def get_recursive_filelist(pathlist: list[str]) -> list[str]:
 
         if os.path.isdir(p):
             filelist.extend(x for x in glob.glob(f"{p}{os.sep}/**", recursive=True) if not os.path.isdir(x))
-        else:
-            filelist.append(p)
+        elif str(p) not in filelist:
+            filelist.append(str(p))
 
     return filelist
 
 
 def add_to_path(dirname: str) -> None:
-    if dirname is not None and dirname != "":
+    if dirname:
+        dirname = os.path.abspath(dirname)
+        paths = [os.path.normpath(x) for x in os.environ["PATH"].split(os.pathsep)]
 
-        # verify that path doesn't already contain the given dirname
-        tmpdirname = re.escape(dirname)
-        pattern = r"(^|{sep}){dir}({sep}|$)".format(dir=tmpdirname, sep=os.pathsep)
-
-        match = re.search(pattern, os.environ["PATH"])
-        if not match:
-            os.environ["PATH"] = dirname + os.pathsep + os.environ["PATH"]
+        if dirname not in paths:
+            paths.insert(0, dirname)
+            os.environ["PATH"] = os.pathsep.join(paths)
 
 
 def xlate(data: Any, is_int: bool = False, is_float: bool = False) -> Any:
@@ -161,10 +158,10 @@ def sanitize_title(text: str, basic: bool = False) -> str:
     return text
 
 
-def titles_match(search_title: str, record_title: str, threshold: int = 90) -> int:
+def titles_match(search_title: str, record_title: str, threshold: int = 90) -> bool:
     sanitized_search = sanitize_title(search_title)
     sanitized_record = sanitize_title(record_title)
-    ratio = thefuzz.fuzz.ratio(sanitized_search, sanitized_record)
+    ratio: int = thefuzz.fuzz.ratio(sanitized_search, sanitized_record)
     logger.debug(
         "search title: %s ; record title: %s ; ratio: %d ; match threshold: %d",
         search_title,
@@ -205,6 +202,7 @@ def get_language_from_iso(iso: str | None) -> str | None:
 def get_language(string: str | None) -> str | None:
     if string is None:
         return None
+    string = string.casefold()
 
     lang = get_language_from_iso(string)
 
@@ -217,8 +215,6 @@ def get_language(string: str | None) -> str | None:
 
 
 def get_publisher(publisher: str) -> tuple[str, str]:
-    if publisher is None:
-        return ("", "")
     imprint = ""
 
     for pub in publishers.values():

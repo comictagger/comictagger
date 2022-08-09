@@ -733,6 +733,20 @@ fnames = [
         },
         True,
     ),
+    (
+        "Cory Doctorow's Futuristic Tales of the Here and Now: Anda's Game #001 (2007).cbz",
+        "full-date, issue in parenthesis",
+        {
+            "issue": "1",
+            "series": "Cory Doctorow's Futuristic Tales of the Here and Now",
+            "title": "Anda's Game",
+            "volume": "",
+            "year": "2007",
+            "remainder": "",
+            "issue_count": "",
+        },
+        True,
+    ),
 ]
 
 rnames = [
@@ -795,7 +809,7 @@ rnames = [
     (
         r"{publisher}\  {series} #{issue} - {title} ({year})",  # backslashes separate directories
         False,
-        "universal",
+        "Linux",
         "Cory Doctorow's Futuristic Tales of the Here and Now #001 - Anda's Game (2007).cbz",
         does_not_raise(),
     ),
@@ -807,10 +821,10 @@ rnames = [
         does_not_raise(),
     ),
     (
-        "{series} #  {issue} - {locations} ({year})",
+        "{series} #{issue} - {locations} ({year})",
         False,
         "universal",
-        "Cory Doctorow's Futuristic Tales of the Here and Now # 001 - lonely cottage (2007).cbz",
+        "Cory Doctorow's Futuristic Tales of the Here and Now #001 - lonely cottage (2007).cbz",
         does_not_raise(),
     ),
     (
@@ -846,6 +860,20 @@ rnames = [
         False,
         "universal",
         "Cory Doctorow's Futuristic Tales of the Here and Now - Anda's Game {test} #001 (2007).cbz",
+        does_not_raise(),
+    ),
+    (
+        "{series} - {title} #{issue} ({year} {price})",  # Test null value in parenthesis with a non-null value
+        False,
+        "universal",
+        "Cory Doctorow's Futuristic Tales of the Here and Now - Anda's Game #001 (2007).cbz",
+        does_not_raise(),
+    ),
+    (
+        "{series} - {title} #{issue} (of {price})",  # null value with literal text in parenthesis
+        False,
+        "universal",
+        "Cory Doctorow's Futuristic Tales of the Here and Now - Anda's Game #001.cbz",
         does_not_raise(),
     ),
     (

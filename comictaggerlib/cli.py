@@ -165,13 +165,13 @@ def post_process_matches(
 
 
 def cli_mode(opts: argparse.Namespace, settings: ComicTaggerSettings) -> None:
-    if len(opts.files) < 1:
+    if len(opts.file_list) < 1:
         logger.error("You must specify at least one filename.  Use the -h option for more info")
         return
 
     match_results = OnlineMatchResults()
 
-    for f in opts.files:
+    for f in opts.file_list:
         process_file_cli(f, opts, settings, match_results)
         sys.stdout.flush()
 
@@ -212,7 +212,7 @@ def create_local_metadata(opts: argparse.Namespace, ca: ComicArchive, settings: 
 def process_file_cli(
     filename: str, opts: argparse.Namespace, settings: ComicTaggerSettings, match_results: OnlineMatchResults
 ) -> None:
-    batch_mode = len(opts.files) > 1
+    batch_mode = len(opts.file_list) > 1
 
     ca = ComicArchive(filename, settings.rar_exe_path, ComicTaggerSettings.get_graphic("nocover.png"))
 

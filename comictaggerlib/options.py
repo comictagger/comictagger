@@ -405,6 +405,8 @@ def parse_cmd_line() -> argparse.Namespace:
         opts.copy = opts.copy[0]
 
     if opts.recursive:
-        opts.file_list = utils.get_recursive_filelist(opts.file_list)
+        opts.file_list = utils.get_recursive_filelist(opts.files)
+    else:
+        opts.file_list = opts.files
 
     return opts

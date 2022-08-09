@@ -93,7 +93,7 @@ class GenericMetadata:
     comments: str | None = None  # use same way as Summary in CIX
 
     volume_count: int | None = None
-    critical_rating: float | None = None  # rating in cbl; CommunityRating in CIX
+    critical_rating: float | None = None  # rating in CBL; CommunityRating in CIX
     country: str | None = None
 
     alternate_series: str | None = None

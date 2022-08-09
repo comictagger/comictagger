@@ -184,8 +184,8 @@ class ComicVineTalker:
 
     def get_url_content(self, url: str, params: dict[str, Any]) -> Any:
         # connect to server:
-        #  if there is a 500 error, try a few more times before giving up
-        #  any other error, just bail
+        # if there is a 500 error, try a few more times before giving up
+        # any other error, just bail
         for tries in range(3):
             try:
                 resp = requests.get(url, params=params, headers={"user-agent": "comictagger/" + ctversion.version})
@@ -199,10 +199,15 @@ class ComicVineTalker:
                     break
 
             except requests.exceptions.RequestException as e:
-                self.write_log(str(e) + "\n")
+                self.write_log(f"{e}\n")
                 raise ComicVineTalkerException(ComicVineTalkerException.Network, "Network Error!") from e
+            except json.JSONDecodeError as e:
+                self.write_log(f"{e}\n")
+                raise ComicVineTalkerException(ComicVineTalkerException.Unknown, "ComicVine did not provide json")
 
-        raise ComicVineTalkerException(ComicVineTalkerException.Unknown, "Error on Comic Vine server")
+        raise ComicVineTalkerException(
+            ComicVineTalkerException.Unknown, f"Error on Comic Vine server: {resp.status_code}"
+        )
 
     def search_for_series(
         self,

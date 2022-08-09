@@ -114,6 +114,7 @@ imprints = [
     ("marvel", ("", "Marvel")),
     ("marvel comics", ("", "Marvel")),
     ("aircel", ("Aircel Comics", "Marvel")),
+    ("nothing", ("", "nothing")),
 ]
 
 additional_imprints = [
