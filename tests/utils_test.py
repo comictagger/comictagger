@@ -85,13 +85,13 @@ def test_unique_file(tmp_path):
 
 
 def test_add_to_path(monkeypatch):
-    monkeypatch.setenv("PATH", "/usr/bin")
+    monkeypatch.setenv("PATH", os.path.abspath("/usr/bin"))
     comicapi.utils.add_to_path("/bin")
-    assert os.environ["PATH"] == "/bin:/usr/bin"
+    assert os.environ["PATH"] == (os.path.abspath("/bin") + os.pathsep + os.path.abspath("/usr/bin"))
 
     comicapi.utils.add_to_path("/usr/bin")
     comicapi.utils.add_to_path("/usr/bin/")
-    assert os.environ["PATH"] == "/bin:/usr/bin"
+    assert os.environ["PATH"] == (os.path.abspath("/bin") + os.pathsep + os.path.abspath("/usr/bin"))
 
 
 titles = [
