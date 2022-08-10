@@ -740,7 +740,7 @@ class ComicVineTalker:
         )
 
         self.nam.finished.connect(self.async_fetch_issue_cover_url_complete)
-        self.nam.get(QtNetwork.QNetworkRequest(QtCore.QUrl(issue_url)))
+        self.nam.get(QtNetwork.QNetworkRequest(QtCore.QUrl(issue_url.geturl())))
 
     def async_fetch_issue_cover_url_complete(self, reply: QtNetwork.QNetworkReply) -> None:
         # read in the response
