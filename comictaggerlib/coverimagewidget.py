@@ -113,7 +113,7 @@ class CoverImageWidget(QtWidgets.QWidget):
         self.page_loader = None
         self.imageIndex = -1
         self.imageCount = 1
-        self.imageData = bytes()
+        self.imageData = b""
 
         self.btnLeft.setIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("left.png")))
         self.btnRight.setIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("right.png")))
@@ -136,7 +136,7 @@ class CoverImageWidget(QtWidgets.QWidget):
         self.page_loader = None
         self.imageIndex = -1
         self.imageCount = 1
-        self.imageData = bytes()
+        self.imageData = b""
 
     def clear(self) -> None:
         self.reset_widget()

@@ -26,7 +26,8 @@ import pprint
 import re
 import sys
 import webbrowser
-from typing import Any, Callable, Iterable, cast
+from collections.abc import Iterable
+from typing import Any, Callable, cast
 from urllib.parse import urlparse
 
 import natsort
@@ -1854,7 +1855,7 @@ Have fun!
                 logger.error("Failed to load metadata for %s: %s", ca.path, e)
             image_data = ca.get_page(cover_idx)
             self.atprogdialog.set_archive_image(image_data)
-            self.atprogdialog.set_test_image(bytes())
+            self.atprogdialog.set_test_image(b"")
 
             QtCore.QCoreApplication.processEvents()
             if self.atprogdialog.isdone:

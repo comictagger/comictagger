@@ -157,7 +157,7 @@ class IssueIdentifier:
             cropped_im = im.crop((int(w / 2), 0, w, h))
         except Exception:
             logger.exception("cropCover() error")
-            return bytes()
+            return b""
 
         output = io.BytesIO()
         cropped_im.save(output, format="PNG")

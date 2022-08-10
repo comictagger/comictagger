@@ -114,7 +114,7 @@ class SevenZipArchiver(UnknownArchiver):
         return False
 
     def read_file(self, archive_file: str) -> bytes:
-        data = bytes()
+        data = b""
         try:
             with py7zr.SevenZipFile(self.path, "r") as zf:
                 data = zf.read(archive_file)[archive_file].read()
@@ -422,7 +422,7 @@ class RarArchiver(UnknownArchiver):
 
         rarc = self.get_rar_obj()
         if rarc is None:
-            return bytes()
+            return b""
 
         tries = 0
         while tries < 7:
@@ -665,7 +665,7 @@ class FolderArchiver(UnknownArchiver):
 
 
 class ComicArchive:
-    logo_data = bytes()
+    logo_data = b""
 
     class ArchiveType:
         SevenZip, Zip, Rar, Folder, Pdf, Unknown = list(range(6))
@@ -853,13 +853,13 @@ class ComicArchive:
         return retcode
 
     def get_page(self, index: int) -> bytes:
-        image_data = bytes()
+        image_data = b""
 
         filename = self.get_page_name(index)
 
         if filename:
             try:
-                image_data = self.archiver.read_file(filename) or bytes()
+                image_data = self.archiver.read_file(filename) or b""
             except Exception:
                 logger.error("Error reading in page %d. Substituting logo page.", index)
                 image_data = ComicArchive.logo_data
@@ -1033,7 +1033,7 @@ class ComicArchive:
             raw_cix = self.archiver.read_file(self.ci_xml_filename) or b""
         except Exception as e:
             logger.error("Error reading in raw CIX! for %s: %s", self.path, e)
-            raw_cix = bytes()
+            raw_cix = b""
         return raw_cix
 
     def write_cix(self, metadata: GenericMetadata) -> bool:

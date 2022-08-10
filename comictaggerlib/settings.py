@@ -22,7 +22,8 @@ import pathlib
 import platform
 import sys
 import uuid
-from typing import Iterator, TextIO, no_type_check
+from collections.abc import Iterator
+from typing import TextIO, no_type_check
 
 from comicapi import utils
 

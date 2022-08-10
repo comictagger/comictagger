@@ -2,7 +2,7 @@ beautifulsoup4 >= 4.1
 importlib_metadata
 natsort>=8.1.0
 pathvalidate
-pillow>=4.3.0
+pillow>=9.1.0
 py7zr
 pycountry
 requests==2.*

@@ -24,7 +24,8 @@ import logging
 import os
 import re
 from operator import itemgetter
-from typing import Callable, Match, TypedDict
+from re import Match
+from typing import Callable, TypedDict
 from urllib.parse import unquote
 
 from text2digits import text2digits

@@ -21,8 +21,9 @@ import os
 import pathlib
 import unicodedata
 from collections import defaultdict
+from collections.abc import Mapping
 from shutil import which  # noqa: F401
-from typing import Any, Mapping
+from typing import Any
 
 import pycountry
 import thefuzz.fuzz

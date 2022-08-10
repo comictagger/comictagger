@@ -97,14 +97,14 @@ class ImageFetcher:
             # if we found it, just emit the signal asap
             if image_data:
                 ImageFetcher.image_fetch_complete(QtCore.QByteArray(image_data))
-                return bytes()
+                return b""
 
             # didn't find it.  look online
             self.nam.finished.connect(self.finish_request)
             self.nam.get(QtNetwork.QNetworkRequest(QtCore.QUrl(url)))
 
             # we'll get called back when done...
-        return bytes()
+        return b""
 
     def finish_request(self, reply: QtNetwork.QNetworkReply) -> None:
         # read in the image data
@@ -159,10 +159,10 @@ class ImageFetcher:
             row = cur.fetchone()
 
             if row is None:
-                return bytes()
+                return b""
 
             filename = row[0]
-            image_data = bytes()
+            image_data = b""
 
             try:
                 with open(filename, "rb") as f:
