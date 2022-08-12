@@ -108,3 +108,19 @@ titles = [
 @pytest.mark.parametrize("value, result", titles)
 def test_titles_match(value, result):
     assert comicapi.utils.titles_match(value[0], value[1]) == result
+
+
+titles_2 = [
+    ("", ""),
+    ("鋼の錬金術師", "鋼の錬金術師"),
+    ("Conan el Bárbaro", "Conan el Barbaro"),
+    ("The Batman's Grave", "batmans grave"),
+    ("A+X", "ax"),
+    ("ms. marvel", "ms marvel"),
+    ("spider-man/deadpool", "spider man deadpool"),
+]
+
+
+@pytest.mark.parametrize("value, result", titles_2)
+def test_sanitize_title(value, result):
+    assert comicapi.utils.sanitize_title(value) == result.casefold()

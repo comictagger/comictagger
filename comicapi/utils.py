@@ -121,13 +121,9 @@ def remove_articles(text: str) -> str:
         "the",
         "the",
         "with",
-        "ms",
-        "mrs",
-        "mr",
-        "dr",
     ]
     new_text = ""
-    for word in text.split(" "):
+    for word in text.split():
         if word not in articles:
             new_text += word + " "
 
@@ -139,19 +135,16 @@ def remove_articles(text: str) -> str:
 def sanitize_title(text: str, basic: bool = False) -> str:
     # normalize unicode and convert to ascii. Does not work for everything eg ½ to 1⁄2 not 1/2
     text = unicodedata.normalize("NFKD", text).casefold()
-    if basic:
-        # comicvine keeps apostrophes a part of the word
-        text = text.replace("'", "")
-        text = text.replace('"', "")
-    else:
+    # comicvine keeps apostrophes a part of the word
+    text = text.replace("'", "")
+    text = text.replace('"', "")
+    if not basic:
         # comicvine ignores punctuation and accents
         # remove all characters that are not a letter, separator (space) or number
         # replace any "dash punctuation" with a space
         # makes sure that batman-superman and self-proclaimed stay separate words
         text = "".join(
-            c if not unicodedata.category(c) in ("Pd",) else " "
-            for c in text
-            if unicodedata.category(c)[0] in "LZN" or unicodedata.category(c) in ("Pd",)
+            c if unicodedata.category(c)[0] not in "P" else " " for c in text if unicodedata.category(c)[0] in "LZNP"
         )
         # remove extra space and articles and all lower case
         text = remove_articles(text).strip()
