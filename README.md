@@ -51,10 +51,9 @@ There are two optional dependencies GUI and CBR. You can install the optional de
 
 ### Chocolatey installation (Windows only)
 
-A [Chocolatey package](https://community.chocolatey.org/packages/comictagger) is provided, you can install it with
+A [Chocolatey package](https://community.chocolatey.org/packages/comictagger), maintained by @Xav83, is provided, you can install it with:
 ```powershell
 choco install comictagger
-```
 
 ### From source
 
