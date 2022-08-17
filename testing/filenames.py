@@ -758,6 +758,13 @@ rnames = [
         does_not_raise(),
     ),
     (
+        "{series} #{issue} - {title} {volume:02} ({year})",  # Ensure format specifier works
+        False,
+        "universal",
+        "Cory Doctorow's Futuristic Tales of the Here and Now #001 - Anda's Game 01 (2007).cbz",
+        does_not_raise(),
+    ),
+    (
         "{series} #{issue} - {title} ({year})({price})",  # price should be none, test no  space between ')('
         False,
         "universal",

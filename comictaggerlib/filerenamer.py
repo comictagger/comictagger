@@ -45,7 +45,7 @@ class MetadataFormatter(string.Formatter):
     def __init__(self, smart_cleanup: bool = False, platform: str = "auto") -> None:
         super().__init__()
         self.smart_cleanup = smart_cleanup
-        self.platform = platform
+        self.platform = platform.casefold()
 
     def format_field(self, value: Any, format_spec: str) -> str:
         if value is None or value == "":
@@ -72,6 +72,10 @@ class MetadataFormatter(string.Formatter):
                 if lstrip:
                     literal_text = literal_text.lstrip("-_)}]#")
                 if self.smart_cleanup:
+                    if self.platform in ["universal", "windows"] or sys.platform.casefold() in ["windows"]:
+                        # colons get special treatment
+                        literal_text = literal_text.replace(": ", " - ")
+                        literal_text = literal_text.replace(":", "-")
                     lspace = literal_text[0].isspace() if literal_text else False
                     rspace = literal_text[-1].isspace() if literal_text else False
                     literal_text = " ".join(literal_text.split())
@@ -179,13 +183,6 @@ class FileRenamer:
 
         new_basename = ""
         for component in pathlib.PureWindowsPath(template).parts:
-            if (
-                self.platform.casefold() in ["universal", "windows"] or sys.platform.casefold() in ["windows"]
-            ) and self.smart_cleanup:
-                # colons get special treatment
-                component = component.replace(": ", " - ")
-                component = component.replace(":", "-")
-
             new_basename = str(
                 sanitize_filename(fmt.vformat(component, args=[], kwargs=Default(md_dict)), platform=self.platform)
             ).strip()
