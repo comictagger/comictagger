@@ -217,14 +217,7 @@ class CLI:
             if self.batch_mode:
                 brief = f"{ca.path}: "
 
-            if ca.is_sevenzip():
-                brief += "7Z archive     "
-            elif ca.is_zip():
-                brief += "ZIP archive    "
-            elif ca.is_rar():
-                brief += "RAR archive    "
-            elif ca.is_folder():
-                brief += "Folder archive "
+            brief += ca.archiver.name() + " archive "
 
             brief += f"({page_count: >3} pages)"
             brief += "  tags:[ "
@@ -460,12 +453,7 @@ class CLI:
 
         new_ext = ""  # default
         if self.options.filename_rename_set_extension_based_on_archive:
-            if ca.is_sevenzip():
-                new_ext = ".cb7"
-            elif ca.is_zip():
-                new_ext = ".cbz"
-            elif ca.is_rar():
-                new_ext = ".cbr"
+            new_ext = ca.extension()
 
         renamer = FileRenamer(
             md,

@@ -4,15 +4,17 @@ import platform
 import shutil
 
 import pytest
+from importlib_metadata import entry_points
 
 import comicapi.comicarchive
 import comicapi.genericmetadata
 from testing.filenames import datadir
 
 
-@pytest.mark.xfail(not comicapi.comicarchive.rar_support, reason="rar support")
-def test_getPageNameList():
+@pytest.mark.xfail(not comicapi.archivers.rar.rar_support, reason="rar support")
+def test_getPageNameList(load_archive_plugins):
     c = comicapi.comicarchive.ComicArchive(datadir / "fake_cbr.cbr")
+    assert c.seems_to_be_a_comic_archive()
     pageNameList = c.get_page_name_list()
 
     assert pageNameList == [
@@ -56,24 +58,26 @@ def test_save_cbi(tmp_comic):
     md = tmp_comic.read_cbi()
 
 
-@pytest.mark.xfail(not (comicapi.comicarchive.rar_support and shutil.which("rar")), reason="rar support")
+@pytest.mark.xfail(not (comicapi.archivers.rar.rar_support and shutil.which("rar")), reason="rar support")
 def test_save_cix_rar(tmp_path):
     cbr_path = datadir / "fake_cbr.cbr"
     shutil.copy(cbr_path, tmp_path)
 
     tmp_comic = comicapi.comicarchive.ComicArchive(tmp_path / cbr_path.name)
+    assert tmp_comic.seems_to_be_a_comic_archive()
     assert tmp_comic.write_cix(comicapi.genericmetadata.md_test)
 
     md = tmp_comic.read_cix()
     assert md.replace(pages=[]) == comicapi.genericmetadata.md_test.replace(pages=[])
 
 
-@pytest.mark.xfail(not (comicapi.comicarchive.rar_support and shutil.which("rar")), reason="rar support")
+@pytest.mark.xfail(not (comicapi.archivers.rar.rar_support and shutil.which("rar")), reason="rar support")
 def test_save_cbi_rar(tmp_path):
     cbr_path = datadir / "fake_cbr.cbr"
     shutil.copy(cbr_path, tmp_path)
 
     tmp_comic = comicapi.comicarchive.ComicArchive(tmp_path / cbr_path.name)
+    assert tmp_comic.seems_to_be_a_comic_archive()
     assert tmp_comic.write_cbi(comicapi.genericmetadata.md_test)
 
     md = tmp_comic.read_cbi()
@@ -118,16 +122,8 @@ def test_invalid_zip(tmp_comic):
 
 
 archivers = [
-    comicapi.comicarchive.ZipArchiver,
-    comicapi.comicarchive.FolderArchiver,
-    pytest.param(
-        comicapi.comicarchive.SevenZipArchiver,
-        marks=pytest.mark.xfail(not (comicapi.comicarchive.z7_support), reason="7z support"),
-    ),
-    pytest.param(
-        comicapi.comicarchive.RarArchiver,
-        marks=pytest.mark.xfail(not (comicapi.comicarchive.rar_support and shutil.which("rar")), reason="rar support"),
-    ),
+    pytest.param(x.load(), marks=pytest.mark.xfail(not (x.load().enabled), reason="archiver not enabled"))
+    for x in entry_points(group="comicapi_archivers")
 ]
 
 
@@ -135,7 +131,7 @@ archivers = [
 def test_copy_from_archive(archiver, tmp_path, cbz):
     comic_path = tmp_path / cbz.path.with_suffix("").name
 
-    archive = archiver(comic_path)
+    archive = archiver.open(comic_path)
 
     assert archive.copy_from_archive(cbz.archiver)
 

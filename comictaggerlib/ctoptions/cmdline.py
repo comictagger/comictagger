@@ -18,6 +18,7 @@ from __future__ import annotations
 import argparse
 import logging
 import os
+import pathlib
 import platform
 
 import settngs
@@ -325,20 +326,23 @@ def validate_commandline_options(options: settngs.Config[settngs.Values], parser
     else:
         options[0].runtime_file_list = options[0].runtime_files
 
-    # take a crack at finding rar exe, if not set already
-    if options[0].general_rar_exe_path.strip() in ("", "rar"):
+    rar_path = pathlib.Path(options[0].general_rar_exe_path)
+    if rar_path.is_absolute() and rar_path.exists():
+        if rar_path.is_dir():
+            utils.add_to_path(str(rar_path))
+        else:
+            utils.add_to_path(str(rar_path.parent))
+
+    # take a crack at finding rar exe if it's not in the path
+    if not utils.which("rar"):
         if platform.system() == "Windows":
             # look in some likely places for Windows machines
             if os.path.exists(r"C:\Program Files\WinRAR\Rar.exe"):
-                options[0].general_rar_exe_path = r"C:\Program Files\WinRAR\Rar.exe"
+                utils.add_to_path(r"C:\Program Files\WinRAR")
             elif os.path.exists(r"C:\Program Files (x86)\WinRAR\Rar.exe"):
-                options[0].general_rar_exe_path = r"C:\Program Files (x86)\WinRAR\Rar.exe"
+                utils.add_to_path(r"C:\Program Files (x86)\WinRAR")
         else:
             if os.path.exists("/opt/homebrew/bin"):
                 utils.add_to_path("/opt/homebrew/bin")
-            # see if it's in the path of unix user
-            rarpath = utils.which("rar")
-            if rarpath is not None:
-                options[0].general_rar_exe_path = "rar"
 
     return options

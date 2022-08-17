@@ -4,17 +4,17 @@ import logging
 import os
 import pathlib
 
-from comicapi.archivers import UnknownArchiver
+from comicapi.archivers import Archiver
 
 logger = logging.getLogger(__name__)
 
 
-class FolderArchiver(UnknownArchiver):
+class FolderArchiver(Archiver):
 
     """Folder implementation"""
 
-    def __init__(self, path: pathlib.Path | str) -> None:
-        super().__init__(path)
+    def __init__(self) -> None:
+        super().__init__()
         self.comment_file_name = "ComicTaggerFolderComment.txt"
 
     def get_comment(self) -> str:
@@ -70,7 +70,7 @@ class FolderArchiver(UnknownArchiver):
             logger.error("Error listing files in folder archive [%s]: %s", e, self.path)
             return []
 
-    def copy_from_archive(self, other_archive: UnknownArchiver) -> bool:
+    def copy_from_archive(self, other_archive: Archiver) -> bool:
         """Replace the current zip with one copied from another archive"""
         try:
             for filename in other_archive.get_filename_list():
@@ -88,3 +88,10 @@ class FolderArchiver(UnknownArchiver):
             return False
         else:
             return True
+
+    def name(self) -> str:
+        return "Folder"
+
+    @classmethod
+    def is_valid(cls, path: pathlib.Path | str) -> bool:
+        return os.path.isdir(path)

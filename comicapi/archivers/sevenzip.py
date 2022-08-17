@@ -6,7 +6,7 @@ import pathlib
 import shutil
 import tempfile
 
-from comicapi.archivers import UnknownArchiver
+from comicapi.archivers import Archiver
 
 try:
     import py7zr
@@ -18,12 +18,13 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-class SevenZipArchiver(UnknownArchiver):
-
+class SevenZipArchiver(Archiver):
     """7Z implementation"""
 
-    def __init__(self, path: pathlib.Path | str) -> None:
-        super().__init__(path)
+    enabled = z7_support
+
+    def __init__(self) -> None:
+        super().__init__()
 
     # @todo: Implement Comment?
     def get_comment(self) -> str:
@@ -100,7 +101,7 @@ class SevenZipArchiver(UnknownArchiver):
             return False
         return True
 
-    def copy_from_archive(self, other_archive: UnknownArchiver) -> bool:
+    def copy_from_archive(self, other_archive: Archiver) -> bool:
         """Replace the current zip with one copied from another archive"""
         try:
             with py7zr.SevenZipFile(self.path, "w") as zout:
@@ -115,3 +116,16 @@ class SevenZipArchiver(UnknownArchiver):
             return False
         else:
             return True
+
+    def is_writable(self) -> bool:
+        return True
+
+    def extension(self) -> str:
+        return ".cb7"
+
+    def name(self) -> str:
+        return "Seven Zip"
+
+    @classmethod
+    def is_valid(cls, path: pathlib.Path | str) -> bool:
+        return py7zr.is_7zfile(path)

@@ -9,7 +9,7 @@ import subprocess
 import tempfile
 import time
 
-from comicapi.archivers import UnknownArchiver
+from comicapi.archivers import Archiver
 
 try:
     from unrar.cffi import rarfile
@@ -25,11 +25,13 @@ if not rar_support:
     logger.error("unrar-cffi unavailable")
 
 
-class RarArchiver(UnknownArchiver):
+class RarArchiver(Archiver):
     """RAR implementation"""
 
-    def __init__(self, path: pathlib.Path | str, rar_exe_path: str = "rar") -> None:
-        super().__init__(path)
+    enabled = rar_support
+
+    def __init__(self, rar_exe_path: str = "rar") -> None:
+        super().__init__()
         self.rar_exe_path = shutil.which(rar_exe_path) or ""
 
         # windows only, keeps the cmd.exe from popping up
@@ -199,7 +201,7 @@ class RarArchiver(UnknownArchiver):
                     return namelist
         return []
 
-    def copy_from_archive(self, other_archive: UnknownArchiver) -> bool:
+    def copy_from_archive(self, other_archive: Archiver) -> bool:
         """Replace the current archive with one copied from another archive"""
         try:
             with tempfile.TemporaryDirectory() as tmp_dir:
@@ -233,6 +235,21 @@ class RarArchiver(UnknownArchiver):
             return False
         else:
             return True
+
+    def is_writable(self) -> bool:
+        return bool(self.rar_exe_path and os.path.exists(self.rar_exe_path))
+
+    def extension(self) -> str:
+        return ".cbr"
+
+    def name(self) -> str:
+        return "RAR"
+
+    @classmethod
+    def is_valid(cls, path: pathlib.Path | str) -> bool:
+        if rar_support:
+            return rarfile.is_rarfile(str(path))
+        return False
 
     def get_rar_obj(self) -> rarfile.RarFile | None:
         if rar_support:

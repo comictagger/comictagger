@@ -23,12 +23,17 @@ from testing.comicdata import all_seed_imprints, seed_imprints
 
 
 @pytest.fixture
-def cbz():
+def cbz(load_archive_plugins):
     yield comicapi.comicarchive.ComicArchive(filenames.cbz_path)
 
 
 @pytest.fixture
-def tmp_comic(tmp_path):
+def load_archive_plugins():
+    comicapi.comicarchive.load_archive_plugins()
+
+
+@pytest.fixture
+def tmp_comic(tmp_path, load_archive_plugins):
     shutil.copy(filenames.cbz_path, tmp_path)
     yield comicapi.comicarchive.ComicArchive(tmp_path / filenames.cbz_path.name)
 

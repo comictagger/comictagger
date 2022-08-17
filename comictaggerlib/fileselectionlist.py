@@ -193,7 +193,7 @@ class FileSelectionList(QtWidgets.QWidget):
 
         QtCore.QCoreApplication.processEvents()
         first_added = None
-        rar_added = False
+        rar_added_ro = False
         self.twList.setSortingEnabled(False)
         for idx, f in enumerate(filelist):
             QtCore.QCoreApplication.processEvents()
@@ -206,8 +206,7 @@ class FileSelectionList(QtWidgets.QWidget):
             row = self.add_path_item(f)
             if row is not None:
                 ca = self.get_archive_by_row(row)
-                if ca and ca.is_rar():
-                    rar_added = True
+                rar_added_ro = bool(ca and ca.archiver.name() == "RAR" and not ca.archiver.is_writable())
                 if first_added is None:
                     first_added = row
 
@@ -224,7 +223,7 @@ class FileSelectionList(QtWidgets.QWidget):
             else:
                 QtWidgets.QMessageBox.information(self, "File/Folder Open", "No readable comic archives were found.")
 
-        if rar_added and not utils.which(self.options.general_rar_exe_path or "rar"):
+        if rar_added_ro:
             self.rar_ro_message()
 
         self.twList.setSortingEnabled(True)
@@ -339,14 +338,7 @@ class FileSelectionList(QtWidgets.QWidget):
             filename_item.setText(item_text)
             filename_item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
 
-            if fi.ca.is_sevenzip():
-                item_text = "7Z"
-            elif fi.ca.is_zip():
-                item_text = "ZIP"
-            elif fi.ca.is_rar():
-                item_text = "RAR"
-            else:
-                item_text = ""
+            item_text = fi.ca.archiver.name()
             type_item.setText(item_text)
             type_item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
 
