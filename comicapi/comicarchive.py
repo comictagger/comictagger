@@ -19,33 +19,42 @@ import logging
 import os
 import pathlib
 import shutil
-import zipfile
+import sys
 from typing import cast
 
 import natsort
 
 from comicapi import filenamelexer, filenameparser, utils
-from comicapi.archivers import FolderArchiver, RarArchiver, SevenZipArchiver, UnknownArchiver, ZipArchiver
+from comicapi.archivers import Archiver, UnknownArchiver, ZipArchiver
 from comicapi.comet import CoMet
 from comicapi.comicbookinfo import ComicBookInfo
 from comicapi.comicinfoxml import ComicInfoXml
 from comicapi.genericmetadata import GenericMetadata, PageType
 
-try:
-    import py7zr
-
-    z7_support = True
-except ImportError:
-    z7_support = False
-try:
-    from unrar.cffi import rarfile
-
-    rar_support = True
-except ImportError:
-    rar_support = False
-
+if sys.version_info < (3, 10):
+    from importlib_metadata import entry_points
+else:
+    from importlib.metadata import entry_points
 
 logger = logging.getLogger(__name__)
+
+archivers: list[type[Archiver]] = []
+
+
+def load_archive_plugins() -> None:
+    if not archivers:
+        builtin: list[type[Archiver]] = []
+        for arch in entry_points(group="comicapi.archiver"):
+            try:
+                archiver: type[Archiver] = arch.load()
+                if archiver.enabled:
+                    if arch.module.startswith("comicapi"):
+                        builtin.append(archiver)
+                    else:
+                        archivers.append(archiver)
+            except Exception:
+                logger.warning("Failed to load talker: %s", arch.name)
+        archivers.extend(builtin)
 
 
 class MetaDataStyle:
@@ -60,15 +69,7 @@ class ComicArchive:
     logo_data = b""
     pil_available = True
 
-    class ArchiveType:
-        SevenZip, Zip, Rar, Folder, Pdf, Unknown = list(range(6))
-
-    def __init__(
-        self,
-        path: pathlib.Path | str,
-        rar_exe_path: str = "rar",
-        default_image_path: pathlib.Path | str | None = None,
-    ) -> None:
+    def __init__(self, path: pathlib.Path | str, default_image_path: pathlib.Path | str | None = None) -> None:
         self.cbi_md: GenericMetadata | None = None
         self.cix_md: GenericMetadata | None = None
         self.comet_filename: str | None = None
@@ -80,42 +81,18 @@ class ComicArchive:
         self.page_count: int | None = None
         self.page_list: list[str] = []
 
-        self.rar_exe_path = shutil.which(rar_exe_path or "rar") or ""
         self.ci_xml_filename = "ComicInfo.xml"
         self.comet_default_filename = "CoMet.xml"
         self.reset_cache()
         self.default_image_path = default_image_path
 
-        # Use file extension to decide which archive test we do first
-        ext = self.path.suffix
+        self.archiver: Archiver = UnknownArchiver.open(self.path)
 
-        self.archive_type = self.ArchiveType.Unknown
-        self.archiver = UnknownArchiver(self.path)
-
-        if ext in [".cbr", ".rar"]:
-            if self.rar_test():
-                self.archive_type = self.ArchiveType.Rar
-                self.archiver = RarArchiver(self.path, rar_exe_path=self.rar_exe_path)
-
-            elif self.zip_test():
-                self.archive_type = self.ArchiveType.Zip
-                self.archiver = ZipArchiver(self.path)
-        else:
-            if self.sevenzip_test():
-                self.archive_type = self.ArchiveType.SevenZip
-                self.archiver = SevenZipArchiver(self.path)
-
-            elif self.zip_test():
-                self.archive_type = self.ArchiveType.Zip
-                self.archiver = ZipArchiver(self.path)
-
-            elif self.rar_test():
-                self.archive_type = self.ArchiveType.Rar
-                self.archiver = RarArchiver(self.path, rar_exe_path=self.rar_exe_path)
-
-            elif self.folder_test():
-                self.archive_type = self.ArchiveType.Folder
-                self.archiver = FolderArchiver(self.path)
+        load_archive_plugins()
+        for archiver in archivers:
+            if archiver.is_valid(self.path):
+                self.archiver = archiver.open(self.path)
+                break
 
         if not ComicArchive.logo_data and self.default_image_path:
             with open(self.default_image_path, mode="rb") as fd:
@@ -147,65 +124,34 @@ class ComicArchive:
         self.path = new_path
         self.archiver.path = pathlib.Path(path)
 
-    def sevenzip_test(self) -> bool:
-        return z7_support and py7zr.is_7zfile(self.path)
-
-    def zip_test(self) -> bool:
-        return zipfile.is_zipfile(self.path)
-
-    def rar_test(self) -> bool:
-        return rar_support and rarfile.is_rarfile(str(self.path))
-
-    def folder_test(self) -> bool:
-        return self.path.is_dir()
-
-    def is_sevenzip(self) -> bool:
-        return self.archive_type == self.ArchiveType.SevenZip
-
-    def is_zip(self) -> bool:
-        return self.archive_type == self.ArchiveType.Zip
-
-    def is_rar(self) -> bool:
-        return self.archive_type == self.ArchiveType.Rar
-
-    def is_pdf(self) -> bool:
-        return self.archive_type == self.ArchiveType.Pdf
-
-    def is_folder(self) -> bool:
-        return self.archive_type == self.ArchiveType.Folder
-
-    def is_writable(self, check_rar_status: bool = True) -> bool:
-        if self.archive_type == self.ArchiveType.Unknown:
+    def is_writable(self, check_archive_status: bool = True) -> bool:
+        if isinstance(self.archiver, UnknownArchiver):
             return False
 
-        if check_rar_status and self.is_rar() and not self.rar_exe_path:
+        if check_archive_status and not self.archiver.is_writable():
             return False
 
-        if not os.access(self.path, os.W_OK):
-            return False
-
-        if (self.archive_type != self.ArchiveType.Folder) and (not os.access(self.path.parent, os.W_OK)):
+        if not (os.access(self.path, os.W_OK) or os.access(self.path.parent, os.W_OK)):
             return False
 
         return True
 
     def is_writable_for_style(self, data_style: int) -> bool:
+        return not (data_style == MetaDataStyle.CBI and not self.archiver.supports_comment)
 
-        if (self.is_rar() or self.is_sevenzip()) and data_style == MetaDataStyle.CBI:
-            return False
-
-        return self.is_writable()
+    def is_zip(self) -> bool:
+        return self.archiver.name() == "ZIP"
 
     def seems_to_be_a_comic_archive(self) -> bool:
-        if (self.is_zip() or self.is_rar() or self.is_sevenzip() or self.is_folder()) and (
-            self.get_number_of_pages() > 0
-        ):
+        if not (isinstance(self.archiver, UnknownArchiver)) and self.get_number_of_pages() > 0:
             return True
 
         return False
 
-    def read_metadata(self, style: int) -> GenericMetadata:
+    def extension(self) -> str:
+        return self.archiver.extension()
 
+    def read_metadata(self, style: int) -> GenericMetadata:
         if style == MetaDataStyle.CIX:
             return self.read_cix()
         if style == MetaDataStyle.CBI:
@@ -324,7 +270,6 @@ class ComicArchive:
 
             # seems like some archive creators are on Windows, and don't know about case-sensitivity!
             if sort_list:
-
                 files = cast(list[str], natsort.os_sorted(files))
 
             # make a sub-list of image files
@@ -456,7 +401,6 @@ class ComicArchive:
 
     def has_cix(self) -> bool:
         if self._has_cix is None:
-
             if not self.seems_to_be_a_comic_archive():
                 self._has_cix = False
             elif self.ci_xml_filename in self.archiver.get_filename_list():
@@ -503,7 +447,6 @@ class ComicArchive:
         return raw_comet
 
     def write_comet(self, metadata: GenericMetadata) -> bool:
-
         if metadata is not None:
             if not self.has_comet():
                 self.comet_filename = self.comet_default_filename
@@ -602,7 +545,6 @@ class ComicArchive:
         remove_publisher: bool = False,
         split_words: bool = False,
     ) -> GenericMetadata:
-
         metadata = GenericMetadata()
 
         filename = self.path.name
@@ -651,10 +593,10 @@ class ComicArchive:
 
         return metadata
 
-    def export_as_zip(self, zip_filename: pathlib.Path | str) -> bool:
-        if self.archive_type == self.ArchiveType.Zip:
+    def export_as_zip(self, zip_filename: pathlib.Path) -> bool:
+        if self.archiver.name() == "ZIP":
             # nothing to do, we're already a zip
             return True
 
-        zip_archiver = ZipArchiver(zip_filename)
+        zip_archiver = ZipArchiver.open(zip_filename)
         return zip_archiver.copy_from_archive(self.archiver)

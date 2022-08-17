@@ -9,17 +9,17 @@ import tempfile
 import zipfile
 from typing import cast
 
-from comicapi.archivers import UnknownArchiver
+from comicapi.archivers import Archiver
 
 logger = logging.getLogger(__name__)
 
 
-class ZipArchiver(UnknownArchiver):
+class ZipArchiver(Archiver):
 
     """ZIP implementation"""
 
-    def __init__(self, path: pathlib.Path | str) -> None:
-        super().__init__(path)
+    def __init__(self) -> None:
+        super().__init__()
 
     def get_comment(self) -> str:
         with zipfile.ZipFile(self.path, "r") as zf:
@@ -99,7 +99,7 @@ class ZipArchiver(UnknownArchiver):
             return False
         return True
 
-    def copy_from_archive(self, other_archive: UnknownArchiver) -> bool:
+    def copy_from_archive(self, other_archive: Archiver) -> bool:
         """Replace the current zip with one copied from another archive"""
         try:
             with zipfile.ZipFile(self.path, mode="w", allowZip64=True) as zout:
@@ -119,6 +119,19 @@ class ZipArchiver(UnknownArchiver):
         else:
             return True
 
+    def is_writable(self) -> bool:
+        return True
+
+    def extension(self) -> str:
+        return ".cbz"
+
+    def name(self) -> str:
+        return "ZIP"
+
+    @classmethod
+    def is_valid(cls, path: pathlib.Path) -> bool:
+        return zipfile.is_zipfile(path)
+
     def write_zip_comment(self, filename: pathlib.Path | str, comment: str) -> bool:
         """
         This is a custom function for writing a comment to a zip file,
@@ -135,7 +148,6 @@ class ZipArchiver(UnknownArchiver):
 
         try:
             with open(filename, mode="r+b") as file:
-
                 # the starting position, relative to EOF
                 pos = -4
                 found = False
@@ -154,7 +166,6 @@ class ZipArchiver(UnknownArchiver):
                         pos = pos - 1
 
                 if found:
-
                     # now skip forward 20 bytes to the comment length word
                     pos += 20
                     file.seek(pos, 2)

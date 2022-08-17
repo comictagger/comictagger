@@ -269,7 +269,10 @@ class SettingsWindow(QtWidgets.QDialog):
 
     def settings_to_form(self) -> None:
         # Copy values from settings to form
-        self.leRarExePath.setText(self.options[0].general_rar_exe_path)
+        if "archiver" in self.options[1] and "rar" in self.options[1]["archiver"]:
+            self.leRarExePath.setText(getattr(self.options[0], self.options[1]["archiver"]["rar"].internal_name))
+        else:
+            self.leRarExePath.setEnabled(False)
         self.sbNameMatchIdentifyThresh.setValue(self.options[0].identifier_series_match_identify_thresh)
         self.sbNameMatchSearchThresh.setValue(self.options[0].comicvine_series_match_search_thresh)
         self.tePublisherFilter.setPlainText("\n".join(self.options[0].identifier_publisher_filter))
@@ -374,11 +377,12 @@ class SettingsWindow(QtWidgets.QDialog):
                 )
 
         # Copy values from form to settings and save
-        self.options[0].general_rar_exe_path = str(self.leRarExePath.text())
+        if "archiver" in self.options[1] and "rar" in self.options[1]["archiver"]:
+            setattr(self.options[0], self.options[1]["archiver"]["rar"].internal_name, str(self.leRarExePath.text()))
 
-        # make sure rar program is now in the path for the rar class
-        if self.options[0].general_rar_exe_path:
-            utils.add_to_path(os.path.dirname(self.options[0].general_rar_exe_path))
+            # make sure rar program is now in the path for the rar class
+            if self.options[0].archivers_rar:
+                utils.add_to_path(os.path.dirname(str(self.leRarExePath.text())))
 
         if not str(self.leIssueNumPadding.text()).isdigit():
             self.leIssueNumPadding.setText("0")
