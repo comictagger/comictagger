@@ -21,7 +21,7 @@ import os
 import pathlib
 import string
 import sys
-from typing import Any, cast
+from typing import Any, NamedTuple, cast
 
 from pathvalidate import sanitize_filename
 
@@ -30,6 +30,16 @@ from comicapi.genericmetadata import GenericMetadata
 from comicapi.issuestring import IssueString
 
 logger = logging.getLogger(__name__)
+
+
+class Replacements(NamedTuple):
+    literal_text: set[tuple[str, str]]
+    format_value: set[tuple[str, str]]
+
+
+REPLACEMENTS = Replacements(
+    literal_text={(": ", " - "), (":", "-")}, format_value={(": ", " - "), (":", "-"), ("/", "-"), ("\\", "-")}
+)
 
 
 def get_rename_dir(ca: ComicArchive, rename_dir: str | pathlib.Path | None) -> pathlib.Path:
@@ -42,15 +52,23 @@ def get_rename_dir(ca: ComicArchive, rename_dir: str | pathlib.Path | None) -> p
 
 
 class MetadataFormatter(string.Formatter):
-    def __init__(self, smart_cleanup: bool = False, platform: str = "auto") -> None:
+    def __init__(
+        self, smart_cleanup: bool = False, platform: str = "auto", replacements: Replacements = REPLACEMENTS
+    ) -> None:
         super().__init__()
         self.smart_cleanup = smart_cleanup
         self.platform = platform.casefold()
+        self.replacements = replacements
 
     def format_field(self, value: Any, format_spec: str) -> str:
         if value is None or value == "":
             return ""
         return cast(str, super().format_field(value, format_spec))
+
+    def handle_replacements(self, string: str, replacements: set[tuple[str, str]]) -> str:
+        for f, r in replacements:
+            string = string.replace(f, r)
+        return string
 
     def _vformat(
         self,
@@ -73,9 +91,7 @@ class MetadataFormatter(string.Formatter):
                     literal_text = literal_text.lstrip("-_)}]#")
                 if self.smart_cleanup:
                     if self.platform in ["universal", "windows"] or sys.platform.casefold() in ["windows"]:
-                        # colons get special treatment
-                        literal_text = literal_text.replace(": ", " - ")
-                        literal_text = literal_text.replace(":", "-")
+                        literal_text = self.handle_replacements(literal_text, self.replacements.literal_text)
                     lspace = literal_text[0].isspace() if literal_text else False
                     rspace = literal_text[-1].isspace() if literal_text else False
                     literal_text = " ".join(literal_text.split())
@@ -121,6 +137,9 @@ class MetadataFormatter(string.Formatter):
                             result[-1], _, _ = result[-1].rstrip().rpartition(" ")
                         result[-1] = result[-1].rstrip("-_({[#")
                 if self.smart_cleanup:
+                    if self.platform in ["universal", "windows"] or sys.platform.casefold() in ["windows"]:
+                        # colons and slashes get special treatment
+                        fmt_obj = self.handle_replacements(fmt_obj, self.replacements.format_value)
                     fmt_obj = " ".join(fmt_obj.split())
                     fmt_obj = str(sanitize_filename(fmt_obj, platform=self.platform))
                 result.append(fmt_obj)

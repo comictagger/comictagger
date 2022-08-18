@@ -786,6 +786,20 @@ rnames = [
         does_not_raise(),
     ),
     (
+        "{title} {web_link}",  # Ensure colon is replaced in metadata
+        False,
+        "universal",
+        "Anda's Game https---comicvine.gamespot.com-cory-doctorows-futuristic-tales-of-the-here-and-no-4000-140529-.cbz",
+        does_not_raise(),
+    ),
+    (
+        "{series}:{title} #{issue} ({year})",  # on windows the ':' is replaced
+        False,
+        "universal",
+        "Cory Doctorow's Futuristic Tales of the Here and Now-Anda's Game #001 (2007).cbz",
+        does_not_raise(),
+    ),
+    (
         "{series}: {title} #{issue} ({year})",  # on windows the ':' is replaced
         False,
         "universal",
