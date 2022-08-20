@@ -20,10 +20,9 @@ import logging
 import os
 import pathlib
 import string
-import sys
 from typing import Any, NamedTuple, cast
 
-from pathvalidate import sanitize_filename
+from pathvalidate import Platform, normalize_platform, sanitize_filename
 
 from comicapi.comicarchive import ComicArchive
 from comicapi.genericmetadata import GenericMetadata
@@ -57,7 +56,7 @@ class MetadataFormatter(string.Formatter):
     ) -> None:
         super().__init__()
         self.smart_cleanup = smart_cleanup
-        self.platform = platform.casefold()
+        self.platform = normalize_platform(platform)
         self.replacements = replacements
 
     def format_field(self, value: Any, format_spec: str) -> str:
@@ -90,7 +89,7 @@ class MetadataFormatter(string.Formatter):
                 if lstrip:
                     literal_text = literal_text.lstrip("-_)}]#")
                 if self.smart_cleanup:
-                    if self.platform in ["universal", "windows"] or sys.platform.casefold() in ["windows"]:
+                    if self.platform in [Platform.UNIVERSAL, Platform.WINDOWS]:
                         literal_text = self.handle_replacements(literal_text, self.replacements.literal_text)
                     lspace = literal_text[0].isspace() if literal_text else False
                     rspace = literal_text[-1].isspace() if literal_text else False
@@ -137,7 +136,7 @@ class MetadataFormatter(string.Formatter):
                             result[-1], _, _ = result[-1].rstrip().rpartition(" ")
                         result[-1] = result[-1].rstrip("-_({[#")
                 if self.smart_cleanup:
-                    if self.platform in ["universal", "windows"] or sys.platform.casefold() in ["windows"]:
+                    if self.platform in [Platform.UNIVERSAL, Platform.WINDOWS]:
                         # colons and slashes get special treatment
                         fmt_obj = self.handle_replacements(fmt_obj, self.replacements.format_value)
                     fmt_obj = " ".join(fmt_obj.split())

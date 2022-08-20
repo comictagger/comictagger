@@ -683,7 +683,7 @@ class ComicArchive:
         self._has_cbi: bool | None = None
         self._has_cix: bool | None = None
         self._has_comet: bool | None = None
-        self.path = pathlib.Path(path)
+        self.path = pathlib.Path(path).absolute()
         self.page_count: int | None = None
         self.page_list: list[str] = []
 

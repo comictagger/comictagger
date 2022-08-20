@@ -472,7 +472,7 @@ def process_file_cli(
             match_results.good_matches.append(str(ca.path.absolute()))
 
     elif opts.rename:
-
+        original_path = ca.path
         msg_hdr = ""
         if batch_mode:
             msg_hdr = f"{ca.path}: "
@@ -529,7 +529,7 @@ def process_file_cli(
         else:
             suffix = " (dry-run, no change)"
 
-        print(f"renamed '{os.path.basename(ca.path)}' -> '{new_name}' {suffix}")
+        print(f"renamed '{original_path.name}' -> '{new_name}' {suffix}")
 
     elif opts.export_to_zip:
         msg_hdr = ""

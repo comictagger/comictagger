@@ -167,12 +167,12 @@ def titles_match(search_title: str, record_title: str, threshold: int = 90) -> b
 
 
 def unique_file(file_name: pathlib.Path) -> pathlib.Path:
-    name = file_name.name
+    name = file_name.stem
     counter = 1
     while True:
         if not file_name.exists():
             return file_name
-        file_name = file_name.with_name(name + " (" + str(counter) + ")")
+        file_name = file_name.with_stem(name + " (" + str(counter) + ")")
         counter += 1
 
 

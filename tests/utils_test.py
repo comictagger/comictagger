@@ -77,11 +77,11 @@ def test_get_language(value, result):
 
 
 def test_unique_file(tmp_path):
-    file = tmp_path / "test"
+    file = tmp_path / "test.cbz"
     assert file == comicapi.utils.unique_file(file)
 
     file.mkdir()
-    assert (tmp_path / "test (1)") == comicapi.utils.unique_file(file)
+    assert (tmp_path / "test (1).cbz") == comicapi.utils.unique_file(file)
 
 
 def test_add_to_path(monkeypatch):
