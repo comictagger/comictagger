@@ -33,12 +33,12 @@ logger = logging.getLogger(__name__)
 
 
 class Replacements(NamedTuple):
-    literal_text: set[tuple[str, str]]
-    format_value: set[tuple[str, str]]
+    literal_text: list[tuple[str, str]]
+    format_value: list[tuple[str, str]]
 
 
 REPLACEMENTS = Replacements(
-    literal_text={(": ", " - "), (":", "-")}, format_value={(": ", " - "), (":", "-"), ("/", "-"), ("\\", "-")}
+    literal_text=[(": ", " - "), (":", "-")], format_value=[(": ", " - "), (":", "-"), ("/", "-"), ("\\", "-")]
 )
 
 
@@ -65,7 +65,7 @@ class MetadataFormatter(string.Formatter):
             return ""
         return cast(str, super().format_field(value, format_spec))
 
-    def handle_replacements(self, string: str, replacements: set[tuple[str, str]]) -> str:
+    def handle_replacements(self, string: str, replacements: list[tuple[str, str]]) -> str:
         for f, r in replacements:
             string = string.replace(f, r)
         return string
