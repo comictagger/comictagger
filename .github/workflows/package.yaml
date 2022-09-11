@@ -41,10 +41,23 @@ jobs:
         run: |
           choco install -y zip
         if: runner.os == 'Windows'
+      - name: Install macos dependencies
+        run: |
+          brew install icu4c pkg-config
+        shell: bash
+        if: runner.os == 'macOS'
+      - name: Install linux dependencies
+        run: |
+          sudo apt-get install pkg-config libicu-dev
+        shell: bash
+        if: runner.os == 'Linux'
 
       - name: Build, Install and Test PyPi packages
         run: |
           make clean pydist
+          export PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig";
+          export PATH="/usr/local/opt/icu4c/bin:/usr/local/opt/icu4c/sbin:$PATH"
+          python3 -m pip install --no-binary=:pyicu: pyicu
           python -m pip install "dist/$(python setup.py --fullname)-py3-none-any.whl[all]"
           echo "CT_FULL_NAME=$(python setup.py --fullname)" >> $GITHUB_ENV
           python -m flake8
