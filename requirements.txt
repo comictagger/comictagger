@@ -5,6 +5,7 @@ pathvalidate
 pillow>=9.1.0
 py7zr
 pycountry
+pyicu; sys_platform == 'linux' or sys_platform == 'darwin'
 requests==2.*
 text2digits
 thefuzz>=0.19.0
