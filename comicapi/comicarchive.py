@@ -148,7 +148,7 @@ class SevenZipArchiver(UnknownArchiver):
     def get_filename_list(self) -> list[str]:
         try:
             with py7zr.SevenZipFile(self.path, "r") as zf:
-                namelist: list[str] = zf.getnames()
+                namelist: list[str] = [file.filename for file in zf.list() if not file.is_directory]
 
             return namelist
         except (py7zr.Bad7zFile, OSError) as e:
@@ -248,7 +248,7 @@ class ZipArchiver(UnknownArchiver):
     def get_filename_list(self) -> list[str]:
         try:
             with zipfile.ZipFile(self.path, mode="r") as zf:
-                namelist = zf.namelist()
+                namelist = [file.filename for file in zf.infolist() if not file.is_dir()]
             return namelist
         except (zipfile.BadZipfile, OSError) as e:
             logger.error("Error listing files in zip archive [%s]: %s", e, self.path)
@@ -934,7 +934,7 @@ class ComicArchive:
             # seems like some archive creators are on Windows, and don't know about case-sensitivity!
             if sort_list:
 
-                files = cast(list[str], natsort.natsorted(files, alg=natsort.ns.IC | natsort.ns.I | natsort.ns.U))
+                files = cast(list[str], natsort.os_sorted(files))
 
             # make a sub-list of image files
             self.page_list = []
