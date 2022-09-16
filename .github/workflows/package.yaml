@@ -46,14 +46,14 @@ jobs:
           brew install icu4c pkg-config
           export PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig";
           export PATH="/usr/local/opt/icu4c/bin:/usr/local/opt/icu4c/sbin:$PATH"
-          python -m pip install --no-binary=:pyicu: pyicu
+          python -m pip install --no-binary=pyicu pyicu
         if: runner.os == 'macOS'
       - name: Install linux dependencies
         run: |
           sudo apt-get install pkg-config libicu-dev
           export PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig";
           export PATH="/usr/local/opt/icu4c/bin:/usr/local/opt/icu4c/sbin:$PATH"
-          python -m pip install --no-binary=:pyicu: pyicu
+          python -m pip install --no-binary=pyicu pyicu
         if: runner.os == 'Linux'
 
       - name: Build, Install and Test PyPi packages
