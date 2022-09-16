@@ -37,7 +37,7 @@ class Replacements(NamedTuple):
 
 
 REPLACEMENTS = Replacements(
-    literal_text=[(": ", " - "), (":", "-")], format_value=[(": ", " - "), (":", "-"), ("/", "-"), ("\\", "-")]
+    literal_text=[(": ", " - "), (":", "-")], format_value=[(": ", " - "), (":", "-")]
 )
 
 
@@ -137,7 +137,7 @@ class MetadataFormatter(string.Formatter):
                         result[-1] = result[-1].rstrip("-_({[#")
                 if self.smart_cleanup:
                     if self.platform in [Platform.UNIVERSAL, Platform.WINDOWS]:
-                        # colons and slashes get special treatment
+                        # colons get special treatment
                         fmt_obj = self.handle_replacements(fmt_obj, self.replacements.format_value)
                     fmt_obj = " ".join(fmt_obj.split())
                     fmt_obj = str(sanitize_filename(fmt_obj, platform=self.platform))
@@ -199,18 +199,14 @@ class FileRenamer:
             md_dict["month_name"] = ""
             md_dict["month_abbr"] = ""
 
-        new_basename = ""
-        for component in pathlib.PureWindowsPath(template).parts:
+        for component in pathlib.Path(template).parts:
             new_basename = str(
                 sanitize_filename(fmt.vformat(component, args=[], kwargs=Default(md_dict)), platform=self.platform)
             ).strip()
             new_name = os.path.join(new_name, new_basename)
 
         new_name += ext
-        new_basename += ext
 
         # remove padding
         md.issue = IssueString(md.issue).as_string()
-        if self.move:
-            return new_name.strip()
-        return new_basename.strip()
+        return new_name.strip()
