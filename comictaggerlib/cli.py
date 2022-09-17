@@ -525,7 +525,10 @@ def process_file_cli(
         suffix = ""
         if not opts.dryrun:
             # rename the file
-            ca.rename(utils.unique_file(full_path))
+            try:
+                ca.rename(utils.unique_file(full_path))
+            except OSError:
+                logger.exception("Failed to rename comic archive: %s", ca.path)
         else:
             suffix = " (dry-run, no change)"
 

@@ -793,6 +793,13 @@ rnames = [
         does_not_raise(),
     ),
     (
+        "{title} {web_link}",  # Ensure slashes are replaced in metadata on linux/macos
+        False,
+        "Linux",
+        "Anda's Game https:--comicvine.gamespot.com-cory-doctorows-futuristic-tales-of-the-here-and-no-4000-140529-.cbz",
+        does_not_raise(),
+    ),
+    (
         "{series}:{title} #{issue} ({year})",  # on windows the ':' is replaced
         False,
         "universal",

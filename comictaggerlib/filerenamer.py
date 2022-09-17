@@ -31,13 +31,28 @@ from comicapi.issuestring import IssueString
 logger = logging.getLogger(__name__)
 
 
+class Replacement(NamedTuple):
+    find: str
+    replce: str
+    strict_only: bool
+
+
 class Replacements(NamedTuple):
-    literal_text: list[tuple[str, str]]
-    format_value: list[tuple[str, str]]
+    literal_text: list[Replacement]
+    format_value: list[Replacement]
 
 
 REPLACEMENTS = Replacements(
-    literal_text=[(": ", " - "), (":", "-")], format_value=[(": ", " - "), (":", "-"), ("/", "-"), ("\\", "-")]
+    literal_text=[
+        Replacement(": ", " - ", True),
+        Replacement(":", "-", True),
+    ],
+    format_value=[
+        Replacement(": ", " - ", True),
+        Replacement(":", "-", True),
+        Replacement("/", "-", False),
+        Replacement("\\", "-", True),
+    ],
 )
 
 
@@ -64,10 +79,14 @@ class MetadataFormatter(string.Formatter):
             return ""
         return cast(str, super().format_field(value, format_spec))
 
-    def handle_replacements(self, string: str, replacements: list[tuple[str, str]]) -> str:
-        for f, r in replacements:
-            string = string.replace(f, r)
+    def handle_replacements(self, string: str, replacements: list[Replacement]) -> str:
+        for find, replace, strict_only in replacements:
+            if self.is_strict() or not strict_only:
+                string = string.replace(find, replace)
         return string
+
+    def is_strict(self) -> bool:
+        return self.platform in [Platform.UNIVERSAL, Platform.WINDOWS]
 
     def _vformat(
         self,
@@ -89,8 +108,7 @@ class MetadataFormatter(string.Formatter):
                 if lstrip:
                     literal_text = literal_text.lstrip("-_)}]#")
                 if self.smart_cleanup:
-                    if self.platform in [Platform.UNIVERSAL, Platform.WINDOWS]:
-                        literal_text = self.handle_replacements(literal_text, self.replacements.literal_text)
+                    literal_text = self.handle_replacements(literal_text, self.replacements.literal_text)
                     lspace = literal_text[0].isspace() if literal_text else False
                     rspace = literal_text[-1].isspace() if literal_text else False
                     literal_text = " ".join(literal_text.split())
@@ -136,9 +154,8 @@ class MetadataFormatter(string.Formatter):
                             result[-1], _, _ = result[-1].rstrip().rpartition(" ")
                         result[-1] = result[-1].rstrip("-_({[#")
                 if self.smart_cleanup:
-                    if self.platform in [Platform.UNIVERSAL, Platform.WINDOWS]:
-                        # colons and slashes get special treatment
-                        fmt_obj = self.handle_replacements(fmt_obj, self.replacements.format_value)
+                    # colons and slashes get special treatment
+                    fmt_obj = self.handle_replacements(fmt_obj, self.replacements.format_value)
                     fmt_obj = " ".join(fmt_obj.split())
                     fmt_obj = str(sanitize_filename(fmt_obj, platform=self.platform))
                 result.append(fmt_obj)

@@ -98,3 +98,15 @@ def test_rename(tmp_comic, tmp_path):
     assert not old_path.exists()
     assert tmp_comic.path.exists()
     assert tmp_comic.path != old_path
+
+
+def test_rename_ro_dest(tmp_comic, tmp_path):
+    old_path = tmp_comic.path
+    dest = tmp_path / "tmp"
+    dest.mkdir(mode=0o000)
+    with pytest.raises(OSError):
+        tmp_comic.rename(dest / "test.cbz")
+    dest.chmod(mode=0o777)
+    assert old_path.exists()
+    assert tmp_comic.path.exists()
+    assert tmp_comic.path == old_path
