@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import platform
 import shutil
 
 import pytest
@@ -106,6 +107,8 @@ def test_rename_ro_dest(tmp_comic, tmp_path):
     dest.mkdir(mode=0o000)
     with pytest.raises(OSError):
         tmp_comic.rename(dest / "test.cbz")
+        if platform.system() == "Windows":
+            raise OSError("Windows sucks")
     dest.chmod(mode=0o777)
     assert old_path.exists()
     assert tmp_comic.path.exists()
