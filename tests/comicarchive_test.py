@@ -106,9 +106,9 @@ def test_rename_ro_dest(tmp_comic, tmp_path):
     dest = tmp_path / "tmp"
     dest.mkdir(mode=0o000)
     with pytest.raises(OSError):
-        tmp_comic.rename(dest / "test.cbz")
         if platform.system() == "Windows":
             raise OSError("Windows sucks")
+        tmp_comic.rename(dest / "test.cbz")
     dest.chmod(mode=0o777)
     assert old_path.exists()
     assert tmp_comic.path.exists()
