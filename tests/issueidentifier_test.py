@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import io
+
 import pytest
+from PIL import Image
 
 import comicapi.comicarchive
 import comicapi.issuestring
@@ -73,3 +76,24 @@ def test_search(cbz, options, comicvine_api):
     for r, e in zip(results, [cv_expected]):
         del r["url_image_hash"]
         assert r == e
+
+
+def test_crop_border(cbz, options, comicvine_api):
+    settings, definitions = options
+    ii = comictaggerlib.issueidentifier.IssueIdentifier(cbz, settings, comicvine_api)
+
+    # This creates a white square centered on a black background
+    bg = Image.new("RGBA", (100, 100), (0, 0, 0, 255))
+    fg = Image.new("RGBA", (50, 50), (255, 255, 255, 255))
+    bg.paste(fg, (bg.width // 2 - (fg.width // 2), bg.height // 2 - (fg.height // 2)))
+    output = io.BytesIO()
+    bg.save(output, format="PNG")
+    image_data = output.getvalue()
+    output.close()
+
+    cropped = ii.crop_border(image_data, 49)
+
+    im = Image.open(io.BytesIO(cropped))
+    assert im.width == fg.width
+    assert im.height == fg.height
+    assert list(im.getdata()) == list(fg.getdata())
