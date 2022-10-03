@@ -47,6 +47,56 @@ def test_save_cix(tmp_comic):
     md = tmp_comic.read_cix()
 
 
+def test_save_cbi(tmp_comic):
+    md = tmp_comic.read_cix()
+    md.set_default_page_list(tmp_comic.get_number_of_pages())
+
+    assert tmp_comic.write_cbi(md)
+
+    md = tmp_comic.read_cbi()
+
+
+def test_save_cix_rar(tmp_path):
+    cbr_path = datadir / "fake_cbr.cbr"
+    shutil.copy(cbr_path, tmp_path)
+
+    tmp_comic = comicapi.comicarchive.ComicArchive(tmp_path / cbr_path.name)
+    assert tmp_comic.write_cix(comicapi.genericmetadata.md_test)
+
+    md = tmp_comic.read_cix()
+    assert md.replace(pages=[]) == comicapi.genericmetadata.md_test.replace(pages=[])
+
+
+def test_save_cbi_rar(tmp_path):
+    cbr_path = datadir / "fake_cbr.cbr"
+    shutil.copy(cbr_path, tmp_path)
+
+    tmp_comic = comicapi.comicarchive.ComicArchive(tmp_path / cbr_path.name)
+    assert tmp_comic.write_cbi(comicapi.genericmetadata.md_test)
+
+    md = tmp_comic.read_cbi()
+    assert md.replace(pages=[]) == comicapi.genericmetadata.md_test.replace(
+        pages=[],
+        day=None,
+        alternate_series=None,
+        alternate_number=None,
+        alternate_count=None,
+        imprint=None,
+        notes=None,
+        web_link=None,
+        format=None,
+        manga=None,
+        page_count=None,
+        maturity_rating=None,
+        story_arc=None,
+        series_group=None,
+        scan_info=None,
+        characters=None,
+        teams=None,
+        locations=None,
+    )
+
+
 def test_page_type_save(tmp_comic):
     md = tmp_comic.read_cix()
     t = md.pages[0]

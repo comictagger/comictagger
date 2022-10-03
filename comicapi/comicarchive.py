@@ -379,14 +379,15 @@ class RarArchiver(UnknownArchiver):
 
     def get_comment(self) -> str:
         rarc = self.get_rar_obj()
-        return str(rarc.comment) if rarc else ""
+        return rarc.comment.decode("utf-8") if rarc else ""
 
     def set_comment(self, comment: str) -> bool:
         if rar_support and self.rar_exe_path:
             try:
                 # write comment to temp file
-                with tempfile.NamedTemporaryFile() as tmp_file:
-                    tmp_file.write(comment.encode("utf-8"))
+                with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmp_dir:
+                    tmp_file = pathlib.Path(tmp_dir) / "rar_comment.txt"
+                    tmp_file.write_text(comment, encoding="utf-8")
 
                     working_dir = os.path.dirname(os.path.abspath(self.path))
 
@@ -396,7 +397,7 @@ class RarArchiver(UnknownArchiver):
                         "c",
                         f"-w{working_dir}",
                         "-c-",
-                        f"-z{tmp_file.name}",
+                        f"-z{tmp_file}",
                         str(self.path),
                     ]
                     subprocess.run(

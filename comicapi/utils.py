@@ -193,18 +193,15 @@ def get_language_from_iso(iso: str | None) -> str | None:
     return languages[iso]
 
 
-def get_language(string: str | None) -> str | None:
+def get_language_iso(string: str | None) -> str | None:
     if string is None:
         return None
-    string = string.casefold()
+    lang = string.casefold()
 
-    lang = get_language_from_iso(string)
-
-    if lang is None:
-        try:
-            return str(pycountry.languages.lookup(string).name)
-        except LookupError:
-            return None
+    try:
+        return getattr(pycountry.languages.lookup(string), "alpha_2", None)
+    except LookupError:
+        pass
     return lang
 
 

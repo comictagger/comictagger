@@ -112,8 +112,8 @@ class ComicBookInfo:
             metadata.credits = []
 
         # need the language string to be ISO
-        if metadata.language is not None:
-            metadata.language = utils.get_language(metadata.language)
+        if metadata.language:
+            metadata.language = utils.get_language_iso(metadata.language)
 
         metadata.is_empty = False
 

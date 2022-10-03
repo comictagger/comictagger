@@ -18,7 +18,6 @@ def test_cbi():
     md = CBI.metadata_from_string(string)
     md_test = comicapi.genericmetadata.md_test.replace(
         day=None,
-        language="English",
         page_count=None,
         maturity_rating=None,
         story_arc=None,

@@ -63,17 +63,18 @@ def test_xlate(value, result):
 
 
 language_values = [
-    ("en", "English"),
-    ("EN", "English"),
-    ("En", "English"),
-    ("", None),
+    ("english", "en"),
+    ("ENGLISH", "en"),
+    ("EnglisH", "en"),
+    ("", ""),
+    ("aaa", None),  # does not have a 2-letter code
     (None, None),
 ]
 
 
 @pytest.mark.parametrize("value, result", language_values)
-def test_get_language(value, result):
-    assert result == comicapi.utils.get_language(value)
+def test_get_language_iso(value, result):
+    assert result == comicapi.utils.get_language_iso(value)
 
 
 def test_unique_file(tmp_path):
