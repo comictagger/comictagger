@@ -385,7 +385,7 @@ class RarArchiver(UnknownArchiver):
         if rar_support and self.rar_exe_path:
             try:
                 # write comment to temp file
-                with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmp_dir:
+                with tempfile.TemporaryDirectory() as tmp_dir:
                     tmp_file = pathlib.Path(tmp_dir) / "rar_comment.txt"
                     tmp_file.write_text(comment, encoding="utf-8")
 
