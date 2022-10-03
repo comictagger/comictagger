@@ -56,6 +56,7 @@ def test_save_cbi(tmp_comic):
     md = tmp_comic.read_cbi()
 
 
+@pytest.mark.xfail(not (comicapi.comicarchive.rar_support and shutil.which("rar")))
 def test_save_cix_rar(tmp_path):
     cbr_path = datadir / "fake_cbr.cbr"
     shutil.copy(cbr_path, tmp_path)
@@ -67,6 +68,7 @@ def test_save_cix_rar(tmp_path):
     assert md.replace(pages=[]) == comicapi.genericmetadata.md_test.replace(pages=[])
 
 
+@pytest.mark.xfail(not (comicapi.comicarchive.rar_support and shutil.which("rar")))
 def test_save_cbi_rar(tmp_path):
     cbr_path = datadir / "fake_cbr.cbr"
     shutil.copy(cbr_path, tmp_path)
