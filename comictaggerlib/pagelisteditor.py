@@ -340,9 +340,9 @@ class PageListEditor(QtWidgets.QWidget):
             else:
                 text += " (Error: " + page_dict["Type"] + ")"
         if "DoublePage" in page_dict:
-            text += " " + "\U00002461"
+            text += " ②"
         if "Bookmark" in page_dict:
-            text += " " + "\U0001F516"
+            text += " 🔖"
         return text
 
     def get_page_list(self) -> list[ImageMetadata]:

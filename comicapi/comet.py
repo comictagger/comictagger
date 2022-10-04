@@ -88,9 +88,9 @@ class CoMet:
             assign("readingDirection", "rtl")
 
         if md.year is not None:
-            date_str = str(md.year).zfill(4)
+            date_str = f"{md.year:04}"
             if md.month is not None:
-                date_str += "-" + str(md.month).zfill(2)
+                date_str += f"-{md.month:02}"
             assign("date", date_str)
 
         assign("coverImage", md.cover_image)

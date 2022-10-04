@@ -524,7 +524,7 @@ class IssueIdentifier:
             self.log_msg("")
 
         if len(self.match_list) == 0:
-            self.log_msg(":-(no matches!")
+            self.log_msg(":-( no matches!")
             self.search_result = self.result_no_matches
             return self.match_list
 

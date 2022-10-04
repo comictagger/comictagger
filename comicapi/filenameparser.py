@@ -32,10 +32,13 @@ from text2digits import text2digits
 
 from comicapi import filenamelexer, issuestring
 
+logger = logging.getLogger(__name__)
+
 t2d = text2digits.Text2Digits(add_ordinal_ending=False)
 t2do = text2digits.Text2Digits(add_ordinal_ending=True)
 
-logger = logging.getLogger(__name__)
+placeholders_no_dashes = [re.compile(r"[-_]"), re.compile(r"  +")]
+placeholders_allow_dashes = [re.compile(r"[_]"), re.compile(r"  +")]
 
 
 class FileNameParser:
@@ -54,9 +57,9 @@ class FileNameParser:
 
     def fix_spaces(self, string: str, remove_dashes: bool = True) -> str:
         if remove_dashes:
-            placeholders = [r"[-_]", r"  +"]
+            placeholders = placeholders_no_dashes
         else:
-            placeholders = [r"[_]", r"  +"]
+            placeholders = placeholders_allow_dashes
         for ph in placeholders:
             string = re.sub(ph, self.repl, string)
         return string

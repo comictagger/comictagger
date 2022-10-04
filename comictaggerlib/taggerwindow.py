@@ -1712,7 +1712,7 @@ Have fun!
             )
             if dlg.ignore_leading_digits_in_filename and md.series is not None:
                 # remove all leading numbers
-                md.series = re.sub(r"([\d.]*)(.*)", "\\2", md.series)
+                md.series = re.sub(r"([\d.]*)(.*)", r"\2", md.series)
 
         # use the dialog specified search string
         if dlg.search_string:
