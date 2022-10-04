@@ -751,6 +751,76 @@ fnames = [
 
 rnames = [
     (
+        "{series!c} {price} {year}",  # Capitalize
+        False,
+        "universal",
+        "Cory doctorow's futuristic tales of the here and now 2007.cbz",
+        does_not_raise(),
+    ),
+    (
+        "{series!t} {price} {year}",  # Title Case
+        False,
+        "universal",
+        "Cory Doctorow'S Futuristic Tales Of The Here And Now 2007.cbz",
+        does_not_raise(),
+    ),
+    (
+        "{series!S} {price} {year}",  # Swap Case
+        False,
+        "universal",
+        "cORY dOCTOROW'S fUTURISTIC tALES OF THE hERE AND nOW 2007.cbz",
+        does_not_raise(),
+    ),
+    (
+        "{title!l} {price} {year}",  # Lowercase
+        False,
+        "universal",
+        "anda's game 2007.cbz",
+        does_not_raise(),
+    ),
+    (
+        "{title!u} {price} {year}",  # Upper Case
+        False,
+        "universal",
+        "ANDA'S GAME 2007.cbz",
+        does_not_raise(),
+    ),
+    (
+        "{title} {price} {year+}",  # Empty alternate value
+        False,
+        "universal",
+        "Anda's Game.cbz",
+        does_not_raise(),
+    ),
+    (
+        "{title} {price} {year+year!u}",  # Alternate value Upper Case
+        False,
+        "universal",
+        "Anda's Game YEAR.cbz",
+        does_not_raise(),
+    ),
+    (
+        "{title} {price} {year+year}",  # Alternate Value
+        False,
+        "universal",
+        "Anda's Game year.cbz",
+        does_not_raise(),
+    ),
+    (
+        "{title} {price-0} {year}",  # Default value
+        False,
+        "universal",
+        "Anda's Game 0 2007.cbz",
+        does_not_raise(),
+    ),
+    (
+        "{title} {price+0} {year}",  # Alternate Value
+        False,
+        "universal",
+        "Anda's Game 2007.cbz",
+        does_not_raise(),
+    ),
+    (
         "{series} #{issue} - {title} ({year}) ({price})",  # price should be none
         False,
         "universal",

@@ -79,11 +79,38 @@ class MetadataFormatter(string.Formatter):
             return ""
         return cast(str, super().format_field(value, format_spec))
 
+    def convert_field(self, value: Any, conversion: str) -> str:
+        if conversion == "u":
+            return str(value).upper()
+        if conversion == "l":
+            return str(value).casefold()
+        if conversion == "c":
+            return str(value).capitalize()
+        if conversion == "S":
+            return str(value).swapcase()
+        if conversion == "t":
+            return str(value).title()
+        return cast(str, super().convert_field(value, conversion))
+
     def handle_replacements(self, string: str, replacements: list[Replacement]) -> str:
         for find, replace, strict_only in replacements:
             if self.is_strict() or not strict_only:
                 string = string.replace(find, replace)
         return string
+
+    def none_replacement(self, value: Any, replacement: str, r: str) -> Any:
+        if r == "-" and value is None or value == "":
+            return replacement
+        if r == "+" and value is not None:
+            return replacement
+        return value
+
+    def split_replacement(self, field_name: str) -> tuple[str, str, str]:
+        if "-" in field_name:
+            return field_name.rpartition("-")
+        if "+" in field_name:
+            return field_name.rpartition("+")
+        return field_name, "", ""
 
     def is_strict(self) -> bool:
         return self.platform in [Platform.UNIVERSAL, Platform.WINDOWS]
@@ -124,6 +151,7 @@ class MetadataFormatter(string.Formatter):
             lstrip = False
             # if there's a field, output it
             if field_name is not None and field_name != "":
+                field_name, r, replacement = self.split_replacement(field_name)
                 field_name = field_name.casefold()
                 # this is some markup, find the object and do the formatting
 
@@ -135,6 +163,8 @@ class MetadataFormatter(string.Formatter):
                 #  and the argument it came from
                 obj, arg_used = self.get_field(field_name, args, kwargs)
                 used_args.add(arg_used)
+
+                obj = self.none_replacement(obj, replacement, r)
 
                 # do any conversion on the resulting object
                 obj = self.convert_field(obj, conversion)  # type: ignore
