@@ -38,7 +38,7 @@ logger = logging.getLogger(__name__)
 
 
 class ImageFetcherException(Exception):
-    pass
+    ...
 
 
 def fetch_complete(image_data: bytes | QtCore.QByteArray) -> None:

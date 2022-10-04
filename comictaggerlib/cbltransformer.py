@@ -32,7 +32,7 @@ class CBLTransformer:
         # helper funcs
         def append_to_tags_if_unique(item: str) -> None:
             if item.casefold() not in (tag.casefold() for tag in self.metadata.tags):
-                self.metadata.tags.append(item)
+                self.metadata.tags.add(item)
 
         def add_string_list_to_tags(str_list: str | None) -> None:
             if str_list:

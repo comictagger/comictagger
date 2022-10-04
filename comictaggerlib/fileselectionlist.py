@@ -17,13 +17,16 @@ from __future__ import annotations
 
 import logging
 import os
+import platform
 from typing import Callable, cast
 
 from PyQt5 import QtCore, QtWidgets, uic
 
 from comicapi import utils
 from comicapi.comicarchive import ComicArchive
+from comictaggerlib.optionalmsgdialog import OptionalMessageDialog
 from comictaggerlib.settings import ComicTaggerSettings
+from comictaggerlib.settingswindow import linuxRarHelp, macRarHelp, windowsRarHelp
 from comictaggerlib.ui.qtutils import center_window_on_parent, reduce_widget_font_size
 
 logger = logging.getLogger(__name__)
@@ -88,6 +91,7 @@ class FileSelectionList(QtWidgets.QWidget):
         self.addAction(self.separator)
 
         self.dirty_flag_verification = dirty_flag_verification
+        self.rar_ro_shown = False
 
     def get_sorting(self) -> tuple[int, int]:
         col = self.twList.horizontalHeader().sortIndicatorSection()
@@ -190,6 +194,7 @@ class FileSelectionList(QtWidgets.QWidget):
 
         QtCore.QCoreApplication.processEvents()
         first_added = None
+        rar_added = False
         self.twList.setSortingEnabled(False)
         for idx, f in enumerate(filelist):
             QtCore.QCoreApplication.processEvents()
@@ -200,8 +205,12 @@ class FileSelectionList(QtWidgets.QWidget):
             center_window_on_parent(progdialog)
             QtCore.QCoreApplication.processEvents()
             row = self.add_path_item(f)
-            if first_added is None and row is not None:
-                first_added = row
+            if row is not None:
+                ca = self.get_archive_by_row(row)
+                if ca and ca.is_rar():
+                    rar_added = True
+                if first_added is None:
+                    first_added = row
 
         progdialog.hide()
         QtCore.QCoreApplication.processEvents()
@@ -216,6 +225,9 @@ class FileSelectionList(QtWidgets.QWidget):
             else:
                 QtWidgets.QMessageBox.information(self, "File/Folder Open", "No readable comic archives were found.")
 
+        if rar_added and not utils.which(self.settings.rar_exe_path or "rar"):
+            self.rar_ro_message()
+
         self.twList.setSortingEnabled(True)
 
         # Adjust column size
@@ -228,6 +240,26 @@ class FileSelectionList(QtWidgets.QWidget):
             self.twList.setColumnWidth(FileSelectionList.fileColNum, 250)
         if self.twList.columnWidth(FileSelectionList.folderColNum) > 200:
             self.twList.setColumnWidth(FileSelectionList.folderColNum, 200)
+
+    def rar_ro_message(self) -> None:
+        if not self.rar_ro_shown:
+            if platform.system() == "Windows":
+                rar_help = windowsRarHelp
+
+            elif platform.system() == "Darwin":
+                rar_help = macRarHelp
+
+            else:
+                rar_help = linuxRarHelp
+
+            OptionalMessageDialog.msg_no_checkbox(
+                self,
+                "RAR Files are Read-Only",
+                "It looks like you have opened a RAR/CBR archive,\n"
+                "however ComicTagger cannot currently write to them without the rar program and are marked read only!\n\n"
+                f"{rar_help}",
+            )
+            self.rar_ro_shown = True
 
     def is_list_dupe(self, path: str) -> bool:
         return self.get_current_list_row(path) >= 0
@@ -344,7 +376,7 @@ class FileSelectionList(QtWidgets.QWidget):
             try:
                 fi.ca.read_cix()
             except Exception:
-                ...
+                pass
             fi.ca.has_cbi()
 
     def get_selected_archive_list(self) -> list[ComicArchive]:

@@ -54,13 +54,11 @@ class ComicInfoXml:
         return self.convert_xml_to_metadata(tree)
 
     def string_from_metadata(self, metadata: GenericMetadata, xml: bytes = b"") -> str:
-        tree = self.convert_metadata_to_xml(self, metadata, xml)
+        tree = self.convert_metadata_to_xml(metadata, xml)
         tree_str = ET.tostring(tree.getroot(), encoding="utf-8", xml_declaration=True).decode("utf-8")
         return str(tree_str)
 
-    def convert_metadata_to_xml(
-        self, filename: ComicInfoXml, metadata: GenericMetadata, xml: bytes = b""
-    ) -> ElementTree:
+    def convert_metadata_to_xml(self, metadata: GenericMetadata, xml: bytes = b"") -> ElementTree:
 
         # shorthand for the metadata
         md = metadata
@@ -261,6 +259,8 @@ class ComicInfoXml:
                 p: dict[str, Any] = page.attrib
                 if "Image" in p:
                     p["Image"] = int(p["Image"])
+                if "DoublePage" in p:
+                    p["DoublePage"] = True if p["DoublePage"].casefold() in ("yes", "true", "1") else False
                 md.pages.append(cast(ImageMetadata, p))
 
         md.is_empty = False
@@ -268,7 +268,7 @@ class ComicInfoXml:
         return md
 
     def write_to_external_file(self, filename: str, metadata: GenericMetadata, xml: bytes = b"") -> None:
-        tree = self.convert_metadata_to_xml(self, metadata, xml)
+        tree = self.convert_metadata_to_xml(metadata, xml)
         tree.write(filename, encoding="utf-8", xml_declaration=True)
 
     def read_from_external_file(self, filename: str) -> GenericMetadata:

@@ -18,6 +18,7 @@ from __future__ import annotations
 import html
 import logging
 import os
+import pathlib
 import platform
 
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
@@ -33,29 +34,29 @@ from comictalker.comictalker import ComicTalker
 logger = logging.getLogger(__name__)
 
 windowsRarHelp = """
-                 <html><head/><body><p>To write to CBR/RAR archives,
-                 you will need to have the tools from
-                 <span style=" text-decoration: underline; color:#0000ff;">
-                 <a href="http://www.win-rar.com/download.html">WINRar</a></span>
-                 installed. (ComicTagger only uses the command-line rar tool,
-                 which is free to use.)</p></body></html>
+                <html><head/><body><p>To write to CBR/RAR archives,
+                you will need to have the tools from
+                <span style=" text-decoration: underline; color:#0000ff;">
+                <a href="http://www.win-rar.com/download.html">WINRar</a></span>
+                installed. (ComicTagger only uses the command-line rar tool.)
+                </p></body></html>
                 """
 
 linuxRarHelp = """
-               <html><head/><body><p>To write to CBR/RAR archives,
-               you will need to have the shareware rar tool from RARLab installed.
-               Your package manager should have rar (e.g. "apt-get install rar"). If not, download it
-               <span style=" text-decoration: underline; color:#0000ff;">
-               <a href="https://www.rarlab.com/download.htm">here</a></span>,
-               and install in your path. </p></body></html>
-               """
+                <html><head/><body><p>To write to CBR/RAR archives,
+                you will need to have the shareware rar tool from RARLab installed.
+                Your package manager should have rar (e.g. "apt-get install rar"). If not, download it
+                <span style=" text-decoration: underline; color:#0000ff;">
+                <a href="https://www.rarlab.com/download.htm">here</a></span>,
+                and install in your path. </p></body></html>
+                """
 
 macRarHelp = """
-                 <html><head/><body><p>To write to CBR/RAR archives,
-                 you will need the rar tool.  The easiest way to get this is
-                 to install <span style=" text-decoration: underline; color:#0000ff;">
-                 <a href="https://brew.sh/">homebrew</a></span>.
-                 </p>Once homebrew is installed, run: <b>brew install caskroom/cask/rar</b></body></html>
+                <html><head/><body><p>To write to CBR/RAR archives,
+                you will need the rar tool.  The easiest way to get this is
+                to install <span style=" text-decoration: underline; color:#0000ff;">
+                <a href="https://brew.sh/">homebrew</a></span>.
+                </p>Once homebrew is installed, run: <b>brew install caskroom/cask/rar</b></body></html>
                 """
 
 
@@ -105,7 +106,7 @@ Accepts the following variables:
 {cover artist}     (string)
 {editor}           (string)
 {tags}             (list of str)
-{pages}            (list of dict({'Image': string(int), 'Type': string, 'Bookmark': string, 'DoublePage': string}))
+{pages}            (list of dict({'Image': string(int), 'Type': string, 'Bookmark': string, 'DoublePage': boolean}))
 
 CoMet-only items:
 {price}            (float)
@@ -155,13 +156,16 @@ class SettingsWindow(QtWidgets.QDialog):
         self.lblDefaultSettings.setText("Revert to default " + self.name.casefold())
         self.btnResetSettings.setText("Default " + self.name)
 
-        nldt_tip = """<html>The <b>Default Name Length Match Tolerance</b> is for eliminating automatic
-                search matches that are too long compared to your series name search. The higher
+        nmit_tip = """<html>The <b>Name Match Ratio Threshold: Auto-Identify</b> is for eliminating automatic
+                search matches that are too long compared to your series name search. The lower
                 it is, the more likely to have a good match, but each search will take longer and
-                use more bandwidth. Too low, and only the very closest lexical matches will be
-                explored.</html>"""
+                use more bandwidth. Too high, and only the very closest matches will be explored.</html>"""
+        nmst_tip = """<html>The <b>Name Match Ratio Threshold: Search</b> is for reducing the total
+                number of results that are returned from a search. The lower it is, the more pages will
+                be returned (max 5 pages or 500 results)</html>"""
 
-        self.leNameLengthDeltaThresh.setToolTip(nldt_tip)
+        self.sbNameMatchIdentifyThresh.setToolTip(nmit_tip)
+        self.sbNameMatchSearchThresh.setToolTip(nmst_tip)
 
         pbl_tip = """<html>
             The <b>Publisher Filter</b> is for eliminating automatic matches to certain publishers
@@ -173,22 +177,21 @@ class SettingsWindow(QtWidgets.QDialog):
         validator = QtGui.QIntValidator(1, 4, self)
         self.leIssueNumPadding.setValidator(validator)
 
-        validator = QtGui.QIntValidator(0, 99, self)
-        self.leNameLengthDeltaThresh.setValidator(validator)
-
         self.leRenameTemplate.setToolTip(f"<pre>{html.escape(template_tooltip)}</pre>")
         self.settings_to_form()
         self.rename_error: Exception | None = None
         self.rename_test()
+        self.dir_test()
 
         self.btnBrowseRar.clicked.connect(self.select_rar)
         self.btnClearCache.clicked.connect(self.clear_cache)
         self.btnResetSettings.clicked.connect(self.reset_settings)
         self.btnTemplateHelp.clicked.connect(self.show_template_help)
-        self.leRenameTemplate.textEdited.connect(self.rename__test)
+        self.leRenameTemplate.textEdited.connect(self._rename_test)
         self.cbxMoveFiles.clicked.connect(self.rename_test)
+        self.cbxMoveFiles.clicked.connect(self.dir_test)
         self.cbxRenameStrict.clicked.connect(self.rename_test)
-        self.leDirectory.textEdited.connect(self.rename_test)
+        self.leDirectory.textEdited.connect(self.dir_test)
         self.cbxComplicatedParser.clicked.connect(self.switch_parser)
 
         self.sources: dict = {}
@@ -282,9 +285,14 @@ class SettingsWindow(QtWidgets.QDialog):
         self.cobxInfoSource.setCurrentIndex(self.cobxInfoSource.findData(self.settings.comic_info_source))
 
     def rename_test(self) -> None:
-        self.rename__test(self.leRenameTemplate.text())
+        self._rename_test(self.leRenameTemplate.text())
 
-    def rename__test(self, template: str) -> None:
+    def dir_test(self) -> None:
+        self.lblDir.setText(
+            str(pathlib.Path(self.leDirectory.text().strip()).absolute()) if self.cbxMoveFiles.isChecked() else ""
+        )
+
+    def _rename_test(self, template: str) -> None:
         fr = FileRenamer(md_test, platform="universal" if self.cbxRenameStrict.isChecked() else "auto")
         fr.move = self.cbxMoveFiles.isChecked()
         fr.set_template(template)
@@ -307,7 +315,8 @@ class SettingsWindow(QtWidgets.QDialog):
     def settings_to_form(self) -> None:
         # Copy values from settings to form
         self.leRarExePath.setText(self.settings.rar_exe_path)
-        self.leNameLengthDeltaThresh.setText(str(self.settings.id_length_delta_thresh))
+        self.sbNameMatchIdentifyThresh.setValue(self.settings.id_series_match_identify_thresh)
+        self.sbNameMatchSearchThresh.setValue(self.settings.id_series_match_search_thresh)
         self.tePublisherFilter.setPlainText(self.settings.id_publisher_filter)
 
         self.cbxCheckForNewVersion.setChecked(self.settings.check_for_new_version)
@@ -364,15 +373,13 @@ class SettingsWindow(QtWidgets.QDialog):
         if self.settings.rar_exe_path:
             utils.add_to_path(os.path.dirname(self.settings.rar_exe_path))
 
-        if not str(self.leNameLengthDeltaThresh.text()).isdigit():
-            self.leNameLengthDeltaThresh.setText("0")
-
         if not str(self.leIssueNumPadding.text()).isdigit():
             self.leIssueNumPadding.setText("0")
 
         self.settings.check_for_new_version = self.cbxCheckForNewVersion.isChecked()
 
-        self.settings.id_length_delta_thresh = int(self.leNameLengthDeltaThresh.text())
+        self.settings.id_series_match_identify_thresh = self.sbNameMatchIdentifyThresh.value()
+        self.settings.id_series_match_search_thresh = self.sbNameMatchSearchThresh.value()
         self.settings.id_publisher_filter = str(self.tePublisherFilter.toPlainText())
         self.settings.comic_info_source = str(self.cobxInfoSource.itemData(self.cobxInfoSource.currentIndex()))
         # Also change current talker_api object

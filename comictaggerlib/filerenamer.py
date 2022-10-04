@@ -25,10 +25,20 @@ from typing import Any, cast
 
 from pathvalidate import sanitize_filename
 
+from comicapi.comicarchive import ComicArchive
 from comicapi.genericmetadata import GenericMetadata
 from comicapi.issuestring import IssueString
 
 logger = logging.getLogger(__name__)
+
+
+def get_rename_dir(ca: ComicArchive, rename_dir: str | pathlib.Path | None) -> pathlib.Path:
+    folder = ca.path.parent.absolute()
+    if rename_dir is not None:
+        if isinstance(rename_dir, str):
+            rename_dir = rename_dir.strip()
+        folder = pathlib.Path(rename_dir).absolute()
+    return folder
 
 
 class MetadataFormatter(string.Formatter):
@@ -80,17 +90,9 @@ class MetadataFormatter(string.Formatter):
                 field_name = field_name.casefold()
                 # this is some markup, find the object and do the formatting
 
-                # handle arg indexing when empty field_names are given.
-                if field_name == "":
-                    if auto_arg_index is False:
-                        raise ValueError("cannot switch from manual field specification to automatic field numbering")
-                    field_name = str(auto_arg_index)
-                    auto_arg_index += 1
-                elif field_name.isdigit():
-                    if auto_arg_index:
-                        raise ValueError("cannot switch from manual field specification to automatic field numbering")
-                    # disable auto arg incrementing, if it gets used later on, then an exception will be raised
-                    auto_arg_index = False
+                # handle arg indexing when digit field_names are given.
+                if field_name.isdigit():
+                    raise ValueError("cannot use a number as a field name")
 
                 # given the field_name, find the object it references
                 #  and the argument it came from
@@ -101,8 +103,8 @@ class MetadataFormatter(string.Formatter):
                 obj = self.convert_field(obj, conversion)  # type: ignore
 
                 # expand the format spec, if needed
-                format_spec, auto_arg_index = self._vformat(
-                    cast(str, format_spec), args, kwargs, used_args, recursion_depth - 1, auto_arg_index=auto_arg_index
+                format_spec, _ = self._vformat(
+                    cast(str, format_spec), args, kwargs, used_args, recursion_depth - 1, auto_arg_index=False
                 )
 
                 # format the object and append to the result
@@ -118,7 +120,7 @@ class MetadataFormatter(string.Formatter):
                     fmt_obj = str(sanitize_filename(fmt_obj, platform=self.platform))
                 result.append(fmt_obj)
 
-        return "".join(result), auto_arg_index
+        return "".join(result), False
 
 
 class FileRenamer:
@@ -168,16 +170,17 @@ class FileRenamer:
             md_dict["month_name"] = ""
             md_dict["month_abbr"] = ""
 
-        for Component in pathlib.PureWindowsPath(template).parts:
+        new_basename = ""
+        for component in pathlib.PureWindowsPath(template).parts:
             if (
                 self.platform.casefold() in ["universal", "windows"] or sys.platform.casefold() in ["windows"]
             ) and self.smart_cleanup:
                 # colons get special treatment
-                Component = Component.replace(": ", " - ")
-                Component = Component.replace(":", "-")
+                component = component.replace(": ", " - ")
+                component = component.replace(":", "-")
 
             new_basename = str(
-                sanitize_filename(fmt.vformat(Component, args=[], kwargs=Default(md_dict)), platform=self.platform)
+                sanitize_filename(fmt.vformat(component, args=[], kwargs=Default(md_dict)), platform=self.platform)
             ).strip()
             new_name = os.path.join(new_name, new_basename)
 

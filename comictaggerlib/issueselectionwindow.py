@@ -138,18 +138,18 @@ class IssueSelectionWindow(QtWidgets.QDialog):
             if len(parts) > 1:
                 item_text = parts[0] + "-" + parts[1]
 
-            QTW_item = QtWidgets.QTableWidgetItem(item_text)
-            QTW_item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
-            QTW_item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
-            self.twList.setItem(row, 1, QTW_item)
+            qtw_item = QtWidgets.QTableWidgetItem(item_text)
+            qtw_item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
+            qtw_item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
+            self.twList.setItem(row, 1, qtw_item)
 
             item_text = record["name"]
             if item_text is None:
                 item_text = ""
-            QTW_item = QtWidgets.QTableWidgetItem(item_text)
-            QTW_item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
-            QTW_item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
-            self.twList.setItem(row, 2, QTW_item)
+            qtw_item = QtWidgets.QTableWidgetItem(item_text)
+            qtw_item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
+            qtw_item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
+            self.twList.setItem(row, 2, qtw_item)
 
             if (
                 IssueString(record["issue_number"]).as_string().casefold()

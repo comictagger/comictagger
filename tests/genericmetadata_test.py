@@ -1,37 +1,23 @@
 from __future__ import annotations
 
-import dataclasses
-
 import pytest
 
 import comicapi.genericmetadata
+from testing.comicdata import credits, metadata
 
 
-@pytest.fixture
-def md():
-    yield dataclasses.replace(comicapi.genericmetadata.md_test)
+def test_set_default_page_list(tmp_path):
+    md = comicapi.genericmetadata.GenericMetadata()
+    md.overlay(comicapi.genericmetadata.md_test)
+    md.pages = []
+    md.set_default_page_list(len(comicapi.genericmetadata.md_test.pages))
+
+    assert isinstance(md.pages[0]["Image"], int)
 
 
-stuff = [
-    (
-        {"series": "test", "issue": "2", "title": "never"},
-        dataclasses.replace(comicapi.genericmetadata.md_test, series="test", issue="2", title="never"),
-    ),
-    (
-        {"series": "", "issue": "2", "title": "never"},
-        dataclasses.replace(comicapi.genericmetadata.md_test, series=None, issue="2", title="never"),
-    ),
-    (
-        {},
-        dataclasses.replace(comicapi.genericmetadata.md_test),
-    ),
-]
-
-
-@pytest.mark.parametrize("replaced, expected", stuff)
+@pytest.mark.parametrize("replaced, expected", metadata)
 def test_metadata_overlay(md: comicapi.genericmetadata.GenericMetadata, replaced, expected):
-    md_overlay = comicapi.genericmetadata.GenericMetadata(**replaced)
-    md.overlay(md_overlay)
+    md.overlay(replaced)
 
     assert md == expected
 
@@ -40,7 +26,7 @@ def test_add_credit():
     md = comicapi.genericmetadata.GenericMetadata()
 
     md.add_credit(person="test", role="writer", primary=False)
-    md.credits == [{"person": "test", "role": "writer", "primary": False}]
+    assert md.credits == [comicapi.genericmetadata.CreditMetadata(person="test", role="writer", primary=False)]
 
 
 def test_add_credit_primary():
@@ -48,13 +34,7 @@ def test_add_credit_primary():
 
     md.add_credit(person="test", role="writer", primary=False)
     md.add_credit(person="test", role="writer", primary=True)
-    md.credits == [{"person": "test", "role": "writer", "primary": True}]
-
-
-credits = [
-    ("writer", "Dara Naraghi"),
-    ("writeR", "Dara Naraghi"),
-]
+    assert md.credits == [comicapi.genericmetadata.CreditMetadata(person="test", role="writer", primary=True)]
 
 
 @pytest.mark.parametrize("role, expected", credits)

@@ -102,7 +102,8 @@ class ComicTaggerSettings:
         self.last_filelist_sorted_order = 0
 
         # identifier settings
-        self.id_length_delta_thresh = 5
+        self.id_series_match_search_thresh = 90
+        self.id_series_match_identify_thresh = 91
         self.id_publisher_filter = "Panini Comics, Abril, Planeta DeAgostini, Editorial Televisa, Dino Comics"
         self.comic_info_source = "comicvine"  # Default to CV as should always be present
 
@@ -181,10 +182,12 @@ class ComicTaggerSettings:
                 elif os.path.exists(r"C:\Program Files (x86)\WinRAR\Rar.exe"):
                     self.rar_exe_path = r"C:\Program Files (x86)\WinRAR\Rar.exe"
             else:
+                if os.path.exists("/opt/homebrew/bin"):
+                    utils.add_to_path("/opt/homebrew/bin")
                 # see if it's in the path of unix user
                 rarpath = utils.which("rar")
                 if rarpath is not None:
-                    self.rar_exe_path = rarpath
+                    self.rar_exe_path = "rar"
             if self.rar_exe_path != "":
                 self.save()
         if self.rar_exe_path != "":
@@ -236,8 +239,10 @@ class ComicTaggerSettings:
         if self.config.has_option("auto", "last_filelist_sorted_order"):
             self.last_filelist_sorted_order = self.config.getint("auto", "last_filelist_sorted_order")
 
-        if self.config.has_option("identifier", "id_length_delta_thresh"):
-            self.id_length_delta_thresh = self.config.getint("identifier", "id_length_delta_thresh")
+        if self.config.has_option("identifier", "id_series_match_search_thresh"):
+            self.id_series_match_search_thresh = self.config.getint("identifier", "id_series_match_search_thresh")
+        if self.config.has_option("identifier", "id_series_match_identify_thresh"):
+            self.id_series_match_identify_thresh = self.config.getint("identifier", "id_series_match_identify_thresh")
         if self.config.has_option("identifier", "id_publisher_filter"):
             self.id_publisher_filter = self.config.get("identifier", "id_publisher_filter")
         if self.config.has_option("identifier", "always_use_publisher_filter"):
@@ -364,7 +369,8 @@ class ComicTaggerSettings:
         if not self.config.has_section("identifier"):
             self.config.add_section("identifier")
 
-        self.config.set("identifier", "id_length_delta_thresh", self.id_length_delta_thresh)
+        self.config.set("identifier", "id_series_match_search_thresh", self.id_series_match_search_thresh)
+        self.config.set("identifier", "id_series_match_identify_thresh", self.id_series_match_identify_thresh)
         self.config.set("identifier", "id_publisher_filter", self.id_publisher_filter)
         self.config.set("identifier", "always_use_publisher_filter", self.always_use_publisher_filter)
 

@@ -93,7 +93,7 @@ try:
 except ImportError as e:
 
     def show_exception_box(log_msg: str) -> None:
-        pass
+        ...
 
     logger.error(str(e))
     qt_available = False
@@ -116,7 +116,7 @@ def update_publishers() -> None:
 
 def ctmain() -> None:
     opts = parse_cmd_line()
-    SETTINGS = ComicTaggerSettings(opts.config_path)
+    settings = ComicTaggerSettings(opts.config_path)
 
     os.makedirs(ComicTaggerSettings.get_settings_folder() / "logs", exist_ok=True)
     stream_handler = logging.StreamHandler()
@@ -149,18 +149,18 @@ def ctmain() -> None:
     for pkg in sorted(importlib_metadata.distributions(), key=lambda x: x.name):
         logger.debug("%s\t%s", pkg.name, pkg.version)
 
-    talker_api = ComicTalker(SETTINGS.comic_info_source)
+    talker_api = ComicTalker(settings.comic_info_source)
 
     utils.load_publishers()
     update_publishers()
 
     if not qt_available and not opts.no_gui:
         opts.no_gui = True
-        logger.warn("PyQt5 is not available. ComicTagger is limited to command-line mode.")
+        logger.warning("PyQt5 is not available. ComicTagger is limited to command-line mode.")
 
     if opts.no_gui:
         try:
-            cli.cli_mode(opts, SETTINGS, talker_api)
+            cli.cli_mode(opts, settings, talker_api)
         except Exception:
             logger.exception("CLI mode failed")
     else:
@@ -196,7 +196,7 @@ def ctmain() -> None:
             QtWidgets.QApplication.processEvents()
 
         try:
-            tagger_window = TaggerWindow(opts.files, SETTINGS, talker_api, opts=opts)
+            tagger_window = TaggerWindow(opts.files, settings, talker_api, opts=opts)
             tagger_window.setWindowIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("app.png")))
             tagger_window.show()
 

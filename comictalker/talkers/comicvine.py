@@ -99,6 +99,7 @@ class CVPersonCredits(TypedDict):
 
 
 class CVVolumeResults(TypedDict):
+    aliases: str
     count_of_issues: int
     description: str
     id: int
@@ -128,6 +129,7 @@ class CVResult(TypedDict):
 
 
 class CVIssuesResults(TypedDict):
+    aliases: str
     cover_date: str
     description: str
     id: int
@@ -186,7 +188,7 @@ class CVIssueDetailResults(TypedDict):
 
 
 class ComicVineTalker(TalkerBase):
-    def __init__(self) -> None:
+    def __init__(self, series_match_thresh: int = 90) -> None:
         super().__init__()
         self.source_details = source_details = SourceDetails(
             name="Comic Vine",
@@ -256,11 +258,9 @@ class ComicVineTalker(TalkerBase):
                 ),
             },
         )
-
         # Identity name for the information source
         self.source_name = self.source_details.id
         self.source_name_friendly = self.source_details.name
-
         # Overwrite any source_details.options that have saved settings
         source_settings = ComicTaggerSettings.get_source_settings(
             self.source_name, self.source_details.settings_options
@@ -268,7 +268,6 @@ class ComicVineTalker(TalkerBase):
         if not source_settings:
             # No saved settings, do something?
             ...
-
         self.wait_for_rate_limit = source_details.settings_options["wait_on_ratelimit"]["value"]
         self.wait_for_rate_limit_time = source_details.settings_options["ratelimit_waittime"]["value"]
 
@@ -276,6 +275,8 @@ class ComicVineTalker(TalkerBase):
 
         self.api_key = source_details.settings_options["api_key"]["value"]
         self.api_base_url = source_details.settings_options["url_root"]["value"]
+
+        self.series_match_thresh = series_match_thresh
 
         # Used for async cover loading etc.
         if qt_available:
@@ -387,6 +388,7 @@ class ComicVineTalker(TalkerBase):
 
             formatted_results.append(
                 ComicVolume(
+                    aliases=record["aliases"],
                     count_of_issues=record.get("count_of_issues", 0),
                     description=record.get("description", ""),
                     id=record["id"],
@@ -412,6 +414,7 @@ class ComicVineTalker(TalkerBase):
 
             formatted_results.append(
                 ComicIssue(
+                    aliases=record["aliases"],
                     cover_date=record.get("cover_date", ""),
                     description=record.get("description", ""),
                     id=record["id"],
@@ -452,7 +455,7 @@ class ComicVineTalker(TalkerBase):
             "format": "json",
             "resources": "volume",
             "query": search_series_name,
-            "field_list": "volume,name,id,start_year,publisher,image,description,count_of_issues",
+            "field_list": "volume,name,id,start_year,publisher,image,description,count_of_issues,aliases",
             "page": 1,
             "limit": 100,
         }
@@ -470,10 +473,8 @@ class ComicVineTalker(TalkerBase):
         # ORed together, and we get thousands of results.  Good news is the
         # results are sorted by relevance, so we can be smart about halting the search.
         # 1. Don't fetch more than some sane amount of pages.
-        max_results = 500
-        # 2. Halt when not all of our search terms are present in a result
-        # 3. Halt when the results contain more (plus threshold) words than our search
-        result_word_count_max = len(search_series_name.split()) + 3
+        # 2. Halt when any result on the current page is less than or equal to a set ratio using thefuzz
+        max_results = 500  # 5 pages
 
         total_result_count = min(total_result_count, max_results)
 
@@ -488,23 +489,14 @@ class ComicVineTalker(TalkerBase):
             callback(current_result_count, total_result_count)
 
         # see if we need to keep asking for more pages...
-        stop_searching = False
         while current_result_count < total_result_count:
 
             if not literal:
-                # Sanitize the series name for comicvine searching, comicvine search ignore symbols
-                last_result = utils.sanitize_title(search_results[-1]["name"])
-
-                # See if the last result's name has all the of the search terms.
-                # If not, break out of this, loop, we're done.
-                for term in search_series_name.split():
-                    if term not in last_result:
-                        stop_searching = True
-                        break
-
-                # Also, stop searching when the word count of last results is too much longer than our search terms list
-                if len(last_result) > result_word_count_max:
-                    stop_searching = True
+                # Stop searching once any entry falls below the threshold
+                stop_searching = any(
+                    not utils.titles_match(search_series_name, volume["name"], self.series_match_thresh)
+                    for volume in cast(list[CVVolumeResults], cv_response["results"])
+                )
 
                 if stop_searching:
                     break
@@ -521,17 +513,6 @@ class ComicVineTalker(TalkerBase):
 
             if callback is not None:
                 callback(current_result_count, total_result_count)
-
-        # Literal searches simply return the matches no extra processing is doneo
-        if not literal:
-            # Remove any search results that don't contain all the search terms (iterate backwards for easy removal)
-            for record in reversed(search_results):
-                # Sanitize the series name for comicvine searching, comicvine search ignore symbols
-                record_name = utils.sanitize_title(record["name"])
-                for term in search_series_name.split():
-                    if term not in record_name:
-                        search_results.remove(record)
-                        break
 
         # Format result to ComicSearchResult
         formatted_search_results = self.format_search_results(search_results)
@@ -573,7 +554,7 @@ class ComicVineTalker(TalkerBase):
         params = {
             "api_key": self.api_key,
             "format": "json",
-            "field_list": "name,id,start_year,publisher,count_of_issues",
+            "field_list": "name,id,start_year,publisher,count_of_issues,aliases",
         }
         cv_response = self.get_cv_content(volume_url, params)
 
@@ -597,7 +578,7 @@ class ComicVineTalker(TalkerBase):
             "api_key": self.api_key,
             "filter": "volume:" + str(series_id),
             "format": "json",
-            "field_list": "id,volume,issue_number,name,image,cover_date,site_detail_url,description",
+            "field_list": "id,volume,issue_number,name,image,cover_date,site_detail_url,description,aliases",
             "offset": 0,
         }
         cv_response = self.get_cv_content(self.api_base_url + "/issues/", params)
@@ -644,11 +625,11 @@ class ComicVineTalker(TalkerBase):
         params: dict[str, str | int] = {
             "api_key": self.api_key,
             "format": "json",
-            "field_list": "id,volume,issue_number,name,image,cover_date,site_detail_url,description",
+            "field_list": "id,volume,issue_number,name,image,cover_date,site_detail_url,description,aliases",
             "filter": flt,
         }
 
-        cv_response = self.get_cv_content(self.api_base_url + "/issues", params)
+        cv_response = self.get_cv_content(self.api_base_url + "/issues/", params)
 
         current_result_count = cv_response["number_of_page_results"]
         total_result_count = cv_response["number_of_total_results"]
@@ -680,7 +661,7 @@ class ComicVineTalker(TalkerBase):
 
         f_record = None
         for record in issues_list_results:
-            if IssueString(issue_number).as_string() is None:
+            if not IssueString(issue_number).as_string():
                 issue_number = "1"
             if (
                 IssueString(record["issue_number"]).as_string().casefold()
@@ -710,6 +691,7 @@ class ComicVineTalker(TalkerBase):
 
         volume_results = self.fetch_partial_volume_data(issue_results["volume"]["id"])
 
+        # Now, map the Comic Vine data to generic metadata
         md = self.map_cv_data_to_metadata(volume_results, issue_results)
         md.is_empty = False
         return md
@@ -949,12 +931,12 @@ class ComicVineTalker(TalkerBase):
         cv_response = self.get_cv_content(issue_url, params)
         results = cast(CVIssueDetailResults, cv_response["results"])
 
-        details: SelectDetails = {
-            "image_url": results["image"]["super_url"],
-            "thumb_image_url": results["image"]["thumb_url"],
-            "cover_date": results["cover_date"],
-            "site_detail_url": results["site_detail_url"],
-        }
+        details = SelectDetails(
+            image_url=results["image"]["super_url"],
+            thumb_image_url=results["image"]["thumb_url"],
+            cover_date=results["cover_date"],
+            site_detail_url=results["site_detail_url"],
+        )
 
         if (
             details["image_url"] is not None
@@ -981,7 +963,7 @@ class ComicVineTalker(TalkerBase):
         self, issue_id: int, image_url: str, thumb_url: str, cover_date: str, page_url: str
     ) -> None:
         cvc = ComicCacher()
-        cvc.add_issue_select_details(issue_id, image_url, thumb_url, cover_date, page_url)
+        cvc.add_issue_select_details(self.source_name, issue_id, image_url, thumb_url, cover_date, page_url)
 
     def fetch_alternate_cover_urls(self, issue_id: int, issue_page_url: str) -> list[str]:
         url_list = self.fetch_cached_alternate_cover_urls(issue_id)

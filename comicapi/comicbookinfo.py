@@ -98,13 +98,11 @@ class ComicBookInfo:
         metadata.critical_rating = utils.xlate(cbi["rating"], True)
 
         metadata.credits = cbi["credits"]
-        metadata.tags = cbi["tags"]
+        metadata.tags = set(cbi["tags"]) if cbi["tags"] is not None else set()
 
         # make sure credits and tags are at least empty lists and not None
         if metadata.credits is None:
             metadata.credits = []
-        if metadata.tags is None:
-            metadata.tags = []
 
         # need the language string to be ISO
         if metadata.language is not None:
@@ -133,7 +131,7 @@ class ComicBookInfo:
 
         cbi_container = CBIContainer(
             {
-                "appID": "ComicTagger/" + "1.0.0",
+                "appID": "ComicTagger/1.0.0",
                 "lastModified": str(datetime.now()),
                 "ComicBookInfo/1.0": {},
             }

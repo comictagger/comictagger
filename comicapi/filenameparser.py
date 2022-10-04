@@ -114,7 +114,7 @@ class FileNameParser:
 
         # remove any "of NN" phrase with spaces (problem: this could break on
         # some titles)
-        filename = re.sub(r"of [\d]+", self.repl, filename)
+        filename = re.sub(r"of \d+", self.repl, filename)
 
         # we should now have a cleaned up filename version with all the words in
         # the same positions as original filename
@@ -143,7 +143,7 @@ class FileNameParser:
         # first look for a word with "#" followed by digits with optional suffix
         # this is almost certainly the issue number
         for w in reversed(word_list):
-            if re.match(r"#[-]?(([0-9]*\.[0-9]+|[0-9]+)(\w*))", w[0]):
+            if re.match(r"#-?((\d*\.\d+|\d+)(\w*))", w[0]):
                 found = True
                 break
 
@@ -151,7 +151,7 @@ class FileNameParser:
         # list
         if not found:
             w = word_list[-1]
-            if re.match(r"[-]?(([0-9]*\.[0-9]+|[0-9]+)(\w*))", w[0]):
+            if re.match(r"-?((\d*\.\d+|\d+)(\w*))", w[0]):
                 found = True
 
         # now try to look for a # followed by any characters
@@ -245,7 +245,7 @@ class FileNameParser:
         if match:
             year = match.group()
             # remove non-digits
-            year = re.sub(r"[^0-9]", "", year)
+            year = re.sub(r"\D", "", year)
         return year
 
     def get_remainder(self, filename: str, year: str, count: str, volume: str, issue_end: int) -> str:
@@ -332,7 +332,7 @@ eof = filenamelexer.Item(filenamelexer.ItemType.EOF, -1, "")
 
 
 # Extracted and mutilated from https://github.com/lordwelch/wsfmt
-# Which was extracted and mutliated from https://github.com/golang/go/tree/master/src/text/template/parse
+# Which was extracted and mutilated from https://github.com/golang/go/tree/master/src/text/template/parse
 class Parser:
     """docstring for FilenameParser"""
 

@@ -368,7 +368,7 @@ class RarArchiver(UnknownArchiver):
 
     def __init__(self, path: pathlib.Path | str, rar_exe_path: str = "rar") -> None:
         super().__init__(path)
-        self.rar_exe_path = rar_exe_path
+        self.rar_exe_path = shutil.which(rar_exe_path) or ""
 
         # windows only, keeps the cmd.exe from popping up
         if platform.system() == "Windows":
@@ -687,7 +687,7 @@ class ComicArchive:
         self.page_count: int | None = None
         self.page_list: list[str] = []
 
-        self.rar_exe_path = rar_exe_path
+        self.rar_exe_path = shutil.which(rar_exe_path or "rar") or ""
         self.ci_xml_filename = "ComicInfo.xml"
         self.comet_default_filename = "CoMet.xml"
         self.reset_cache()
@@ -746,7 +746,12 @@ class ComicArchive:
             self.read_metadata(style)
 
     def rename(self, path: pathlib.Path | str) -> None:
-        self.path = pathlib.Path(path)
+        new_path = pathlib.Path(path).absolute()
+        if new_path == self.path:
+            return
+        os.makedirs(new_path.parent, 0o777, True)
+        shutil.move(path, new_path)
+        self.path = new_path
         self.archiver.path = pathlib.Path(path)
 
     def sevenzip_test(self) -> bool:
@@ -863,7 +868,7 @@ class ComicArchive:
 
     def get_page_name(self, index: int) -> str:
         if index is None:
-            return None
+            return ""
 
         page_list = self.get_page_name_list()
 
@@ -1148,8 +1153,8 @@ class ComicArchive:
             for n in self.archiver.get_filename_list():
                 if os.path.dirname(n) == "" and os.path.splitext(n)[1].casefold() == ".xml":
                     # read in XML file, and validate it
+                    data = ""
                     try:
-                        data = ""
                         d = self.archiver.read_file(n)
                         if d:
                             data = d.decode("utf-8")
@@ -1247,10 +1252,10 @@ class ComicArchive:
 
         return metadata
 
-    def export_as_zip(self, zipfilename: str) -> bool:
+    def export_as_zip(self, zip_filename: pathlib.Path | str) -> bool:
         if self.archive_type == self.ArchiveType.Zip:
             # nothing to do, we're already a zip
             return True
 
-        zip_archiver = ZipArchiver(zipfilename)
+        zip_archiver = ZipArchiver(zip_filename)
         return zip_archiver.copy_from_archive(self.archiver)

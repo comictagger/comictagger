@@ -106,7 +106,7 @@ tr:nth-child(even) {
      &lt;tr&gt;&lt;td&gt;{cover artist}&lt;/td&gt;&lt;td&gt;(string)&lt;/td&gt;&lt;/tr&gt;
      &lt;tr&gt;&lt;td&gt;{editor}&lt;/td&gt;&lt;td&gt;(string)&lt;/td&gt;&lt;/tr&gt;
      &lt;tr&gt;&lt;td&gt;{tags}&lt;/td&gt;&lt;td&gt;list of str&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{pages}&lt;/td&gt;&lt;td&gt;list of dict({&apos;Image&apos;: string(int), &apos;Type&apos;: string, &apos;Bookmark&apos;: string, &apos;DoublePage&apos;: string})&lt;/td&gt;&lt;/tr&gt;
+     &lt;tr&gt;&lt;td&gt;{pages}&lt;/td&gt;&lt;td&gt;list of dict({&apos;Image&apos;: string(int), &apos;Type&apos;: string, &apos;Bookmark&apos;: string, &apos;DoublePage&apos;: boolean})&lt;/td&gt;&lt;/tr&gt;
      &lt;tr&gt;&lt;td&gt;{price}&lt;/td&gt;&lt;td&gt;float&lt;/td&gt;&lt;/tr&gt;
      &lt;tr&gt;&lt;td&gt;{is_version_of}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
      &lt;tr&gt;&lt;td&gt;{rights}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;

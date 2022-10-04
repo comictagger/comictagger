@@ -84,7 +84,8 @@ class ComicCacher:
                 + "image_url TEXT,"
                 + "description TEXT,"
                 + "timestamp DATE DEFAULT (datetime('now','localtime')),"
-                + "source_name TEXT NOT NULL)"
+                + "source_name TEXT NOT NULL,"
+                + "aliases TEXT)"  # Newline separated
             )
 
             cur.execute(
@@ -96,6 +97,7 @@ class ComicCacher:
                 + "start_year INT,"
                 + "timestamp DATE DEFAULT (datetime('now','localtime')), "
                 + "source_name TEXT NOT NULL,"
+                + "aliases TEXT,"  # Newline separated
                 + "PRIMARY KEY (id, source_name))"
             )
 
@@ -105,6 +107,7 @@ class ComicCacher:
                 + "url_list TEXT,"
                 + "timestamp DATE DEFAULT (datetime('now','localtime')), "
                 + "source_name TEXT NOT NULL,"
+                + "aliases TEXT,"  # Newline separated
                 + "PRIMARY KEY (issue_id, source_name))"
             )
 
@@ -121,11 +124,11 @@ class ComicCacher:
                 + "description TEXT,"
                 + "timestamp DATE DEFAULT (datetime('now','localtime')), "
                 + "source_name TEXT NOT NULL,"
+                + "aliases TEXT,"  # Newline separated
                 + "PRIMARY KEY (id, source_name))"
             )
 
     def add_search_results(self, source_name: str, search_term: str, ct_search_results: list[ComicVolume]) -> None:
-
         con = lite.connect(self.db_file)
 
         with con:
@@ -133,16 +136,18 @@ class ComicCacher:
             cur = con.cursor()
 
             # remove all previous entries with this search term
-            cur.execute("DELETE FROM VolumeSearchCache WHERE search_term = ?", [search_term.casefold()])
+            cur.execute(
+                "DELETE FROM VolumeSearchCache WHERE search_term = ? AND source_name = ?",
+                [search_term.casefold(), source_name],
+            )
 
             # now add in new results
             for record in ct_search_results:
 
                 cur.execute(
                     "INSERT INTO VolumeSearchCache "
-                    + "(source_name, search_term, id, name, start_year, publisher, count_of_issues, image_url, "
-                    + "description) "
-                    + "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    + "(source_name, search_term, id, name, start_year, publisher, count_of_issues, image_url, description, aliases) "
+                    + "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     (
                         source_name,
                         search_term.casefold(),
@@ -153,11 +158,11 @@ class ComicCacher:
                         record["count_of_issues"],
                         record["image"],
                         record["description"],
+                        record["aliases"],
                     ),
                 )
 
     def get_search_results(self, source_name: str, search_term: str) -> list[ComicVolume]:
-
         results = []
         con = lite.connect(self.db_file)
         with con:
@@ -184,7 +189,7 @@ class ComicCacher:
                     description=record[7],
                     publisher=record[4],
                     image=record[6],
-                    #  "source": record[9],  # Not needed?
+                    aliases=record[10],
                 )
 
                 results.append(result)
@@ -202,7 +207,7 @@ class ComicCacher:
             # remove all previous entries with this search term
             cur.execute("DELETE FROM AltCovers WHERE issue_id=? AND source_name=?", [issue_id, source_name])
 
-            url_list_str = ", ".join(url_list)
+            url_list_str = ",".join(url_list)
             # now add in new record
             cur.execute(
                 "INSERT INTO AltCovers (source_name, issue_id, url_list) VALUES(?, ?, ?)",
@@ -227,16 +232,12 @@ class ComicCacher:
                 return []
 
             url_list_str = row[0]
-            if len(url_list_str) == 0:
+            if not url_list_str:
                 return []
-            raw_list = url_list_str.split(",")
-            url_list = []
-            for item in raw_list:
-                url_list.append(str(item).strip())
+            url_list = str(url_list_str).split(",")
             return url_list
 
     def add_volume_info(self, source_name: str, volume_record: ComicVolume) -> None:
-
         con = lite.connect(self.db_file)
 
         with con:
@@ -253,11 +254,11 @@ class ComicCacher:
                 "count_of_issues": volume_record["count_of_issues"],
                 "start_year": volume_record["start_year"],
                 "timestamp": timestamp,
+                "aliases": volume_record["aliases"],
             }
             self.upsert(cur, "volumes", data)
 
     def add_volume_issues_info(self, source_name: str, volume_id: int, volume_issues: list[ComicIssue]) -> None:
-
         con = lite.connect(self.db_file)
 
         with con:
@@ -280,11 +281,11 @@ class ComicCacher:
                     "thumb_url": issue["image_thumb"],
                     "description": issue["description"],
                     "timestamp": timestamp,
+                    "aliases": issue["aliases"],
                 }
                 self.upsert(cur, "issues", data)
 
     def get_volume_info(self, volume_id: int, source_name: str) -> ComicVolume | None:
-
         result: ComicVolume | None = None
 
         con = lite.connect(self.db_file)
@@ -298,7 +299,8 @@ class ComicCacher:
 
             # fetch
             cur.execute(
-                "SELECT source_name,id,name,publisher,count_of_issues,start_year FROM Volumes WHERE id=? AND source_name=?",
+                "SELECT source_name,id,name,publisher,count_of_issues,start_year,aliases FROM Volumes"
+                " WHERE id=? AND source_name=?",
                 [volume_id, source_name],
             )
 
@@ -309,18 +311,17 @@ class ComicCacher:
 
             # since ID is primary key, there is only one row
             result = ComicVolume(
-                # source_name: row[0],
                 id=row[1],
                 name=row[2],
                 count_of_issues=row[4],
                 start_year=row[5],
                 publisher=row[3],
+                aliases=row[6],
             )
 
         return result
 
     def get_volume_issues_info(self, volume_id: int, source_name: str) -> list[ComicIssue]:
-
         con = lite.connect(self.db_file)
         with con:
             cur = con.cursor()
@@ -336,8 +337,8 @@ class ComicCacher:
 
             cur.execute(
                 (
-                    "SELECT source_name,id,name,issue_number,site_detail_url,cover_date,super_url,thumb_url,description"
-                    + " FROM Issues WHERE volume_id=? AND source_name=?"
+                    "SELECT source_name,id,name,issue_number,site_detail_url,cover_date,super_url,thumb_url,description,aliases"
+                    " FROM Issues WHERE volume_id=? AND source_name=?"
                 ),
                 [volume_id, source_name],
             )
@@ -352,9 +353,9 @@ class ComicCacher:
                     site_detail_url=row[4],
                     cover_date=row[5],
                     image=row[6],
-                    image_thumb=row[7],
                     description=row[8],
                     volume={"id": volume_id, "name": row[2]},
+                    aliases=row[9],
                 )
 
                 results.append(record)
@@ -362,7 +363,13 @@ class ComicCacher:
         return results
 
     def add_issue_select_details(
-        self, issue_id: int, image_url: str, thumb_image_url: str, cover_date: str, site_detail_url: str
+        self,
+        source_name: str,
+        issue_id: int,
+        image_url: str,
+        thumb_image_url: str,
+        cover_date: str,
+        site_detail_url: str,
     ) -> None:
 
         con = lite.connect(self.db_file)
@@ -374,6 +381,7 @@ class ComicCacher:
 
             data = {
                 "id": issue_id,
+                "source_name": source_name,
                 "super_url": image_url,
                 "thumb_url": thumb_image_url,
                 "cover_date": cover_date,
@@ -390,7 +398,7 @@ class ComicCacher:
             con.text_factory = str
 
             cur.execute(
-                "SELECT super_url,thumb_url,cover_date,site_detail_url FROM Issues WHERE id=? " + "AND source_name=?",
+                "SELECT super_url,thumb_url,cover_date,site_detail_url FROM Issues WHERE id=? AND source_name=?",
                 [issue_id, source_name],
             )
             row = cur.fetchone()

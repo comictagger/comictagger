@@ -11,6 +11,7 @@ class SelectDetails(TypedDict):
 
 
 class ComicVolume(TypedDict, total=False):
+    aliases: str  # Newline separated
     count_of_issues: int
     description: str
     id: Required[int]
@@ -21,6 +22,7 @@ class ComicVolume(TypedDict, total=False):
 
 
 class ComicIssue(TypedDict, total=False):
+    aliases: str  # Newline separated
     cover_date: str
     description: str
     id: int

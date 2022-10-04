@@ -49,7 +49,7 @@ class ImageHasher:
 
     def average_hash(self) -> int:
         try:
-            image = self.image.resize((self.width, self.height), Image.ANTIALIAS).convert("L")
+            image = self.image.resize((self.width, self.height), Image.Resampling.LANCZOS).convert("L")
         except Exception:
             logger.exception("average_hash error")
             return 0
