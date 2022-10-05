@@ -100,7 +100,8 @@ class RenameWindow(QtWidgets.QDialog):
             new_ext = self.config_renamer(ca)
             try:
                 new_name = self.renamer.determine_name(new_ext)
-            except Exception as e:
+            except ValueError as e:
+                logger.exception("Invalid format string: %s", self.settings.rename_template)
                 QtWidgets.QMessageBox.critical(
                     self,
                     "Invalid format string!",
@@ -112,6 +113,19 @@ class RenameWindow(QtWidgets.QDialog):
                     "https://docs.python.org/3/library/string.html#format-string-syntax</a>",
                 )
                 return
+            except Exception as e:
+                logger.exception(
+                    "Formatter failure: %s metadata: %s", self.settings.rename_template, self.renamer.metadata
+                )
+                QtWidgets.QMessageBox.critical(
+                    self,
+                    "The formatter had an issue!",
+                    "The formatter has experienced an unexpected error!"
+                    f"<br/><br/>{type(e).__name__}: {e}<br/><br/>"
+                    "Please open an issue at "
+                    "<a href='https://github.com/comictagger/comictagger'>"
+                    "https://github.com/comictagger/comictagger</a>",
+                )
 
             row = self.twList.rowCount()
             self.twList.insertRow(row)
@@ -164,29 +178,37 @@ class RenameWindow(QtWidgets.QDialog):
         center_window_on_parent(prog_dialog)
         QtCore.QCoreApplication.processEvents()
 
-        for idx, comic in enumerate(zip(self.comic_archive_list, self.rename_list)):
+        try:
+            for idx, comic in enumerate(zip(self.comic_archive_list, self.rename_list)):
 
-            QtCore.QCoreApplication.processEvents()
-            if prog_dialog.wasCanceled():
-                break
-            idx += 1
-            prog_dialog.setValue(idx)
-            prog_dialog.setLabelText(comic[1])
-            center_window_on_parent(prog_dialog)
-            QtCore.QCoreApplication.processEvents()
+                QtCore.QCoreApplication.processEvents()
+                if prog_dialog.wasCanceled():
+                    break
+                idx += 1
+                prog_dialog.setValue(idx)
+                prog_dialog.setLabelText(comic[1])
+                center_window_on_parent(prog_dialog)
+                QtCore.QCoreApplication.processEvents()
 
-            folder = get_rename_dir(comic[0], self.settings.rename_dir if self.settings.rename_move_dir else None)
+                folder = get_rename_dir(comic[0], self.settings.rename_dir if self.settings.rename_move_dir else None)
 
-            full_path = folder / comic[1]
+                full_path = folder / comic[1]
 
-            if full_path == comic[0].path:
-                logger.info("%s: Filename is already good!", comic[1])
-                continue
+                if full_path == comic[0].path:
+                    logger.info("%s: Filename is already good!", comic[1])
+                    continue
 
-            if not comic[0].is_writable(check_rar_status=False):
-                continue
+                if not comic[0].is_writable(check_rar_status=False):
+                    continue
 
-            comic[0].rename(utils.unique_file(full_path))
+                comic[0].rename(utils.unique_file(full_path))
+        except Exception as e:
+            logger.exception("Failed to rename comic archive: %s", comic[0].path)
+            QtWidgets.QMessageBox.critical(
+                self,
+                "There was an issue when renaming!",
+                f"Renaming failed!<br/><br/>{type(e).__name__}: {e}<br/><br/>",
+            )
 
         prog_dialog.hide()
         QtCore.QCoreApplication.processEvents()

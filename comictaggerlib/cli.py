@@ -167,15 +167,15 @@ def post_process_matches(
             display_match_set_for_choice(label, match_set, opts, settings, talker_api)
 
 
-def cli_mode(opts: argparse.Namespace, settings: ComicTaggerSettings, talker_api: ComicTalker) -> None:
-    if len(opts.files) < 1:
+def cli_mode(opts: argparse.Namespace, settings: ComicTaggerSettings) -> None:
+    if len(opts.file_list) < 1:
         logger.error("You must specify at least one filename.  Use the -h option for more info")
         return
 
     match_results = OnlineMatchResults()
 
-    for f in opts.files:
-        process_file_cli(f, opts, settings, talker_api, match_results)
+    for f in opts.file_list:
+        process_file_cli(f, opts, settings, match_results)
         sys.stdout.flush()
 
     post_process_matches(match_results, opts, settings, talker_api)
@@ -219,7 +219,7 @@ def process_file_cli(
     talker_api: ComicTalker,
     match_results: OnlineMatchResults,
 ) -> None:
-    batch_mode = len(opts.files) > 1
+    batch_mode = len(opts.file_list) > 1
 
     ca = ComicArchive(filename, settings.rar_exe_path, ComicTaggerSettings.get_graphic("nocover.png"))
 
@@ -380,7 +380,7 @@ def process_file_cli(
         # now, search online
         if opts.online:
             if opts.issue_id is not None:
-                # we were given the actual issue ID to search with.
+                # we were given the actual issue ID to search with
                 try:
                     ct_md = talker_api.fetch_issue_data_by_issue_id(opts.issue_id)
                 except TalkerError as e:
@@ -476,7 +476,7 @@ def process_file_cli(
             match_results.good_matches.append(str(ca.path.absolute()))
 
     elif opts.rename:
-
+        original_path = ca.path
         msg_hdr = ""
         if batch_mode:
             msg_hdr = f"{ca.path}: "
@@ -504,15 +504,19 @@ def process_file_cli(
 
         try:
             new_name = renamer.determine_name(ext=new_ext)
-        except Exception:
+        except ValueError:
             logger.exception(
                 msg_hdr + "Invalid format string!\n"
                 "Your rename template is invalid!\n\n"
+                "%s\n\n"
                 "Please consult the template help in the settings "
                 "and the documentation on the format at "
-                "https://docs.python.org/3/library/string.html#format-string-syntax"
+                "https://docs.python.org/3/library/string.html#format-string-syntax",
+                settings.rename_template,
             )
             return
+        except Exception:
+            logger.exception("Formatter failure: %s metadata: %s", settings.rename_template, renamer.metadata)
 
         folder = get_rename_dir(ca, settings.rename_dir if settings.rename_move_dir else None)
 
@@ -525,11 +529,14 @@ def process_file_cli(
         suffix = ""
         if not opts.dryrun:
             # rename the file
-            ca.rename(utils.unique_file(full_path))
+            try:
+                ca.rename(utils.unique_file(full_path))
+            except OSError:
+                logger.exception("Failed to rename comic archive: %s", ca.path)
         else:
             suffix = " (dry-run, no change)"
 
-        print(f"renamed '{os.path.basename(ca.path)}' -> '{new_name}' {suffix}")
+        print(f"renamed '{original_path.name}' -> '{new_name}' {suffix}")
 
     elif opts.export_to_zip:
         msg_hdr = ""

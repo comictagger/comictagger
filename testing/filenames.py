@@ -733,14 +733,105 @@ fnames = [
         },
         True,
     ),
+    (
+        "Cory Doctorow's Futuristic Tales of the Here and Now: Anda's Game #001 (2007).cbz",
+        "full-date, issue in parenthesis",
+        {
+            "issue": "1",
+            "series": "Cory Doctorow's Futuristic Tales of the Here and Now",
+            "title": "Anda's Game",
+            "volume": "",
+            "year": "2007",
+            "remainder": "",
+            "issue_count": "",
+        },
+        True,
+    ),
 ]
 
 rnames = [
+    (
+        "{series!c} {price} {year}",  # Capitalize
+        False,
+        "universal",
+        "Cory doctorow's futuristic tales of the here and now 2007.cbz",
+        does_not_raise(),
+    ),
+    (
+        "{series!t} {price} {year}",  # Title Case
+        False,
+        "universal",
+        "Cory Doctorow'S Futuristic Tales Of The Here And Now 2007.cbz",
+        does_not_raise(),
+    ),
+    (
+        "{series!S} {price} {year}",  # Swap Case
+        False,
+        "universal",
+        "cORY dOCTOROW'S fUTURISTIC tALES OF THE hERE AND nOW 2007.cbz",
+        does_not_raise(),
+    ),
+    (
+        "{title!l} {price} {year}",  # Lowercase
+        False,
+        "universal",
+        "anda's game 2007.cbz",
+        does_not_raise(),
+    ),
+    (
+        "{title!u} {price} {year}",  # Upper Case
+        False,
+        "universal",
+        "ANDA'S GAME 2007.cbz",
+        does_not_raise(),
+    ),
+    (
+        "{title} {price} {year+}",  # Empty alternate value
+        False,
+        "universal",
+        "Anda's Game.cbz",
+        does_not_raise(),
+    ),
+    (
+        "{title} {price} {year+year!u}",  # Alternate value Upper Case
+        False,
+        "universal",
+        "Anda's Game YEAR.cbz",
+        does_not_raise(),
+    ),
+    (
+        "{title} {price} {year+year}",  # Alternate Value
+        False,
+        "universal",
+        "Anda's Game year.cbz",
+        does_not_raise(),
+    ),
+    (
+        "{title} {price-0} {year}",  # Default value
+        False,
+        "universal",
+        "Anda's Game 0 2007.cbz",
+        does_not_raise(),
+    ),
+    (
+        "{title} {price+0} {year}",  # Alternate Value
+        False,
+        "universal",
+        "Anda's Game 2007.cbz",
+        does_not_raise(),
+    ),
     (
         "{series} #{issue} - {title} ({year}) ({price})",  # price should be none
         False,
         "universal",
         "Cory Doctorow's Futuristic Tales of the Here and Now #001 - Anda's Game (2007).cbz",
+        does_not_raise(),
+    ),
+    (
+        "{series} #{issue} - {title} {volume:02} ({year})",  # Ensure format specifier works
+        False,
+        "universal",
+        "Cory Doctorow's Futuristic Tales of the Here and Now #001 - Anda's Game 01 (2007).cbz",
         does_not_raise(),
     ),
     (
@@ -762,6 +853,27 @@ rnames = [
         False,
         "universal",
         "Cory Doctorow's Futuristic Tales of the Here and Now #001 - Anda's Game (2007).cbz",
+        does_not_raise(),
+    ),
+    (
+        "{title} {web_link}",  # Ensure colon is replaced in metadata
+        False,
+        "universal",
+        "Anda's Game https---comicvine.gamespot.com-cory-doctorows-futuristic-tales-of-the-here-and-no-4000-140529-.cbz",
+        does_not_raise(),
+    ),
+    (
+        "{title} {web_link}",  # Ensure slashes are replaced in metadata on linux/macos
+        False,
+        "Linux",
+        "Anda's Game https:--comicvine.gamespot.com-cory-doctorows-futuristic-tales-of-the-here-and-no-4000-140529-.cbz",
+        does_not_raise(),
+    ),
+    (
+        "{series}:{title} #{issue} ({year})",  # on windows the ':' is replaced
+        False,
+        "universal",
+        "Cory Doctorow's Futuristic Tales of the Here and Now-Anda's Game #001 (2007).cbz",
         does_not_raise(),
     ),
     (
@@ -795,7 +907,7 @@ rnames = [
     (
         r"{publisher}\  {series} #{issue} - {title} ({year})",  # backslashes separate directories
         False,
-        "universal",
+        "Linux",
         "Cory Doctorow's Futuristic Tales of the Here and Now #001 - Anda's Game (2007).cbz",
         does_not_raise(),
     ),
@@ -807,10 +919,10 @@ rnames = [
         does_not_raise(),
     ),
     (
-        "{series} #  {issue} - {locations} ({year})",
+        "{series} #{issue} - {locations} ({year})",
         False,
         "universal",
-        "Cory Doctorow's Futuristic Tales of the Here and Now # 001 - lonely cottage (2007).cbz",
+        "Cory Doctorow's Futuristic Tales of the Here and Now #001 - lonely cottage (2007).cbz",
         does_not_raise(),
     ),
     (
@@ -846,6 +958,20 @@ rnames = [
         False,
         "universal",
         "Cory Doctorow's Futuristic Tales of the Here and Now - Anda's Game {test} #001 (2007).cbz",
+        does_not_raise(),
+    ),
+    (
+        "{series} - {title} #{issue} ({year} {price})",  # Test null value in parenthesis with a non-null value
+        False,
+        "universal",
+        "Cory Doctorow's Futuristic Tales of the Here and Now - Anda's Game #001 (2007).cbz",
+        does_not_raise(),
+    ),
+    (
+        "{series} - {title} #{issue} (of {price})",  # null value with literal text in parenthesis
+        False,
+        "universal",
+        "Cory Doctorow's Futuristic Tales of the Here and Now - Anda's Game #001.cbz",
         does_not_raise(),
     ),
     (

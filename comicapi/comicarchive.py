@@ -114,7 +114,7 @@ class SevenZipArchiver(UnknownArchiver):
         return False
 
     def read_file(self, archive_file: str) -> bytes:
-        data = bytes()
+        data = b""
         try:
             with py7zr.SevenZipFile(self.path, "r") as zf:
                 data = zf.read(archive_file)[archive_file].read()
@@ -148,7 +148,7 @@ class SevenZipArchiver(UnknownArchiver):
     def get_filename_list(self) -> list[str]:
         try:
             with py7zr.SevenZipFile(self.path, "r") as zf:
-                namelist: list[str] = zf.getnames()
+                namelist: list[str] = [file.filename for file in zf.list() if not file.is_directory]
 
             return namelist
         except (py7zr.Bad7zFile, OSError) as e:
@@ -248,7 +248,7 @@ class ZipArchiver(UnknownArchiver):
     def get_filename_list(self) -> list[str]:
         try:
             with zipfile.ZipFile(self.path, mode="r") as zf:
-                namelist = zf.namelist()
+                namelist = [file.filename for file in zf.infolist() if not file.is_dir()]
             return namelist
         except (zipfile.BadZipfile, OSError) as e:
             logger.error("Error listing files in zip archive [%s]: %s", e, self.path)
@@ -379,14 +379,15 @@ class RarArchiver(UnknownArchiver):
 
     def get_comment(self) -> str:
         rarc = self.get_rar_obj()
-        return str(rarc.comment) if rarc else ""
+        return rarc.comment.decode("utf-8") if rarc else ""
 
     def set_comment(self, comment: str) -> bool:
         if rar_support and self.rar_exe_path:
             try:
                 # write comment to temp file
-                with tempfile.NamedTemporaryFile() as tmp_file:
-                    tmp_file.write(comment.encode("utf-8"))
+                with tempfile.TemporaryDirectory() as tmp_dir:
+                    tmp_file = pathlib.Path(tmp_dir) / "rar_comment.txt"
+                    tmp_file.write_text(comment, encoding="utf-8")
 
                     working_dir = os.path.dirname(os.path.abspath(self.path))
 
@@ -396,7 +397,7 @@ class RarArchiver(UnknownArchiver):
                         "c",
                         f"-w{working_dir}",
                         "-c-",
-                        f"-z{tmp_file.name}",
+                        f"-z{tmp_file}",
                         str(self.path),
                     ]
                     subprocess.run(
@@ -422,7 +423,7 @@ class RarArchiver(UnknownArchiver):
 
         rarc = self.get_rar_obj()
         if rarc is None:
-            return bytes()
+            return b""
 
         tries = 0
         while tries < 7:
@@ -665,7 +666,7 @@ class FolderArchiver(UnknownArchiver):
 
 
 class ComicArchive:
-    logo_data = bytes()
+    logo_data = b""
 
     class ArchiveType:
         SevenZip, Zip, Rar, Folder, Pdf, Unknown = list(range(6))
@@ -683,7 +684,7 @@ class ComicArchive:
         self._has_cbi: bool | None = None
         self._has_cix: bool | None = None
         self._has_comet: bool | None = None
-        self.path = pathlib.Path(path)
+        self.path = pathlib.Path(path).absolute()
         self.page_count: int | None = None
         self.page_list: list[str] = []
 
@@ -750,7 +751,7 @@ class ComicArchive:
         if new_path == self.path:
             return
         os.makedirs(new_path.parent, 0o777, True)
-        shutil.move(path, new_path)
+        shutil.move(self.path, new_path)
         self.path = new_path
         self.archiver.path = pathlib.Path(path)
 
@@ -853,13 +854,13 @@ class ComicArchive:
         return retcode
 
     def get_page(self, index: int) -> bytes:
-        image_data = bytes()
+        image_data = b""
 
         filename = self.get_page_name(index)
 
         if filename:
             try:
-                image_data = self.archiver.read_file(filename) or bytes()
+                image_data = self.archiver.read_file(filename) or b""
             except Exception:
                 logger.error("Error reading in page %d. Substituting logo page.", index)
                 image_data = ComicArchive.logo_data
@@ -934,7 +935,7 @@ class ComicArchive:
             # seems like some archive creators are on Windows, and don't know about case-sensitivity!
             if sort_list:
 
-                files = cast(list[str], natsort.natsorted(files, alg=natsort.ns.IC | natsort.ns.I | natsort.ns.U))
+                files = cast(list[str], natsort.os_sorted(files))
 
             # make a sub-list of image files
             self.page_list = []
@@ -1033,7 +1034,7 @@ class ComicArchive:
             raw_cix = self.archiver.read_file(self.ci_xml_filename) or b""
         except Exception as e:
             logger.error("Error reading in raw CIX! for %s: %s", self.path, e)
-            raw_cix = bytes()
+            raw_cix = b""
         return raw_cix
 
     def write_cix(self, metadata: GenericMetadata) -> bool:

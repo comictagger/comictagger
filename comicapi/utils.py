@@ -19,11 +19,11 @@ import json
 import logging
 import os
 import pathlib
-import re
 import unicodedata
 from collections import defaultdict
+from collections.abc import Mapping
 from shutil import which  # noqa: F401
-from typing import Any, Mapping
+from typing import Any
 
 import pycountry
 import thefuzz.fuzz
@@ -35,6 +35,20 @@ class UtilsVars:
     already_fixed_encoding = False
 
 
+def parse_date_str(date_str: str) -> tuple[int | None, int | None, int | None]:
+    day = None
+    month = None
+    year = None
+    if date_str:
+        parts = date_str.split("-")
+        year = xlate(parts[0], True)
+        if len(parts) > 1:
+            month = xlate(parts[1], True)
+            if len(parts) > 2:
+                day = xlate(parts[2], True)
+    return day, month, year
+
+
 def get_recursive_filelist(pathlist: list[str]) -> list[str]:
     """Get a recursive list of of all files under all path items in the list"""
 
@@ -43,22 +57,20 @@ def get_recursive_filelist(pathlist: list[str]) -> list[str]:
 
         if os.path.isdir(p):
             filelist.extend(x for x in glob.glob(f"{p}{os.sep}/**", recursive=True) if not os.path.isdir(x))
-        else:
-            filelist.append(p)
+        elif str(p) not in filelist:
+            filelist.append(str(p))
 
     return filelist
 
 
 def add_to_path(dirname: str) -> None:
-    if dirname is not None and dirname != "":
+    if dirname:
+        dirname = os.path.abspath(dirname)
+        paths = [os.path.normpath(x) for x in os.environ["PATH"].split(os.pathsep)]
 
-        # verify that path doesn't already contain the given dirname
-        tmpdirname = re.escape(dirname)
-        pattern = r"(^|{sep}){dir}({sep}|$)".format(dir=tmpdirname, sep=os.pathsep)
-
-        match = re.search(pattern, os.environ["PATH"])
-        if not match:
-            os.environ["PATH"] = dirname + os.pathsep + os.environ["PATH"]
+        if dirname not in paths:
+            paths.insert(0, dirname)
+            os.environ["PATH"] = os.pathsep.join(paths)
 
 
 def xlate(data: Any, is_int: bool = False, is_float: bool = False) -> Any:
@@ -109,13 +121,9 @@ def remove_articles(text: str) -> str:
         "the",
         "the",
         "with",
-        "ms",
-        "mrs",
-        "mr",
-        "dr",
     ]
     new_text = ""
-    for word in text.split(" "):
+    for word in text.split():
         if word not in articles:
             new_text += word + " "
 
@@ -127,19 +135,16 @@ def remove_articles(text: str) -> str:
 def sanitize_title(text: str, basic: bool = False) -> str:
     # normalize unicode and convert to ascii. Does not work for everything eg ½ to 1⁄2 not 1/2
     text = unicodedata.normalize("NFKD", text).casefold()
-    if basic:
-        # comicvine keeps apostrophes a part of the word
-        text = text.replace("'", "")
-        text = text.replace('"', "")
-    else:
+    # comicvine keeps apostrophes a part of the word
+    text = text.replace("'", "")
+    text = text.replace('"', "")
+    if not basic:
         # comicvine ignores punctuation and accents
         # remove all characters that are not a letter, separator (space) or number
         # replace any "dash punctuation" with a space
         # makes sure that batman-superman and self-proclaimed stay separate words
         text = "".join(
-            c if not unicodedata.category(c) in ("Pd",) else " "
-            for c in text
-            if unicodedata.category(c)[0] in "LZN" or unicodedata.category(c) in ("Pd",)
+            c if unicodedata.category(c)[0] not in "P" else " " for c in text if unicodedata.category(c)[0] in "LZNP"
         )
         # remove extra space and articles and all lower case
         text = remove_articles(text).strip()
@@ -147,10 +152,10 @@ def sanitize_title(text: str, basic: bool = False) -> str:
     return text
 
 
-def titles_match(search_title: str, record_title: str, threshold: int = 90) -> int:
+def titles_match(search_title: str, record_title: str, threshold: int = 90) -> bool:
     sanitized_search = sanitize_title(search_title)
     sanitized_record = sanitize_title(record_title)
-    ratio = thefuzz.fuzz.ratio(sanitized_search, sanitized_record)
+    ratio: int = thefuzz.fuzz.ratio(sanitized_search, sanitized_record)
     logger.debug(
         "search title: %s ; record title: %s ; ratio: %d ; match threshold: %d",
         search_title,
@@ -162,12 +167,12 @@ def titles_match(search_title: str, record_title: str, threshold: int = 90) -> i
 
 
 def unique_file(file_name: pathlib.Path) -> pathlib.Path:
-    name = file_name.name
+    name = file_name.stem
     counter = 1
     while True:
         if not file_name.exists():
             return file_name
-        file_name = file_name.with_name(name + " (" + str(counter) + ")")
+        file_name = file_name.with_stem(name + " (" + str(counter) + ")")
         counter += 1
 
 
@@ -188,23 +193,19 @@ def get_language_from_iso(iso: str | None) -> str | None:
     return languages[iso]
 
 
-def get_language(string: str | None) -> str | None:
+def get_language_iso(string: str | None) -> str | None:
     if string is None:
         return None
+    lang = string.casefold()
 
-    lang = get_language_from_iso(string)
-
-    if lang is None:
-        try:
-            return str(pycountry.languages.lookup(string).name)
-        except LookupError:
-            return None
+    try:
+        return getattr(pycountry.languages.lookup(string), "alpha_2", None)
+    except LookupError:
+        pass
     return lang
 
 
 def get_publisher(publisher: str) -> tuple[str, str]:
-    if publisher is None:
-        return ("", "")
     imprint = ""
 
     for pub in publishers.values():

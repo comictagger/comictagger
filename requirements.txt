@@ -1,12 +1,13 @@
-beautifulsoup4 >= 4.1
-importlib_metadata
+beautifulsoup4>=4.1
+importlib_metadata>=3.3.0
 natsort>=8.1.0
 pathvalidate
-pillow>=4.3.0
+pillow>=9.1.0
 py7zr
 pycountry
+pyicu; sys_platform == 'linux' or sys_platform == 'darwin'
 requests==2.*
 text2digits
-thefuzz[speedup]>=0.19.0
+thefuzz>=0.19.0
 typing_extensions
 wordninja

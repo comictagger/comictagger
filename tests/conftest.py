@@ -5,7 +5,8 @@ import datetime
 import io
 import shutil
 import unittest.mock
-from typing import Any, Generator
+from collections.abc import Generator
+from typing import Any
 
 import pytest
 import requests

@@ -20,16 +20,40 @@ import logging
 import os
 import pathlib
 import string
-import sys
-from typing import Any, cast
+from typing import Any, NamedTuple, cast
 
-from pathvalidate import sanitize_filename
+from pathvalidate import Platform, normalize_platform, sanitize_filename
 
 from comicapi.comicarchive import ComicArchive
 from comicapi.genericmetadata import GenericMetadata
 from comicapi.issuestring import IssueString
 
 logger = logging.getLogger(__name__)
+
+
+class Replacement(NamedTuple):
+    find: str
+    replce: str
+    strict_only: bool
+
+
+class Replacements(NamedTuple):
+    literal_text: list[Replacement]
+    format_value: list[Replacement]
+
+
+REPLACEMENTS = Replacements(
+    literal_text=[
+        Replacement(": ", " - ", True),
+        Replacement(":", "-", True),
+    ],
+    format_value=[
+        Replacement(": ", " - ", True),
+        Replacement(":", "-", True),
+        Replacement("/", "-", False),
+        Replacement("\\", "-", True),
+    ],
+)
 
 
 def get_rename_dir(ca: ComicArchive, rename_dir: str | pathlib.Path | None) -> pathlib.Path:
@@ -42,15 +66,54 @@ def get_rename_dir(ca: ComicArchive, rename_dir: str | pathlib.Path | None) -> p
 
 
 class MetadataFormatter(string.Formatter):
-    def __init__(self, smart_cleanup: bool = False, platform: str = "auto") -> None:
+    def __init__(
+        self, smart_cleanup: bool = False, platform: str = "auto", replacements: Replacements = REPLACEMENTS
+    ) -> None:
         super().__init__()
         self.smart_cleanup = smart_cleanup
-        self.platform = platform
+        self.platform = normalize_platform(platform)
+        self.replacements = replacements
 
     def format_field(self, value: Any, format_spec: str) -> str:
         if value is None or value == "":
             return ""
         return cast(str, super().format_field(value, format_spec))
+
+    def convert_field(self, value: Any, conversion: str) -> str:
+        if conversion == "u":
+            return str(value).upper()
+        if conversion == "l":
+            return str(value).casefold()
+        if conversion == "c":
+            return str(value).capitalize()
+        if conversion == "S":
+            return str(value).swapcase()
+        if conversion == "t":
+            return str(value).title()
+        return cast(str, super().convert_field(value, conversion))
+
+    def handle_replacements(self, string: str, replacements: list[Replacement]) -> str:
+        for find, replace, strict_only in replacements:
+            if self.is_strict() or not strict_only:
+                string = string.replace(find, replace)
+        return string
+
+    def none_replacement(self, value: Any, replacement: str, r: str) -> Any:
+        if r == "-" and value is None or value == "":
+            return replacement
+        if r == "+" and value is not None:
+            return replacement
+        return value
+
+    def split_replacement(self, field_name: str) -> tuple[str, str, str]:
+        if "-" in field_name:
+            return field_name.rpartition("-")
+        if "+" in field_name:
+            return field_name.rpartition("+")
+        return field_name, "", ""
+
+    def is_strict(self) -> bool:
+        return self.platform in [Platform.UNIVERSAL, Platform.WINDOWS]
 
     def _vformat(
         self,
@@ -72,6 +135,7 @@ class MetadataFormatter(string.Formatter):
                 if lstrip:
                     literal_text = literal_text.lstrip("-_)}]#")
                 if self.smart_cleanup:
+                    literal_text = self.handle_replacements(literal_text, self.replacements.literal_text)
                     lspace = literal_text[0].isspace() if literal_text else False
                     rspace = literal_text[-1].isspace() if literal_text else False
                     literal_text = " ".join(literal_text.split())
@@ -87,6 +151,7 @@ class MetadataFormatter(string.Formatter):
             lstrip = False
             # if there's a field, output it
             if field_name is not None and field_name != "":
+                field_name, r, replacement = self.split_replacement(field_name)
                 field_name = field_name.casefold()
                 # this is some markup, find the object and do the formatting
 
@@ -99,6 +164,8 @@ class MetadataFormatter(string.Formatter):
                 obj, arg_used = self.get_field(field_name, args, kwargs)
                 used_args.add(arg_used)
 
+                obj = self.none_replacement(obj, replacement, r)
+
                 # do any conversion on the resulting object
                 obj = self.convert_field(obj, conversion)  # type: ignore
 
@@ -109,18 +176,27 @@ class MetadataFormatter(string.Formatter):
 
                 # format the object and append to the result
                 fmt_obj = self.format_field(obj, format_spec)
-                if fmt_obj == "" and len(result) > 0 and self.smart_cleanup and literal_text:
-                    lstrip = True
+                if fmt_obj == "" and result and self.smart_cleanup and literal_text:
+                    if self.str_contains(result[-1], "({["):
+                        lstrip = True
                     if result:
                         if " " in result[-1]:
-                            result[-1], _, _ = result[-1].rpartition(" ")
+                            result[-1], _, _ = result[-1].rstrip().rpartition(" ")
                         result[-1] = result[-1].rstrip("-_({[#")
                 if self.smart_cleanup:
+                    # colons and slashes get special treatment
+                    fmt_obj = self.handle_replacements(fmt_obj, self.replacements.format_value)
                     fmt_obj = " ".join(fmt_obj.split())
                     fmt_obj = str(sanitize_filename(fmt_obj, platform=self.platform))
                 result.append(fmt_obj)
 
         return "".join(result), False
+
+    def str_contains(self, chars: str, string: str) -> bool:
+        for char in chars:
+            if char in string:
+                return True
+        return False
 
 
 class FileRenamer:
@@ -172,13 +248,6 @@ class FileRenamer:
 
         new_basename = ""
         for component in pathlib.PureWindowsPath(template).parts:
-            if (
-                self.platform.casefold() in ["universal", "windows"] or sys.platform.casefold() in ["windows"]
-            ) and self.smart_cleanup:
-                # colons get special treatment
-                component = component.replace(": ", " - ")
-                component = component.replace(":", "-")
-
             new_basename = str(
                 sanitize_filename(fmt.vformat(component, args=[], kwargs=Default(md_dict)), platform=self.platform)
             ).strip()

@@ -21,6 +21,7 @@ import re
 import time
 from datetime import datetime
 from typing import Any, Callable, cast
+from urllib.parse import urlencode, urljoin, urlsplit
 
 import requests
 from bs4 import BeautifulSoup
@@ -57,6 +58,7 @@ class CVTypeID:
     Issue = "4000"
 
 
+
 class CVImage(TypedDict, total=False):
     icon_url: str
     medium_url: str
@@ -88,7 +90,6 @@ class CVCredits(TypedDict):
     id: int
     name: str
     site_detail_url: str
-
 
 class CVPersonCredits(TypedDict):
     api_detail_url: str
@@ -189,7 +190,6 @@ class CVIssueDetailResults(TypedDict):
 
 class ComicVineTalker(TalkerBase):
     def __init__(self, series_match_thresh: int = 90) -> None:
-        super().__init__()
         self.source_details = source_details = SourceDetails(
             name="Comic Vine",
             ident="comicvine",
@@ -283,26 +283,22 @@ class ComicVineTalker(TalkerBase):
             self.nam = QtNetwork.QNetworkAccessManager()
 
     def parse_date_str(self, date_str: str) -> tuple[int | None, int | None, int | None]:
-        day = None
-        month = None
-        year = None
-        if date_str:
-            parts = date_str.split("-")
-            year = utils.xlate(parts[0], True)
-            if len(parts) > 1:
-                month = utils.xlate(parts[1], True)
-                if len(parts) > 2:
-                    day = utils.xlate(parts[2], True)
-        return day, month, year
+        return utils.parse_date_str(date_str)
 
     def check_api_key(self, key: str, url: str) -> bool:
         if not url:
             url = self.api_base_url
         try:
-            test_url = url + "/issue/1/?api_key=" + key + "&format=json&field_list=name"
+            test_url = urljoin(url, "issue/1/")
 
             cv_response: CVResult = requests.get(
-                test_url, headers={"user-agent": "comictagger/" + ctversion.version}
+                test_url,
+                headers={"user-agent": "comictagger/" + ctversion.version},
+                params={
+                    "api_key": key,
+                    "format": "json",
+                    "field_list": "name",
+                },
             ).json()
 
             # Bogus request, but if the key is wrong, you get error 100: "Invalid API Key"
@@ -345,8 +341,8 @@ class ComicVineTalker(TalkerBase):
 
     def get_url_content(self, url: str, params: dict[str, Any]) -> Any:
         # connect to server:
-        #  if there is a 500 error, try a few more times before giving up
-        #  any other error, just bail
+        # if there is a 500 error, try a few more times before giving up
+        # any other error, just bail
         for tries in range(3):
             try:
                 resp = requests.get(url, params=params, headers={"user-agent": "comictagger/" + ctversion.version})
@@ -460,7 +456,7 @@ class ComicVineTalker(TalkerBase):
             "limit": 100,
         }
 
-        cv_response = self.get_cv_content(self.api_base_url + "/search", params)
+        cv_response = self.get_cv_content(urljoin(self.api_base_url, "search"), params)
 
         search_results: list[CVVolumeResults] = []
 
@@ -506,7 +502,7 @@ class ComicVineTalker(TalkerBase):
             page += 1
 
             params["page"] = page
-            cv_response = self.get_cv_content(self.api_base_url + "/search", params)
+            cv_response = self.get_cv_content(urljoin(self.api_base_url, "search"), params)
 
             search_results.extend(cast(list[CVVolumeResults], cv_response["results"]))
             current_result_count += cv_response["number_of_page_results"]
@@ -527,7 +523,7 @@ class ComicVineTalker(TalkerBase):
     def fetch_volume_data(self, series_id: int) -> GenericMetadata:
         # TODO New cache table or expand current? Makes sense to cache as multiple chapters will want the same data
 
-        volume_url = self.api_base_url + "/volume/" + CVTypeID.Volume + "-" + str(series_id)
+        volume_url = urljoin(self.api_base_url, f"volume/{CVTypeID.Volume}-{series_id}")
 
         params = {
             "api_key": self.api_key,
@@ -549,7 +545,7 @@ class ComicVineTalker(TalkerBase):
         if cached_volume_result is not None:
             return cached_volume_result
 
-        volume_url = self.api_base_url + "/volume/" + CVTypeID.Volume + "-" + str(series_id)
+        volume_url = urljoin(self.api_base_url, f"volume/{CVTypeID.Volume}-{series_id}")
 
         params = {
             "api_key": self.api_key,
@@ -576,12 +572,12 @@ class ComicVineTalker(TalkerBase):
 
         params = {
             "api_key": self.api_key,
-            "filter": "volume:" + str(series_id),
+            "filter": f"volume:{series_id}",
             "format": "json",
             "field_list": "id,volume,issue_number,name,image,cover_date,site_detail_url,description,aliases",
             "offset": 0,
         }
-        cv_response = self.get_cv_content(self.api_base_url + "/issues/", params)
+        cv_response = self.get_cv_content(urljoin(self.api_base_url, "issues/"), params)
 
         current_result_count = cv_response["number_of_page_results"]
         total_result_count = cv_response["number_of_total_results"]
@@ -596,7 +592,7 @@ class ComicVineTalker(TalkerBase):
             offset += cv_response["number_of_page_results"]
 
             params["offset"] = offset
-            cv_response = self.get_cv_content(self.api_base_url + "/issues/", params)
+            cv_response = self.get_cv_content(urljoin(self.api_base_url, "issues/"), params)
 
             volume_issues_result.extend(cast(list[CVIssuesResults], cv_response["results"]))
             current_result_count += cv_response["number_of_page_results"]
@@ -629,7 +625,7 @@ class ComicVineTalker(TalkerBase):
             "filter": flt,
         }
 
-        cv_response = self.get_cv_content(self.api_base_url + "/issues/", params)
+        cv_response = self.get_cv_content(urljoin(self.api_base_url, "issues/"), params)
 
         current_result_count = cv_response["number_of_page_results"]
         total_result_count = cv_response["number_of_total_results"]
@@ -644,7 +640,7 @@ class ComicVineTalker(TalkerBase):
             offset += cv_response["number_of_page_results"]
 
             params["offset"] = offset
-            cv_response = self.get_cv_content(self.api_base_url + "/issues/", params)
+            cv_response = self.get_cv_content(urljoin(self.api_base_url, "issues/"), params)
 
             filtered_issues_result.extend(cast(list[CVIssuesResults], cv_response["results"]))
             current_result_count += cv_response["number_of_page_results"]
@@ -671,7 +667,7 @@ class ComicVineTalker(TalkerBase):
                 break
 
         if f_record is not None:
-            issue_url = self.api_base_url + "/issue/" + CVTypeID.Issue + "-" + str(f_record["id"])
+            issue_url = urljoin(self.api_base_url, f"issue/{CVTypeID.Issue}-{f_record['id']}")
             params = {"api_key": self.api_key, "format": "json"}
             cv_response = self.get_cv_content(issue_url, params)
             issue_results = cast(CVIssueDetailResults, cv_response["results"])
@@ -683,7 +679,7 @@ class ComicVineTalker(TalkerBase):
 
     def fetch_issue_data_by_issue_id(self, issue_id: int) -> GenericMetadata:
 
-        issue_url = self.api_base_url + "/issue/" + CVTypeID.Issue + "-" + str(issue_id)
+        issue_url = urljoin(self.api_base_url, f"issue/{CVTypeID.Issue}-{issue_id}")
         params = {"api_key": self.api_key, "format": "json"}
         cv_response = self.get_cv_content(issue_url, params)
 
@@ -924,7 +920,8 @@ class ComicVineTalker(TalkerBase):
         if cached_details["image_url"] is not None:
             return cached_details
 
-        issue_url = self.api_base_url + "/issue/" + CVTypeID.Issue + "-" + str(issue_id)
+        issue_url = urljoin(self.api_base_url, f"issue/{CVTypeID.Issue}-{issue_id}")
+        logger.error("%s, %s", self.api_base_url, issue_url)
 
         params = {"api_key": self.api_key, "format": "json", "field_list": "image,cover_date,site_detail_url"}
 
@@ -1022,19 +1019,20 @@ class ComicVineTalker(TalkerBase):
         if details["image_url"] is not None:
             ComicTalker.url_fetch_complete(details["image_url"], details["thumb_image_url"])
 
-        issue_url = (
-            self.api_base_url
-            + "/issue/"
-            + CVTypeID.Issue
-            + "-"
-            + str(issue_id)
-            + "/?api_key="
-            + self.api_key
-            + "&format=json&field_list=image,cover_date,site_detail_url"
+        issue_url = urlsplit(self.api_base_url)
+        issue_url = issue_url._replace(
+            query=urlencode(
+                {
+                    "api_key": self.api_key,
+                    "format": "json",
+                    "field_list": "image,cover_date,site_detail_url",
+                }
+            ),
+            path=f"issue/{CVTypeID.Issue}-{issue_id}",
         )
 
         self.nam.finished.connect(self.async_fetch_issue_cover_url_complete)
-        self.nam.get(QtNetwork.QNetworkRequest(QtCore.QUrl(issue_url)))
+        self.nam.get(QtNetwork.QNetworkRequest(QtCore.QUrl(issue_url.geturl())))
 
     def async_fetch_issue_cover_url_complete(self, reply: QtNetwork.QNetworkReply) -> None:
         # read in the response

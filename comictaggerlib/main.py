@@ -147,7 +147,7 @@ def ctmain() -> None:
 
     logger.debug("Installed Packages")
     for pkg in sorted(importlib_metadata.distributions(), key=lambda x: x.name):
-        logger.debug("%s\t%s", pkg.name, pkg.version)
+        logger.debug("%s\t%s", pkg.metadata["Name"], pkg.metadata["Version"])
 
     talker_api = ComicTalker(settings.comic_info_source)
 

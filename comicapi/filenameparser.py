@@ -24,17 +24,21 @@ import logging
 import os
 import re
 from operator import itemgetter
-from typing import Callable, Match, TypedDict
+from re import Match
+from typing import Callable, TypedDict
 from urllib.parse import unquote
 
 from text2digits import text2digits
 
 from comicapi import filenamelexer, issuestring
 
+logger = logging.getLogger(__name__)
+
 t2d = text2digits.Text2Digits(add_ordinal_ending=False)
 t2do = text2digits.Text2Digits(add_ordinal_ending=True)
 
-logger = logging.getLogger(__name__)
+placeholders_no_dashes = [re.compile(r"[-_]"), re.compile(r"  +")]
+placeholders_allow_dashes = [re.compile(r"[_]"), re.compile(r"  +")]
 
 
 class FileNameParser:
@@ -53,9 +57,9 @@ class FileNameParser:
 
     def fix_spaces(self, string: str, remove_dashes: bool = True) -> str:
         if remove_dashes:
-            placeholders = [r"[-_]", r"  +"]
+            placeholders = placeholders_no_dashes
         else:
-            placeholders = [r"[_]", r"  +"]
+            placeholders = placeholders_allow_dashes
         for ph in placeholders:
             string = re.sub(ph, self.repl, string)
         return string
@@ -67,17 +71,10 @@ class FileNameParser:
 
         # replace any name separators with spaces
         tmpstr = self.fix_spaces(filename)
-        found = False
 
-        match = re.search(r"(?<=\sof\s)\d+(?=\s)", tmpstr, re.IGNORECASE)
+        match = re.search(r"(?:\s\(?of\s)(\d+)(?: |\))", tmpstr, re.IGNORECASE)
         if match:
-            count = match.group()
-            found = True
-
-        if not found:
-            match = re.search(r"(?<=\(of\s)\d+(?=\))", tmpstr, re.IGNORECASE)
-            if match:
-                count = match.group()
+            count = match.group(1)
 
         return count.lstrip("0")
 
@@ -180,10 +177,12 @@ class FileNameParser:
         if "--" in filename:
             # the pattern seems to be that anything to left of the first "--" is the series name followed by issue
             filename = re.sub(r"--.*", self.repl, filename)
+            # never happens
 
         elif "__" in filename:
             # the pattern seems to be that anything to left of the first "__" is the series name followed by issue
             filename = re.sub(r"__.*", self.repl, filename)
+            # never happens
 
         filename = filename.replace("+", " ")
         tmpstr = self.fix_spaces(filename, remove_dashes=False)
@@ -425,6 +424,7 @@ def parse(p: Parser) -> Callable[[Parser], Callable | None] | None:
         likely_year = False
         if p.firstItem and p.first_is_alt:
             p.alt = True
+            p.firstItem = False
             return parse_issue_number
 
         # The issue number should hopefully not be in parentheses
@@ -440,9 +440,6 @@ def parse(p: Parser) -> Callable[[Parser], Callable | None] | None:
                             # Series has already been started/parsed,
                             # filters out leading alternate numbers leading alternate number
                             if len(p.series_parts) > 0:
-                                # Unset first item
-                                if p.firstItem:
-                                    p.firstItem = False
                                 return parse_issue_number
             else:
                 p.operator_rejected.append(item)
@@ -506,9 +503,6 @@ def parse(p: Parser) -> Callable[[Parser], Callable | None] | None:
             p.series_parts.append(item)
             p.used_items.append(item)
 
-            # Unset first item
-            if p.firstItem:
-                p.firstItem = False
             p.get()
             return parse_series
 
@@ -590,6 +584,8 @@ def parse(p: Parser) -> Callable[[Parser], Callable | None] | None:
         if series_append:
             p.series_parts.append(item)
             p.used_items.append(item)
+            if p.firstItem:
+                p.firstItem = False
             return parse_series
 
     # We found text, it's probably the title or series
@@ -602,6 +598,8 @@ def parse(p: Parser) -> Callable[[Parser], Callable | None] | None:
 
     # Usually the word 'of' eg 1 (of 6)
     elif item.typ == filenamelexer.ItemType.InfoSpecifier:
+        if p.firstItem:
+            p.firstItem = False
         return parse_info_specifier
 
     # Operator is a symbol that acts as some sort of separator eg - : ;
@@ -622,9 +620,13 @@ def parse(p: Parser) -> Callable[[Parser], Callable | None] | None:
                 p.irrelevant.extend([item, p.input[p.pos], p.get()])
             else:
                 p.backup()
+                if p.firstItem:
+                    p.firstItem = False
                 return parse_series
         # This is text that just happens to also be a month/day
         else:
+            if p.firstItem:
+                p.firstItem = False
             return parse_series
 
     # Specifically '__' or '--', no further title/series parsing is done to keep compatibility with wiki
@@ -853,10 +855,11 @@ def resolve_year(p: Parser) -> None:
             p.used_items.append(vol)
 
             # Remove volume from series and title
-            if selected_year in p.series_parts:
-                p.series_parts.remove(selected_year)
-            if selected_year in p.title_parts:
-                p.title_parts.remove(selected_year)
+            # note: this never happens
+            if vol in p.series_parts:
+                p.series_parts.remove(vol)
+            if vol in p.title_parts:
+                p.title_parts.remove(vol)
 
         # Remove year from series and title
         if selected_year in p.series_parts:

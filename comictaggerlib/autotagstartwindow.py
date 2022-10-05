@@ -87,7 +87,8 @@ class AutoTagStartWindow(QtWidgets.QDialog):
         self.assume_issue_one = self.cbxAssumeIssueOne.isChecked()
         self.ignore_leading_digits_in_filename = self.cbxIgnoreLeadingDigitsInFilename.isChecked()
         self.remove_after_success = self.cbxRemoveAfterSuccess.isChecked()
-        self.name_length_match_tolerance = int(self.leNameMatchThresh.text())
+        # TODO check UI file
+        self.name_length_match_tolerance = self.sbNameMatchSearchThresh.value()
         self.split_words = self.cbxSplitWords.isChecked()
 
         # persist some settings

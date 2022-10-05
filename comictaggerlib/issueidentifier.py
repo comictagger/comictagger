@@ -159,7 +159,7 @@ class IssueIdentifier:
             cropped_im = im.crop((int(w / 2), 0, w, h))
         except Exception:
             logger.exception("cropCover() error")
-            return bytes()
+            return b""
 
         output = io.BytesIO()
         cropped_im.save(output, format="PNG")
@@ -568,7 +568,7 @@ class IssueIdentifier:
                 self.log_msg("")
 
         if len(self.match_list) == 0:
-            self.log_msg(":-(no matches!")
+            self.log_msg(":-( no matches!")
             self.search_result = self.result_no_matches
             return self.match_list
 

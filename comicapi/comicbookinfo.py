@@ -97,7 +97,14 @@ class ComicBookInfo:
         metadata.country = utils.xlate(cbi["country"])
         metadata.critical_rating = utils.xlate(cbi["rating"], True)
 
-        metadata.credits = cbi["credits"]
+        metadata.credits = [
+            Credits(
+                person=x["person"] if "person" in x else "",
+                role=x["role"] if "role" in x else "",
+                primary=x["primary"] if "primary" in x else False,
+            )
+            for x in cbi["credits"]
+        ]
         metadata.tags = set(cbi["tags"]) if cbi["tags"] is not None else set()
 
         # make sure credits and tags are at least empty lists and not None
@@ -105,8 +112,8 @@ class ComicBookInfo:
             metadata.credits = []
 
         # need the language string to be ISO
-        if metadata.language is not None:
-            metadata.language = utils.get_language(metadata.language)
+        if metadata.language:
+            metadata.language = utils.get_language_iso(metadata.language)
 
         metadata.is_empty = False
 
@@ -157,7 +164,7 @@ class ComicBookInfo:
         assign("country", utils.xlate(metadata.country))
         assign("rating", utils.xlate(metadata.critical_rating, True))
         assign("credits", metadata.credits)
-        assign("tags", metadata.tags)
+        assign("tags", list(metadata.tags))
 
         return cbi_container
 

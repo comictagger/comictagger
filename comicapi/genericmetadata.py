@@ -93,7 +93,7 @@ class GenericMetadata:
     comments: str | None = None  # use same way as Summary in CIX
 
     volume_count: int | None = None
-    critical_rating: float | None = None  # rating in cbl; CommunityRating in CIX
+    critical_rating: float | None = None  # rating in CBL; CommunityRating in CIX
     country: str | None = None
 
     alternate_series: str | None = None
@@ -270,8 +270,10 @@ class GenericMetadata:
     def get_primary_credit(self, role: str) -> str:
         primary = ""
         for credit in self.credits:
+            if "role" not in credit or "person" not in credit:
+                continue
             if (primary == "" and credit["role"].casefold() == role.casefold()) or (
-                credit["role"].casefold() == role.casefold() and credit["primary"]
+                credit["role"].casefold() == role.casefold() and "primary" in credit and credit["primary"]
             ):
                 primary = credit["person"]
         return primary

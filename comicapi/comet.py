@@ -88,9 +88,9 @@ class CoMet:
             assign("readingDirection", "rtl")
 
         if md.year is not None:
-            date_str = str(md.year).zfill(4)
+            date_str = f"{md.year:04}"
             if md.month is not None:
-                date_str += "-" + str(md.month).zfill(2)
+                date_str += f"-{md.month:02}"
             assign("date", date_str)
 
         assign("coverImage", md.cover_image)
@@ -144,27 +144,21 @@ class CoMet:
         md.series = utils.xlate(get("series"))
         md.title = utils.xlate(get("title"))
         md.issue = utils.xlate(get("issue"))
-        md.volume = utils.xlate(get("volume"))
+        md.volume = utils.xlate(get("volume"), True)
         md.comments = utils.xlate(get("description"))
         md.publisher = utils.xlate(get("publisher"))
         md.language = utils.xlate(get("language"))
         md.format = utils.xlate(get("format"))
-        md.page_count = utils.xlate(get("pages"))
+        md.page_count = utils.xlate(get("pages"), True)
         md.maturity_rating = utils.xlate(get("rating"))
-        md.price = utils.xlate(get("price"))
+        md.price = utils.xlate(get("price"), is_float=True)
         md.is_version_of = utils.xlate(get("isVersionOf"))
         md.rights = utils.xlate(get("rights"))
         md.identifier = utils.xlate(get("identifier"))
         md.last_mark = utils.xlate(get("lastMark"))
         md.genre = utils.xlate(get("genre"))  # TODO - repeatable field
 
-        date = utils.xlate(get("date"))
-        if date is not None:
-            parts = date.split("-")
-            if len(parts) > 0:
-                md.year = parts[0]
-            if len(parts) > 1:
-                md.month = parts[1]
+        _, md.month, md.year = utils.parse_date_str(utils.xlate(get("date")))
 
         md.cover_image = utils.xlate(get("coverImage"))
 
