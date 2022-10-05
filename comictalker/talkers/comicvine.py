@@ -40,6 +40,7 @@ from comictalker.talkerbase import (
     SourceSettingsOptions,
     SourceStaticOptions,
     TalkerBase,
+    TalkerDataError,
     TalkerNetworkError,
 )
 
@@ -56,7 +57,6 @@ except ImportError:
 class CVTypeID:
     Volume = "4050"
     Issue = "4000"
-
 
 
 class CVImage(TypedDict, total=False):
@@ -90,6 +90,7 @@ class CVCredits(TypedDict):
     id: int
     name: str
     site_detail_url: str
+
 
 class CVPersonCredits(TypedDict):
     api_detail_url: str
@@ -190,6 +191,7 @@ class CVIssueDetailResults(TypedDict):
 
 class ComicVineTalker(TalkerBase):
     def __init__(self, series_match_thresh: int = 90) -> None:
+        super().__init__()
         self.source_details = source_details = SourceDetails(
             name="Comic Vine",
             ident="comicvine",
@@ -258,16 +260,20 @@ class ComicVineTalker(TalkerBase):
                 ),
             },
         )
+
         # Identity name for the information source
         self.source_name = self.source_details.id
         self.source_name_friendly = self.source_details.name
+
         # Overwrite any source_details.options that have saved settings
         source_settings = ComicTaggerSettings.get_source_settings(
             self.source_name, self.source_details.settings_options
         )
+
         if not source_settings:
             # No saved settings, do something?
             ...
+
         self.wait_for_rate_limit = source_details.settings_options["wait_on_ratelimit"]["value"]
         self.wait_for_rate_limit_time = source_details.settings_options["ratelimit_waittime"]["value"]
 
@@ -275,6 +281,14 @@ class ComicVineTalker(TalkerBase):
 
         self.api_key = source_details.settings_options["api_key"]["value"]
         self.api_base_url = source_details.settings_options["url_root"]["value"]
+
+        tmp_url = urlsplit(self.api_base_url)
+
+        # joinurl only works properly if there is a trailing slash
+        if tmp_url.path and tmp_url.path[-1] != "/":
+            tmp_url = tmp_url._replace(path=tmp_url.path + "/")
+
+        self.api_base_url = tmp_url.geturl()
 
         self.series_match_thresh = series_match_thresh
 
@@ -359,8 +373,11 @@ class ComicVineTalker(TalkerBase):
                 self.write_log("Connection to " + self.source_name_friendly + " timed out.\n")
                 raise TalkerNetworkError(self.source_name_friendly, 4)
             except requests.exceptions.RequestException as e:
-                self.write_log(str(e) + "\n")
+                self.write_log(f"{e}\n")
                 raise TalkerNetworkError(self.source_name_friendly, 0, str(e)) from e
+            except json.JSONDecodeError as e:
+                self.write_log(f"{e}\n")
+                raise TalkerDataError(self.source_name_friendly, 2, "ComicVine did not provide json")
 
         raise TalkerNetworkError(self.source_name_friendly, 5)
 

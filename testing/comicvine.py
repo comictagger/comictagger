@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 import comicapi.genericmetadata
-import comictaggerlib.comicvinetalker
+import comictalker.talkers.comicvine
 
 
 def filter_field_list(cv_result, kwargs):
@@ -156,7 +156,7 @@ cv_not_found = {
     "status_code": 101,
     "results": [],
 }
-date = comictaggerlib.comicvinetalker.ComicVineTalker().parse_date_str(cv_issue_result["results"]["cover_date"])
+date = comictalker.talkers.comicvine.ComicVineTalker().parse_date_str(cv_issue_result["results"]["cover_date"])
 
 cv_md = comicapi.genericmetadata.GenericMetadata(
     is_empty=False,
@@ -172,7 +172,7 @@ cv_md = comicapi.genericmetadata.GenericMetadata(
     volume=None,
     genre=None,
     language=None,
-    comments=comictaggerlib.comicvinetalker.ComicVineTalker().cleanup_html(
+    comments=comictalker.talkers.comicvine.ComicVineTalker().cleanup_html(
         cv_issue_result["results"]["description"], False
     ),
     volume_count=None,

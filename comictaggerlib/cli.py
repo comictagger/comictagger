@@ -167,7 +167,7 @@ def post_process_matches(
             display_match_set_for_choice(label, match_set, opts, settings, talker_api)
 
 
-def cli_mode(opts: argparse.Namespace, settings: ComicTaggerSettings) -> None:
+def cli_mode(opts: argparse.Namespace, settings: ComicTaggerSettings, talker_api: ComicTalker) -> None:
     if len(opts.file_list) < 1:
         logger.error("You must specify at least one filename.  Use the -h option for more info")
         return
@@ -175,7 +175,7 @@ def cli_mode(opts: argparse.Namespace, settings: ComicTaggerSettings) -> None:
     match_results = OnlineMatchResults()
 
     for f in opts.file_list:
-        process_file_cli(f, opts, settings, match_results)
+        process_file_cli(f, opts, settings, talker_api, match_results)
         sys.stdout.flush()
 
     post_process_matches(match_results, opts, settings, talker_api)

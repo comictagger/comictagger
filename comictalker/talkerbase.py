@@ -18,7 +18,7 @@ from __future__ import annotations
 import logging
 from typing import Any, Callable
 
-from typing_extensions import Required, Type, TypedDict
+from typing_extensions import Required, TypedDict
 
 from comicapi.genericmetadata import GenericMetadata
 from comictalker.resulttypes import ComicIssue, ComicVolume
@@ -66,7 +66,7 @@ class SourceSettingsOptions(TypedDict):
     text: Required[str]  # Display text i.e "Remove HTML tables"
     help_text: str  # Tooltip text i.e "Enabling this will remove HTML tables from the description."
     hidden: Required[bool]  # To hide an option from the settings menu.
-    type: Required[Type]
+    type: Required[type[bool] | type[int] | type[str]]
     value: Any
 
 
