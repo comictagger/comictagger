@@ -14,9 +14,10 @@ from PIL import Image
 
 import comicapi.comicarchive
 import comicapi.genericmetadata
-import comictaggerlib.comiccacher
-import comictaggerlib.comicvinetalker
 import comictaggerlib.settings
+import comictalker.comiccacher
+import comictalker.comictalker
+import comictalker.talkers.comicvine
 from comicapi import utils
 from testing import comicvine, filenames
 from testing.comicdata import all_seed_imprints, seed_imprints
@@ -124,7 +125,7 @@ def mock_now(monkeypatch):
         def now(cls):
             return cls.time
 
-    monkeypatch.setattr(comictaggerlib.comicvinetalker, "datetime", mydatetime)
+    monkeypatch.setattr(comictalker.talkers.comicvine, "datetime", mydatetime)
 
 
 @pytest.fixture
@@ -166,5 +167,5 @@ def settings(tmp_path):
 
 
 @pytest.fixture
-def comic_cache(settings) -> Generator[comictaggerlib.comiccacher.ComicCacher, Any, None]:
-    yield comictaggerlib.comiccacher.ComicCacher()
+def comic_cache(settings) -> Generator[comictalker.comiccacher.ComicCacher, Any, None]:
+    yield comictalker.comiccacher.ComicCacher()

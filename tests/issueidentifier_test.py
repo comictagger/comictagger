@@ -4,7 +4,7 @@ import pytest
 
 import comicapi.comicarchive
 import comicapi.issuestring
-import comictaggerlib.comicvinetalker
+import comictalker.talkers.comicvine
 import comictaggerlib.issueidentifier
 import testing.comicdata
 import testing.comicvine
@@ -32,7 +32,7 @@ def test_get_search_keys(cbz, settings, additional_md, expected):
 def test_get_issue_cover_match_score(cbz, settings, comicvine_api):
     ii = comictaggerlib.issueidentifier.IssueIdentifier(cbz, settings)
     score = ii.get_issue_cover_match_score(
-        comictaggerlib.comicvinetalker.ComicVineTalker(),
+        comictalker.talkers.comicvine.ComicVineTalker(),
         int(
             comicapi.issuestring.IssueString(
                 cbz.read_metadata(comicapi.comicarchive.MetaDataStyle.CIX).issue

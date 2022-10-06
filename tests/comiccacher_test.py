@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import pytest
 
-import comictaggerlib.comiccacher
+import comictalker.comiccacher
 import comictaggerlib.resulttypes
 from testing.comicdata import alt_covers, search_results, select_details
 
 
 def test_create_cache(settings):
-    comictaggerlib.comiccacher.ComicCacher()
+    comictalker.comiccacher.ComicCacher()
     assert (settings.get_settings_folder() / "settings").exists()
 
 
