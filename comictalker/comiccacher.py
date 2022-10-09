@@ -354,7 +354,7 @@ class ComicCacher:
                     cover_date=row[5],
                     image=row[6],
                     description=row[8],
-                    volume={"id": volume_id, "name": row[2]},
+                    volume={"id": volume_id, "name": ""},  # Name isn't recorded
                     aliases=row[9],
                 )
 

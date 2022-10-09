@@ -3,7 +3,6 @@ from __future__ import annotations
 import pytest
 
 import comictalker.comiccacher
-import comictaggerlib.resulttypes
 from testing.comicdata import alt_covers, search_results, select_details
 
 
@@ -29,7 +28,7 @@ def test_alt_covers(comic_cache, alt_cover):
 
 @pytest.mark.parametrize("volume_info", search_results)
 def test_volume_info(comic_cache, volume_info):
-    comic_cache.add_volume_info(cv_volume_record=volume_info, source_name="test")
+    comic_cache.add_volume_info(volume_record=volume_info, source_name="test")
     vi = volume_info.copy()
     del vi["description"]
     del vi["image"]

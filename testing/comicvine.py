@@ -13,6 +13,25 @@ def filter_field_list(cv_result, kwargs):
                 del cv_result[key]
 
 
+comic_issue_result: dict[str, Any] = {
+    "aliases": None,
+    "cover_date": "2007-10-01",
+    "description": "<i>For 12-year-old Anda, getting paid real money to kill the characters of players who were cheating in her favorite online computer game was a win-win situation. Until she found out who was paying her, and what those characters meant to the livelihood of children around the world.</i>",
+    "id": 140529,
+    "image": "https://comicvine.gamespot.com/a/uploads/scale_large/0/574/585444-109004_20080707014047_large.jpg",
+    "image_thumb": "https://comicvine.gamespot.com/a/uploads/scale_avatar/0/574/585444-109004_20080707014047_large.jpg",
+    "issue_number": "1",
+    "name": "Anda's Game",
+    "site_detail_url": "https://comicvine.gamespot.com/cory-doctorows-futuristic-tales-of-the-here-and-no/4000-140529/",
+    "volume": {
+        "api_detail_url": "https://comicvine.gamespot.com/api/volume/4050-23437/",
+        "id": 23437,
+        "name": "Cory Doctorow's Futuristic Tales of the Here and Now",
+        "site_detail_url": "https://comicvine.gamespot.com/cory-doctorows-futuristic-tales-of-the-here-and-no/4050-23437/",
+    },
+}
+
+
 cv_issue_result: dict[str, Any] = {
     "error": "OK",
     "limit": 1,

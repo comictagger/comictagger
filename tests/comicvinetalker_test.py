@@ -12,20 +12,17 @@ def test_search_for_series(comicvine_api, comic_cache):
     ct = comictalker.talkers.comicvine.ComicVineTalker()
     results = ct.search_for_series("cory doctorows futuristic tales of the here and now")
     for r in results:
-        r["image"] = {"super_url": r["image"]["super_url"]}
         r["start_year"] = int(r["start_year"])
-        del r["publisher"]["id"]
-        del r["publisher"]["api_detail_url"]
     cache_issues = comic_cache.get_search_results(ct.source_name, "cory doctorows futuristic tales of the here and now")
     assert results == cache_issues
 
 
 def test_fetch_volume_data(comicvine_api, comic_cache):
     ct = comictalker.talkers.comicvine.ComicVineTalker()
-    result = ct.fetch_volume_data(23437)
+    result = ct.fetch_partial_volume_data(23437)
     result["start_year"] = int(result["start_year"])
-    del result["publisher"]["id"]
-    del result["publisher"]["api_detail_url"]
+    del result["description"]
+    del result["image"]
     assert result == comic_cache.get_volume_info(23437, ct.source_name)
 
 
@@ -34,26 +31,29 @@ def test_fetch_issues_by_volume(comicvine_api, comic_cache):
     results = ct.fetch_issues_by_volume(23437)
     cache_issues = comic_cache.get_volume_issues_info(23437, ct.source_name)
     for r in results:
-        r["image"] = {"super_url": r["image"]["super_url"], "thumb_url": r["image"]["thumb_url"]}
         del r["volume"]
+        del r["image_thumb"]
+    for c in cache_issues:
+        del c["volume"]
     assert results == cache_issues
 
 
 def test_fetch_issue_data_by_issue_id(comicvine_api, settings, mock_now, mock_version):
     ct = comictalker.talkers.comicvine.ComicVineTalker()
-    result = ct.fetch_issue_data_by_issue_id(140529, settings)
+    result = ct.fetch_issue_data_by_issue_id(140529)
     assert result == testing.comicvine.cv_md
 
 
 def test_fetch_issues_by_volume_issue_num_and_year(comicvine_api):
     ct = comictalker.talkers.comicvine.ComicVineTalker()
     results = ct.fetch_issues_by_volume_issue_num_and_year([23437], "1", None)
-    cv_expected = testing.comicvine.cv_issue_result["results"].copy()
+    cv_expected = testing.comicvine.comic_issue_result.copy()
     testing.comicvine.filter_field_list(
         cv_expected,
         {"params": {"field_list": "id,volume,issue_number,name,image,cover_date,site_detail_url,description,aliases"}},
     )
     for r, e in zip(results, [cv_expected]):
+        del r["image_thumb"]
         assert r == e
 
 
@@ -67,7 +67,7 @@ cv_issue = [
 @pytest.mark.parametrize("volume_id, issue_number, expected", cv_issue)
 def test_fetch_issue_data(comicvine_api, settings, mock_now, mock_version, volume_id, issue_number, expected):
     ct = comictalker.talkers.comicvine.ComicVineTalker()
-    results = ct.fetch_issue_data(volume_id, issue_number, settings)
+    results = ct.fetch_issue_data(volume_id, issue_number)
     assert results == expected
 
 

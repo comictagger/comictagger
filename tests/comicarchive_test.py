@@ -16,7 +16,7 @@ def test_getPageNameList():
     pageNameList = c.get_page_name_list()
 
     assert pageNameList == [
-        "!cover.jpg",
+        "!cover.jpg",  # Depending on locale puncuation or numbers might come first (Linux)
         "00.jpg",
         "page0.jpg",
         "Page1.jpeg",
