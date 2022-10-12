@@ -979,11 +979,12 @@ class ComicVineTalker(TalkerBase):
         cvc = ComicCacher()
         cvc.add_issue_select_details(self.source_name, issue_id, image_url, thumb_url, cover_date, page_url)
 
-    def fetch_alternate_cover_urls(self, issue_id: int, issue_page_url: str) -> list[str]:
+    def fetch_alternate_cover_urls(self, issue_id: int) -> list[str]:
         url_list = self.fetch_cached_alternate_cover_urls(issue_id)
         if url_list:
             return url_list
 
+        issue_page_url = self.fetch_issue_page_url(issue_id)
         # scrape the CV issue page URL to get the alternate cover URLs
         content = requests.get(issue_page_url, headers={"user-agent": "comictagger/" + ctversion.version}).text
         alt_cover_url_list = self.parse_out_alt_cover_urls(content)
@@ -1076,9 +1077,9 @@ class ComicVineTalker(TalkerBase):
 
         ComicTalker.url_fetch_complete(image_url, thumb_url)
 
-    def async_fetch_alternate_cover_urls(self, issue_id: int, issue_page_url: str) -> None:
+    def async_fetch_alternate_cover_urls(self, issue_id: int) -> None:
         # bypass async for now
-        url_list = self.fetch_alternate_cover_urls(issue_id, issue_page_url)
+        url_list = self.fetch_alternate_cover_urls(issue_id)
         ComicTalker.alt_url_list_fetch_complete(url_list)
         return
 
@@ -1087,6 +1088,8 @@ class ComicVineTalker(TalkerBase):
         url_list = self.fetch_cached_alternate_cover_urls(issue_id)
         if url_list:
             ComicTalker.alt_url_list_fetch_complete(url_list)
+
+        issue_page_url = self.fetch_issue_page_url(issue_id)
 
         self.nam.finished.connect(self.async_fetch_alternate_cover_urls_complete)
         self.nam.get(QtNetwork.QNetworkRequest(QtCore.QUrl(str(issue_page_url))))

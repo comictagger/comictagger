@@ -203,7 +203,7 @@ class TalkerBase:
     def fetch_issue_data_by_issue_id(self, issue_id: int) -> GenericMetadata:
         raise NotImplementedError
 
-    def fetch_alternate_cover_urls(self, issue_id: int, issue_page_url: str) -> list[str]:
+    def fetch_alternate_cover_urls(self, issue_id: int) -> list[str]:
         raise NotImplementedError
 
     def fetch_issues_by_volume_issue_num_and_year(
@@ -218,9 +218,5 @@ class TalkerBase:
     def async_fetch_issue_cover_urls(self, issue_id: int) -> None:
         raise NotImplementedError
 
-    # Used by coverimagewidget.start_alt_cover_search
-    def fetch_issue_page_url(self, issue_id: int) -> str | None:
-        raise NotImplementedError
-
-    def async_fetch_alternate_cover_urls(self, issue_id: int, issue_page_url: str) -> None:
+    def async_fetch_alternate_cover_urls(self, issue_id: int) -> None:
         raise NotImplementedError

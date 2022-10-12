@@ -20,7 +20,7 @@ TODO: This should be re-factored using subclasses!
 from __future__ import annotations
 
 import logging
-from typing import Callable, cast
+from typing import Callable
 
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
@@ -212,9 +212,8 @@ class CoverImageWidget(QtWidgets.QWidget):
             self.label.setText("Searching for alt. covers...")
 
             # page URL should already be cached, so no need to defer
-            issue_page_url = self.talker_api.fetch_issue_page_url(self.issue_id)
             ComicTalker.alt_url_list_fetch_complete = self.sig.emit_list
-            self.talker_api.async_fetch_alternate_cover_urls(utils.xlate(self.issue_id), cast(str, issue_page_url))
+            self.talker_api.async_fetch_alternate_cover_urls(utils.xlate(self.issue_id))
 
     def alt_cover_url_list_fetch_complete(self, url_list: list[str]) -> None:
         if url_list:
