@@ -1070,11 +1070,7 @@ Have fun!
             self.form_to_metadata()
 
             try:
-                # Does the source support issue level data?
-                if self.talker_api.static_options.has_issues:
-                    new_metadata = self.talker_api.fetch_issue_data(selector.volume_id, selector.issue_number)
-                else:
-                    new_metadata = self.talker_api.fetch_volume_data(selector.volume_id)
+                new_metadata = self.talker_api.fetch_comic_data(selector.volume_id, selector.issue_number)
             except TalkerError as e:
                 QtWidgets.QApplication.restoreOverrideCursor()
                 QtWidgets.QMessageBox.critical(
@@ -1674,10 +1670,7 @@ Have fun!
         QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
 
         try:
-            if self.talker_api.static_options.has_issues:
-                ct_md = self.talker_api.fetch_issue_data(match["volume_id"], match["issue_number"])
-            else:
-                ct_md = self.talker_api.fetch_volume_data(match["volume_id"])
+            ct_md = self.talker_api.fetch_comic_data(match["volume_id"], match["issue_number"])
         except TalkerError as e:
             logger.exception(f"Save aborted.\n{e}")
 

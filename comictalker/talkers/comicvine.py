@@ -553,6 +553,17 @@ class ComicVineTalker(TalkerBase):
 
         return self.map_cv_volume_data_to_metadata(volume_results)
 
+    # Get issue or volume information
+    def fetch_comic_data(self, series_id: int, issue_number: str = "") -> GenericMetadata:
+        comic_data = GenericMetadata()
+        if self.source_details.static_options.has_issues and issue_number:
+            comic_data = self.fetch_issue_data(series_id, issue_number)
+        else:
+            # Only retrieve the volume data
+            comic_data = self.fetch_volume_data(series_id)
+
+        return comic_data
+
     def fetch_partial_volume_data(self, series_id: int) -> ComicVolume:
 
         # before we search online, look in our cache, since we might already have this info

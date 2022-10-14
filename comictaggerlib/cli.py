@@ -43,7 +43,7 @@ def actual_issue_data_fetch(
 ) -> GenericMetadata:
     # now get the particular issue data
     try:
-        ct_md = talker_api.fetch_issue_data(match["volume_id"], match["issue_number"])
+        ct_md = talker_api.fetch_comic_data(match["volume_id"], match["issue_number"])
     except TalkerError as e:
         logger.exception(f"Error retrieving issue details. Save aborted.\n{e}")
         return GenericMetadata()

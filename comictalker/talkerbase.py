@@ -187,16 +187,12 @@ class TalkerBase:
     ) -> list[ComicVolume]:
         raise NotImplementedError
 
-    # Get volume/series information
-    def fetch_volume_data(self, series_id: int) -> GenericMetadata:
-        raise NotImplementedError
-
     # Get issues in a series/volume
     def fetch_issues_by_volume(self, series_id: int) -> list[ComicIssue]:
         raise NotImplementedError
 
-    # Get issue information
-    def fetch_issue_data(self, series_id: int, issue_number: str) -> GenericMetadata:
+    # Get issue or volume information
+    def fetch_comic_data(self, series_id: int, issue_number: str = "") -> GenericMetadata:
         raise NotImplementedError
 
     # For CLI
