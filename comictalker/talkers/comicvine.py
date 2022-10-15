@@ -399,6 +399,11 @@ class ComicVineTalker(TalkerBase):
                 else:
                     image = record["image"]["super_url"]
 
+            if record.get("start_year") is None:
+                start_year = 0
+            else:
+                start_year = int(record["start_year"])
+
             formatted_results.append(
                 ComicVolume(
                     aliases=record["aliases"],
@@ -408,7 +413,7 @@ class ComicVineTalker(TalkerBase):
                     image=image,
                     name=record["name"],
                     publisher=pub_name,
-                    start_year=record.get("start_year", ""),
+                    start_year=start_year,
                 )
             )
 
@@ -793,7 +798,7 @@ class ComicVineTalker(TalkerBase):
 
         metadata.comments = self.cleanup_html(issue_results["description"], own_settings["remove_html_tables"]["value"])
         if own_settings["use_series_start_as_volume"]["value"]:
-            metadata.volume = int(volume_results["start_year"])
+            metadata.volume = volume_results["start_year"]
 
         metadata.notes = (
             f"Tagged with ComicTagger {ctversion.version} using info from Comic Vine on"

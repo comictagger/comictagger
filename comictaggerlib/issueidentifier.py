@@ -456,7 +456,7 @@ class IssueIdentifier:
                     "issue_id": 0,
                     "volume_id": series["id"],
                     "month": 0,
-                    "year": int(series["start_year"]),
+                    "year": series["start_year"],
                     "publisher": series["publisher"],
                     "image_url": image_url,
                     "thumb_url": thumb_url,

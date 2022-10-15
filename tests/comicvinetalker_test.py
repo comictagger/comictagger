@@ -11,8 +11,6 @@ from testing.comicdata import select_details
 def test_search_for_series(comicvine_api, comic_cache):
     ct = comictalker.talkers.comicvine.ComicVineTalker()
     results = ct.search_for_series("cory doctorows futuristic tales of the here and now")
-    for r in results:
-        r["start_year"] = int(r["start_year"])
     cache_issues = comic_cache.get_search_results(ct.source_name, "cory doctorows futuristic tales of the here and now")
     assert results == cache_issues
 
@@ -20,7 +18,6 @@ def test_search_for_series(comicvine_api, comic_cache):
 def test_fetch_volume_data(comicvine_api, comic_cache):
     ct = comictalker.talkers.comicvine.ComicVineTalker()
     result = ct.fetch_partial_volume_data(23437)
-    result["start_year"] = int(result["start_year"])
     del result["description"]
     del result["image"]
     assert result == comic_cache.get_volume_info(23437, ct.source_name)

@@ -39,7 +39,7 @@ class AutoTagStartWindow(QtWidgets.QDialog):
 
         self.cbxSpecifySearchString.setChecked(False)
         self.cbxSplitWords.setChecked(False)
-        self.sbNameMatchSearchThresh.setValue(self.settings.id_series_match_identify_thresh)
+        self.sbNameMatchSearchThresh.setValue(self.settings.id_series_match_identify_thresh)  # TODO fix
         self.leSearchString.setEnabled(False)
 
         self.cbxSaveOnLowConfidence.setChecked(self.settings.save_on_low_confidence)

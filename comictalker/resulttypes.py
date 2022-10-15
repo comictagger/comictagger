@@ -18,7 +18,7 @@ class ComicVolume(TypedDict, total=False):
     image: str
     name: Required[str]
     publisher: str
-    start_year: str
+    start_year: int
 
 
 class ComicIssue(TypedDict, total=False):

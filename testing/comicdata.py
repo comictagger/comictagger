@@ -12,7 +12,7 @@ search_results = [
         image="https://test.org/image/1",
         name="test",
         publisher="test",
-        start_year="",  # This is currently submitted as a string and returned as an int
+        start_year=0,
         aliases="",
     ),
     comictalker.resulttypes.ComicVolume(
@@ -22,7 +22,7 @@ search_results = [
         image="https://test.org/image/2",
         name="test 2",
         publisher="test",
-        start_year="",  # This is currently submitted as a string and returned as an int
+        start_year=0,
         aliases="",
     ),
 ]
