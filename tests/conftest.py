@@ -56,7 +56,7 @@ def no_requests(monkeypatch) -> None:
 
 
 @pytest.fixture
-def comicvine_api(monkeypatch, cbz, comic_cache) -> unittest.mock.Mock:
+def comicvine_api(monkeypatch, cbz, comic_cache) -> comictalker.talkers.comicvine.ComicVineTalker:
     # Any arguments may be passed and mock_get() will always return our
     # mocked object, which only has the .json() method or None for invalid urls.
 
@@ -113,7 +113,10 @@ def comicvine_api(monkeypatch, cbz, comic_cache) -> unittest.mock.Mock:
 
     # apply the monkeypatch for requests.get to mock_get
     monkeypatch.setattr(requests, "get", m_get)
-    return m_get
+
+    cv = comictalker.talkers.comicvine.ComicVineTalker()
+    cv.static_options = cv.source_details.static_options
+    return cv
 
 
 @pytest.fixture

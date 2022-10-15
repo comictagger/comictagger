@@ -556,6 +556,7 @@ class ComicVineTalker(TalkerBase):
     # Get issue or volume information
     def fetch_comic_data(self, series_id: int, issue_number: str = "") -> GenericMetadata:
         comic_data = GenericMetadata()
+        # TODO remove has_issues check? Enables testing. Possibly add source option to only get volume info?
         if self.source_details.static_options.has_issues and issue_number:
             comic_data = self.fetch_issue_data(series_id, issue_number)
         else:

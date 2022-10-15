@@ -5,7 +5,6 @@ import pytest
 import comicapi.comicarchive
 import comicapi.issuestring
 import comictaggerlib.issueidentifier
-import comictalker.comictalker
 import testing.comicdata
 import testing.comicvine
 
@@ -51,7 +50,7 @@ def test_get_issue_cover_match_score(cbz, settings, comicvine_api):
 
 
 def test_search(cbz, settings, comicvine_api):
-    ii = comictaggerlib.issueidentifier.IssueIdentifier(cbz, settings, comictalker.comictalker.ComicTalker("comicvine"))
+    ii = comictaggerlib.issueidentifier.IssueIdentifier(cbz, settings, comicvine_api)
     results = ii.search()
     cv_expected = {
         "series": f"{testing.comicvine.cv_volume_result['results']['name']} ({testing.comicvine.cv_volume_result['results']['start_year']})",
