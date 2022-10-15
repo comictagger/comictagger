@@ -44,39 +44,6 @@
    </item>
    <item row="1" column="0">
     <layout class="QGridLayout" name="gridLayout">
-     <item row="6" column="0">
-      <widget class="QCheckBox" name="cbxRemoveMetadata">
-       <property name="toolTip">
-        <string>Removes existing metadata before applying retrieved metadata</string>
-       </property>
-       <property name="text">
-        <string>Overwrite metadata</string>
-       </property>
-      </widget>
-     </item>
-     <item row="5" column="0">
-      <widget class="QCheckBox" name="cbxAutoImprint">
-       <property name="toolTip">
-        <string>Checks the publisher against a list of imprints.</string>
-       </property>
-       <property name="text">
-        <string>Auto Imprint</string>
-       </property>
-      </widget>
-     </item>
-     <item row="7" column="0">
-      <widget class="QCheckBox" name="cbxSplitWords">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="text">
-        <string>Split words in filenames (e.g. 'judgedredd' to 'judge dredd') (Experimental)</string>
-       </property>
-      </widget>
-     </item>
      <item row="3" column="0">
       <widget class="QCheckBox" name="cbxIgnoreLeadingDigitsInFilename">
        <property name="sizePolicy">
@@ -103,8 +70,18 @@
        </property>
       </widget>
      </item>
-     <item row="2" column="0">
-      <widget class="QCheckBox" name="cbxAssumeIssueOne">
+     <item row="9" column="0">
+      <widget class="QLineEdit" name="leSearchString">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+      </widget>
+     </item>
+     <item row="7" column="0">
+      <widget class="QCheckBox" name="cbxSplitWords">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -112,7 +89,39 @@
         </sizepolicy>
        </property>
        <property name="text">
-        <string>If no issue number, assume &quot;1&quot;</string>
+        <string>Split words in filenames (e.g. 'judgedredd' to 'judge dredd') (Experimental)</string>
+       </property>
+      </widget>
+     </item>
+     <item row="11" column="0">
+      <widget class="QSpinBox" name="sbNameMatchSearchThresh">
+       <property name="maximumSize">
+        <size>
+         <width>60</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="suffix">
+        <string>%</string>
+       </property>
+       <property name="minimum">
+        <number>1</number>
+       </property>
+       <property name="maximum">
+        <number>100</number>
+       </property>
+      </widget>
+     </item>
+     <item row="10" column="0">
+      <widget class="QLabel" name="label_3">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>Adjust Name Match Ratio Threshold: Auto-Identify</string>
        </property>
       </widget>
      </item>
@@ -129,6 +138,29 @@
        </property>
       </widget>
      </item>
+     <item row="6" column="0">
+      <widget class="QCheckBox" name="cbxRemoveMetadata">
+       <property name="toolTip">
+        <string>Removes existing metadata before applying retrieved metadata</string>
+       </property>
+       <property name="text">
+        <string>Overwrite metadata</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QCheckBox" name="cbxAssumeIssueOne">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>If no issue number, assume &quot;1&quot;</string>
+       </property>
+      </widget>
+     </item>
      <item row="4" column="0">
       <widget class="QCheckBox" name="cbxRemoveAfterSuccess">
        <property name="sizePolicy">
@@ -142,6 +174,16 @@
        </property>
       </widget>
      </item>
+     <item row="5" column="0">
+      <widget class="QCheckBox" name="cbxAutoImprint">
+       <property name="toolTip">
+        <string>Checks the publisher against a list of imprints.</string>
+       </property>
+       <property name="text">
+        <string>Auto Imprint</string>
+       </property>
+      </widget>
+     </item>
      <item row="8" column="0">
       <widget class="QCheckBox" name="cbxSpecifySearchString">
        <property name="sizePolicy">
@@ -152,45 +194,6 @@
        </property>
        <property name="text">
         <string>Specify series search string for all selected archives:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="9" column="0">
-      <widget class="QLineEdit" name="leSearchString">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-      </widget>
-     </item>
-     <item row="11" column="0">
-      <widget class="QLineEdit" name="leNameLengthMatchTolerance">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>50</width>
-         <height>16777215</height>
-        </size>
-       </property>
-      </widget>
-     </item>
-     <item row="10" column="0">
-      <widget class="QLabel" name="label_3">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="text">
-        <string>Adjust Name Length Match Tolerance:</string>
        </property>
       </widget>
      </item>
