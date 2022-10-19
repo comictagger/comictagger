@@ -359,6 +359,14 @@ class ComicCacher:
             # now process the results
             for row in rows:
                 volume_info = self.get_search_results(source_name, "", volume_id, False)
+                # Cover if it comes back empty
+                if not volume_info:
+                    volume_info = [
+                        ComicVolume(
+                            id=volume_id,
+                            name="",
+                        )
+                    ]
                 record = ComicIssue(
                     id=row[1],
                     name=row[2],
@@ -368,14 +376,14 @@ class ComicCacher:
                     image=row[6],
                     description=row[8],
                     volume=ComicVolume(
-                        aliases=volume_info[0]["aliases"],
-                        count_of_issues=volume_info[0]["count_of_issues"],
+                        aliases=volume_info[0].get("aliases", ""),
+                        count_of_issues=volume_info[0].get("count_of_issues", 0),
                         id=volume_id,
-                        name=volume_info[0]["name"],
-                        description=volume_info[0]["description"],
-                        image=volume_info[0]["image"],
-                        publisher=volume_info[0]["publisher"],
-                        start_year=volume_info[0]["start_year"],
+                        name=volume_info[0].get("name", ""),
+                        description=volume_info[0].get("description", ""),
+                        image=volume_info[0].get("image", ""),
+                        publisher=volume_info[0].get("publisher", ""),
+                        start_year=volume_info[0].get("start_year", 0),
                     ),
                     aliases=row[9],
                 )
