@@ -189,6 +189,9 @@ class CVIssueDetailResults(TypedDict):
     volume: CVVolume
 
 
+CV_RATE_LIMIT_STATUS = 107
+
+
 class ComicVineTalker(TalkerBase):
     def __init__(self, series_match_thresh: int = 90) -> None:
         super().__init__()
@@ -296,9 +299,6 @@ class ComicVineTalker(TalkerBase):
         if qt_available:
             self.nam = QtNetwork.QNetworkAccessManager()
 
-    def parse_date_str(self, date_str: str) -> tuple[int | None, int | None, int | None]:
-        return utils.parse_date_str(date_str)
-
     def check_api_key(self, key: str, url: str) -> bool:
         if not url:
             url = self.api_base_url
@@ -331,7 +331,7 @@ class ComicVineTalker(TalkerBase):
         wait_times = [1, 2, 3, 4]
         while True:
             cv_response: CVResult = self.get_url_content(url, params)
-            if self.wait_for_rate_limit and cv_response["status_code"] == 107:
+            if self.wait_for_rate_limit and cv_response["status_code"] == CV_RATE_LIMIT_STATUS:
                 self.write_log(f"Rate limit encountered.  Waiting for {limit_wait_time} minutes\n")
                 time.sleep(limit_wait_time * 60)
                 total_time_waited += limit_wait_time
@@ -731,7 +731,7 @@ class ComicVineTalker(TalkerBase):
     # To support volume only searching
     def map_cv_volume_data_to_metadata(self, volume_results: CVVolumeFullResult) -> GenericMetadata:
 
-        own_settings = self.source_details.settings_options
+        settings = self.source_details.settings_options
         # Now, map the Comic Vine data to generic metadata
         metadata = GenericMetadata()
         metadata.is_empty = False
@@ -742,10 +742,8 @@ class ComicVineTalker(TalkerBase):
             metadata.publisher = utils.xlate(volume_results["publisher"]["name"])
         metadata.year = int(volume_results["start_year"])
 
-        metadata.comments = self.cleanup_html(
-            volume_results["description"], own_settings["remove_html_tables"]["value"]
-        )
-        if own_settings["use_series_start_as_volume"]["value"]:
+        metadata.comments = self.cleanup_html(volume_results["description"], settings["remove_html_tables"]["value"])
+        if settings["use_series_start_as_volume"]["value"]:
             metadata.volume = int(volume_results["start_year"])
 
         # TODO How to handle multiple sources? Leave this to sourcesapi to write?
@@ -785,7 +783,7 @@ class ComicVineTalker(TalkerBase):
         self, volume_results: ComicVolume, issue_results: CVIssueDetailResults
     ) -> GenericMetadata:
 
-        own_settings = self.source_details.settings_options
+        settings = self.source_details.settings_options
         # Now, map the Comic Vine data to generic metadata
         metadata = GenericMetadata()
         metadata.is_empty = False
@@ -796,10 +794,10 @@ class ComicVineTalker(TalkerBase):
 
         if volume_results["publisher"] is not None:
             metadata.publisher = utils.xlate(volume_results["publisher"])
-        metadata.day, metadata.month, metadata.year = self.parse_date_str(issue_results["cover_date"])
+        metadata.day, metadata.month, metadata.year = utils.parse_date_str(issue_results["cover_date"])
 
-        metadata.comments = self.cleanup_html(issue_results["description"], own_settings["remove_html_tables"]["value"])
-        if own_settings["use_series_start_as_volume"]["value"]:
+        metadata.comments = self.cleanup_html(issue_results["description"], settings["remove_html_tables"]["value"])
+        if settings["use_series_start_as_volume"]["value"]:
             metadata.volume = volume_results["start_year"]
 
         metadata.notes = (
@@ -940,7 +938,7 @@ class ComicVineTalker(TalkerBase):
 
     def fetch_issue_date(self, issue_id: int) -> tuple[int | None, int | None]:
         details = self.fetch_issue_select_details(issue_id)
-        _, month, year = self.parse_date_str(details["cover_date"] or "")
+        _, month, year = utils.parse_date_str(details["cover_date"] or "")
         return month, year
 
     def fetch_issue_cover_urls(self, issue_id: int) -> tuple[str | None, str | None]:

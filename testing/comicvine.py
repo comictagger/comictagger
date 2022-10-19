@@ -4,6 +4,7 @@ from typing import Any
 
 import comicapi.genericmetadata
 import comictalker.talkers.comicvine
+from comicapi import utils
 
 
 def filter_field_list(cv_result, kwargs):
@@ -173,7 +174,7 @@ comic_issue_result: dict[str, Any] = {
         "site_detail_url": cv_issue_result["results"]["volume"]["site_detail_url"],
     },
 }
-date = comictalker.talkers.comicvine.ComicVineTalker().parse_date_str(cv_issue_result["results"]["cover_date"])
+date = utils.parse_date_str(cv_issue_result["results"]["cover_date"])
 
 cv_md = comicapi.genericmetadata.GenericMetadata(
     is_empty=False,
