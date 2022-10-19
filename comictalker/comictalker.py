@@ -92,10 +92,14 @@ class ComicTalker:
                 "The source has not implemented: 'search_for_series'",
             )
 
-    # Get issue or volume information
-    def fetch_comic_data(self, series_id: int, issue_number: str = "") -> GenericMetadata:
+    # Get issue or volume information. issue_id is used by CLI
+    def fetch_comic_data(self, series_id: int = 0, issue_number: str = "", issue_id: int = 0) -> GenericMetadata:
+        """This function is expected to handle a few possibilities:
+        1. Only series_id. Retrieve the SERIES/VOLUME information only.
+        2. series_id and issue_number. Retrieve the ISSUE information.
+        3. Only issue_id. Used solely by the CLI to retrieve the ISSUE information."""
         try:
-            comic_data = self.talker.fetch_comic_data(series_id, issue_number)
+            comic_data = self.talker.fetch_comic_data(series_id, issue_number, issue_id)
             return comic_data
         except NotImplementedError:
             logger.warning(f"{self.talker.source_details.name} has not implemented: 'fetch_comic_data'")
@@ -116,19 +120,6 @@ class ComicTalker:
                 self.talker.source_details.name,
                 4,
                 "The source has not implemented: 'fetch_issues_by_volume'",
-            )
-
-    # For CLI
-    def fetch_issue_data_by_issue_id(self, issue_id: int) -> GenericMetadata:
-        try:
-            issue_result = self.talker.fetch_issue_data_by_issue_id(issue_id)
-            return issue_result
-        except NotImplementedError:
-            logger.warning(f"{self.talker.source_details.name} has not implemented: 'fetch_issue_data_by_issue_id'")
-            raise TalkerError(
-                self.talker.source_details.name,
-                4,
-                "The source has not implemented: 'fetch_issue_data_by_issue_id'",
             )
 
     # For issueidentifer

@@ -382,7 +382,7 @@ def process_file_cli(
             if opts.issue_id is not None:
                 # we were given the actual issue ID to search with
                 try:
-                    ct_md = talker_api.fetch_issue_data_by_issue_id(opts.issue_id)
+                    ct_md = talker_api.fetch_comic_data(0, "", opts.issue_id)
                 except TalkerError as e:
                     logger.exception(f"Error retrieving issue details. Save aborted.\n{e}")
                     match_results.fetch_data_failures.append(str(ca.path.absolute()))

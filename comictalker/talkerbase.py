@@ -66,7 +66,7 @@ class SourceSettingsOptions(TypedDict):
     text: Required[str]  # Display text i.e "Remove HTML tables"
     help_text: str  # Tooltip text i.e "Enabling this will remove HTML tables from the description."
     hidden: Required[bool]  # To hide an option from the settings menu.
-    type: Required[type[bool] | type[int] | type[str]]
+    type: Required[type[bool] | type[int] | type[str] | type[float]]
     value: Any
 
 
@@ -193,10 +193,6 @@ class TalkerBase:
 
     # Get issue or volume information
     def fetch_comic_data(self, series_id: int, issue_number: str = "") -> GenericMetadata:
-        raise NotImplementedError
-
-    # For CLI
-    def fetch_issue_data_by_issue_id(self, issue_id: int) -> GenericMetadata:
         raise NotImplementedError
 
     def fetch_alternate_cover_urls(self, issue_id: int) -> list[str]:
