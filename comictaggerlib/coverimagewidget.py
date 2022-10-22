@@ -110,6 +110,7 @@ class CoverImageWidget(QtWidgets.QWidget):
 
         self.comic_archive: ComicArchive | None = None
         self.issue_id: int | None = None
+        self.issue_url: str | None = None
         self.url_list: list[str] = []
         if self.page_loader is not None:
             self.page_loader.abandoned = True
@@ -133,6 +134,7 @@ class CoverImageWidget(QtWidgets.QWidget):
     def reset_widget(self) -> None:
         self.comic_archive = None
         self.issue_id = None
+        self.issue_url = None
         self.url_list = []
         if self.page_loader is not None:
             self.page_loader.abandoned = True
@@ -175,14 +177,15 @@ class CoverImageWidget(QtWidgets.QWidget):
             self.imageCount = 1
             self.update_content()
 
-    def set_issue_id(self, issue_id: int) -> None:
+    def set_issue_details(self, issue_id: int, issue_url: str, image_url: str) -> None:
         if self.mode == CoverImageWidget.AltCoverMode:
             self.reset_widget()
             self.update_content()
             self.issue_id = issue_id
+            self.issue_url = issue_url
 
             ComicTalker.url_fetch_complete = self.sig.emit_url
-            self.talker_api.async_fetch_issue_cover_urls(self.issue_id)
+            ComicTalker.url_fetch_complete(image_url, None)
 
     def set_image_data(self, image_data: bytes) -> None:
         if self.mode == CoverImageWidget.DataMode:
@@ -203,17 +206,18 @@ class CoverImageWidget(QtWidgets.QWidget):
         self.update_content()
 
         # defer the alt cover search
-        QtCore.QTimer.singleShot(1, self.start_alt_cover_search)
+        if self.talker_api.static_options.has_alt_covers:
+            QtCore.QTimer.singleShot(1, self.start_alt_cover_search)
 
     def start_alt_cover_search(self) -> None:
 
-        if self.issue_id is not None:
+        if self.issue_url is not None and self.issue_id is not None:
             # now we need to get the list of alt cover URLs
             self.label.setText("Searching for alt. covers...")
 
             # page URL should already be cached, so no need to defer
             ComicTalker.alt_url_list_fetch_complete = self.sig.emit_list
-            self.talker_api.async_fetch_alternate_cover_urls(utils.xlate(self.issue_id))
+            self.talker_api.async_fetch_alternate_cover_urls(utils.xlate(self.issue_id), self.issue_url)
 
     def alt_cover_url_list_fetch_complete(self, url_list: list[str]) -> None:
         if url_list:

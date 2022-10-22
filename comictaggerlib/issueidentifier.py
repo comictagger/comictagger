@@ -271,7 +271,7 @@ class IssueIdentifier:
             raise IssueIdentifierCancelled
 
         if use_remote_alternates:
-            alt_img_url_list = self.talker_api.fetch_alternate_cover_urls(issue_id)
+            alt_img_url_list = self.talker_api.fetch_alternate_cover_urls(issue_id, page_url)
             for alt_url in alt_img_url_list:
                 try:
                     alt_url_image_data = ImageFetcher().fetch(alt_url, blocking=True)

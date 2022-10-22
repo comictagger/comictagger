@@ -21,7 +21,7 @@ import re
 import time
 from datetime import datetime
 from typing import Any, Callable, cast
-from urllib.parse import urlencode, urljoin, urlsplit
+from urllib.parse import urljoin, urlsplit
 
 import requests
 from bs4 import BeautifulSoup
@@ -34,7 +34,7 @@ from comictaggerlib import ctversion
 from comictaggerlib.settings import ComicTaggerSettings
 from comictalker.comiccacher import ComicCacher
 from comictalker.comictalker import ComicTalker
-from comictalker.resulttypes import ComicIssue, ComicVolume, SelectDetails
+from comictalker.resulttypes import ComicIssue, ComicVolume
 from comictalker.talkerbase import (
     SourceDetails,
     SourceSettingsOptions,
@@ -791,6 +791,7 @@ class ComicVineTalker(TalkerBase):
         metadata.series = utils.xlate(issue_results["volume"]["name"])
         metadata.issue = IssueString(issue_results["issue_number"]).as_string()
         metadata.title = utils.xlate(issue_results["name"])
+        metadata.cover_image = issue_results["image"]["super_url"]
 
         if volume_results["publisher"] is not None:
             metadata.publisher = utils.xlate(volume_results["publisher"])
@@ -936,74 +937,13 @@ class ComicVineTalker(TalkerBase):
 
         return newstring
 
-    def fetch_issue_date(self, issue_id: int) -> tuple[int | None, int | None]:
-        details = self.fetch_issue_select_details(issue_id)
-        _, month, year = utils.parse_date_str(details["cover_date"] or "")
-        return month, year
-
-    def fetch_issue_cover_urls(self, issue_id: int) -> tuple[str | None, str | None]:
-        details = self.fetch_issue_select_details(issue_id)
-        return details["image_url"], details["thumb_image_url"]
-
-    def fetch_issue_page_url(self, issue_id: int) -> str | None:
-        details = self.fetch_issue_select_details(issue_id)
-        return details["site_detail_url"]
-
-    def fetch_issue_select_details(self, issue_id: int) -> SelectDetails:
-        cached_details = self.fetch_cached_issue_select_details(issue_id)
-        if cached_details["image_url"] is not None:
-            return cached_details
-
-        issue_url = urljoin(self.api_base_url, f"issue/{CVTypeID.Issue}-{issue_id}")
-        logger.error("%s, %s", self.api_base_url, issue_url)
-
-        params = {"api_key": self.api_key, "format": "json", "field_list": "image,cover_date,site_detail_url"}
-
-        cv_response = self.get_cv_content(issue_url, params)
-        results = cast(CVIssueDetailResults, cv_response["results"])
-
-        details = SelectDetails(
-            image_url=results["image"]["super_url"],
-            thumb_image_url=results["image"]["thumb_url"],
-            cover_date=results["cover_date"],
-            site_detail_url=results["site_detail_url"],
-        )
-
-        if (
-            details["image_url"] is not None
-            and details["thumb_image_url"] is not None
-            and details["cover_date"] is not None
-            and details["site_detail_url"] is not None
-        ):
-            self.cache_issue_select_details(
-                issue_id,
-                details["image_url"],
-                details["thumb_image_url"],
-                details["cover_date"],
-                details["site_detail_url"],
-            )
-        return details
-
-    def fetch_cached_issue_select_details(self, issue_id: int) -> SelectDetails:
-
-        # before we search online, look in our cache, since we might already have this info
-        cvc = ComicCacher()
-        return cvc.get_issue_select_details(issue_id, self.source_name)
-
-    def cache_issue_select_details(
-        self, issue_id: int, image_url: str, thumb_url: str, cover_date: str, page_url: str
-    ) -> None:
-        cvc = ComicCacher()
-        cvc.add_issue_select_details(self.source_name, issue_id, image_url, thumb_url, cover_date, page_url)
-
-    def fetch_alternate_cover_urls(self, issue_id: int) -> list[str]:
+    def fetch_alternate_cover_urls(self, issue_id: int, issue_url: str) -> list[str]:
         url_list = self.fetch_cached_alternate_cover_urls(issue_id)
         if url_list:
             return url_list
 
-        issue_page_url = self.fetch_issue_page_url(issue_id)
         # scrape the CV issue page URL to get the alternate cover URLs
-        content = requests.get(issue_page_url, headers={"user-agent": "comictagger/" + ctversion.version}).text
+        content = requests.get(issue_url, headers={"user-agent": "comictagger/" + ctversion.version}).text
         alt_cover_url_list = self.parse_out_alt_cover_urls(content)
 
         # cache this alt cover URL list
@@ -1047,28 +987,6 @@ class ComicVineTalker(TalkerBase):
         cvc = ComicCacher()
         cvc.add_alt_covers(self.source_name, issue_id, url_list)
 
-    def async_fetch_issue_cover_urls(self, issue_id: int) -> None:
-
-        self.issue_id = issue_id
-        details = self.fetch_cached_issue_select_details(issue_id)
-        if details["image_url"] is not None:
-            ComicTalker.url_fetch_complete(details["image_url"], details["thumb_image_url"])
-
-        issue_url = urlsplit(self.api_base_url)
-        issue_url = issue_url._replace(
-            query=urlencode(
-                {
-                    "api_key": self.api_key,
-                    "format": "json",
-                    "field_list": "image,cover_date,site_detail_url",
-                }
-            ),
-            path=f"issue/{CVTypeID.Issue}-{issue_id}",
-        )
-
-        self.nam.finished.connect(self.async_fetch_issue_cover_url_complete)
-        self.nam.get(QtNetwork.QNetworkRequest(QtCore.QUrl(issue_url.geturl())))
-
     def async_fetch_issue_cover_url_complete(self, reply: QtNetwork.QNetworkReply) -> None:
         # read in the response
         data = reply.readAll()
@@ -1087,16 +1005,12 @@ class ComicVineTalker(TalkerBase):
 
         image_url = result["image"]["super_url"]
         thumb_url = result["image"]["thumb_url"]
-        cover_date = result["cover_date"]
-        page_url = result["site_detail_url"]
-
-        self.cache_issue_select_details(cast(int, self.issue_id), image_url, thumb_url, cover_date, page_url)
 
         ComicTalker.url_fetch_complete(image_url, thumb_url)
 
-    def async_fetch_alternate_cover_urls(self, issue_id: int) -> None:
+    def async_fetch_alternate_cover_urls(self, issue_id: int, issue_url: str) -> None:
         # bypass async for now
-        url_list = self.fetch_alternate_cover_urls(issue_id)
+        url_list = self.fetch_alternate_cover_urls(issue_id, issue_url)
         ComicTalker.alt_url_list_fetch_complete(url_list)
         return
 
@@ -1106,10 +1020,8 @@ class ComicVineTalker(TalkerBase):
         if url_list:
             ComicTalker.alt_url_list_fetch_complete(url_list)
 
-        issue_page_url = self.fetch_issue_page_url(issue_id)
-
         self.nam.finished.connect(self.async_fetch_alternate_cover_urls_complete)
-        self.nam.get(QtNetwork.QNetworkRequest(QtCore.QUrl(str(issue_page_url))))
+        self.nam.get(QtNetwork.QNetworkRequest(QtCore.QUrl(str(issue_url))))
 
     def async_fetch_alternate_cover_urls_complete(self, reply: QtNetwork.QNetworkReply) -> None:
         # read in the response
@@ -1125,7 +1037,7 @@ class ComicVineTalker(TalkerBase):
         # make sure there are URLs for the image fields
         for issue in issue_list:
             if issue["image"] is None:
-                issue["image"] = {
-                    "super_url": self.source_details.static_options["logo_url"],
-                    "thumb_url": self.source_details.static_options["logo_url"],
-                }
+                issue["image"] = CVImage(
+                    super_url=self.source_details.static_options.logo_url,
+                    thumb_url=self.source_details.static_options.logo_url,
+                )

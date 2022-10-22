@@ -23,7 +23,7 @@ from typing import Any
 
 from comictaggerlib import ctversion
 from comictaggerlib.settings import ComicTaggerSettings
-from comictalker.resulttypes import ComicIssue, ComicVolume, SelectDetails
+from comictalker.resulttypes import ComicIssue, ComicVolume
 
 logger = logging.getLogger(__name__)
 
@@ -391,61 +391,6 @@ class ComicCacher:
                 results.append(record)
 
         return results
-
-    def add_issue_select_details(
-        self,
-        source_name: str,
-        issue_id: int,
-        image_url: str,
-        thumb_image_url: str,
-        cover_date: str,
-        site_detail_url: str,
-    ) -> None:
-
-        con = lite.connect(self.db_file)
-
-        with con:
-            cur = con.cursor()
-            con.text_factory = str
-            timestamp = datetime.datetime.now()
-
-            data = {
-                "id": issue_id,
-                "source_name": source_name,
-                "image_url": image_url,
-                "thumb_url": thumb_image_url,
-                "cover_date": cover_date,
-                "site_detail_url": site_detail_url,
-                "timestamp": timestamp,
-            }
-            self.upsert(cur, "issues", data)
-
-    def get_issue_select_details(self, issue_id: int, source_name: str) -> SelectDetails:
-
-        con = lite.connect(self.db_file)
-        with con:
-            cur = con.cursor()
-            con.text_factory = str
-
-            cur.execute(
-                "SELECT image_url,thumb_url,cover_date,site_detail_url FROM Issues WHERE id=? AND source_name=?",
-                [issue_id, source_name],
-            )
-            row = cur.fetchone()
-
-            details = SelectDetails(
-                image_url=None,
-                thumb_image_url=None,
-                cover_date=None,
-                site_detail_url=None,
-            )
-            if row is not None and row[0] is not None:
-                details["image_url"] = row[0]
-                details["thumb_image_url"] = row[1]
-                details["cover_date"] = row[2]
-                details["site_detail_url"] = row[3]
-
-            return details
 
     def upsert(self, cur: lite.Cursor, tablename: str, data: dict[str, Any]) -> None:
         """This does an insert if the given PK doesn't exist, and an

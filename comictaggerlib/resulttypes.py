@@ -37,10 +37,3 @@ class MultipleMatch:
     def __init__(self, ca: ComicArchive, match_list: list[IssueResult]) -> None:
         self.ca: ComicArchive = ca
         self.matches: list[IssueResult] = match_list
-
-
-class SelectDetails(TypedDict):
-    image_url: str | None
-    thumb_image_url: str | None
-    cover_date: str | None
-    site_detail_url: str | None

@@ -3,13 +3,6 @@ from __future__ import annotations
 from typing_extensions import Required, TypedDict
 
 
-class SelectDetails(TypedDict):
-    image_url: str | None
-    thumb_image_url: str | None
-    cover_date: str | None
-    site_detail_url: str | None
-
-
 class ComicVolume(TypedDict, total=False):
     aliases: str  # Newline separated
     count_of_issues: int
