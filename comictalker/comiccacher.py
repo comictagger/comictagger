@@ -77,15 +77,8 @@ class ComicCacher:
                 "CREATE TABLE VolumeSearchCache("
                 + "search_term TEXT,"
                 + "id INT NOT NULL,"
-                + "name TEXT,"
-                + "start_year INT,"
-                + "publisher TEXT,"
-                + "count_of_issues INT,"
-                + "image_url TEXT,"
-                + "description TEXT,"
                 + "timestamp DATE DEFAULT (datetime('now','localtime')),"
-                + "source_name TEXT NOT NULL,"
-                + "aliases TEXT)"  # Newline separated
+                + "source_name TEXT NOT NULL)"
             )
 
             cur.execute(
@@ -95,9 +88,11 @@ class ComicCacher:
                 + "publisher TEXT,"
                 + "count_of_issues INT,"
                 + "start_year INT,"
+                + "image_url TEXT,"
+                + "aliases TEXT,"  # Newline separated
+                + "description TEXT,"
                 + "timestamp DATE DEFAULT (datetime('now','localtime')), "
                 + "source_name TEXT NOT NULL,"
-                + "aliases TEXT,"  # Newline separated
                 + "PRIMARY KEY (id, source_name))"
             )
 
@@ -143,65 +138,48 @@ class ComicCacher:
 
             # now add in new results
             for record in ct_search_results:
-
                 cur.execute(
-                    "INSERT INTO VolumeSearchCache "
-                    + "(source_name, search_term, id, name, start_year, publisher, count_of_issues, image_url, description, aliases) "
-                    + "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    "INSERT INTO VolumeSearchCache " + "(source_name, search_term, id) " + "VALUES(?, ?, ?)",
                     (
                         source_name,
                         search_term.casefold(),
                         record["id"],
-                        record["name"],
-                        record["start_year"],
-                        record["publisher"],
-                        record["count_of_issues"],
-                        record["image"],
-                        record["description"],
-                        record["aliases"],
                     ),
                 )
 
-    def get_search_results(
-        self, source_name: str, search_term: str, volume_id: int = 0, purge: bool = True
-    ) -> list[ComicVolume]:
+                data = {
+                    "source_name": source_name,
+                    "timestamp": datetime.datetime.now(),
+                }
+                data.update(record)
+                self.upsert(cur, "volumes", data)
+
+    def get_search_results(self, source_name: str, search_term: str) -> list[ComicVolume]:
         results = []
         con = lite.connect(self.db_file)
         with con:
             con.text_factory = str
             cur = con.cursor()
 
-            # DELETE requires an unlocked DB. get_volume_issues_info call will mean it is locked
-            if purge:
-                # purge stale search results
-                a_day_ago = datetime.datetime.today() - datetime.timedelta(days=1)
-                cur.execute("DELETE FROM VolumeSearchCache WHERE timestamp  < ?", [str(a_day_ago)])
-
-            if not volume_id:
-                # fetch by name
-                cur.execute(
-                    "SELECT * FROM VolumeSearchCache WHERE search_term=? AND source_name=?",
-                    [search_term.casefold(), source_name],
-                )
-            else:
-                # fetch by id (for get_volume_issues_info)
-                cur.execute(
-                    "SELECT * FROM VolumeSearchCache WHERE id=? AND source_name=?",
-                    [volume_id, source_name],
-                )
+            cur.execute(
+                "SELECT * FROM VolumeSearchCache INNER JOIN Volumes on"
+                " VolumeSearchCache.id=Volumes.id AND VolumeSearchCache.source_name=Volumes.source_name"
+                " WHERE search_term=? AND VolumeSearchCache.source_name=?",
+                [search_term.casefold(), source_name],
+            )
 
             rows = cur.fetchall()
             # now process the results
             for record in rows:
                 result = ComicVolume(
-                    id=record[1],
-                    name=record[2],
-                    start_year=record[3],
-                    count_of_issues=record[5],
-                    description=record[7],
-                    publisher=record[4],
-                    image=record[6],
+                    id=record[4],
+                    name=record[5],
+                    publisher=record[6],
+                    count_of_issues=record[7],
+                    start_year=record[8],
+                    image_url=record[9],
                     aliases=record[10],
+                    description=record[11],
                 )
 
                 results.append(result)
@@ -289,8 +267,8 @@ class ComicCacher:
                     "issue_number": issue["issue_number"],
                     "site_detail_url": issue["site_detail_url"],
                     "cover_date": issue["cover_date"],
-                    "image_url": issue["image"],
-                    "thumb_url": issue["image_thumb"],
+                    "image_url": issue["image_url"],
+                    "thumb_url": issue["image_thumb_url"],
                     "description": issue["description"],
                     "timestamp": timestamp,
                     "aliases": issue["aliases"],
@@ -311,8 +289,7 @@ class ComicCacher:
 
             # fetch
             cur.execute(
-                "SELECT source_name,id,name,publisher,count_of_issues,start_year,aliases FROM Volumes"
-                " WHERE id=? AND source_name=?",
+                "SELECT * FROM Volumes" " WHERE id=? AND source_name=?",
                 [volume_id, source_name],
             )
 
@@ -323,17 +300,21 @@ class ComicCacher:
 
             # since ID is primary key, there is only one row
             result = ComicVolume(
-                id=row[1],
-                name=row[2],
-                count_of_issues=row[4],
-                start_year=row[5],
-                publisher=row[3],
+                id=row[0],
+                name=row[1],
+                publisher=row[2],
+                count_of_issues=row[3],
+                start_year=row[4],
+                image_url=row[5],
                 aliases=row[6],
+                description=row[7],
             )
 
         return result
 
     def get_volume_issues_info(self, volume_id: int, source_name: str) -> list[ComicIssue]:
+        # get_volume_info should only fail if someone is doing something weird
+        volume = self.get_volume_info(volume_id, source_name) or ComicVolume(id=volume_id, name="")
         con = lite.connect(self.db_file)
         with con:
             cur = con.cursor()
@@ -358,33 +339,15 @@ class ComicCacher:
 
             # now process the results
             for row in rows:
-                volume_info = self.get_search_results(source_name, "", volume_id, False)
-                # Cover if it comes back empty
-                if not volume_info:
-                    volume_info = [
-                        ComicVolume(
-                            id=volume_id,
-                            name="",
-                        )
-                    ]
                 record = ComicIssue(
                     id=row[1],
                     name=row[2],
                     issue_number=row[3],
                     site_detail_url=row[4],
                     cover_date=row[5],
-                    image=row[6],
+                    image_url=row[6],
                     description=row[8],
-                    volume=ComicVolume(
-                        aliases=volume_info[0].get("aliases", ""),
-                        count_of_issues=volume_info[0].get("count_of_issues", 0),
-                        id=volume_id,
-                        name=volume_info[0].get("name", ""),
-                        description=volume_info[0].get("description", ""),
-                        image=volume_info[0].get("image", ""),
-                        publisher=volume_info[0].get("publisher", ""),
-                        start_year=volume_info[0].get("start_year", 0),
-                    ),
+                    volume=volume,
                     aliases=row[9],
                 )
 

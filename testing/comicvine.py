@@ -162,8 +162,8 @@ comic_issue_result: dict[str, Any] = {
     "cover_date": cv_issue_result["results"]["cover_date"],
     "description": cv_issue_result["results"]["description"],
     "id": cv_issue_result["results"]["id"],
-    "image": cv_issue_result["results"]["image"]["super_url"],
-    "image_thumb": cv_issue_result["results"]["image"]["thumb_url"],
+    "image_url": cv_issue_result["results"]["image"]["super_url"],
+    "image_thumb_url": cv_issue_result["results"]["image"]["thumb_url"],
     "issue_number": cv_issue_result["results"]["issue_number"],
     "name": cv_issue_result["results"]["name"],
     "site_detail_url": cv_issue_result["results"]["site_detail_url"],
@@ -224,7 +224,7 @@ cv_md = comicapi.genericmetadata.GenericMetadata(
     rights=None,
     identifier=None,
     last_mark=None,
-    cover_image=None,
+    cover_image=cv_issue_result["results"]["image"]["super_url"],
 )
 
 

@@ -31,13 +31,8 @@ def test_volume_info(comic_cache, volume_info):
     comic_cache.add_volume_info(volume_record=volume_info, source_name="test")
     vi = volume_info.copy()
     del vi["description"]
-    del vi["image"]
-    assert vi == comic_cache.get_volume_info(volume_id=volume_info["id"], source_name="test")
-
-
-@pytest.mark.parametrize("details", select_details)
-def test_issue_select_details(comic_cache, details):
-    comic_cache.add_issue_select_details(**details, source_name="test")
-    det = details.copy()
-    del det["issue_id"]
-    assert det == comic_cache.get_issue_select_details(details["issue_id"], "test")
+    del vi["image_url"]
+    cache_result = comic_cache.get_volume_info(volume_id=volume_info["id"], source_name="test")
+    del cache_result["description"]
+    del cache_result["image_url"]
+    assert vi == cache_result

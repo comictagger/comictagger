@@ -8,7 +8,7 @@ class ComicVolume(TypedDict, total=False):
     count_of_issues: int
     description: str
     id: Required[int]
-    image: str
+    image_url: str
     name: Required[str]
     publisher: str
     start_year: int
@@ -19,8 +19,8 @@ class ComicIssue(TypedDict, total=False):
     cover_date: str
     description: str
     id: int
-    image: str
-    image_thumb: str
+    image_url: str
+    image_thumb_url: str
     issue_number: Required[str]
     name: Required[str]
     site_detail_url: str

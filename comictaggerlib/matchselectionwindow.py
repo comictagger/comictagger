@@ -149,7 +149,9 @@ class MatchSelectionWindow(QtWidgets.QDialog):
         if prev is not None and prev.row() == curr.row():
             return
 
-        self.altCoverWidget.set_issue_id(self.current_match()["page_url"], self.current_match()["image_url"])
+        self.altCoverWidget.set_issue_details(
+            self.current_match()["issue_id"], self.current_match()["page_url"], self.current_match()["image_url"]
+        )
         if self.current_match()["description"] is None:
             self.teDescription.setText("")
         else:

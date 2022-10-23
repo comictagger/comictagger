@@ -516,5 +516,5 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
                     self.teDetails.setText("")
                 else:
                     self.teDetails.setText(record["description"])
-                self.imageWidget.set_url(record["image"])
+                self.imageWidget.set_url(record["image_url"])
                 break

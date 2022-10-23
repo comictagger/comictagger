@@ -430,8 +430,8 @@ class IssueIdentifier:
                     hash_list.append(narrow_cover_hash)
 
                 try:
-                    image_url = series["image"]
-                    thumb_url = series["image"]
+                    image_url = series["image_url"]
+                    thumb_url = series["image_url"]
                     page_url = ""
 
                     score_item = self.get_issue_cover_match_score(
@@ -525,8 +525,8 @@ class IssueIdentifier:
                     hash_list.append(narrow_cover_hash)
 
                 try:
-                    image_url = issue["image"]
-                    thumb_url = issue["image_thumb"]
+                    image_url = issue["image_url"]
+                    thumb_url = issue["image_thumb_url"]
                     page_url = issue["site_detail_url"]
 
                     score_item = self.get_issue_cover_match_score(

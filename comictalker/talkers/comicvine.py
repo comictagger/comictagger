@@ -392,12 +392,12 @@ class ComicVineTalker(TalkerBase):
                 pub_name = record["publisher"]["name"]
 
             if record.get("image") is None:
-                image = ""
+                image_url = ""
             else:
                 if record["image"].get("super_url") is None:
-                    image = ""
+                    image_url = ""
                 else:
-                    image = record["image"]["super_url"]
+                    image_url = record["image"]["super_url"]
 
             if record.get("start_year") is None:
                 start_year = 0
@@ -410,7 +410,7 @@ class ComicVineTalker(TalkerBase):
                     count_of_issues=record.get("count_of_issues", 0),
                     description=record.get("description", ""),
                     id=record["id"],
-                    image=image,
+                    image_url=image_url,
                     name=record["name"],
                     publisher=pub_name,
                     start_year=start_year,
@@ -424,11 +424,11 @@ class ComicVineTalker(TalkerBase):
         for record in issue_results:
             # Extract image super and thumb to name only
             if record.get("image") is None:
-                image = ""
-                image_thumb = ""
+                image_url = ""
+                image_thumb_url = ""
             else:
-                image = record["image"].get("super_url", "")
-                image_thumb = record["image"].get("thumb_url", "")
+                image_url = record["image"].get("super_url", "")
+                image_thumb_url = record["image"].get("thumb_url", "")
 
             formatted_results.append(
                 ComicIssue(
@@ -436,8 +436,8 @@ class ComicVineTalker(TalkerBase):
                     cover_date=record.get("cover_date", ""),
                     description=record.get("description", ""),
                     id=record["id"],
-                    image=image,
-                    image_thumb=image_thumb,
+                    image_url=image_url,
+                    image_thumb_url=image_thumb_url,
                     issue_number=record["issue_number"],
                     name=record["name"],
                     site_detail_url=record.get("site_detail_url", ""),
@@ -1033,7 +1033,7 @@ class ComicVineTalker(TalkerBase):
 
         ComicTalker.alt_url_list_fetch_complete(alt_cover_url_list)
 
-    def repair_urls(self, issue_list: list[CVIssuesResults] | list[ComicIssue] | list[CVIssueDetailResults]) -> None:
+    def repair_urls(self, issue_list: list[CVIssuesResults] | list[CVIssueDetailResults]) -> None:
         # make sure there are URLs for the image fields
         for issue in issue_list:
             if issue["image"] is None:
