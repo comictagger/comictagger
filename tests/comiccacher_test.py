@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 
 import comictalker.comiccacher
-from testing.comicdata import alt_covers, search_results, select_details
+from testing.comicdata import alt_covers, search_results
 
 
 def test_create_cache(settings):

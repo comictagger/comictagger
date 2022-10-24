@@ -177,12 +177,11 @@ class CoverImageWidget(QtWidgets.QWidget):
             self.imageCount = 1
             self.update_content()
 
-    def set_issue_details(self, issue_id: int, issue_url: str, image_url: str) -> None:
+    def set_issue_details(self, issue_id: int, image_url: str) -> None:
         if self.mode == CoverImageWidget.AltCoverMode:
             self.reset_widget()
             self.update_content()
             self.issue_id = issue_id
-            self.issue_url = issue_url
 
             ComicTalker.url_fetch_complete = self.sig.emit_url
             ComicTalker.url_fetch_complete(image_url, None)
@@ -211,13 +210,13 @@ class CoverImageWidget(QtWidgets.QWidget):
 
     def start_alt_cover_search(self) -> None:
 
-        if self.issue_url is not None and self.issue_id is not None:
+        if self.issue_id is not None:
             # now we need to get the list of alt cover URLs
             self.label.setText("Searching for alt. covers...")
 
             # page URL should already be cached, so no need to defer
             ComicTalker.alt_url_list_fetch_complete = self.sig.emit_list
-            self.talker_api.async_fetch_alternate_cover_urls(utils.xlate(self.issue_id), self.issue_url)
+            self.talker_api.async_fetch_alternate_cover_urls(utils.xlate(self.issue_id))
 
     def alt_cover_url_list_fetch_complete(self, url_list: list[str]) -> None:
         if url_list:

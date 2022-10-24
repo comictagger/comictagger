@@ -123,9 +123,9 @@ class ComicTalker:
             )
 
     # For issueidentifer
-    def fetch_alternate_cover_urls(self, issue_id: int, issue_url: str) -> list[str]:
+    def fetch_alternate_cover_urls(self, issue_id: int) -> list[str]:
         try:
-            alt_covers = self.talker.fetch_alternate_cover_urls(issue_id, issue_url)
+            alt_covers = self.talker.fetch_alternate_cover_urls(issue_id)
             return alt_covers
         except NotImplementedError:
             logger.warning(f"{self.talker.source_details.name} has not implemented: 'fetch_alternate_cover_urls'")
@@ -152,14 +152,17 @@ class ComicTalker:
                 "The source has not implemented: 'fetch_issues_by_volume_issue_num_and_year'",
             )
 
-    def async_fetch_alternate_cover_urls(self, issue_id: int, issue_url: str) -> None:
+    def async_fetch_alternate_cover_urls(
+        self,
+        issue_id: int,
+    ) -> None:
         try:
             # TODO: Figure out async
-            url_list = self.fetch_alternate_cover_urls(issue_id, issue_url)
+            url_list = self.fetch_alternate_cover_urls(issue_id)
             ComicTalker.alt_url_list_fetch_complete(url_list)
             logger.info("Should be downloading alt image list: %s", url_list)
             return
 
-            self.talker.async_fetch_alternate_cover_urls(issue_id, issue_url)
+            self.talker.async_fetch_alternate_cover_urls(issue_id)
         except NotImplementedError:
             logger.warning(f"{self.talker.source_details.name} has not implemented: 'async_fetch_alternate_cover_urls'")

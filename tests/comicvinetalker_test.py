@@ -5,7 +5,6 @@ import pytest
 import comicapi.genericmetadata
 import comictalker.talkers.comicvine
 import testing.comicvine
-from testing.comicdata import select_details
 
 
 def test_search_for_series(comicvine_api, comic_cache):

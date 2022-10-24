@@ -195,7 +195,7 @@ class TalkerBase:
     def fetch_comic_data(self, series_id: int, issue_number: str = "") -> GenericMetadata:
         raise NotImplementedError
 
-    def fetch_alternate_cover_urls(self, issue_id: int, issue_url: str) -> list[str]:
+    def fetch_alternate_cover_urls(self, issue_id: int) -> list[str]:
         raise NotImplementedError
 
     def fetch_issues_by_volume_issue_num_and_year(
@@ -203,5 +203,5 @@ class TalkerBase:
     ) -> list[ComicIssue]:
         raise NotImplementedError
 
-    def async_fetch_alternate_cover_urls(self, issue_id: int, issue_url: str) -> None:
+    def async_fetch_alternate_cover_urls(self, issue_id: int) -> None:
         raise NotImplementedError

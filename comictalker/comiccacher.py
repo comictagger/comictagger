@@ -248,7 +248,7 @@ class ComicCacher:
             }
             self.upsert(cur, "volumes", data)
 
-    def add_volume_issues_info(self, source_name: str, volume_id: int, volume_issues: list[ComicIssue]) -> None:
+    def add_volume_issues_info(self, source_name: str, volume_issues: list[ComicIssue]) -> None:
         con = lite.connect(self.db_file)
 
         with con:
@@ -261,7 +261,7 @@ class ComicCacher:
             for issue in volume_issues:
                 data = {
                     "id": issue["id"],
-                    "volume_id": volume_id,
+                    "volume_id": issue["volume"]["id"],
                     "source_name": source_name,
                     "name": issue["name"],
                     "issue_number": issue["issue_number"],
@@ -275,7 +275,7 @@ class ComicCacher:
                 }
                 self.upsert(cur, "issues", data)
 
-    def get_volume_info(self, volume_id: int, source_name: str) -> ComicVolume | None:
+    def get_volume_info(self, volume_id: int, source_name: str, purge: bool = True) -> ComicVolume | None:
         result: ComicVolume | None = None
 
         con = lite.connect(self.db_file)
@@ -283,9 +283,10 @@ class ComicCacher:
             cur = con.cursor()
             con.text_factory = str
 
-            # purge stale volume info
-            a_week_ago = datetime.datetime.today() - datetime.timedelta(days=7)
-            cur.execute("DELETE FROM Volumes WHERE timestamp  < ?", [str(a_week_ago)])
+            if purge:
+                # purge stale volume info
+                a_week_ago = datetime.datetime.today() - datetime.timedelta(days=7)
+                cur.execute("DELETE FROM Volumes WHERE timestamp  < ?", [str(a_week_ago)])
 
             # fetch
             cur.execute(
@@ -314,7 +315,7 @@ class ComicCacher:
 
     def get_volume_issues_info(self, volume_id: int, source_name: str) -> list[ComicIssue]:
         # get_volume_info should only fail if someone is doing something weird
-        volume = self.get_volume_info(volume_id, source_name) or ComicVolume(id=volume_id, name="")
+        volume = self.get_volume_info(volume_id, source_name, False) or ComicVolume(id=volume_id, name="")
         con = lite.connect(self.db_file)
         with con:
             cur = con.cursor()
@@ -354,6 +355,48 @@ class ComicCacher:
                 results.append(record)
 
         return results
+
+    def get_issue_info(self, issue_id: int, source_name: str) -> ComicIssue:
+        con = lite.connect(self.db_file)
+        with con:
+            cur = con.cursor()
+            con.text_factory = str
+
+            # purge stale issue info - probably issue data won't change
+            # much....
+            a_week_ago = datetime.datetime.today() - datetime.timedelta(days=7)
+            cur.execute("DELETE FROM Issues WHERE timestamp  < ?", [str(a_week_ago)])
+
+            cur.execute(
+                (
+                    "SELECT source_name,id,name,issue_number,site_detail_url,cover_date,image_url,thumb_url,description,aliases,volume_id"
+                    " FROM Issues WHERE id=? AND source_name=?"
+                ),
+                [issue_id, source_name],
+            )
+            row = cur.fetchone()
+
+            record = None
+
+            if row:
+                # get_volume_info should only fail if someone is doing something weird
+                volume = self.get_volume_info(row[10], source_name, False) or ComicVolume(id=row[10], name="")
+
+                # now process the results
+
+                record = ComicIssue(
+                    id=row[1],
+                    name=row[2],
+                    issue_number=row[3],
+                    site_detail_url=row[4],
+                    cover_date=row[5],
+                    image_url=row[6],
+                    description=row[8],
+                    volume=volume,
+                    aliases=row[9],
+                )
+
+            return record
 
     def upsert(self, cur: lite.Cursor, tablename: str, data: dict[str, Any]) -> None:
         """This does an insert if the given PK doesn't exist, and an

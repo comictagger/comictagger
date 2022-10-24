@@ -598,6 +598,31 @@ class ComicVineTalker(TalkerBase):
 
         return formatted_volume_results[0]
 
+    def fetch_partial_issue_data(self, issue_id: int) -> ComicIssue:
+        # before we search online, look in our cache, since we might already have this info
+        cvc = ComicCacher()
+        cached_issue_result = cvc.get_issue_info(issue_id, self.source_name)
+
+        if cached_issue_result is not None:
+            return cached_issue_result
+
+        params = {
+            "api_key": self.api_key,
+            "filter": f"id:{issue_id}",
+            "format": "json",
+            "field_list": "id,volume,issue_number,name,image,cover_date,site_detail_url,description,aliases",
+            "offset": 0,
+        }
+        cv_response = self.get_cv_content(urljoin(self.api_base_url, "issues/"), params)
+
+        issue_result = cast(CVIssuesResults, cv_response["results"])
+        formatted_issue_results = self.format_issue_results([issue_result])
+
+        if formatted_issue_results:
+            cvc.add_volume_issues_info(self.source_name, formatted_issue_results)
+
+        return formatted_issue_results[0]
+
     def fetch_issues_by_volume(self, series_id: int) -> list[ComicIssue]:
         # before we search online, look in our cache, since we might already have this info
         cvc = ComicCacher()
@@ -638,7 +663,7 @@ class ComicVineTalker(TalkerBase):
         # Format to expected output
         formatted_volume_issues_result = self.format_issue_results(volume_issues_result)
 
-        cvc.add_volume_issues_info(self.source_name, series_id, formatted_volume_issues_result)
+        cvc.add_volume_issues_info(self.source_name, formatted_volume_issues_result)
 
         return formatted_volume_issues_result
 
@@ -937,11 +962,13 @@ class ComicVineTalker(TalkerBase):
 
         return newstring
 
-    def fetch_alternate_cover_urls(self, issue_id: int, issue_url: str) -> list[str]:
+    def fetch_alternate_cover_urls(self, issue_id: int) -> list[str]:
         url_list = self.fetch_cached_alternate_cover_urls(issue_id)
         if url_list:
             return url_list
 
+        issue_info = self.fetch_partial_issue_data(issue_id)
+        issue_url = issue_info["site_detail_url"]
         # scrape the CV issue page URL to get the alternate cover URLs
         content = requests.get(issue_url, headers={"user-agent": "comictagger/" + ctversion.version}).text
         alt_cover_url_list = self.parse_out_alt_cover_urls(content)
@@ -1008,9 +1035,9 @@ class ComicVineTalker(TalkerBase):
 
         ComicTalker.url_fetch_complete(image_url, thumb_url)
 
-    def async_fetch_alternate_cover_urls(self, issue_id: int, issue_url: str) -> None:
+    def async_fetch_alternate_cover_urls(self, issue_id: int) -> None:
         # bypass async for now
-        url_list = self.fetch_alternate_cover_urls(issue_id, issue_url)
+        url_list = self.fetch_alternate_cover_urls(issue_id)
         ComicTalker.alt_url_list_fetch_complete(url_list)
         return
 
@@ -1019,6 +1046,9 @@ class ComicVineTalker(TalkerBase):
         url_list = self.fetch_cached_alternate_cover_urls(issue_id)
         if url_list:
             ComicTalker.alt_url_list_fetch_complete(url_list)
+
+        issue_info = self.fetch_partial_issue_data(issue_id)
+        issue_url = issue_info["site_detail_url"]
 
         self.nam.finished.connect(self.async_fetch_alternate_cover_urls_complete)
         self.nam.get(QtNetwork.QNetworkRequest(QtCore.QUrl(str(issue_url))))
