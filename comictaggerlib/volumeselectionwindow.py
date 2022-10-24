@@ -64,7 +64,7 @@ class SearchThread(QtCore.QThread):
     def run(self) -> None:
         try:
             self.ct_error = False
-            self.ct_search_results = self.talker_api.search_for_series(
+            self.ct_search_results = self.talker_api.talker.search_for_series(
                 self.series_name, self.prog_callback, self.refresh, self.literal
             )
         except TalkerError as e:
@@ -177,7 +177,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
 
         self.btnRequery.setEnabled(enabled)
 
-        if self.talker_api.static_options.has_issues:
+        if self.talker_api.talker.source_details.static_options.has_issues:
             self.btnIssues.setEnabled(enabled)
             self.btnAutoSelect.setEnabled(enabled)
         else:
@@ -198,7 +198,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
 
     def auto_select(self) -> None:
 
-        if self.talker_api.static_options.has_issues:
+        if self.talker_api.talker.source_details.static_options.has_issues:
             if self.comic_archive is None:
                 QtWidgets.QMessageBox.information(self, "Auto-Select", "You need to load a comic first!")
                 return
@@ -494,7 +494,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
         self.auto_select()
 
     def cell_double_clicked(self, r: int, c: int) -> None:
-        if self.talker_api.static_options.has_issues:
+        if self.talker_api.talker.source_details.static_options.has_issues:
             self.show_issues()
         else:
             # Pass back to have taggerwindow get full series data

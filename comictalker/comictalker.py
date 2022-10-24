@@ -15,12 +15,10 @@
 # limitations under the License.
 from __future__ import annotations
 
+import inspect
 import logging
+from importlib import import_module
 from typing import Callable
-
-from comicapi.genericmetadata import GenericMetadata
-from comictalker.resulttypes import ComicIssue, ComicVolume
-from comictalker.talkerbase import SourceStaticOptions, TalkerError
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +43,6 @@ class ComicTalker:
         self.sources = self.get_talkers()
         # Set the active talker
         self.talker = self.get_active_talker()
-        self.static_options = self.get_static_options()
 
     def get_active_talker(self):
         # This should always work because it will have errored at get_talkers if there are none
@@ -54,17 +51,85 @@ class ComicTalker:
 
     @staticmethod
     def get_talkers():
+        def check_talker(module: str):
+            testmodule = import_module("comictalker.talkers." + module)
+            for name, obj in inspect.getmembers(testmodule):
+                if inspect.isclass(obj):
+                    if name != "ComicTalker" and name.endswith("Talker"):
+                        # TODO Check if enabled?
+                        talker = obj()
+                        required_fields_details = ["name", "id"]
+                        required_fields_static = ["has_issues", "has_alt_covers", "has_censored_covers"]
+                        required_fields_settings = ["enabled", "url_root"]
+                        errors_found = False
+
+                        if talker.source_details is None:
+                            logger.warning(module + " is missing required source_details.")
+                            return False
+                        if not talker.source_details.static_options:
+                            logger.warning(module + " is missing required static_options.")
+                            return False
+                        if not talker.source_details.settings_options:
+                            logger.warning(module + " is missing required settings_options.")
+                            return False
+
+                        for field in required_fields_details:
+                            if not hasattr(talker.source_details, field):
+                                logger.warning(module + " is missing required source_details: " + field)
+                                errors_found = True
+                        # No need to check these as they have defaults, should defaults be None to catch?
+                        for field in required_fields_static:
+                            if not hasattr(talker.source_details.static_options, field):
+                                logger.warning(module + " is missing required static_options: " + field)
+                                errors_found = True
+                        for field in required_fields_settings:
+                            if field not in talker.source_details.settings_options:
+                                logger.warning(module + " is missing required settings_options: " + field)
+                                errors_found = True
+
+                        if errors_found:
+                            return False
+
+                        for key, val in talker.source_details.static_options.__dict__.items():
+                            # Check for required options has the correct type
+                            if key == "has_issues":
+                                if type(val) is not bool:
+                                    logger.warning(module + " has incorrect key type: " + key + ":" + str(val))
+                                    errors_found = True
+                            if key == "has_alt_covers":
+                                if type(val) is not bool:
+                                    logger.warning(module + " has incorrect key type: " + key + ":" + str(val))
+                                    errors_found = True
+                            if key == "has_censored_covers":
+                                if type(val) is not bool:
+                                    logger.warning(module + " has incorrect key type: " + key + ":" + str(val))
+                                    errors_found = True
+
+                        for key, val in talker.source_details.settings_options.items():
+                            if key == "enabled":
+                                if type(val["value"]) is not bool:
+                                    logger.warning(module + " has incorrect key type: " + key + ":" + str(val))
+                                    errors_found = True
+                            if key == "url_root":
+                                # Check starts with http[s]:// too?
+                                if not val["value"]:
+                                    logger.warning(module + " has missing value: " + key + ":" + str(val))
+                                    errors_found = True
+
+                        if errors_found:
+                            logger.warning(module + " is missing required settings. Check logs.")
+                            return False
+            return True
+
         # Hardcode import for now. Placed here to prevent circular import
         import comictalker.talkers.comicvine
 
-        return {"comicvine": comictalker.talkers.comicvine.ComicVineTalker()}
+        if check_talker("comicvine"):
+            return {"comicvine": comictalker.talkers.comicvine.ComicVineTalker()}
 
     # For issueidentifier
     def set_log_func(self, log_func: Callable[[str], None]) -> None:
         self.talker.log_func = log_func
-
-    def get_static_options(self) -> SourceStaticOptions:
-        return self.talker.source_details.static_options
 
     def check_api_key(self, key: str, url: str, source_id: str):
         for source in self.sources.values():
@@ -72,97 +137,3 @@ class ComicTalker:
                 return source.check_api_key(key, url)
         # Return false as back up or error?
         return False
-
-    # Master function to search for series/volumes
-    def search_for_series(
-        self,
-        series_name: str,
-        callback: Callable[[int, int], None] | None = None,
-        refresh_cache: bool = False,
-        literal: bool = False,
-    ) -> list[ComicVolume]:
-        try:
-            series_result = self.talker.search_for_series(series_name, callback, refresh_cache, literal)
-            return series_result
-        except NotImplementedError:
-            logger.warning(f"{self.talker.source_details.name} has not implemented: 'search_for_series'")
-            raise TalkerError(
-                self.talker.source_details.name,
-                4,
-                "The source has not implemented: 'search_for_series'",
-            )
-
-    # Get issue or volume information. issue_id is used by CLI
-    def fetch_comic_data(self, series_id: int = 0, issue_number: str = "", issue_id: int = 0) -> GenericMetadata:
-        """This function is expected to handle a few possibilities:
-        1. Only series_id. Retrieve the SERIES/VOLUME information only.
-        2. series_id and issue_number. Retrieve the ISSUE information.
-        3. Only issue_id. Used solely by the CLI to retrieve the ISSUE information."""
-        try:
-            comic_data = self.talker.fetch_comic_data(series_id, issue_number, issue_id)
-            return comic_data
-        except NotImplementedError:
-            logger.warning(f"{self.talker.source_details.name} has not implemented: 'fetch_comic_data'")
-            raise TalkerError(
-                self.talker.source_details.name,
-                4,
-                "The source has not implemented: 'fetch_comic_data'",
-            )
-
-    # Master function to get issues in a series/volume
-    def fetch_issues_by_volume(self, series_id: int) -> list[ComicIssue]:
-        try:
-            issues_result = self.talker.fetch_issues_by_volume(series_id)
-            return issues_result
-        except NotImplementedError:
-            logger.warning(f"{self.talker.source_details.name} has not implemented: 'fetch_issues_by_volume'")
-            raise TalkerError(
-                self.talker.source_details.name,
-                4,
-                "The source has not implemented: 'fetch_issues_by_volume'",
-            )
-
-    # For issueidentifer
-    def fetch_alternate_cover_urls(self, issue_id: int) -> list[str]:
-        try:
-            alt_covers = self.talker.fetch_alternate_cover_urls(issue_id)
-            return alt_covers
-        except NotImplementedError:
-            logger.warning(f"{self.talker.source_details.name} has not implemented: 'fetch_alternate_cover_urls'")
-            raise TalkerError(
-                self.talker.source_details.name,
-                4,
-                "The source has not implemented: 'fetch_alternate_cover_urls'",
-            )
-
-    # For issueidentifier
-    def fetch_issues_by_volume_issue_num_and_year(
-        self, volume_id_list: list[int], issue_number: str, year: str | int | None
-    ) -> list[ComicIssue]:
-        try:
-            issue_results = self.talker.fetch_issues_by_volume_issue_num_and_year(volume_id_list, issue_number, year)
-            return issue_results
-        except NotImplementedError:
-            logger.warning(
-                f"{self.talker.source_details.name} has not implemented: 'fetch_issues_by_volume_issue_num_and_year'"
-            )
-            raise TalkerError(
-                self.talker.source_details.name,
-                4,
-                "The source has not implemented: 'fetch_issues_by_volume_issue_num_and_year'",
-            )
-
-    def async_fetch_alternate_cover_urls(
-        self,
-        issue_id: int,
-    ) -> None:
-        try:
-            # TODO: Figure out async
-            url_list = self.fetch_alternate_cover_urls(issue_id)
-            ComicTalker.alt_url_list_fetch_complete(url_list)
-            logger.info("Should be downloading alt image list: %s", url_list)
-            return
-
-            self.talker.async_fetch_alternate_cover_urls(issue_id)
-        except NotImplementedError:
-            logger.warning(f"{self.talker.source_details.name} has not implemented: 'async_fetch_alternate_cover_urls'")

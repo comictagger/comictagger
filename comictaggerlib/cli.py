@@ -43,7 +43,7 @@ def actual_issue_data_fetch(
 ) -> GenericMetadata:
     # now get the particular issue data
     try:
-        ct_md = talker_api.fetch_comic_data(match["volume_id"], match["issue_number"])
+        ct_md = talker_api.talker.fetch_comic_data(match["volume_id"], match["issue_number"])
     except TalkerError as e:
         logger.exception(f"Error retrieving issue details. Save aborted.\n{e}")
         return GenericMetadata()
@@ -382,7 +382,7 @@ def process_file_cli(
             if opts.issue_id is not None:
                 # we were given the actual issue ID to search with
                 try:
-                    ct_md = talker_api.fetch_comic_data(0, "", opts.issue_id)
+                    ct_md = talker_api.talker.fetch_comic_data(0, "", opts.issue_id)
                 except TalkerError as e:
                     logger.exception(f"Error retrieving issue details. Save aborted.\n{e}")
                     match_results.fetch_data_failures.append(str(ca.path.absolute()))

@@ -104,7 +104,7 @@ class IssueSelectionWindow(QtWidgets.QDialog):
         QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
 
         try:
-            self.issue_list = self.talker_api.fetch_issues_by_volume(self.series_id)
+            self.issue_list = self.talker_api.talker.fetch_issues_by_volume(self.series_id)
         except TalkerError as e:
             QtWidgets.QApplication.restoreOverrideCursor()
             QtWidgets.QMessageBox.critical(
