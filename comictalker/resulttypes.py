@@ -25,3 +25,4 @@ class ComicIssue(TypedDict, total=False):
     name: Required[str]
     site_detail_url: str
     volume: ComicVolume
+    alt_images_url: str  # Comma separated URLs

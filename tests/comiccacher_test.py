@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 
 import comictalker.comiccacher
-from testing.comicdata import alt_covers, search_results
+from testing.comicdata import search_results
 
 
 def test_create_cache(settings):
@@ -18,12 +18,6 @@ def test_search_results(comic_cache):
         search_results,
     )
     assert search_results == comic_cache.get_search_results("test", "test search")
-
-
-@pytest.mark.parametrize("alt_cover", alt_covers)
-def test_alt_covers(comic_cache, alt_cover):
-    comic_cache.add_alt_covers(**alt_cover, source_name="test")
-    assert alt_cover["url_list"] == comic_cache.get_alt_covers(issue_id=alt_cover["issue_id"], source_name="test")
 
 
 @pytest.mark.parametrize("volume_info", search_results)

@@ -204,7 +204,7 @@ class CoverImageWidget(QtWidgets.QWidget):
         self.imageCount = len(self.url_list)
         self.update_content()
 
-        # defer the alt cover search
+        # TODO No need to search for alt covers as they are now in ComicIssue data
         if self.talker_api.talker.source_details.static_options.has_alt_covers:
             QtCore.QTimer.singleShot(1, self.start_alt_cover_search)
 
@@ -216,7 +216,7 @@ class CoverImageWidget(QtWidgets.QWidget):
 
             # page URL should already be cached, so no need to defer
             ComicTalker.alt_url_list_fetch_complete = self.sig.emit_list
-            self.talker_api.talker.async_fetch_alternate_cover_urls(utils.xlate(self.issue_id))
+            self.talker_api.talker.fetch_alternate_cover_urls(utils.xlate(self.issue_id))
 
     def alt_cover_url_list_fetch_complete(self, url_list: list[str]) -> None:
         if url_list:

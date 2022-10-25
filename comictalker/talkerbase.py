@@ -196,7 +196,7 @@ class TalkerBase:
         """This function is expected to handle a few possibilities:
         1. Only series_id. Retrieve the SERIES/VOLUME information only.
         2. series_id and issue_number. Retrieve the ISSUE information.
-        3. Only issue_id. Used solely by the CLI to retrieve the ISSUE information."""
+        3. Only issue_id. Retrieve the ISSUE information."""
         raise NotImplementedError
 
     def fetch_alternate_cover_urls(self, issue_id: int) -> list[str]:
@@ -205,7 +205,4 @@ class TalkerBase:
     def fetch_issues_by_volume_issue_num_and_year(
         self, volume_id_list: list[int], issue_number: str, year: str | int | None
     ) -> list[ComicIssue]:
-        raise NotImplementedError
-
-    def async_fetch_alternate_cover_urls(self, issue_id: int) -> None:
         raise NotImplementedError

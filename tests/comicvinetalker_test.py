@@ -54,6 +54,7 @@ def test_fetch_issues_by_volume_issue_num_and_year(comicvine_api):
     for r, e in zip(results, [cv_expected]):
         del r["image_thumb_url"]
         del r["image_url"]
+        del r["alt_images_url"]
         assert r == e
 
 

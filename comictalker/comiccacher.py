@@ -97,16 +97,6 @@ class ComicCacher:
             )
 
             cur.execute(
-                "CREATE TABLE AltCovers("
-                + "issue_id INT NOT NULL,"
-                + "url_list TEXT,"
-                + "timestamp DATE DEFAULT (datetime('now','localtime')), "
-                + "source_name TEXT NOT NULL,"
-                + "aliases TEXT,"  # Newline separated
-                + "PRIMARY KEY (issue_id, source_name))"
-            )
-
-            cur.execute(
                 "CREATE TABLE Issues("
                 + "id INT NOT NULL,"
                 + "volume_id INT,"
@@ -120,6 +110,7 @@ class ComicCacher:
                 + "timestamp DATE DEFAULT (datetime('now','localtime')), "
                 + "source_name TEXT NOT NULL,"
                 + "aliases TEXT,"  # Newline separated
+                + "alt_images_url TEXT,"  # Comma separated URLs
                 + "PRIMARY KEY (id, source_name))"
             )
 
@@ -186,47 +177,6 @@ class ComicCacher:
 
         return results
 
-    def add_alt_covers(self, source_name: str, issue_id: int, url_list: list[str]) -> None:
-
-        con = lite.connect(self.db_file)
-
-        with con:
-            con.text_factory = str
-            cur = con.cursor()
-
-            # remove all previous entries with this search term
-            cur.execute("DELETE FROM AltCovers WHERE issue_id=? AND source_name=?", [issue_id, source_name])
-
-            url_list_str = ",".join(url_list)
-            # now add in new record
-            cur.execute(
-                "INSERT INTO AltCovers (source_name, issue_id, url_list) VALUES(?, ?, ?)",
-                (source_name, issue_id, url_list_str),
-            )
-
-    def get_alt_covers(self, source_name: str, issue_id: int) -> list[str]:
-
-        con = lite.connect(self.db_file)
-        with con:
-            cur = con.cursor()
-            con.text_factory = str
-
-            # purge stale issue info - probably issue data won't change
-            # much....
-            a_month_ago = datetime.datetime.today() - datetime.timedelta(days=30)
-            cur.execute("DELETE FROM AltCovers WHERE timestamp  < ?", [str(a_month_ago)])
-
-            cur.execute("SELECT url_list FROM AltCovers WHERE issue_id=? AND source_name=?", [issue_id, source_name])
-            row = cur.fetchone()
-            if row is None:
-                return []
-
-            url_list_str = row[0]
-            if not url_list_str:
-                return []
-            url_list = str(url_list_str).split(",")
-            return url_list
-
     def add_volume_info(self, source_name: str, volume_record: ComicVolume) -> None:
         con = lite.connect(self.db_file)
 
@@ -272,6 +222,7 @@ class ComicCacher:
                     "description": issue["description"],
                     "timestamp": timestamp,
                     "aliases": issue["aliases"],
+                    "alt_images_url": issue["alt_images_url"],
                 }
                 self.upsert(cur, "issues", data)
 
@@ -331,7 +282,7 @@ class ComicCacher:
 
             cur.execute(
                 (
-                    "SELECT source_name,id,name,issue_number,site_detail_url,cover_date,image_url,thumb_url,description,aliases"
+                    "SELECT source_name,id,name,issue_number,site_detail_url,cover_date,image_url,thumb_url,description,aliases,alt_images_url"
                     " FROM Issues WHERE volume_id=? AND source_name=?"
                 ),
                 [volume_id, source_name],
@@ -350,6 +301,7 @@ class ComicCacher:
                     description=row[8],
                     volume=volume,
                     aliases=row[9],
+                    alt_images_url=row[10],
                 )
 
                 results.append(record)
@@ -369,7 +321,7 @@ class ComicCacher:
 
             cur.execute(
                 (
-                    "SELECT source_name,id,name,issue_number,site_detail_url,cover_date,image_url,thumb_url,description,aliases,volume_id"
+                    "SELECT source_name,id,name,issue_number,site_detail_url,cover_date,image_url,thumb_url,description,aliases,volume_id,alt_images_url"
                     " FROM Issues WHERE id=? AND source_name=?"
                 ),
                 [issue_id, source_name],
@@ -391,9 +343,11 @@ class ComicCacher:
                     site_detail_url=row[4],
                     cover_date=row[5],
                     image_url=row[6],
+                    image_thumb_url=row[7],
                     description=row[8],
                     volume=volume,
                     aliases=row[9],
+                    alt_images_url=row[11],
                 )
 
             return record
