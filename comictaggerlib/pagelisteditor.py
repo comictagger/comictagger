@@ -22,7 +22,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets, uic
 from comicapi.comicarchive import ComicArchive, MetaDataStyle
 from comicapi.genericmetadata import ImageMetadata, PageType
 from comictaggerlib.coverimagewidget import CoverImageWidget
-from comictaggerlib.settings import ComicTaggerSettings
+from comictaggerlib.ui import ui_path
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +70,7 @@ class PageListEditor(QtWidgets.QWidget):
     def __init__(self, parent: QtWidgets.QWidget) -> None:
         super().__init__(parent)
 
-        uic.loadUi(ComicTaggerSettings.get_ui_file("pagelisteditor.ui"), self)
+        uic.loadUi(ui_path / "pagelisteditor.ui", self)
 
         self.pageWidget = CoverImageWidget(self.pageContainer, CoverImageWidget.ArchiveMode)
         gridlayout = QtWidgets.QGridLayout(self.pageContainer)

@@ -26,7 +26,9 @@ from shutil import which  # noqa: F401
 from typing import Any
 
 import pycountry
-import thefuzz.fuzz
+import rapidfuzz.fuzz
+
+import comicapi.data
 
 logger = logging.getLogger(__name__)
 
@@ -155,7 +157,7 @@ def sanitize_title(text: str, basic: bool = False) -> str:
 def titles_match(search_title: str, record_title: str, threshold: int = 90) -> bool:
     sanitized_search = sanitize_title(search_title)
     sanitized_record = sanitize_title(record_title)
-    ratio: int = thefuzz.fuzz.ratio(sanitized_search, sanitized_record)
+    ratio: int = rapidfuzz.fuzz.ratio(sanitized_search, sanitized_record)
     logger.debug(
         "search title: %s ; record title: %s ; ratio: %d ; match threshold: %d",
         search_title,
@@ -257,6 +259,6 @@ publishers: dict[str, ImprintDict] = {}
 
 def load_publishers() -> None:
     try:
-        update_publishers(json.loads((pathlib.Path(__file__).parent / "data" / "publishers.json").read_text("utf-8")))
+        update_publishers(json.loads((comicapi.data.data_path / "publishers.json").read_text("utf-8")))
     except Exception:
         logger.exception("Failed to load publishers.json; The are no publishers or imprints loaded")

@@ -253,7 +253,7 @@ class ComicVineTalker:
         # ORed together, and we get thousands of results.  Good news is the
         # results are sorted by relevance, so we can be smart about halting the search.
         # 1. Don't fetch more than some sane amount of pages.
-        # 2. Halt when any result on the current page is less than or equal to a set ratio using thefuzz
+        # 2. Halt when any result on the current page is less than or equal to a set ratio using rapidfuzz
         max_results = 500  # 5 pages
 
         total_result_count = min(total_result_count, max_results)

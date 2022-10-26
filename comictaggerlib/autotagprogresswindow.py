@@ -20,7 +20,7 @@ import logging
 from PyQt5 import QtCore, QtWidgets, uic
 
 from comictaggerlib.coverimagewidget import CoverImageWidget
-from comictaggerlib.settings import ComicTaggerSettings
+from comictaggerlib.ui import ui_path
 from comictaggerlib.ui.qtutils import reduce_widget_font_size
 
 logger = logging.getLogger(__name__)
@@ -30,7 +30,7 @@ class AutoTagProgressWindow(QtWidgets.QDialog):
     def __init__(self, parent: QtWidgets.QWidget) -> None:
         super().__init__(parent)
 
-        uic.loadUi(ComicTaggerSettings.get_ui_file("autotagprogresswindow.ui"), self)
+        uic.loadUi(ui_path / "autotagprogresswindow.ui", self)
 
         self.archiveCoverWidget = CoverImageWidget(self.archiveCoverContainer, CoverImageWidget.DataMode, False)
         gridlayout = QtWidgets.QGridLayout(self.archiveCoverContainer)

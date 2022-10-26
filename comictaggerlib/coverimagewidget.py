@@ -27,10 +27,11 @@ from PyQt5 import QtCore, QtGui, QtWidgets, uic
 from comicapi import utils
 from comicapi.comicarchive import ComicArchive
 from comictaggerlib.comicvinetalker import ComicVineTalker
+from comictaggerlib.graphics import graphics_path
 from comictaggerlib.imagefetcher import ImageFetcher
 from comictaggerlib.imagepopup import ImagePopup
 from comictaggerlib.pageloader import PageLoader
-from comictaggerlib.settings import ComicTaggerSettings
+from comictaggerlib.ui import ui_path
 from comictaggerlib.ui.qtutils import get_qimage_from_data, reduce_widget_font_size
 
 logger = logging.getLogger(__name__)
@@ -91,7 +92,7 @@ class CoverImageWidget(QtWidgets.QWidget):
         super().__init__(parent)
 
         self.cover_fetcher = ImageFetcher()
-        uic.loadUi(ComicTaggerSettings.get_ui_file("coverimagewidget.ui"), self)
+        uic.loadUi(ui_path / "coverimagewidget.ui", self)
 
         reduce_widget_font_size(self.label)
 
@@ -115,8 +116,8 @@ class CoverImageWidget(QtWidgets.QWidget):
         self.imageCount = 1
         self.imageData = b""
 
-        self.btnLeft.setIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("left.png")))
-        self.btnRight.setIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("right.png")))
+        self.btnLeft.setIcon(QtGui.QIcon(str(graphics_path / "left.png")))
+        self.btnRight.setIcon(QtGui.QIcon(str(graphics_path / "right.png")))
 
         self.btnLeft.clicked.connect(self.decrement_image)
         self.btnRight.clicked.connect(self.increment_image)
@@ -292,7 +293,7 @@ class CoverImageWidget(QtWidgets.QWidget):
         self.page_loader = None
 
     def load_default(self) -> None:
-        self.current_pixmap = QtGui.QPixmap(ComicTaggerSettings.get_graphic("nocover.png"))
+        self.current_pixmap = QtGui.QPixmap(str(graphics_path / "nocover.png"))
         self.set_display_pixmap()
 
     def resizeEvent(self, resize_event: QtGui.QResizeEvent) -> None:

@@ -19,8 +19,7 @@ import logging
 
 from PyQt5 import QtCore, QtWidgets, uic
 
-from comictaggerlib.settings import ComicTaggerSettings
-from comictaggerlib.ui import qtutils
+from comictaggerlib.ui import qtutils, ui_path
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +28,7 @@ class LogWindow(QtWidgets.QDialog):
     def __init__(self, parent: QtWidgets.QWidget) -> None:
         super().__init__(parent)
 
-        uic.loadUi(ComicTaggerSettings.get_ui_file("logwindow.ui"), self)
+        uic.loadUi(ui_path / "logwindow.ui", self)
 
         self.setWindowFlags(
             QtCore.Qt.WindowType(

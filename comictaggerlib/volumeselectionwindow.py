@@ -33,6 +33,7 @@ from comictaggerlib.matchselectionwindow import MatchSelectionWindow
 from comictaggerlib.progresswindow import IDProgressWindow
 from comictaggerlib.resulttypes import CVVolumeResults
 from comictaggerlib.settings import ComicTaggerSettings
+from comictaggerlib.ui import ui_path
 from comictaggerlib.ui.qtutils import reduce_widget_font_size
 
 logger = logging.getLogger(__name__)
@@ -109,7 +110,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
     ) -> None:
         super().__init__(parent)
 
-        uic.loadUi(ComicTaggerSettings.get_ui_file("volumeselectionwindow.ui"), self)
+        uic.loadUi(ui_path / "volumeselectionwindow.ui", self)
 
         self.imageWidget = CoverImageWidget(self.imageContainer, CoverImageWidget.URLMode)
         gridlayout = QtWidgets.QGridLayout(self.imageContainer)

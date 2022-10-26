@@ -24,6 +24,7 @@ from comictaggerlib.comicvinetalker import ComicVineTalker, ComicVineTalkerExcep
 from comictaggerlib.coverimagewidget import CoverImageWidget
 from comictaggerlib.resulttypes import CVIssuesResults
 from comictaggerlib.settings import ComicTaggerSettings
+from comictaggerlib.ui import ui_path
 from comictaggerlib.ui.qtutils import reduce_widget_font_size
 
 logger = logging.getLogger(__name__)
@@ -45,7 +46,7 @@ class IssueSelectionWindow(QtWidgets.QDialog):
     ) -> None:
         super().__init__(parent)
 
-        uic.loadUi(ComicTaggerSettings.get_ui_file("issueselectionwindow.ui"), self)
+        uic.loadUi(ui_path / "issueselectionwindow.ui", self)
 
         self.coverWidget = CoverImageWidget(self.coverImageContainer, CoverImageWidget.AltCoverMode)
         gridlayout = QtWidgets.QGridLayout(self.coverImageContainer)

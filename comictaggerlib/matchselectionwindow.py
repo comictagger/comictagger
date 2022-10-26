@@ -23,7 +23,7 @@ from PyQt5 import QtCore, QtWidgets, uic
 from comicapi.comicarchive import ComicArchive
 from comictaggerlib.coverimagewidget import CoverImageWidget
 from comictaggerlib.resulttypes import IssueResult
-from comictaggerlib.settings import ComicTaggerSettings
+from comictaggerlib.ui import ui_path
 from comictaggerlib.ui.qtutils import reduce_widget_font_size
 
 logger = logging.getLogger(__name__)
@@ -35,7 +35,7 @@ class MatchSelectionWindow(QtWidgets.QDialog):
     def __init__(self, parent: QtWidgets.QWidget, matches: list[IssueResult], comic_archive: ComicArchive) -> None:
         super().__init__(parent)
 
-        uic.loadUi(ComicTaggerSettings.get_ui_file("matchselectionwindow.ui"), self)
+        uic.loadUi(ui_path / "matchselectionwindow.ui", self)
 
         self.altCoverWidget = CoverImageWidget(self.altCoverContainer, CoverImageWidget.AltCoverMode)
         gridlayout = QtWidgets.QGridLayout(self.altCoverContainer)

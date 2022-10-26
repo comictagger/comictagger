@@ -29,6 +29,7 @@ from comicapi import utils
 from comictaggerlib import cli
 from comictaggerlib.comicvinetalker import ComicVineTalker
 from comictaggerlib.ctversion import version
+from comictaggerlib.graphics import graphics_path
 from comictaggerlib.options import parse_cmd_line
 from comictaggerlib.settings import ComicTaggerSettings
 
@@ -89,6 +90,17 @@ try:
 
     qt_exception_hook = UncaughtHook()
     from comictaggerlib.taggerwindow import TaggerWindow
+
+    class Application(QtWidgets.QApplication):
+        openFileRequest = QtCore.pyqtSignal(QtCore.QUrl, name="openfileRequest")
+
+        def event(self, event):
+            if event.type() == QtCore.QEvent.FileOpen:
+                logger.info(event.url().toLocalFile())
+                self.openFileRequest.emit(event.url())
+                return True
+            return super().event(event)
+
 except ImportError as e:
 
     def show_exception_box(log_msg: str) -> None:
@@ -179,10 +191,14 @@ def ctmain() -> None:
         if opts.darkmode:
             args.extend(["-platform", "windows:darkmode=2"])
         args.extend(sys.argv)
-        app = QtWidgets.QApplication(args)
+        app = Application(args)
+
+        # needed to catch initial open file events (macOS)
+        app.openFileRequest.connect(lambda x: opts.files.append(x.toLocalFile()))
+
         if platform.system() == "Darwin":
             # Set the MacOS dock icon
-            app.setWindowIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("app.png")))
+            app.setWindowIcon(QtGui.QIcon(str(graphics_path / "app.png")))
 
         if platform.system() == "Windows":
             # For pure python, tell windows that we're not python,
@@ -198,7 +214,7 @@ def ctmain() -> None:
                 ctypes.windll.user32.SetWindowPos(console_wnd, None, 0, 0, 0, 0, swp_hidewindow)  # type: ignore[attr-defined]
 
         if platform.system() != "Linux":
-            img = QtGui.QPixmap(ComicTaggerSettings.get_graphic("tags.png"))
+            img = QtGui.QPixmap(str(graphics_path / "tags.png"))
 
             splash = QtWidgets.QSplashScreen(img)
             splash.show()
@@ -207,8 +223,11 @@ def ctmain() -> None:
 
         try:
             tagger_window = TaggerWindow(opts.files, settings, opts=opts)
-            tagger_window.setWindowIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("app.png")))
+            tagger_window.setWindowIcon(QtGui.QIcon(str(graphics_path / "app.png")))
             tagger_window.show()
+
+            # Catch open file events (macOS)
+            app.openFileRequest.connect(tagger_window.open_file_event)
 
             if platform.system() != "Linux":
                 splash.finish(tagger_window)

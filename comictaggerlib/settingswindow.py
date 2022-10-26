@@ -30,6 +30,7 @@ from comictaggerlib.comicvinetalker import ComicVineTalker
 from comictaggerlib.filerenamer import FileRenamer
 from comictaggerlib.imagefetcher import ImageFetcher
 from comictaggerlib.settings import ComicTaggerSettings
+from comictaggerlib.ui import ui_path
 
 logger = logging.getLogger(__name__)
 
@@ -130,7 +131,7 @@ class SettingsWindow(QtWidgets.QDialog):
     def __init__(self, parent: QtWidgets.QWidget, settings: ComicTaggerSettings) -> None:
         super().__init__(parent)
 
-        uic.loadUi(ComicTaggerSettings.get_ui_file("settingswindow.ui"), self)
+        uic.loadUi(ui_path / "settingswindow.ui", self)
 
         self.setWindowFlags(
             QtCore.Qt.WindowType(self.windowFlags() & ~QtCore.Qt.WindowType.WindowContextHelpButtonHint)
@@ -407,4 +408,4 @@ class TemplateHelpWindow(QtWidgets.QDialog):
     def __init__(self, parent: QtWidgets.QWidget) -> None:
         super().__init__(parent)
 
-        uic.loadUi(ComicTaggerSettings.get_ui_file("TemplateHelp.ui"), self)
+        uic.loadUi(ui_path / "TemplateHelp.ui", self)
