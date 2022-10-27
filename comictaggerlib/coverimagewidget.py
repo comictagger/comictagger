@@ -24,6 +24,7 @@ from typing import Callable
 
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
+import comictalker.comictalkerapi as ct_api
 from comicapi import utils
 from comicapi.comicarchive import ComicArchive
 from comictaggerlib.imagefetcher import ImageFetcher
@@ -31,7 +32,7 @@ from comictaggerlib.imagepopup import ImagePopup
 from comictaggerlib.pageloader import PageLoader
 from comictaggerlib.settings import ComicTaggerSettings
 from comictaggerlib.ui.qtutils import get_qimage_from_data, reduce_widget_font_size
-from comictalker.comictalker import ComicTalker
+from comictalker.talkerbase import ComicTalker
 
 logger = logging.getLogger(__name__)
 
@@ -183,8 +184,8 @@ class CoverImageWidget(QtWidgets.QWidget):
             self.update_content()
             self.issue_id = issue_id
 
-            ComicTalker.url_fetch_complete = self.sig.emit_url
-            ComicTalker.url_fetch_complete(image_url, None)
+            ct_api.url_fetch_complete = self.sig.emit_url
+            ct_api.url_fetch_complete(image_url, None)
 
     def set_image_data(self, image_data: bytes) -> None:
         if self.mode == CoverImageWidget.DataMode:
@@ -205,7 +206,7 @@ class CoverImageWidget(QtWidgets.QWidget):
         self.update_content()
 
         # TODO No need to search for alt covers as they are now in ComicIssue data
-        if self.talker_api.talker.source_details.static_options.has_alt_covers:
+        if self.talker_api.static_options.has_alt_covers:
             QtCore.QTimer.singleShot(1, self.start_alt_cover_search)
 
     def start_alt_cover_search(self) -> None:
@@ -215,8 +216,8 @@ class CoverImageWidget(QtWidgets.QWidget):
             self.label.setText("Searching for alt. covers...")
 
             # page URL should already be cached, so no need to defer
-            ComicTalker.alt_url_list_fetch_complete = self.sig.emit_list
-            self.talker_api.talker.fetch_alternate_cover_urls(utils.xlate(self.issue_id))
+            ct_api.alt_url_list_fetch_complete = self.sig.emit_list
+            self.talker_api.fetch_alternate_cover_urls(utils.xlate(self.issue_id))
 
     def alt_cover_url_list_fetch_complete(self, url_list: list[str]) -> None:
         if url_list:

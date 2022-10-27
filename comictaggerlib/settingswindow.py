@@ -23,13 +23,14 @@ import platform
 
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
+import comictalker.comictalkerapi as ct_api
 from comicapi import utils
 from comicapi.genericmetadata import md_test
 from comictaggerlib.filerenamer import FileRenamer
 from comictaggerlib.imagefetcher import ImageFetcher
 from comictaggerlib.settings import ComicTaggerSettings
 from comictalker.comiccacher import ComicCacher
-from comictalker.comictalker import ComicTalker
+from comictalker.talkerbase import ComicTalker
 
 logger = logging.getLogger(__name__)
 
@@ -137,6 +138,8 @@ class SettingsWindow(QtWidgets.QDialog):
         )
 
         self.settings = settings
+        # TODO Quick hack to allow menus to work
+        self.available_talkers = ct_api.get_talkers()
         self.talker_api = talker_api
         self.name = "Settings"
 
@@ -199,7 +202,9 @@ class SettingsWindow(QtWidgets.QDialog):
 
     def generate_source_option_tabs(self) -> None:
         # Add source sub tabs to Comic Sources tab
-        for source in self.talker_api.sources.values():
+        for source_cls in self.available_talkers.values():
+            # TODO Remove hack
+            source = source_cls()
             # Add source to general tab dropdown list
             self.cobxInfoSource.addItem(source.source_details.name, source.source_details.id)
             # Use a dict to make a var name from var
@@ -208,7 +213,7 @@ class SettingsWindow(QtWidgets.QDialog):
             source_info[tab_name] = {"tab": QtWidgets.QWidget(), "widgets": {}}
             layout_grid = QtWidgets.QGridLayout()
             row = 0
-            for option in source.source_details.settings_options.values():
+            for option in source.settings_options.values():
                 if not option["hidden"]:
                     current_widget = None
                     if option["type"] is bool:
@@ -398,7 +403,8 @@ class SettingsWindow(QtWidgets.QDialog):
         self.settings.id_publisher_filter = str(self.tePublisherFilter.toPlainText())
         self.settings.comic_info_source = str(self.cobxInfoSource.itemData(self.cobxInfoSource.currentIndex()))
         # Also change current talker_api object
-        self.talker_api.source = self.settings.comic_info_source
+        # TODO
+        # self.talker_api.source = self.settings.comic_info_source
 
         self.settings.complicated_parser = self.cbxComplicatedParser.isChecked()
         self.settings.remove_c2c = self.cbxRemoveC2C.isChecked()
@@ -430,12 +436,14 @@ class SettingsWindow(QtWidgets.QDialog):
         self.settings.rename_strict = self.cbxRenameStrict.isChecked()
 
         # Read settings from sources tabs and generate self.settings.config data
-        for source in self.talker_api.sources.values():
+        for source_cls in self.available_talkers.values():
+            # TODO Remove hack
+            source = source_cls()
             source_info = self.sources[source.source_details.id]
             if not self.settings.config.has_section(source.source_details.id):
                 self.settings.config.add_section(source.source_details.id)
             # Iterate over sources options and get the tab setting
-            for option in source.source_details.settings_options.values():
+            for option in source.settings_options.values():
                 # Only save visible here
                 if option["name"] in source_info["widgets"]:
                     # Set the tab setting for the talker class var
@@ -457,9 +465,9 @@ class SettingsWindow(QtWidgets.QDialog):
                     if option["name"] == "enabled":
                         # Set to disabled if is not the selected talker
                         if source.source_details.id != self.settings.comic_info_source:
-                            source.source_details.settings_options["enabled"]["value"] = False
+                            source.settings_options["enabled"]["value"] = False
                         else:
-                            source.source_details.settings_options["enabled"]["value"] = True
+                            source.settings_options["enabled"]["value"] = True
                     else:
                         # Ensure correct type
                         if option["type"] is bool:
@@ -486,12 +494,17 @@ class SettingsWindow(QtWidgets.QDialog):
         QtWidgets.QMessageBox.information(self, self.name, "Cache has been cleared.")
 
     def test_api_key(self, source_id) -> None:
-        key = self.sources[source_id]["widgets"]["api_key"].text().strip()
-        url = self.sources[source_id]["widgets"]["url_root"].text().strip()
-        if self.talker_api.check_api_key(key, url, source_id):
-            QtWidgets.QMessageBox.information(self, "API Key Test", "Key is valid!")
+        # TODO Only allow testing of active talker?
+        if source_id == self.settings.comic_info_source:
+            key = self.sources[source_id]["widgets"]["api_key"].text().strip()
+            url = self.sources[source_id]["widgets"]["url_root"].text().strip()
+
+            if self.talker_api.check_api_key(key, url):
+                QtWidgets.QMessageBox.information(self, "API Key Test", "Key is valid!")
+            else:
+                QtWidgets.QMessageBox.warning(self, "API Key Test", "Key is NOT valid!")
         else:
-            QtWidgets.QMessageBox.warning(self, "API Key Test", "Key is NOT valid.")
+            QtWidgets.QMessageBox.warning(self, "API Key Test", "Can only test active comic source.")
 
     def reset_settings(self) -> None:
         self.settings.reset()

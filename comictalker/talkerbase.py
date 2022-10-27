@@ -31,15 +31,11 @@ logger = logging.getLogger(__name__)
 class SourceDetails:
     def __init__(
         self,
-        name: str,
-        ident: str,
-        static_options: SourceStaticOptions,
-        settings_options: dict[str, SourceSettingsOptions],
+        name: str = "",
+        ident: str = "",
     ):
         self.name = name
         self.id = ident
-        self.static_options = static_options
-        self.settings_options = settings_options
 
 
 class SourceStaticOptions:
@@ -155,24 +151,15 @@ class TalkerDataError(TalkerError):
 
 
 # Class talkers instance
-class TalkerBase:
+class ComicTalker:
     """This is the class for mysource."""
 
     def __init__(self) -> None:
         # Identity name for the information source etc.
-        self.source_details: SourceDetails | None = None  # Can use this to test if custom talker has been configured
-
-        self.log_func: Callable[[str], None] | None = None
-
-    def set_log_func(self, log_func: Callable[[str], None]) -> None:
-        self.log_func = log_func
-
-    # issueidentifier will set_log_func to print any write_log to console otherwise logger.info is not printed
-    def write_log(self, text: str) -> None:
-        if self.log_func is None:
-            logger.info(text)
-        else:
-            self.log_func(text)
+        self.source_details: SourceDetails = (
+            SourceDetails()
+        )  # Can use this to test if custom talker has been configured
+        self.static_options: SourceStaticOptions = SourceStaticOptions()
 
     def check_api_key(self, key: str, url: str):
         raise NotImplementedError
@@ -192,13 +179,14 @@ class TalkerBase:
         raise NotImplementedError
 
     # Get issue or volume information
-    def fetch_comic_data(self, series_id: int, issue_number: str = "") -> GenericMetadata:
+    def fetch_comic_data(self, series_id: int = 0, issue_number: str = "", issue_id: int = 0) -> GenericMetadata:
         """This function is expected to handle a few possibilities:
         1. Only series_id. Retrieve the SERIES/VOLUME information only.
         2. series_id and issue_number. Retrieve the ISSUE information.
         3. Only issue_id. Retrieve the ISSUE information."""
         raise NotImplementedError
 
+    # TODO Should be able to remove with alt cover rework
     def fetch_alternate_cover_urls(self, issue_id: int) -> list[str]:
         raise NotImplementedError
 

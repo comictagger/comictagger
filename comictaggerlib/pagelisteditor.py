@@ -23,7 +23,7 @@ from comicapi.comicarchive import ComicArchive, MetaDataStyle
 from comicapi.genericmetadata import ImageMetadata, PageType
 from comictaggerlib.coverimagewidget import CoverImageWidget
 from comictaggerlib.settings import ComicTaggerSettings
-from comictalker.comictalker import ComicTalker
+from comictalker.talkerbase import ComicTalker
 
 logger = logging.getLogger(__name__)
 

@@ -16,7 +16,6 @@ import comicapi.comicarchive
 import comicapi.genericmetadata
 import comictaggerlib.settings
 import comictalker.comiccacher
-import comictalker.comictalker
 import comictalker.talkers.comicvine
 from comicapi import utils
 from testing import comicvine, filenames
@@ -115,7 +114,6 @@ def comicvine_api(monkeypatch, cbz, comic_cache) -> comictalker.talkers.comicvin
     monkeypatch.setattr(requests, "get", m_get)
 
     cv = comictalker.talkers.comicvine.ComicVineTalker()
-    cv.static_options = cv.source_details.static_options
     return cv
 
 

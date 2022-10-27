@@ -308,7 +308,7 @@ class ComicCacher:
 
         return results
 
-    def get_issue_info(self, issue_id: int, source_name: str) -> ComicIssue:
+    def get_issue_info(self, issue_id: int, source_name: str) -> ComicIssue | None:
         con = lite.connect(self.db_file)
         with con:
             cur = con.cursor()

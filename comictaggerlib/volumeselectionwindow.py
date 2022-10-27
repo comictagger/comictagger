@@ -32,9 +32,8 @@ from comictaggerlib.matchselectionwindow import MatchSelectionWindow
 from comictaggerlib.progresswindow import IDProgressWindow
 from comictaggerlib.settings import ComicTaggerSettings
 from comictaggerlib.ui.qtutils import reduce_widget_font_size
-from comictalker.comictalker import ComicTalker
 from comictalker.resulttypes import ComicVolume
-from comictalker.talkerbase import TalkerError
+from comictalker.talkerbase import ComicTalker, TalkerError
 
 logger = logging.getLogger(__name__)
 
@@ -64,7 +63,7 @@ class SearchThread(QtCore.QThread):
     def run(self) -> None:
         try:
             self.ct_error = False
-            self.ct_search_results = self.talker_api.talker.search_for_series(
+            self.ct_search_results = self.talker_api.search_for_series(
                 self.series_name, self.prog_callback, self.refresh, self.literal
             )
         except TalkerError as e:
@@ -177,14 +176,14 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
 
         self.btnRequery.setEnabled(enabled)
 
-        if self.talker_api.talker.source_details.static_options.has_issues:
+        if self.talker_api.static_options.has_issues:
             self.btnIssues.setEnabled(enabled)
             self.btnAutoSelect.setEnabled(enabled)
         else:
             self.btnIssues.setEnabled(False)
-            self.btnIssues.setToolTip("Unsupported by " + self.talker_api.talker.source_details.name)
+            self.btnIssues.setToolTip("Unsupported by " + self.talker_api.source_details.name)
             self.btnAutoSelect.setEnabled(False)
-            self.btnAutoSelect.setToolTip("Unsupported by " + self.talker_api.talker.source_details.name)
+            self.btnAutoSelect.setToolTip("Unsupported by " + self.talker_api.source_details.name)
 
         self.buttonBox.button(QtWidgets.QDialogButtonBox.StandardButton.Ok).setEnabled(enabled)
 
@@ -198,7 +197,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
 
     def auto_select(self) -> None:
 
-        if self.talker_api.talker.source_details.static_options.has_issues:
+        if self.talker_api.static_options.has_issues:
             if self.comic_archive is None:
                 QtWidgets.QMessageBox.information(self, "Auto-Select", "You need to load a comic first!")
                 return
@@ -494,7 +493,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
         self.auto_select()
 
     def cell_double_clicked(self, r: int, c: int) -> None:
-        if self.talker_api.talker.source_details.static_options.has_issues:
+        if self.talker_api.static_options.has_issues:
             self.show_issues()
         else:
             # Pass back to have taggerwindow get full series data

@@ -24,7 +24,7 @@ from comicapi.comicarchive import ComicArchive
 from comicapi.genericmetadata import GenericMetadata
 from comictaggerlib.coverimagewidget import CoverImageWidget
 from comictaggerlib.settings import ComicTaggerSettings
-from comictalker.comictalker import ComicTalker
+from comictalker.talkerbase import ComicTalker
 
 logger = logging.getLogger(__name__)
 

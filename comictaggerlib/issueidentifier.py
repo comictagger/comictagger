@@ -30,8 +30,7 @@ from comictaggerlib.imagefetcher import ImageFetcher, ImageFetcherException
 from comictaggerlib.imagehasher import ImageHasher
 from comictaggerlib.resulttypes import IssueResult
 from comictaggerlib.settings import ComicTaggerSettings
-from comictalker.comictalker import ComicTalker
-from comictalker.talkerbase import TalkerError
+from comictalker.talkerbase import ComicTalker, TalkerError
 from comictalker.utils import parse_date_str
 
 logger = logging.getLogger(__name__)
@@ -271,7 +270,7 @@ class IssueIdentifier:
             raise IssueIdentifierCancelled
 
         if use_remote_alternates:
-            alt_img_url_list = self.talker_api.talker.fetch_alternate_cover_urls(issue_id)
+            alt_img_url_list = self.talker_api.fetch_alternate_cover_urls(issue_id)
             for alt_url in alt_img_url_list:
                 try:
                     alt_url_image_data = ImageFetcher().fetch(alt_url, blocking=True)
@@ -366,11 +365,9 @@ class IssueIdentifier:
         if keys["month"] is not None:
             self.log_msg("\tMonth:  " + str(keys["month"]))
 
-        self.talker_api.set_log_func(self.output_function)
-
         self.log_msg(f"Searching for {keys['series']} #{keys['issue_number']} ...")
         try:
-            ct_search_results = self.talker_api.talker.search_for_series(keys["series"])
+            ct_search_results = self.talker_api.search_for_series(keys["series"])
         except TalkerError as e:
             self.log_msg(f"Error searching for series.\n{e}")
             return []
@@ -423,7 +420,7 @@ class IssueIdentifier:
         series_second_round_list.sort(key=lambda x: len(x["name"]), reverse=False)
 
         # If the sources lacks issue level data, don't look for it.
-        if not self.talker_api.talker.source_details.static_options.has_issues:
+        if not self.talker_api.static_options.has_issues:
             for series in series_second_round_list:
                 hash_list = [cover_hash]
                 if narrow_cover_hash is not None:
@@ -478,7 +475,7 @@ class IssueIdentifier:
             issue_list = None
             try:
                 if len(volume_id_list) > 0:
-                    issue_list = self.talker_api.talker.fetch_issues_by_volume_issue_num_and_year(
+                    issue_list = self.talker_api.fetch_issues_by_volume_issue_num_and_year(
                         volume_id_list, keys["issue_number"], keys["year"]
                     )
             except TalkerError as e:

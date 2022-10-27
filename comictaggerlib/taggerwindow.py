@@ -61,8 +61,7 @@ from comictaggerlib.settingswindow import SettingsWindow
 from comictaggerlib.ui.qtutils import center_window_on_parent, reduce_widget_font_size
 from comictaggerlib.versionchecker import VersionChecker
 from comictaggerlib.volumeselectionwindow import VolumeSelectionWindow
-from comictalker.comictalker import ComicTalker
-from comictalker.talkerbase import TalkerError
+from comictalker.talkerbase import ComicTalker, TalkerError
 
 logger = logging.getLogger(__name__)
 
@@ -1026,7 +1025,7 @@ Have fun!
         issue_number = str(self.leIssueNum.text()).strip()
 
         # Only need this check is the source has issue level data.
-        if autoselect and issue_number == "" and self.talker_api.talker.source_details.static_options.has_issues:
+        if autoselect and issue_number == "" and self.talker_api.static_options.has_issues:
             QtWidgets.QMessageBox.information(
                 self, "Automatic Identify Search", "Can't auto-identify without an issue number (yet!)"
             )
@@ -1070,7 +1069,7 @@ Have fun!
             self.form_to_metadata()
 
             try:
-                new_metadata = self.talker_api.talker.fetch_comic_data(selector.volume_id, selector.issue_number)
+                new_metadata = self.talker_api.fetch_comic_data(selector.volume_id, selector.issue_number)
             except TalkerError as e:
                 QtWidgets.QApplication.restoreOverrideCursor()
                 QtWidgets.QMessageBox.critical(
@@ -1670,7 +1669,7 @@ Have fun!
         QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
 
         try:
-            ct_md = self.talker_api.talker.fetch_comic_data(match["volume_id"], match["issue_number"])
+            ct_md = self.talker_api.fetch_comic_data(match["volume_id"], match["issue_number"])
         except TalkerError as e:
             logger.exception(f"Save aborted.\n{e}")
 

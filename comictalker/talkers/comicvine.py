@@ -27,19 +27,19 @@ import requests
 from bs4 import BeautifulSoup
 from typing_extensions import Required, TypedDict
 
+import comictalker.comictalkerapi as ct_api
 from comicapi import utils
 from comicapi.genericmetadata import GenericMetadata
 from comicapi.issuestring import IssueString
 from comictaggerlib import ctversion
 from comictaggerlib.settings import ComicTaggerSettings
 from comictalker.comiccacher import ComicCacher
-from comictalker.comictalker import ComicTalker
 from comictalker.resulttypes import ComicIssue, ComicVolume
 from comictalker.talkerbase import (
+    ComicTalker,
     SourceDetails,
     SourceSettingsOptions,
     SourceStaticOptions,
-    TalkerBase,
     TalkerDataError,
     TalkerNetworkError,
 )
@@ -193,98 +193,94 @@ class CVIssueDetailResults(TypedDict):
 CV_RATE_LIMIT_STATUS = 107
 
 
-class ComicVineTalker(TalkerBase):
+class ComicVineTalker(ComicTalker):
     def __init__(self, series_match_thresh: int = 90) -> None:
         super().__init__()
-        self.source_details = source_details = SourceDetails(
+        self.source_details = SourceDetails(
             name="Comic Vine",
             ident="comicvine",
-            static_options=SourceStaticOptions(
-                logo_url="http://static.comicvine.com/bundles/comicvinesite/images/logo.png",
-                has_issues=True,
-                has_alt_covers=True,
-                requires_apikey=True,
-                has_nsfw=False,
-                has_censored_covers=False,
-            ),
-            settings_options={
-                "enabled": SourceSettingsOptions(
-                    name="enabled", text="Enabled", help_text="", hidden=True, type=bool, value=True
-                ),
-                "order": SourceSettingsOptions(
-                    name="order", text="Order", help_text="", hidden=True, type=int, value=1
-                ),
-                "remove_html_tables": SourceSettingsOptions(
-                    name="remove_html_tables",
-                    text="Remove HTML tables",
-                    help_text="Remove tables in description",
-                    hidden=False,
-                    type=bool,
-                    value=False,
-                ),
-                "use_series_start_as_volume": SourceSettingsOptions(
-                    name="use_series_start_as_volume",
-                    text="Use series start year as volume number",
-                    help_text="Use the series start year as the volume number",
-                    hidden=False,
-                    type=bool,
-                    value=False,
-                ),
-                "wait_on_ratelimit": SourceSettingsOptions(
-                    name="wait_on_ratelimit",
-                    text="Retry on API limit",
-                    help_text="If the Comic Vine API limit is reached, wait and retry",
-                    hidden=False,
-                    type=bool,
-                    value=False,
-                ),
-                "ratelimit_waittime": SourceSettingsOptions(
-                    name="ratelimit_waittime",
-                    text="API maximum wait time (minutes)",
-                    help_text="Maximum time to wait before abandoning retries",
-                    hidden=False,
-                    type=int,
-                    value=20,
-                ),
-                "url_root": SourceSettingsOptions(
-                    name="url_root",
-                    text="Comic Vine API address",
-                    help_text="Example: https://api.comicsource.net",
-                    hidden=False,
-                    type=str,
-                    value="https://comicvine.gamespot.com/api",
-                ),
-                "api_key": SourceSettingsOptions(
-                    name="api_key",
-                    text="API key",
-                    help_text="Comic Vine API key",
-                    hidden=False,
-                    type=str,
-                    value="27431e6787042105bd3e47e169a624521f89f3a4",
-                ),
-            },
         )
+        self.static_options = SourceStaticOptions(
+            logo_url="http://static.comicvine.com/bundles/comicvinesite/images/logo.png",
+            has_issues=True,
+            has_alt_covers=True,
+            requires_apikey=True,
+            has_nsfw=False,
+            has_censored_covers=False,
+        )
+        self.settings_options = {
+            "enabled": SourceSettingsOptions(
+                name="enabled", text="Enabled", help_text="", hidden=True, type=bool, value=True
+            ),
+            "order": SourceSettingsOptions(name="order", text="Order", help_text="", hidden=True, type=int, value=1),
+            "remove_html_tables": SourceSettingsOptions(
+                name="remove_html_tables",
+                text="Remove HTML tables",
+                help_text="Remove tables in description",
+                hidden=False,
+                type=bool,
+                value=False,
+            ),
+            "use_series_start_as_volume": SourceSettingsOptions(
+                name="use_series_start_as_volume",
+                text="Use series start year as volume number",
+                help_text="Use the series start year as the volume number",
+                hidden=False,
+                type=bool,
+                value=False,
+            ),
+            "wait_on_ratelimit": SourceSettingsOptions(
+                name="wait_on_ratelimit",
+                text="Retry on API limit",
+                help_text="If the Comic Vine API limit is reached, wait and retry",
+                hidden=False,
+                type=bool,
+                value=False,
+            ),
+            "ratelimit_waittime": SourceSettingsOptions(
+                name="ratelimit_waittime",
+                text="API maximum wait time (minutes)",
+                help_text="Maximum time to wait before abandoning retries",
+                hidden=False,
+                type=int,
+                value=20,
+            ),
+            "url_root": SourceSettingsOptions(
+                name="url_root",
+                text="Comic Vine API address",
+                help_text="Example: https://api.comicsource.net",
+                hidden=False,
+                type=str,
+                value="https://comicvine.gamespot.com/api",
+            ),
+            "api_key": SourceSettingsOptions(
+                name="api_key",
+                text="API key",
+                help_text="Comic Vine API key",
+                hidden=False,
+                type=str,
+                value="27431e6787042105bd3e47e169a624521f89f3a4",
+            ),
+        }
 
         # Identity name for the information source
         self.source_name = self.source_details.id
         self.source_name_friendly = self.source_details.name
 
         # Overwrite any source_details.options that have saved settings
-        source_settings = ComicTaggerSettings.get_source_settings(
-            self.source_name, self.source_details.settings_options
-        )
+        source_settings = ComicTaggerSettings.get_source_settings(self.source_name, self.settings_options)
 
         if not source_settings:
             # No saved settings, do something?
             ...
 
-        self.wait_for_rate_limit = source_details.settings_options["wait_on_ratelimit"]["value"]
-        self.wait_for_rate_limit_time = source_details.settings_options["ratelimit_waittime"]["value"]
+        self.wait_for_rate_limit = self.settings_options["wait_on_ratelimit"]["value"]
+        self.wait_for_rate_limit_time = self.settings_options["ratelimit_waittime"]["value"]
 
         self.issue_id: int | None = None
 
-        self.api_key = source_details.settings_options["api_key"]["value"]
-        self.api_base_url = source_details.settings_options["url_root"]["value"]
+        self.api_key = self.settings_options["api_key"]["value"]
+        self.api_base_url = self.settings_options["url_root"]["value"]
 
         tmp_url = urlsplit(self.api_base_url)
 
@@ -329,7 +325,7 @@ class ComicVineTalker(TalkerBase):
         while True:
             cv_response: CVResult = self.get_url_content(url, params)
             if self.wait_for_rate_limit and cv_response["status_code"] == CV_RATE_LIMIT_STATUS:
-                self.write_log(f"Rate limit encountered.  Waiting for {limit_wait_time} minutes\n")
+                logger.info(f"Rate limit encountered.  Waiting for {limit_wait_time} minutes\n")
                 time.sleep(limit_wait_time * 60)
                 total_time_waited += limit_wait_time
                 limit_wait_time = wait_times[counter]
@@ -339,7 +335,8 @@ class ComicVineTalker(TalkerBase):
                 if total_time_waited < self.wait_for_rate_limit_time:
                     continue
             if cv_response["status_code"] != 1:
-                self.write_log(
+                # TODO Rather than logging and erroring, have error write to log?
+                logger.debug(
                     f"Comic Vine query failed with error #{cv_response['status_code']}:  [{cv_response['error']}]. \n"
                 )
                 raise TalkerNetworkError(
@@ -360,20 +357,20 @@ class ComicVineTalker(TalkerBase):
                 if resp.status_code == 200:
                     return resp.json()
                 if resp.status_code == 500:
-                    self.write_log(f"Try #{tries + 1}: ")
+                    logger.debug(f"Try #{tries + 1}: ")
                     time.sleep(1)
-                    self.write_log(str(resp.status_code) + "\n")
+                    logger.debug(str(resp.status_code) + "\n")
                 else:
                     break
 
             except requests.exceptions.Timeout:
-                self.write_log("Connection to " + self.source_name_friendly + " timed out.\n")
+                logger.debug("Connection to " + self.source_name_friendly + " timed out.\n")
                 raise TalkerNetworkError(self.source_name_friendly, 4)
             except requests.exceptions.RequestException as e:
-                self.write_log(f"{e}\n")
+                logger.debug(f"{e}\n")
                 raise TalkerNetworkError(self.source_name_friendly, 0, str(e)) from e
             except json.JSONDecodeError as e:
-                self.write_log(f"{e}\n")
+                logger.debug(f"{e}\n")
                 raise TalkerDataError(self.source_name_friendly, 2, "ComicVine did not provide json")
 
         raise TalkerNetworkError(self.source_name_friendly, 5)
@@ -504,7 +501,7 @@ class ComicVineTalker(TalkerBase):
         total_result_count = min(total_result_count, max_results)
 
         if callback is None:
-            self.write_log(
+            logger.debug(
                 f"Found {cv_response['number_of_page_results']} of {cv_response['number_of_total_results']} results\n"
             )
         search_results.extend(cast(list[CVVolumeResults], cv_response["results"]))
@@ -527,7 +524,7 @@ class ComicVineTalker(TalkerBase):
                     break
 
             if callback is None:
-                self.write_log(f"getting another page of results {current_result_count} of {total_result_count}...\n")
+                logger.debug(f"getting another page of results {current_result_count} of {total_result_count}...\n")
             page += 1
 
             params["page"] = page
@@ -567,10 +564,10 @@ class ComicVineTalker(TalkerBase):
         return self.map_cv_volume_data_to_metadata(volume_results)
 
     # Get issue or volume information
-    def fetch_comic_data(self, series_id: int, issue_number: str = "", issue_id: int = 0) -> GenericMetadata:
+    def fetch_comic_data(self, series_id: int = 0, issue_number: str = "", issue_id: int = 0) -> GenericMetadata:
         comic_data = GenericMetadata()
         # TODO remove has_issues check? Enables testing. Possibly add source option to only get volume info?
-        if self.source_details.static_options.has_issues and issue_number and series_id:
+        if self.static_options.has_issues and issue_number and series_id:
             comic_data = self.fetch_issue_data(series_id, issue_number)
         elif issue_id:
             comic_data = self.fetch_issue_data_by_issue_id(issue_id)
@@ -740,7 +737,6 @@ class ComicVineTalker(TalkerBase):
     # To support volume only searching
     def map_cv_volume_data_to_metadata(self, volume_results: CVVolumeFullResult) -> GenericMetadata:
 
-        settings = self.source_details.settings_options
         # Now, map the Comic Vine data to generic metadata
         metadata = GenericMetadata()
         metadata.is_empty = False
@@ -751,8 +747,10 @@ class ComicVineTalker(TalkerBase):
             metadata.publisher = utils.xlate(volume_results["publisher"]["name"])
         metadata.year = int(volume_results["start_year"])
 
-        metadata.comments = self.cleanup_html(volume_results["description"], settings["remove_html_tables"]["value"])
-        if settings["use_series_start_as_volume"]["value"]:
+        metadata.comments = self.cleanup_html(
+            volume_results["description"], self.settings_options["remove_html_tables"]["value"]
+        )
+        if self.settings_options["use_series_start_as_volume"]["value"]:
             metadata.volume = int(volume_results["start_year"])
 
         # TODO How to handle multiple sources? Leave this to sourcesapi to write?
@@ -792,7 +790,6 @@ class ComicVineTalker(TalkerBase):
         self, volume_results: ComicVolume, issue_results: CVIssueDetailResults
     ) -> GenericMetadata:
 
-        settings = self.source_details.settings_options
         # Now, map the Comic Vine data to generic metadata
         metadata = GenericMetadata()
         metadata.is_empty = False
@@ -806,8 +803,10 @@ class ComicVineTalker(TalkerBase):
             metadata.publisher = utils.xlate(volume_results["publisher"])
         metadata.day, metadata.month, metadata.year = utils.parse_date_str(issue_results["cover_date"])
 
-        metadata.comments = self.cleanup_html(issue_results["description"], settings["remove_html_tables"]["value"])
-        if settings["use_series_start_as_volume"]["value"]:
+        metadata.comments = self.cleanup_html(
+            issue_results["description"], self.settings_options["remove_html_tables"]["value"]
+        )
+        if self.settings_options["use_series_start_as_volume"]["value"]:
             metadata.volume = volume_results["start_year"]
 
         metadata.notes = (
@@ -964,16 +963,16 @@ class ComicVineTalker(TalkerBase):
             }
             cv_response = self.get_cv_content(urljoin(self.api_base_url, "issues/"), params)
 
-            issue_result = cast(CVIssuesResults, cv_response["results"])
+            issue_result = cast(list[CVIssuesResults], cv_response["results"])
 
             # Format to expected output
             formatted_volume_issues_result = self.format_issue_results(issue_result)
 
             cvc.add_volume_issues_info(self.source_name, formatted_volume_issues_result)
 
-            url_list = [x for x in issue["alt_images_url"].split(",") if x]
+            url_list = [x for x in formatted_volume_issues_result[0]["alt_images_url"].split(",") if x]
 
-        ComicTalker.alt_url_list_fetch_complete(url_list)
+        ct_api.alt_url_list_fetch_complete(url_list)
         # CLI expects a list returned
         return url_list
 

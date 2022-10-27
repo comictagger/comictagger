@@ -27,7 +27,7 @@ from comictaggerlib.coverimagewidget import CoverImageWidget
 from comictaggerlib.resulttypes import IssueResult, MultipleMatch
 from comictaggerlib.settings import ComicTaggerSettings
 from comictaggerlib.ui.qtutils import reduce_widget_font_size
-from comictalker.comictalker import ComicTalker
+from comictalker.talkerbase import ComicTalker
 
 logger = logging.getLogger(__name__)
 

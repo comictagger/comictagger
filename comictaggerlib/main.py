@@ -25,12 +25,12 @@ import sys
 import traceback
 import types
 
+import comictalker.comictalkerapi as ct_api
 from comicapi import utils
 from comictaggerlib import cli
 from comictaggerlib.ctversion import version
 from comictaggerlib.options import parse_cmd_line
 from comictaggerlib.settings import ComicTaggerSettings
-from comictalker.comictalker import ComicTalker
 
 if sys.version_info < (3, 10):
     import importlib_metadata
@@ -149,7 +149,7 @@ def ctmain() -> None:
     for pkg in sorted(importlib_metadata.distributions(), key=lambda x: x.name):
         logger.debug("%s\t%s", pkg.metadata["Name"], pkg.metadata["Version"])
 
-    talker_api = ComicTalker(settings.comic_info_source)
+    talker_api = ct_api.get_comic_talker(settings.comic_info_source)()
 
     utils.load_publishers()
     update_publishers()

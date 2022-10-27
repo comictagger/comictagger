@@ -39,7 +39,7 @@ def test_fetch_issues_by_volume(comicvine_api, comic_cache):
 
 def test_fetch_issue_data_by_issue_id(comicvine_api, settings, mock_now, mock_version):
     ct = comictalker.talkers.comicvine.ComicVineTalker()
-    result = ct.fetch_comic_data(0, "", 140529)
+    result = ct.fetch_comic_data(issue_id=140529)
     assert result == testing.comicvine.cv_md
 
 

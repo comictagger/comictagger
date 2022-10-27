@@ -26,7 +26,7 @@ from comictaggerlib.filerenamer import FileRenamer, get_rename_dir
 from comictaggerlib.settings import ComicTaggerSettings
 from comictaggerlib.settingswindow import SettingsWindow
 from comictaggerlib.ui.qtutils import center_window_on_parent
-from comictalker.comictalker import ComicTalker
+from comictalker.talkerbase import ComicTalker
 
 logger = logging.getLogger(__name__)
 
