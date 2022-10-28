@@ -316,12 +316,11 @@ class ComicVineTalker(ComicTalker):
                 if total_time_waited < self.wait_for_rate_limit_time:
                     continue
             if cv_response["status_code"] != 1:
-                # TODO Rather than logging and erroring, have error write to log?
                 logger.debug(
-                    f"Comic Vine query failed with error #{cv_response['status_code']}:  [{cv_response['error']}]. \n"
+                    f"Comic Vine query failed with error #{cv_response['status_code']}:  [{cv_response['error']}]."
                 )
                 raise TalkerNetworkError(
-                    self.source_name_friendly, 0, str(cv_response["status_code"]) + ":" + str(cv_response["error"])
+                    self.source_name_friendly, 0, f"{cv_response['status_code']}: {cv_response['error']}"
                 )
 
             # it's all good
@@ -340,18 +339,18 @@ class ComicVineTalker(ComicTalker):
                 if resp.status_code == 500:
                     logger.debug(f"Try #{tries + 1}: ")
                     time.sleep(1)
-                    logger.debug(str(resp.status_code) + "\n")
+                    logger.debug(str(resp.status_code))
                 else:
                     break
 
             except requests.exceptions.Timeout:
-                logger.debug("Connection to " + self.source_name_friendly + " timed out.\n")
+                logger.debug(f"Connection to {self.source_name_friendly} timed out.")
                 raise TalkerNetworkError(self.source_name_friendly, 4)
             except requests.exceptions.RequestException as e:
-                logger.debug(f"{e}\n")
+                logger.debug(f"Request exception: {e}")
                 raise TalkerNetworkError(self.source_name_friendly, 0, str(e)) from e
             except json.JSONDecodeError as e:
-                logger.debug(f"{e}\n")
+                logger.debug(f"JSON decode error: {e}")
                 raise TalkerDataError(self.source_name_friendly, 2, "ComicVine did not provide json")
 
         raise TalkerNetworkError(self.source_name_friendly, 5)
@@ -543,7 +542,7 @@ class ComicVineTalker(ComicTalker):
                     break
 
             if callback is None:
-                logger.debug(f"getting another page of results {current_result_count} of {total_result_count}...\n")
+                logger.debug(f"getting another page of results {current_result_count} of {total_result_count}...")
             page += 1
 
             params["page"] = page
