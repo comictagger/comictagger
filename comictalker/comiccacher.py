@@ -111,6 +111,12 @@ class ComicCacher:
                 + "source_name TEXT NOT NULL,"
                 + "aliases TEXT,"  # Newline separated
                 + "alt_images_url TEXT,"  # Comma separated URLs
+                + "characters TEXT,"  # Newline separated
+                + "locations TEXT,"  # Newline separated
+                + "credits TEXT,"  # JSON: "{"name": "Bob Shakespeare", "role": "Writer"}"
+                + "teams TEXT,"  # Newline separated
+                + "story_arcs TEXT,"  # Newline separated
+                + "complete BOOL,"  # Is the data complete? Includes characters, locations, credits.
                 + "PRIMARY KEY (id, source_name))"
             )
 
@@ -223,6 +229,12 @@ class ComicCacher:
                     "timestamp": timestamp,
                     "aliases": issue["aliases"],
                     "alt_images_url": issue["alt_images_url"],
+                    "characters": issue["characters"],
+                    "locations": issue["locations"],
+                    "teams": issue["teams"],
+                    "story_arcs": issue["story_arcs"],
+                    "credits": issue["credits"],
+                    "complete": issue["complete"],
                 }
                 self.upsert(cur, "issues", data)
 
@@ -282,7 +294,7 @@ class ComicCacher:
 
             cur.execute(
                 (
-                    "SELECT source_name,id,name,issue_number,site_detail_url,cover_date,image_url,thumb_url,description,aliases,alt_images_url"
+                    "SELECT source_name,id,name,issue_number,site_detail_url,cover_date,image_url,thumb_url,description,aliases,alt_images_url,characters,locations,credits,teams,story_arcs,complete"
                     " FROM Issues WHERE volume_id=? AND source_name=?"
                 ),
                 [volume_id, source_name],
@@ -302,6 +314,12 @@ class ComicCacher:
                     volume=volume,
                     aliases=row[9],
                     alt_images_url=row[10],
+                    characters=row[11],
+                    locations=row[12],
+                    credits=row[13],
+                    teams=row[14],
+                    story_arcs=row[15],
+                    complete=bool(row[16]),
                 )
 
                 results.append(record)
@@ -321,7 +339,7 @@ class ComicCacher:
 
             cur.execute(
                 (
-                    "SELECT source_name,id,name,issue_number,site_detail_url,cover_date,image_url,thumb_url,description,aliases,volume_id,alt_images_url"
+                    "SELECT source_name,id,name,issue_number,site_detail_url,cover_date,image_url,thumb_url,description,aliases,volume_id,alt_images_url,characters,locations,credits,teams,story_arcs,complete"
                     " FROM Issues WHERE id=? AND source_name=?"
                 ),
                 [issue_id, source_name],
@@ -348,6 +366,12 @@ class ComicCacher:
                     volume=volume,
                     aliases=row[9],
                     alt_images_url=row[11],
+                    characters=row[12],
+                    locations=row[13],
+                    credits=row[14],
+                    teams=row[15],
+                    story_arcs=row[16],
+                    complete=bool(row[17]),
                 )
 
             return record

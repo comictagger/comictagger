@@ -26,3 +26,9 @@ class ComicIssue(TypedDict, total=False):
     site_detail_url: str
     volume: ComicVolume
     alt_images_url: str  # Comma separated URLs
+    characters: str  # Newline separated
+    locations: str  # Newline separated
+    credits: str  # JSON: "{"name": "Bob Shakespeare", "role": "Writer"}"
+    teams: str  # Newline separated
+    story_arcs: str  # Newline separated
+    complete: bool  # Is the data complete? Includes characters, locations, credits.
