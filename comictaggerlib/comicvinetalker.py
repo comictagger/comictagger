@@ -407,6 +407,10 @@ class ComicVineTalker:
 
         self.repair_urls(filtered_issues_result)
 
+        cvc = ComicCacher()
+        for c in filtered_issues_result:
+            cvc.add_volume_issues_info(self.source_name, c["volume"]["id"], [c])
+
         return filtered_issues_result
 
     def fetch_issue_data(self, series_id: int, issue_number: str, settings: ComicTaggerSettings) -> GenericMetadata:
