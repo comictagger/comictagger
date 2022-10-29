@@ -671,7 +671,7 @@ class ComicVineTalker:
 
     def fetch_alternate_cover_urls(self, issue_id: int, issue_page_url: str) -> list[str]:
         url_list = self.fetch_cached_alternate_cover_urls(issue_id)
-        if url_list is not None:
+        if url_list:
             return url_list
 
         # scrape the CV issue page URL to get the alternate cover URLs
