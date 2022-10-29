@@ -35,6 +35,7 @@ jobs:
 
       - name: Install build dependencies
         run: |
+          pip install git+https://github.com/pyinstaller/pyinstaller
           python -m pip install --upgrade --upgrade-strategy eager -r requirements_dev.txt
 
       - name: Install Windows build dependencies
