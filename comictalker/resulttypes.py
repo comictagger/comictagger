@@ -3,6 +3,11 @@ from __future__ import annotations
 from typing_extensions import Required, TypedDict
 
 
+class Credits(TypedDict):
+    name: str
+    role: str
+
+
 class ComicVolume(TypedDict, total=False):
     aliases: str  # Newline separated
     count_of_issues: int
@@ -26,9 +31,9 @@ class ComicIssue(TypedDict, total=False):
     site_detail_url: str
     volume: ComicVolume
     alt_images_url: str  # Comma separated URLs
-    characters: str  # Newline separated
-    locations: str  # Newline separated
-    credits: str  # JSON: "{"name": "Bob Shakespeare", "role": "Writer"}"
-    teams: str  # Newline separated
-    story_arcs: str  # Newline separated
+    characters: list
+    locations: list
+    credits: list[Credits]
+    teams: list
+    story_arcs: list
     complete: bool  # Is the data complete? Includes characters, locations, credits.

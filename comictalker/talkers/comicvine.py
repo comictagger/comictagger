@@ -34,7 +34,7 @@ from comicapi.issuestring import IssueString
 from comictaggerlib import ctversion
 from comictaggerlib.settings import ComicTaggerSettings
 from comictalker.comiccacher import ComicCacher
-from comictalker.resulttypes import ComicIssue, ComicVolume
+from comictalker.resulttypes import ComicIssue, ComicVolume, Credits
 from comictalker.talkerbase import (
     ComicTalker,
     SourceDetails,
@@ -416,34 +416,27 @@ class ComicVineTalker(ComicTalker):
             character_list = []
             if record.get("character_credits"):
                 for char in record["character_credits"]:
-                    # Convert to newline separated
                     character_list.append(char["name"])
-            characters = "\n".join(character_list)
 
             location_list = []
             if record.get("location_credits"):
                 for loc in record["location_credits"]:
                     location_list.append(loc["name"])
-            locations = "\n".join(location_list)
 
             teams_list = []
             if record.get("team_credits"):
                 for loc in record["team_credits"]:
                     teams_list.append(loc["name"])
-            teams = "\n".join(teams_list)
 
             story_list = []
             if record.get("story_arc_credits"):
                 for loc in record["story_arc_credits"]:
                     story_list.append(loc["name"])
-            storys = "\n".join(story_list)
 
             persons_list = []
             if record.get("person_credits"):
                 for person in record["person_credits"]:
-                    persons_list.append({"name": person["name"], "role": person["role"]})
-            # Convert to JSON
-            persons = json.dumps(persons_list)
+                    persons_list.append(Credits(name=person["name"], role=person["role"]))
 
             formatted_results.append(
                 ComicIssue(
@@ -458,11 +451,11 @@ class ComicVineTalker(ComicTalker):
                     site_detail_url=record.get("site_detail_url", ""),
                     volume=cast(ComicVolume, record["volume"]),
                     alt_images_url=alt_images_url,
-                    characters=characters,
-                    locations=locations,
-                    teams=teams,
-                    story_arcs=storys,
-                    credits=persons,
+                    characters=character_list,
+                    locations=location_list,
+                    teams=teams_list,
+                    story_arcs=story_list,
+                    credits=persons_list,
                     complete=complete,
                 )
             )
@@ -854,18 +847,17 @@ class ComicVineTalker(ComicTalker):
         )
         metadata.web_link = issue_results["site_detail_url"]
 
-        person_credits = json.loads(issue_results["credits"])
-        for person in person_credits:
+        for person in issue_results["credits"]:
             if "role" in person:
                 roles = person["role"].split(",")
                 for role in roles:
                     # can we determine 'primary' from CV??
                     metadata.add_credit(person["name"], role.title().strip(), False)
 
-        metadata.characters = issue_results["characters"].replace("\n", ", ")
-        metadata.teams = issue_results["teams"].replace("\n", ", ")
-        metadata.locations = issue_results["locations"].replace("\n", ", ")
-        metadata.story_arc = issue_results["story_arcs"].replace("\n", ", ")
+        metadata.characters = ", ".join(issue_results["characters"])
+        metadata.teams = ", ".join(issue_results["teams"])
+        metadata.locations = ", ".join(issue_results["locations"])
+        metadata.story_arc = ", ".join(issue_results["story_arcs"])
 
         return metadata
 

@@ -16,6 +16,7 @@
 from __future__ import annotations
 
 import datetime
+import json
 import logging
 import os
 import sqlite3 as lite
@@ -229,11 +230,11 @@ class ComicCacher:
                     "timestamp": timestamp,
                     "aliases": issue["aliases"],
                     "alt_images_url": issue["alt_images_url"],
-                    "characters": issue["characters"],
-                    "locations": issue["locations"],
-                    "teams": issue["teams"],
-                    "story_arcs": issue["story_arcs"],
-                    "credits": issue["credits"],
+                    "characters": "\n".join(issue["characters"]),
+                    "locations": "\n".join(issue["locations"]),
+                    "teams": "\n".join(issue["teams"]),
+                    "story_arcs": "\n".join(issue["story_arcs"]),
+                    "credits": json.dumps(issue["credits"]),
                     "complete": issue["complete"],
                 }
                 self.upsert(cur, "issues", data)
@@ -314,11 +315,11 @@ class ComicCacher:
                     volume=volume,
                     aliases=row[9],
                     alt_images_url=row[10],
-                    characters=row[11],
-                    locations=row[12],
-                    credits=row[13],
-                    teams=row[14],
-                    story_arcs=row[15],
+                    characters=row[11].split("\n"),
+                    locations=row[12].split("\n"),
+                    credits=json.loads(row[13]),
+                    teams=row[14].split("\n"),
+                    story_arcs=row[15].split("\n"),
                     complete=bool(row[16]),
                 )
 
@@ -366,11 +367,11 @@ class ComicCacher:
                     volume=volume,
                     aliases=row[9],
                     alt_images_url=row[11],
-                    characters=row[12],
-                    locations=row[13],
-                    credits=row[14],
-                    teams=row[15],
-                    story_arcs=row[16],
+                    characters=row[12].split("\n"),
+                    locations=row[13].split("\n"),
+                    credits=json.loads(row[14]),
+                    teams=row[15].split("\n"),
+                    story_arcs=row[16].split("\n"),
                     complete=bool(row[17]),
                 )
 
