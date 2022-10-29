@@ -30,7 +30,7 @@ from comicapi.genericmetadata import GenericMetadata
 from comictaggerlib.cbltransformer import CBLTransformer
 from comictaggerlib.filerenamer import FileRenamer, get_rename_dir
 from comictaggerlib.issueidentifier import IssueIdentifier
-from comictaggerlib.resulttypes import IssueResult, MultipleMatch, OnlineMatchResults
+from comictaggerlib.resulttypes import MultipleMatch, OnlineMatchResults
 from comictaggerlib.settings import ComicTaggerSettings
 from comictalker.talkerbase import ComicTalker, TalkerError
 
@@ -38,11 +38,11 @@ logger = logging.getLogger(__name__)
 
 
 def actual_issue_data_fetch(
-    match: IssueResult, settings: ComicTaggerSettings, opts: argparse.Namespace, talker_api: ComicTalker
+    issue_id: int, settings: ComicTaggerSettings, opts: argparse.Namespace, talker_api: ComicTalker
 ) -> GenericMetadata:
     # now get the particular issue data
     try:
-        ct_md = talker_api.fetch_comic_data(match["volume_id"], match["issue_number"])
+        ct_md = talker_api.fetch_comic_data(issue_id=issue_id)
     except TalkerError as e:
         logger.exception(f"Error retrieving issue details. Save aborted.\n{e}")
         return GenericMetadata()
@@ -109,7 +109,7 @@ def display_match_set_for_choice(
             # we know at this point, that the file is all good to go
             ca = match_set.ca
             md = create_local_metadata(opts, ca, settings)
-            ct_md = actual_issue_data_fetch(match_set.matches[int(i) - 1], settings, opts, talker_api)
+            ct_md = actual_issue_data_fetch(match_set.matches[int(i) - 1]["issue_id"], settings, opts, talker_api)
             if opts.overwrite:
                 md = ct_md
             else:
@@ -455,7 +455,7 @@ def process_file_cli(
                 # we got here, so we have a single match
 
                 # now get the particular issue data
-                ct_md = actual_issue_data_fetch(matches[0], settings, opts, talker_api)
+                ct_md = actual_issue_data_fetch(matches[0]["issue_id"], settings, opts, talker_api)
                 if ct_md.is_empty:
                     match_results.fetch_data_failures.append(str(ca.path.absolute()))
                     return

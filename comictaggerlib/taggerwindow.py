@@ -1069,7 +1069,14 @@ Have fun!
             self.form_to_metadata()
 
             try:
-                new_metadata = self.talker_api.fetch_comic_data(selector.volume_id, selector.issue_number)
+                if selector.issue_id:
+                    new_metadata = self.talker_api.fetch_comic_data(issue_id=selector.issue_id)
+                elif selector.volume_id and selector.issue_number:
+                    # Would this ever be needed?
+                    new_metadata = self.talker_api.fetch_comic_data(selector.volume_id, selector.issue_number)
+                else:
+                    # Only left with series? Isn't series only handled elsewhere?
+                    new_metadata = self.talker_api.fetch_comic_data(selector.volume_id)
             except TalkerError as e:
                 QtWidgets.QApplication.restoreOverrideCursor()
                 QtWidgets.QMessageBox.critical(
@@ -1669,7 +1676,7 @@ Have fun!
         QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
 
         try:
-            ct_md = self.talker_api.fetch_comic_data(match["volume_id"], match["issue_number"])
+            ct_md = self.talker_api.fetch_comic_data(issue_id=match["issue_id"])
         except TalkerError as e:
             logger.exception(f"Save aborted.\n{e}")
 
