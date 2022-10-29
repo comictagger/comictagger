@@ -18,22 +18,9 @@ from __future__ import annotations
 import logging
 
 import comictalker.talkers.comicvine
-from comictalker.talkerbase import ComicTalker, TalkerError  # renamed TalkerBase to ComicTalker
+from comictalker.talkerbase import ComicTalker, TalkerError
 
 logger = logging.getLogger(__name__)
-
-
-# To signal image loaded etc. TODO Won't be needed hopefully with new async loading
-def list_fetch_complete(url_list: list[str]) -> None:
-    ...
-
-
-def url_fetch_complete(image_url: str, thumb_url: str | None) -> None:
-    ...
-
-
-alt_url_list_fetch_complete = list_fetch_complete
-url_fetch_complete = url_fetch_complete
 
 
 def get_comic_talker(source_name: str) -> type[ComicTalker]:

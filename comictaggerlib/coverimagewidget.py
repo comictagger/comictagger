@@ -24,7 +24,6 @@ from typing import Callable
 
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
-import comictalker.comictalkerapi as ct_api
 from comicapi import utils
 from comicapi.comicarchive import ComicArchive
 from comictaggerlib.imagefetcher import ImageFetcher
@@ -184,8 +183,7 @@ class CoverImageWidget(QtWidgets.QWidget):
             self.update_content()
             self.issue_id = issue_id
 
-            ct_api.url_fetch_complete = self.sig.emit_url
-            ct_api.url_fetch_complete(image_url, None)
+            self.sig.emit_url(image_url, None)
 
     def set_image_data(self, image_data: bytes) -> None:
         if self.mode == CoverImageWidget.DataMode:
@@ -215,9 +213,11 @@ class CoverImageWidget(QtWidgets.QWidget):
             # now we need to get the list of alt cover URLs
             self.label.setText("Searching for alt. covers...")
 
-            # page URL should already be cached, so no need to defer
-            ct_api.alt_url_list_fetch_complete = self.sig.emit_list
-            self.talker_api.fetch_alternate_cover_urls(utils.xlate(self.issue_id))
+            url_list = self.talker_api.fetch_alternate_cover_urls(utils.xlate(self.issue_id))
+            if url_list:
+                self.url_list.extend(url_list)
+                self.imageCount = len(self.url_list)
+            self.update_controls()
 
     def alt_cover_url_list_fetch_complete(self, url_list: list[str]) -> None:
         if url_list:

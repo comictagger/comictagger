@@ -27,7 +27,6 @@ import requests
 from bs4 import BeautifulSoup
 from typing_extensions import Required, TypedDict
 
-import comictalker.comictalkerapi as ct_api
 from comicapi import utils
 from comicapi.genericmetadata import GenericMetadata
 from comicapi.issuestring import IssueString
@@ -983,8 +982,6 @@ class ComicVineTalker(ComicTalker):
 
             url_list = [x for x in formatted_volume_issues_result[0]["alt_images_url"].split(",") if x]
 
-        ct_api.alt_url_list_fetch_complete(url_list)
-        # CLI expects a list returned
         return url_list
 
     def repair_urls(self, issue_list: list[CVIssueDetailResults]) -> None:
