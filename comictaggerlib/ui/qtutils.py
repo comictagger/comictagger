@@ -6,7 +6,7 @@ import io
 import logging
 import traceback
 
-from comictaggerlib.settings import ComicTaggerSettings
+from comictaggerlib.graphics import graphics_path
 
 logger = logging.getLogger(__name__)
 
@@ -77,7 +77,7 @@ if qt_available:
                 pass
         # if still nothing, go with default image
         if not success:
-            img.load(ComicTaggerSettings.get_graphic("nocover.png"))
+            img.load(str(graphics_path / "nocover.png"))
         return img
 
     def qt_error(msg: str, e: Exception | None = None) -> None:

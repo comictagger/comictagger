@@ -20,6 +20,7 @@ import logging
 from PyQt5 import QtCore, QtWidgets, uic
 
 from comictaggerlib.settings import ComicTaggerSettings
+from comictaggerlib.ui import ui_path
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +35,7 @@ class ExportWindow(QtWidgets.QDialog):
     def __init__(self, parent: QtWidgets.QWidget, settings: ComicTaggerSettings, msg: str) -> None:
         super().__init__(parent)
 
-        uic.loadUi(ComicTaggerSettings.get_ui_file("exportwindow.ui"), self)
+        uic.loadUi(ui_path / "exportwindow.ui", self)
         self.label.setText(msg)
 
         self.setWindowFlags(

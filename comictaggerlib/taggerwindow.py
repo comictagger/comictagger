@@ -49,6 +49,7 @@ from comictaggerlib.coverimagewidget import CoverImageWidget
 from comictaggerlib.crediteditorwindow import CreditEditorWindow
 from comictaggerlib.exportwindow import ExportConflictOpts, ExportWindow
 from comictaggerlib.fileselectionlist import FileInfo, FileSelectionList
+from comictaggerlib.graphics import graphics_path
 from comictaggerlib.issueidentifier import IssueIdentifier
 from comictaggerlib.logwindow import LogWindow
 from comictaggerlib.optionalmsgdialog import OptionalMessageDialog
@@ -58,6 +59,7 @@ from comictaggerlib.renamewindow import RenameWindow
 from comictaggerlib.resulttypes import IssueResult, MultipleMatch, OnlineMatchResults
 from comictaggerlib.settings import ComicTaggerSettings
 from comictaggerlib.settingswindow import SettingsWindow
+from comictaggerlib.ui import ui_path
 from comictaggerlib.ui.qtutils import center_window_on_parent, reduce_widget_font_size
 from comictaggerlib.versionchecker import VersionChecker
 from comictaggerlib.volumeselectionwindow import VolumeSelectionWindow
@@ -84,7 +86,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
     ) -> None:
         super().__init__(parent)
 
-        uic.loadUi(ComicTaggerSettings.get_ui_file("taggerwindow.ui"), self)
+        uic.loadUi(ui_path / "taggerwindow.ui", self)
         self.settings = settings
         self.talker_api = talker_api
         self.log_window = self.setup_logger()
@@ -152,7 +154,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
         self.scrollAreaWidgetContents.adjustSize()
 
-        self.setWindowIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("app.png")))
+        self.setWindowIcon(QtGui.QIcon(str(graphics_path / "app.png")))
         # TODO: this needs to be looked at
         if opts is not None and opts.type:
             # respect the command line option tag type
@@ -263,6 +265,10 @@ Have fun!
         if self.settings.check_for_new_version:
             pass
 
+    def open_file_event(self, url: QtCore.QUrl) -> None:
+        logger.info(url.toLocalFile())
+        self.fileSelectionList.add_path_list([url.toLocalFile()])
+
     def sigint_handler(self, *args: Any) -> None:
         # defer the actual close in the app loop thread
         QtCore.QTimer.singleShot(200, lambda: execute(self.close))
@@ -299,7 +305,7 @@ Have fun!
 
     def update_app_title(self) -> None:
 
-        self.setWindowIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("app.png")))
+        self.setWindowIcon(QtGui.QIcon(str(graphics_path / "app.png")))
 
         if self.comic_archive is None:
             self.setWindowTitle(self.appName)
@@ -420,21 +426,21 @@ Have fun!
         self.actionComicTaggerForum.triggered.connect(self.show_forum)
 
         # Notes Menu
-        self.btnOpenWebLink.setIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("open.png")))
+        self.btnOpenWebLink.setIcon(QtGui.QIcon(str(graphics_path / "open.png")))
 
         # ToolBar
-        self.actionLoad.setIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("open.png")))
-        self.actionLoadFolder.setIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("longbox.png")))
-        self.actionWrite_Tags.setIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("save.png")))
-        self.actionParse_Filename.setIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("parse.png")))
-        self.actionParse_Filename_split_words.setIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("parse.png")))
-        self.actionSearchOnline.setIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("search.png")))
-        self.actionLiteralSearch.setIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("search.png")))
-        self.actionAutoIdentify.setIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("auto.png")))
-        self.actionAutoTag.setIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("autotag.png")))
-        self.actionAutoImprint.setIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("autotag.png")))
-        self.actionClearEntryForm.setIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("clear.png")))
-        self.actionPageBrowser.setIcon(QtGui.QIcon(ComicTaggerSettings.get_graphic("browse.png")))
+        self.actionLoad.setIcon(QtGui.QIcon(str(graphics_path / "open.png")))
+        self.actionLoadFolder.setIcon(QtGui.QIcon(str(graphics_path / "longbox.png")))
+        self.actionWrite_Tags.setIcon(QtGui.QIcon(str(graphics_path / "save.png")))
+        self.actionParse_Filename.setIcon(QtGui.QIcon(str(graphics_path / "parse.png")))
+        self.actionParse_Filename_split_words.setIcon(QtGui.QIcon(str(graphics_path / "parse.png")))
+        self.actionSearchOnline.setIcon(QtGui.QIcon(str(graphics_path / "search.png")))
+        self.actionLiteralSearch.setIcon(QtGui.QIcon(str(graphics_path / "search.png")))
+        self.actionAutoIdentify.setIcon(QtGui.QIcon(str(graphics_path / "auto.png")))
+        self.actionAutoTag.setIcon(QtGui.QIcon(str(graphics_path / "autotag.png")))
+        self.actionAutoImprint.setIcon(QtGui.QIcon(str(graphics_path / "autotag.png")))
+        self.actionClearEntryForm.setIcon(QtGui.QIcon(str(graphics_path / "clear.png")))
+        self.actionPageBrowser.setIcon(QtGui.QIcon(str(graphics_path / "browse.png")))
 
         self.toolBar.addAction(self.actionLoad)
         self.toolBar.addAction(self.actionLoadFolder)
@@ -569,7 +575,7 @@ Have fun!
         msg_box = QtWidgets.QMessageBox()
         msg_box.setWindowTitle("About " + self.appName)
         msg_box.setTextFormat(QtCore.Qt.TextFormat.RichText)
-        msg_box.setIconPixmap(QtGui.QPixmap(ComicTaggerSettings.get_graphic("about.png")))
+        msg_box.setIconPixmap(QtGui.QPixmap(str(graphics_path / "about.png")))
         msg_box.setText(
             "<br><br><br>"
             + self.appName

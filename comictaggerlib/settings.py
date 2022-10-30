@@ -20,7 +20,6 @@ import logging
 import os
 import pathlib
 import platform
-import sys
 import uuid
 from collections.abc import Iterator
 from typing import TextIO, no_type_check
@@ -41,21 +40,6 @@ class ComicTaggerSettings:
             else:
                 ComicTaggerSettings.folder = pathlib.Path(os.path.expanduser("~")) / ".ComicTagger"
         return pathlib.Path(ComicTaggerSettings.folder)
-
-    @staticmethod
-    def base_dir() -> pathlib.Path:
-        if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
-            return pathlib.Path(sys._MEIPASS)  # type: ignore[attr-defined]
-
-        return pathlib.Path(__file__).parent
-
-    @staticmethod
-    def get_graphic(filename: str | pathlib.Path) -> str:
-        return str(ComicTaggerSettings.base_dir() / "graphics" / filename)
-
-    @staticmethod
-    def get_ui_file(filename: str | pathlib.Path) -> pathlib.Path:
-        return ComicTaggerSettings.base_dir() / "ui" / filename
 
     @staticmethod
     def get_source_settings(source_name: str, source_settings: dict):

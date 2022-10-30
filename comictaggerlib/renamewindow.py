@@ -25,6 +25,7 @@ from comicapi.genericmetadata import GenericMetadata
 from comictaggerlib.filerenamer import FileRenamer, get_rename_dir
 from comictaggerlib.settings import ComicTaggerSettings
 from comictaggerlib.settingswindow import SettingsWindow
+from comictaggerlib.ui import ui_path
 from comictaggerlib.ui.qtutils import center_window_on_parent
 from comictalker.talkerbase import ComicTalker
 
@@ -42,7 +43,7 @@ class RenameWindow(QtWidgets.QDialog):
     ) -> None:
         super().__init__(parent)
 
-        uic.loadUi(ComicTaggerSettings.get_ui_file("renamewindow.ui"), self)
+        uic.loadUi(ui_path / "renamewindow.ui", self)
         self.label.setText(f"Preview (based on {MetaDataStyle.name[data_style]} tags):")
 
         self.setWindowFlags(
@@ -60,7 +61,8 @@ class RenameWindow(QtWidgets.QDialog):
         self.rename_list: list[str] = []
 
         self.btnSettings.clicked.connect(self.modify_settings)
-        self.renamer = FileRenamer(None, platform="universal" if self.settings.rename_strict else "auto")
+        platform = "universal" if self.settings.rename_strict else "auto"
+        self.renamer = FileRenamer(None, platform=platform)
 
         self.do_preview()
 

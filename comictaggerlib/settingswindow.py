@@ -29,6 +29,7 @@ from comicapi.genericmetadata import md_test
 from comictaggerlib.filerenamer import FileRenamer
 from comictaggerlib.imagefetcher import ImageFetcher
 from comictaggerlib.settings import ComicTaggerSettings
+from comictaggerlib.ui import ui_path
 from comictalker.comiccacher import ComicCacher
 from comictalker.talkerbase import ComicTalker
 
@@ -131,7 +132,7 @@ class SettingsWindow(QtWidgets.QDialog):
     def __init__(self, parent: QtWidgets.QWidget, settings: ComicTaggerSettings, talker_api: ComicTalker) -> None:
         super().__init__(parent)
 
-        uic.loadUi(ComicTaggerSettings.get_ui_file("settingswindow.ui"), self)
+        uic.loadUi(ui_path / "settingswindow.ui", self)
 
         self.setWindowFlags(
             QtCore.Qt.WindowType(self.windowFlags() & ~QtCore.Qt.WindowType.WindowContextHelpButtonHint)
@@ -548,4 +549,4 @@ class TemplateHelpWindow(QtWidgets.QDialog):
     def __init__(self, parent: QtWidgets.QWidget) -> None:
         super().__init__(parent)
 
-        uic.loadUi(ComicTaggerSettings.get_ui_file("TemplateHelp.ui"), self)
+        uic.loadUi(ui_path / "TemplateHelp.ui", self)

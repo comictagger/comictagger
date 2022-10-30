@@ -20,7 +20,7 @@ from typing import Any
 
 from PyQt5 import QtWidgets, uic
 
-from comictaggerlib.settings import ComicTaggerSettings
+from comictaggerlib.ui import ui_path
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +32,7 @@ class CreditEditorWindow(QtWidgets.QDialog):
     def __init__(self, parent: QtWidgets.QWidget, mode: int, role: str, name: str, primary: bool) -> None:
         super().__init__(parent)
 
-        uic.loadUi(ComicTaggerSettings.get_ui_file("crediteditorwindow.ui"), self)
+        uic.loadUi(ui_path / "crediteditorwindow.ui", self)
 
         self.mode = mode
 

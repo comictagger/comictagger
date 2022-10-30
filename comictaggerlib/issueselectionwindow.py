@@ -22,6 +22,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets, uic
 from comicapi.issuestring import IssueString
 from comictaggerlib.coverimagewidget import CoverImageWidget
 from comictaggerlib.settings import ComicTaggerSettings
+from comictaggerlib.ui import ui_path
 from comictaggerlib.ui.qtutils import reduce_widget_font_size
 from comictalker.resulttypes import ComicIssue
 from comictalker.talkerbase import ComicTalker, TalkerError
@@ -50,7 +51,7 @@ class IssueSelectionWindow(QtWidgets.QDialog):
     ) -> None:
         super().__init__(parent)
 
-        uic.loadUi(ComicTaggerSettings.get_ui_file("issueselectionwindow.ui"), self)
+        uic.loadUi(ui_path / "issueselectionwindow.ui", self)
 
         self.coverWidget = CoverImageWidget(self.coverImageContainer, talker_api, CoverImageWidget.AltCoverMode)
         gridlayout = QtWidgets.QGridLayout(self.coverImageContainer)

@@ -24,9 +24,11 @@ from PyQt5 import QtCore, QtWidgets, uic
 
 from comicapi import utils
 from comicapi.comicarchive import ComicArchive
+from comictaggerlib.graphics import graphics_path
 from comictaggerlib.optionalmsgdialog import OptionalMessageDialog
 from comictaggerlib.settings import ComicTaggerSettings
 from comictaggerlib.settingswindow import linuxRarHelp, macRarHelp, windowsRarHelp
+from comictaggerlib.ui import ui_path
 from comictaggerlib.ui.qtutils import center_window_on_parent, reduce_widget_font_size
 
 logger = logging.getLogger(__name__)
@@ -62,7 +64,7 @@ class FileSelectionList(QtWidgets.QWidget):
     ) -> None:
         super().__init__(parent)
 
-        uic.loadUi(ComicTaggerSettings.get_ui_file("fileselectionlist.ui"), self)
+        uic.loadUi(ui_path / "fileselectionlist.ui", self)
 
         self.settings = settings
 
@@ -279,7 +281,7 @@ class FileSelectionList(QtWidgets.QWidget):
         if self.is_list_dupe(path):
             return self.get_current_list_row(path)
 
-        ca = ComicArchive(path, self.settings.rar_exe_path, ComicTaggerSettings.get_graphic("nocover.png"))
+        ca = ComicArchive(path, self.settings.rar_exe_path, str(graphics_path / "nocover.png"))
 
         if ca.seems_to_be_a_comic_archive():
             row: int = self.twList.rowCount()

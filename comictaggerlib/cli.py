@@ -29,6 +29,7 @@ from comicapi.comicarchive import ComicArchive, MetaDataStyle
 from comicapi.genericmetadata import GenericMetadata
 from comictaggerlib.cbltransformer import CBLTransformer
 from comictaggerlib.filerenamer import FileRenamer, get_rename_dir
+from comictaggerlib.graphics import graphics_path
 from comictaggerlib.issueidentifier import IssueIdentifier
 from comictaggerlib.resulttypes import MultipleMatch, OnlineMatchResults
 from comictaggerlib.settings import ComicTaggerSettings
@@ -220,7 +221,7 @@ def process_file_cli(
 ) -> None:
     batch_mode = len(opts.file_list) > 1
 
-    ca = ComicArchive(filename, settings.rar_exe_path, ComicTaggerSettings.get_graphic("nocover.png"))
+    ca = ComicArchive(filename, settings.rar_exe_path, str(graphics_path / "nocover.png"))
 
     if not os.path.lexists(filename):
         logger.error("Cannot find %s", filename)

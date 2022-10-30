@@ -19,7 +19,7 @@ import logging
 
 from PyQt5 import QtCore, QtWidgets, uic
 
-from comictaggerlib.settings import ComicTaggerSettings
+from comictaggerlib.ui import ui_path
 from comictaggerlib.ui.qtutils import reduce_widget_font_size
 
 logger = logging.getLogger(__name__)
@@ -29,7 +29,7 @@ class IDProgressWindow(QtWidgets.QDialog):
     def __init__(self, parent: QtWidgets.QWidget) -> None:
         super().__init__(parent)
 
-        uic.loadUi(ComicTaggerSettings.get_ui_file("progresswindow.ui"), self)
+        uic.loadUi(ui_path / "progresswindow.ui", self)
 
         self.setWindowFlags(
             QtCore.Qt.WindowType(

@@ -4,7 +4,7 @@ import logging
 
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
-from comictaggerlib.settings import ComicTaggerSettings
+from comictaggerlib.ui import ui_path
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +25,7 @@ class QTextEditLogger(QtCore.QObject, logging.Handler):
 class ApplicationLogWindow(QtWidgets.QDialog):
     def __init__(self, log_handler: QTextEditLogger, parent: QtCore.QObject = None) -> None:
         super().__init__(parent)
-        uic.loadUi(ComicTaggerSettings.get_ui_file("logwindow.ui"), self)
+        uic.loadUi(ui_path / "logwindow.ui", self)
 
         self.log_handler = log_handler
         self.log_handler.qlog.connect(self.textEdit.append)
