@@ -32,8 +32,16 @@ def test_fetch_issues_by_volume(comicvine_api, comic_cache):
     for r in results:
         del r["volume"]
         del r["image_thumb_url"]
+        del r["characters"]
+        del r["locations"]
+        del r["story_arcs"]
+        del r["teams"]
     for c in cache_issues:
         del c["volume"]
+        del c["characters"]
+        del c["locations"]
+        del c["story_arcs"]
+        del c["teams"]
     assert results == cache_issues
 
 
@@ -55,6 +63,13 @@ def test_fetch_issues_by_volume_issue_num_and_year(comicvine_api):
         del r["image_thumb_url"]
         del r["image_url"]
         del r["alt_images_url"]
+        del r["characters"]
+        del r["credits"]
+        del r["locations"]
+        del r["story_arcs"]
+        del r["teams"]
+        del r["complete"]
+        del r["volume"]["publisher"]
         assert r == e
 
 
