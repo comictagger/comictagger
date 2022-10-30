@@ -179,7 +179,7 @@ class ComicTalker:
         raise NotImplementedError
 
     # Get issue or volume information
-    def fetch_comic_data(self, series_id: int = 0, issue_number: str = "", issue_id: int = 0) -> GenericMetadata:
+    def fetch_comic_data(self, issue_id: int = 0, series_id: int = 0, issue_number: str = "") -> GenericMetadata:
         """This function is expected to handle a few possibilities:
         1. Only series_id. Retrieve the SERIES/VOLUME information only.
         2. series_id and issue_number. Retrieve the ISSUE information.
