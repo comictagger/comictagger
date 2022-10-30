@@ -450,6 +450,8 @@ class ComicCacher:
         set_slots = ""
 
         for key in data:
+            if data[key] is None:
+                continue
 
             if keys != "":
                 keys += ", "

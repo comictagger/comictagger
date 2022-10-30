@@ -327,10 +327,11 @@ class ComicVineTalker:
 
     def fetch_issues_by_volume(self, series_id: int) -> list[resulttypes.CVIssuesResults]:
         # before we search online, look in our cache, since we might already have this info
+        volume_data = self.fetch_volume_data(series_id)
         cvc = ComicCacher()
         cached_volume_issues_result = cvc.get_volume_issues_info(series_id, self.source_name)
 
-        if cached_volume_issues_result:
+        if len(cached_volume_issues_result) >= volume_data["count_of_issues"]:
             return cached_volume_issues_result
 
         params = {
