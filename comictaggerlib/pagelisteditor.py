@@ -22,8 +22,8 @@ from PyQt5 import QtCore, QtGui, QtWidgets, uic
 from comicapi.comicarchive import ComicArchive, MetaDataStyle
 from comicapi.genericmetadata import ImageMetadata, PageType
 from comictaggerlib.coverimagewidget import CoverImageWidget
-from comictalker.talkerbase import ComicTalker
 from comictaggerlib.ui import ui_path
+from comictalker.talkerbase import ComicTalker
 
 logger = logging.getLogger(__name__)
 
