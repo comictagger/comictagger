@@ -40,7 +40,7 @@ class AutoTagStartWindow(QtWidgets.QDialog):
 
         self.cbxSpecifySearchString.setChecked(False)
         self.cbxSplitWords.setChecked(False)
-        self.sbNameMatchSearchThresh.setValue(self.settings.id_series_match_identify_thresh)  # TODO fix
+        self.sbNameMatchSearchThresh.setValue(self.settings.id_series_match_identify_thresh)
         self.leSearchString.setEnabled(False)
 
         self.cbxSaveOnLowConfidence.setChecked(self.settings.save_on_low_confidence)
@@ -88,7 +88,6 @@ class AutoTagStartWindow(QtWidgets.QDialog):
         self.assume_issue_one = self.cbxAssumeIssueOne.isChecked()
         self.ignore_leading_digits_in_filename = self.cbxIgnoreLeadingDigitsInFilename.isChecked()
         self.remove_after_success = self.cbxRemoveAfterSuccess.isChecked()
-        # TODO check UI file
         self.name_length_match_tolerance = self.sbNameMatchSearchThresh.value()
         self.split_words = self.cbxSplitWords.isChecked()
 
