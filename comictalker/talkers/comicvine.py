@@ -316,7 +316,7 @@ class ComicVineTalker(ComicTalker):
                     continue
             if cv_response["status_code"] != 1:
                 logger.debug(
-                    f"Comic Vine query failed with error #{cv_response['status_code']}:  [{cv_response['error']}]."
+                    f"{self.source_name_friendly} query failed with error #{cv_response['status_code']}:  [{cv_response['error']}]."
                 )
                 raise TalkerNetworkError(
                     self.source_name_friendly, 0, f"{cv_response['status_code']}: {cv_response['error']}"
@@ -471,7 +471,7 @@ class ComicVineTalker(ComicTalker):
 
         # Sanitize the series name for comicvine searching, comicvine search ignore symbols
         search_series_name = utils.sanitize_title(series_name, literal)
-        logger.info("Comic Vine searching: %s", search_series_name)
+        logger.info(f"{self.source_name_friendly} searching: {search_series_name}")
 
         # Before we search online, look in our cache, since we might have done this same search recently
         # For literal searches always retrieve from online
@@ -512,7 +512,7 @@ class ComicVineTalker(ComicTalker):
 
         if callback is None:
             logger.debug(
-                f"Found {cv_response['number_of_page_results']} of {cv_response['number_of_total_results']} results\n"
+                f"Found {cv_response['number_of_page_results']} of {cv_response['number_of_total_results']} results"
             )
         search_results.extend(cast(list[CVVolumeResults], cv_response["results"]))
         page = 1
@@ -788,7 +788,7 @@ class ComicVineTalker(ComicTalker):
             metadata.volume = int(volume_results["start_year"])
 
         metadata.notes = (
-            f"Tagged with ComicTagger {ctversion.version} using info from Comic Vine on"
+            f"Tagged with ComicTagger {ctversion.version} using info from {self.source_name_friendly} on"
             f" {datetime.now():%Y-%m-%d %H:%M:%S}.  [Volume ID {volume_results['id']}]"
         )
         metadata.web_link = volume_results["site_detail_url"]
@@ -841,7 +841,7 @@ class ComicVineTalker(ComicTalker):
             metadata.volume = issue_results["volume"]["start_year"]
 
         metadata.notes = (
-            f"Tagged with ComicTagger {ctversion.version} using info from Comic Vine on"
+            f"Tagged with ComicTagger {ctversion.version} using info from {self.source_name_friendly} on"
             f" {datetime.now():%Y-%m-%d %H:%M:%S}.  [Issue ID {issue_results['id']}]"
         )
         metadata.web_link = issue_results["site_detail_url"]
