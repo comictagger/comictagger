@@ -170,7 +170,6 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
         self.cbxFilter.toggled.connect(self.filter_toggled)
 
         self.update_buttons()
-        self.perform_query()
         self.twList.selectRow(0)
 
     def update_buttons(self) -> None:
@@ -331,18 +330,23 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
 
     def perform_query(self, refresh: bool = False) -> None:
 
-        self.progdialog = QtWidgets.QProgressDialog("Searching Online", "Cancel", 0, 100, self)
-        self.progdialog.setWindowTitle("Online Search")
-        self.progdialog.canceled.connect(self.search_canceled)
-        self.progdialog.setModal(True)
-        self.progdialog.setMinimumDuration(300)
         self.search_thread = SearchThread(
             self.talker_api, self.series_name, refresh, self.literal, self.settings.id_series_match_search_thresh
         )
         self.search_thread.searchComplete.connect(self.search_complete)
         self.search_thread.progressUpdate.connect(self.search_progress_update)
         self.search_thread.start()
-        self.progdialog.exec()
+
+        self.progdialog = QtWidgets.QProgressDialog("Searching Online", "Cancel", 0, 100, self)
+        self.progdialog.setWindowTitle("Online Search")
+        self.progdialog.canceled.connect(self.search_canceled)
+        self.progdialog.setModal(True)
+        self.progdialog.setMinimumDuration(300)
+
+        if refresh or self.search_thread.isRunning():
+            self.progdialog.exec()
+        else:
+            self.progdialog = None
 
     def search_canceled(self) -> None:
         if self.progdialog is not None:
@@ -365,122 +369,123 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
     def search_complete(self) -> None:
         if self.progdialog is not None:
             self.progdialog.accept()
-            del self.progdialog
-            if self.search_thread is not None and self.search_thread.ct_error:
-                # TODO Currently still opens the window
-                QtWidgets.QMessageBox.critical(
-                    self,
-                    f"{self.search_thread.error_e.source} {self.search_thread.error_e.code_name} Error",
-                    f"{self.search_thread.error_e}",
-                )
-                return
+            self.progdialog = None
+        if self.search_thread is not None and self.search_thread.ct_error:
+            # TODO Currently still opens the window
+            QtWidgets.QMessageBox.critical(
+                self,
+                f"{self.search_thread.error_e.source} {self.search_thread.error_e.code_name} Error",
+                f"{self.search_thread.error_e}",
+            )
+            return
 
-            self.ct_search_results = self.search_thread.ct_search_results if self.search_thread is not None else []
-            # filter the publishers if enabled set
-            if self.use_filter:
-                try:
-                    publisher_filter = {s.strip().casefold() for s in self.settings.id_publisher_filter.split(",")}
-                    # use '' as publisher name if None
-                    self.ct_search_results = list(
-                        filter(
-                            lambda d: ("" if d["publisher"] is None else str(d["publisher"]).casefold())
-                            not in publisher_filter,
-                            self.ct_search_results,
-                        )
-                    )
-                except Exception:
-                    logger.exception("bad data error filtering publishers")
-
-            # pre sort the data - so that we can put exact matches first afterwards
-            # compare as str in case extra chars ie. '1976?'
-            # - missing (none) values being converted to 'None' - consistent with prior behaviour in v1.2.3
-            # sort by start_year if set
-            if self.settings.sort_series_by_year:
-                try:
-                    self.ct_search_results = sorted(
+        self.ct_search_results = self.search_thread.ct_search_results if self.search_thread is not None else []
+        # filter the publishers if enabled set
+        if self.use_filter:
+            try:
+                publisher_filter = {s.strip().casefold() for s in self.settings.id_publisher_filter.split(",")}
+                # use '' as publisher name if None
+                self.ct_search_results = list(
+                    filter(
+                        lambda d: ("" if d["publisher"] is None else str(d["publisher"]).casefold())
+                        not in publisher_filter,
                         self.ct_search_results,
-                        key=lambda i: (str(i["start_year"]), str(i["count_of_issues"])),
-                        reverse=True,
                     )
-                except Exception:
-                    logger.exception("bad data error sorting results by start_year,count_of_issues")
-            else:
-                try:
-                    self.ct_search_results = sorted(
-                        self.ct_search_results, key=lambda i: str(i["count_of_issues"]), reverse=True
-                    )
-                except Exception:
-                    logger.exception("bad data error sorting results by count_of_issues")
+                )
+            except Exception:
+                logger.exception("bad data error filtering publishers")
 
-            # move sanitized matches to the front
-            if self.settings.exact_series_matches_first:
-                try:
-                    sanitized = utils.sanitize_title(self.series_name, False).casefold()
-                    sanitized_no_articles = utils.sanitize_title(self.series_name, True).casefold()
+        # pre sort the data - so that we can put exact matches first afterwards
+        # compare as str in case extra chars ie. '1976?'
+        # - missing (none) values being converted to 'None' - consistent with prior behaviour in v1.2.3
+        # sort by start_year if set
+        if self.settings.sort_series_by_year:
+            try:
+                self.ct_search_results = sorted(
+                    self.ct_search_results,
+                    key=lambda i: (str(i["start_year"]), str(i["count_of_issues"])),
+                    reverse=True,
+                )
+            except Exception:
+                logger.exception("bad data error sorting results by start_year,count_of_issues")
+        else:
+            try:
+                self.ct_search_results = sorted(
+                    self.ct_search_results, key=lambda i: str(i["count_of_issues"]), reverse=True
+                )
+            except Exception:
+                logger.exception("bad data error sorting results by count_of_issues")
 
-                    deques: list[deque[ComicVolume]] = [deque(), deque(), deque()]
+        # move sanitized matches to the front
+        if self.settings.exact_series_matches_first:
+            try:
+                sanitized = utils.sanitize_title(self.series_name, False).casefold()
+                sanitized_no_articles = utils.sanitize_title(self.series_name, True).casefold()
 
-                    def categorize(result: ComicVolume) -> int:
-                        # We don't remove anything on this one so that we only get exact matches
-                        if utils.sanitize_title(result["name"], True).casefold() == sanitized_no_articles:
-                            return 0
+                deques: list[deque[ComicVolume]] = [deque(), deque(), deque()]
 
-                        # this ensures that 'The Joker' is near the top even if you search 'Joker'
-                        if utils.sanitize_title(result["name"], False).casefold() in sanitized:
-                            return 1
-                        return 2
+                def categorize(result: ComicVolume) -> int:
+                    # We don't remove anything on this one so that we only get exact matches
+                    if utils.sanitize_title(result["name"], True).casefold() == sanitized_no_articles:
+                        return 0
 
-                    for comic in self.ct_search_results:
-                        deques[categorize(comic)].append(comic)
-                    logger.info("Length: %d, %d, %d", len(deques[0]), len(deques[1]), len(deques[2]))
-                    self.ct_search_results = list(itertools.chain.from_iterable(deques))
-                except Exception:
-                    logger.exception("bad data error filtering exact/near matches")
+                    # this ensures that 'The Joker' is near the top even if you search 'Joker'
+                    if utils.sanitize_title(result["name"], False).casefold() in sanitized:
+                        return 1
+                    return 2
 
-            self.update_buttons()
+                for comic in self.ct_search_results:
+                    deques[categorize(comic)].append(comic)
+                logger.info("Length: %d, %d, %d", len(deques[0]), len(deques[1]), len(deques[2]))
+                self.ct_search_results = list(itertools.chain.from_iterable(deques))
+            except Exception:
+                logger.exception("bad data error filtering exact/near matches")
 
-            self.twList.setSortingEnabled(False)
+        self.update_buttons()
 
-            self.twList.setRowCount(0)
+        self.twList.setSortingEnabled(False)
 
-            row = 0
-            for record in self.ct_search_results:
-                self.twList.insertRow(row)
+        self.twList.setRowCount(0)
 
-                item_text = record["name"]
-                item = QtWidgets.QTableWidgetItem(item_text)
+        row = 0
+        for record in self.ct_search_results:
+            self.twList.insertRow(row)
+
+            item_text = record["name"]
+            item = QtWidgets.QTableWidgetItem(item_text)
+            item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
+            item.setData(QtCore.Qt.ItemDataRole.UserRole, record["id"])
+            item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
+            self.twList.setItem(row, 0, item)
+
+            item_text = str(record["start_year"])
+            item = QtWidgets.QTableWidgetItem(item_text)
+            item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
+            item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
+            self.twList.setItem(row, 1, item)
+
+            item_text = str(record["count_of_issues"])
+            item = QtWidgets.QTableWidgetItem(item_text)
+            item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
+            item.setData(QtCore.Qt.ItemDataRole.DisplayRole, record["count_of_issues"])
+            item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
+            self.twList.setItem(row, 2, item)
+
+            if record["publisher"] is not None:
+                item_text = record["publisher"]
                 item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
-                item.setData(QtCore.Qt.ItemDataRole.UserRole, record["id"])
-                item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
-                self.twList.setItem(row, 0, item)
-
-                item_text = str(record["start_year"])
                 item = QtWidgets.QTableWidgetItem(item_text)
-                item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
                 item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
-                self.twList.setItem(row, 1, item)
+                self.twList.setItem(row, 3, item)
 
-                item_text = str(record["count_of_issues"])
-                item = QtWidgets.QTableWidgetItem(item_text)
-                item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
-                item.setData(QtCore.Qt.ItemDataRole.DisplayRole, record["count_of_issues"])
-                item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
-                self.twList.setItem(row, 2, item)
+            row += 1
 
-                if record["publisher"] is not None:
-                    item_text = record["publisher"]
-                    item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
-                    item = QtWidgets.QTableWidgetItem(item_text)
-                    item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
-                    self.twList.setItem(row, 3, item)
-
-                row += 1
-
-            self.twList.setSortingEnabled(True)
-            self.twList.selectRow(0)
-            self.twList.resizeColumnsToContents()
+        self.twList.setSortingEnabled(True)
+        self.twList.selectRow(0)
+        self.twList.resizeColumnsToContents()
 
     def showEvent(self, event: QtGui.QShowEvent) -> None:
+        self.perform_query()
         if not self.ct_search_results:
             QtCore.QCoreApplication.processEvents()
             QtWidgets.QMessageBox.information(self, "Search Result", "No matches found!")

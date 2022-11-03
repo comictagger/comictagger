@@ -376,10 +376,11 @@ class ComicVineTalker(ComicTalker):
                 start_year = 0
             else:
                 start_year = utils.xlate(record["start_year"], True)
+            aliases = record["aliases"] or ""
 
             formatted_results.append(
                 ComicVolume(
-                    aliases=record["aliases"],
+                    aliases=aliases.split("\n"),
                     count_of_issues=record.get("count_of_issues", 0),
                     description=record.get("description", ""),
                     id=record["id"],
@@ -410,7 +411,7 @@ class ComicVineTalker(ComicTalker):
                 # Convert to comma separated
                 alt_images_list.append(alt["original_url"])
 
-            alt_images_url = ",".join(alt_images_list)
+            alt_image_urls = alt_images_list
 
             character_list = []
             if record.get("character_credits"):
@@ -439,7 +440,7 @@ class ComicVineTalker(ComicTalker):
 
             formatted_results.append(
                 ComicIssue(
-                    aliases=record["aliases"],
+                    aliases=record["aliases"].split("\n") if record["aliases"] else [],
                     cover_date=record.get("cover_date", ""),
                     description=record.get("description", ""),
                     id=record["id"],
@@ -449,7 +450,7 @@ class ComicVineTalker(ComicTalker):
                     name=record["name"],
                     site_detail_url=record.get("site_detail_url", ""),
                     volume=cast(ComicVolume, record["volume"]),
-                    alt_images_url=alt_images_url,
+                    alt_image_urls=alt_image_urls,
                     characters=character_list,
                     locations=location_list,
                     teams=teams_list,
@@ -956,35 +957,6 @@ class ComicVineTalker(ComicTalker):
                 newstring.replace("{}", "")
 
         return newstring
-
-    def fetch_alternate_cover_urls(self, issue_id: int) -> list[str]:
-        # Should always be in cache
-        cvc = ComicCacher()
-        issue = cvc.get_issue_info(issue_id, self.source_name)
-
-        if issue:
-            url_list = [x for x in issue["alt_images_url"].split(",") if x]  # Prevent an empty string producing ['']
-        else:
-            # On the off chance it is not in cache
-            params = {
-                "api_key": self.api_key,
-                "filter": f"id:{issue_id}",
-                "format": "json",
-                "field_list": "id,volume,issue_number,name,image,cover_date,site_detail_url,description,aliases,associated_images",
-                "offset": 0,
-            }
-            cv_response = self.get_cv_content(urljoin(self.api_base_url, "issues/"), params)
-
-            issue_result = cast(list[CVIssueDetailResults], cv_response["results"])
-
-            # Format to expected output
-            formatted_volume_issues_result = self.format_issue_results(issue_result)
-
-            cvc.add_volume_issues_info(self.source_name, formatted_volume_issues_result)
-
-            url_list = [x for x in formatted_volume_issues_result[0]["alt_images_url"].split(",") if x]
-
-        return url_list
 
     def repair_urls(self, issue_list: list[CVIssueDetailResults]) -> None:
         # make sure there are URLs for the image fields

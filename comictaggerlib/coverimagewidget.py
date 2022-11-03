@@ -20,11 +20,9 @@ TODO: This should be re-factored using subclasses!
 from __future__ import annotations
 
 import logging
-from typing import Callable
 
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
-from comicapi import utils
 from comicapi.comicarchive import ComicArchive
 from comictaggerlib.graphics import graphics_path
 from comictaggerlib.imagefetcher import ImageFetcher
@@ -56,37 +54,13 @@ def clickable(widget: QtWidgets.QWidget) -> QtCore.pyqtBoundSignal:
     return flt.dblclicked
 
 
-class Signal(QtCore.QObject):
-    alt_url_list_fetch_complete = QtCore.pyqtSignal(list)
-    url_fetch_complete = QtCore.pyqtSignal(str, str)
-    image_fetch_complete = QtCore.pyqtSignal(QtCore.QByteArray)
-
-    def __init__(
-        self,
-        list_fetch: Callable[[list[str]], None],
-        url_fetch: Callable[[str, str], None],
-        image_fetch: Callable[[bytes], None],
-    ) -> None:
-        super().__init__()
-        self.alt_url_list_fetch_complete.connect(list_fetch)
-        self.url_fetch_complete.connect(url_fetch)
-        self.image_fetch_complete.connect(image_fetch)
-
-    def emit_list(self, url_list: list[str]) -> None:
-        self.alt_url_list_fetch_complete.emit(url_list)
-
-    def emit_url(self, image_url: str, thumb_url: str | None) -> None:
-        self.url_fetch_complete.emit(image_url, thumb_url)
-
-    def emit_image(self, image_data: bytes | QtCore.QByteArray) -> None:
-        self.image_fetch_complete.emit(image_data)
-
-
 class CoverImageWidget(QtWidgets.QWidget):
     ArchiveMode = 0
     AltCoverMode = 1
     URLMode = 1
     DataMode = 3
+
+    image_fetch_complete = QtCore.pyqtSignal(QtCore.QByteArray)
 
     def __init__(
         self, parent: QtWidgets.QWidget, talker_api: ComicTalker, mode: int, expand_on_click: bool = True
@@ -97,10 +71,6 @@ class CoverImageWidget(QtWidgets.QWidget):
         uic.loadUi(ui_path / "coverimagewidget.ui", self)
 
         reduce_widget_font_size(self.label)
-
-        self.sig = Signal(
-            self.alt_cover_url_list_fetch_complete, self.primary_url_fetch_complete, self.cover_remote_fetch_complete
-        )
 
         self.talker_api = talker_api
         self.mode: int = mode
@@ -125,6 +95,7 @@ class CoverImageWidget(QtWidgets.QWidget):
 
         self.btnLeft.clicked.connect(self.decrement_image)
         self.btnRight.clicked.connect(self.increment_image)
+        self.image_fetch_complete.connect(self.cover_remote_fetch_complete)
         if expand_on_click:
             clickable(self.lblImage).connect(self.show_popup)
         else:
@@ -178,13 +149,13 @@ class CoverImageWidget(QtWidgets.QWidget):
             self.imageCount = 1
             self.update_content()
 
-    def set_issue_details(self, issue_id: int, image_url: str) -> None:
+    def set_issue_details(self, issue_id: int, url_list: list[str]) -> None:
         if self.mode == CoverImageWidget.AltCoverMode:
             self.reset_widget()
             self.update_content()
             self.issue_id = issue_id
 
-            self.sig.emit_url(image_url, None)
+            self.set_url_list(url_list)
 
     def set_image_data(self, image_data: bytes) -> None:
         if self.mode == CoverImageWidget.DataMode:
@@ -198,32 +169,11 @@ class CoverImageWidget(QtWidgets.QWidget):
 
             self.update_content()
 
-    def primary_url_fetch_complete(self, primary_url: str, thumb_url: str | None = None) -> None:
-        self.url_list.append(str(primary_url))
+    def set_url_list(self, url_list: list[str]) -> None:
+        self.url_list = url_list
         self.imageIndex = 0
         self.imageCount = len(self.url_list)
         self.update_content()
-
-        # No need to search for alt covers as they are now in ComicIssue data
-        if self.talker_api.static_options.has_alt_covers:
-            QtCore.QTimer.singleShot(1, self.start_alt_cover_search)
-
-    def start_alt_cover_search(self) -> None:
-
-        if self.issue_id is not None:
-            # now we need to get the list of alt cover URLs
-            self.label.setText("Searching for alt. covers...")
-
-            url_list = self.talker_api.fetch_alternate_cover_urls(utils.xlate(self.issue_id))
-            if url_list:
-                self.url_list.extend(url_list)
-                self.imageCount = len(self.url_list)
-            self.update_controls()
-
-    def alt_cover_url_list_fetch_complete(self, url_list: list[str]) -> None:
-        if url_list:
-            self.url_list.extend(url_list)
-            self.imageCount = len(self.url_list)
         self.update_controls()
 
     def set_page(self, pagenum: int) -> None:
@@ -273,10 +223,10 @@ class CoverImageWidget(QtWidgets.QWidget):
     def load_url(self) -> None:
         self.load_default()
         self.cover_fetcher = ImageFetcher()
-        ImageFetcher.image_fetch_complete = self.sig.emit_image
+        ImageFetcher.image_fetch_complete = self.image_fetch_complete.emit
         self.cover_fetcher.fetch(self.url_list[self.imageIndex])
         # TODO: Figure out async
-        self.sig.emit_image(self.cover_fetcher.fetch(self.url_list[self.imageIndex]))
+        # self.sig.emit_image(self.cover_fetcher.fetch(self.url_list[self.imageIndex]))
 
     # called when the image is done loading from internet
     def cover_remote_fetch_complete(self, image_data: bytes) -> None:

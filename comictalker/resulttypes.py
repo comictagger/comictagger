@@ -9,7 +9,7 @@ class Credits(TypedDict):
 
 
 class ComicVolume(TypedDict, total=False):
-    aliases: str  # Newline separated
+    aliases: list[str]
     count_of_issues: int
     description: str
     id: Required[int]
@@ -20,7 +20,7 @@ class ComicVolume(TypedDict, total=False):
 
 
 class ComicIssue(TypedDict, total=False):
-    aliases: str  # Newline separated
+    aliases: list[str]
     cover_date: str
     description: str
     id: int
@@ -30,10 +30,10 @@ class ComicIssue(TypedDict, total=False):
     name: Required[str]
     site_detail_url: str
     volume: ComicVolume
-    alt_images_url: str  # Comma separated URLs
-    characters: list
-    locations: list
+    alt_image_urls: list[str]
+    characters: list[str]
+    locations: list[str]
     credits: list[Credits]
-    teams: list
-    story_arcs: list
-    complete: bool  # Is the data complete? Includes characters, locations, credits.
+    teams: list[str]
+    story_arcs: list[str]
+    complete: bool  # Is this a complete ComicIssue? or is there more data to fetch

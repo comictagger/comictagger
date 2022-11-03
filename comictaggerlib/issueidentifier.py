@@ -243,7 +243,7 @@ class IssueIdentifier:
         issue_id: int,
         primary_img_url: str,
         primary_thumb_url: str,
-        page_url: str,
+        alt_urls: list[str],
         local_cover_hash_list: list[int],
         use_remote_alternates: bool = False,
         use_log: bool = True,
@@ -270,8 +270,7 @@ class IssueIdentifier:
             raise IssueIdentifierCancelled
 
         if use_remote_alternates:
-            alt_img_url_list = self.talker_api.fetch_alternate_cover_urls(issue_id)
-            for alt_url in alt_img_url_list:
+            for alt_url in alt_urls:
                 try:
                     alt_url_image_data = ImageFetcher().fetch(alt_url, blocking=True)
                 except ImageFetcherException as e:
@@ -395,10 +394,7 @@ class IssueIdentifier:
                 if int(keys["year"]) < int(item["start_year"]):
                     date_approved = False
 
-            aliases = []
-            if item["aliases"]:
-                aliases = item["aliases"].split("\n")
-            for name in [item["name"], *aliases]:
+            for name in [item["name"], *item["aliases"]]:
                 if utils.titles_match(keys["series"], name, self.series_match_thresh):
                     length_approved = True
                     break
@@ -429,13 +425,12 @@ class IssueIdentifier:
                 try:
                     image_url = series["image_url"]
                     thumb_url = series["image_url"]
-                    page_url = ""
 
                     score_item = self.get_issue_cover_match_score(
                         series["id"],
                         image_url,
                         thumb_url,
-                        page_url,  # Only required for alt covers
+                        [],  # Only required for alt covers
                         hash_list,
                         use_remote_alternates=False,
                     )
@@ -457,7 +452,7 @@ class IssueIdentifier:
                     "publisher": series["publisher"],
                     "image_url": image_url,
                     "thumb_url": thumb_url,
-                    "page_url": page_url,
+                    "alt_image_urls": [],
                     "description": series["description"],
                 }
 
@@ -525,12 +520,13 @@ class IssueIdentifier:
                     image_url = issue["image_url"]
                     thumb_url = issue["image_thumb_url"]
                     page_url = issue["site_detail_url"]
+                    alt_urls = issue["alt_image_urls"]
 
                     score_item = self.get_issue_cover_match_score(
                         issue["id"],
                         image_url,
                         thumb_url,
-                        page_url,
+                        alt_urls,
                         hash_list,
                         use_remote_alternates=False,
                     )
@@ -553,6 +549,7 @@ class IssueIdentifier:
                     "image_url": image_url,
                     "thumb_url": thumb_url,
                     "page_url": page_url,
+                    "alt_image_urls": alt_urls,
                     "description": issue["description"],
                 }
                 if series["publisher"] is not None:
@@ -617,11 +614,12 @@ class IssueIdentifier:
                         m["issue_id"],
                         m["image_url"],
                         m["thumb_url"],
-                        m["page_url"],
+                        m["alt_image_urls"],
                         hash_list,
                         use_remote_alternates=True,
                     )
                 except Exception:
+                    logger.exception("failed examining alt covers")
                     self.match_list = []
                     return self.match_list
                 self.log_msg(f"--->{score_item['score']}")

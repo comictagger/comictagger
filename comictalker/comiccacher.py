@@ -111,7 +111,7 @@ class ComicCacher:
                 + "timestamp DATE DEFAULT (datetime('now','localtime')), "
                 + "source_name TEXT NOT NULL,"
                 + "aliases TEXT,"  # Newline separated
-                + "alt_images_url TEXT,"  # Comma separated URLs
+                + "alt_image_urls TEXT,"  # Newline separated URLs
                 + "characters TEXT,"  # Newline separated
                 + "locations TEXT,"  # Newline separated
                 + "credits TEXT,"  # JSON: "{"name": "Bob Shakespeare", "role": "Writer"}"
@@ -146,10 +146,17 @@ class ComicCacher:
                 )
 
                 data = {
+                    "id": record["id"],
                     "source_name": source_name,
+                    "name": record["name"],
+                    "publisher": record["publisher"],
+                    "count_of_issues": record["count_of_issues"],
+                    "image_url": record["image_url"],
+                    "start_year": record["start_year"],
+                    "description": record["description"],
                     "timestamp": datetime.datetime.now(),
+                    "aliases": "\n".join(record["aliases"]),
                 }
-                data.update(record)
                 self.upsert(cur, "volumes", data)
 
     def get_search_results(self, source_name: str, search_term: str) -> list[ComicVolume]:
@@ -176,7 +183,7 @@ class ComicCacher:
                     count_of_issues=record[7],
                     start_year=record[8],
                     image_url=record[9],
-                    aliases=record[10],
+                    aliases=record[10].split("\n"),
                     description=record[11],
                 )
 
@@ -201,7 +208,7 @@ class ComicCacher:
                 "count_of_issues": volume_record["count_of_issues"],
                 "start_year": volume_record["start_year"],
                 "timestamp": timestamp,
-                "aliases": volume_record["aliases"],
+                "aliases": "\n".join(volume_record["aliases"]),
             }
             self.upsert(cur, "volumes", data)
 
@@ -228,8 +235,8 @@ class ComicCacher:
                     "thumb_url": issue["image_thumb_url"],
                     "description": issue["description"],
                     "timestamp": timestamp,
-                    "aliases": issue["aliases"],
-                    "alt_images_url": issue["alt_images_url"],
+                    "aliases": "\n".join(issue["aliases"]),
+                    "alt_image_urls": "\n".join(issue["alt_image_urls"]),
                     "characters": "\n".join(issue["characters"]),
                     "locations": "\n".join(issue["locations"]),
                     "teams": "\n".join(issue["teams"]),
@@ -295,7 +302,7 @@ class ComicCacher:
 
             cur.execute(
                 (
-                    "SELECT source_name,id,name,issue_number,site_detail_url,cover_date,image_url,thumb_url,description,aliases,alt_images_url,characters,locations,credits,teams,story_arcs,complete"
+                    "SELECT source_name,id,name,issue_number,site_detail_url,cover_date,image_url,thumb_url,description,aliases,alt_image_urls,characters,locations,credits,teams,story_arcs,complete"
                     " FROM Issues WHERE volume_id=? AND source_name=?"
                 ),
                 [volume_id, source_name],
@@ -314,7 +321,7 @@ class ComicCacher:
                     description=row[8],
                     volume=volume,
                     aliases=row[9],
-                    alt_images_url=row[10],
+                    alt_image_urls=row[10].split("\n"),
                     characters=row[11].split("\n"),
                     locations=row[12].split("\n"),
                     credits=json.loads(row[13]),
@@ -340,7 +347,7 @@ class ComicCacher:
 
             cur.execute(
                 (
-                    "SELECT source_name,id,name,issue_number,site_detail_url,cover_date,image_url,thumb_url,description,aliases,volume_id,alt_images_url,characters,locations,credits,teams,story_arcs,complete"
+                    "SELECT source_name,id,name,issue_number,site_detail_url,cover_date,image_url,thumb_url,description,aliases,volume_id,alt_image_urls,characters,locations,credits,teams,story_arcs,complete"
                     " FROM Issues WHERE id=? AND source_name=?"
                 ),
                 [issue_id, source_name],
@@ -366,7 +373,7 @@ class ComicCacher:
                     description=row[8],
                     volume=volume,
                     aliases=row[9],
-                    alt_images_url=row[11],
+                    alt_image_urls=row[11].split("\n"),
                     characters=row[12].split("\n"),
                     locations=row[13].split("\n"),
                     credits=json.loads(row[14]),

@@ -19,7 +19,7 @@ class IssueResult(TypedDict):
     publisher: str | None
     image_url: str
     thumb_url: str
-    page_url: str
+    alt_image_urls: list[str]
     description: str
 
 

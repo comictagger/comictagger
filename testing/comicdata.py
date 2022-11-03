@@ -13,7 +13,7 @@ search_results = [
         name="test",
         publisher="test",
         start_year=0,
-        aliases="",
+        aliases=[],
     ),
     comictalker.resulttypes.ComicVolume(
         count_of_issues=1,
@@ -23,7 +23,7 @@ search_results = [
         name="test 2",
         publisher="test",
         start_year=0,
-        aliases="",
+        aliases=[],
     ),
 ]
 

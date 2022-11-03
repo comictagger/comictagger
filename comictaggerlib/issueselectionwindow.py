@@ -180,7 +180,7 @@ class IssueSelectionWindow(QtWidgets.QDialog):
         for record in self.issue_list:
             if record["id"] == self.issue_id:
                 self.issue_number = record["issue_number"]
-                self.coverWidget.set_issue_details(self.issue_id, record["image_url"])
+                self.coverWidget.set_issue_details(self.issue_id, [record["image_url"], *record["alt_image_urls"]])
                 if record["description"] is None:
                     self.teDescription.setText("")
                 else:

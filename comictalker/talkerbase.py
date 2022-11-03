@@ -186,10 +186,6 @@ class ComicTalker:
         3. Only issue_id. Retrieve the ISSUE information."""
         raise NotImplementedError
 
-    # TODO Should be able to remove with alt cover rework
-    def fetch_alternate_cover_urls(self, issue_id: int) -> list[str]:
-        raise NotImplementedError
-
     def fetch_issues_by_volume_issue_num_and_year(
         self, volume_id_list: list[int], issue_number: str, year: str | int | None
     ) -> list[ComicIssue]:
