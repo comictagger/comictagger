@@ -375,7 +375,7 @@ class ComicVineTalker(ComicTalker):
             if record.get("start_year") is None:
                 start_year = 0
             else:
-                start_year = int(record["start_year"])
+                start_year = utils.xlate(record["start_year"], True)
 
             formatted_results.append(
                 ComicVolume(
@@ -619,7 +619,9 @@ class ComicVineTalker(ComicTalker):
         cvc = ComicCacher()
         cached_volume_issues_result = cvc.get_volume_issues_info(series_id, self.source_name)
 
-        if cached_volume_issues_result:
+        volume_data = self.fetch_partial_volume_data(series_id)
+
+        if len(cached_volume_issues_result) == volume_data["count_of_issues"]:
             return cached_volume_issues_result
 
         params = {
@@ -779,13 +781,13 @@ class ComicVineTalker(ComicTalker):
 
         if volume_results["publisher"] is not None:
             metadata.publisher = utils.xlate(volume_results["publisher"]["name"])
-        metadata.year = int(volume_results["start_year"])
+        metadata.year = utils.xlate(volume_results["start_year"], True)
 
         metadata.comments = self.cleanup_html(
             volume_results["description"], self.settings_options["remove_html_tables"]["value"]
         )
         if self.settings_options["use_series_start_as_volume"]["value"]:
-            metadata.volume = int(volume_results["start_year"])
+            metadata.volume = utils.xlate(volume_results["start_year"], True)
 
         metadata.notes = (
             f"Tagged with ComicTagger {ctversion.version} using info from {self.source_name_friendly} on"
