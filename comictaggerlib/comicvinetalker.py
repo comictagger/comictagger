@@ -19,7 +19,6 @@ import json
 import logging
 import re
 import time
-from datetime import datetime
 from typing import Any, Callable, cast
 from urllib.parse import urlencode, urljoin, urlsplit
 
@@ -466,6 +465,8 @@ class ComicVineTalker:
         # Now, map the Comic Vine data to generic metadata
         metadata = GenericMetadata()
         metadata.is_empty = False
+        metadata.tag_origin = "Comic Vine"
+        metadata.issue_id = issue_results["id"]
 
         metadata.series = utils.xlate(issue_results["volume"]["name"])
         metadata.issue = IssueString(issue_results["issue_number"]).as_string()
@@ -479,10 +480,6 @@ class ComicVineTalker:
         if settings.use_series_start_as_volume:
             metadata.volume = int(volume_results["start_year"])
 
-        metadata.notes = (
-            f"Tagged with ComicTagger {ctversion.version} using info from Comic Vine on"
-            f" {datetime.now():%Y-%m-%d %H:%M:%S}.  [Issue ID {issue_results['id']}]"
-        )
         metadata.web_link = issue_results["site_detail_url"]
 
         person_credits = issue_results["person_credits"]

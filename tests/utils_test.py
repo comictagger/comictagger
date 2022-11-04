@@ -77,6 +77,23 @@ def test_get_language_iso(value, result):
     assert result == comicapi.utils.get_language_iso(value)
 
 
+combine_values = [
+    ("hello", "english", "en", "hello\nenglish"),
+    ("hello en", "english", "en", "hello english"),
+    ("hello en goodbye", "english", "en", "hello english"),
+    ("hello en en goodbye", "english", "en", "hello en english"),
+    ("", "english", "en", "english"),
+    (None, "english", "en", "english"),
+    ("hello", "", "en", "hello"),
+    ("hello", None, "en", "hello"),
+]
+
+
+@pytest.mark.parametrize("existing_notes, new_notes, split, result", combine_values)
+def test_combine_notes(existing_notes, new_notes, split, result):
+    assert result == comicapi.utils.combine_notes(existing_notes, new_notes, split)
+
+
 def test_unique_file(tmp_path):
     file = tmp_path / "test.cbz"
     assert file == comicapi.utils.unique_file(file)

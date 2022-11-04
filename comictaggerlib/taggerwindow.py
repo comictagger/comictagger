@@ -27,6 +27,7 @@ import re
 import sys
 import webbrowser
 from collections.abc import Iterable
+from datetime import datetime
 from typing import Any, Callable, cast
 from urllib.parse import urlparse
 
@@ -1090,7 +1091,15 @@ Have fun!
                     if self.settings.clear_form_before_populating_from_cv:
                         self.clear_form()
 
-                    self.metadata.overlay(new_metadata)
+                    notes = (
+                        f"Tagged with ComicTagger {ctversion.version} using info from Comic Vine on"
+                        f" {datetime.now():%Y-%m-%d %H:%M:%S}.  [Issue ID {new_metadata.issue_id}]"
+                    )
+                    self.metadata.overlay(
+                        new_metadata.replace(
+                            notes=utils.combine_notes(self.metadata.notes, notes, "Tagged with ComicTagger")
+                        )
+                    )
                     # Now push the new combined data into the edit controls
                     self.metadata_to_form()
                 else:
@@ -1794,7 +1803,11 @@ Have fun!
                 if dlg.cbxRemoveMetadata.isChecked():
                     md = cv_md
                 else:
-                    md.overlay(cv_md)
+                    notes = (
+                        f"Tagged with ComicTagger {ctversion.version} using info from Comic Vine on"
+                        f" {datetime.now():%Y-%m-%d %H:%M:%S}.  [Issue ID {cv_md.issue_id}]"
+                    )
+                    md.overlay(cv_md.replace(notes=utils.combine_notes(md.notes, notes, "Tagged with ComicTagger")))
 
                 if self.settings.auto_imprint:
                     md.fix_publisher()
