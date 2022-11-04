@@ -39,7 +39,7 @@ def test_fetch_issues_by_volume(comicvine_api, comic_cache):
     assert results == cache_issues
 
 
-def test_fetch_issue_data_by_issue_id(comicvine_api, settings, mock_now, mock_version):
+def test_fetch_issue_data_by_issue_id(comicvine_api, settings, mock_version):
     ct = comictaggerlib.comicvinetalker.ComicVineTalker()
     result = ct.fetch_issue_data_by_issue_id(140529, settings)
     assert result == testing.comicvine.cv_md
@@ -65,13 +65,13 @@ cv_issue = [
 
 
 @pytest.mark.parametrize("volume_id, issue_number, expected", cv_issue)
-def test_fetch_issue_data(comicvine_api, settings, mock_now, mock_version, volume_id, issue_number, expected):
+def test_fetch_issue_data(comicvine_api, settings, mock_version, volume_id, issue_number, expected):
     ct = comictaggerlib.comicvinetalker.ComicVineTalker()
     results = ct.fetch_issue_data(volume_id, issue_number, settings)
     assert results == expected
 
 
-def test_fetch_issue_select_details(comicvine_api, mock_now, mock_version):
+def test_fetch_issue_select_details(comicvine_api, mock_version):
     ct = comictaggerlib.comicvinetalker.ComicVineTalker()
     result = ct.fetch_issue_select_details(140529)
     expected = {
