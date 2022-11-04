@@ -578,10 +578,10 @@ class ComicVineTalker(ComicTalker):
     def fetch_comic_data(self, issue_id: int = 0, series_id: int = 0, issue_number: str = "") -> GenericMetadata:
         comic_data = GenericMetadata()
         # TODO remove has_issues check? Enables testing. Possibly add source option to only get volume info?
-        if issue_id:
-            comic_data = self.fetch_issue_data_by_issue_id(issue_id)
-        elif self.static_options.has_issues and issue_number and series_id:
+        if self.static_options.has_issues and issue_number and series_id:
             comic_data = self.fetch_issue_data(series_id, issue_number)
+        elif issue_id:
+            comic_data = self.fetch_issue_data_by_issue_id(issue_id)
         else:
             # Only retrieve the volume data
             comic_data = self.fetch_volume_data(series_id)
