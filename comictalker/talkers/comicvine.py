@@ -17,16 +17,15 @@ from __future__ import annotations
 
 import json
 import logging
-import re
 import time
 from datetime import datetime
 from typing import Any, Callable, cast
 from urllib.parse import urljoin, urlsplit
 
 import requests
-from bs4 import BeautifulSoup
 from typing_extensions import Required, TypedDict
 
+import comictalker.talker_utils as talker_utils
 from comicapi import utils
 from comicapi.genericmetadata import GenericMetadata
 from comicapi.issuestring import IssueString
@@ -722,7 +721,12 @@ class ComicVineTalker(ComicTalker):
 
         if f_record and f_record["complete"]:
             # Cache had full record
-            return self.map_cv_data_to_metadata(f_record)
+            return talker_utils.map_comic_issue_to_metadata(
+                f_record,
+                self.source_name_friendly,
+                self.settings_options["remove_html_tables"]["value"],
+                self.settings_options["use_series_start_as_volume"]["value"],
+            )
 
         if f_record is not None:
             issue_url = urljoin(self.api_base_url, f"issue/{CVTypeID.Issue}-{f_record['id']}")
@@ -742,7 +746,12 @@ class ComicVineTalker(ComicTalker):
         else:
             return GenericMetadata()
 
-        return self.map_cv_data_to_metadata(formatted_issues_result[0])
+        return talker_utils.map_comic_issue_to_metadata(
+            formatted_issues_result[0],
+            self.source_name_friendly,
+            self.settings_options["remove_html_tables"]["value"],
+            self.settings_options["use_series_start_as_volume"]["value"],
+        )
 
     def fetch_issue_data_by_issue_id(self, issue_id: int) -> GenericMetadata:
         # before we search online, look in our cache, since we might already have this info
@@ -750,7 +759,12 @@ class ComicVineTalker(ComicTalker):
         cached_issues_result = cvc.get_issue_info(issue_id, self.source_name)
 
         if cached_issues_result and cached_issues_result["complete"]:
-            return self.map_cv_data_to_metadata(cached_issues_result)
+            return talker_utils.map_comic_issue_to_metadata(
+                cached_issues_result,
+                self.source_name_friendly,
+                self.settings_options["remove_html_tables"]["value"],
+                self.settings_options["use_series_start_as_volume"]["value"],
+            )
 
         issue_url = urljoin(self.api_base_url, f"issue/{CVTypeID.Issue}-{issue_id}")
         params = {"api_key": self.api_key, "format": "json"}
@@ -768,9 +782,14 @@ class ComicVineTalker(ComicTalker):
         cvc.add_volume_issues_info(self.source_name, formatted_issues_result)
 
         # Now, map the ComicIssue data to generic metadata
-        return self.map_cv_data_to_metadata(formatted_issues_result[0])
+        return talker_utils.map_comic_issue_to_metadata(
+            formatted_issues_result[0],
+            self.source_name_friendly,
+            self.settings_options["remove_html_tables"]["value"],
+            self.settings_options["use_series_start_as_volume"]["value"],
+        )
 
-    # To support volume only searching. For testing only.
+    # To support volume only searching. For testing only. # TODO Delete or create ComicIssue to then map
     def map_cv_volume_data_to_metadata(self, volume_results: CVVolumeFullResult) -> GenericMetadata:
 
         # Now, map the Comic Vine data to generic metadata
@@ -783,7 +802,7 @@ class ComicVineTalker(ComicTalker):
             metadata.publisher = utils.xlate(volume_results["publisher"]["name"])
         metadata.year = utils.xlate(volume_results["start_year"], True)
 
-        metadata.comments = self.cleanup_html(
+        metadata.comments = talker_utils.cleanup_html(
             volume_results["description"], self.settings_options["remove_html_tables"]["value"]
         )
         if self.settings_options["use_series_start_as_volume"]["value"]:
@@ -820,142 +839,6 @@ class ComicVineTalker(ComicTalker):
             metadata.locations = ", ".join(location_list)
 
         return metadata
-
-    def map_cv_data_to_metadata(self, issue_results: ComicIssue) -> GenericMetadata:
-        # TODO As this now takes ComicIssue, move to utils so other talkers can use it?
-        # Now, map the Comic Vine data to generic metadata
-        metadata = GenericMetadata()
-        metadata.is_empty = False
-
-        metadata.series = utils.xlate(issue_results["volume"]["name"])
-        metadata.issue = IssueString(issue_results["issue_number"]).as_string()
-        metadata.title = utils.xlate(issue_results["name"])
-        metadata.cover_image = issue_results["image_url"]
-
-        if issue_results["volume"].get("publisher") is not None:
-            metadata.publisher = utils.xlate(issue_results["volume"]["publisher"])
-        metadata.day, metadata.month, metadata.year = utils.parse_date_str(issue_results["cover_date"])
-
-        metadata.comments = self.cleanup_html(
-            issue_results["description"], self.settings_options["remove_html_tables"]["value"]
-        )
-        if self.settings_options["use_series_start_as_volume"]["value"]:
-            metadata.volume = issue_results["volume"]["start_year"]
-
-        metadata.notes = (
-            f"Tagged with ComicTagger {ctversion.version} using info from {self.source_name_friendly} on"
-            f" {datetime.now():%Y-%m-%d %H:%M:%S}.  [Issue ID {issue_results['id']}]"
-        )
-        metadata.web_link = issue_results["site_detail_url"]
-
-        for person in issue_results["credits"]:
-            if "role" in person:
-                roles = person["role"].split(",")
-                for role in roles:
-                    # can we determine 'primary' from CV??
-                    metadata.add_credit(person["name"], role.title().strip(), False)
-
-        metadata.characters = ", ".join(issue_results["characters"])
-        metadata.teams = ", ".join(issue_results["teams"])
-        metadata.locations = ", ".join(issue_results["locations"])
-        metadata.story_arc = ", ".join(issue_results["story_arcs"])
-
-        return metadata
-
-    # TODO Move to utils?
-    def cleanup_html(self, string: str, remove_html_tables: bool) -> str:
-        if string is None:
-            return ""
-        # find any tables
-        soup = BeautifulSoup(string, "html.parser")
-        tables = soup.findAll("table")
-
-        # remove all newlines first
-        string = string.replace("\n", "")
-
-        # put in our own
-        string = string.replace("<br>", "\n")
-        string = string.replace("</li>", "\n")
-        string = string.replace("</p>", "\n\n")
-        string = string.replace("<h1>", "*")
-        string = string.replace("</h1>", "*\n")
-        string = string.replace("<h2>", "*")
-        string = string.replace("</h2>", "*\n")
-        string = string.replace("<h3>", "*")
-        string = string.replace("</h3>", "*\n")
-        string = string.replace("<h4>", "*")
-        string = string.replace("</h4>", "*\n")
-        string = string.replace("<h5>", "*")
-        string = string.replace("</h5>", "*\n")
-        string = string.replace("<h6>", "*")
-        string = string.replace("</h6>", "*\n")
-
-        # remove the tables
-        p = re.compile(r"<table[^<]*?>.*?</table>")
-        if remove_html_tables:
-            string = p.sub("", string)
-            string = string.replace("*List of covers and their creators:*", "")
-        else:
-            string = p.sub("{}", string)
-
-        # now strip all other tags
-        p = re.compile(r"<[^<]*?>")
-        newstring = p.sub("", string)
-
-        newstring = newstring.replace("&nbsp;", " ")
-        newstring = newstring.replace("&amp;", "&")
-
-        newstring = newstring.strip()
-
-        if not remove_html_tables:
-            # now rebuild the tables into text from BSoup
-            try:
-                table_strings = []
-                for table in tables:
-                    rows = []
-                    hdrs = []
-                    col_widths = []
-                    for hdr in table.findAll("th"):
-                        item = hdr.string.strip()
-                        hdrs.append(item)
-                        col_widths.append(len(item))
-                    rows.append(hdrs)
-
-                    for row in table.findAll("tr"):
-                        cols = []
-                        col = row.findAll("td")
-                        i = 0
-                        for c in col:
-                            item = c.string.strip()
-                            cols.append(item)
-                            if len(item) > col_widths[i]:
-                                col_widths[i] = len(item)
-                            i += 1
-                        if len(cols) != 0:
-                            rows.append(cols)
-                    # now we have the data, make it into text
-                    fmtstr = ""
-                    for w in col_widths:
-                        fmtstr += f" {{:{w + 1}}}|"
-                    width = sum(col_widths) + len(col_widths) * 2
-                    table_text = ""
-                    counter = 0
-                    for row in rows:
-                        table_text += fmtstr.format(*row) + "\n"
-                        if counter == 0 and len(hdrs) != 0:
-                            table_text += "-" * width + "\n"
-                        counter += 1
-
-                    table_strings.append(table_text)
-
-                newstring = newstring.format(*table_strings)
-            except Exception:
-                # we caught an error rebuilding the table.
-                # just bail and remove the formatting
-                logger.exception("table parse error")
-                newstring.replace("{}", "")
-
-        return newstring
 
     def repair_urls(self, issue_list: list[CVIssueDetailResults]) -> None:
         # make sure there are URLs for the image fields

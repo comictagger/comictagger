@@ -17,12 +17,67 @@ from __future__ import annotations
 
 import logging
 import re
+from datetime import datetime
 
 from bs4 import BeautifulSoup
 
 from comicapi import utils
+from comicapi.genericmetadata import GenericMetadata
+from comicapi.issuestring import IssueString
+from comictaggerlib import ctversion
+from comictalker.talkerbase import ComicIssue
 
 logger = logging.getLogger(__name__)
+
+
+def map_comic_issue_to_metadata(
+    issue_results: ComicIssue, source: str, remove_html_tables: bool = False, use_year_volume: bool = False
+) -> GenericMetadata:
+    # Now, map the ComicIssue data to generic metadata
+    metadata = GenericMetadata()
+    metadata.is_empty = False
+
+    # Is this best way to go about checking?
+    if issue_results["volume"].get("name"):
+        metadata.series = utils.xlate(issue_results["volume"]["name"])
+    if issue_results.get("issue_number"):
+        metadata.issue = IssueString(issue_results["issue_number"]).as_string()
+    if issue_results.get("name"):
+        metadata.title = utils.xlate(issue_results["name"])
+    if issue_results.get("image_url"):
+        metadata.cover_image = issue_results["image_url"]
+
+    if issue_results["volume"].get("publisher"):
+        metadata.publisher = utils.xlate(issue_results["volume"]["publisher"])
+    metadata.day, metadata.month, metadata.year = utils.parse_date_str(issue_results["cover_date"])
+
+    metadata.comments = cleanup_html(issue_results["description"], remove_html_tables)
+    if use_year_volume:
+        metadata.volume = issue_results["volume"]["start_year"]
+
+    metadata.notes = (
+        f"Tagged with ComicTagger {ctversion.version} using info from {source} on"
+        f" {datetime.now():%Y-%m-%d %H:%M:%S}.  [Issue ID {issue_results['id']}]"
+    )
+    metadata.web_link = issue_results["site_detail_url"]
+
+    for person in issue_results["credits"]:
+        if "role" in person:
+            roles = person["role"].split(",")
+            for role in roles:
+                # can we determine 'primary' from CV??
+                metadata.add_credit(person["name"], role.title().strip(), False)
+
+    if issue_results.get("characters"):
+        metadata.characters = ", ".join(issue_results["characters"])
+    if issue_results.get("teams"):
+        metadata.teams = ", ".join(issue_results["teams"])
+    if issue_results.get("locations"):
+        metadata.locations = ", ".join(issue_results["locations"])
+    if issue_results.get("story_arcs"):
+        metadata.story_arc = ", ".join(issue_results["story_arcs"])
+
+    return metadata
 
 
 def parse_date_str(date_str: str) -> tuple[int | None, int | None, int | None]:

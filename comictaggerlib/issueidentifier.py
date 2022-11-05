@@ -30,8 +30,8 @@ from comictaggerlib.imagefetcher import ImageFetcher, ImageFetcherException
 from comictaggerlib.imagehasher import ImageHasher
 from comictaggerlib.resulttypes import IssueResult
 from comictaggerlib.settings import ComicTaggerSettings
+from comictalker.talker_utils import parse_date_str
 from comictalker.talkerbase import ComicTalker, TalkerError
-from comictalker.utils import parse_date_str
 
 logger = logging.getLogger(__name__)
 

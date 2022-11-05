@@ -3,8 +3,8 @@ from __future__ import annotations
 from typing import Any
 
 import comicapi.genericmetadata
-import comictalker.talkers.comicvine
 from comicapi import utils
+from comictalker.talker_utils import cleanup_html
 
 
 def filter_field_list(cv_result, kwargs):
@@ -190,9 +190,7 @@ cv_md = comicapi.genericmetadata.GenericMetadata(
     volume=None,
     genre=None,
     language=None,
-    comments=comictalker.talkers.comicvine.ComicVineTalker().cleanup_html(
-        cv_issue_result["results"]["description"], False
-    ),
+    comments=cleanup_html(cv_issue_result["results"]["description"], False),
     volume_count=None,
     critical_rating=None,
     country=None,
@@ -200,19 +198,19 @@ cv_md = comicapi.genericmetadata.GenericMetadata(
     alternate_number=None,
     alternate_count=None,
     imprint=None,
-    notes="Tagged with ComicTagger 1.4.4a9.dev20 using info from Comic Vine on 2022-07-11 17:42:41.  [Issue ID 140529]",
+    notes=None,
     web_link=cv_issue_result["results"]["site_detail_url"],
     format=None,
     manga=None,
     black_and_white=None,
     page_count=None,
     maturity_rating=None,
-    story_arc="",
+    story_arc=None,
     series_group=None,
     scan_info=None,
-    characters="",
-    teams="",
-    locations="",
+    characters=None,
+    teams=None,
+    locations=None,
     credits=[
         comicapi.genericmetadata.CreditMetadata(person=x["name"], role=x["role"].title(), primary=False)
         for x in cv_issue_result["results"]["person_credits"]

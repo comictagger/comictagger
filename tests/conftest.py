@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import copy
-import datetime
 import io
 import shutil
 import unittest.mock
@@ -115,18 +114,6 @@ def comicvine_api(monkeypatch, cbz, comic_cache) -> comictalker.talkers.comicvin
 
     cv = comictalker.talkers.comicvine.ComicVineTalker()
     return cv
-
-
-@pytest.fixture
-def mock_now(monkeypatch):
-    class mydatetime:
-        time = datetime.datetime(2022, 7, 11, 17, 42, 41)
-
-        @classmethod
-        def now(cls):
-            return cls.time
-
-    monkeypatch.setattr(comictalker.talkers.comicvine, "datetime", mydatetime)
 
 
 @pytest.fixture
