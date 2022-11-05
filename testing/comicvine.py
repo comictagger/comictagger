@@ -22,7 +22,7 @@ cv_issue_result: dict[str, Any] = {
     "number_of_total_results": 1,
     "status_code": 1,
     "results": {
-        "aliases": None,
+        "aliases": [],
         "api_detail_url": "https://comicvine.gamespot.com/api/issue/4000-140529/",
         "associated_images": [],
         "character_credits": [],
@@ -117,7 +117,7 @@ cv_volume_result: dict[str, Any] = {
     "number_of_total_results": 1,
     "status_code": 1,
     "results": {
-        "aliases": None,
+        "aliases": [],
         "api_detail_url": "https://comicvine.gamespot.com/api/volume/4050-23437/",
         "count_of_issues": 6,
         "date_added": "2008-10-16 05:25:47",

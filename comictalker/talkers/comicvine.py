@@ -376,11 +376,10 @@ class ComicVineTalker(ComicTalker):
                 start_year = 0
             else:
                 start_year = utils.xlate(record["start_year"], True)
-            aliases = record["aliases"] or ""
 
             formatted_results.append(
                 ComicVolume(
-                    aliases=aliases.split("\n"),
+                    aliases=record["aliases"].split("\n") if record["aliases"] else [],
                     count_of_issues=record.get("count_of_issues", 0),
                     description=record.get("description", ""),
                     id=record["id"],
