@@ -3,7 +3,6 @@ importlib_metadata>=3.3.0
 natsort>=8.1.0
 pathvalidate
 pillow>=9.1.0
-py7zr
 pycountry
 pyicu; sys_platform == 'linux' or sys_platform == 'darwin'
 rapidfuzz>=2.12.0

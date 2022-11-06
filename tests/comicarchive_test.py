@@ -119,8 +119,11 @@ def test_invalid_zip(tmp_comic):
 
 archivers = [
     comicapi.comicarchive.ZipArchiver,
-    comicapi.comicarchive.SevenZipArchiver,
     comicapi.comicarchive.FolderArchiver,
+    pytest.param(
+        comicapi.comicarchive.SevenZipArchiver,
+        marks=pytest.mark.xfail(not (comicapi.comicarchive.z7_support), reason="7z support"),
+    ),
     pytest.param(
         comicapi.comicarchive.RarArchiver,
         marks=pytest.mark.xfail(not (comicapi.comicarchive.rar_support and shutil.which("rar")), reason="rar support"),

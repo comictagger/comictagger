@@ -28,7 +28,6 @@ import zipfile
 from typing import cast
 
 import natsort
-import py7zr
 import wordninja
 
 from comicapi import filenamelexer, filenameparser, utils
@@ -37,6 +36,12 @@ from comicapi.comicbookinfo import ComicBookInfo
 from comicapi.comicinfoxml import ComicInfoXml
 from comicapi.genericmetadata import GenericMetadata, PageType
 
+try:
+    import py7zr
+
+    z7_support = True
+except ImportError:
+    z7_support = False
 try:
     from unrar.cffi import rarfile
 
@@ -756,15 +761,13 @@ class ComicArchive:
         self.archiver.path = pathlib.Path(path)
 
     def sevenzip_test(self) -> bool:
-        return py7zr.is_7zfile(self.path)
+        return z7_support and py7zr.is_7zfile(self.path)
 
     def zip_test(self) -> bool:
         return zipfile.is_zipfile(self.path)
 
     def rar_test(self) -> bool:
-        if rar_support:
-            return rarfile.is_rarfile(str(self.path))
-        return False
+        return rar_support and rarfile.is_rarfile(str(self.path))
 
     def folder_test(self) -> bool:
         return self.path.is_dir()
