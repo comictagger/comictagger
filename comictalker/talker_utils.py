@@ -59,6 +59,9 @@ def map_comic_issue_to_metadata(
     if use_year_volume:
         metadata.volume = issue_results["volume"]["start_year"]
 
+    metadata.tag_origin = source
+    metadata.issue_id = issue_results["id"]
+
     metadata.notes = (
         f"Tagged with ComicTagger {ctversion.version} using info from {source} on"
         f" {datetime.now():%Y-%m-%d %H:%M:%S}.  [Issue ID {issue_results['id']}]"
