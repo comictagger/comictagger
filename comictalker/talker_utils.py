@@ -49,7 +49,11 @@ def map_comic_issue_to_metadata(
 
     if issue_results["volume"].get("publisher"):
         metadata.publisher = utils.xlate(issue_results["volume"]["publisher"])
-    metadata.day, metadata.month, metadata.year = utils.parse_date_str(issue_results["cover_date"])
+
+    if issue_results.get("cover_date"):
+        metadata.day, metadata.month, metadata.year = utils.parse_date_str(issue_results["cover_date"])
+    elif issue_results["volume"].get("start_year"):
+        metadata.year = utils.xlate(issue_results["volume"]["start_year"], True)
 
     metadata.comments = cleanup_html(issue_results["description"], remove_html_tables)
     if use_year_volume:

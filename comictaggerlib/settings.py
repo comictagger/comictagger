@@ -359,6 +359,8 @@ class ComicTaggerSettings:
         self.config.set("identifier", "id_publisher_filter", self.id_publisher_filter)
         self.config.set("identifier", "always_use_publisher_filter", self.always_use_publisher_filter)
 
+        self.config.set("identifier", "comic_info_source", self.comic_info_source)
+
         if not self.config.has_section("dialogflags"):
             self.config.add_section("dialogflags")
 
@@ -381,7 +383,6 @@ class ComicTaggerSettings:
         self.config.set("comic_source_general", "clear_form_before_populating", self.clear_form_before_populating)
         self.config.set("comic_source_general", "sort_series_by_year", self.sort_series_by_year)
         self.config.set("comic_source_general", "exact_series_matches_first", self.exact_series_matches_first)
-        self.config.set("comic_source_general", "comic_info_source", self.comic_info_source)
 
         if not self.config.has_section("cbl_transform"):
             self.config.add_section("cbl_transform")

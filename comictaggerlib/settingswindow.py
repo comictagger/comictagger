@@ -404,8 +404,8 @@ class SettingsWindow(QtWidgets.QDialog):
         self.settings.id_publisher_filter = str(self.tePublisherFilter.toPlainText())
         self.settings.comic_info_source = str(self.cobxInfoSource.itemData(self.cobxInfoSource.currentIndex()))
         # Also change current talker_api object
-        # TODO
-        # self.talker_api.source = self.settings.comic_info_source
+        if self.settings.comic_info_source != self.talker_api.source_details.id:
+            self.talker_api = ct_api.get_comic_talker(self.settings.comic_info_source)()
 
         self.settings.complicated_parser = self.cbxComplicatedParser.isChecked()
         self.settings.remove_c2c = self.cbxRemoveC2C.isChecked()
