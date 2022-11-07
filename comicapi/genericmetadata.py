@@ -78,6 +78,7 @@ class GenericMetadata:
 
     is_empty: bool = True
     tag_origin: str | None = None
+    issue_id: int | None = None
 
     series: str | None = None
     issue: str | None = None

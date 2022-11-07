@@ -137,17 +137,11 @@ class ComicInfoXml:
 
         # second, convert each list to string, and add to XML struct
         assign("Writer", ", ".join(credit_writer_list))
-
         assign("Penciller", ", ".join(credit_penciller_list))
-
         assign("Inker", ", ".join(credit_inker_list))
-
         assign("Colorist", ", ".join(credit_colorist_list))
-
         assign("Letterer", ", ".join(credit_letterer_list))
-
         assign("CoverArtist", ", ".join(credit_cover_list))
-
         assign("Editor", ", ".join(credit_editor_list))
 
         assign("Publisher", md.publisher)

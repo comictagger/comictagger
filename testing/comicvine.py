@@ -178,7 +178,8 @@ date = utils.parse_date_str(cv_issue_result["results"]["cover_date"])
 
 cv_md = comicapi.genericmetadata.GenericMetadata(
     is_empty=False,
-    tag_origin=None,
+    tag_origin="Comic Vine",
+    issue_id=cv_issue_result["results"]["id"],
     series=cv_issue_result["results"]["volume"]["name"],
     issue=cv_issue_result["results"]["issue_number"],
     title=cv_issue_result["results"]["name"],

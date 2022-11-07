@@ -37,6 +37,14 @@ class UtilsVars:
     already_fixed_encoding = False
 
 
+def combine_notes(existing_notes: str | None, new_notes: str | None, split: str) -> str:
+    split_notes, _, untouched_notes = (existing_notes or "").rpartition(split)
+    if split_notes:
+        return (split_notes + (new_notes or "")).strip()
+    else:
+        return (untouched_notes + "\n" + (new_notes or "")).strip()
+
+
 def parse_date_str(date_str: str) -> tuple[int | None, int | None, int | None]:
     day = None
     month = None

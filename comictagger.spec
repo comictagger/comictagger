@@ -94,15 +94,6 @@ if platform.system() not in ["Windows"]:
             "CFBundleVersion": ctversion.version,
             "CFBundleDocumentTypes": [
                 {
-                    "CFBundleTypeRole": "Viewer",
-                    "LSItemContentTypes": [
-                        "com.rarlab.rar-archive",
-                    ],
-                    "CFBundleTypeName": "RAR Archive",
-                    "CFBundleTypeRole": "Editor",
-                    "LSHandlerRank": "Default",
-                },
-                {
                     "CFBundleTypeRole": "Editor",
                     "LSHandlerRank": "Default",
                     "LSItemContentTypes": [
@@ -118,7 +109,6 @@ if platform.system() not in ["Windows"]:
                     "NSPersistentStoreTypeKey": "Binary",
                     "CFBundleTypeIconSystemGenerated": True,
                     "CFBundleTypeName": "ZIP Comic Archive",
-                    # 'CFBundleTypeIconFile': 'cbz',
                     "LSItemContentTypes": [
                         "public.zip-comic-archive",
                         "com.simplecomic.cbz-archive",
@@ -129,6 +119,7 @@ if platform.system() not in ["Windows"]:
                         "com.milke.cbz-archive",
                         "com.bitcartel.comicbooklover.cbz",
                         "public.archive.cbz",
+                        "public.zip-archive",
                     ],
                     "CFBundleTypeRole": "Editor",
                     "LSHandlerRank": "Default",
@@ -141,8 +132,8 @@ if platform.system() not in ["Windows"]:
                     "NSPersistentStoreTypeKey": "Binary",
                     "CFBundleTypeIconSystemGenerated": True,
                     "CFBundleTypeName": "7-Zip Comic Archive",
-                    # 'CFBundleTypeIconFile': 'cb7',
                     "LSItemContentTypes": [
+                        "org.7-zip.7-zip-archive",
                         "com.simplecomic.cb7-archive",
                         "public.cb7-archive",
                         "com.macitbetter.cb7-archive",
@@ -160,8 +151,8 @@ if platform.system() not in ["Windows"]:
                     "NSPersistentStoreTypeKey": "Binary",
                     "CFBundleTypeIconSystemGenerated": True,
                     "CFBundleTypeName": "RAR Comic Archive",
-                    # 'CFBundleTypeIconFile': 'cbr',
                     "LSItemContentTypes": [
+                        "com.rarlab.rar-archive",
                         "com.rarlab.rar-comic-archive",
                         "com.simplecomic.cbr-archive",
                         "com.macitbetter.cbr-archive",
@@ -195,16 +186,11 @@ if platform.system() not in ["Windows"]:
                     },
                 },
                 {
-                    # 'UTTypeIcons': {
-                    #     'UTTypeIconText': 'cbr',
-                    #     'UTTypeIconBackgroundName': comic-fill
-                    # }
                     "UTTypeConformsTo": [
                         "public.data",
                         "public.archive",
                         "com.rarlab.rar-archive",
                     ],
-                    # 'UTTypeIconFile': 'cbr',
                     "UTTypeIdentifier": "com.rarlab.rar-comic-archive",
                     "UTTypeDescription": "RAR Comic Archive",
                     "UTTypeTagSpecification": {
@@ -218,16 +204,11 @@ if platform.system() not in ["Windows"]:
                     },
                 },
                 {
-                    # 'UTTypeIcons': {
-                    #     'UTTypeIconText': 'cbz',
-                    #     'UTTypeIconBackgroundName': 'comic-fill',
-                    # }
                     "UTTypeConformsTo": [
                         "public.data",
                         "public.archive",
                         "public.zip-archive",
                     ],
-                    # 'UTTypeIconFile': cbz,
                     "UTTypeIdentifier": "public.zip-comic-archive",
                     "UTTypeDescription": "ZIP Comic Archive",
                     "UTTypeTagSpecification": {
@@ -237,16 +218,11 @@ if platform.system() not in ["Windows"]:
                     },
                 },
                 {
-                    # 'UTTypeIcons': {
-                    #     'UTTypeIconText': 'cb7',
-                    #     'UTTypeIconBackgroundName': comic-fill
-                    # }
                     "UTTypeConformsTo": [
                         "public.data",
                         "public.archive",
                         "org.7-zip.7-zip-archive",
                     ],
-                    # 'UTTypeIconFile': cb7
                     "UTTypeIdentifier": "org.7-zip.7-zip-comic-archive",
                     "UTTypeDescription": "7-Zip Comic Archive",
                     "UTTypeTagSpecification": {
