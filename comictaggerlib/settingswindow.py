@@ -483,6 +483,10 @@ class SettingsWindow(QtWidgets.QDialog):
                 # Save out option
                 self.settings.config.set(source.source_details.id, option["name"], option["value"])
 
+                # Update talker options in object
+                if source.source_details.id == self.talker_api.source_details.id:
+                    self.talker_api.settings_options[option["name"]]["value"] = option["value"]
+
         self.settings.save()
         QtWidgets.QDialog.accept(self)
 
