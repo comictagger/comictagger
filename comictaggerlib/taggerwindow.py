@@ -1103,7 +1103,7 @@ Have fun!
                         self.clear_form()
 
                     notes = (
-                        f"Tagged with ComicTagger {ctversion.version} using info from Comic Vine on"
+                        f"Tagged with ComicTagger {ctversion.version} using info from {self.talker_api.source_details.name} on"
                         f" {datetime.now():%Y-%m-%d %H:%M:%S}.  [Issue ID {new_metadata.issue_id}]"
                     )
                     self.metadata.overlay(
