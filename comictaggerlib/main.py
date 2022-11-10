@@ -32,6 +32,7 @@ from comictaggerlib.ctversion import version
 from comictaggerlib.graphics import graphics_path
 from comictaggerlib.options import parse_cmd_line
 from comictaggerlib.settings import ComicTaggerSettings
+from comictalker.talkerbase import TalkerError
 
 if sys.version_info < (3, 10):
     import importlib_metadata
@@ -41,7 +42,7 @@ else:
 logger = logging.getLogger("comictagger")
 logging.getLogger("comicapi").setLevel(logging.DEBUG)
 logging.getLogger("comictaggerlib").setLevel(logging.DEBUG)
-logging.getLogger("sourcesapi").setLevel(logging.DEBUG)
+logging.getLogger("comictalker").setLevel(logging.DEBUG)
 logger.setLevel(logging.DEBUG)
 
 try:
@@ -161,7 +162,14 @@ def ctmain() -> None:
     for pkg in sorted(importlib_metadata.distributions(), key=lambda x: x.name):
         logger.debug("%s\t%s", pkg.metadata["Name"], pkg.metadata["Version"])
 
-    talker_api = ct_api.get_comic_talker(settings.comic_info_source)()
+    talker_failed = False
+    try:
+        talker_api = ct_api.get_comic_talker(settings.comic_info_source)()
+    except TalkerError as te:
+        talker_failed = True
+        logger.warning(f"Unable to load talker {te.source}. Error: {te.desc}. Defaulting to Comic Vine.")
+        settings.comic_info_source = "comicvine"
+        talker_api = ct_api.get_comic_talker("comicvine")()
 
     utils.load_publishers()
     update_publishers()
@@ -221,6 +229,13 @@ def ctmain() -> None:
 
             if platform.system() != "Linux":
                 splash.finish(tagger_window)
+
+            if talker_failed:
+                QtWidgets.QMessageBox.warning(
+                    QtWidgets.QMainWindow(),
+                    "Warning",
+                    "Unable to load configured information source, see log for details. Defaulting to Comic Vine",
+                )
 
             sys.exit(app.exec())
         except Exception:
