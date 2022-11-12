@@ -233,8 +233,10 @@ class SettingsWindow(QtWidgets.QDialog):
                 source_label_logo = QtGui.QPixmap(source.source_details.logo)
 
                 source_website_icon_link = QtWidgets.QPushButton()
-                source_website_icon_link.clicked.connect(lambda _: open_web_link(source.static_options.website))
-                source_website_icon_link.setToolTip("Click to visit website")
+                source_website_icon_link.clicked.connect(
+                    lambda state, w=source.static_options.website: open_web_link(w)
+                )
+                source_website_icon_link.setToolTip(f"Click to visit website: {source.static_options.website}")
                 source_website_icon_link.setMaximumSize(250, 100)
 
                 if source_label_logo.isNull():
@@ -300,7 +302,7 @@ class SettingsWindow(QtWidgets.QDialog):
                         if option["name"] == "api_key":
                             btn = QtWidgets.QPushButton("Test Key")
                             layout_grid.addWidget(btn, row, 2)
-                            btn.clicked.connect(lambda: self.test_api_key(source.source_details.id))
+                            btn.clicked.connect(lambda state, key=source.source_details.id: self.test_api_key(key))
                     row += 1
 
                     if current_widget:

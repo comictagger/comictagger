@@ -277,6 +277,10 @@ class ComicVineTalker(ComicTalker):
         if not url:
             url = self.api_base_url
         try:
+            tmp_url = urlsplit(url)
+            if tmp_url.path and tmp_url.path[-1] != "/":
+                tmp_url = tmp_url._replace(path=tmp_url.path + "/")
+            url = tmp_url.geturl()
             test_url = urljoin(url, "issue/1/")
 
             cv_response: CVResult = requests.get(
