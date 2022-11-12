@@ -20,6 +20,8 @@ import logging
 import os
 import pathlib
 import platform
+import webbrowser
+from urllib.parse import urlparse
 
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
@@ -202,6 +204,17 @@ class SettingsWindow(QtWidgets.QDialog):
         self.generate_source_option_tabs()
 
     def generate_source_option_tabs(self) -> None:
+        # TODO Move to utils?
+        def open_web_link(link) -> None:
+            if link is not None:
+                web_link = link.strip()
+                try:
+                    result = urlparse(web_link)
+                    all([result.scheme in ["http", "https"], result.netloc])
+                    webbrowser.open_new_tab(web_link)
+                except ValueError:
+                    QtWidgets.QMessageBox.warning(self, "Web Link", "Web Link is invalid.")
+
         # Add source sub tabs to Comic Sources tab
         for source_cls in self.available_talkers.values():
             # TODO Remove hack
@@ -214,6 +227,33 @@ class SettingsWindow(QtWidgets.QDialog):
             source_info[tab_name] = {"tab": QtWidgets.QWidget(), "widgets": {}}
             layout_grid = QtWidgets.QGridLayout()
             row = 0
+
+            # Add logo and web link if available
+            if source.static_options.website:
+                source_label_logo = QtGui.QPixmap(source.source_details.logo)
+
+                source_website_icon_link = QtWidgets.QPushButton()
+                source_website_icon_link.clicked.connect(lambda _: open_web_link(source.static_options.website))
+                source_website_icon_link.setToolTip("Click to visit website")
+                source_website_icon_link.setMaximumSize(250, 100)
+
+                if source_label_logo.isNull():
+                    source_website_icon_link.setFont(QtGui.QFont("Arial", 14, 3))
+                    source_website_icon_link.setText(source.source_details.name)
+                else:
+                    if source_label_logo.height() > 100 or source_label_logo.width() > 250:
+                        source_label_logo = source_label_logo.scaled(
+                            250, 100, QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation
+                        )
+
+                    source_website_icon_link.setIconSize(QtCore.QSize(source_label_logo.rect().size()))
+                    source_website_icon_link.setFixedSize(QtCore.QSize(source_label_logo.rect().size()))
+                    source_website_icon_link.setIcon(QtGui.QIcon(source_label_logo))
+                    source_website_icon_link.setFlat(True)
+
+                layout_grid.addWidget(source_website_icon_link, row, 0, 1, -1)
+                row += 1
+
             for option in source.settings_options.values():
                 if not option["hidden"]:
                     current_widget = None
@@ -270,12 +310,7 @@ class SettingsWindow(QtWidgets.QDialog):
                         source_info[tab_name]["widgets"][option["name"]] = current_widget
                     else:
                         # An empty current_widget implies an unsupported type
-                        logger.info(
-                            "Unsupported talker option found. Name: "
-                            + str(option["name"])
-                            + " Type: "
-                            + str(option["type"])
-                        )
+                        logger.info(f"Unsupported talker option found. Name: {option['name']} Type: {option['type']}")
 
             # Add vertical spacer
             vspacer = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
@@ -289,6 +324,9 @@ class SettingsWindow(QtWidgets.QDialog):
 
         # Select active source in dropdown
         self.cobxInfoSource.setCurrentIndex(self.cobxInfoSource.findData(self.settings.comic_info_source))
+
+        # Set General as start tab
+        self.tabWidget.setCurrentIndex(0)
 
     def rename_test(self) -> None:
         self._rename_test(self.leRenameTemplate.text())

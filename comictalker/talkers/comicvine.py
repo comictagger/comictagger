@@ -178,9 +178,11 @@ class ComicVineTalker(ComicTalker):
         self.source_details = SourceDetails(
             name="Comic Vine",
             ident="comicvine",
+            logo="comictalker/talkers/logos/comicvine.png",
         )
         self.static_options = SourceStaticOptions(
-            logo_url="http://static.comicvine.com/bundles/comicvinesite/images/logo.png",
+            logo_url="",
+            website="https://comicvine.gamespot.com/",
             has_issues=True,
             has_alt_covers=True,
             requires_apikey=True,

@@ -33,15 +33,18 @@ class SourceDetails:
         self,
         name: str = "",
         ident: str = "",
+        logo: str = "",  # Will be scaled if greater than 100px width and 250px height in comictalker/talkers/logos
     ):
         self.name = name
         self.id = ident
+        self.logo = logo
 
 
 class SourceStaticOptions:
     def __init__(
         self,
-        logo_url: str = "",
+        logo_url: str = "",  # No longer required?
+        website: str = "",
         has_issues: bool = False,
         has_alt_covers: bool = False,
         requires_apikey: bool = False,
@@ -49,6 +52,7 @@ class SourceStaticOptions:
         has_censored_covers: bool = False,
     ) -> None:
         self.logo_url = logo_url
+        self.website = website
         self.has_issues = has_issues
         self.has_alt_covers = has_alt_covers
         self.requires_apikey = requires_apikey
