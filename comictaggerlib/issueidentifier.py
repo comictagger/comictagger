@@ -251,6 +251,10 @@ class IssueIdentifier:
         # local_cover_hash_list is a list of pre-calculated hashes.
         # use_remote_alternates - indicates to use alternate covers from CV
 
+        # If there is no URL return 0
+        if not primary_img_url:
+            return Score(score=0, url="", hash=0)
+
         try:
             url_image_data = ImageFetcher().fetch(primary_thumb_url, blocking=True)
         except ImageFetcherException as e:
