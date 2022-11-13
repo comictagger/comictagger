@@ -18,7 +18,6 @@ from __future__ import annotations
 import json
 import logging
 import time
-from datetime import datetime
 from typing import Any, Callable, cast
 from urllib.parse import urljoin, urlsplit
 
@@ -181,7 +180,7 @@ class ComicVineTalker(ComicTalker):
             logo="comictalker/talkers/logos/comicvine.png",
         )
         self.static_options = SourceStaticOptions(
-            logo_url="",
+            logo_url="",  # Unable to find a viable URL. Current logo is SVG using CSS
             website="https://comicvine.gamespot.com/",
             has_issues=True,
             has_alt_covers=True,
@@ -560,35 +559,13 @@ class ComicVineTalker(ComicTalker):
 
         return formatted_search_results
 
-    # To support volume only searching
-    def fetch_volume_data(self, series_id: int) -> GenericMetadata:
-        # TODO New cache table or expand current? Makes sense to cache as multiple chapters will want the same data
-        # How to format people in cache? characters and locations can be csv.
-
-        volume_url = urljoin(self.api_base_url, f"volume/{CVTypeID.Volume}-{series_id}")
-
-        params = {
-            "api_key": self.api_key,
-            "format": "json",
-            "field_list": "name,id,start_year,publisher,count_of_issues,site_detail_url,description,characters,people,locations",
-        }
-        cv_response = self.get_cv_content(volume_url, params)
-
-        volume_results = cast(CVVolumeFullResult, cv_response["results"])
-
-        return self.map_cv_volume_data_to_metadata(volume_results)
-
     # Get issue or volume information
     def fetch_comic_data(self, issue_id: int = 0, series_id: int = 0, issue_number: str = "") -> GenericMetadata:
         comic_data = GenericMetadata()
-        # TODO remove has_issues check? Enables testing. Possibly add source option to only get volume info?
-        if self.static_options.has_issues and issue_number and series_id:
+        if issue_number and series_id:
             comic_data = self.fetch_issue_data(series_id, issue_number)
         elif issue_id:
             comic_data = self.fetch_issue_data_by_issue_id(issue_id)
-        else:
-            # Only retrieve the volume data
-            comic_data = self.fetch_volume_data(series_id)
 
         return comic_data
 
@@ -794,57 +771,6 @@ class ComicVineTalker(ComicTalker):
             self.settings_options["remove_html_tables"]["value"],
             self.settings_options["use_series_start_as_volume"]["value"],
         )
-
-    # To support volume only searching. For testing only. # TODO Delete or create ComicIssue to then map
-    def map_cv_volume_data_to_metadata(self, volume_results: CVVolumeFullResult) -> GenericMetadata:
-
-        # Now, map the Comic Vine data to generic metadata
-        metadata = GenericMetadata()
-        metadata.is_empty = False
-
-        metadata.series = utils.xlate(volume_results["name"])
-
-        if volume_results["publisher"] is not None:
-            metadata.publisher = utils.xlate(volume_results["publisher"]["name"])
-        metadata.year = utils.xlate(volume_results["start_year"], True)
-
-        metadata.comments = talker_utils.cleanup_html(
-            volume_results["description"], self.settings_options["remove_html_tables"]["value"]
-        )
-        if self.settings_options["use_series_start_as_volume"]["value"]:
-            metadata.volume = utils.xlate(volume_results["start_year"], True)
-
-        metadata.notes = (
-            f"Tagged with ComicTagger {ctversion.version} using info from {self.source_name_friendly} on"
-            f" {datetime.now():%Y-%m-%d %H:%M:%S}.  [Volume ID {volume_results['id']}]"
-        )
-        metadata.web_link = volume_results["site_detail_url"]
-
-        # TODO No role is given. No unknown role, ignore or presume artist
-        if "people" in volume_results:
-            person_credits = volume_results["people"]
-            for person in person_credits:
-                if "role" in person:
-                    roles = person["role"].split(",")
-                    for role in roles:
-                        # can we determine 'primary' from CV??
-                        metadata.add_credit(person["name"], role.title().strip(), False)
-
-        if "characters" in volume_results:
-            character_credits = volume_results["characters"]
-            character_list = []
-            for character in character_credits:
-                character_list.append(character["name"])
-            metadata.characters = ", ".join(character_list)
-
-        if "locations" in volume_results:
-            location_credits = volume_results["locations"]
-            location_list = []
-            for location in location_credits:
-                location_list.append(location["name"])
-            metadata.locations = ", ".join(location_list)
-
-        return metadata
 
     def repair_urls(self, issue_list: list[CVIssueDetailResults]) -> None:
         # make sure there are URLs for the image fields
