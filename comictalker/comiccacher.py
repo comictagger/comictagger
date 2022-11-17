@@ -183,7 +183,7 @@ class ComicCacher:
                     count_of_issues=record[7],
                     start_year=record[8],
                     image_url=record[9],
-                    aliases=record[10].split("\n") if record[10] else [],
+                    aliases=record[10].strip().splitlines(),
                     description=record[11],
                 )
 
@@ -280,7 +280,7 @@ class ComicCacher:
                 count_of_issues=row[3],
                 start_year=row[4],
                 image_url=row[5],
-                aliases=row[6].split("\n") if row[6] else [],
+                aliases=row[6].strip().splitlines(),
                 description=row[7],
             )
 
@@ -322,13 +322,13 @@ class ComicCacher:
                     image_url=row[6],
                     description=row[8],
                     volume=volume,
-                    aliases=row[9].split("\n") if row[9] else [],
-                    alt_image_urls=row[10].split("\n") if row[10] else [],
-                    characters=row[11].split("\n") if row[11] else [],
-                    locations=row[12].split("\n") if row[12] else [],
+                    aliases=row[9].strip().splitlines(),
+                    alt_image_urls=row[10].strip().splitlines(),
+                    characters=row[11].strip().splitlines(),
+                    locations=row[12].strip().splitlines(),
                     credits=json.loads(row[13]),
-                    teams=row[14].split("\n") if row[14] else [],
-                    story_arcs=row[15].split("\n") if row[15] else [],
+                    teams=row[14].strip().splitlines(),
+                    story_arcs=row[15].strip().splitlines(),
                     complete=bool(row[16]),
                 )
 
@@ -374,13 +374,13 @@ class ComicCacher:
                     image_thumb_url=row[7],
                     description=row[8],
                     volume=volume,
-                    aliases=row[9].split("\n") if row[9] else [],
-                    alt_image_urls=row[11].split("\n") if row[11] else [],
-                    characters=row[12].split("\n") if row[12] else [],
-                    locations=row[13].split("\n") if row[13] else [],
+                    aliases=row[9].strip().splitlines(),
+                    alt_image_urls=row[11].strip().splitlines(),
+                    characters=row[12].strip().splitlines(),
+                    locations=row[13].strip().splitlines(),
                     credits=json.loads(row[14]),
-                    teams=row[15].split("\n") if row[15] else [],
-                    story_arcs=row[16].split("\n") if row[16] else [],
+                    teams=row[15].strip().splitlines(),
+                    story_arcs=row[16].strip().splitlines(),
                     complete=bool(row[17]),
                 )
 

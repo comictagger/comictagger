@@ -366,15 +366,12 @@ class ComicVineTalker(ComicTalker):
             if record.get("publisher") is None:
                 pub_name = ""
             else:
-                pub_name = record["publisher"]["name"]
+                pub_name = record["publisher"].get("name", "")
 
             if record.get("image") is None:
                 image_url = ""
             else:
-                if record["image"].get("super_url") is None:
-                    image_url = ""
-                else:
-                    image_url = record["image"]["super_url"]
+                image_url = record["image"].get("super_url", "")
 
             if record.get("start_year") is None:
                 start_year = 0
@@ -383,7 +380,7 @@ class ComicVineTalker(ComicTalker):
 
             formatted_results.append(
                 ComicVolume(
-                    aliases=record["aliases"].split("\n") if record["aliases"] else [],
+                    aliases=record["aliases"].split("\n") if record["aliases"] else [],  # CV returns a null because...?
                     count_of_issues=record.get("count_of_issues", 0),
                     description=record.get("description", ""),
                     id=record["id"],
@@ -411,10 +408,7 @@ class ComicVineTalker(ComicTalker):
 
             alt_images_list = []
             for alt in record["associated_images"]:
-                # Convert to comma separated
                 alt_images_list.append(alt["original_url"])
-
-            alt_image_urls = alt_images_list
 
             character_list = []
             if record.get("character_credits"):
@@ -453,7 +447,7 @@ class ComicVineTalker(ComicTalker):
                     name=record["name"],
                     site_detail_url=record.get("site_detail_url", ""),
                     volume=cast(ComicVolume, record["volume"]),
-                    alt_image_urls=alt_image_urls,
+                    alt_image_urls=alt_images_list,
                     characters=character_list,
                     locations=location_list,
                     teams=teams_list,
@@ -472,7 +466,6 @@ class ComicVineTalker(ComicTalker):
         refresh_cache: bool = False,
         literal: bool = False,
     ) -> list[ComicVolume]:
-
         # Sanitize the series name for comicvine searching, comicvine search ignore symbols
         search_series_name = utils.sanitize_title(series_name, literal)
         logger.info(f"{self.source_name_friendly} searching: {search_series_name}")
@@ -550,7 +543,7 @@ class ComicVineTalker(ComicTalker):
             if callback is not None:
                 callback(current_result_count, total_result_count)
 
-        # Format result to ComicSearchResult
+        # Format result to ComicIssue
         formatted_search_results = self.format_search_results(search_results)
 
         # Cache these search results, even if it's literal we cache the results
@@ -570,8 +563,6 @@ class ComicVineTalker(ComicTalker):
         return comic_data
 
     def fetch_partial_volume_data(self, series_id: int) -> ComicVolume:
-        # This is still required over fetch_volume_data because this can use the cache whereas fetch_volume_data always
-        # requires an API call
         # before we search online, look in our cache, since we might already have this info
         cvc = ComicCacher()
         cached_volume_result = cvc.get_volume_info(series_id, self.source_name)
@@ -772,6 +763,7 @@ class ComicVineTalker(ComicTalker):
             self.settings_options["use_series_start_as_volume"]["value"],
         )
 
+    # TODO Why is this required? Was this to get around ii and empty URL?
     def repair_urls(self, issue_list: list[CVIssueDetailResults]) -> None:
         # make sure there are URLs for the image fields
         for issue in issue_list:
