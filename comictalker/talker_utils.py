@@ -172,19 +172,21 @@ def cleanup_html(string: str, remove_html_tables: bool) -> str:
                     if len(cols) != 0:
                         rows.append(cols)
                 # now we have the data, make it into text
-                fmtstr = ""
+                fmtstr = "|"
                 for w in col_widths:
                     fmtstr += f" {{:{w + 1}}}|"
-                width = sum(col_widths) + len(col_widths) * 2
                 table_text = ""
                 counter = 0
                 for row in rows:
                     table_text += fmtstr.format(*row) + "\n"
                     if counter == 0 and len(hdrs) != 0:
-                        table_text += "-" * width + "\n"
+                        table_text += "|"
+                        for w in col_widths:
+                            table_text += "-" * (w + 2) + "|"
+                        table_text += "\n"
                     counter += 1
 
-                table_strings.append(table_text)
+                table_strings.append(table_text + "\n")
 
             newstring = newstring.format(*table_strings)
         except Exception:
