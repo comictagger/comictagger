@@ -415,151 +415,103 @@ class IssueIdentifier:
         # now sort the list by name length
         series_second_round_list.sort(key=lambda x: len(x["name"]), reverse=False)
 
-        # If the sources lacks issue level data, don't look for it.
-        if not self.talker_api.static_options.has_issues:
+        # build a list of volume IDs
+        volume_id_list = []
+        for series in series_second_round_list:
+            volume_id_list.append(series["id"])
+
+        issue_list = None
+        try:
+            if len(volume_id_list) > 0:
+                issue_list = self.talker_api.fetch_issues_by_volume_issue_num_and_year(
+                    volume_id_list, keys["issue_number"], keys["year"]
+                )
+        except TalkerError as e:
+            self.log_msg(f"Issue with while searching for series details. Aborting...\n{e}")
+            return []
+
+        if issue_list is None:
+            return []
+
+        shortlist = []
+        # now re-associate the issues and volumes
+        for issue in issue_list:
             for series in series_second_round_list:
-                hash_list = [cover_hash]
-                if narrow_cover_hash is not None:
-                    hash_list.append(narrow_cover_hash)
+                if series["id"] == issue["volume"]["id"]:
+                    shortlist.append((series, issue))
+                    break
 
-                try:
-                    image_url = series["image_url"]
-                    thumb_url = series["image_url"]
-
-                    score_item = self.get_issue_cover_match_score(
-                        series["id"],
-                        image_url,
-                        thumb_url,
-                        [],  # Only required for alt covers
-                        hash_list,
-                        use_remote_alternates=False,
-                    )
-                except Exception:
-                    self.match_list = []
-                    return self.match_list
-
-                match: IssueResult = {
-                    "series": f"{series['name']} ({series['start_year']})",
-                    "distance": score_item["score"],
-                    "issue_number": "",
-                    "cv_issue_count": series["count_of_issues"],
-                    "url_image_hash": score_item["hash"],
-                    "issue_title": series["name"],
-                    "issue_id": 0,
-                    "volume_id": series["id"],
-                    "month": 0,
-                    "year": series["start_year"],
-                    "publisher": series["publisher"],
-                    "image_url": image_url,
-                    "thumb_url": thumb_url,
-                    "alt_image_urls": [],
-                    "description": series["description"],
-                }
-
-                self.match_list.append(match)
-
-                self.log_msg(f" --> {match['distance']}", newline=False)
-
-                self.log_msg("")
+        if keys["year"] is None:
+            self.log_msg(f"Found {len(shortlist)} series that have an issue #{keys['issue_number']}")
         else:
-            # build a list of volume IDs
-            volume_id_list = []
-            for series in series_second_round_list:
-                volume_id_list.append(series["id"])
+            self.log_msg(
+                f"Found {len(shortlist)} series that have an issue #{keys['issue_number']} from {keys['year']}"
+            )
 
-            issue_list = None
+        # now we have a shortlist of volumes with the desired issue number
+        # Do first round of cover matching
+        counter = len(shortlist)
+        for series, issue in shortlist:
+            if self.callback is not None:
+                self.callback(counter, len(shortlist) * 3)
+                counter += 1
+
+            self.log_msg(
+                f"Examining covers for  ID: {series['id']} {series['name']} ({series['start_year']}) ...",
+                newline=False,
+            )
+
+            # parse out the cover date
+            _, month, year = parse_date_str(issue["cover_date"])
+
+            # Now check the cover match against the primary image
+            hash_list = [cover_hash]
+            if narrow_cover_hash is not None:
+                hash_list.append(narrow_cover_hash)
+
             try:
-                if len(volume_id_list) > 0:
-                    issue_list = self.talker_api.fetch_issues_by_volume_issue_num_and_year(
-                        volume_id_list, keys["issue_number"], keys["year"]
-                    )
-            except TalkerError as e:
-                self.log_msg(f"Issue with while searching for series details. Aborting...\n{e}")
-                return []
+                image_url = issue["image_url"]
+                thumb_url = issue["image_thumb_url"]
+                alt_urls = issue["alt_image_urls"]
 
-            if issue_list is None:
-                return []
-
-            shortlist = []
-            # now re-associate the issues and volumes
-            for issue in issue_list:
-                for series in series_second_round_list:
-                    if series["id"] == issue["volume"]["id"]:
-                        shortlist.append((series, issue))
-                        break
-
-            if keys["year"] is None:
-                self.log_msg(f"Found {len(shortlist)} series that have an issue #{keys['issue_number']}")
-            else:
-                self.log_msg(
-                    f"Found {len(shortlist)} series that have an issue #{keys['issue_number']} from {keys['year']}"
+                score_item = self.get_issue_cover_match_score(
+                    issue["id"],
+                    image_url,
+                    thumb_url,
+                    alt_urls,
+                    hash_list,
+                    use_remote_alternates=False,
                 )
+            except Exception:
+                self.match_list = []
+                return self.match_list
 
-            # now we have a shortlist of volumes with the desired issue number
-            # Do first round of cover matching
-            counter = len(shortlist)
-            for series, issue in shortlist:
-                if self.callback is not None:
-                    self.callback(counter, len(shortlist) * 3)
-                    counter += 1
+            match: IssueResult = {
+                "series": f"{series['name']} ({series['start_year']})",
+                "distance": score_item["score"],
+                "issue_number": keys["issue_number"],
+                "cv_issue_count": series["count_of_issues"],
+                "url_image_hash": score_item["hash"],
+                "issue_title": issue["name"],
+                "issue_id": issue["id"],
+                "volume_id": series["id"],
+                "month": month,
+                "year": year,
+                "publisher": None,
+                "image_url": image_url,
+                "thumb_url": thumb_url,
+                # "page_url": page_url,
+                "alt_image_urls": alt_urls,
+                "description": issue["description"],
+            }
+            if series["publisher"] is not None:
+                match["publisher"] = series["publisher"]
 
-                self.log_msg(
-                    f"Examining covers for  ID: {series['id']} {series['name']} ({series['start_year']}) ...",
-                    newline=False,
-                )
+            self.match_list.append(match)
 
-                # parse out the cover date
-                _, month, year = parse_date_str(issue["cover_date"])
+            self.log_msg(f" --> {match['distance']}", newline=False)
 
-                # Now check the cover match against the primary image
-                hash_list = [cover_hash]
-                if narrow_cover_hash is not None:
-                    hash_list.append(narrow_cover_hash)
-
-                try:
-                    image_url = issue["image_url"]
-                    thumb_url = issue["image_thumb_url"]
-                    page_url = issue["site_detail_url"]
-                    alt_urls = issue["alt_image_urls"]
-
-                    score_item = self.get_issue_cover_match_score(
-                        issue["id"],
-                        image_url,
-                        thumb_url,
-                        alt_urls,
-                        hash_list,
-                        use_remote_alternates=False,
-                    )
-                except Exception:
-                    self.match_list = []
-                    return self.match_list
-
-                match: IssueResult = {
-                    "series": f"{series['name']} ({series['start_year']})",
-                    "distance": score_item["score"],
-                    "issue_number": keys["issue_number"],
-                    "cv_issue_count": series["count_of_issues"],
-                    "url_image_hash": score_item["hash"],
-                    "issue_title": issue["name"],
-                    "issue_id": issue["id"],
-                    "volume_id": series["id"],
-                    "month": month,
-                    "year": year,
-                    "publisher": None,
-                    "image_url": image_url,
-                    "thumb_url": thumb_url,
-                    "page_url": page_url,
-                    "alt_image_urls": alt_urls,
-                    "description": issue["description"],
-                }
-                if series["publisher"] is not None:
-                    match["publisher"] = series["publisher"]
-
-                self.match_list.append(match)
-
-                self.log_msg(f" --> {match['distance']}", newline=False)
-
-                self.log_msg("")
+            self.log_msg("")
 
         if len(self.match_list) == 0:
             self.log_msg(":-( no matches!")

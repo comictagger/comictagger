@@ -164,12 +164,25 @@ def ctmain() -> None:
 
     talker_failed = False
     try:
-        talker_api = ct_api.get_comic_talker(settings.comic_info_source)()
+        talker_api = ct_api.get_comic_talker("comicvine")(
+            settings.cv_url,
+            settings.cv_api_key,
+            settings.id_series_match_search_thresh,
+            settings.remove_html_tables,
+            settings.use_series_start_as_volume,
+            settings.wait_and_retry_on_rate_limit,
+        )
     except TalkerError as te:
         talker_failed = True
         logger.warning(f"Unable to load talker {te.source}. Error: {te.desc}. Defaulting to Comic Vine.")
-        settings.comic_info_source = "comicvine"
-        talker_api = ct_api.get_comic_talker("comicvine")()
+        talker_api = ct_api.get_comic_talker("comicvine")(
+            settings.cv_url,
+            settings.cv_api_key,
+            settings.id_series_match_search_thresh,
+            settings.remove_html_tables,
+            settings.use_series_start_as_volume,
+            settings.wait_and_retry_on_rate_limit,
+        )
 
     utils.load_publishers()
     update_publishers()

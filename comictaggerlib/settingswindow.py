@@ -20,12 +20,9 @@ import logging
 import os
 import pathlib
 import platform
-import webbrowser
-from urllib.parse import urlparse
 
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
-import comictalker.comictalkerapi as ct_api
 from comicapi import utils
 from comicapi.genericmetadata import md_test
 from comictaggerlib.filerenamer import FileRenamer
@@ -141,8 +138,6 @@ class SettingsWindow(QtWidgets.QDialog):
         )
 
         self.settings = settings
-        # TODO Quick hack to allow menus to work
-        self.available_talkers = ct_api.get_talkers()
         self.talker_api = talker_api
         self.name = "Settings"
 
@@ -192,6 +187,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.btnBrowseRar.clicked.connect(self.select_rar)
         self.btnClearCache.clicked.connect(self.clear_cache)
         self.btnResetSettings.clicked.connect(self.reset_settings)
+        self.btnTestKey.clicked.connect(self.test_api_key)
         self.btnTemplateHelp.clicked.connect(self.show_template_help)
         self.leRenameTemplate.textEdited.connect(self._rename_test)
         self.cbxMoveFiles.clicked.connect(self.rename_test)
@@ -199,136 +195,6 @@ class SettingsWindow(QtWidgets.QDialog):
         self.cbxRenameStrict.clicked.connect(self.rename_test)
         self.leDirectory.textEdited.connect(self.dir_test)
         self.cbxComplicatedParser.clicked.connect(self.switch_parser)
-
-        self.sources: dict = {}
-        self.generate_source_option_tabs()
-
-    def generate_source_option_tabs(self) -> None:
-        # TODO Move to utils?
-        def open_web_link(link) -> None:
-            if link is not None:
-                web_link = link.strip()
-                try:
-                    result = urlparse(web_link)
-                    all([result.scheme in ["http", "https"], result.netloc])
-                    webbrowser.open_new_tab(web_link)
-                except ValueError:
-                    QtWidgets.QMessageBox.warning(self, "Web Link", "Web Link is invalid.")
-
-        # Add source sub tabs to Comic Sources tab
-        for source_cls in self.available_talkers.values():
-            # TODO Remove hack
-            source = source_cls()
-            # Add source to general tab dropdown list
-            self.cobxInfoSource.addItem(source.source_details.name, source.source_details.id)
-            # Use a dict to make a var name from var
-            source_info = {}
-            tab_name = source.source_details.id
-            source_info[tab_name] = {"tab": QtWidgets.QWidget(), "widgets": {}}
-            layout_grid = QtWidgets.QGridLayout()
-            row = 0
-
-            # Add logo and web link if available
-            if source.static_options.website:
-                source_label_logo = QtGui.QPixmap(source.source_details.logo)
-
-                source_website_icon_link = QtWidgets.QPushButton()
-                source_website_icon_link.clicked.connect(
-                    lambda state, w=source.static_options.website: open_web_link(w)
-                )
-                source_website_icon_link.setToolTip(f"Click to visit website: {source.static_options.website}")
-                source_website_icon_link.setMaximumSize(250, 100)
-
-                if source_label_logo.isNull():
-                    source_website_icon_link.setFont(QtGui.QFont("Arial", 14, 3))
-                    source_website_icon_link.setText(source.source_details.name)
-                else:
-                    if source_label_logo.height() > 100 or source_label_logo.width() > 250:
-                        source_label_logo = source_label_logo.scaled(
-                            250, 100, QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation
-                        )
-
-                    source_website_icon_link.setIconSize(QtCore.QSize(source_label_logo.rect().size()))
-                    source_website_icon_link.setFixedSize(QtCore.QSize(source_label_logo.rect().size()))
-                    source_website_icon_link.setIcon(QtGui.QIcon(source_label_logo))
-                    source_website_icon_link.setFlat(True)
-
-                layout_grid.addWidget(source_website_icon_link, row, 0, 1, -1)
-                row += 1
-
-            for option in source.settings_options.values():
-                if not option["hidden"]:
-                    current_widget = None
-                    if option["type"] is bool:
-                        # bool equals a checkbox (QCheckBox)
-                        current_widget = QtWidgets.QCheckBox(option["text"])
-                        # Set widget status
-                        # This works because when a talker class is initialised it loads its settings from disk
-                        if option["value"]:
-                            current_widget.setChecked(option["value"])
-                        # Add widget and span all columns
-                        layout_grid.addWidget(current_widget, row, 0, 1, -1)
-                    if option["type"] is int:
-                        # int equals a spinbox (QSpinBox)
-                        lbl = QtWidgets.QLabel(option["text"])
-                        # Create a label
-                        layout_grid.addWidget(lbl, row, 0)
-                        current_widget = QtWidgets.QSpinBox()
-                        current_widget.setRange(0, 9999)
-                        if option["value"]:
-                            current_widget.setValue(option["value"])
-                        layout_grid.addWidget(current_widget, row, 1, alignment=QtCore.Qt.AlignLeft)
-                    if option["type"] is float:
-                        # float equals a spinbox (QDoubleSpinBox)
-                        lbl = QtWidgets.QLabel(option["text"])
-                        # Create a label
-                        layout_grid.addWidget(lbl, row, 0)
-                        current_widget = QtWidgets.QDoubleSpinBox()
-                        current_widget.setRange(0, 9999.99)
-                        if option["value"]:
-                            current_widget.setValue(option["value"])
-                        layout_grid.addWidget(current_widget, row, 1, alignment=QtCore.Qt.AlignLeft)
-                    if option["type"] is str:
-                        # str equals a text field (QLineEdit)
-                        lbl = QtWidgets.QLabel(option["text"])
-                        # Create a label
-                        layout_grid.addWidget(lbl, row, 0)
-                        current_widget = QtWidgets.QLineEdit()
-                        # Set widget status
-                        if option["value"]:
-                            current_widget.setText(option["value"])
-                        layout_grid.addWidget(current_widget, row, 1)
-                        # Special case for api_key, make a test button
-                        if option["name"] == "api_key":
-                            btn = QtWidgets.QPushButton("Test Key")
-                            layout_grid.addWidget(btn, row, 2)
-                            btn.clicked.connect(lambda state, key=source.source_details.id: self.test_api_key(key))
-                    row += 1
-
-                    if current_widget:
-                        # Add tooltip text
-                        current_widget.setToolTip(option["help_text"])
-
-                        source_info[tab_name]["widgets"][option["name"]] = current_widget
-                    else:
-                        # An empty current_widget implies an unsupported type
-                        logger.info(f"Unsupported talker option found. Name: {option['name']} Type: {option['type']}")
-
-            # Add vertical spacer
-            vspacer = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-            layout_grid.addItem(vspacer, row, 0)
-            # Display the new widgets
-            source_info[tab_name]["tab"].setLayout(layout_grid)
-
-            # Add new sub tab to Comic Source tab
-            self.tComicSourcesOptions.addTab(source_info[tab_name]["tab"], source.source_details.name)
-            self.sources.update(source_info)
-
-        # Select active source in dropdown
-        self.cobxInfoSource.setCurrentIndex(self.cobxInfoSource.findData(self.settings.comic_info_source))
-
-        # Set General as start tab
-        self.tabWidget.setCurrentIndex(0)
 
     def rename_test(self) -> None:
         self._rename_test(self.leRenameTemplate.text())
@@ -373,11 +239,16 @@ class SettingsWindow(QtWidgets.QDialog):
         self.cbxRemovePublisher.setChecked(self.settings.remove_publisher)
         self.switch_parser()
 
-        self.cbxClearFormBeforePopulating.setChecked(self.settings.clear_form_before_populating)
+        self.cbxUseSeriesStartAsVolume.setChecked(self.settings.use_series_start_as_volume)
+        self.cbxClearFormBeforePopulating.setChecked(self.settings.clear_form_before_populating_from_cv)
+        self.cbxRemoveHtmlTables.setChecked(self.settings.remove_html_tables)
 
         self.cbxUseFilter.setChecked(self.settings.always_use_publisher_filter)
         self.cbxSortByYear.setChecked(self.settings.sort_series_by_year)
         self.cbxExactMatches.setChecked(self.settings.exact_series_matches_first)
+
+        self.leKey.setText(self.settings.cv_api_key)
+        self.leURL.setText(self.settings.cv_url)
 
         self.cbxAssumeLoneCreditIsPrimary.setChecked(self.settings.assume_lone_credit_is_primary)
         self.cbxCopyCharactersToTags.setChecked(self.settings.copy_characters_to_tags)
@@ -386,7 +257,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.cbxCopyStoryArcsToTags.setChecked(self.settings.copy_storyarcs_to_tags)
         self.cbxCopyNotesToComments.setChecked(self.settings.copy_notes_to_comments)
         self.cbxCopyWebLinkToComments.setChecked(self.settings.copy_weblink_to_comments)
-        self.cbxApplyCBLTransformOnCVIMport.setChecked(self.settings.apply_cbl_transform_on_ct_import)
+        self.cbxApplyCBLTransformOnCVIMport.setChecked(self.settings.apply_cbl_transform_on_cv_import)
         self.cbxApplyCBLTransformOnBatchOperation.setChecked(self.settings.apply_cbl_transform_on_bulk_operation)
 
         self.leRenameTemplate.setText(self.settings.rename_template)
@@ -442,21 +313,27 @@ class SettingsWindow(QtWidgets.QDialog):
         self.settings.id_series_match_identify_thresh = self.sbNameMatchIdentifyThresh.value()
         self.settings.id_series_match_search_thresh = self.sbNameMatchSearchThresh.value()
         self.settings.id_publisher_filter = str(self.tePublisherFilter.toPlainText())
-        self.settings.comic_info_source = str(self.cobxInfoSource.itemData(self.cobxInfoSource.currentIndex()))
-        # Also change current talker_api object
-        if self.settings.comic_info_source != self.talker_api.source_details.id:
-            self.talker_api = ct_api.get_comic_talker(self.settings.comic_info_source)()
 
         self.settings.complicated_parser = self.cbxComplicatedParser.isChecked()
         self.settings.remove_c2c = self.cbxRemoveC2C.isChecked()
         self.settings.remove_fcbd = self.cbxRemoveFCBD.isChecked()
         self.settings.remove_publisher = self.cbxRemovePublisher.isChecked()
 
-        self.settings.clear_form_before_populating = self.cbxClearFormBeforePopulating.isChecked()
+        self.settings.use_series_start_as_volume = self.cbxUseSeriesStartAsVolume.isChecked()
+        self.settings.clear_form_before_populating_from_cv = self.cbxClearFormBeforePopulating.isChecked()
+        self.settings.remove_html_tables = self.cbxRemoveHtmlTables.isChecked()
+
         self.settings.always_use_publisher_filter = self.cbxUseFilter.isChecked()
         self.settings.sort_series_by_year = self.cbxSortByYear.isChecked()
         self.settings.exact_series_matches_first = self.cbxExactMatches.isChecked()
 
+        # Ignore empty field
+        if self.leKey.text().strip():
+            self.settings.cv_api_key = self.leKey.text().strip()
+            self.talker_api.api_key = self.settings.cv_api_key
+        if self.leURL.text().strip():
+            self.settings.cv_url = self.leURL.text().strip()
+            self.talker_api.api_base_url = self.settings.cv_url
         self.settings.assume_lone_credit_is_primary = self.cbxAssumeLoneCreditIsPrimary.isChecked()
         self.settings.copy_characters_to_tags = self.cbxCopyCharactersToTags.isChecked()
         self.settings.copy_teams_to_tags = self.cbxCopyTeamsToTags.isChecked()
@@ -464,7 +341,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.settings.copy_storyarcs_to_tags = self.cbxCopyStoryArcsToTags.isChecked()
         self.settings.copy_notes_to_comments = self.cbxCopyNotesToComments.isChecked()
         self.settings.copy_weblink_to_comments = self.cbxCopyWebLinkToComments.isChecked()
-        self.settings.apply_cbl_transform_on_ct_import = self.cbxApplyCBLTransformOnCVIMport.isChecked()
+        self.settings.apply_cbl_transform_on_cv_import = self.cbxApplyCBLTransformOnCVIMport.isChecked()
         self.settings.apply_cbl_transform_on_bulk_operation = self.cbxApplyCBLTransformOnBatchOperation.isChecked()
 
         self.settings.rename_template = str(self.leRenameTemplate.text())
@@ -475,57 +352,6 @@ class SettingsWindow(QtWidgets.QDialog):
         self.settings.rename_dir = self.leDirectory.text()
 
         self.settings.rename_strict = self.cbxRenameStrict.isChecked()
-
-        # Read settings from sources tabs and generate self.settings.config data
-        for source_cls in self.available_talkers.values():
-            # TODO Remove hack
-            source = source_cls()
-            source_info = self.sources[source.source_details.id]
-            if not self.settings.config.has_section(source.source_details.id):
-                self.settings.config.add_section(source.source_details.id)
-            # Iterate over sources options and get the tab setting
-            for option in source.settings_options.values():
-                # Only save visible here
-                if option["name"] in source_info["widgets"]:
-                    # Set the tab setting for the talker class var
-                    if option["type"] is bool:
-                        current_widget: QtWidgets.QCheckBox = source_info["widgets"][option["name"]]
-                        option["value"] = current_widget.isChecked()
-                    if option["type"] is int:
-                        current_widget: QtWidgets.QSpinBox = source_info["widgets"][option["name"]]
-                        option["value"] = current_widget.value()
-                    if option["type"] is float:
-                        current_widget: QtWidgets.QDoubleSpinBox = source_info["widgets"][option["name"]]
-                        option["value"] = current_widget.value()
-                    if option["type"] is str:
-                        current_widget: QtWidgets.QLineEdit = source_info["widgets"][option["name"]]
-                        option["value"] = current_widget.text().strip()
-
-                else:
-                    # Handle hidden, assume changed programmatically
-                    if option["name"] == "enabled":
-                        # Set to disabled if is not the selected talker
-                        if source.source_details.id != self.settings.comic_info_source:
-                            source.settings_options["enabled"]["value"] = False
-                        else:
-                            source.settings_options["enabled"]["value"] = True
-                    else:
-                        # Ensure correct type
-                        if option["type"] is bool:
-                            option["value"] = bool(option["value"])
-                        if option["type"] is int:
-                            option["value"] = int(option["value"])
-                        if option["type"] is float:
-                            option["value"] = float(option["value"])
-                        if option["type"] is str:
-                            option["value"] = str(option["value"]).strip()
-
-                # Save out option
-                self.settings.config.set(source.source_details.id, option["name"], option["value"])
-
-                # Update talker options in object
-                if source.source_details.id == self.talker_api.source_details.id:
-                    self.talker_api.settings_options[option["name"]]["value"] = option["value"]
 
         self.settings.save()
         QtWidgets.QDialog.accept(self)
@@ -538,18 +364,11 @@ class SettingsWindow(QtWidgets.QDialog):
         ComicCacher().clear_cache()
         QtWidgets.QMessageBox.information(self, self.name, "Cache has been cleared.")
 
-    def test_api_key(self, source_id) -> None:
-        # TODO Only allow testing of active talker?
-        if source_id == self.settings.comic_info_source:
-            key = self.sources[source_id]["widgets"]["api_key"].text().strip()
-            url = self.sources[source_id]["widgets"]["url_root"].text().strip()
-
-            if self.talker_api.check_api_key(key, url):
-                QtWidgets.QMessageBox.information(self, "API Key Test", "Key is valid!")
-            else:
-                QtWidgets.QMessageBox.warning(self, "API Key Test", "Key is NOT valid!")
+    def test_api_key(self) -> None:
+        if self.talker_api.check_api_key(self.leKey.text().strip(), self.leURL.text().strip()):
+            QtWidgets.QMessageBox.information(self, "API Key Test", "Key is valid!")
         else:
-            QtWidgets.QMessageBox.warning(self, "API Key Test", "Can only test active comic source.")
+            QtWidgets.QMessageBox.warning(self, "API Key Test", "Key is NOT valid.")
 
     def reset_settings(self) -> None:
         self.settings.reset()

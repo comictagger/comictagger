@@ -50,7 +50,7 @@ def actual_issue_data_fetch(
         logger.exception(f"Error retrieving issue details. Save aborted.\n{e}")
         return GenericMetadata()
 
-    if settings.apply_cbl_transform_on_ct_import:
+    if settings.apply_cbl_transform_on_cv_import:
         ct_md = CBLTransformer(ct_md, settings).apply()
 
     return ct_md
@@ -399,7 +399,7 @@ def process_file_cli(
                     match_results.no_matches.append(str(ca.path.absolute()))
                     return
 
-                if settings.apply_cbl_transform_on_ct_import:
+                if settings.apply_cbl_transform_on_cv_import:
                     ct_md = CBLTransformer(ct_md, settings).apply()
             else:
                 if md is None or md.is_empty:

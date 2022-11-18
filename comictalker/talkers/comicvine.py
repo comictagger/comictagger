@@ -29,7 +29,6 @@ from comicapi import utils
 from comicapi.genericmetadata import GenericMetadata
 from comicapi.issuestring import IssueString
 from comictaggerlib import ctversion
-from comictaggerlib.settings import ComicTaggerSettings
 from comictalker.comiccacher import ComicCacher
 from comictalker.resulttypes import ComicIssue, ComicVolume, Credits
 from comictalker.talkerbase import (
@@ -172,13 +171,16 @@ CV_RATE_LIMIT_STATUS = 107
 
 
 class ComicVineTalker(ComicTalker):
-    def __init__(self, series_match_thresh: int = 90) -> None:
+    def __init__(
+        self, api_url, api_key, series_match_thresh, remove_html_tables, use_series_start_as_volume, wait_on_ratelimit
+    ):
         super().__init__()
         self.source_details = SourceDetails(
             name="Comic Vine",
             ident="comicvine",
             logo="comictalker/talkers/logos/comicvine.png",
         )
+        # TODO Remove or leave in for future?
         self.static_options = SourceStaticOptions(
             logo_url="",  # Unable to find a viable URL. Current logo is SVG using CSS
             website="https://comicvine.gamespot.com/",
@@ -188,6 +190,7 @@ class ComicVineTalker(ComicTalker):
             has_nsfw=False,
             has_censored_covers=False,
         )
+        # TODO Remove or leave in for future?
         self.settings_options = {
             "enabled": SourceSettingsOptions(
                 name="enabled", text="Enabled", help_text="", hidden=True, type=bool, value=True
@@ -247,20 +250,17 @@ class ComicVineTalker(ComicTalker):
         self.source_name = self.source_details.id
         self.source_name_friendly = self.source_details.name
 
-        # Overwrite any source_details.options that have saved settings
-        source_settings = ComicTaggerSettings.get_source_settings(self.source_name, self.settings_options)
-
-        if not source_settings:
-            # No saved settings, do something?
-            ...
-
-        self.wait_for_rate_limit = self.settings_options["wait_on_ratelimit"]["value"]
-        self.wait_for_rate_limit_time = self.settings_options["ratelimit_waittime"]["value"]
+        self.wait_for_rate_limit = wait_on_ratelimit
+        # NOTE: This was hardcoded before which is why it isn't passed in
+        self.wait_for_rate_limit_time = 20
 
         self.issue_id: int | None = None
 
-        self.api_key = self.settings_options["api_key"]["value"]
-        self.api_base_url = self.settings_options["url_root"]["value"]
+        self.api_key = api_key if api_key else "27431e6787042105bd3e47e169a624521f89f3a4"
+        self.api_base_url = api_url if api_url else "https://comicvine.gamespot.com/api"
+
+        self.remove_html_tables = remove_html_tables
+        self.use_series_start_as_volume = use_series_start_as_volume
 
         tmp_url = urlsplit(self.api_base_url)
 
@@ -698,8 +698,8 @@ class ComicVineTalker(ComicTalker):
             return talker_utils.map_comic_issue_to_metadata(
                 f_record,
                 self.source_name_friendly,
-                self.settings_options["remove_html_tables"]["value"],
-                self.settings_options["use_series_start_as_volume"]["value"],
+                self.remove_html_tables,
+                self.use_series_start_as_volume,
             )
 
         if f_record is not None:
@@ -723,8 +723,8 @@ class ComicVineTalker(ComicTalker):
         return talker_utils.map_comic_issue_to_metadata(
             formatted_issues_result[0],
             self.source_name_friendly,
-            self.settings_options["remove_html_tables"]["value"],
-            self.settings_options["use_series_start_as_volume"]["value"],
+            self.remove_html_tables,
+            self.use_series_start_as_volume,
         )
 
     def fetch_issue_data_by_issue_id(self, issue_id: int) -> GenericMetadata:
@@ -736,8 +736,8 @@ class ComicVineTalker(ComicTalker):
             return talker_utils.map_comic_issue_to_metadata(
                 cached_issues_result,
                 self.source_name_friendly,
-                self.settings_options["remove_html_tables"]["value"],
-                self.settings_options["use_series_start_as_volume"]["value"],
+                self.remove_html_tables,
+                self.use_series_start_as_volume,
             )
 
         issue_url = urljoin(self.api_base_url, f"issue/{CVTypeID.Issue}-{issue_id}")
@@ -759,8 +759,8 @@ class ComicVineTalker(ComicTalker):
         return talker_utils.map_comic_issue_to_metadata(
             formatted_issues_result[0],
             self.source_name_friendly,
-            self.settings_options["remove_html_tables"]["value"],
-            self.settings_options["use_series_start_as_volume"]["value"],
+            self.remove_html_tables,
+            self.use_series_start_as_volume,
         )
 
     # TODO Why is this required? Was this to get around ii and empty URL?

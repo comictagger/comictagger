@@ -112,7 +112,7 @@ def comicvine_api(monkeypatch, cbz, comic_cache) -> comictalker.talkers.comicvin
     # apply the monkeypatch for requests.get to mock_get
     monkeypatch.setattr(requests, "get", m_get)
 
-    cv = comictalker.talkers.comicvine.ComicVineTalker()
+    cv = comictalker.talkers.comicvine.ComicVineTalker("", "", 90, False, False, False)
     return cv
 
 

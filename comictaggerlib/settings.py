@@ -41,30 +41,6 @@ class ComicTaggerSettings:
                 ComicTaggerSettings.folder = pathlib.Path(os.path.expanduser("~")) / ".ComicTagger"
         return pathlib.Path(ComicTaggerSettings.folder)
 
-    @staticmethod
-    def get_source_settings(source_name: str, source_settings: dict):
-        def get_type(section: str, setting: dict):
-            if setting["type"] is str:
-                return config.get(section, setting["name"])
-            elif setting["type"] is int:
-                return config.getint(section, setting["name"])
-            elif setting["type"] is float:
-                return config.getfloat(section, setting["name"])
-            elif setting["type"] is bool:
-                return config.getboolean(section, setting["name"])
-
-        settings_dir = ComicTaggerSettings.get_settings_folder()
-        settings_file = os.path.join(settings_dir, "settings")
-        config = configparser.RawConfigParser()
-        try:
-            with open(settings_file, encoding="utf-8") as f:
-                config.read_file(f)
-                for setting in source_settings.values():
-                    setting["value"] = get_type(source_name, setting)
-            return True
-        except Exception:
-            return False
-
     def __init__(self, folder: str | pathlib.Path | None) -> None:
         # General Settings
         self.rar_exe_path = ""
@@ -90,7 +66,6 @@ class ComicTaggerSettings:
         self.id_series_match_search_thresh = 90
         self.id_series_match_identify_thresh = 91
         self.id_publisher_filter = "Panini Comics, Abril, Planeta DeAgostini, Editorial Televisa, Dino Comics"
-        self.comic_info_source = "comicvine"  # Default to CV as should always be present
 
         # Show/ask dialog flags
         self.ask_about_cbi_in_rar = True
@@ -104,8 +79,12 @@ class ComicTaggerSettings:
         self.remove_fcbd = False
         self.remove_publisher = False
 
-        # Comic source general settings
-        self.clear_form_before_populating = False
+        # Comic Vine settings
+        self.use_series_start_as_volume = False
+        self.clear_form_before_populating_from_cv = False
+        self.remove_html_tables = False
+        self.cv_api_key = ""
+        self.cv_url = ""
         self.auto_imprint = False
 
         self.sort_series_by_year = True
@@ -121,7 +100,7 @@ class ComicTaggerSettings:
         self.copy_storyarcs_to_tags = False
         self.copy_notes_to_comments = False
         self.copy_weblink_to_comments = False
-        self.apply_cbl_transform_on_ct_import = False
+        self.apply_cbl_transform_on_cv_import = False
         self.apply_cbl_transform_on_bulk_operation = False
 
         # Rename settings
@@ -230,8 +209,6 @@ class ComicTaggerSettings:
             self.id_series_match_identify_thresh = self.config.getint("identifier", "id_series_match_identify_thresh")
         if self.config.has_option("identifier", "id_publisher_filter"):
             self.id_publisher_filter = self.config.get("identifier", "id_publisher_filter")
-        if self.config.has_option("identifier", "always_use_publisher_filter"):
-            self.always_use_publisher_filter = self.config.getboolean("identifier", "always_use_publisher_filter")
 
         if self.config.has_option("filenameparser", "complicated_parser"):
             self.complicated_parser = self.config.getboolean("filenameparser", "complicated_parser")
@@ -251,18 +228,27 @@ class ComicTaggerSettings:
         if self.config.has_option("dialogflags", "ask_about_usage_stats"):
             self.ask_about_usage_stats = self.config.getboolean("dialogflags", "ask_about_usage_stats")
 
-        if self.config.has_option("comic_source_general", "clear_form_before_populating"):
-            self.clear_form_before_populating = self.config.getboolean(
-                "comic_source_general", "clear_form_before_populating"
+        if self.config.has_option("comicvine", "use_series_start_as_volume"):
+            self.use_series_start_as_volume = self.config.getboolean("comicvine", "use_series_start_as_volume")
+        if self.config.has_option("comicvine", "clear_form_before_populating_from_cv"):
+            self.clear_form_before_populating_from_cv = self.config.getboolean(
+                "comicvine", "clear_form_before_populating_from_cv"
             )
-        if self.config.has_option("comic_source_general", "sort_series_by_year"):
-            self.sort_series_by_year = self.config.getboolean("comic_source_general", "sort_series_by_year")
-        if self.config.has_option("comic_source_general", "exact_series_matches_first"):
-            self.exact_series_matches_first = self.config.getboolean(
-                "comic_source_general", "exact_series_matches_first"
-            )
-        if self.config.has_option("comic_source_general", "comic_info_source"):
-            self.comic_info_source = self.config.get("identifier", "comic_info_source")
+        if self.config.has_option("comicvine", "remove_html_tables"):
+            self.remove_html_tables = self.config.getboolean("comicvine", "remove_html_tables")
+
+        if self.config.has_option("comicvine", "sort_series_by_year"):
+            self.sort_series_by_year = self.config.getboolean("comicvine", "sort_series_by_year")
+        if self.config.has_option("comicvine", "exact_series_matches_first"):
+            self.exact_series_matches_first = self.config.getboolean("comicvine", "exact_series_matches_first")
+        if self.config.has_option("comicvine", "always_use_publisher_filter"):
+            self.always_use_publisher_filter = self.config.getboolean("comicvine", "always_use_publisher_filter")
+
+        if self.config.has_option("comicvine", "cv_api_key"):
+            self.cv_api_key = self.config.get("comicvine", "cv_api_key")
+
+        if self.config.has_option("comicvine", "cv_url"):
+            self.cv_url = self.config.get("comicvine", "cv_url")
 
         if self.config.has_option("cbl_transform", "assume_lone_credit_is_primary"):
             self.assume_lone_credit_is_primary = self.config.getboolean(
@@ -280,9 +266,9 @@ class ComicTaggerSettings:
             self.copy_storyarcs_to_tags = self.config.getboolean("cbl_transform", "copy_storyarcs_to_tags")
         if self.config.has_option("cbl_transform", "copy_weblink_to_comments"):
             self.copy_weblink_to_comments = self.config.getboolean("cbl_transform", "copy_weblink_to_comments")
-        if self.config.has_option("cbl_transform", "apply_cbl_transform_on_ct_import"):
-            self.apply_cbl_transform_on_ct_import = self.config.getboolean(
-                "cbl_transform", "apply_cbl_transform_on_ct_import"
+        if self.config.has_option("cbl_transform", "apply_cbl_transform_on_cv_import"):
+            self.apply_cbl_transform_on_cv_import = self.config.getboolean(
+                "cbl_transform", "apply_cbl_transform_on_cv_import"
             )
         if self.config.has_option("cbl_transform", "apply_cbl_transform_on_bulk_operation"):
             self.apply_cbl_transform_on_bulk_operation = self.config.getboolean(
@@ -357,9 +343,6 @@ class ComicTaggerSettings:
         self.config.set("identifier", "id_series_match_search_thresh", self.id_series_match_search_thresh)
         self.config.set("identifier", "id_series_match_identify_thresh", self.id_series_match_identify_thresh)
         self.config.set("identifier", "id_publisher_filter", self.id_publisher_filter)
-        self.config.set("identifier", "always_use_publisher_filter", self.always_use_publisher_filter)
-
-        self.config.set("identifier", "comic_info_source", self.comic_info_source)
 
         if not self.config.has_section("dialogflags"):
             self.config.add_section("dialogflags")
@@ -377,12 +360,19 @@ class ComicTaggerSettings:
         self.config.set("filenameparser", "remove_fcbd", self.remove_fcbd)
         self.config.set("filenameparser", "remove_publisher", self.remove_publisher)
 
-        if not self.config.has_section("comic_source_general"):
-            self.config.add_section("comic_source_general")
+        if not self.config.has_section("comicvine"):
+            self.config.add_section("comicvine")
 
-        self.config.set("comic_source_general", "clear_form_before_populating", self.clear_form_before_populating)
-        self.config.set("comic_source_general", "sort_series_by_year", self.sort_series_by_year)
-        self.config.set("comic_source_general", "exact_series_matches_first", self.exact_series_matches_first)
+        self.config.set("comicvine", "use_series_start_as_volume", self.use_series_start_as_volume)
+        self.config.set("comicvine", "clear_form_before_populating_from_cv", self.clear_form_before_populating_from_cv)
+        self.config.set("comicvine", "remove_html_tables", self.remove_html_tables)
+
+        self.config.set("comicvine", "sort_series_by_year", self.sort_series_by_year)
+        self.config.set("comicvine", "exact_series_matches_first", self.exact_series_matches_first)
+        self.config.set("comicvine", "always_use_publisher_filter", self.always_use_publisher_filter)
+
+        self.config.set("comicvine", "cv_api_key", self.cv_api_key)
+        self.config.set("comicvine", "cv_url", self.cv_url)
 
         if not self.config.has_section("cbl_transform"):
             self.config.add_section("cbl_transform")
@@ -394,7 +384,7 @@ class ComicTaggerSettings:
         self.config.set("cbl_transform", "copy_storyarcs_to_tags", self.copy_storyarcs_to_tags)
         self.config.set("cbl_transform", "copy_notes_to_comments", self.copy_notes_to_comments)
         self.config.set("cbl_transform", "copy_weblink_to_comments", self.copy_weblink_to_comments)
-        self.config.set("cbl_transform", "apply_cbl_transform_on_ct_import", self.apply_cbl_transform_on_ct_import)
+        self.config.set("cbl_transform", "apply_cbl_transform_on_cv_import", self.apply_cbl_transform_on_cv_import)
         self.config.set(
             "cbl_transform",
             "apply_cbl_transform_on_bulk_operation",
@@ -421,8 +411,6 @@ class ComicTaggerSettings:
         self.config.set("autotag", "remove_archive_after_successful_match", self.remove_archive_after_successful_match)
         self.config.set("autotag", "wait_and_retry_on_rate_limit", self.wait_and_retry_on_rate_limit)
         self.config.set("autotag", "auto_imprint", self.auto_imprint)
-
-        # NOTE: Source settings are added in settingswindow module
 
         with open(self.settings_file, "w", encoding="utf-8") as configfile:
             self.config.write(configfile)

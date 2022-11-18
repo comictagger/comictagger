@@ -1032,7 +1032,7 @@ Have fun!
         issue_number = str(self.leIssueNum.text()).strip()
 
         # Only need this check is the source has issue level data.
-        if autoselect and issue_number == "" and self.talker_api.static_options.has_issues:
+        if autoselect and issue_number == "":
             QtWidgets.QMessageBox.information(
                 self, "Automatic Identify Search", "Can't auto-identify without an issue number (yet!)"
             )
@@ -1096,10 +1096,10 @@ Have fun!
             else:
                 QtWidgets.QApplication.restoreOverrideCursor()
                 if new_metadata is not None:
-                    if self.settings.apply_cbl_transform_on_ct_import:
+                    if self.settings.apply_cbl_transform_on_cv_import:
                         new_metadata = CBLTransformer(new_metadata, self.settings).apply()
 
-                    if self.settings.clear_form_before_populating:
+                    if self.settings.clear_form_before_populating_from_cv:
                         self.clear_form()
 
                     notes = (
@@ -1698,7 +1698,7 @@ Have fun!
             logger.exception(f"Save aborted.\n{e}")
 
         if not ct_md.is_empty:
-            if self.settings.apply_cbl_transform_on_ct_import:
+            if self.settings.apply_cbl_transform_on_cv_import:
                 ct_md = CBLTransformer(ct_md, self.settings).apply()
 
         QtWidgets.QApplication.restoreOverrideCursor()

@@ -8,14 +8,14 @@ import testing.comicvine
 
 
 def test_search_for_series(comicvine_api, comic_cache):
-    ct = comictalker.talkers.comicvine.ComicVineTalker()
+    ct = comictalker.talkers.comicvine.ComicVineTalker("", "", 90, False, False, False)
     results = ct.search_for_series("cory doctorows futuristic tales of the here and now")
     cache_issues = comic_cache.get_search_results(ct.source_name, "cory doctorows futuristic tales of the here and now")
     assert results == cache_issues
 
 
 def test_fetch_volume_data(comicvine_api, comic_cache):
-    ct = comictalker.talkers.comicvine.ComicVineTalker()
+    ct = comictalker.talkers.comicvine.ComicVineTalker("", "", 90, False, False, False)
     result = ct.fetch_partial_volume_data(23437)
     del result["description"]
     del result["image_url"]
@@ -26,7 +26,7 @@ def test_fetch_volume_data(comicvine_api, comic_cache):
 
 
 def test_fetch_issues_by_volume(comicvine_api, comic_cache):
-    ct = comictalker.talkers.comicvine.ComicVineTalker()
+    ct = comictalker.talkers.comicvine.ComicVineTalker("", "", 90, False, False, False)
     results = ct.fetch_issues_by_volume(23437)
     cache_issues = comic_cache.get_volume_issues_info(23437, ct.source_name)
     for r in results:
@@ -46,14 +46,14 @@ def test_fetch_issues_by_volume(comicvine_api, comic_cache):
 
 
 def test_fetch_issue_data_by_issue_id(comicvine_api, settings, mock_version):
-    ct = comictalker.talkers.comicvine.ComicVineTalker()
+    ct = comictalker.talkers.comicvine.ComicVineTalker("", "", 90, False, False, False)
     result = ct.fetch_comic_data(140529)
     result.notes = None
     assert result == testing.comicvine.cv_md
 
 
 def test_fetch_issues_by_volume_issue_num_and_year(comicvine_api):
-    ct = comictalker.talkers.comicvine.ComicVineTalker()
+    ct = comictalker.talkers.comicvine.ComicVineTalker("", "", 90, False, False, False)
     results = ct.fetch_issues_by_volume_issue_num_and_year([23437], "1", None)
     cv_expected = testing.comicvine.comic_issue_result.copy()
     testing.comicvine.filter_field_list(
@@ -83,7 +83,7 @@ cv_issue = [
 
 @pytest.mark.parametrize("volume_id, issue_number, expected", cv_issue)
 def test_fetch_issue_data(comicvine_api, settings, mock_version, volume_id, issue_number, expected):
-    ct = comictalker.talkers.comicvine.ComicVineTalker()
+    ct = comictalker.talkers.comicvine.ComicVineTalker("", "", 90, False, False, False)
     results = ct.fetch_issue_data(volume_id, issue_number)
     results.notes = None
     assert results == expected

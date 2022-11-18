@@ -66,7 +66,6 @@ def test_search(cbz, settings, comicvine_api):
         "publisher": testing.comicvine.cv_volume_result["results"]["publisher"]["name"],
         "image_url": testing.comicvine.cv_issue_result["results"]["image"]["super_url"],
         "thumb_url": testing.comicvine.cv_issue_result["results"]["image"]["thumb_url"],
-        "page_url": testing.comicvine.cv_issue_result["results"]["site_detail_url"],
         "description": testing.comicvine.cv_issue_result["results"]["description"],
     }
     for r, e in zip(results, [cv_expected]):
