@@ -182,7 +182,7 @@ class ComicVineTalker(ComicTalker):
         )
         # TODO Remove or leave in for future?
         self.static_options = SourceStaticOptions(
-            logo_url="",  # Unable to find a viable URL. Current logo is SVG using CSS
+            logo_url="https://comicvine.gamespot.com/a/bundles/comicvinesite/images/logo.png",
             website="https://comicvine.gamespot.com/",
             has_issues=True,
             has_alt_covers=True,
@@ -359,7 +359,6 @@ class ComicVineTalker(ComicTalker):
         raise TalkerNetworkError(self.source_name_friendly, 5)
 
     def format_search_results(self, search_results: list[CVVolumeResults]) -> list[ComicVolume]:
-
         formatted_results = []
         for record in search_results:
             # Flatten publisher to name only
@@ -624,8 +623,6 @@ class ComicVineTalker(ComicTalker):
             volume_issues_result.extend(cast(list[CVIssueDetailResults], cv_response["results"]))
             current_result_count += cv_response["number_of_page_results"]
 
-        self.repair_urls(volume_issues_result)
-
         # Format to expected output !! issues/ volume does NOT return publisher!!
         formatted_volume_issues_result = self.format_issue_results(volume_issues_result)
 
@@ -671,8 +668,6 @@ class ComicVineTalker(ComicTalker):
 
             filtered_issues_result.extend(cast(list[CVIssueDetailResults], cv_response["results"]))
             current_result_count += cv_response["number_of_page_results"]
-
-        self.repair_urls(filtered_issues_result)
 
         formatted_filtered_issues_result = self.format_issue_results(filtered_issues_result)
 
@@ -762,13 +757,3 @@ class ComicVineTalker(ComicTalker):
             self.remove_html_tables,
             self.use_series_start_as_volume,
         )
-
-    # TODO Why is this required? Was this to get around ii and empty URL?
-    def repair_urls(self, issue_list: list[CVIssueDetailResults]) -> None:
-        # make sure there are URLs for the image fields
-        for issue in issue_list:
-            if issue["image"] is None:
-                issue["image"] = CVImage(
-                    super_url=self.static_options.logo_url,
-                    thumb_url=self.static_options.logo_url,
-                )
