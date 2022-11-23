@@ -71,7 +71,7 @@ class MetadataFormatter(string.Formatter):
     ) -> None:
         super().__init__()
         self.smart_cleanup = smart_cleanup
-        self.platform = normalize_platform(platform)
+        self.platform = str(normalize_platform(platform))
         self.replacements = replacements
 
     def format_field(self, value: Any, format_spec: str) -> str:
@@ -221,7 +221,7 @@ class FileRenamer:
         self.template = template
 
     def determine_name(self, ext: str) -> str:
-        class Default(dict):
+        class Default(dict[str, Any]):
             def __missing__(self, key: str) -> str:
                 return "{" + key + "}"
 

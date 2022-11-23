@@ -90,7 +90,8 @@ class Item:
 class Lexer:
     def __init__(self, string: str) -> None:
         self.input: str = string  # The string being scanned
-        self.state: Callable[[Lexer], Callable | None] | None = None  # The next lexing function to enter
+        # The next lexing function to enter
+        self.state: Callable[[Lexer], Callable | None] | None = None  # type: ignore[type-arg]
         self.pos: int = -1  # Current position in the input
         self.start: int = 0  # Start position of this item
         self.lastPos: int = 0  # Position of most recent item returned by nextItem
@@ -172,13 +173,13 @@ class Lexer:
 
 # Errorf returns an error token and terminates the scan by passing
 # Back a nil pointer that will be the next state, terminating self.nextItem.
-def errorf(lex: Lexer, message: str) -> Callable[[Lexer], Callable | None] | None:
+def errorf(lex: Lexer, message: str) -> Callable[[Lexer], Callable | None] | None:  # type: ignore[type-arg]
     lex.items.append(Item(ItemType.Error, lex.start, message))
     return None
 
 
 # Scans the elements inside action delimiters.
-def lex_filename(lex: Lexer) -> Callable[[Lexer], Callable | None] | None:
+def lex_filename(lex: Lexer) -> Callable[[Lexer], Callable | None] | None:  # type: ignore[type-arg]
     r = lex.get()
     if r == eof:
         if lex.paren_depth != 0:
@@ -257,7 +258,7 @@ def lex_filename(lex: Lexer) -> Callable[[Lexer], Callable | None] | None:
     return lex_filename
 
 
-def lex_operator(lex: Lexer) -> Callable:
+def lex_operator(lex: Lexer) -> Callable:  # type: ignore[type-arg]
     lex.accept_run("-|:;")
     lex.emit(ItemType.Operator)
     return lex_filename
@@ -265,7 +266,7 @@ def lex_operator(lex: Lexer) -> Callable:
 
 # LexSpace scans a run of space characters.
 # One space has already been seen.
-def lex_space(lex: Lexer) -> Callable:
+def lex_space(lex: Lexer) -> Callable:  # type: ignore[type-arg]
     while is_space(lex.peek()):
         lex.get()
 
@@ -274,7 +275,7 @@ def lex_space(lex: Lexer) -> Callable:
 
 
 # Lex_text scans an alphanumeric.
-def lex_text(lex: Lexer) -> Callable:
+def lex_text(lex: Lexer) -> Callable:  # type: ignore[type-arg]
     while True:
         r = lex.get()
         if is_alpha_numeric(r):
@@ -313,7 +314,7 @@ def cal(value: str) -> set[Any]:
     return set(month_abbr + month_name + day_abbr + day_name)
 
 
-def lex_number(lex: Lexer) -> Callable[[Lexer], Callable | None] | None:
+def lex_number(lex: Lexer) -> Callable[[Lexer], Callable | None] | None:  # type: ignore[type-arg]
     if not lex.scan_number():
         return errorf(lex, "bad number syntax: " + lex.input[lex.start : lex.pos])
     # Complex number logic removed. Messes with math operations without space

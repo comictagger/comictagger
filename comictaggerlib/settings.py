@@ -158,9 +158,9 @@ class ComicTaggerSettings:
             # make sure rar program is now in the path for the rar class
             utils.add_to_path(os.path.dirname(self.rar_exe_path))
 
-    def reset(self):
+    def reset(self) -> None:
         os.unlink(self.settings_file)
-        self.__init__(ComicTaggerSettings.folder)
+        self.__init__(ComicTaggerSettings.folder)  # type: ignore[misc]
 
     def load(self) -> None:
         def readline_generator(f: TextIO) -> Iterator[str]:

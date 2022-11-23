@@ -129,7 +129,7 @@ class GenericMetadata:
     last_mark: str | None = None
     cover_image: str | None = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         for key, value in self.__dict__.items():
             if value and key != "is_empty":
                 self.is_empty = False

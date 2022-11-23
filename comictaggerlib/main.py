@@ -94,7 +94,7 @@ try:
     class Application(QtWidgets.QApplication):
         openFileRequest = QtCore.pyqtSignal(QtCore.QUrl, name="openfileRequest")
 
-        def event(self, event):
+        def event(self, event: QtCore.QEvent) -> bool:
             if event.type() == QtCore.QEvent.FileOpen:
                 logger.info(event.url().toLocalFile())
                 self.openFileRequest.emit(event.url())

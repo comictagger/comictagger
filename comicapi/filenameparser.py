@@ -343,7 +343,7 @@ class Parser:
         remove_fcbd: bool = False,
         remove_publisher: bool = False,
     ) -> None:
-        self.state: Callable[[Parser], Callable | None] | None = None
+        self.state: Callable[[Parser], Callable | None] | None = None  # type: ignore[type-arg]
         self.pos = -1
 
         self.firstItem = True
@@ -412,7 +412,7 @@ class Parser:
             self.state = self.state(self)
 
 
-def parse(p: Parser) -> Callable[[Parser], Callable | None] | None:
+def parse(p: Parser) -> Callable[[Parser], Callable | None] | None:  # type: ignore[type-arg]
     item: filenamelexer.Item = p.get()
 
     # We're done, time to do final processing
@@ -670,7 +670,7 @@ def parse(p: Parser) -> Callable[[Parser], Callable | None] | None:
 
 
 # TODO: What about more esoteric numbers???
-def parse_issue_number(p: Parser) -> Callable[[Parser], Callable | None] | None:
+def parse_issue_number(p: Parser) -> Callable[[Parser], Callable | None] | None:  # type: ignore[type-arg]
     item = p.input[p.pos]
 
     if "issue" in p.filename_info:
@@ -702,7 +702,7 @@ def parse_issue_number(p: Parser) -> Callable[[Parser], Callable | None] | None:
     return parse
 
 
-def parse_series(p: Parser) -> Callable[[Parser], Callable | None] | None:
+def parse_series(p: Parser) -> Callable[[Parser], Callable | None] | None:  # type: ignore[type-arg]
     item = p.input[p.pos]
 
     series: list[list[filenamelexer.Item]] = [[]]
@@ -908,7 +908,7 @@ def resolve_issue(p: Parser) -> None:
             p.filename_info["issue"] = p.filename_info["volume"]
 
 
-def parse_finish(p: Parser) -> Callable[[Parser], Callable | None] | None:
+def parse_finish(p: Parser) -> Callable[[Parser], Callable | None] | None:  # type: ignore[type-arg]
     resolve_year(p)
     resolve_issue(p)
 
@@ -1014,7 +1014,7 @@ def get_remainder(p: Parser) -> str:
     return remainder.strip()
 
 
-def parse_info_specifier(p: Parser) -> Callable[[Parser], Callable | None] | None:
+def parse_info_specifier(p: Parser) -> Callable[[Parser], Callable | None] | None:  # type: ignore[type-arg]
     item = p.input[p.pos]
     index = p.pos
 

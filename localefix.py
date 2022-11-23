@@ -7,7 +7,7 @@ import subprocess
 import sys
 
 
-def _lang_code_mac():
+def _lang_code_mac() -> str:
     """
     stolen from https://github.com/mu-editor/mu
     Returns the user's language preference as defined in the Language & Region
@@ -38,13 +38,13 @@ def _lang_code_mac():
     return lang_code
 
 
-def configure_locale():
+def configure_locale() -> None:
     if sys.platform == "darwin" and "LANG" not in os.environ:
         code = _lang_code_mac()
         if code != "":
             os.environ["LANG"] = f"{code}.utf-8"
 
     locale.setlocale(locale.LC_ALL, "")
-    sys.stdout.reconfigure(encoding=sys.getdefaultencoding())
-    sys.stderr.reconfigure(encoding=sys.getdefaultencoding())
-    sys.stdin.reconfigure(encoding=sys.getdefaultencoding())
+    sys.stdout.reconfigure(encoding=sys.getdefaultencoding())  # type: ignore[attr-defined]
+    sys.stderr.reconfigure(encoding=sys.getdefaultencoding())  # type: ignore[attr-defined]
+    sys.stdin.reconfigure(encoding=sys.getdefaultencoding())  # type: ignore[attr-defined]
