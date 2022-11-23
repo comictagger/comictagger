@@ -71,7 +71,7 @@ class MetadataFormatter(string.Formatter):
     ) -> None:
         super().__init__()
         self.smart_cleanup = smart_cleanup
-        self.platform = str(normalize_platform(platform))
+        self.platform = normalize_platform(platform)
         self.replacements = replacements
 
     def format_field(self, value: Any, format_spec: str) -> str:
