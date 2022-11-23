@@ -180,7 +180,6 @@ class ComicVineTalker(ComicTalker):
             ident="comicvine",
             logo="comictalker/talkers/logos/comicvine.png",
         )
-        # TODO Remove or leave in for future?
         self.static_options = SourceStaticOptions(
             logo_url="https://comicvine.gamespot.com/a/bundles/comicvinesite/images/logo.png",
             website="https://comicvine.gamespot.com/",

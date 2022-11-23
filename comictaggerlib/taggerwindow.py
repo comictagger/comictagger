@@ -2080,7 +2080,6 @@ Have fun!
             "File Rename", "If you rename files now, unsaved data in the form will be lost.  Are you sure?"
         ):
 
-            # TODO Check talker required
             dlg = RenameWindow(self, ca_list, self.load_data_style, self.settings, self.talker_api)
             dlg.setModal(True)
             if dlg.exec() and self.comic_archive is not None:

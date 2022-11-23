@@ -225,8 +225,6 @@ class CoverImageWidget(QtWidgets.QWidget):
         self.cover_fetcher = ImageFetcher()
         ImageFetcher.image_fetch_complete = self.image_fetch_complete.emit
         self.cover_fetcher.fetch(self.url_list[self.imageIndex])
-        # TODO: Figure out async
-        # self.sig.emit_image(self.cover_fetcher.fetch(self.url_list[self.imageIndex]))
 
     # called when the image is done loading from internet
     def cover_remote_fetch_complete(self, image_data: bytes) -> None:
