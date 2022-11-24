@@ -611,7 +611,7 @@ class ComicVineTalker(ComicTalker):
     def fetch_issue_data(self, series_id: int, issue_number: str) -> GenericMetadata:
         issues_list_results = self.fetch_issues_by_volume(series_id)
 
-        # TODO Is this required?
+        # Loop through issue list to find the required issue info
         f_record = None
         for record in issues_list_results:
             if not IssueString(issue_number).as_string():
@@ -633,29 +633,9 @@ class ComicVineTalker(ComicTalker):
             )
 
         if f_record is not None:
-            issue_url = urljoin(self.api_base_url, f"issue/{CVTypeID.Issue}-{f_record['id']}")
-            params = {"api_key": self.api_key, "format": "json"}
-            cv_response = self.get_cv_content(issue_url, params)
-            issue_results = cast(CVIssueDetailResults, cv_response["results"])
-
-            # Format to expected output
-            formatted_issues_result = self.format_issue_results([issue_results], True)
-
-            # Due to issue/ not returning volume publisher, get it.
-            volume_info = self.fetch_partial_volume_data(formatted_issues_result[0]["volume"]["id"])
-            formatted_issues_result[0]["volume"]["publisher"] = volume_info["publisher"]
-
-            cvc = ComicCacher()
-            cvc.add_volume_issues_info(self.source_name, formatted_issues_result)
+            return self.fetch_issue_data_by_issue_id(f_record["id"])
         else:
             return GenericMetadata()
-
-        return talker_utils.map_comic_issue_to_metadata(
-            formatted_issues_result[0],
-            self.source_name_friendly,
-            self.remove_html_tables,
-            self.use_series_start_as_volume,
-        )
 
     def fetch_issue_data_by_issue_id(self, issue_id: int) -> GenericMetadata:
         # before we search online, look in our cache, since we might already have this info
