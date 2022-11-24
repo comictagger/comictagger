@@ -77,7 +77,7 @@ class App:
     def initialize(self) -> argparse.Namespace:
         opts, _ = self.initial_arg_parser.parse_known_args()
         assert opts is not None
-        setup_logging(opts.verbose, opts.config.user_log_dir / "log")
+        setup_logging(opts.verbose, opts.config.user_log_dir)
         return opts
 
     def register_options(self) -> None:
