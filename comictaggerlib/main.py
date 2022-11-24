@@ -109,16 +109,6 @@ class App:
         # manage the CV API key
         # None comparison is used so that the empty string can unset the value
         if self.options["comicvine"]["cv_api_key"] is not None or self.options["comicvine"]["cv_url"] is not None:
-            self.options["comicvine"]["cv_api_key"] = (
-                self.options["comicvine"]["cv_api_key"]
-                if self.options["comicvine"]["cv_api_key"] is not None
-                else self.options["comicvine"]["cv_api_key"]
-            )
-            self.options["comicvine"]["cv_url"] = (
-                self.options["comicvine"]["cv_url"]
-                if self.options["comicvine"]["cv_url"] is not None
-                else self.options["comicvine"]["cv_url"]
-            )
             self.manager.save_file(self.options, self.options["runtime"]["config"].user_config_dir / "settings.json")
         logger.debug(pprint.pformat(self.options))
         if self.options["commands"]["only_set_cv_key"]:
