@@ -261,6 +261,23 @@ Have fun!
             )
             self.settings.show_disclaimer = not checked
 
+        if self.settings.settings_warning < 4:
+            checked = OptionalMessageDialog.msg(
+                self,
+                "Warning!",
+                f"""<span style="font-size:15px">
+{"&nbsp;"*100}
+The next release will save settings in a different format
+<span style="font-weight: bold;font-size:19px">no settings will be transfered</span> to the new version.<br/>
+See <a href="https://github.com/comictagger/comictagger/releases/1.5.5">https://github.com/comictagger/comictagger/releases/1.5.5</a>
+for more information
+<br/><br/>
+You have {4-self.settings.settings_warning} warnings left.
+</span>""",
+            )
+            if checked:
+                self.settings.settings_warning += 1
+
         if self.settings.check_for_new_version:
             self.check_latest_version_online()
 

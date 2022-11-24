@@ -70,6 +70,7 @@ class ComicTaggerSettings:
         # Show/ask dialog flags
         self.ask_about_cbi_in_rar = True
         self.show_disclaimer = True
+        self.settings_warning = 0
         self.dont_notify_about_this_version = ""
         self.ask_about_usage_stats = True
 
@@ -223,6 +224,8 @@ class ComicTaggerSettings:
             self.ask_about_cbi_in_rar = self.config.getboolean("dialogflags", "ask_about_cbi_in_rar")
         if self.config.has_option("dialogflags", "show_disclaimer"):
             self.show_disclaimer = self.config.getboolean("dialogflags", "show_disclaimer")
+        if self.config.has_option("dialogflags", "settings_warning"):
+            self.settings_warning = self.config.getint("dialogflags", "settings_warning")
         if self.config.has_option("dialogflags", "dont_notify_about_this_version"):
             self.dont_notify_about_this_version = self.config.get("dialogflags", "dont_notify_about_this_version")
         if self.config.has_option("dialogflags", "ask_about_usage_stats"):
@@ -349,6 +352,7 @@ class ComicTaggerSettings:
 
         self.config.set("dialogflags", "ask_about_cbi_in_rar", self.ask_about_cbi_in_rar)
         self.config.set("dialogflags", "show_disclaimer", self.show_disclaimer)
+        self.config.set("dialogflags", "settings_warning", self.settings_warning)
         self.config.set("dialogflags", "dont_notify_about_this_version", self.dont_notify_about_this_version)
         self.config.set("dialogflags", "ask_about_usage_stats", self.ask_about_usage_stats)
 

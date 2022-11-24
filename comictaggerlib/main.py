@@ -145,7 +145,17 @@ def ctmain() -> None:
         format="%(asctime)s | %(name)s | %(levelname)s | %(message)s",
         datefmt="%Y-%m-%dT%H:%M:%S",
     )
-    # Need to load setting before anything else
+
+    if settings.settings_warning < 4:
+        print(  # noqa: T201
+            """
+!!!Warning!!!
+The next release will save settings in a different format
+NO SETTINGS WILL BE TRANSFERED to the new version.
+See https://github.com/comictagger/comictagger/releases/1.5.5 for more information.
+""",
+            file=sys.stderr,
+        )
 
     # manage the CV API key
     # None comparison is used so that the empty string can unset the value
