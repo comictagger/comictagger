@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 def map_comic_issue_to_metadata(
     issue_results: ComicIssue, source: str, remove_html_tables: bool = False, use_year_volume: bool = False
 ) -> GenericMetadata:
-    # Now, map the ComicIssue data to generic metadata
+    """Maps ComicIssue to generic metadata"""
     metadata = GenericMetadata()
     metadata.is_empty = False
 
@@ -101,7 +101,8 @@ def parse_date_str(date_str: str) -> tuple[int | None, int | None, int | None]:
     return day, month, year
 
 
-def cleanup_html(string: str, remove_html_tables: bool) -> str:
+def cleanup_html(string: str, remove_html_tables: bool = False) -> str:
+    """Cleans HTML code from any text. Will remove any HTML tables with remove_html_tables"""
     if string is None:
         return ""
     # find any tables

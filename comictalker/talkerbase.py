@@ -156,7 +156,7 @@ class TalkerDataError(TalkerError):
 
 # Class talkers instance
 class ComicTalker:
-    """This is the class for mysource."""
+    """The base class for all comic source talkers"""
 
     def __init__(self) -> None:
         # Identity name for the information source etc.
@@ -165,10 +165,10 @@ class ComicTalker:
         )  # Can use this to test if custom talker has been configured
         self.static_options: SourceStaticOptions = SourceStaticOptions()
 
-    def check_api_key(self, key: str, url: str):
+    def check_api_key(self, key: str, url: str) -> bool:
+        """If the talker has or requires an API key, this function should test its validity"""
         raise NotImplementedError
 
-    # Search for series/volumes
     def search_for_series(
         self,
         series_name: str,
@@ -176,21 +176,25 @@ class ComicTalker:
         refresh_cache: bool = False,
         literal: bool = False,
     ) -> list[ComicVolume]:
+        """Searches for the series/volumes with the given series_name
+        callback is used for...
+        refresh_cache signals if the data in the cache should be used
+        literal indicates that no articles (a, the, etc.) should be removed when searching"""
         raise NotImplementedError
 
-    # Get issues in a series/volume
     def fetch_issues_by_volume(self, series_id: int) -> list[ComicIssue]:
+        """Expected to return a list of issues with a given series/volume ID"""
         raise NotImplementedError
 
-    # Get issue or volume information
     def fetch_comic_data(self, issue_id: int = 0, series_id: int = 0, issue_number: str = "") -> GenericMetadata:
         """This function is expected to handle a few possibilities:
-        1. Only series_id. Retrieve the SERIES/VOLUME information only.
-        2. series_id and issue_number. Retrieve the ISSUE information.
-        3. Only issue_id. Retrieve the ISSUE information."""
+        1. Only series_id passed in: Retrieve the SERIES/VOLUME information only
+        2. series_id and issue_number: Retrieve the ISSUE information
+        3. Only issue_id: Retrieve the ISSUE information"""
         raise NotImplementedError
 
     def fetch_issues_by_volume_issue_num_and_year(
         self, volume_id_list: list[int], issue_number: str, year: str | int | None
     ) -> list[ComicIssue]:
+        """Searches for a list of issues within the given year. Used solely by issueidentifer"""
         raise NotImplementedError

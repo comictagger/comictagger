@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_comic_talker(source_name: str) -> type[ComicTalker]:
-    # Retrieve the available sources modules
+    """Retrieve the available sources modules"""
     sources = get_talkers()
     if source_name not in sources:
         raise TalkerError(source=source_name, code=4, desc="The talker does not exist")
@@ -34,4 +34,5 @@ def get_comic_talker(source_name: str) -> type[ComicTalker]:
 
 
 def get_talkers():
+    """Returns all comic talker modules NOT objects"""
     return {"comicvine": comictalker.talkers.comicvine.ComicVineTalker}
