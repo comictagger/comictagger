@@ -86,6 +86,7 @@ combine_values = [
     (None, "english", "en", "english"),
     ("hello", "", "en", "hello"),
     ("hello", None, "en", "hello"),
+    ("hello", "hello", "hel", "hello"),
 ]
 
 

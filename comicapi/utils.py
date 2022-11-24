@@ -38,8 +38,8 @@ class UtilsVars:
 
 
 def combine_notes(existing_notes: str | None, new_notes: str | None, split: str) -> str:
-    split_notes, _, untouched_notes = (existing_notes or "").rpartition(split)
-    if split_notes:
+    split_notes, split_str, untouched_notes = (existing_notes or "").rpartition(split)
+    if split_notes or split_str:
         return (split_notes + (new_notes or "")).strip()
     else:
         return (untouched_notes + "\n" + (new_notes or "")).strip()
