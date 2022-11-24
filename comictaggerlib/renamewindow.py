@@ -62,7 +62,7 @@ class RenameWindow(QtWidgets.QDialog):
 
         self.btnSettings.clicked.connect(self.modify_settings)
         platform = "universal" if self.options["filename"]["rename_strict"] else "auto"
-        self.renamer = FileRenamer(None, platform=platform)
+        self.renamer = FileRenamer(None, platform=platform, replacements=self.options["rename"]["replacements"])
 
         self.do_preview()
 
@@ -70,6 +70,7 @@ class RenameWindow(QtWidgets.QDialog):
         self.renamer.set_template(self.options["filename"]["rename_template"])
         self.renamer.set_issue_zero_padding(self.options["filename"]["rename_issue_number_padding"])
         self.renamer.set_smart_cleanup(self.options["filename"]["rename_use_smart_string_cleanup"])
+        self.renamer.replacements = self.options["rename"]["replacements"]
 
         new_ext = ca.path.suffix  # default
         if self.options["filename"]["rename_set_extension_based_on_archive"]:

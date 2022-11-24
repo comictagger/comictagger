@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import argparse
 import uuid
-from collections.abc import Sequence
-from typing import Any, Callable
+from typing import Any
 
+from comictaggerlib.defaults import DEFAULT_REPLACEMENTS, Replacement, Replacements
 from comictaggerlib.settings.manager import Manager
+from comictaggerlib.settings.types import AppendAction
 
 
 def general(parser: Manager) -> None:
@@ -38,73 +39,8 @@ def identifier(parser: Manager) -> None:
     parser.add_setting(
         "--publisher-filter",
         default=["Panini Comics", "Abril", "Planeta DeAgostini", "Editorial Televisa", "Dino Comics"],
-        action=_AppendAction,
+        action=AppendAction,
     )
-
-
-def _copy_items(items: Sequence[Any] | None) -> Sequence[Any]:
-    if items is None:
-        return []
-    # The copy module is used only in the 'append' and 'append_const'
-    # actions, and it is needed only when the default value isn't a list.
-    # Delay its import for speeding up the common case.
-    if type(items) is list:
-        return items[:]
-    import copy
-
-    return copy.copy(items)
-
-
-class _AppendAction(argparse.Action):
-    def __init__(
-        self,
-        option_strings: list[str],
-        dest: str,
-        nargs: str | None = None,
-        const: Any = None,
-        default: Any = None,
-        type: Callable[[str], Any] | None = None,  # noqa: A002
-        choices: list[Any] | None = None,
-        required: bool = False,
-        help: str | None = None,  # noqa: A002
-        metavar: str | None = None,
-    ):
-        self.called = False
-        if nargs == 0:
-            raise ValueError(
-                "nargs for append actions must be != 0; if arg "
-                "strings are not supplying the value to append, "
-                "the append const action may be more appropriate"
-            )
-        if const is not None and nargs != argparse.OPTIONAL:
-            raise ValueError("nargs must be %r to supply const" % argparse.OPTIONAL)
-        super().__init__(
-            option_strings=option_strings,
-            dest=dest,
-            nargs=nargs,
-            const=const,
-            default=default,
-            type=type,
-            choices=choices,
-            required=required,
-            help=help,
-            metavar=metavar,
-        )
-
-    def __call__(
-        self,
-        parser: argparse.ArgumentParser,
-        namespace: argparse.Namespace,
-        values: str | Sequence[Any] | None,
-        option_string: str | None = None,
-    ) -> None:
-        if values:
-            if not self.called:
-                setattr(namespace, self.dest, [])
-            items = getattr(namespace, self.dest, None)
-            items = _copy_items(items)
-            items.append(values)  # type: ignore
-            setattr(namespace, self.dest, items)
 
 
 def dialog(parser: Manager) -> None:
@@ -140,12 +76,10 @@ def comicvine(parser: Manager) -> None:
     parser.add_setting("--remove-html-tables", default=False, action=argparse.BooleanOptionalAction)
     parser.add_setting(
         "--cv-api-key",
-        default="",
         help="Use the given Comic Vine API Key (persisted in settings).",
     )
     parser.add_setting(
         "--cv-url",
-        default="",
         help="Use the given Comic Vine URL (persisted in settings).",
     )
     parser.add_setting(
@@ -184,6 +118,11 @@ def rename(parser: Manager) -> None:
     parser.add_setting("--dir", default="")
     parser.add_setting("--move-to-dir", default=False, action=argparse.BooleanOptionalAction)
     parser.add_setting("--strict", default=False, action=argparse.BooleanOptionalAction)
+    parser.add_setting(
+        "replacements",
+        default=DEFAULT_REPLACEMENTS,
+        cmdline=False,
+    )
 
 
 def autotag(parser: Manager) -> None:
@@ -214,6 +153,10 @@ def validate_settings(options: dict[str, dict[str, Any]], parser: Manager) -> di
     options["identifier"]["publisher_filter"] = [
         x.strip() for x in options["identifier"]["publisher_filter"] if x.strip()
     ]
+    options["rename"]["replacements"] = Replacements(
+        [Replacement(x[0], x[1], x[2]) for x in options["rename"]["replacements"][0]],
+        [Replacement(x[0], x[1], x[2]) for x in options["rename"]["replacements"][1]],
+    )
     return options
 
 

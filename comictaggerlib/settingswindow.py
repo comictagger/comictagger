@@ -20,6 +20,7 @@ import logging
 import os
 import pathlib
 import platform
+from typing import Any
 
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
@@ -27,7 +28,7 @@ from comicapi import utils
 from comicapi.genericmetadata import md_test
 from comictaggerlib import settings
 from comictaggerlib.ctversion import version
-from comictaggerlib.filerenamer import FileRenamer
+from comictaggerlib.filerenamer import FileRenamer, Replacement, Replacements
 from comictaggerlib.imagefetcher import ImageFetcher
 from comictaggerlib.ui import ui_path
 from comictalker.comiccacher import ComicCacher
@@ -190,23 +191,64 @@ class SettingsWindow(QtWidgets.QDialog):
         self.btnResetSettings.clicked.connect(self.reset_settings)
         self.btnTestKey.clicked.connect(self.test_api_key)
         self.btnTemplateHelp.clicked.connect(self.show_template_help)
-        self.leRenameTemplate.textEdited.connect(self._rename_test)
-        self.cbxMoveFiles.clicked.connect(self.rename_test)
         self.cbxMoveFiles.clicked.connect(self.dir_test)
-        self.cbxRenameStrict.clicked.connect(self.rename_test)
         self.leDirectory.textEdited.connect(self.dir_test)
         self.cbxComplicatedParser.clicked.connect(self.switch_parser)
 
-    def rename_test(self) -> None:
+        self.btnAddLiteralReplacement.clicked.connect(self.addLiteralReplacement)
+        self.btnAddValueReplacement.clicked.connect(self.addValueReplacement)
+        self.btnRemoveLiteralReplacement.clicked.connect(self.removeLiteralReplacement)
+        self.btnRemoveValueReplacement.clicked.connect(self.removeValueReplacement)
+
+        self.leRenameTemplate.textEdited.connect(self.rename_test)
+        self.cbxMoveFiles.clicked.connect(self.rename_test)
+        self.cbxRenameStrict.clicked.connect(self.rename_test)
+        self.cbxSmartCleanup.clicked.connect(self.rename_test)
+        self.cbxChangeExtension.clicked.connect(self.rename_test)
+        self.leIssueNumPadding.textEdited.connect(self.rename_test)
+        self.twLiteralReplacements.cellChanged.connect(self.rename_test)
+        self.twValueReplacements.cellChanged.connect(self.rename_test)
+
+    def addLiteralReplacement(self) -> None:
+        self.insertRow(self.twLiteralReplacements, self.twLiteralReplacements.rowCount(), Replacement("", "", False))
+
+    def addValueReplacement(self) -> None:
+        self.insertRow(self.twValueReplacements, self.twValueReplacements.rowCount(), Replacement("", "", False))
+
+    def removeLiteralReplacement(self) -> None:
+        if self.twLiteralReplacements.currentRow() >= 0:
+            self.twLiteralReplacements.removeRow(self.twLiteralReplacements.currentRow())
+
+    def removeValueReplacement(self) -> None:
+        if self.twValueReplacements.currentRow() >= 0:
+            self.twValueReplacements.removeRow(self.twValueReplacements.currentRow())
+
+    def insertRow(self, table: QtWidgets.QTableWidget, row: int, replacement: Replacement) -> None:
+        find, replace, strict_only = replacement
+        table.insertRow(row)
+        table.setItem(row, 0, QtWidgets.QTableWidgetItem(find))
+        table.setItem(row, 1, QtWidgets.QTableWidgetItem(replace))
+        tmp = QtWidgets.QTableWidgetItem()
+        if strict_only:
+            tmp.setCheckState(QtCore.Qt.Checked)
+        else:
+            tmp.setCheckState(QtCore.Qt.Unchecked)
+        table.setItem(row, 2, tmp)
+
+    def rename_test(self, *args: Any, **kwargs: Any) -> None:
         self._rename_test(self.leRenameTemplate.text())
 
     def dir_test(self) -> None:
         self.lblDir.setText(
-            str(pathlib.Path(self.leDirectory.text().strip()).absolute()) if self.cbxMoveFiles.isChecked() else ""
+            str(pathlib.Path(self.leDirectory.text().strip()).resolve()) if self.cbxMoveFiles.isChecked() else ""
         )
 
     def _rename_test(self, template: str) -> None:
-        fr = FileRenamer(md_test, platform="universal" if self.cbxRenameStrict.isChecked() else "auto")
+        fr = FileRenamer(
+            md_test,
+            platform="universal" if self.cbxRenameStrict.isChecked() else "auto",
+            replacements=self.get_replacemnts(),
+        )
         fr.move = self.cbxMoveFiles.isChecked()
         fr.set_template(template)
         fr.set_issue_zero_padding(int(self.leIssueNumPadding.text()))
@@ -270,6 +312,38 @@ class SettingsWindow(QtWidgets.QDialog):
         self.cbxMoveFiles.setChecked(self.options["rename"]["move_to_dir"])
         self.leDirectory.setText(self.options["rename"]["dir"])
         self.cbxRenameStrict.setChecked(self.options["rename"]["strict"])
+
+        for table, replacments in zip(
+            (self.twLiteralReplacements, self.twValueReplacements), self.options["rename"]["replacements"]
+        ):
+            table.clearContents()
+            for i in reversed(range(table.rowCount())):
+                table.removeRow(i)
+            for row, replacement in enumerate(replacments):
+                self.insertRow(table, row, replacement)
+
+    def get_replacemnts(self) -> Replacements:
+        literal_replacements = []
+        value_replacements = []
+        for row in range(self.twLiteralReplacements.rowCount()):
+            if self.twLiteralReplacements.item(row, 0).text():
+                literal_replacements.append(
+                    Replacement(
+                        self.twLiteralReplacements.item(row, 0).text(),
+                        self.twLiteralReplacements.item(row, 1).text(),
+                        self.twLiteralReplacements.item(row, 2).checkState() == QtCore.Qt.Checked,
+                    )
+                )
+        for row in range(self.twValueReplacements.rowCount()):
+            if self.twValueReplacements.item(row, 0).text():
+                value_replacements.append(
+                    Replacement(
+                        self.twValueReplacements.item(row, 0).text(),
+                        self.twValueReplacements.item(row, 1).text(),
+                        self.twValueReplacements.item(row, 2).checkState() == QtCore.Qt.Checked,
+                    )
+                )
+        return Replacements(literal_replacements, value_replacements)
 
     def accept(self) -> None:
         self.rename_test()
@@ -362,6 +436,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.options["rename"]["dir"] = self.leDirectory.text()
 
         self.options["rename"]["strict"] = self.cbxRenameStrict.isChecked()
+        self.options["rename"]["replacements"] = self.get_replacemnts()
 
         settings.Manager().save_file(self.options, self.options["runtime"]["config"].user_config_dir / "settings.json")
         self.parent().options = self.options
@@ -402,9 +477,9 @@ class SettingsWindow(QtWidgets.QDialog):
 
         dialog.setDirectory(os.path.dirname(str(control.text())))
         if name == "RAR":
-            dialog.setWindowTitle("Find " + name + " program")
+            dialog.setWindowTitle(f"Find {name} program")
         else:
-            dialog.setWindowTitle("Find " + name + " library")
+            dialog.setWindowTitle(f"Find {name} library")
 
         if dialog.exec():
             file_list = dialog.selectedFiles()

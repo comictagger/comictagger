@@ -502,7 +502,11 @@ def process_file_cli(
             elif ca.is_rar():
                 new_ext = ".cbr"
 
-        renamer = FileRenamer(md, platform="universal" if options[filename]["rename_strict"] else "auto")
+        renamer = FileRenamer(
+            md,
+            platform="universal" if options[filename]["rename_strict"] else "auto",
+            replacements=options["rename"]["replacements"],
+        )
         renamer.set_template(options[filename]["rename_template"])
         renamer.set_issue_zero_padding(options[filename]["rename_issue_number_padding"])
         renamer.set_smart_cleanup(options[filename]["rename_use_smart_string_cleanup"])

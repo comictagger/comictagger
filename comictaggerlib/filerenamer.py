@@ -20,40 +20,16 @@ import logging
 import os
 import pathlib
 import string
-from typing import Any, NamedTuple, cast
+from typing import Any, cast
 
 from pathvalidate import Platform, normalize_platform, sanitize_filename
 
 from comicapi.comicarchive import ComicArchive
 from comicapi.genericmetadata import GenericMetadata
 from comicapi.issuestring import IssueString
+from comictaggerlib.defaults import DEFAULT_REPLACEMENTS, Replacement, Replacements
 
 logger = logging.getLogger(__name__)
-
-
-class Replacement(NamedTuple):
-    find: str
-    replce: str
-    strict_only: bool
-
-
-class Replacements(NamedTuple):
-    literal_text: list[Replacement]
-    format_value: list[Replacement]
-
-
-REPLACEMENTS = Replacements(
-    literal_text=[
-        Replacement(": ", " - ", True),
-        Replacement(":", "-", True),
-    ],
-    format_value=[
-        Replacement(": ", " - ", True),
-        Replacement(":", "-", True),
-        Replacement("/", "-", False),
-        Replacement("\\", "-", True),
-    ],
-)
 
 
 def get_rename_dir(ca: ComicArchive, rename_dir: str | pathlib.Path | None) -> pathlib.Path:
@@ -67,7 +43,7 @@ def get_rename_dir(ca: ComicArchive, rename_dir: str | pathlib.Path | None) -> p
 
 class MetadataFormatter(string.Formatter):
     def __init__(
-        self, smart_cleanup: bool = False, platform: str = "auto", replacements: Replacements = REPLACEMENTS
+        self, smart_cleanup: bool = False, platform: str = "auto", replacements: Replacements = DEFAULT_REPLACEMENTS
     ) -> None:
         super().__init__()
         self.smart_cleanup = smart_cleanup
@@ -200,13 +176,19 @@ class MetadataFormatter(string.Formatter):
 
 
 class FileRenamer:
-    def __init__(self, metadata: GenericMetadata | None, platform: str = "auto") -> None:
+    def __init__(
+        self,
+        metadata: GenericMetadata | None,
+        platform: str = "auto",
+        replacements: Replacements = DEFAULT_REPLACEMENTS,
+    ) -> None:
         self.template = "{publisher}/{series}/{series} v{volume} #{issue} (of {issue_count}) ({year})"
         self.smart_cleanup = True
         self.issue_zero_padding = 3
         self.metadata = metadata or GenericMetadata()
         self.move = False
         self.platform = platform
+        self.replacements = replacements
 
     def set_metadata(self, metadata: GenericMetadata) -> None:
         self.metadata = metadata
@@ -234,7 +216,7 @@ class FileRenamer:
 
         new_name = ""
 
-        fmt = MetadataFormatter(self.smart_cleanup, platform=self.platform)
+        fmt = MetadataFormatter(self.smart_cleanup, platform=self.platform, replacements=self.replacements)
         md_dict = vars(md)
         for role in ["writer", "penciller", "inker", "colorist", "letterer", "cover artist", "editor"]:
             md_dict[role] = md.get_primary_credit(role)
