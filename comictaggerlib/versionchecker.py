@@ -16,8 +16,6 @@
 from __future__ import annotations
 
 import logging
-import platform
-import sys
 
 import requests
 
@@ -29,31 +27,23 @@ logger = logging.getLogger(__name__)
 class VersionChecker:
     def get_request_url(self, uuid: str, use_stats: bool) -> tuple[str, dict[str, str]]:
 
-        base_url = "http://comictagger1.appspot.com/latest"
-        params = {}
-        if use_stats:
-            params = {"uuid": uuid, "version": ctversion.version}
-            if platform.system() == "Windows":
-                params["platform"] = "win"
-            elif platform.system() == "Linux":
-                params["platform"] = "lin"
-            elif platform.system() == "Darwin":
-                params["platform"] = "mac"
-            else:
-                params["platform"] = "other"
-
-            if not getattr(sys, "frozen", None):
-                params["src"] = "T"
+        base_url = "https://api.github.com/repos/comictagger/comictagger/releases/latest"
+        params: dict[str, str] = {}
 
         return base_url, params
 
-    def get_latest_version(self, uuid: str, use_stats: bool = True) -> str:
+    def get_latest_version(self, uuid: str, use_stats: bool = True) -> tuple[str, str]:
         try:
             url, params = self.get_request_url(uuid, use_stats)
-            new_version = requests.get(url, params=params).text
+            release = requests.get(
+                url,
+                params=params,
+                headers={"user-agent": "comictagger/" + ctversion.version},
+            ).json()
         except Exception:
-            return ""
+            return ("", "")
 
+        new_version = release["tag_name"]
         if new_version is None or new_version == "":
-            return ""
-        return new_version.strip()
+            return ("", "")
+        return (new_version.strip(), release["name"])

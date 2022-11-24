@@ -262,7 +262,7 @@ Have fun!
             self.settings.show_disclaimer = not checked
 
         if self.settings.check_for_new_version:
-            pass
+            self.check_latest_version_online()
 
     def open_file_event(self, url: QtCore.QUrl) -> None:
         logger.info(url.toLocalFile())
@@ -2121,19 +2121,19 @@ Have fun!
             version_checker.get_latest_version(self.settings.install_id, self.settings.send_usage_stats)
         )
 
-    def version_check_complete(self, new_version: str) -> None:
-        if new_version not in (self.version, self.settings.dont_notify_about_this_version):
+    def version_check_complete(self, new_version: tuple[str, str]) -> None:
+        if new_version[0] not in (self.version, self.settings.dont_notify_about_this_version):
             website = "https://github.com/comictagger/comictagger"
             checked = OptionalMessageDialog.msg(
                 self,
                 "New version available!",
-                f"New version ({new_version}) available!<br>(You are currently running {self.version})<br><br>"
-                f"Visit <a href='{website}'>{website}</a> for more info.<br><br>",
+                f"New version ({new_version[1]}) available!<br>(You are currently running {self.version})<br><br>"
+                f"Visit <a href='{website}/releases/latest'>{website}/releases/latest</a> for more info.<br><br>",
                 False,
                 "Don't tell me about this version again",
             )
             if checked:
-                self.settings.dont_notify_about_this_version = new_version
+                self.settings.dont_notify_about_this_version = new_version[0]
 
     def on_incoming_socket_connection(self) -> None:
         # Accept connection from other instance.
