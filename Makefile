@@ -34,7 +34,7 @@ $(PYTHON_VENV):
 	$(PY3) -m venv $(VENV)
 
 clean:
-	find . -maxdepth 4 -type d -name "__pycache__"
+	find . -maxdepth 4 -type d -name "__pycache__" -print -depth -exec rm -rf {} \;
 	rm -rf $(PACKAGE_PATH) $(INSTALL_STAMP) build dist MANIFEST comictaggerlib/ctversion.py
 	$(MAKE) -C mac clean
 
