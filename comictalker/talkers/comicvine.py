@@ -31,14 +31,7 @@ from comicapi.issuestring import IssueString
 from comictaggerlib import ctversion
 from comictalker.comiccacher import ComicCacher
 from comictalker.resulttypes import ComicIssue, ComicVolume, Credits
-from comictalker.talkerbase import (
-    ComicTalker,
-    SourceDetails,
-    SourceSettingsOptions,
-    SourceStaticOptions,
-    TalkerDataError,
-    TalkerNetworkError,
-)
+from comictalker.talkerbase import ComicTalker, SourceDetails, SourceStaticOptions, TalkerDataError, TalkerNetworkError
 
 logger = logging.getLogger(__name__)
 
@@ -178,10 +171,8 @@ class ComicVineTalker(ComicTalker):
         self.source_details = SourceDetails(
             name="Comic Vine",
             ident="comicvine",
-            logo="comictalker/talkers/logos/comicvine.png",
         )
         self.static_options = SourceStaticOptions(
-            logo_url="https://comicvine.gamespot.com/a/bundles/comicvinesite/images/logo.png",
             website="https://comicvine.gamespot.com/",
             has_issues=True,
             has_alt_covers=True,
@@ -189,61 +180,6 @@ class ComicVineTalker(ComicTalker):
             has_nsfw=False,
             has_censored_covers=False,
         )
-        # TODO Remove or leave in for future?
-        self.settings_options = {
-            "enabled": SourceSettingsOptions(
-                name="enabled", text="Enabled", help_text="", hidden=True, type=bool, value=True
-            ),
-            "order": SourceSettingsOptions(name="order", text="Order", help_text="", hidden=True, type=int, value=1),
-            "remove_html_tables": SourceSettingsOptions(
-                name="remove_html_tables",
-                text="Remove HTML tables",
-                help_text="Remove tables in description",
-                hidden=False,
-                type=bool,
-                value=False,
-            ),
-            "use_series_start_as_volume": SourceSettingsOptions(
-                name="use_series_start_as_volume",
-                text="Use series start year as volume number",
-                help_text="Use the series start year as the volume number",
-                hidden=False,
-                type=bool,
-                value=False,
-            ),
-            "wait_on_ratelimit": SourceSettingsOptions(
-                name="wait_on_ratelimit",
-                text="Retry on API limit",
-                help_text="If the Comic Vine API limit is reached, wait and retry",
-                hidden=False,
-                type=bool,
-                value=False,
-            ),
-            "ratelimit_waittime": SourceSettingsOptions(
-                name="ratelimit_waittime",
-                text="API maximum wait time (minutes)",
-                help_text="Maximum time to wait before abandoning retries",
-                hidden=False,
-                type=int,
-                value=20,
-            ),
-            "url_root": SourceSettingsOptions(
-                name="url_root",
-                text="Comic Vine API address",
-                help_text="Example: https://api.comicsource.net",
-                hidden=False,
-                type=str,
-                value="https://comicvine.gamespot.com/api",
-            ),
-            "api_key": SourceSettingsOptions(
-                name="api_key",
-                text="API key",
-                help_text="Comic Vine API key",
-                hidden=False,
-                type=str,
-                value="27431e6787042105bd3e47e169a624521f89f3a4",
-            ),
-        }
 
         # Identity name for the information source
         self.source_name = self.source_details.id

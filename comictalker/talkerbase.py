@@ -16,9 +16,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Callable
-
-from typing_extensions import Required, TypedDict
+from typing import Callable
 
 from comicapi.genericmetadata import GenericMetadata
 from comictalker.resulttypes import ComicIssue, ComicVolume
@@ -43,7 +41,6 @@ class SourceDetails:
 class SourceStaticOptions:
     def __init__(
         self,
-        logo_url: str = "",  # No longer required?
         website: str = "",
         has_issues: bool = False,
         has_alt_covers: bool = False,
@@ -51,23 +48,12 @@ class SourceStaticOptions:
         has_nsfw: bool = False,
         has_censored_covers: bool = False,
     ) -> None:
-        self.logo_url = logo_url
         self.website = website
         self.has_issues = has_issues
         self.has_alt_covers = has_alt_covers
         self.requires_apikey = requires_apikey
         self.has_nsfw = has_nsfw
         self.has_censored_covers = has_censored_covers
-
-
-class SourceSettingsOptions(TypedDict):
-    # Source settings options and used to generate settings options in panel
-    name: Required[str]  # Internal name for setting i.e "remove_html_tables"
-    text: Required[str]  # Display text i.e "Remove HTML tables"
-    help_text: str  # Tooltip text i.e "Enabling this will remove HTML tables from the description."
-    hidden: Required[bool]  # To hide an option from the settings menu.
-    type: Required[type[bool] | type[int] | type[str] | type[float]]
-    value: Any
 
 
 class TalkerError(Exception):
