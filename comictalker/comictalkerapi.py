@@ -33,6 +33,6 @@ def get_comic_talker(source_name: str) -> type[ComicTalker]:
     return talker
 
 
-def get_talkers():
+def get_talkers() -> dict[str, type[ComicTalker]]:
     """Returns all comic talker modules NOT objects"""
     return {"comicvine": comictalker.talkers.comicvine.ComicVineTalker}

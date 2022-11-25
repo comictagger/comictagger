@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import json
 import logging
+import pathlib
 import time
 from typing import Any, Callable, cast
 from urllib.parse import urljoin, urlsplit
@@ -28,7 +29,6 @@ import comictalker.talker_utils as talker_utils
 from comicapi import utils
 from comicapi.genericmetadata import GenericMetadata
 from comicapi.issuestring import IssueString
-from comictaggerlib import ctversion
 from comictalker.comiccacher import ComicCacher
 from comictalker.resulttypes import ComicIssue, ComicVolume, Credits
 from comictalker.talkerbase import ComicTalker, SourceDetails, SourceStaticOptions, TalkerDataError, TalkerNetworkError
@@ -164,10 +164,21 @@ CV_RATE_LIMIT_STATUS = 107
 
 
 class ComicVineTalker(ComicTalker):
+    default_api_key = "27431e6787042105bd3e47e169a624521f89f3a4"
+    default_api_url = "https://comicvine.gamespot.com/api"
+
     def __init__(
-        self, api_url, api_key, series_match_thresh, remove_html_tables, use_series_start_as_volume, wait_on_ratelimit
+        self,
+        version: str,
+        cache_folder: pathlib.Path,
+        api_url: str = "",
+        api_key: str = "",
+        series_match_thresh: int = 90,
+        remove_html_tables: bool = False,
+        use_series_start_as_volume: bool = False,
+        wait_on_ratelimit: bool = False,
     ):
-        super().__init__()
+        super().__init__(version, cache_folder, api_url, api_key)
         self.source_details = SourceDetails(
             name="Comic Vine",
             ident="comicvine",
@@ -182,34 +193,21 @@ class ComicVineTalker(ComicTalker):
         )
 
         # Identity name for the information source
-        self.source_name = self.source_details.id
-        self.source_name_friendly = self.source_details.name
+        self.source_name: str = self.source_details.id
+        self.source_name_friendly: str = self.source_details.name
 
-        self.wait_for_rate_limit = wait_on_ratelimit
+        self.wait_for_rate_limit: bool = wait_on_ratelimit
         # NOTE: This was hardcoded before which is why it isn't passed in
-        self.wait_for_rate_limit_time = 20
+        self.wait_for_rate_limit_time: int = 20
 
-        self.issue_id: int | None = None
+        self.remove_html_tables: bool = remove_html_tables
+        self.use_series_start_as_volume: bool = use_series_start_as_volume
 
-        self.api_key = api_key if api_key else "27431e6787042105bd3e47e169a624521f89f3a4"
-        self.api_base_url = api_url if api_url else "https://comicvine.gamespot.com/api"
-
-        self.remove_html_tables = remove_html_tables
-        self.use_series_start_as_volume = use_series_start_as_volume
-
-        tmp_url = urlsplit(self.api_base_url)
-
-        # joinurl only works properly if there is a trailing slash
-        if tmp_url.path and tmp_url.path[-1] != "/":
-            tmp_url = tmp_url._replace(path=tmp_url.path + "/")
-
-        self.api_base_url = tmp_url.geturl()
-
-        self.series_match_thresh = series_match_thresh
+        self.series_match_thresh: int = series_match_thresh
 
     def check_api_key(self, key: str, url: str) -> bool:
         if not url:
-            url = self.api_base_url
+            url = self.api_url
         try:
             tmp_url = urlsplit(url)
             if tmp_url.path and tmp_url.path[-1] != "/":
@@ -219,7 +217,7 @@ class ComicVineTalker(ComicTalker):
 
             cv_response: CVResult = requests.get(
                 test_url,
-                headers={"user-agent": "comictagger/" + ctversion.version},
+                headers={"user-agent": "comictagger/" + self.version},
                 params={
                     "api_key": key,
                     "format": "json",
@@ -271,7 +269,7 @@ class ComicVineTalker(ComicTalker):
         # any other error, just bail
         for tries in range(3):
             try:
-                resp = requests.get(url, params=params, headers={"user-agent": "comictagger/" + ctversion.version})
+                resp = requests.get(url, params=params, headers={"user-agent": "comictagger/" + self.version})
                 if resp.status_code == 200:
                     return resp.json()
                 if resp.status_code == 500:
@@ -406,7 +404,7 @@ class ComicVineTalker(ComicTalker):
 
         # Before we search online, look in our cache, since we might have done this same search recently
         # For literal searches always retrieve from online
-        cvc = ComicCacher()
+        cvc = ComicCacher(self.cache_folder, self.version)
         if not refresh_cache and not literal:
             cached_search_results = cvc.get_search_results(self.source_name, series_name)
 
@@ -423,7 +421,7 @@ class ComicVineTalker(ComicTalker):
             "limit": 100,
         }
 
-        cv_response = self.get_cv_content(urljoin(self.api_base_url, "search"), params)
+        cv_response = self.get_cv_content(urljoin(self.api_url, "search"), params)
 
         search_results: list[CVVolumeResults] = []
 
@@ -469,7 +467,7 @@ class ComicVineTalker(ComicTalker):
             page += 1
 
             params["page"] = page
-            cv_response = self.get_cv_content(urljoin(self.api_base_url, "search"), params)
+            cv_response = self.get_cv_content(urljoin(self.api_url, "search"), params)
 
             search_results.extend(cast(list[CVVolumeResults], cv_response["results"]))
             current_result_count += cv_response["number_of_page_results"]
@@ -498,13 +496,13 @@ class ComicVineTalker(ComicTalker):
 
     def fetch_partial_volume_data(self, series_id: int) -> ComicVolume:
         # before we search online, look in our cache, since we might already have this info
-        cvc = ComicCacher()
+        cvc = ComicCacher(self.cache_folder, self.version)
         cached_volume_result = cvc.get_volume_info(series_id, self.source_name)
 
         if cached_volume_result is not None:
             return cached_volume_result
 
-        volume_url = urljoin(self.api_base_url, f"volume/{CVTypeID.Volume}-{series_id}")
+        volume_url = urljoin(self.api_url, f"volume/{CVTypeID.Volume}-{series_id}")
 
         params = {
             "api_key": self.api_key,
@@ -523,7 +521,7 @@ class ComicVineTalker(ComicTalker):
 
     def fetch_issues_by_volume(self, series_id: int) -> list[ComicIssue]:
         # before we search online, look in our cache, since we might already have this info
-        cvc = ComicCacher()
+        cvc = ComicCacher(self.cache_folder, self.version)
         cached_volume_issues_result = cvc.get_volume_issues_info(series_id, self.source_name)
 
         volume_data = self.fetch_partial_volume_data(series_id)
@@ -538,7 +536,7 @@ class ComicVineTalker(ComicTalker):
             "field_list": "id,volume,issue_number,name,image,cover_date,site_detail_url,description,aliases,associated_images",
             "offset": 0,
         }
-        cv_response = self.get_cv_content(urljoin(self.api_base_url, "issues/"), params)
+        cv_response = self.get_cv_content(urljoin(self.api_url, "issues/"), params)
 
         current_result_count = cv_response["number_of_page_results"]
         total_result_count = cv_response["number_of_total_results"]
@@ -553,7 +551,7 @@ class ComicVineTalker(ComicTalker):
             offset += cv_response["number_of_page_results"]
 
             params["offset"] = offset
-            cv_response = self.get_cv_content(urljoin(self.api_base_url, "issues/"), params)
+            cv_response = self.get_cv_content(urljoin(self.api_url, "issues/"), params)
 
             volume_issues_result.extend(cast(list[CVIssueDetailResults], cv_response["results"]))
             current_result_count += cv_response["number_of_page_results"]
@@ -584,7 +582,7 @@ class ComicVineTalker(ComicTalker):
             "filter": flt,
         }
 
-        cv_response = self.get_cv_content(urljoin(self.api_base_url, "issues/"), params)
+        cv_response = self.get_cv_content(urljoin(self.api_url, "issues/"), params)
 
         current_result_count = cv_response["number_of_page_results"]
         total_result_count = cv_response["number_of_total_results"]
@@ -599,7 +597,7 @@ class ComicVineTalker(ComicTalker):
             offset += cv_response["number_of_page_results"]
 
             params["offset"] = offset
-            cv_response = self.get_cv_content(urljoin(self.api_base_url, "issues/"), params)
+            cv_response = self.get_cv_content(urljoin(self.api_url, "issues/"), params)
 
             filtered_issues_result.extend(cast(list[CVIssueDetailResults], cv_response["results"]))
             current_result_count += cv_response["number_of_page_results"]
@@ -634,12 +632,11 @@ class ComicVineTalker(ComicTalker):
 
         if f_record is not None:
             return self.fetch_issue_data_by_issue_id(f_record["id"])
-        else:
-            return GenericMetadata()
+        return GenericMetadata()
 
     def fetch_issue_data_by_issue_id(self, issue_id: int) -> GenericMetadata:
         # before we search online, look in our cache, since we might already have this info
-        cvc = ComicCacher()
+        cvc = ComicCacher(self.cache_folder, self.version)
         cached_issues_result = cvc.get_issue_info(issue_id, self.source_name)
 
         if cached_issues_result and cached_issues_result["complete"]:
@@ -650,7 +647,7 @@ class ComicVineTalker(ComicTalker):
                 self.use_series_start_as_volume,
             )
 
-        issue_url = urljoin(self.api_base_url, f"issue/{CVTypeID.Issue}-{issue_id}")
+        issue_url = urljoin(self.api_url, f"issue/{CVTypeID.Issue}-{issue_id}")
         params = {"api_key": self.api_key, "format": "json"}
         cv_response = self.get_cv_content(issue_url, params)
 

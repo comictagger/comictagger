@@ -16,7 +16,9 @@
 from __future__ import annotations
 
 import logging
+import pathlib
 from typing import Callable
+from urllib.parse import urlsplit
 
 from comicapi.genericmetadata import GenericMetadata
 from comictalker.resulttypes import ComicIssue, ComicVolume
@@ -75,7 +77,7 @@ class TalkerError(Exception):
         4: "Other",
     }
 
-    def __init__(self, source: str = "", code: int = 4, desc: str = "", sub_code: int = 0) -> None:
+    def __init__(self, source: str, desc: str, code: int = 4, sub_code: int = 0) -> None:
         super().__init__()
         if desc == "":
             desc = "Unknown"
@@ -85,7 +87,7 @@ class TalkerError(Exception):
         self.sub_code = sub_code
         self.source = source
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.source} encountered a {self.code_name} error. {self.desc}"
 
 
@@ -113,7 +115,7 @@ class TalkerNetworkError(TalkerError):
         if desc == "":
             desc = self.net_codes[sub_code]
 
-        super().__init__(source, 2, desc, sub_code)
+        super().__init__(source, desc, 2, sub_code)
 
 
 class TalkerDataError(TalkerError):
@@ -137,19 +139,36 @@ class TalkerDataError(TalkerError):
         if desc == "":
             desc = self.data_codes[sub_code]
 
-        super().__init__(source, 3, desc, sub_code)
+        super().__init__(source, desc, 3, sub_code)
 
 
 # Class talkers instance
 class ComicTalker:
     """The base class for all comic source talkers"""
 
-    def __init__(self) -> None:
+    default_api_url: str = ""
+    default_api_key: str = ""
+
+    def __init__(self, version: str, cache_folder: pathlib.Path, api_url: str = "", api_key: str = "") -> None:
         # Identity name for the information source etc.
         self.source_details: SourceDetails = (
             SourceDetails()
         )  # Can use this to test if custom talker has been configured
         self.static_options: SourceStaticOptions = SourceStaticOptions()
+        self.api_key = api_key
+        self.cache_folder = cache_folder
+        self.version = version
+
+        self.api_key = api_key or self.default_api_key
+        self.api_url = api_url or self.default_api_url
+
+        tmp_url = urlsplit(self.api_url)
+
+        # joinurl only works properly if there is a trailing slash
+        if tmp_url.path and tmp_url.path[-1] != "/":
+            tmp_url = tmp_url._replace(path=tmp_url.path + "/")
+
+        self.api_url = tmp_url.geturl()
 
     def check_api_key(self, key: str, url: str) -> bool:
         """If the talker has or requires an API key, this function should test its validity"""

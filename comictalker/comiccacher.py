@@ -19,21 +19,21 @@ import datetime
 import json
 import logging
 import os
+import pathlib
 import sqlite3 as lite
 from typing import Any
 
-from comictaggerlib import ctversion
-from comictaggerlib.settings import ComicTaggerSettings
 from comictalker.resulttypes import ComicIssue, ComicVolume
 
 logger = logging.getLogger(__name__)
 
 
 class ComicCacher:
-    def __init__(self) -> None:
-        self.settings_folder = ComicTaggerSettings.get_settings_folder()
-        self.db_file = os.path.join(self.settings_folder, "comic_cache.db")
-        self.version_file = os.path.join(self.settings_folder, "cache_version.txt")
+    def __init__(self, cache_folder: pathlib.Path, version: str) -> None:
+        self.cache_folder = cache_folder
+        self.db_file = cache_folder / "comic_cache.db"
+        self.version_file = cache_folder / "cache_version.txt"
+        self.version = version
 
         # verify that cache is from same version as this one
         data = ""
@@ -43,7 +43,7 @@ class ComicCacher:
                 f.close()
         except Exception:
             pass
-        if data != ctversion.version:
+        if data != version:
             self.clear_cache()
 
         if not os.path.exists(self.db_file):
@@ -63,7 +63,7 @@ class ComicCacher:
 
         # create the version file
         with open(self.version_file, "w", encoding="utf-8") as f:
-            f.write(ctversion.version)
+            f.write(self.version)
 
         # this will wipe out any existing version
         open(self.db_file, "wb").close()

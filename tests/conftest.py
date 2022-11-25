@@ -115,6 +115,8 @@ def comicvine_api(
     monkeypatch.setattr(requests, "get", m_get)
 
     cv = comictalker.talkers.comicvine.ComicVineTalker(
+        version=mock_version[0],
+        cache_folder=settings.get_settings_folder(),
         api_url="",
         api_key="",
         series_match_thresh=90,
@@ -165,5 +167,5 @@ def settings(tmp_path):
 
 
 @pytest.fixture
-def comic_cache(settings) -> Generator[comictalker.comiccacher.ComicCacher, Any, None]:
-    yield comictalker.comiccacher.ComicCacher()
+def comic_cache(settings, mock_version) -> Generator[comictalker.comiccacher.ComicCacher, Any, None]:
+    yield comictalker.comiccacher.ComicCacher(settings.get_settings_folder(), mock_version[0])

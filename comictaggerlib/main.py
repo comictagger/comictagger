@@ -189,13 +189,15 @@ See https://github.com/comictagger/comictagger/releases/1.5.5 for more informati
 
     talker_exception = None
     try:
-        talker_api = ct_api.get_comic_talker("comicvine")(
-            settings.cv_url,
-            settings.cv_api_key,
-            settings.id_series_match_search_thresh,
-            settings.remove_html_tables,
-            settings.use_series_start_as_volume,
-            settings.wait_and_retry_on_rate_limit,
+        talker_api = ct_api.get_comic_talker("comicvine")(  # type: ignore[call-arg]
+            version=version,
+            cache_folder=ComicTaggerSettings.get_settings_folder(),
+            series_match_thresh=settings.id_series_match_search_thresh,
+            remove_html_tables=settings.remove_html_tables,
+            use_series_start_as_volume=settings.use_series_start_as_volume,
+            wait_on_ratelimit=settings.wait_and_retry_on_rate_limit,
+            api_url=settings.cv_url,
+            api_key=settings.cv_api_key,
         )
     except TalkerError as e:
         logger.exception("Unable to load talker")

@@ -25,6 +25,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
 from comicapi import utils
 from comicapi.genericmetadata import md_test
+from comictaggerlib.ctversion import version
 from comictaggerlib.filerenamer import FileRenamer
 from comictaggerlib.imagefetcher import ImageFetcher
 from comictaggerlib.settings import ComicTaggerSettings
@@ -333,7 +334,7 @@ class SettingsWindow(QtWidgets.QDialog):
             self.talker_api.api_key = self.settings.cv_api_key
         if self.leURL.text().strip():
             self.settings.cv_url = self.leURL.text().strip()
-            self.talker_api.api_base_url = self.settings.cv_url
+            self.talker_api.api_url = self.settings.cv_url
         self.settings.assume_lone_credit_is_primary = self.cbxAssumeLoneCreditIsPrimary.isChecked()
         self.settings.copy_characters_to_tags = self.cbxCopyCharactersToTags.isChecked()
         self.settings.copy_teams_to_tags = self.cbxCopyTeamsToTags.isChecked()
@@ -361,7 +362,7 @@ class SettingsWindow(QtWidgets.QDialog):
 
     def clear_cache(self) -> None:
         ImageFetcher().clear_cache()
-        ComicCacher().clear_cache()
+        ComicCacher(ComicTaggerSettings.get_settings_folder(), version).clear_cache()
         QtWidgets.QMessageBox.information(self, self.name, "Cache has been cleared.")
 
     def test_api_key(self) -> None:
