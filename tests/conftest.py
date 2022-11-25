@@ -54,7 +54,9 @@ def no_requests(monkeypatch) -> None:
 
 
 @pytest.fixture
-def comicvine_api(monkeypatch, cbz, comic_cache) -> comictalker.talkers.comicvine.ComicVineTalker:
+def comicvine_api(
+    monkeypatch, cbz, comic_cache, mock_version, settings
+) -> comictalker.talkers.comicvine.ComicVineTalker:
     # Any arguments may be passed and mock_get() will always return our
     # mocked object, which only has the .json() method or None for invalid urls.
 
@@ -112,7 +114,14 @@ def comicvine_api(monkeypatch, cbz, comic_cache) -> comictalker.talkers.comicvin
     # apply the monkeypatch for requests.get to mock_get
     monkeypatch.setattr(requests, "get", m_get)
 
-    cv = comictalker.talkers.comicvine.ComicVineTalker("", "", 90, False, False, False)
+    cv = comictalker.talkers.comicvine.ComicVineTalker(
+        api_url="",
+        api_key="",
+        series_match_thresh=90,
+        remove_html_tables=False,
+        use_series_start_as_volume=False,
+        wait_on_ratelimit=False,
+    )
     return cv
 
 
@@ -125,6 +134,7 @@ def mock_version(monkeypatch):
     monkeypatch.setattr(comictaggerlib.ctversion, "__version__", version)
     monkeypatch.setattr(comictaggerlib.ctversion, "version_tuple", version_tuple)
     monkeypatch.setattr(comictaggerlib.ctversion, "__version_tuple__", version_tuple)
+    yield (version, version_tuple)
 
 
 @pytest.fixture
