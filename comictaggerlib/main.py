@@ -160,6 +160,16 @@ See https://github.com/comictagger/comictagger/releases/1.5.5 for more informati
             file=sys.stderr,
         )
 
+    # manage the CV API key
+    # None comparison is used so that the empty string can unset the value
+    if opts.cv_api_key is not None or opts.cv_url is not None:
+        settings.cv_api_key = opts.cv_api_key if opts.cv_api_key is not None else settings.cv_api_key
+        settings.cv_url = opts.cv_url if opts.cv_url is not None else settings.cv_url
+        settings.save()
+    if opts.only_set_cv_key:
+        print("Key set")  # noqa: T201
+        return
+
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
     logger.info(
