@@ -17,14 +17,12 @@ from __future__ import annotations
 
 import logging
 import re
-from datetime import datetime
 
 from bs4 import BeautifulSoup
 
 from comicapi import utils
 from comicapi.genericmetadata import GenericMetadata
 from comicapi.issuestring import IssueString
-from comictaggerlib import ctversion
 from comictalker.talkerbase import ComicIssue
 
 logger = logging.getLogger(__name__)
@@ -61,11 +59,6 @@ def map_comic_issue_to_metadata(
 
     metadata.tag_origin = source
     metadata.issue_id = issue_results["id"]
-
-    metadata.notes = (
-        f"Tagged with ComicTagger {ctversion.version} using info from {source} on"
-        f" {datetime.now():%Y-%m-%d %H:%M:%S}.  [Issue ID {issue_results['id']}]"
-    )
     metadata.web_link = issue_results["site_detail_url"]
 
     for person in issue_results["credits"]:
