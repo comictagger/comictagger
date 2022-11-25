@@ -55,7 +55,7 @@ try:
         """
         if QtWidgets.QApplication.instance() is not None:
             errorbox = QtWidgets.QMessageBox()
-            errorbox.setText(f"Oops. An unexpected error occurred:\n{log_msg}")
+            errorbox.setText(log_msg)
             errorbox.exec()
             QtWidgets.QApplication.exit(1)
         else:
@@ -84,11 +84,12 @@ try:
                 sys.__excepthook__(exc_type, exc_value, exc_traceback)
             else:
                 exc_info = (exc_type, exc_value, exc_traceback)
-                log_msg = "\n".join(["".join(traceback.format_tb(exc_traceback)), f"{exc_type.__name__}: {exc_value}"])
+                trace_back = "".join(traceback.format_tb(exc_traceback))
+                log_msg = f"{exc_type.__name__}: {exc_value}\n\n{trace_back}"
                 logger.critical("Uncaught exception: %s: %s", exc_type.__name__, exc_value, exc_info=exc_info)
 
                 # trigger message box show
-                self._exception_caught.emit(log_msg)
+                self._exception_caught.emit(f"Oops. An unexpected error occurred:\n{log_msg}")
 
     qt_exception_hook = UncaughtHook()
     from comictaggerlib.taggerwindow import TaggerWindow
@@ -172,7 +173,11 @@ See https://github.com/comictagger/comictagger/releases/1.5.5 for more informati
     for pkg in sorted(importlib_metadata.distributions(), key=lambda x: x.name):
         logger.debug("%s\t%s", pkg.metadata["Name"], pkg.metadata["Version"])
 
-    talker_failed = False
+    if not qt_available and not opts.no_gui:
+        opts.no_gui = True
+        logger.warning("PyQt5 is not available. ComicTagger is limited to command-line mode.")
+
+    talker_exception = None
     try:
         talker_api = ct_api.get_comic_talker("comicvine")(
             settings.cv_url,
@@ -182,24 +187,14 @@ See https://github.com/comictagger/comictagger/releases/1.5.5 for more informati
             settings.use_series_start_as_volume,
             settings.wait_and_retry_on_rate_limit,
         )
-    except TalkerError as te:
-        talker_failed = True
-        logger.warning(f"Unable to load talker {te.source}. Error: {te.desc}. Defaulting to Comic Vine.")
-        talker_api = ct_api.get_comic_talker("comicvine")(
-            settings.cv_url,
-            settings.cv_api_key,
-            settings.id_series_match_search_thresh,
-            settings.remove_html_tables,
-            settings.use_series_start_as_volume,
-            settings.wait_and_retry_on_rate_limit,
-        )
+    except TalkerError as e:
+        logger.exception("Unable to load talker")
+        talker_exception = e
+        if opts.no_gui:
+            raise SystemExit(1)
 
     utils.load_publishers()
     update_publishers()
-
-    if not qt_available and not opts.no_gui:
-        opts.no_gui = True
-        logger.warning("PyQt5 is not available. ComicTagger is limited to command-line mode.")
 
     if opts.no_gui:
         try:
@@ -213,6 +208,11 @@ See https://github.com/comictagger/comictagger/releases/1.5.5 for more informati
             args.extend(["-platform", "windows:darkmode=2"])
         args.extend(sys.argv)
         app = Application(args)
+        if talker_exception is not None:
+            trace_back = "".join(traceback.format_tb(talker_exception.__traceback__))
+            log_msg = f"{type(talker_exception).__name__}: {talker_exception}\n\n{trace_back}"
+            show_exception_box(f"Unable to load talker: {log_msg}")
+            raise SystemExit(1)
 
         # needed to catch initial open file events (macOS)
         app.openFileRequest.connect(lambda x: opts.files.append(x.toLocalFile()))
@@ -252,13 +252,6 @@ See https://github.com/comictagger/comictagger/releases/1.5.5 for more informati
 
             if platform.system() != "Linux":
                 splash.finish(tagger_window)
-
-            if talker_failed:
-                QtWidgets.QMessageBox.warning(
-                    QtWidgets.QMainWindow(),
-                    "Warning",
-                    "Unable to load configured information source, see log for details. Defaulting to Comic Vine",
-                )
 
             sys.exit(app.exec())
         except Exception:
