@@ -13,9 +13,9 @@ from PIL import Image
 
 import comicapi.comicarchive
 import comicapi.genericmetadata
-import comictaggerlib.comiccacher
-import comictaggerlib.comicvinetalker
 import comictaggerlib.settings
+import comictalker.comiccacher
+import comictalker.talkers.comicvine
 from comicapi import utils
 from testing import comicvine, filenames
 from testing.comicdata import all_seed_imprints, seed_imprints
@@ -54,7 +54,7 @@ def no_requests(monkeypatch) -> None:
 
 
 @pytest.fixture
-def comicvine_api(monkeypatch, cbz, comic_cache) -> unittest.mock.Mock:
+def comicvine_api(monkeypatch, cbz, comic_cache) -> comictalker.talkers.comicvine.ComicVineTalker:
     # Any arguments may be passed and mock_get() will always return our
     # mocked object, which only has the .json() method or None for invalid urls.
 
@@ -111,7 +111,9 @@ def comicvine_api(monkeypatch, cbz, comic_cache) -> unittest.mock.Mock:
 
     # apply the monkeypatch for requests.get to mock_get
     monkeypatch.setattr(requests, "get", m_get)
-    return m_get
+
+    cv = comictalker.talkers.comicvine.ComicVineTalker("", "", 90, False, False, False)
+    return cv
 
 
 @pytest.fixture
@@ -153,5 +155,5 @@ def settings(tmp_path):
 
 
 @pytest.fixture
-def comic_cache(settings) -> Generator[comictaggerlib.comiccacher.ComicCacher, Any, None]:
-    yield comictaggerlib.comiccacher.ComicCacher()
+def comic_cache(settings) -> Generator[comictalker.comiccacher.ComicCacher, Any, None]:
+    yield comictalker.comiccacher.ComicCacher()

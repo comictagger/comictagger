@@ -48,7 +48,6 @@ class AutoTagStartWindow(QtWidgets.QDialog):
         self.cbxAssumeIssueOne.setChecked(self.settings.assume_1_if_no_issue_num)
         self.cbxIgnoreLeadingDigitsInFilename.setChecked(self.settings.ignore_leading_numbers_in_filename)
         self.cbxRemoveAfterSuccess.setChecked(self.settings.remove_archive_after_successful_match)
-        self.cbxWaitForRateLimit.setChecked(self.settings.wait_and_retry_on_rate_limit)
         self.cbxAutoImprint.setChecked(self.settings.auto_imprint)
 
         nlmt_tip = """<html>The <b>Name Match Ratio Threshold: Auto-Identify</b> is for eliminating automatic
@@ -73,7 +72,6 @@ class AutoTagStartWindow(QtWidgets.QDialog):
         self.assume_issue_one = False
         self.ignore_leading_digits_in_filename = False
         self.remove_after_success = False
-        self.wait_and_retry_on_rate_limit = False
         self.search_string = ""
         self.name_length_match_tolerance = self.settings.id_series_match_search_thresh
         self.split_words = self.cbxSplitWords.isChecked()
@@ -91,7 +89,6 @@ class AutoTagStartWindow(QtWidgets.QDialog):
         self.ignore_leading_digits_in_filename = self.cbxIgnoreLeadingDigitsInFilename.isChecked()
         self.remove_after_success = self.cbxRemoveAfterSuccess.isChecked()
         self.name_length_match_tolerance = self.sbNameMatchSearchThresh.value()
-        self.wait_and_retry_on_rate_limit = self.cbxWaitForRateLimit.isChecked()
         self.split_words = self.cbxSplitWords.isChecked()
 
         # persist some settings
@@ -100,7 +97,6 @@ class AutoTagStartWindow(QtWidgets.QDialog):
         self.settings.assume_1_if_no_issue_num = self.assume_issue_one
         self.settings.ignore_leading_numbers_in_filename = self.ignore_leading_digits_in_filename
         self.settings.remove_archive_after_successful_match = self.remove_after_success
-        self.settings.wait_and_retry_on_rate_limit = self.wait_and_retry_on_rate_limit
 
         if self.cbxSpecifySearchString.isChecked():
             self.search_string = self.leSearchString.text()

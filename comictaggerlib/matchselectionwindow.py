@@ -25,6 +25,7 @@ from comictaggerlib.coverimagewidget import CoverImageWidget
 from comictaggerlib.resulttypes import IssueResult
 from comictaggerlib.ui import ui_path
 from comictaggerlib.ui.qtutils import reduce_widget_font_size
+from comictalker.talkerbase import ComicTalker
 
 logger = logging.getLogger(__name__)
 
@@ -32,17 +33,23 @@ logger = logging.getLogger(__name__)
 class MatchSelectionWindow(QtWidgets.QDialog):
     volume_id = 0
 
-    def __init__(self, parent: QtWidgets.QWidget, matches: list[IssueResult], comic_archive: ComicArchive) -> None:
+    def __init__(
+        self,
+        parent: QtWidgets.QWidget,
+        matches: list[IssueResult],
+        comic_archive: ComicArchive,
+        talker_api: ComicTalker,
+    ) -> None:
         super().__init__(parent)
 
         uic.loadUi(ui_path / "matchselectionwindow.ui", self)
 
-        self.altCoverWidget = CoverImageWidget(self.altCoverContainer, CoverImageWidget.AltCoverMode)
+        self.altCoverWidget = CoverImageWidget(self.altCoverContainer, talker_api, CoverImageWidget.AltCoverMode)
         gridlayout = QtWidgets.QGridLayout(self.altCoverContainer)
         gridlayout.addWidget(self.altCoverWidget)
         gridlayout.setContentsMargins(0, 0, 0, 0)
 
-        self.archiveCoverWidget = CoverImageWidget(self.archiveCoverContainer, CoverImageWidget.ArchiveMode)
+        self.archiveCoverWidget = CoverImageWidget(self.archiveCoverContainer, talker_api, CoverImageWidget.ArchiveMode)
         gridlayout = QtWidgets.QGridLayout(self.archiveCoverContainer)
         gridlayout.addWidget(self.archiveCoverWidget)
         gridlayout.setContentsMargins(0, 0, 0, 0)
@@ -142,7 +149,10 @@ class MatchSelectionWindow(QtWidgets.QDialog):
         if prev is not None and prev.row() == curr.row():
             return
 
-        self.altCoverWidget.set_issue_id(self.current_match()["issue_id"])
+        self.altCoverWidget.set_issue_details(
+            self.current_match()["issue_id"],
+            [self.current_match()["image_url"], *self.current_match()["alt_image_urls"]],
+        )
         if self.current_match()["description"] is None:
             self.teDescription.setText("")
         else:

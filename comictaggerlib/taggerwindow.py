@@ -46,7 +46,6 @@ from comictaggerlib.autotagmatchwindow import AutoTagMatchWindow
 from comictaggerlib.autotagprogresswindow import AutoTagProgressWindow
 from comictaggerlib.autotagstartwindow import AutoTagStartWindow
 from comictaggerlib.cbltransformer import CBLTransformer
-from comictaggerlib.comicvinetalker import ComicVineTalker, ComicVineTalkerException
 from comictaggerlib.coverimagewidget import CoverImageWidget
 from comictaggerlib.crediteditorwindow import CreditEditorWindow
 from comictaggerlib.exportwindow import ExportConflictOpts, ExportWindow
@@ -65,6 +64,7 @@ from comictaggerlib.ui import ui_path
 from comictaggerlib.ui.qtutils import center_window_on_parent, reduce_widget_font_size
 from comictaggerlib.versionchecker import VersionChecker
 from comictaggerlib.volumeselectionwindow import VolumeSelectionWindow
+from comictalker.talkerbase import ComicTalker, TalkerError
 
 logger = logging.getLogger(__name__)
 
@@ -81,6 +81,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self,
         file_list: list[str],
         settings: ComicTaggerSettings,
+        talker_api: ComicTalker,
         parent: QtWidgets.QWidget | None = None,
         opts: argparse.Namespace | None = None,
     ) -> None:
@@ -88,6 +89,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
         uic.loadUi(ui_path / "taggerwindow.ui", self)
         self.settings = settings
+        self.talker_api = talker_api
         self.log_window = self.setup_logger()
 
         # prevent multiple instances
@@ -121,12 +123,12 @@ class TaggerWindow(QtWidgets.QMainWindow):
                     )
                     sys.exit()
 
-        self.archiveCoverWidget = CoverImageWidget(self.coverImageContainer, CoverImageWidget.ArchiveMode)
+        self.archiveCoverWidget = CoverImageWidget(self.coverImageContainer, talker_api, CoverImageWidget.ArchiveMode)
         grid_layout = QtWidgets.QGridLayout(self.coverImageContainer)
         grid_layout.addWidget(self.archiveCoverWidget)
         grid_layout.setContentsMargins(0, 0, 0, 0)
 
-        self.page_list_editor = PageListEditor(self.tabPages)
+        self.page_list_editor = PageListEditor(self.tabPages, self.talker_api)
         grid_layout = QtWidgets.QGridLayout(self.tabPages)
         grid_layout.addWidget(self.page_list_editor)
 
@@ -1046,6 +1048,7 @@ You have {4-self.settings.settings_warning} warnings left.
 
         issue_number = str(self.leIssueNum.text()).strip()
 
+        # Only need this check is the source has issue level data.
         if autoselect and issue_number == "":
             QtWidgets.QMessageBox.information(
                 self, "Automatic Identify Search", "Can't auto-identify without an issue number (yet!)"
@@ -1072,6 +1075,7 @@ You have {4-self.settings.settings_warning} warnings left.
             cover_index_list,
             cast(ComicArchive, self.comic_archive),
             self.settings,
+            self.talker_api,
             autoselect,
             literal,
         )
@@ -1089,16 +1093,23 @@ You have {4-self.settings.settings_warning} warnings left.
             self.form_to_metadata()
 
             try:
-                comic_vine = ComicVineTalker(self.settings.id_series_match_search_thresh)
-                new_metadata = comic_vine.fetch_issue_data(selector.volume_id, selector.issue_number, self.settings)
-            except ComicVineTalkerException as e:
-                QtWidgets.QApplication.restoreOverrideCursor()
-                if e.code == ComicVineTalkerException.RateLimit:
-                    QtWidgets.QMessageBox.critical(self, "Comic Vine Error", ComicVineTalker.get_rate_limit_message())
-                else:
-                    QtWidgets.QMessageBox.critical(
-                        self, "Network Issue", "Could not connect to Comic Vine to get issue details.!"
+                if selector.issue_id:
+                    new_metadata = self.talker_api.fetch_comic_data(selector.issue_id)
+                elif selector.volume_id and selector.issue_number:
+                    # Would this ever be needed?
+                    new_metadata = self.talker_api.fetch_comic_data(
+                        series_id=selector.volume_id, issue_number=selector.issue_number
                     )
+                else:
+                    # Only left with series? Isn't series only handled elsewhere?
+                    new_metadata = self.talker_api.fetch_comic_data(series_id=selector.volume_id)
+            except TalkerError as e:
+                QtWidgets.QApplication.restoreOverrideCursor()
+                QtWidgets.QMessageBox.critical(
+                    self,
+                    f"{e.source} {e.code_name} Error",
+                    f"{e}",
+                )
             else:
                 QtWidgets.QApplication.restoreOverrideCursor()
                 if new_metadata is not None:
@@ -1109,7 +1120,7 @@ You have {4-self.settings.settings_warning} warnings left.
                         self.clear_form()
 
                     notes = (
-                        f"Tagged with ComicTagger {ctversion.version} using info from Comic Vine on"
+                        f"Tagged with ComicTagger {ctversion.version} using info from {self.talker_api.source_details.name} on"
                         f" {datetime.now():%Y-%m-%d %H:%M:%S}.  [Issue ID {new_metadata.issue_id}]"
                     )
                     self.metadata.overlay(
@@ -1390,7 +1401,7 @@ You have {4-self.settings.settings_warning} warnings left.
 
     def show_settings(self) -> None:
 
-        settingswin = SettingsWindow(self, self.settings)
+        settingswin = SettingsWindow(self, self.settings, self.talker_api)
         settingswin.setModal(True)
         settingswin.exec()
         settingswin.result()
@@ -1694,24 +1705,22 @@ You have {4-self.settings.settings_warning} warnings left.
 
     def actual_issue_data_fetch(self, match: IssueResult) -> GenericMetadata:
 
-        # now get the particular issue data
-        cv_md = GenericMetadata()
+        # now get the particular issue data OR series data
+        ct_md = GenericMetadata()
         QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
 
         try:
-            comic_vine = ComicVineTalker(self.settings.id_series_match_search_thresh)
-            comic_vine.wait_for_rate_limit = self.settings.wait_and_retry_on_rate_limit
-            cv_md = comic_vine.fetch_issue_data(match["volume_id"], match["issue_number"], self.settings)
-        except ComicVineTalkerException:
-            logger.exception("Network error while getting issue details. Save aborted")
+            ct_md = self.talker_api.fetch_comic_data(match["issue_id"])
+        except TalkerError as e:
+            logger.exception(f"Save aborted.\n{e}")
 
-        if not cv_md.is_empty:
+        if not ct_md.is_empty:
             if self.settings.apply_cbl_transform_on_cv_import:
-                cv_md = CBLTransformer(cv_md, self.settings).apply()
+                ct_md = CBLTransformer(ct_md, self.settings).apply()
 
         QtWidgets.QApplication.restoreOverrideCursor()
 
-        return cv_md
+        return ct_md
 
     def auto_tag_log(self, text: str) -> None:
         IssueIdentifier.default_write_output(text)
@@ -1726,7 +1735,7 @@ You have {4-self.settings.settings_warning} warnings left.
         self, ca: ComicArchive, match_results: OnlineMatchResults, dlg: AutoTagStartWindow
     ) -> tuple[bool, OnlineMatchResults]:
         success = False
-        ii = IssueIdentifier(ca, self.settings)
+        ii = IssueIdentifier(ca, self.settings, self.talker_api)
 
         # read in metadata, and parse file name if not there
         try:
@@ -1763,7 +1772,6 @@ You have {4-self.settings.settings_warning} warnings left.
                 md.issue = utils.xlate(md.volume)
         ii.set_additional_metadata(md)
         ii.only_use_additional_meta_data = True
-        ii.wait_and_retry_on_rate_limit = dlg.wait_and_retry_on_rate_limit
         ii.set_output_function(self.auto_tag_log)
         ii.cover_page_index = md.get_cover_page_index_list()[0]
         if self.atprogdialog is not None:
@@ -1812,19 +1820,19 @@ You have {4-self.settings.settings_warning} warnings left.
                 self.auto_tag_log("Online search: Low confidence match, but saving anyways, as indicated...\n")
 
             # now get the particular issue data
-            cv_md = self.actual_issue_data_fetch(matches[0])
-            if cv_md is None:
+            ct_md = self.actual_issue_data_fetch(matches[0])
+            if ct_md is None:
                 match_results.fetch_data_failures.append(str(ca.path.absolute()))
 
-            if cv_md is not None:
+            if ct_md is not None:
                 if dlg.cbxRemoveMetadata.isChecked():
-                    md = cv_md
+                    md = ct_md
                 else:
                     notes = (
                         f"Tagged with ComicTagger {ctversion.version} using info from Comic Vine on"
-                        f" {datetime.now():%Y-%m-%d %H:%M:%S}.  [Issue ID {cv_md.issue_id}]"
+                        f" {datetime.now():%Y-%m-%d %H:%M:%S}.  [Issue ID {ct_md.issue_id}]"
                     )
-                    md.overlay(cv_md.replace(notes=utils.combine_notes(md.notes, notes, "Tagged with ComicTagger")))
+                    md.overlay(ct_md.replace(notes=utils.combine_notes(md.notes, notes, "Tagged with ComicTagger")))
 
                 if self.settings.auto_imprint:
                     md.fix_publisher()
@@ -1867,7 +1875,7 @@ You have {4-self.settings.settings_warning} warnings left.
         if not atstartdlg.exec():
             return
 
-        self.atprogdialog = AutoTagProgressWindow(self)
+        self.atprogdialog = AutoTagProgressWindow(self, self.talker_api)
         self.atprogdialog.setModal(True)
         self.atprogdialog.show()
         self.atprogdialog.progressBar.setMaximum(len(ca_list))
@@ -1954,7 +1962,12 @@ You have {4-self.settings.settings_warning} warnings left.
             match_results.multiple_matches.extend(match_results.low_confidence_matches)
             if reply == QtWidgets.QMessageBox.StandardButton.Yes:
                 matchdlg = AutoTagMatchWindow(
-                    self, match_results.multiple_matches, style, self.actual_issue_data_fetch, self.settings
+                    self,
+                    match_results.multiple_matches,
+                    style,
+                    self.actual_issue_data_fetch,
+                    self.settings,
+                    self.talker_api,
                 )
                 matchdlg.setModal(True)
                 matchdlg.exec()
@@ -2017,7 +2030,7 @@ You have {4-self.settings.settings_warning} warnings left.
 
     def show_page_browser(self) -> None:
         if self.page_browser is None:
-            self.page_browser = PageBrowserWindow(self, self.metadata)
+            self.page_browser = PageBrowserWindow(self, self.talker_api, self.metadata)
             if self.comic_archive is not None:
                 self.page_browser.set_comic_archive(self.comic_archive)
             self.page_browser.finished.connect(self.page_browser_closed)
@@ -2084,7 +2097,7 @@ You have {4-self.settings.settings_warning} warnings left.
             "File Rename", "If you rename files now, unsaved data in the form will be lost.  Are you sure?"
         ):
 
-            dlg = RenameWindow(self, ca_list, self.load_data_style, self.settings)
+            dlg = RenameWindow(self, ca_list, self.load_data_style, self.settings, self.talker_api)
             dlg.setModal(True)
             if dlg.exec() and self.comic_archive is not None:
                 self.fileSelectionList.update_selected_rows()

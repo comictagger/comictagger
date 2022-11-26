@@ -28,6 +28,7 @@ from comictaggerlib.resulttypes import IssueResult, MultipleMatch
 from comictaggerlib.settings import ComicTaggerSettings
 from comictaggerlib.ui import ui_path
 from comictaggerlib.ui.qtutils import reduce_widget_font_size
+from comictalker.talkerbase import ComicTalker
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +43,7 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
         style: int,
         fetch_func: Callable[[IssueResult], GenericMetadata],
         settings: ComicTaggerSettings,
+        talker_api: ComicTalker,
     ) -> None:
         super().__init__(parent)
 
@@ -51,12 +53,12 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
 
         self.current_match_set: MultipleMatch = match_set_list[0]
 
-        self.altCoverWidget = CoverImageWidget(self.altCoverContainer, CoverImageWidget.AltCoverMode)
+        self.altCoverWidget = CoverImageWidget(self.altCoverContainer, talker_api, CoverImageWidget.AltCoverMode)
         gridlayout = QtWidgets.QGridLayout(self.altCoverContainer)
         gridlayout.addWidget(self.altCoverWidget)
         gridlayout.setContentsMargins(0, 0, 0, 0)
 
-        self.archiveCoverWidget = CoverImageWidget(self.archiveCoverContainer, CoverImageWidget.ArchiveMode)
+        self.archiveCoverWidget = CoverImageWidget(self.archiveCoverContainer, talker_api, CoverImageWidget.ArchiveMode)
         gridlayout = QtWidgets.QGridLayout(self.archiveCoverContainer)
         gridlayout.addWidget(self.archiveCoverWidget)
         gridlayout.setContentsMargins(0, 0, 0, 0)
@@ -178,7 +180,10 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
         if prev is not None and prev.row() == curr.row():
             return None
 
-        self.altCoverWidget.set_issue_id(self.current_match()["issue_id"])
+        self.altCoverWidget.set_issue_details(
+            self.current_match()["issue_id"],
+            [self.current_match()["image_url"], *self.current_match()["alt_image_urls"]],
+        )
         if self.current_match()["description"] is None:
             self.teDescription.setText("")
         else:
@@ -242,15 +247,13 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
             )
 
         # now get the particular issue data
-        cv_md = self.fetch_func(match)
-        if cv_md is None:
-            QtWidgets.QMessageBox.critical(
-                self, "Network Issue", "Could not connect to Comic Vine to get issue details!"
-            )
+        ct_md = self.fetch_func(match)
+        if ct_md is None:
+            QtWidgets.QMessageBox.critical(self, "Network Issue", "Could not retrieve issue details!")
             return
 
         QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
-        md.overlay(cv_md)
+        md.overlay(ct_md)
         success = ca.write_metadata(md, self._style)
         ca.load_cache([MetaDataStyle.CBI, MetaDataStyle.CIX])
 

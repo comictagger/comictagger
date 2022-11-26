@@ -25,13 +25,14 @@ import sys
 import traceback
 import types
 
+import comictalker.comictalkerapi as ct_api
 from comicapi import utils
 from comictaggerlib import cli
-from comictaggerlib.comicvinetalker import ComicVineTalker
 from comictaggerlib.ctversion import version
 from comictaggerlib.graphics import graphics_path
 from comictaggerlib.options import parse_cmd_line
 from comictaggerlib.settings import ComicTaggerSettings
+from comictalker.talkerbase import TalkerError
 
 if sys.version_info < (3, 10):
     import importlib_metadata
@@ -41,6 +42,7 @@ else:
 logger = logging.getLogger("comictagger")
 logging.getLogger("comicapi").setLevel(logging.DEBUG)
 logging.getLogger("comictaggerlib").setLevel(logging.DEBUG)
+logging.getLogger("comictalker").setLevel(logging.DEBUG)
 logger.setLevel(logging.DEBUG)
 
 try:
@@ -157,19 +159,6 @@ See https://github.com/comictagger/comictagger/releases/1.5.5 for more informati
             file=sys.stderr,
         )
 
-    # manage the CV API key
-    # None comparison is used so that the empty string can unset the value
-    if opts.cv_api_key is not None or opts.cv_url is not None:
-        settings.cv_api_key = opts.cv_api_key if opts.cv_api_key is not None else settings.cv_api_key
-        settings.cv_url = opts.cv_url if opts.cv_url is not None else settings.cv_url
-        settings.save()
-    if opts.only_set_cv_key:
-        print("Key set")  # noqa: T201
-        return
-
-    ComicVineTalker.api_key = settings.cv_api_key
-    ComicVineTalker.api_base_url = settings.cv_url
-
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
     logger.info(
@@ -183,6 +172,28 @@ See https://github.com/comictagger/comictagger/releases/1.5.5 for more informati
     for pkg in sorted(importlib_metadata.distributions(), key=lambda x: x.name):
         logger.debug("%s\t%s", pkg.metadata["Name"], pkg.metadata["Version"])
 
+    talker_failed = False
+    try:
+        talker_api = ct_api.get_comic_talker("comicvine")(
+            settings.cv_url,
+            settings.cv_api_key,
+            settings.id_series_match_search_thresh,
+            settings.remove_html_tables,
+            settings.use_series_start_as_volume,
+            settings.wait_and_retry_on_rate_limit,
+        )
+    except TalkerError as te:
+        talker_failed = True
+        logger.warning(f"Unable to load talker {te.source}. Error: {te.desc}. Defaulting to Comic Vine.")
+        talker_api = ct_api.get_comic_talker("comicvine")(
+            settings.cv_url,
+            settings.cv_api_key,
+            settings.id_series_match_search_thresh,
+            settings.remove_html_tables,
+            settings.use_series_start_as_volume,
+            settings.wait_and_retry_on_rate_limit,
+        )
+
     utils.load_publishers()
     update_publishers()
 
@@ -192,7 +203,7 @@ See https://github.com/comictagger/comictagger/releases/1.5.5 for more informati
 
     if opts.no_gui:
         try:
-            cli.cli_mode(opts, settings)
+            cli.cli_mode(opts, settings, talker_api)
         except Exception:
             logger.exception("CLI mode failed")
     else:
@@ -232,7 +243,7 @@ See https://github.com/comictagger/comictagger/releases/1.5.5 for more informati
             QtWidgets.QApplication.processEvents()
 
         try:
-            tagger_window = TaggerWindow(opts.files, settings, opts=opts)
+            tagger_window = TaggerWindow(opts.files, settings, talker_api, opts=opts)
             tagger_window.setWindowIcon(QtGui.QIcon(str(graphics_path / "app.png")))
             tagger_window.show()
 
@@ -241,6 +252,13 @@ See https://github.com/comictagger/comictagger/releases/1.5.5 for more informati
 
             if platform.system() != "Linux":
                 splash.finish(tagger_window)
+
+            if talker_failed:
+                QtWidgets.QMessageBox.warning(
+                    QtWidgets.QMainWindow(),
+                    "Warning",
+                    "Unable to load configured information source, see log for details. Defaulting to Comic Vine",
+                )
 
             sys.exit(app.exec())
         except Exception:

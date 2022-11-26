@@ -25,12 +25,12 @@ from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
 from comicapi import utils
 from comicapi.genericmetadata import md_test
-from comictaggerlib.comiccacher import ComicCacher
-from comictaggerlib.comicvinetalker import ComicVineTalker
 from comictaggerlib.filerenamer import FileRenamer
 from comictaggerlib.imagefetcher import ImageFetcher
 from comictaggerlib.settings import ComicTaggerSettings
 from comictaggerlib.ui import ui_path
+from comictalker.comiccacher import ComicCacher
+from comictalker.talkerbase import ComicTalker
 
 logger = logging.getLogger(__name__)
 
@@ -128,7 +128,7 @@ Spider-Geddon #1 - New Players; Check In
 
 
 class SettingsWindow(QtWidgets.QDialog):
-    def __init__(self, parent: QtWidgets.QWidget, settings: ComicTaggerSettings) -> None:
+    def __init__(self, parent: QtWidgets.QWidget, settings: ComicTaggerSettings, talker_api: ComicTalker) -> None:
         super().__init__(parent)
 
         uic.loadUi(ui_path / "settingswindow.ui", self)
@@ -138,6 +138,7 @@ class SettingsWindow(QtWidgets.QDialog):
         )
 
         self.settings = settings
+        self.talker_api = talker_api
         self.name = "Settings"
 
         if platform.system() == "Windows":
@@ -326,10 +327,13 @@ class SettingsWindow(QtWidgets.QDialog):
         self.settings.sort_series_by_year = self.cbxSortByYear.isChecked()
         self.settings.exact_series_matches_first = self.cbxExactMatches.isChecked()
 
-        self.settings.cv_api_key = self.leKey.text().strip()
-        ComicVineTalker.api_key = self.settings.cv_api_key
-        self.settings.cv_url = self.leURL.text().strip()
-        ComicVineTalker.api_base_url = self.settings.cv_url
+        # Ignore empty field
+        if self.leKey.text().strip():
+            self.settings.cv_api_key = self.leKey.text().strip()
+            self.talker_api.api_key = self.settings.cv_api_key
+        if self.leURL.text().strip():
+            self.settings.cv_url = self.leURL.text().strip()
+            self.talker_api.api_base_url = self.settings.cv_url
         self.settings.assume_lone_credit_is_primary = self.cbxAssumeLoneCreditIsPrimary.isChecked()
         self.settings.copy_characters_to_tags = self.cbxCopyCharactersToTags.isChecked()
         self.settings.copy_teams_to_tags = self.cbxCopyTeamsToTags.isChecked()
@@ -361,7 +365,7 @@ class SettingsWindow(QtWidgets.QDialog):
         QtWidgets.QMessageBox.information(self, self.name, "Cache has been cleared.")
 
     def test_api_key(self) -> None:
-        if ComicVineTalker().test_key(self.leKey.text().strip(), self.leURL.text().strip()):
+        if self.talker_api.check_api_key(self.leKey.text().strip(), self.leURL.text().strip()):
             QtWidgets.QMessageBox.information(self, "API Key Test", "Key is valid!")
         else:
             QtWidgets.QMessageBox.warning(self, "API Key Test", "Key is NOT valid.")

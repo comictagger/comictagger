@@ -81,7 +81,8 @@ class ImageFetcher:
 
         # first look in the DB
         image_data = self.get_image_from_cache(url)
-        if blocking or not qt_available:
+        # Async for retrieving covers seems to work well
+        if blocking:  # if blocking or not qt_available:
             if not image_data:
                 try:
                     image_data = requests.get(url, headers={"user-agent": "comictagger/" + ctversion.version}).content

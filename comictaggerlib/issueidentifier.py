@@ -26,11 +26,12 @@ from comicapi import utils
 from comicapi.comicarchive import ComicArchive
 from comicapi.genericmetadata import GenericMetadata
 from comicapi.issuestring import IssueString
-from comictaggerlib.comicvinetalker import ComicVineTalker, ComicVineTalkerException
 from comictaggerlib.imagefetcher import ImageFetcher, ImageFetcherException
 from comictaggerlib.imagehasher import ImageHasher
 from comictaggerlib.resulttypes import IssueResult
 from comictaggerlib.settings import ComicTaggerSettings
+from comictalker.talker_utils import parse_date_str
+from comictalker.talkerbase import ComicTalker, TalkerError
 
 logger = logging.getLogger(__name__)
 
@@ -72,8 +73,9 @@ class IssueIdentifier:
     result_one_good_match = 4
     result_multiple_good_matches = 5
 
-    def __init__(self, comic_archive: ComicArchive, settings: ComicTaggerSettings) -> None:
+    def __init__(self, comic_archive: ComicArchive, settings: ComicTaggerSettings, talker_api: ComicTalker) -> None:
         self.settings = settings
+        self.talker_api = talker_api
         self.comic_archive: ComicArchive = comic_archive
         self.image_hasher = 1
 
@@ -107,7 +109,6 @@ class IssueIdentifier:
         self.search_result = self.result_no_matches
         self.cover_page_index = 0
         self.cancel = False
-        self.wait_and_retry_on_rate_limit = False
 
         self.match_list: list[IssueResult] = []
 
@@ -239,11 +240,10 @@ class IssueIdentifier:
 
     def get_issue_cover_match_score(
         self,
-        comic_vine: ComicVineTalker,
         issue_id: int,
         primary_img_url: str,
         primary_thumb_url: str,
-        page_url: str,
+        alt_urls: list[str],
         local_cover_hash_list: list[int],
         use_remote_alternates: bool = False,
         use_log: bool = True,
@@ -274,8 +274,7 @@ class IssueIdentifier:
             raise IssueIdentifierCancelled
 
         if use_remote_alternates:
-            alt_img_url_list = comic_vine.fetch_alternate_cover_urls(issue_id, page_url)
-            for alt_url in alt_img_url_list:
+            for alt_url in alt_urls:
                 try:
                     alt_url_image_data = ImageFetcher().fetch(alt_url, blocking=True)
                 except ImageFetcherException as e:
@@ -369,27 +368,22 @@ class IssueIdentifier:
         if keys["month"] is not None:
             self.log_msg("\tMonth:  " + str(keys["month"]))
 
-        comic_vine = ComicVineTalker(self.settings.id_series_match_search_thresh)
-        comic_vine.wait_for_rate_limit = self.wait_and_retry_on_rate_limit
-
-        comic_vine.set_log_func(self.output_function)
-
         self.log_msg(f"Searching for {keys['series']} #{keys['issue_number']} ...")
         try:
-            cv_search_results = comic_vine.search_for_series(keys["series"])
-        except ComicVineTalkerException:
-            self.log_msg("Network issue while searching for series. Aborting...")
+            ct_search_results = self.talker_api.search_for_series(keys["series"])
+        except TalkerError as e:
+            self.log_msg(f"Error searching for series.\n{e}")
             return []
 
         if self.cancel:
             return []
 
-        if cv_search_results is None:
+        if ct_search_results is None:
             return []
 
         series_second_round_list = []
 
-        for item in cv_search_results:
+        for item in ct_search_results:
             length_approved = False
             publisher_approved = True
             date_approved = True
@@ -404,16 +398,13 @@ class IssueIdentifier:
                 if int(keys["year"]) < int(item["start_year"]):
                     date_approved = False
 
-            aliases = []
-            if item["aliases"]:
-                aliases = item["aliases"].split("\n")
-            for name in [item["name"], *aliases]:
+            for name in [item["name"], *item["aliases"]]:
                 if utils.titles_match(keys["series"], name, self.series_match_thresh):
                     length_approved = True
                     break
             # remove any series from publishers on the filter
             if item["publisher"] is not None:
-                publisher = item["publisher"]["name"]
+                publisher = item["publisher"]
                 if publisher is not None and publisher.casefold() in self.publisher_filter:
                     publisher_approved = False
 
@@ -436,12 +427,11 @@ class IssueIdentifier:
         issue_list = None
         try:
             if len(volume_id_list) > 0:
-                issue_list = comic_vine.fetch_issues_by_volume_issue_num_and_year(
+                issue_list = self.talker_api.fetch_issues_by_volume_issue_num_and_year(
                     volume_id_list, keys["issue_number"], keys["year"]
                 )
-
-        except ComicVineTalkerException:
-            self.log_msg("Network issue while searching for series details. Aborting...")
+        except TalkerError as e:
+            self.log_msg(f"Issue with while searching for series details. Aborting...\n{e}")
             return []
 
         if issue_list is None:
@@ -476,7 +466,7 @@ class IssueIdentifier:
             )
 
             # parse out the cover date
-            _, month, year = comic_vine.parse_date_str(issue["cover_date"])
+            _, month, year = parse_date_str(issue["cover_date"])
 
             # Now check the cover match against the primary image
             hash_list = [cover_hash]
@@ -484,16 +474,15 @@ class IssueIdentifier:
                 hash_list.append(narrow_cover_hash)
 
             try:
-                image_url = issue["image"]["super_url"]
-                thumb_url = issue["image"]["thumb_url"]
-                page_url = issue["site_detail_url"]
+                image_url = issue["image_url"]
+                thumb_url = issue["image_thumb_url"]
+                alt_urls = issue["alt_image_urls"]
 
                 score_item = self.get_issue_cover_match_score(
-                    comic_vine,
                     issue["id"],
                     image_url,
                     thumb_url,
-                    page_url,
+                    alt_urls,
                     hash_list,
                     use_remote_alternates=False,
                 )
@@ -515,11 +504,12 @@ class IssueIdentifier:
                 "publisher": None,
                 "image_url": image_url,
                 "thumb_url": thumb_url,
-                "page_url": page_url,
+                # "page_url": page_url,
+                "alt_image_urls": alt_urls,
                 "description": issue["description"],
             }
             if series["publisher"] is not None:
-                match["publisher"] = series["publisher"]["name"]
+                match["publisher"] = series["publisher"]
 
             self.match_list.append(match)
 
@@ -577,15 +567,15 @@ class IssueIdentifier:
                 self.log_msg(f"Examining alternate covers for ID: {m['volume_id']} {m['series']} ...", newline=False)
                 try:
                     score_item = self.get_issue_cover_match_score(
-                        comic_vine,
                         m["issue_id"],
                         m["image_url"],
                         m["thumb_url"],
-                        m["page_url"],
+                        m["alt_image_urls"],
                         hash_list,
                         use_remote_alternates=True,
                     )
                 except Exception:
+                    logger.exception("failed examining alt covers")
                     self.match_list = []
                     return self.match_list
                 self.log_msg(f"--->{score_item['score']}")

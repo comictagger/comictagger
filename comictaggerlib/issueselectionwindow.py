@@ -20,12 +20,12 @@ import logging
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
 from comicapi.issuestring import IssueString
-from comictaggerlib.comicvinetalker import ComicVineTalker, ComicVineTalkerException
 from comictaggerlib.coverimagewidget import CoverImageWidget
-from comictaggerlib.resulttypes import CVIssuesResults
 from comictaggerlib.settings import ComicTaggerSettings
 from comictaggerlib.ui import ui_path
 from comictaggerlib.ui.qtutils import reduce_widget_font_size
+from comictalker.resulttypes import ComicIssue
+from comictalker.talkerbase import ComicTalker, TalkerError
 
 logger = logging.getLogger(__name__)
 
@@ -42,13 +42,18 @@ class IssueSelectionWindow(QtWidgets.QDialog):
     volume_id = 0
 
     def __init__(
-        self, parent: QtWidgets.QWidget, settings: ComicTaggerSettings, series_id: int, issue_number: str
+        self,
+        parent: QtWidgets.QWidget,
+        settings: ComicTaggerSettings,
+        talker_api: ComicTalker,
+        series_id: int,
+        issue_number: str,
     ) -> None:
         super().__init__(parent)
 
         uic.loadUi(ui_path / "issueselectionwindow.ui", self)
 
-        self.coverWidget = CoverImageWidget(self.coverImageContainer, CoverImageWidget.AltCoverMode)
+        self.coverWidget = CoverImageWidget(self.coverImageContainer, talker_api, CoverImageWidget.AltCoverMode)
         gridlayout = QtWidgets.QGridLayout(self.coverImageContainer)
         gridlayout.addWidget(self.coverWidget)
         gridlayout.setContentsMargins(0, 0, 0, 0)
@@ -67,8 +72,9 @@ class IssueSelectionWindow(QtWidgets.QDialog):
         self.series_id = series_id
         self.issue_id: int | None = None
         self.settings = settings
+        self.talker_api = talker_api
         self.url_fetch_thread = None
-        self.issue_list: list[CVIssuesResults] = []
+        self.issue_list: list[ComicIssue] = []
 
         if issue_number is None or issue_number == "":
             self.issue_number = "1"
@@ -98,15 +104,14 @@ class IssueSelectionWindow(QtWidgets.QDialog):
         QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
 
         try:
-            comic_vine = ComicVineTalker(self.settings.id_series_match_search_thresh)
-            comic_vine.fetch_volume_data(self.series_id)
-            self.issue_list = comic_vine.fetch_issues_by_volume(self.series_id)
-        except ComicVineTalkerException as e:
+            self.issue_list = self.talker_api.fetch_issues_by_volume(self.series_id)
+        except TalkerError as e:
             QtWidgets.QApplication.restoreOverrideCursor()
-            if e.code == ComicVineTalkerException.RateLimit:
-                QtWidgets.QMessageBox.critical(self, "Comic Vine Error", ComicVineTalker.get_rate_limit_message())
-            else:
-                QtWidgets.QMessageBox.critical(self, "Network Issue", "Could not connect to Comic Vine to list issues!")
+            QtWidgets.QMessageBox.critical(
+                self,
+                f"{e.source} {e.code_name} Error",
+                f"{e}",
+            )
             return
 
         self.twList.setRowCount(0)
@@ -175,7 +180,7 @@ class IssueSelectionWindow(QtWidgets.QDialog):
         for record in self.issue_list:
             if record["id"] == self.issue_id:
                 self.issue_number = record["issue_number"]
-                self.coverWidget.set_issue_id(self.issue_id)
+                self.coverWidget.set_issue_details(self.issue_id, [record["image_url"], *record["alt_image_urls"]])
                 if record["description"] is None:
                     self.teDescription.setText("")
                 else:
