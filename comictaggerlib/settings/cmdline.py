@@ -52,7 +52,7 @@ def initial_cmd_line_parser() -> argparse.ArgumentParser:
 def register_options(parser: Manager) -> None:
     parser.add_setting(
         "--config",
-        help="Config directory defaults to ~/.ComicTagger\non Linux/Mac and %%APPDATA%% on Windows\n",
+        help="Config directory defaults to ~/.Config/ComicTagger\non Linux, ~/Library/Application Support/ComicTagger on Mac and %%APPDATA%%\\ComicTagger on Windows\n",
         type=ComicTaggerPaths,
         default=ComicTaggerPaths(),
         file=False,
