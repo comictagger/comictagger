@@ -17,6 +17,7 @@ def get_file_handler(filename: pathlib.Path) -> logging.FileHandler:
 def setup_logging(verbose: int, log_dir: pathlib.Path) -> None:
     logging.getLogger("comicapi").setLevel(logging.DEBUG)
     logging.getLogger("comictaggerlib").setLevel(logging.DEBUG)
+    logging.getLogger("comictalker").setLevel(logging.DEBUG)
 
     log_file = log_dir / "ComicTagger.log"
     log_dir.mkdir(parents=True, exist_ok=True)
