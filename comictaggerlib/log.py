@@ -19,7 +19,7 @@ def setup_logging(verbose: int, log_dir: pathlib.Path) -> None:
     logging.getLogger("comictaggerlib").setLevel(logging.DEBUG)
 
     log_file = log_dir / "ComicTagger.log"
-    log_file.parent.mkdir(parents=True, exist_ok=True)
+    log_dir.mkdir(parents=True, exist_ok=True)
 
     stream_handler = logging.StreamHandler()
     file_handler = get_file_handler(log_file)
