@@ -11,8 +11,13 @@ from comictaggerlib.settings.types import AppendAction
 
 def general(parser: Manager) -> None:
     # General Settings
-    parser.add_setting("--rar-exe-path", default="rar")
-    parser.add_setting("--allow-cbi-in-rar", default=True, action=argparse.BooleanOptionalAction)
+    parser.add_setting("--rar-exe-path", default="rar", help="The path to the rar program")
+    parser.add_setting(
+        "--allow-cbi-in-rar",
+        default=True,
+        action=argparse.BooleanOptionalAction,
+        help="Allows ComicBookLover tags in RAR/CBR files",
+    )
     parser.add_setting("check_for_new_version", default=False, cmdline=False)
     parser.add_setting("send_usage_stats", default=False, cmdline=False)
 
@@ -35,11 +40,12 @@ def internal(parser: Manager) -> None:
 
 def identifier(parser: Manager) -> None:
     # identifier settings
-    parser.add_setting("--series-match-identify-thresh", default=91, type=int)
+    parser.add_setting("--series-match-identify-thresh", default=91, type=int, help="")
     parser.add_setting(
         "--publisher-filter",
         default=["Panini Comics", "Abril", "Planeta DeAgostini", "Editorial Televisa", "Dino Comics"],
         action=AppendAction,
+        help="When enabled filters the listed publishers from all search results",
     )
 
 
@@ -53,10 +59,30 @@ def dialog(parser: Manager) -> None:
 
 def filename(parser: Manager) -> None:
     # filename parsing settings
-    parser.add_setting("--complicated-parser", default=False, action=argparse.BooleanOptionalAction)
-    parser.add_setting("--remove-c2c", default=False, action=argparse.BooleanOptionalAction)
-    parser.add_setting("--remove-fcbd", default=False, action=argparse.BooleanOptionalAction)
-    parser.add_setting("--remove-publisher", default=False, action=argparse.BooleanOptionalAction)
+    parser.add_setting(
+        "--complicated-parser",
+        default=False,
+        action=argparse.BooleanOptionalAction,
+        help="Enables the new parser which tries to extract more information from filenames",
+    )
+    parser.add_setting(
+        "--remove-c2c",
+        default=False,
+        action=argparse.BooleanOptionalAction,
+        help="Removes c2c from filenames. Requires --complicated-parser",
+    )
+    parser.add_setting(
+        "--remove-fcbd",
+        default=False,
+        action=argparse.BooleanOptionalAction,
+        help="Removes FCBD/free comic book day from filenames. Requires --complicated-parser",
+    )
+    parser.add_setting(
+        "--remove-publisher",
+        default=False,
+        action=argparse.BooleanOptionalAction,
+        help="Attempts to remove publisher names from filenames, currently limited to Marvel and DC. Requires --complicated-parser",
+    )
 
 
 def comicvine(parser: Manager) -> None:
@@ -64,6 +90,7 @@ def comicvine(parser: Manager) -> None:
     parser.add_setting(
         "--series-match-search-thresh",
         default=90,
+        type=int,
     )
     parser.add_setting("--use-series-start-as-volume", default=False, action=argparse.BooleanOptionalAction)
     parser.add_setting(
@@ -73,7 +100,12 @@ def comicvine(parser: Manager) -> None:
         dest="clear_metadata_on_import",
         action=argparse.BooleanOptionalAction,
     )
-    parser.add_setting("--remove-html-tables", default=False, action=argparse.BooleanOptionalAction)
+    parser.add_setting(
+        "--remove-html-tables",
+        default=False,
+        action=argparse.BooleanOptionalAction,
+        help="Removes html tables instead of converting them to text",
+    )
     parser.add_setting(
         "--cv-api-key",
         help="Use the given Comic Vine API Key (persisted in settings).",
@@ -87,13 +119,30 @@ def comicvine(parser: Manager) -> None:
         "--auto-imprint",
         action=argparse.BooleanOptionalAction,
         default=False,
-        help="""Enables the auto imprint functionality.\ne.g. if the publisher is set to 'vertigo' it\nwill be updated to 'DC Comics' and the imprint\nproperty will be set to 'Vertigo'.\n\n""",
+        help="Enables the auto imprint functionality.\ne.g. if the publisher is set to 'vertigo' it\nwill be updated to 'DC Comics' and the imprint\nproperty will be set to 'Vertigo'.\n\n",
     )
 
-    parser.add_setting("--sort-series-by-year", default=True, action=argparse.BooleanOptionalAction)
-    parser.add_setting("--exact-series-matches-first", default=True, action=argparse.BooleanOptionalAction)
-    parser.add_setting("--always-use-publisher-filter", default=False, action=argparse.BooleanOptionalAction)
-    parser.add_setting("--clear-form-before-populating-from-cv", default=False, action=argparse.BooleanOptionalAction)
+    parser.add_setting(
+        "--sort-series-by-year", default=True, action=argparse.BooleanOptionalAction, help="Sorts series by year"
+    )
+    parser.add_setting(
+        "--exact-series-matches-first",
+        default=True,
+        action=argparse.BooleanOptionalAction,
+        help="Puts series that are an exact match at the top of the list",
+    )
+    parser.add_setting(
+        "--always-use-publisher-filter",
+        default=False,
+        action=argparse.BooleanOptionalAction,
+        help="Enables the publisher filter",
+    )
+    parser.add_setting(
+        "--clear-form-before-populating-from-cv",
+        default=False,
+        action=argparse.BooleanOptionalAction,
+        help="Clears all existing metadata when applying metadata from ComicVine",
+    )
 
 
 def cbl(parser: Manager) -> None:
@@ -111,13 +160,38 @@ def cbl(parser: Manager) -> None:
 
 def rename(parser: Manager) -> None:
     # Rename settings
-    parser.add_setting("--template", default="{series} #{issue} ({year})")
-    parser.add_setting("--issue-number-padding", default=3, type=int)
-    parser.add_setting("--use-smart-string-cleanup", default=True, action=argparse.BooleanOptionalAction)
-    parser.add_setting("--set-extension-based-on-archive", default=True, action=argparse.BooleanOptionalAction)
-    parser.add_setting("--dir", default="")
-    parser.add_setting("--move-to-dir", default=False, action=argparse.BooleanOptionalAction)
-    parser.add_setting("--strict", default=False, action=argparse.BooleanOptionalAction)
+    parser.add_setting("--template", default="{series} #{issue} ({year})", help="The teplate to use when renaming")
+    parser.add_setting(
+        "--issue-number-padding",
+        default=3,
+        type=int,
+        help="The minimum number of digits to use for the issue number when renaming",
+    )
+    parser.add_setting(
+        "--use-smart-string-cleanup",
+        default=True,
+        action=argparse.BooleanOptionalAction,
+        help="Attempts to intelligently cleanup whitespace when renaming",
+    )
+    parser.add_setting(
+        "--set-extension-based-on-archive",
+        default=True,
+        action=argparse.BooleanOptionalAction,
+        help="Automatically sets the extension based on the archive type e.g. cbr for rar, cbz for zip",
+    )
+    parser.add_setting("--dir", default="", help="The directory to move renamed files to")
+    parser.add_setting(
+        "--move-to-dir",
+        default=False,
+        action=argparse.BooleanOptionalAction,
+        help="Enables moving renamed files to a separate directory",
+    )
+    parser.add_setting(
+        "--strict",
+        default=False,
+        action=argparse.BooleanOptionalAction,
+        help="Ensures that filenames are valid for all OSs",
+    )
     parser.add_setting(
         "replacements",
         default=DEFAULT_REPLACEMENTS,
@@ -127,25 +201,40 @@ def rename(parser: Manager) -> None:
 
 def autotag(parser: Manager) -> None:
     # Auto-tag stickies
-    parser.add_setting("--save-on-low-confidence", default=False, action=argparse.BooleanOptionalAction)
-    parser.add_setting("--dont-use-year-when-identifying", default=False, action=argparse.BooleanOptionalAction)
+    parser.add_setting(
+        "--save-on-low-confidence",
+        default=False,
+        action=argparse.BooleanOptionalAction,
+        help="Automatically save metadata on low-confidence matches",
+    )
+    parser.add_setting(
+        "--dont-use-year-when-identifying",
+        default=False,
+        action=argparse.BooleanOptionalAction,
+        help="Ignore the year metadata attribute when identifying a comic",
+    )
     parser.add_setting(
         "-1",
         "--assume-issue-one",
         dest="assume_1_if_no_issue_num",
         action=argparse.BooleanOptionalAction,
-        help="""Assume issue number is 1 if not found (relevant for -s).\n\n""",
+        help="Assume issue number is 1 if not found (relevant for -s).\n\n",
         default=False,
     )
-    parser.add_setting("--ignore-leading-numbers-in-filename", default=False, action=argparse.BooleanOptionalAction)
-    parser.add_setting("--remove-archive-after-successful-match", default=False, action=argparse.BooleanOptionalAction)
+    parser.add_setting(
+        "--ignore-leading-numbers-in-filename",
+        default=False,
+        action=argparse.BooleanOptionalAction,
+        help="When searching ignore leading numbers in the filename",
+    )
+    parser.add_setting("remove_archive_after_successful_match", default=False, cmdline=False)
     parser.add_setting(
         "-w",
         "--wait-on-cv-rate-limit",
         dest="wait_and_retry_on_rate_limit",
         action=argparse.BooleanOptionalAction,
         default=True,
-        help="""When encountering a Comic Vine rate limit\nerror, wait and retry query.\n\n""",
+        help="When encountering a Comic Vine rate limit\nerror, wait and retry query.\n\n",
     )
 
 
