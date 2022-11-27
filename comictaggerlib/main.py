@@ -155,7 +155,7 @@ class App:
 
         if self.options["runtime"]["no_gui"]:
             try:
-                cli.cli_mode(self.options, talker_api)
+                cli.CLI(self.options, talker_api).run()
             except Exception:
                 logger.exception("CLI mode failed")
         else:
