@@ -143,7 +143,7 @@ class App:
                 series_match_thresh=self.options["comicvine"]["series_match_search_thresh"],
                 remove_html_tables=self.options["comicvine"]["remove_html_tables"],
                 use_series_start_as_volume=self.options["comicvine"]["use_series_start_as_volume"],
-                wait_on_ratelimit=self.options["comicvine"]["wait_and_retry_on_rate_limit"],
+                wait_on_ratelimit=self.options["autotag"]["wait_and_retry_on_rate_limit"],
                 api_url=self.options["comicvine"]["cv_url"],
                 api_key=self.options["comicvine"]["cv_api_key"],
             )
