@@ -1049,7 +1049,7 @@ You have {4-self.settings.settings_warning} warnings left.
             issue_number = str(self.leIssueNum.text()).strip()
 
             # Only need this check is the source has issue level data.
-            if autoselect and issue_number == "":
+            if autoselect and issue_number == "" and self.talker_api.static_options.has_issues:
                 QtWidgets.QMessageBox.information(
                     self, "Automatic Identify Search", "Can't auto-identify without an issue number (yet!)"
                 )
@@ -1101,7 +1101,8 @@ You have {4-self.settings.settings_warning} warnings left.
                             series_id=selector.volume_id, issue_number=selector.issue_number
                         )
                     else:
-                        # Only left with series? Isn't series only handled elsewhere?
+                        # TODO Check that if talker has_issues clicking okay in volume doesn't tag with series data
+                        # If a talker does not have issue data we should end up here
                         new_metadata = self.talker_api.fetch_comic_data(series_id=selector.volume_id)
                 except TalkerError as e:
                     QtWidgets.QApplication.restoreOverrideCursor()
@@ -1709,8 +1710,13 @@ You have {4-self.settings.settings_warning} warnings left.
         ct_md = GenericMetadata()
         QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
 
+        # TODO Test with volume only talker
         try:
-            ct_md = self.talker_api.fetch_comic_data(match["issue_id"])
+            if self.talker_api.static_options.has_issues:
+                ct_md = self.talker_api.fetch_comic_data(match["issue_id"])
+            else:
+                ct_md = self.talker_api.fetch_comic_data(match["volume_id"])
+
         except TalkerError as e:
             logger.exception(f"Save aborted.\n{e}")
 
