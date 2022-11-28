@@ -350,13 +350,16 @@ class IssueIdentifier:
                 narrow_cover_hash = self.calculate_hash(right_side_image_data)
 
         keys = self.get_search_keys()
-        # normalize the issue number
-        keys["issue_number"] = IssueString(keys["issue_number"]).as_string()
+        if keys is None:
+            return []
 
         # we need, at minimum, a series and issue number
         if keys["series"] is None or keys["issue_number"] is None:
             self.log_msg("Not enough info for a search!")
             return []
+
+        # normalize the issue number, None will return as ""
+        keys["issue_number"] = IssueString(keys["issue_number"]).as_string()
 
         self.log_msg("Going to search for:")
         self.log_msg("\tSeries: " + keys["series"])
