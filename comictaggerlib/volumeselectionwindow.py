@@ -474,6 +474,13 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
         self.twList.setSortingEnabled(True)
         self.twList.selectRow(0)
         self.twList.resizeColumnsToContents()
+        # Get the width of the issues, year and publisher columns
+        owidth = self.twList.columnWidth(1) + self.twList.columnWidth(2) + self.twList.columnWidth(3)
+        # Get the remaining width after they fill the tableWidget
+        rwidth = self.twList.width() - owidth
+
+        # Default the tableWidget to truncate series names
+        self.twList.setColumnWidth(0, rwidth)
 
     def showEvent(self, event: QtGui.QShowEvent) -> None:
         self.perform_query()
