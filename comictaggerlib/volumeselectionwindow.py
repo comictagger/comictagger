@@ -482,6 +482,9 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
         # Default the tableWidget to truncate series names
         self.twList.setColumnWidth(0, rwidth)
 
+        # Resize row height so the whole series can still be seen
+        self.twList.resizeRowsToContents()
+
     def showEvent(self, event: QtGui.QShowEvent) -> None:
         self.perform_query()
         if not self.ct_search_results:
