@@ -479,7 +479,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
         # Get the width of the issues, year and publisher columns
         owidth = self.twList.columnWidth(1) + self.twList.columnWidth(2) + self.twList.columnWidth(3)
         # Get the remaining width after they fill the tableWidget
-        rwidth = self.twList.width() - owidth
+        rwidth = self.twList.contentsRect().width() - owidth
 
         # Default the tableWidget to truncate series names
         self.twList.setColumnWidth(0, rwidth)
