@@ -110,7 +110,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
         year: int | None,
         issue_count: int,
         cover_index_list: list[int],
-        comic_archive: ComicArchive,
+        comic_archive: ComicArchive | None,
         settings: ComicTaggerSettings,
         talker_api: ComicTalker,
         autoselect: bool = False,
@@ -243,7 +243,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
             self.ii.cancel = True
 
     def identify_complete(self) -> None:
-        if self.ii is not None and self.iddialog is not None:
+        if self.ii is not None and self.iddialog is not None and self.comic_archive is not None:
 
             matches = self.ii.match_list
             result = self.ii.search_result
