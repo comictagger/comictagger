@@ -159,7 +159,9 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
         # Load to retrieve settings
         self.talker_api = talker_api
 
-        self.twList.resizeColumnsToContents()
+        # Set the minimum row height to the default.
+        # this way rows will be more consistent when resizeRowsToContents is called
+        self.twList.verticalHeader().setMinimumSectionSize(self.twList.verticalHeader().defaultSectionSize())
         self.twList.currentItemChanged.connect(self.current_item_changed)
         self.twList.cellDoubleClicked.connect(self.cell_double_clicked)
         self.btnRequery.clicked.connect(self.requery)
