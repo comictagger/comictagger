@@ -6,8 +6,14 @@ import pathlib
 logger = logging.getLogger("comictagger")
 
 
+def get_filename(filename: str) -> str:
+    filename, _, number = filename.rpartition(".")
+    return filename.removesuffix("log") + number + ".log"
+
+
 def get_file_handler(filename: pathlib.Path) -> logging.FileHandler:
     file_handler = logging.handlers.RotatingFileHandler(filename, encoding="utf-8", backupCount=10)
+    file_handler.namer = get_filename
 
     if filename.is_file() and filename.stat().st_size > 0:
         file_handler.doRollover()
