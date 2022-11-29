@@ -177,8 +177,6 @@ class IssueIdentifier:
 
         ca = self.comic_archive
 
-        if ca is None:
-            return None
         search_keys: SearchKeys
         if self.only_use_additional_meta_data:
             search_keys = SearchKeys(
@@ -350,11 +348,11 @@ class IssueIdentifier:
                 narrow_cover_hash = self.calculate_hash(right_side_image_data)
 
         keys = self.get_search_keys()
-        # normalize the issue number
+        # normalize the issue number, None will return as ""
         keys["issue_number"] = IssueString(keys["issue_number"]).as_string()
 
         # we need, at minimum, a series and issue number
-        if keys["series"] is None or keys["issue_number"] is None:
+        if not (keys["series"] and keys["issue_number"]):
             self.log_msg("Not enough info for a search!")
             return []
 
