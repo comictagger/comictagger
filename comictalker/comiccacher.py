@@ -117,6 +117,10 @@ class ComicCacher:
                 + "credits TEXT,"  # JSON: "{"name": "Bob Shakespeare", "role": "Writer"}"
                 + "teams TEXT,"  # Newline separated
                 + "story_arcs TEXT,"  # Newline separated
+                + "genres TEXT,"  # Newline separated
+                + "tags TEXT,"  # Newline separated
+                + "rating FLOAT,"
+                + "manga TEXT,"  # Yes/Yes (Right to Left)/No
                 + "complete BOOL,"  # Is the data complete? Includes characters, locations, credits.
                 + "PRIMARY KEY (id, source_name))"
             )
@@ -230,7 +234,7 @@ class ComicCacher:
                     "volume_id": issue["volume"]["id"],
                     "source_name": source_name,
                     "name": issue["name"],
-                    "issue_number": issue["issue_number"],
+                    "issue_number": issue.get("issue_number"),
                     "site_detail_url": issue.get("site_detail_url"),
                     "cover_date": issue.get("cover_date"),
                     "image_url": issue.get("image_url", ""),
@@ -243,6 +247,10 @@ class ComicCacher:
                     "locations": "\n".join(issue.get("locations", [])),
                     "teams": "\n".join(issue.get("teams", [])),
                     "story_arcs": "\n".join(issue.get("story_arcs", [])),
+                    "genres": "\n".join(issue.get("genres", [])),
+                    "tags": "\n".join(issue.get("tags", [])),
+                    "rating": issue.get("rating", 0),
+                    "manga": issue.get("manga", ""),
                     "credits": json.dumps(issue.get("credits")),
                     "complete": issue["complete"],
                 }
@@ -304,7 +312,7 @@ class ComicCacher:
 
             cur.execute(
                 (
-                    "SELECT source_name,id,name,issue_number,site_detail_url,cover_date,image_url,thumb_url,description,aliases,alt_image_urls,characters,locations,credits,teams,story_arcs,complete"
+                    "SELECT source_name,id,name,issue_number,site_detail_url,cover_date,image_url,thumb_url,description,aliases,alt_image_urls,characters,locations,credits,teams,story_arcs,genres,tags,rating,manga,complete"
                     " FROM Issues WHERE volume_id=? AND source_name=?"
                 ),
                 [volume_id, source_name],
@@ -329,7 +337,11 @@ class ComicCacher:
                     credits=json.loads(row[13]),
                     teams=row[14].strip().splitlines(),
                     story_arcs=row[15].strip().splitlines(),
-                    complete=bool(row[16]),
+                    genres=row[16].strip().splitlines(),
+                    tags=row[17].strip().splitlines(),
+                    rating=row[18],
+                    manga=row[19],
+                    complete=bool(row[20]),
                 )
 
                 results.append(record)
@@ -349,7 +361,7 @@ class ComicCacher:
 
             cur.execute(
                 (
-                    "SELECT source_name,id,name,issue_number,site_detail_url,cover_date,image_url,thumb_url,description,aliases,volume_id,alt_image_urls,characters,locations,credits,teams,story_arcs,complete"
+                    "SELECT source_name,id,name,issue_number,site_detail_url,cover_date,image_url,thumb_url,description,aliases,volume_id,alt_image_urls,characters,locations,credits,teams,story_arcs,genres,tags,rating,manga,complete"
                     " FROM Issues WHERE id=? AND source_name=?"
                 ),
                 [issue_id, source_name],
@@ -381,7 +393,11 @@ class ComicCacher:
                     credits=json.loads(row[14]),
                     teams=row[15].strip().splitlines(),
                     story_arcs=row[16].strip().splitlines(),
-                    complete=bool(row[17]),
+                    genres=row[17].strip().splitlines(),
+                    tags=row[18].strip().splitlines(),
+                    rating=row[19],
+                    manga=row[20],
+                    complete=bool(row[21]),
                 )
 
             return record

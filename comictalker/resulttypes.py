@@ -26,7 +26,11 @@ class ComicIssue(TypedDict, total=False):
     id: int
     image_url: str
     image_thumb_url: str
-    issue_number: Required[str]
+    issue_number: str
+    rating: float
+    manga: str
+    genres: list[str]
+    tags: list[str]
     name: Required[str]
     site_detail_url: str
     volume: ComicVolume
