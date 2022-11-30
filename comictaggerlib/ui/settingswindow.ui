@@ -361,14 +361,7 @@
               <item>
                <widget class="QCheckBox" name="cbxSortByYear">
                 <property name="text">
-                 <string>Initially sort Series search results by Starting Year instead of No. Issues</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QCheckBox" name="cbxExactMatches">
-                <property name="text">
-                 <string>Initially show Series Name exact matches first</string>
+                 <string>Secondarily sort Series search results by Starting Year instead of No. Issues</string>
                 </property>
                </widget>
               </item>
@@ -536,7 +529,7 @@
               <x>11</x>
               <y>21</y>
               <width>251</width>
-              <height>199</height>
+              <height>206</height>
              </rect>
             </property>
             <layout class="QGridLayout" name="gridLayout_7">

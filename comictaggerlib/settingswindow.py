@@ -246,7 +246,6 @@ class SettingsWindow(QtWidgets.QDialog):
 
         self.cbxUseFilter.setChecked(self.settings.always_use_publisher_filter)
         self.cbxSortByYear.setChecked(self.settings.sort_series_by_year)
-        self.cbxExactMatches.setChecked(self.settings.exact_series_matches_first)
 
         self.leKey.setText(self.settings.cv_api_key)
         self.leURL.setText(self.settings.cv_url)
@@ -326,7 +325,6 @@ class SettingsWindow(QtWidgets.QDialog):
 
         self.settings.always_use_publisher_filter = self.cbxUseFilter.isChecked()
         self.settings.sort_series_by_year = self.cbxSortByYear.isChecked()
-        self.settings.exact_series_matches_first = self.cbxExactMatches.isChecked()
 
         # Ignore empty field
         if self.leKey.text().strip():

@@ -17,6 +17,7 @@ class ComicVolume(TypedDict, total=False):
     name: Required[str]
     publisher: str
     start_year: int
+    fuzz_ratio: float
 
 
 class ComicIssue(TypedDict, total=False):

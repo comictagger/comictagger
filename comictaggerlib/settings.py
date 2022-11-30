@@ -89,7 +89,6 @@ class ComicTaggerSettings:
         self.auto_imprint = False
 
         self.sort_series_by_year = True
-        self.exact_series_matches_first = True
         self.always_use_publisher_filter = False
 
         # CBL Transform settings
@@ -242,8 +241,6 @@ class ComicTaggerSettings:
 
         if self.config.has_option("comicvine", "sort_series_by_year"):
             self.sort_series_by_year = self.config.getboolean("comicvine", "sort_series_by_year")
-        if self.config.has_option("comicvine", "exact_series_matches_first"):
-            self.exact_series_matches_first = self.config.getboolean("comicvine", "exact_series_matches_first")
         if self.config.has_option("comicvine", "always_use_publisher_filter"):
             self.always_use_publisher_filter = self.config.getboolean("comicvine", "always_use_publisher_filter")
 
@@ -372,7 +369,6 @@ class ComicTaggerSettings:
         self.config.set("comicvine", "remove_html_tables", self.remove_html_tables)
 
         self.config.set("comicvine", "sort_series_by_year", self.sort_series_by_year)
-        self.config.set("comicvine", "exact_series_matches_first", self.exact_series_matches_first)
         self.config.set("comicvine", "always_use_publisher_filter", self.always_use_publisher_filter)
 
         self.config.set("comicvine", "cv_api_key", self.cv_api_key)

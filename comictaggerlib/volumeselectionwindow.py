@@ -15,9 +15,7 @@
 # limitations under the License.
 from __future__ import annotations
 
-import itertools
 import logging
-from collections import deque
 
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 from PyQt5.QtCore import pyqtSignal
@@ -388,51 +386,25 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
             except Exception:
                 logger.exception("bad data error filtering publishers")
 
-        # pre sort the data - so that we can put exact matches first afterwards
-        # compare as str in case extra chars ie. '1976?'
-        # - missing (none) values being converted to 'None' - consistent with prior behaviour in v1.2.3
-        # sort by start_year if set
+        # Sort by fuzz ratio first then count of issues or year depending on setting.
         if self.settings.sort_series_by_year:
             try:
                 self.ct_search_results = sorted(
                     self.ct_search_results,
-                    key=lambda i: (str(i["start_year"]), str(i["count_of_issues"])),
+                    key=lambda i: (i["fuzz_ratio"], i["start_year"]),
                     reverse=True,
                 )
             except Exception:
-                logger.exception("bad data error sorting results by start_year,count_of_issues")
+                logger.exception("bad data error sorting results by fuzz ratio and year")
         else:
             try:
                 self.ct_search_results = sorted(
-                    self.ct_search_results, key=lambda i: str(i["count_of_issues"]), reverse=True
+                    self.ct_search_results,
+                    key=lambda i: (i["fuzz_ratio"], i["count_of_issues"]),
+                    reverse=True,
                 )
             except Exception:
-                logger.exception("bad data error sorting results by count_of_issues")
-
-        # move sanitized matches to the front
-        if self.settings.exact_series_matches_first:
-            try:
-                sanitized = utils.sanitize_title(self.series_name, False).casefold()
-                sanitized_no_articles = utils.sanitize_title(self.series_name, True).casefold()
-
-                deques: list[deque[ComicVolume]] = [deque(), deque(), deque()]
-
-                def categorize(result: ComicVolume) -> int:
-                    # We don't remove anything on this one so that we only get exact matches
-                    if utils.sanitize_title(result["name"], True).casefold() == sanitized_no_articles:
-                        return 0
-
-                    # this ensures that 'The Joker' is near the top even if you search 'Joker'
-                    if utils.sanitize_title(result["name"], False).casefold() in sanitized:
-                        return 1
-                    return 2
-
-                for comic in self.ct_search_results:
-                    deques[categorize(comic)].append(comic)
-                logger.info("Length: %d, %d, %d", len(deques[0]), len(deques[1]), len(deques[2]))
-                self.ct_search_results = list(itertools.chain.from_iterable(deques))
-            except Exception:
-                logger.exception("bad data error filtering exact/near matches")
+                logger.exception("bad data error sorting results by fuzz ratio and count of issues")
 
         self.update_buttons()
 

@@ -92,6 +92,7 @@ class ComicCacher:
                 + "image_url TEXT,"
                 + "aliases TEXT,"  # Newline separated
                 + "description TEXT,"
+                + "fuzz_ratio REAL,"
                 + "timestamp DATE DEFAULT (datetime('now','localtime')), "
                 + "source_name TEXT NOT NULL,"
                 + "PRIMARY KEY (id, source_name))"
@@ -154,6 +155,7 @@ class ComicCacher:
                     "start_year": record.get("start_year"),
                     "image_url": record.get("image_url", ""),
                     "description": record.get("description", ""),
+                    "fuzz_ratio": record.get("fuzz_ratio"),
                     "timestamp": datetime.datetime.now(),
                     "aliases": "\n".join(record.get("aliases", [])),
                 }
@@ -185,6 +187,7 @@ class ComicCacher:
                     image_url=record[9],
                     aliases=record[10].strip().splitlines(),
                     description=record[11],
+                    fuzz_ratio=record[12],
                 )
 
                 results.append(result)

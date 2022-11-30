@@ -291,7 +291,8 @@ class ComicVineTalker(ComicTalker):
 
         raise TalkerNetworkError(self.source_name_friendly, 5)
 
-    def format_search_results(self, search_results: list[CVVolumeResults]) -> list[ComicVolume]:
+    def format_search_results(self, search_results: list[CVVolumeResults], search_name: str) -> list[ComicVolume]:
+
         formatted_results = []
         for record in search_results:
             # Flatten publisher to name only
@@ -310,6 +311,8 @@ class ComicVineTalker(ComicTalker):
             else:
                 start_year = utils.xlate(record["start_year"], True)
 
+            _, ratio = utils.titles_match(search_name, record["name"], self.series_match_thresh, False)
+
             formatted_results.append(
                 ComicVolume(
                     aliases=record["aliases"].split("\n") if record["aliases"] else [],  # CV returns a null because...?
@@ -320,6 +323,7 @@ class ComicVineTalker(ComicTalker):
                     name=record["name"],
                     publisher=pub_name,
                     start_year=start_year,
+                    fuzz_ratio=ratio,
                 )
             )
 
@@ -476,7 +480,7 @@ class ComicVineTalker(ComicTalker):
                 callback(current_result_count, total_result_count)
 
         # Format result to ComicIssue
-        formatted_search_results = self.format_search_results(search_results)
+        formatted_search_results = self.format_search_results(search_results, series_name)
 
         # Cache these search results, even if it's literal we cache the results
         # The most it will cause is extra processing time
@@ -512,7 +516,7 @@ class ComicVineTalker(ComicTalker):
         cv_response = self.get_cv_content(volume_url, params)
 
         volume_results = cast(CVVolumeResults, cv_response["results"])
-        formatted_volume_results = self.format_search_results([volume_results])
+        formatted_volume_results = self.format_search_results([volume_results], volume_results["name"])
 
         if volume_results:
             cvc.add_volume_info(self.source_name, formatted_volume_results[0])

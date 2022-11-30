@@ -162,10 +162,14 @@ def sanitize_title(text: str, basic: bool = False) -> str:
     return text
 
 
-def titles_match(search_title: str, record_title: str, threshold: int = 90) -> bool:
-    sanitized_search = sanitize_title(search_title)
-    sanitized_record = sanitize_title(record_title)
-    ratio: int = rapidfuzz.fuzz.ratio(sanitized_search, sanitized_record)
+def titles_match(search_title: str, record_title: str, threshold: int = 90, basic: bool = True) -> tuple[bool, float]:
+    if basic:
+        sanitized_search = sanitize_title(search_title)
+        sanitized_record = sanitize_title(record_title)
+    else:
+        sanitized_search = sanitize_title(search_title, True)
+        sanitized_record = sanitize_title(record_title, True)
+    ratio: float = rapidfuzz.fuzz.ratio(sanitized_search, sanitized_record)
     logger.debug(
         "search title: %s ; record title: %s ; ratio: %d ; match threshold: %d",
         search_title,
@@ -173,7 +177,7 @@ def titles_match(search_title: str, record_title: str, threshold: int = 90) -> b
         ratio,
         threshold,
     )
-    return ratio >= threshold
+    return ratio >= threshold, ratio
 
 
 def unique_file(file_name: pathlib.Path) -> pathlib.Path:
