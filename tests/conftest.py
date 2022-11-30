@@ -163,12 +163,11 @@ def seed_all_publishers(monkeypatch):
 
 
 @pytest.fixture
-def settings(tmp_path):
+def settings(settings_manager, tmp_path):
 
-    manager = ctsettings.Manager()
-    ctsettings.register_commandline(manager)
-    ctsettings.register_settings(manager)
-    defaults = manager.defaults()
+    ctsettings.register_commandline(settings_manager)
+    ctsettings.register_settings(settings_manager)
+    defaults = settings_manager.defaults()
     defaults["runtime"]["config"] = ctsettings.ComicTaggerPaths(tmp_path / "config")
     defaults["runtime"]["config"].user_data_dir.mkdir(parents=True, exist_ok=True)
     defaults["runtime"]["config"].user_config_dir.mkdir(parents=True, exist_ok=True)
@@ -176,6 +175,12 @@ def settings(tmp_path):
     defaults["runtime"]["config"].user_state_dir.mkdir(parents=True, exist_ok=True)
     defaults["runtime"]["config"].user_log_dir.mkdir(parents=True, exist_ok=True)
     yield defaults
+
+
+@pytest.fixture
+def settings_manager():
+    manager = ctsettings.Manager()
+    yield manager
 
 
 @pytest.fixture

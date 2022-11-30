@@ -248,13 +248,9 @@ If no options are given, %(prog)s will run in windowed mode.""",
         file_options = self.parse_file(config_paths.user_config_dir / "settings.json")
         cli_options = self.parse_args(args, namespace=self.get_namespace_for_args(file_options))
 
-        # for group, group_options in cli_options.items():
-        #     if group in cli_options:
-        #         file_options[group].update(group_options)
-        #     else:
-        #         file_options[group] = group_options
-        # Just in case something weird happens with the commandline options
-        file_options["runtime"]["config"] = config_paths
+        if "runtime" in cli_options:
+            # Just in case something weird happens with the commandline options
+            cli_options["runtime"]["config"] = config_paths
 
         # Normalize a final time for fun
         return self.normalize_options(cli_options, file=True, cmdline=True)
