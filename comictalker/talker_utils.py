@@ -45,8 +45,8 @@ def map_comic_issue_to_metadata(
     if issue_results.get("image_url"):
         metadata.cover_image = issue_results["image_url"]
     # TODO Should this number ever be used?
-    if source != "comicvine" and issue_results["volume"]["count_of_issues"] > 0:
-        metadata.issue_count = issue_results["volume"]["count_of_issues"]
+    # if source != "comicvine" and issue_results["volume"]["count_of_issues"] > 0:
+    # metadata.issue_count = issue_results["volume"]["count_of_issues"]
 
     if issue_results["volume"].get("publisher"):
         metadata.publisher = utils.xlate(issue_results["volume"]["publisher"])

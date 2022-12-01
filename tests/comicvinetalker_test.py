@@ -40,6 +40,10 @@ def test_fetch_issues_by_volume(comicvine_api, comic_cache):
         del c["locations"]
         del c["story_arcs"]
         del c["teams"]
+        del c["genres"]
+        del c["rating"]
+        del c["tags"]
+        del c["manga"]
     assert results == cache_issues
 
 
