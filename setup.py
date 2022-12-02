@@ -11,7 +11,7 @@ from __future__ import annotations
 import glob
 import os
 
-from setuptools import setup
+from setuptools import find_packages, setup
 
 
 def read(fname):
@@ -55,7 +55,9 @@ setup(
     author="ComicTagger team",
     author_email="comictagger@gmail.com",
     url="https://github.com/comictagger/comictagger",
-    packages=["comictaggerlib", "comicapi"],
+    packages=find_packages(
+        exclude=["tests", "testing"],
+    ),
     package_data={"comictaggerlib": ["ui/*", "graphics/*"], "comicapi": ["data/*"]},
     entry_points=dict(
         console_scripts=["comictagger=comictaggerlib.main:ctmain"],
