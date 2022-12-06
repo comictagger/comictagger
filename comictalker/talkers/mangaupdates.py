@@ -17,57 +17,51 @@ from __future__ import annotations
 
 import json
 import logging
-import time
 import pathlib
 import re
+import time
 from typing import Any, Callable, cast
-from urllib.parse import urljoin, urlsplit
+from urllib.parse import urljoin
 
 import requests
 from typing_extensions import TypedDict
 
+import comictalker.talker_utils as t_utils
 from comicapi import filenamelexer, filenameparser, utils
 from comicapi.genericmetadata import GenericMetadata
 from comicapi.issuestring import IssueString
 from comictaggerlib import ctversion
-import comictalker.talker_utils as t_utils
 from comictalker.comiccacher import ComicCacher
 from comictalker.resulttypes import ComicIssue, ComicVolume, Credits
-from comictalker.talkerbase import (
-    ComicTalker,
-    SourceDetails,
-    SourceStaticOptions,
-    TalkerDataError,
-    TalkerNetworkError,
-)
+from comictalker.talkerbase import ComicTalker, SourceDetails, SourceStaticOptions, TalkerDataError, TalkerNetworkError
 
 logger = logging.getLogger(__name__)
 
 
 # For the sake of ease, VOLUME refers to search results and ISSUE refers to series result.
-class MUGenre (TypedDict, total=False):
+class MUGenre(TypedDict, total=False):
     genre: str
     color: str
 
 
-class MUImageURL (TypedDict):
+class MUImageURL(TypedDict):
     original: str
     thumb: str
 
 
-class MUImage (TypedDict):
+class MUImage(TypedDict):
     url: MUImageURL
     height: int
     width: int
 
 
-class MULastUpdated (TypedDict):
+class MULastUpdated(TypedDict):
     timestamp: int
     as_rfc3339: str
     as_string: str
 
 
-class MURecord (TypedDict, total=False):
+class MURecord(TypedDict, total=False):
     series_id: int
     title: str
     url: str
@@ -218,15 +212,15 @@ class MangaUpdatesTalker(ComicTalker):
     default_api_url = "https://api.mangaupdates.com/v1"
 
     def __init__(
-            self,
-            version: str,
-            cache_folder: pathlib.Path,
-            api_url: str = "",
-            api_key: str = "",
-            series_match_thresh: int = 90,
-            remove_html_tables: bool = False,
-            use_series_start_as_volume: bool = False,
-            wait_on_ratelimit: bool = False,
+        self,
+        version: str,
+        cache_folder: pathlib.Path,
+        api_url: str = "",
+        api_key: str = "",
+        series_match_thresh: int = 90,
+        remove_html_tables: bool = False,
+        use_series_start_as_volume: bool = False,
+        wait_on_ratelimit: bool = False,
     ):
         super().__init__(version, cache_folder, api_url, api_key)
         self.source_details = SourceDetails(
@@ -280,12 +274,8 @@ class MangaUpdatesTalker(ComicTalker):
         while True:
             mu_response: MUVolumeReply = self.get_url_content(url, params)
             if mu_response.get("status") == "exception":
-                logger.debug(
-                    f"{self.source_name_friendly} query failed with error {mu_response['reason']}."
-                )
-                raise TalkerNetworkError(
-                    self.source_name_friendly, 0, f"{mu_response['reason']}"
-                )
+                logger.debug(f"{self.source_name_friendly} query failed with error {mu_response['reason']}.")
+                raise TalkerNetworkError(self.source_name_friendly, 0, f"{mu_response['reason']}")
 
             # it's all good
             break
@@ -309,7 +299,9 @@ class MangaUpdatesTalker(ComicTalker):
                     logger.debug(str(resp.status_code))
                 if resp.status_code == 400:
                     logger.debug(f"Validation or service error: {resp.json()}")
-                    raise TalkerNetworkError(self.source_name_friendly, 2, f"Validation or service error: {resp.json()}")
+                    raise TalkerNetworkError(
+                        self.source_name_friendly, 2, f"Validation or service error: {resp.json()}"
+                    )
                 if resp.status_code == 404:
                     logger.debug(f"Series not found: {resp.json()}")
                     raise TalkerNetworkError(self.source_name_friendly, 2, f"Series not found: {resp.json()}")
@@ -363,9 +355,7 @@ class MangaUpdatesTalker(ComicTalker):
 
         return formatted_results
 
-    def format_issue(
-        self, issue: MUIssue, volume: ComicVolume, complete: bool = True
-    ) -> ComicIssue:
+    def format_issue(self, issue: MUIssue, volume: ComicVolume, complete: bool = True) -> ComicIssue:
         # Will always be complete
 
         image_url = issue["image"]["url"].get("original", "")
@@ -414,7 +404,7 @@ class MangaUpdatesTalker(ComicTalker):
         # TODO Option to use ongoing number?
         if self.settings_options["use_ongoing"]:
             ...
-        reg = re.compile(r'((\d+).*volume.).*(complete)(.*)', re.IGNORECASE)
+        reg = re.compile(r"((\d+).*volume.).*(complete)(.*)", re.IGNORECASE)
         reg_match = reg.search(issue["status"])
         if reg_match is not None:
             count_of_issue = utils.xlate(reg_match.group(2), True)
@@ -433,7 +423,7 @@ class MangaUpdatesTalker(ComicTalker):
             image_url=image_url,
             image_thumb_url=image_thumb_url,
             # issue_number= Taken from filename parse if available, never want to write it to cache as that would overwrite new files with different issue/chapter numbers
-            rating=issue["bayesian_rating"]/2,
+            rating=issue["bayesian_rating"] / 2,
             manga=manga,
             genres=genre_list,
             tags=tag_list,
@@ -466,7 +456,11 @@ class MangaUpdatesTalker(ComicTalker):
 
             # Check if filter options have been changed, ignore cache if so.
             if len(cached_search_results) > 0:
-                if self.flags[0] == self.settings_options["use_search_title"] and self.flags[1] == self.settings_options["filter_nsfw"] and self.flags[2] == self.settings_options["filter_dojin"]:
+                if (
+                    self.flags[0] == self.settings_options["use_search_title"]
+                    and self.flags[1] == self.settings_options["filter_nsfw"]
+                    and self.flags[2] == self.settings_options["filter_dojin"]
+                ):
                     return cached_search_results
 
         params: dict[str, Any] = {
@@ -492,7 +486,7 @@ class MangaUpdatesTalker(ComicTalker):
         # 2. Halt when any result on the current page is less than or equal to a set ratio using thefuzz
         max_results = 500  # 5 pages
 
-        current_result_count = mu_response['per_page'] * mu_response['page']
+        current_result_count = mu_response["per_page"] * mu_response["page"]
         total_result_count = min(total_result_count, max_results)
 
         if callback is None:
@@ -553,7 +547,13 @@ class MangaUpdatesTalker(ComicTalker):
         cached_issues_result = cvc.get_issue_info(series_id, self.source_name)
 
         # It's possible a new search with new options has wiped the volume publisher so refresh if it's empty
-        if cached_issues_result and cached_issues_result["volume"]["publisher"] and self.flags[0] == self.settings_options["use_search_title"] and self.flags[3] == self.settings_options["use_original_publisher"] and self.flags[4] == self.settings_options["dup_title"]:
+        if (
+            cached_issues_result
+            and cached_issues_result["volume"]["publisher"]
+            and self.flags[0] == self.settings_options["use_search_title"]
+            and self.flags[3] == self.settings_options["use_original_publisher"]
+            and self.flags[4] == self.settings_options["dup_title"]
+        ):
 
             return t_utils.map_comic_issue_to_metadata(
                 cached_issues_result,
@@ -570,7 +570,7 @@ class MangaUpdatesTalker(ComicTalker):
         issue_results = cast(MUIssue, mu_response)
         # TODO Store file parsed issue number? Don't want to cache it
         # if issue_number:
-            # issue_results["issue_number"] = issue_number
+        # issue_results["issue_number"] = issue_number
 
         # Fetch the cached volume info which should have the hit_title in aliases
         volume = cvc.get_volume_info(series_id, self.source_name)
