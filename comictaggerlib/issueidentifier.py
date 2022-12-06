@@ -26,11 +26,10 @@ from comicapi import utils
 from comicapi.comicarchive import ComicArchive
 from comicapi.genericmetadata import GenericMetadata
 from comicapi.issuestring import IssueString
+from comictaggerlib import settings
 from comictaggerlib.imagefetcher import ImageFetcher, ImageFetcherException
 from comictaggerlib.imagehasher import ImageHasher
 from comictaggerlib.resulttypes import IssueResult
-from comictaggerlib.settings import ComicTaggerSettings
-from comictalker.talker_utils import parse_date_str
 from comictalker.talkerbase import ComicTalker, TalkerError
 
 logger = logging.getLogger(__name__)
@@ -73,8 +72,8 @@ class IssueIdentifier:
     result_one_good_match = 4
     result_multiple_good_matches = 5
 
-    def __init__(self, comic_archive: ComicArchive, settings: ComicTaggerSettings, talker_api: ComicTalker) -> None:
-        self.settings = settings
+    def __init__(self, comic_archive: ComicArchive, options: settings.OptionValues, talker_api: ComicTalker) -> None:
+        self.options = options
         self.talker_api = talker_api
         self.comic_archive: ComicArchive = comic_archive
         self.image_hasher = 1
@@ -97,10 +96,10 @@ class IssueIdentifier:
 
         # used to eliminate series names that are too long based on our search
         # string
-        self.series_match_thresh = settings.id_series_match_identify_thresh
+        self.series_match_thresh = options["identifier"]["series_match_identify_thresh"]
 
         # used to eliminate unlikely publishers
-        self.publisher_filter = [s.strip().casefold() for s in settings.id_publisher_filter.split(",")]
+        self.publisher_filter = [s.strip().casefold() for s in options["identifier"]["publisher_filter"]]
 
         self.additional_metadata = GenericMetadata()
         self.output_function: Callable[[str], None] = IssueIdentifier.default_write_output
@@ -202,10 +201,10 @@ class IssueIdentifier:
 
         # try to get some metadata from filename
         md_from_filename = ca.metadata_from_filename(
-            self.settings.complicated_parser,
-            self.settings.remove_c2c,
-            self.settings.remove_fcbd,
-            self.settings.remove_publisher,
+            self.options["filename"]["complicated_parser"],
+            self.options["filename"]["remove_c2c"],
+            self.options["filename"]["remove_fcbd"],
+            self.options["filename"]["remove_publisher"],
         )
 
         working_md = md_from_filename.copy()
@@ -256,7 +255,9 @@ class IssueIdentifier:
             return Score(score=0, url="", hash=0)
 
         try:
-            url_image_data = ImageFetcher().fetch(primary_thumb_url, blocking=True)
+            url_image_data = ImageFetcher(self.options["runtime"]["config"].user_cache_dir).fetch(
+                primary_thumb_url, blocking=True
+            )
         except ImageFetcherException as e:
             self.log_msg("Network issue while fetching cover image from Comic Vine. Aborting...")
             raise IssueIdentifierNetworkError from e
@@ -276,7 +277,9 @@ class IssueIdentifier:
         if use_remote_alternates:
             for alt_url in alt_urls:
                 try:
-                    alt_url_image_data = ImageFetcher().fetch(alt_url, blocking=True)
+                    alt_url_image_data = ImageFetcher(self.options["runtime"]["config"].user_cache_dir).fetch(
+                        alt_url, blocking=True
+                    )
                 except ImageFetcherException as e:
                     self.log_msg("Network issue while fetching alt. cover image from Comic Vine. Aborting...")
                     raise IssueIdentifierNetworkError from e
@@ -466,7 +469,7 @@ class IssueIdentifier:
             )
 
             # parse out the cover date
-            _, month, year = parse_date_str(issue["cover_date"])
+            _, month, year = utils.parse_date_str(issue["cover_date"])
 
             # Now check the cover match against the primary image
             hash_list = [cover_hash]
@@ -487,6 +490,7 @@ class IssueIdentifier:
                     use_remote_alternates=False,
                 )
             except Exception:
+                logger.exception("Scoring series failed")
                 self.match_list = []
                 return self.match_list
 

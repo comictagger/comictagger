@@ -19,7 +19,6 @@ import logging
 
 from PyQt5 import QtCore, QtWidgets, uic
 
-from comictaggerlib.settings import ComicTaggerSettings
 from comictaggerlib.ui import ui_path
 
 logger = logging.getLogger(__name__)
@@ -32,7 +31,7 @@ class ExportConflictOpts:
 
 
 class ExportWindow(QtWidgets.QDialog):
-    def __init__(self, parent: QtWidgets.QWidget, settings: ComicTaggerSettings, msg: str) -> None:
+    def __init__(self, parent: QtWidgets.QWidget, msg: str) -> None:
         super().__init__(parent)
 
         uic.loadUi(ui_path / "exportwindow.ui", self)
@@ -41,8 +40,6 @@ class ExportWindow(QtWidgets.QDialog):
         self.setWindowFlags(
             QtCore.Qt.WindowType(self.windowFlags() & ~QtCore.Qt.WindowType.WindowContextHelpButtonHint)
         )
-
-        self.settings = settings
 
         self.cbxDeleteOriginal.setChecked(False)
         self.cbxAddToList.setChecked(True)

@@ -17,6 +17,7 @@ import comictaggerlib.settings
 import comictalker.comiccacher
 import comictalker.talkers.comicvine
 from comicapi import utils
+from comictaggerlib import settings as ctsettings
 from testing import comicvine, filenames
 from testing.comicdata import all_seed_imprints, seed_imprints
 
@@ -116,7 +117,7 @@ def comicvine_api(
 
     cv = comictalker.talkers.comicvine.ComicVineTalker(
         version=mock_version[0],
-        cache_folder=settings.get_settings_folder(),
+        cache_folder=settings["runtime"]["config"].user_cache_dir,
         api_url="",
         api_key="",
         series_match_thresh=90,
@@ -163,9 +164,20 @@ def seed_all_publishers(monkeypatch):
 
 @pytest.fixture
 def settings(tmp_path):
-    yield comictaggerlib.settings.ComicTaggerSettings(tmp_path / "settings")
+
+    manager = ctsettings.Manager()
+    ctsettings.register_commandline(manager)
+    ctsettings.register_settings(manager)
+    defaults = manager.defaults()
+    defaults["runtime"]["config"] = ctsettings.ComicTaggerPaths(tmp_path / "config")
+    defaults["runtime"]["config"].user_data_dir.mkdir(parents=True, exist_ok=True)
+    defaults["runtime"]["config"].user_config_dir.mkdir(parents=True, exist_ok=True)
+    defaults["runtime"]["config"].user_cache_dir.mkdir(parents=True, exist_ok=True)
+    defaults["runtime"]["config"].user_state_dir.mkdir(parents=True, exist_ok=True)
+    defaults["runtime"]["config"].user_log_dir.mkdir(parents=True, exist_ok=True)
+    yield defaults
 
 
 @pytest.fixture
 def comic_cache(settings, mock_version) -> Generator[comictalker.comiccacher.ComicCacher, Any, None]:
-    yield comictalker.comiccacher.ComicCacher(settings.get_settings_folder(), mock_version[0])
+    yield comictalker.comiccacher.ComicCacher(settings["runtime"]["config"].user_cache_dir, mock_version[0])

@@ -20,8 +20,8 @@ import logging
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
 from comicapi.issuestring import IssueString
+from comictaggerlib import settings
 from comictaggerlib.coverimagewidget import CoverImageWidget
-from comictaggerlib.settings import ComicTaggerSettings
 from comictaggerlib.ui import ui_path
 from comictaggerlib.ui.qtutils import reduce_widget_font_size
 from comictalker.resulttypes import ComicIssue
@@ -44,7 +44,7 @@ class IssueSelectionWindow(QtWidgets.QDialog):
     def __init__(
         self,
         parent: QtWidgets.QWidget,
-        settings: ComicTaggerSettings,
+        options: settings.OptionValues,
         talker_api: ComicTalker,
         series_id: int,
         issue_number: str,
@@ -53,7 +53,12 @@ class IssueSelectionWindow(QtWidgets.QDialog):
 
         uic.loadUi(ui_path / "issueselectionwindow.ui", self)
 
-        self.coverWidget = CoverImageWidget(self.coverImageContainer, talker_api, CoverImageWidget.AltCoverMode)
+        self.coverWidget = CoverImageWidget(
+            self.coverImageContainer,
+            CoverImageWidget.AltCoverMode,
+            options["runtime"]["config"].user_cache_dir,
+            talker_api,
+        )
         gridlayout = QtWidgets.QGridLayout(self.coverImageContainer)
         gridlayout.addWidget(self.coverWidget)
         gridlayout.setContentsMargins(0, 0, 0, 0)
@@ -71,7 +76,7 @@ class IssueSelectionWindow(QtWidgets.QDialog):
 
         self.series_id = series_id
         self.issue_id: int | None = None
-        self.settings = settings
+        self.options = options
         self.talker_api = talker_api
         self.url_fetch_thread = None
         self.issue_list: list[ComicIssue] = []

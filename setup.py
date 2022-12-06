@@ -14,7 +14,7 @@ import os
 from setuptools import setup
 
 
-def read(fname):
+def read(fname: str) -> str:
     """
     Read the contents of a file.
     Parameters

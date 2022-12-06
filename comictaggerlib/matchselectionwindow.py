@@ -21,6 +21,7 @@ import os
 from PyQt5 import QtCore, QtWidgets, uic
 
 from comicapi.comicarchive import ComicArchive
+from comictaggerlib import settings
 from comictaggerlib.coverimagewidget import CoverImageWidget
 from comictaggerlib.resulttypes import IssueResult
 from comictaggerlib.ui import ui_path
@@ -38,18 +39,24 @@ class MatchSelectionWindow(QtWidgets.QDialog):
         parent: QtWidgets.QWidget,
         matches: list[IssueResult],
         comic_archive: ComicArchive,
+        options: settings.OptionValues,
         talker_api: ComicTalker,
     ) -> None:
         super().__init__(parent)
 
         uic.loadUi(ui_path / "matchselectionwindow.ui", self)
 
-        self.altCoverWidget = CoverImageWidget(self.altCoverContainer, talker_api, CoverImageWidget.AltCoverMode)
+        self.altCoverWidget = CoverImageWidget(
+            self.altCoverContainer,
+            CoverImageWidget.AltCoverMode,
+            options["runtime"]["config"].user_cache_dir,
+            talker_api,
+        )
         gridlayout = QtWidgets.QGridLayout(self.altCoverContainer)
         gridlayout.addWidget(self.altCoverWidget)
         gridlayout.setContentsMargins(0, 0, 0, 0)
 
-        self.archiveCoverWidget = CoverImageWidget(self.archiveCoverContainer, talker_api, CoverImageWidget.ArchiveMode)
+        self.archiveCoverWidget = CoverImageWidget(self.archiveCoverContainer, CoverImageWidget.ArchiveMode, None, None)
         gridlayout = QtWidgets.QGridLayout(self.archiveCoverContainer)
         gridlayout.addWidget(self.archiveCoverWidget)
         gridlayout.setContentsMargins(0, 0, 0, 0)

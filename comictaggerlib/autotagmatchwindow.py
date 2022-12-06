@@ -23,9 +23,9 @@ from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
 from comicapi.comicarchive import MetaDataStyle
 from comicapi.genericmetadata import GenericMetadata
+from comictaggerlib import settings
 from comictaggerlib.coverimagewidget import CoverImageWidget
 from comictaggerlib.resulttypes import IssueResult, MultipleMatch
-from comictaggerlib.settings import ComicTaggerSettings
 from comictaggerlib.ui import ui_path
 from comictaggerlib.ui.qtutils import reduce_widget_font_size
 from comictalker.talkerbase import ComicTalker
@@ -42,23 +42,28 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
         match_set_list: list[MultipleMatch],
         style: int,
         fetch_func: Callable[[IssueResult], GenericMetadata],
-        settings: ComicTaggerSettings,
+        options: settings.OptionValues,
         talker_api: ComicTalker,
     ) -> None:
         super().__init__(parent)
 
         uic.loadUi(ui_path / "matchselectionwindow.ui", self)
 
-        self.settings = settings
+        self.options = options
 
         self.current_match_set: MultipleMatch = match_set_list[0]
 
-        self.altCoverWidget = CoverImageWidget(self.altCoverContainer, talker_api, CoverImageWidget.AltCoverMode)
+        self.altCoverWidget = CoverImageWidget(
+            self.altCoverContainer,
+            CoverImageWidget.AltCoverMode,
+            options["runtime"]["config"].user_cache_dir,
+            talker_api,
+        )
         gridlayout = QtWidgets.QGridLayout(self.altCoverContainer)
         gridlayout.addWidget(self.altCoverWidget)
         gridlayout.setContentsMargins(0, 0, 0, 0)
 
-        self.archiveCoverWidget = CoverImageWidget(self.archiveCoverContainer, talker_api, CoverImageWidget.ArchiveMode)
+        self.archiveCoverWidget = CoverImageWidget(self.archiveCoverContainer, CoverImageWidget.ArchiveMode, None, None)
         gridlayout = QtWidgets.QGridLayout(self.archiveCoverContainer)
         gridlayout.addWidget(self.archiveCoverWidget)
         gridlayout.setContentsMargins(0, 0, 0, 0)
@@ -240,10 +245,10 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
         md = ca.read_metadata(self._style)
         if md.is_empty:
             md = ca.metadata_from_filename(
-                self.settings.complicated_parser,
-                self.settings.remove_c2c,
-                self.settings.remove_fcbd,
-                self.settings.remove_publisher,
+                self.options["filename"]["complicated_parser"],
+                self.options["filename"]["remove_c2c"],
+                self.options["filename"]["remove_fcbd"],
+                self.options["filename"]["remove_publisher"],
             )
 
         # now get the particular issue data

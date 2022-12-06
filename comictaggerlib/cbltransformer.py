@@ -18,15 +18,15 @@ from __future__ import annotations
 import logging
 
 from comicapi.genericmetadata import CreditMetadata, GenericMetadata
-from comictaggerlib.settings import ComicTaggerSettings
+from comictaggerlib import settings
 
 logger = logging.getLogger(__name__)
 
 
 class CBLTransformer:
-    def __init__(self, metadata: GenericMetadata, settings: ComicTaggerSettings) -> None:
+    def __init__(self, metadata: GenericMetadata, options: settings.OptionValues) -> None:
         self.metadata = metadata
-        self.settings = settings
+        self.options = options
 
     def apply(self) -> GenericMetadata:
         # helper funcs
@@ -40,7 +40,7 @@ class CBLTransformer:
                 for item in items:
                     append_to_tags_if_unique(item)
 
-        if self.settings.assume_lone_credit_is_primary:
+        if self.options["cbl"]["assume_lone_credit_is_primary"]:
 
             # helper
             def set_lone_primary(role_list: list[str]) -> tuple[CreditMetadata | None, int]:
@@ -67,19 +67,19 @@ class CBLTransformer:
                     c["primary"] = False
                     self.metadata.add_credit(c["person"], "Artist", True)
 
-        if self.settings.copy_characters_to_tags:
+        if self.options["cbl"]["copy_characters_to_tags"]:
             add_string_list_to_tags(self.metadata.characters)
 
-        if self.settings.copy_teams_to_tags:
+        if self.options["cbl"]["copy_teams_to_tags"]:
             add_string_list_to_tags(self.metadata.teams)
 
-        if self.settings.copy_locations_to_tags:
+        if self.options["cbl"]["copy_locations_to_tags"]:
             add_string_list_to_tags(self.metadata.locations)
 
-        if self.settings.copy_storyarcs_to_tags:
+        if self.options["cbl"]["copy_storyarcs_to_tags"]:
             add_string_list_to_tags(self.metadata.story_arc)
 
-        if self.settings.copy_notes_to_comments:
+        if self.options["cbl"]["copy_notes_to_comments"]:
             if self.metadata.notes is not None:
                 if self.metadata.comments is None:
                     self.metadata.comments = ""
@@ -88,7 +88,7 @@ class CBLTransformer:
                 if self.metadata.notes not in self.metadata.comments:
                     self.metadata.comments += self.metadata.notes
 
-        if self.settings.copy_weblink_to_comments:
+        if self.options["cbl"]["copy_weblink_to_comments"]:
             if self.metadata.web_link is not None:
                 if self.metadata.comments is None:
                     self.metadata.comments = ""

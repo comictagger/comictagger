@@ -25,10 +25,10 @@ from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
 from comicapi import utils
 from comicapi.genericmetadata import md_test
+from comictaggerlib import settings
 from comictaggerlib.ctversion import version
 from comictaggerlib.filerenamer import FileRenamer
 from comictaggerlib.imagefetcher import ImageFetcher
-from comictaggerlib.settings import ComicTaggerSettings
 from comictaggerlib.ui import ui_path
 from comictalker.comiccacher import ComicCacher
 from comictalker.talkerbase import ComicTalker
@@ -129,7 +129,7 @@ Spider-Geddon #1 - New Players; Check In
 
 
 class SettingsWindow(QtWidgets.QDialog):
-    def __init__(self, parent: QtWidgets.QWidget, settings: ComicTaggerSettings, talker_api: ComicTalker) -> None:
+    def __init__(self, parent: QtWidgets.QWidget, options: settings.OptionValues, talker_api: ComicTalker) -> None:
         super().__init__(parent)
 
         uic.loadUi(ui_path / "settingswindow.ui", self)
@@ -138,7 +138,7 @@ class SettingsWindow(QtWidgets.QDialog):
             QtCore.Qt.WindowType(self.windowFlags() & ~QtCore.Qt.WindowType.WindowContextHelpButtonHint)
         )
 
-        self.settings = settings
+        self.options = options
         self.talker_api = talker_api
         self.name = "Settings"
 
@@ -227,53 +227,55 @@ class SettingsWindow(QtWidgets.QDialog):
 
     def settings_to_form(self) -> None:
         # Copy values from settings to form
-        self.leRarExePath.setText(self.settings.rar_exe_path)
-        self.sbNameMatchIdentifyThresh.setValue(self.settings.id_series_match_identify_thresh)
-        self.sbNameMatchSearchThresh.setValue(self.settings.id_series_match_search_thresh)
-        self.tePublisherFilter.setPlainText(self.settings.id_publisher_filter)
+        self.leRarExePath.setText(self.options["general"]["rar_exe_path"])
+        self.sbNameMatchIdentifyThresh.setValue(self.options["identifier"]["series_match_identify_thresh"])
+        self.sbNameMatchSearchThresh.setValue(self.options["comicvine"]["series_match_search_thresh"])
+        self.tePublisherFilter.setPlainText("\n".join(self.options["identifier"]["publisher_filter"]))
 
-        self.cbxCheckForNewVersion.setChecked(self.settings.check_for_new_version)
+        self.cbxCheckForNewVersion.setChecked(self.options["general"]["check_for_new_version"])
 
-        self.cbxComplicatedParser.setChecked(self.settings.complicated_parser)
-        self.cbxRemoveC2C.setChecked(self.settings.remove_c2c)
-        self.cbxRemoveFCBD.setChecked(self.settings.remove_fcbd)
-        self.cbxRemovePublisher.setChecked(self.settings.remove_publisher)
+        self.cbxComplicatedParser.setChecked(self.options["filename"]["complicated_parser"])
+        self.cbxRemoveC2C.setChecked(self.options["filename"]["remove_c2c"])
+        self.cbxRemoveFCBD.setChecked(self.options["filename"]["remove_fcbd"])
+        self.cbxRemovePublisher.setChecked(self.options["filename"]["remove_publisher"])
         self.switch_parser()
 
-        self.cbxUseSeriesStartAsVolume.setChecked(self.settings.use_series_start_as_volume)
-        self.cbxClearFormBeforePopulating.setChecked(self.settings.clear_form_before_populating_from_cv)
-        self.cbxRemoveHtmlTables.setChecked(self.settings.remove_html_tables)
+        self.cbxUseSeriesStartAsVolume.setChecked(self.options["comicvine"]["use_series_start_as_volume"])
+        self.cbxClearFormBeforePopulating.setChecked(self.options["comicvine"]["clear_form_before_populating_from_cv"])
+        self.cbxRemoveHtmlTables.setChecked(self.options["comicvine"]["remove_html_tables"])
 
-        self.cbxUseFilter.setChecked(self.settings.always_use_publisher_filter)
-        self.cbxSortByYear.setChecked(self.settings.sort_series_by_year)
-        self.cbxExactMatches.setChecked(self.settings.exact_series_matches_first)
+        self.cbxUseFilter.setChecked(self.options["comicvine"]["always_use_publisher_filter"])
+        self.cbxSortByYear.setChecked(self.options["comicvine"]["sort_series_by_year"])
+        self.cbxExactMatches.setChecked(self.options["comicvine"]["exact_series_matches_first"])
 
-        self.leKey.setText(self.settings.cv_api_key)
-        self.leURL.setText(self.settings.cv_url)
+        self.leKey.setText(self.options["comicvine"]["cv_api_key"])
+        self.leURL.setText(self.options["comicvine"]["cv_url"])
 
-        self.cbxAssumeLoneCreditIsPrimary.setChecked(self.settings.assume_lone_credit_is_primary)
-        self.cbxCopyCharactersToTags.setChecked(self.settings.copy_characters_to_tags)
-        self.cbxCopyTeamsToTags.setChecked(self.settings.copy_teams_to_tags)
-        self.cbxCopyLocationsToTags.setChecked(self.settings.copy_locations_to_tags)
-        self.cbxCopyStoryArcsToTags.setChecked(self.settings.copy_storyarcs_to_tags)
-        self.cbxCopyNotesToComments.setChecked(self.settings.copy_notes_to_comments)
-        self.cbxCopyWebLinkToComments.setChecked(self.settings.copy_weblink_to_comments)
-        self.cbxApplyCBLTransformOnCVIMport.setChecked(self.settings.apply_cbl_transform_on_cv_import)
-        self.cbxApplyCBLTransformOnBatchOperation.setChecked(self.settings.apply_cbl_transform_on_bulk_operation)
+        self.cbxAssumeLoneCreditIsPrimary.setChecked(self.options["cbl"]["assume_lone_credit_is_primary"])
+        self.cbxCopyCharactersToTags.setChecked(self.options["cbl"]["copy_characters_to_tags"])
+        self.cbxCopyTeamsToTags.setChecked(self.options["cbl"]["copy_teams_to_tags"])
+        self.cbxCopyLocationsToTags.setChecked(self.options["cbl"]["copy_locations_to_tags"])
+        self.cbxCopyStoryArcsToTags.setChecked(self.options["cbl"]["copy_storyarcs_to_tags"])
+        self.cbxCopyNotesToComments.setChecked(self.options["cbl"]["copy_notes_to_comments"])
+        self.cbxCopyWebLinkToComments.setChecked(self.options["cbl"]["copy_weblink_to_comments"])
+        self.cbxApplyCBLTransformOnCVIMport.setChecked(self.options["cbl"]["apply_cbl_transform_on_cv_import"])
+        self.cbxApplyCBLTransformOnBatchOperation.setChecked(
+            self.options["cbl"]["apply_cbl_transform_on_bulk_operation"]
+        )
 
-        self.leRenameTemplate.setText(self.settings.rename_template)
-        self.leIssueNumPadding.setText(str(self.settings.rename_issue_number_padding))
-        self.cbxSmartCleanup.setChecked(self.settings.rename_use_smart_string_cleanup)
-        self.cbxChangeExtension.setChecked(self.settings.rename_extension_based_on_archive)
-        self.cbxMoveFiles.setChecked(self.settings.rename_move_dir)
-        self.leDirectory.setText(self.settings.rename_dir)
-        self.cbxRenameStrict.setChecked(self.settings.rename_strict)
+        self.leRenameTemplate.setText(self.options["rename"]["template"])
+        self.leIssueNumPadding.setText(str(self.options["rename"]["issue_number_padding"]))
+        self.cbxSmartCleanup.setChecked(self.options["rename"]["use_smart_string_cleanup"])
+        self.cbxChangeExtension.setChecked(self.options["rename"]["set_extension_based_on_archive"])
+        self.cbxMoveFiles.setChecked(self.options["rename"]["move_to_dir"])
+        self.leDirectory.setText(self.options["rename"]["dir"])
+        self.cbxRenameStrict.setChecked(self.options["rename"]["strict"])
 
     def accept(self) -> None:
         self.rename_test()
         if self.rename_error is not None:
             if isinstance(self.rename_error, ValueError):
-                logger.exception("Invalid format string: %s", self.settings.rename_template)
+                logger.exception("Invalid format string: %s", self.options["rename"]["template"])
                 QtWidgets.QMessageBox.critical(
                     self,
                     "Invalid format string!",
@@ -287,7 +289,7 @@ class SettingsWindow(QtWidgets.QDialog):
                 return
             else:
                 logger.exception(
-                    "Formatter failure: %s metadata: %s", self.settings.rename_template, self.renamer.metadata
+                    "Formatter failure: %s metadata: %s", self.options["rename"]["template"], self.renamer.metadata
                 )
                 QtWidgets.QMessageBox.critical(
                     self,
@@ -300,69 +302,77 @@ class SettingsWindow(QtWidgets.QDialog):
                 )
 
         # Copy values from form to settings and save
-        self.settings.rar_exe_path = str(self.leRarExePath.text())
+        self.options["general"]["rar_exe_path"] = str(self.leRarExePath.text())
 
         # make sure rar program is now in the path for the rar class
-        if self.settings.rar_exe_path:
-            utils.add_to_path(os.path.dirname(self.settings.rar_exe_path))
+        if self.options["general"]["rar_exe_path"]:
+            utils.add_to_path(os.path.dirname(self.options["general"]["rar_exe_path"]))
 
         if not str(self.leIssueNumPadding.text()).isdigit():
             self.leIssueNumPadding.setText("0")
 
-        self.settings.check_for_new_version = self.cbxCheckForNewVersion.isChecked()
+        self.options["general"]["check_for_new_version"] = self.cbxCheckForNewVersion.isChecked()
 
-        self.settings.id_series_match_identify_thresh = self.sbNameMatchIdentifyThresh.value()
-        self.settings.id_series_match_search_thresh = self.sbNameMatchSearchThresh.value()
-        self.settings.id_publisher_filter = str(self.tePublisherFilter.toPlainText())
+        self.options["identifier"]["series_match_identify_thresh"] = self.sbNameMatchIdentifyThresh.value()
+        self.options["comicvine"]["series_match_search_thresh"] = self.sbNameMatchSearchThresh.value()
+        self.options["identifier"]["publisher_filter"] = [
+            x.strip() for x in str(self.tePublisherFilter.toPlainText()).splitlines() if x.strip()
+        ]
 
-        self.settings.complicated_parser = self.cbxComplicatedParser.isChecked()
-        self.settings.remove_c2c = self.cbxRemoveC2C.isChecked()
-        self.settings.remove_fcbd = self.cbxRemoveFCBD.isChecked()
-        self.settings.remove_publisher = self.cbxRemovePublisher.isChecked()
+        self.options["filename"]["complicated_parser"] = self.cbxComplicatedParser.isChecked()
+        self.options["filename"]["remove_c2c"] = self.cbxRemoveC2C.isChecked()
+        self.options["filename"]["remove_fcbd"] = self.cbxRemoveFCBD.isChecked()
+        self.options["filename"]["remove_publisher"] = self.cbxRemovePublisher.isChecked()
 
-        self.settings.use_series_start_as_volume = self.cbxUseSeriesStartAsVolume.isChecked()
-        self.settings.clear_form_before_populating_from_cv = self.cbxClearFormBeforePopulating.isChecked()
-        self.settings.remove_html_tables = self.cbxRemoveHtmlTables.isChecked()
+        self.options["comicvine"]["use_series_start_as_volume"] = self.cbxUseSeriesStartAsVolume.isChecked()
+        self.options["comicvine"][
+            "clear_form_before_populating_from_cv"
+        ] = self.cbxClearFormBeforePopulating.isChecked()
+        self.options["comicvine"]["remove_html_tables"] = self.cbxRemoveHtmlTables.isChecked()
 
-        self.settings.always_use_publisher_filter = self.cbxUseFilter.isChecked()
-        self.settings.sort_series_by_year = self.cbxSortByYear.isChecked()
-        self.settings.exact_series_matches_first = self.cbxExactMatches.isChecked()
+        self.options["comicvine"]["always_use_publisher_filter"] = self.cbxUseFilter.isChecked()
+        self.options["comicvine"]["sort_series_by_year"] = self.cbxSortByYear.isChecked()
+        self.options["comicvine"]["exact_series_matches_first"] = self.cbxExactMatches.isChecked()
 
-        # Ignore empty field
         if self.leKey.text().strip():
-            self.settings.cv_api_key = self.leKey.text().strip()
-            self.talker_api.api_key = self.settings.cv_api_key
+            self.options["comicvine"]["cv_api_key"] = self.leKey.text().strip()
+            self.talker_api.api_key = self.options["comicvine"]["cv_api_key"]
+
         if self.leURL.text().strip():
-            self.settings.cv_url = self.leURL.text().strip()
-            self.talker_api.api_url = self.settings.cv_url
-        self.settings.assume_lone_credit_is_primary = self.cbxAssumeLoneCreditIsPrimary.isChecked()
-        self.settings.copy_characters_to_tags = self.cbxCopyCharactersToTags.isChecked()
-        self.settings.copy_teams_to_tags = self.cbxCopyTeamsToTags.isChecked()
-        self.settings.copy_locations_to_tags = self.cbxCopyLocationsToTags.isChecked()
-        self.settings.copy_storyarcs_to_tags = self.cbxCopyStoryArcsToTags.isChecked()
-        self.settings.copy_notes_to_comments = self.cbxCopyNotesToComments.isChecked()
-        self.settings.copy_weblink_to_comments = self.cbxCopyWebLinkToComments.isChecked()
-        self.settings.apply_cbl_transform_on_cv_import = self.cbxApplyCBLTransformOnCVIMport.isChecked()
-        self.settings.apply_cbl_transform_on_bulk_operation = self.cbxApplyCBLTransformOnBatchOperation.isChecked()
+            self.options["comicvine"]["cv_url"] = self.leURL.text().strip()
+            self.talker_api.api_url = self.options["comicvine"]["cv_url"]
 
-        self.settings.rename_template = str(self.leRenameTemplate.text())
-        self.settings.rename_issue_number_padding = int(self.leIssueNumPadding.text())
-        self.settings.rename_use_smart_string_cleanup = self.cbxSmartCleanup.isChecked()
-        self.settings.rename_extension_based_on_archive = self.cbxChangeExtension.isChecked()
-        self.settings.rename_move_dir = self.cbxMoveFiles.isChecked()
-        self.settings.rename_dir = self.leDirectory.text()
+        self.options["cbl"]["assume_lone_credit_is_primary"] = self.cbxAssumeLoneCreditIsPrimary.isChecked()
+        self.options["cbl"]["copy_characters_to_tags"] = self.cbxCopyCharactersToTags.isChecked()
+        self.options["cbl"]["copy_teams_to_tags"] = self.cbxCopyTeamsToTags.isChecked()
+        self.options["cbl"]["copy_locations_to_tags"] = self.cbxCopyLocationsToTags.isChecked()
+        self.options["cbl"]["copy_storyarcs_to_tags"] = self.cbxCopyStoryArcsToTags.isChecked()
+        self.options["cbl"]["copy_notes_to_comments"] = self.cbxCopyNotesToComments.isChecked()
+        self.options["cbl"]["copy_weblink_to_comments"] = self.cbxCopyWebLinkToComments.isChecked()
+        self.options["cbl"]["apply_cbl_transform_on_cv_import"] = self.cbxApplyCBLTransformOnCVIMport.isChecked()
+        self.options["cbl"][
+            "apply_cbl_transform_on_bulk_operation"
+        ] = self.cbxApplyCBLTransformOnBatchOperation.isChecked()
 
-        self.settings.rename_strict = self.cbxRenameStrict.isChecked()
+        self.options["rename"]["template"] = str(self.leRenameTemplate.text())
+        self.options["rename"]["issue_number_padding"] = int(self.leIssueNumPadding.text())
+        self.options["rename"]["use_smart_string_cleanup"] = self.cbxSmartCleanup.isChecked()
+        self.options["rename"]["set_extension_based_on_archive"] = self.cbxChangeExtension.isChecked()
+        self.options["rename"]["move_to_dir"] = self.cbxMoveFiles.isChecked()
+        self.options["rename"]["dir"] = self.leDirectory.text()
 
-        self.settings.save()
+        self.options["rename"]["strict"] = self.cbxRenameStrict.isChecked()
+
+        settings.Manager().save_file(self.options, self.options["runtime"]["config"].user_config_dir / "settings.json")
+        self.parent().options = self.options
         QtWidgets.QDialog.accept(self)
 
     def select_rar(self) -> None:
         self.select_file(self.leRarExePath, "RAR")
 
     def clear_cache(self) -> None:
-        ImageFetcher().clear_cache()
-        ComicCacher(ComicTaggerSettings.get_settings_folder(), version).clear_cache()
+        ImageFetcher(self.options["runtime"]["config"].cache_folder).clear_cache()
+        ComicCacher(self.options["runtime"]["config"].cache_folder, version).clear_cache()
         QtWidgets.QMessageBox.information(self, self.name, "Cache has been cleared.")
 
     def test_api_key(self) -> None:
@@ -372,7 +382,7 @@ class SettingsWindow(QtWidgets.QDialog):
             QtWidgets.QMessageBox.warning(self, "API Key Test", "Key is NOT valid.")
 
     def reset_settings(self) -> None:
-        self.settings.reset()
+        self.options = settings.Manager(self.options["option_definitions"]).defaults()
         self.settings_to_form()
         QtWidgets.QMessageBox.information(self, self.name, self.name + " have been returned to default values.")
 

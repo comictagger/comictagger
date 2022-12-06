@@ -24,9 +24,9 @@ from PyQt5 import QtCore, QtWidgets, uic
 
 from comicapi import utils
 from comicapi.comicarchive import ComicArchive
+from comictaggerlib import settings
 from comictaggerlib.graphics import graphics_path
 from comictaggerlib.optionalmsgdialog import OptionalMessageDialog
-from comictaggerlib.settings import ComicTaggerSettings
 from comictaggerlib.settingswindow import linuxRarHelp, macRarHelp, windowsRarHelp
 from comictaggerlib.ui import ui_path
 from comictaggerlib.ui.qtutils import center_window_on_parent, reduce_widget_font_size
@@ -59,14 +59,14 @@ class FileSelectionList(QtWidgets.QWidget):
     def __init__(
         self,
         parent: QtWidgets.QWidget,
-        settings: ComicTaggerSettings,
+        options: settings.OptionValues,
         dirty_flag_verification: Callable[[str, str], bool],
     ) -> None:
         super().__init__(parent)
 
         uic.loadUi(ui_path / "fileselectionlist.ui", self)
 
-        self.settings = settings
+        self.options = options
 
         reduce_widget_font_size(self.twList)
 
@@ -227,7 +227,7 @@ class FileSelectionList(QtWidgets.QWidget):
             else:
                 QtWidgets.QMessageBox.information(self, "File/Folder Open", "No readable comic archives were found.")
 
-        if rar_added and not utils.which(self.settings.rar_exe_path or "rar"):
+        if rar_added and not utils.which(self.options["general"]["rar_exe_path"] or "rar"):
             self.rar_ro_message()
 
         self.twList.setSortingEnabled(True)
@@ -281,7 +281,7 @@ class FileSelectionList(QtWidgets.QWidget):
         if self.is_list_dupe(path):
             return self.get_current_list_row(path)
 
-        ca = ComicArchive(path, self.settings.rar_exe_path, str(graphics_path / "nocover.png"))
+        ca = ComicArchive(path, self.options["general"]["rar_exe_path"], str(graphics_path / "nocover.png"))
 
         if ca.seems_to_be_a_comic_archive():
             row: int = self.twList.rowCount()
