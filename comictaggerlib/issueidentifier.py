@@ -161,7 +161,7 @@ class IssueIdentifier:
             return b""
 
         output = io.BytesIO()
-        cropped_im.save(output, format="PNG")
+        cropped_im.convert("RGB").save(output, format="PNG")
         cropped_image_data = output.getvalue()
         output.close()
 
