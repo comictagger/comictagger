@@ -16,8 +16,13 @@
 from __future__ import annotations
 
 import logging
+import sys
 
-import comictalker.talkers.comicvine
+if sys.version_info < (3, 10):
+    from importlib_metadata import entry_points
+else:
+    from importlib.metadata import entry_points
+
 from comictalker.talkerbase import ComicTalker, TalkerError
 
 logger = logging.getLogger(__name__)
@@ -35,4 +40,9 @@ def get_comic_talker(source_name: str) -> type[ComicTalker]:
 
 def get_talkers() -> dict[str, type[ComicTalker]]:
     """Returns all comic talker modules NOT objects"""
-    return {"comicvine": comictalker.talkers.comicvine.ComicVineTalker}
+    talker_plugins = entry_points(group="comictagger_talkers")
+
+    talkers = {}
+    for talker in talker_plugins:
+        talkers[talker.name] = talker.load()
+    return talkers

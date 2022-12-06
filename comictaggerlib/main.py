@@ -188,8 +188,12 @@ See https://github.com/comictagger/comictagger/releases/1.5.5 for more informati
         logger.warning("PyQt5 is not available. ComicTagger is limited to command-line mode.")
 
     talker_exception = None
+
+    # TODO Temp talker loader option
+    talker = "comicvine"
+
     try:
-        talker_api = ct_api.get_comic_talker("comicvine")(  # type: ignore[call-arg]
+        talker_api = ct_api.get_comic_talker(talker)(  # type: ignore[call-arg]
             version=version,
             cache_folder=ComicTaggerSettings.get_settings_folder(),
             series_match_thresh=settings.id_series_match_search_thresh,
