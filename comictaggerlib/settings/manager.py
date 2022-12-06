@@ -8,8 +8,6 @@ from collections import defaultdict
 from collections.abc import Sequence
 from typing import Any, Callable, NoReturn, Union
 
-from comictaggerlib.settings.types import ComicTaggerPaths, OptionValues
-
 logger = logging.getLogger(__name__)
 
 
@@ -36,13 +34,20 @@ class Setting:
     ):
         if not names:
             raise ValueError("names must be specified")
+        # We prefix the destination name used by argparse so that there are no conflicts
+        # Argument names will still cause an exception if there is a conflict e.g. if '-f' is defined twice
         self.internal_name, dest, flag = self.get_dest(group, names, dest)
         args: Sequence[str] = names
+
+        # We then also set the metavar so that '--config' in the group runtime shows as 'CONFIG' instead of 'RUNTIME_CONFIG'
         if not metavar and action not in ("store_true", "store_false", "count"):
             metavar = dest.upper()
 
+        # If we are not a flag, no '--' or '-' in front
+        # we prefix the first name with the group as argparse sets dest to args[0]
+        # I believe internal name may be able to be used here
         if not flag:
-            args = [f"{group}_{names[0]}".lstrip("_"), *names[1:]]
+            args = tuple((f"{group}_{names[0]}".lstrip("_"), *names[1:]))
 
         self.action = action
         self.nargs = nargs
@@ -108,53 +113,68 @@ class Setting:
         return self.argparse_args, self.filter_argparse_kwargs()
 
 
+OptionValues = dict[str, dict[str, Any]]
+OptionDefinitions = dict[str, dict[str, Setting]]
 ArgParser = Union[argparse._MutuallyExclusiveGroup, argparse._ArgumentGroup, argparse.ArgumentParser]
 
 
 class Manager:
     """docstring for SettingManager"""
 
-    def __init__(self, options: dict[str, dict[str, Setting]] | None = None):
-        self.argparser = argparse.ArgumentParser()
+    def __init__(
+        self, description: str | None = None, epilog: str | None = None, definitions: OptionDefinitions | None = None
+    ):
+        # This one is never used, it just makes MyPy happy
+        self.argparser = argparse.ArgumentParser(description=description, epilog=epilog)
+        self.description = description
+        self.epilog = epilog
 
-        self.options: dict[str, dict[str, Setting]] = defaultdict(lambda: dict())
-        if options:
-            self.options = options
+        self.option_definitions: OptionDefinitions = defaultdict(lambda: dict())
+        if definitions:
+            self.option_definitions = definitions
 
-        self.current_group: ArgParser | None = None
+        self.exclusive_group = False
         self.current_group_name = ""
 
     def defaults(self) -> OptionValues:
         return self.normalize_options({}, file=True, cmdline=True)
 
-    def get_namespace_for_args(self, options: OptionValues) -> argparse.Namespace:
+    def get_namespace(self, options: OptionValues) -> argparse.Namespace:
+        """
+        Returns an argparse.Namespace object with options in the form "{group_name}_{setting_name}"
+        `options` should already be normalized.
+        Throws an exception if the internal_name is duplicated
+        """
         namespace = argparse.Namespace()
-        for group_name, group in self.options.items():
+        for group_name, group in self.option_definitions.items():
             for setting_name, setting in group.items():
-                if not setting.cmdline:
-                    if hasattr(namespace, setting.internal_name):
-                        raise Exception(f"Duplicate internal name: {setting.internal_name}")
-                    setattr(
-                        namespace, setting.internal_name, options.get(group_name, {}).get(setting.dest, setting.default)
-                    )
+                if hasattr(namespace, setting.internal_name):
+                    raise Exception(f"Duplicate internal name: {setting.internal_name}")
+                setattr(
+                    namespace,
+                    setting.internal_name,
+                    options.get(group_name, {}).get(
+                        setting.dest,
+                        setting.default,
+                    ),
+                )
+        setattr(namespace, "option_definitions", options.get("option_definitions"))
         return namespace
 
     def add_setting(self, *args: Any, **kwargs: Any) -> None:
-        exclusive = isinstance(self.current_group, argparse._MutuallyExclusiveGroup)
-        setting = Setting(*args, group=self.current_group_name, exclusive=exclusive, **kwargs)
-        self.options[self.current_group_name][setting.dest] = setting
+        """Takes passes all arguments through to `Setting`, `group` and `exclusive` are already set"""
+        setting = Setting(*args, group=self.current_group_name, exclusive=self.exclusive_group, **kwargs)
+        self.option_definitions[self.current_group_name][setting.dest] = setting
 
     def create_argparser(self) -> None:
+        """Creates an argparser object from all cmdline settings"""
         groups: dict[str, ArgParser] = {}
         self.argparser = argparse.ArgumentParser(
-            description="""A utility for reading and writing metadata to comic archives.
-
-
-If no options are given, %(prog)s will run in windowed mode.""",
-            epilog="For more help visit the wiki at: https://github.com/comictagger/comictagger/wiki",
+            description=self.description,
+            epilog=self.epilog,
             formatter_class=argparse.RawTextHelpFormatter,
         )
-        for group_name, group in self.options.items():
+        for group_name, group in self.option_definitions.items():
             for setting_name, setting in group.items():
                 if setting.cmdline:
                     argparse_args, argparse_kwargs = setting.to_argparse()
@@ -163,42 +183,46 @@ If no options are given, %(prog)s will run in windowed mode.""",
                         if setting.group not in groups:
                             if setting.exclusive:
                                 groups[setting.group] = self.argparser.add_argument_group(
-                                    setting.group
+                                    setting.group,
                                 ).add_mutually_exclusive_group()
                             else:
                                 groups[setting.group] = self.argparser.add_argument_group(setting.group)
 
-                        # hardcoded exception for files
+                        # hard coded exception for files
                         if not (setting.group == "runtime" and setting.nargs == "*"):
                             current_group = groups[setting.group]
                     current_group.add_argument(*argparse_args, **argparse_kwargs)
 
     def add_group(self, name: str, add_settings: Callable[[Manager], None], exclusive_group: bool = False) -> None:
         self.current_group_name = name
-        if exclusive_group:
-            self.current_group = self.argparser.add_mutually_exclusive_group()
+        self.exclusive_group = exclusive_group
         add_settings(self)
         self.current_group_name = ""
-        self.current_group = None
+        self.exclusive_group = False
 
     def exit(self, *args: Any, **kwargs: Any) -> NoReturn:
+        """Same as `argparser.ArgParser.exit`"""
         self.argparser.exit(*args, **kwargs)
         raise SystemExit(99)
 
-    def save_file(self, options: OptionValues, filename: pathlib.Path) -> bool:
-        self.options = options["option_definitions"]
+    def save_file(self, options: OptionValues | argparse.Namespace, filename: pathlib.Path) -> bool:
+        if isinstance(options, dict):
+            self.option_definitions = options["option_definitions"]
+        elif isinstance(options, argparse.Namespace):
+            self.option_definitions = options.option_definitions
+
         file_options = self.normalize_options(options, file=True)
         del file_options["option_definitions"]
         for group in list(file_options.keys()):
             if not file_options[group]:
                 del file_options[group]
         if not filename.exists():
+            filename.parent.mkdir(exist_ok=True, parents=True)
             filename.touch()
 
         try:
             json_str = json.dumps(file_options, indent=2)
-            with filename.open(mode="w") as file:
-                file.write(json_str)
+            filename.write_text(json_str, encoding="utf-8")
         except Exception:
             logger.exception("Failed to save config file: %s", filename)
             return False
@@ -220,37 +244,57 @@ If no options are given, %(prog)s will run in windowed mode.""",
         return self.normalize_options(options, file=True)
 
     def normalize_options(
-        self, raw_options: OptionValues | argparse.Namespace, file: bool = False, cmdline: bool = False
+        self,
+        raw_options: OptionValues | argparse.Namespace,
+        file: bool = False,
+        cmdline: bool = False,
+        raw_options_2: OptionValues | argparse.Namespace | None = None,
     ) -> OptionValues:
+        """
+        Creates an `OptionValues` dictionary with setting definitions taken from `self.option_definitions`
+        and values taken from `raw_options` and `raw_options_2' if defined.
+        Values are assigned so if the value is a dictionary mutating it will mutate the original.
+        """
         options: OptionValues = {}
-        for group_name, group in self.options.items():
+        for group_name, group in self.option_definitions.items():
             group_options = {}
             for setting_name, setting in group.items():
                 if (setting.cmdline and cmdline) or (setting.file and file):
-                    group_options[setting_name] = self.get_option(raw_options, setting, group_name)
+                    # Ensures the option exists with the default if not already set
+                    group_options[setting_name], _ = self.get_option(raw_options, setting, group_name)
+
+                    # will override with option from raw_options_2 if it exists
+                    if raw_options_2 is not None:
+                        value, default = self.get_option(raw_options_2, setting, group_name)
+                        if not default:
+                            group_options[setting_name] = value
             options[group_name] = group_options
-        options["option_definitions"] = self.options
+        options["option_definitions"] = self.option_definitions
         return options
 
-    def get_option(self, options: OptionValues | argparse.Namespace, setting: Setting, group_name: str) -> Any:
+    def get_option(
+        self, options: OptionValues | argparse.Namespace, setting: Setting, group_name: str
+    ) -> tuple[Any, bool]:
+        """Helper function to retrieve the the value for a setting and if the value is the default value"""
         if isinstance(options, dict):
-            return options.get(group_name, {}).get(setting.dest, setting.default)
-        return getattr(options, setting.internal_name)
+            value = options.get(group_name, {}).get(setting.dest, setting.default)
+        else:
+            value = getattr(options, setting.internal_name, setting.default)
+        return value, value == setting.default
 
     def parse_args(self, args: list[str] | None = None, namespace: argparse.Namespace | None = None) -> OptionValues:
-        """Must handle a namespace with both argparse values and file values"""
+        """
+        Creates an `argparse.ArgumentParser` from cmdline settings in `self.option_definitions`.
+        `args` and `namespace` are passed to `argparse.ArgumentParser.parse_args`
+        """
         self.create_argparser()
         ns = self.argparser.parse_args(args, namespace=namespace)
 
-        return self.normalize_options(ns, cmdline=True, file=True)
+        return self.normalize_options(ns, cmdline=True, file=False)
 
-    def parse_options(self, config_paths: ComicTaggerPaths, args: list[str] | None = None) -> OptionValues:
-        file_options = self.parse_file(config_paths.user_config_dir / "settings.json")
-        cli_options = self.parse_args(args, namespace=self.get_namespace_for_args(file_options))
+    def parse_options(self, config_path: pathlib.Path, args: list[str] | None = None) -> OptionValues:
+        file_options = self.parse_file(config_path)
+        cli_options = self.parse_args(args)
 
-        if "runtime" in cli_options:
-            # Just in case something weird happens with the commandline options
-            cli_options["runtime"]["config"] = config_paths
-
-        # Normalize a final time for fun
-        return self.normalize_options(cli_options, file=True, cmdline=True)
+        final_options = self.normalize_options(file_options, file=True, cmdline=True, raw_options_2=cli_options)
+        return final_options

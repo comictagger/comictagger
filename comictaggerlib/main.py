@@ -81,12 +81,15 @@ class App:
         return opts
 
     def register_options(self) -> None:
-        self.manager = settings.Manager()
+        self.manager = settings.Manager(
+            """A utility for reading and writing metadata to comic archives.\n\n\nIf no options are given, %(prog)s will run in windowed mode.""",
+            "For more help visit the wiki at: https://github.com/comictagger/comictagger/wiki",
+        )
         settings.register_commandline(self.manager)
         settings.register_settings(self.manager)
 
     def parse_options(self, config_paths: settings.ComicTaggerPaths) -> None:
-        options = self.manager.parse_options(config_paths)
+        options = self.manager.parse_options(config_paths.user_config_dir / "settings.json")
         self.options = settings.validate_commandline_options(options, self.manager)
         self.options = settings.validate_settings(options, self.manager)
 

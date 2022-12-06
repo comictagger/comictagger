@@ -10,8 +10,6 @@ from appdirs import AppDirs
 from comicapi.comicarchive import MetaDataStyle
 from comicapi.genericmetadata import GenericMetadata
 
-OptionValues = dict[str, dict[str, Any]]
-
 
 class ComicTaggerPaths(AppDirs):
     def __init__(self, config_path: pathlib.Path | str | None = None) -> None:

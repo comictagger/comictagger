@@ -457,7 +457,7 @@ class SettingsWindow(QtWidgets.QDialog):
             QtWidgets.QMessageBox.warning(self, "API Key Test", "Key is NOT valid.")
 
     def reset_settings(self) -> None:
-        self.options = settings.Manager(self.options["option_definitions"]).defaults()
+        self.options = settings.Manager(definitions=self.options["option_definitions"]).defaults()
         self.settings_to_form()
         QtWidgets.QMessageBox.information(self, self.name, self.name + " have been returned to default values.")
 
