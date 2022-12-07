@@ -177,8 +177,6 @@ class IssueIdentifier:
 
         ca = self.comic_archive
 
-        if ca is None:
-            return None
         search_keys: SearchKeys
         if self.only_use_additional_meta_data:
             search_keys = SearchKeys(
@@ -352,26 +350,17 @@ class IssueIdentifier:
                 narrow_cover_hash = self.calculate_hash(right_side_image_data)
 
         keys = self.get_search_keys()
-        if keys is None:
-            return []
-
-        if self.talker_api.static_options.has_issues:
-            # we need, at minimum, a series and issue number
-            # TODO Option to tag with series info if no issue number?
-            if keys["series"] is None or keys["issue_number"] is None:
-                self.log_msg("Not enough info for a issue search!")
-                return []
-        else:
-            if keys["series"] is None:
-                self.log_msg("Not enough info for a series search!")
-                return []
-
-        # normalize the issue number, will convert None to ""
+        # normalize the issue number, None will return as ""
         keys["issue_number"] = IssueString(keys["issue_number"]).as_string()
 
+        # we need, at minimum, a series and issue number
+        if not (keys["series"] and keys["issue_number"]):
+            self.log_msg("Not enough info for a search!")
+            return []
+
         self.log_msg("Going to search for:")
-        self.log_msg(f"\tSeries: {keys['series']}")
-        self.log_msg(f"\tIssue:  {keys['issue_number']}")
+        self.log_msg("\tSeries: " + keys["series"])
+        self.log_msg("\tIssue:  " + keys["issue_number"])
         if keys["issue_count"] is not None:
             self.log_msg("\tCount:  " + str(keys["issue_count"]))
         if keys["year"] is not None:

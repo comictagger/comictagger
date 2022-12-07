@@ -1045,8 +1045,7 @@ You have {4-self.settings.settings_warning} warnings left.
         self.query_online(autoselect=False, literal=True)
 
     def query_online(self, autoselect: bool = False, literal: bool = False) -> None:
-        if self.comic_archive is not None:
-            issue_number = str(self.leIssueNum.text()).strip()
+        issue_number = str(self.leIssueNum.text()).strip()
 
             # Only need this check is the source has issue level data.
             if autoselect and issue_number == "" and self.talker_api.static_options.has_issues:

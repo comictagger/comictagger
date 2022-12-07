@@ -110,7 +110,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
         year: int | None,
         issue_count: int,
         cover_index_list: list[int],
-        comic_archive: ComicArchive,
+        comic_archive: ComicArchive | None,
         settings: ComicTaggerSettings,
         talker_api: ComicTalker,
         autoselect: bool = False,
@@ -159,7 +159,9 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
         # Load to retrieve settings
         self.talker_api = talker_api
 
-        self.twList.resizeColumnsToContents()
+        # Set the minimum row height to the default.
+        # this way rows will be more consistent when resizeRowsToContents is called
+        self.twList.verticalHeader().setMinimumSectionSize(self.twList.verticalHeader().defaultSectionSize())
         self.twList.currentItemChanged.connect(self.current_item_changed)
         self.twList.cellDoubleClicked.connect(self.cell_double_clicked)
         self.btnRequery.clicked.connect(self.requery)
@@ -252,7 +254,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
             self.ii.cancel = True
 
     def identify_complete(self) -> None:
-        if self.ii is not None and self.iddialog is not None:
+        if self.ii is not None and self.iddialog is not None and self.comic_archive is not None:
 
             matches = self.ii.match_list
             result = self.ii.search_result
@@ -482,6 +484,16 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
         self.twList.setSortingEnabled(True)
         self.twList.selectRow(0)
         self.twList.resizeColumnsToContents()
+        # Get the width of the issues, year and publisher columns
+        owidth = self.twList.columnWidth(1) + self.twList.columnWidth(2) + self.twList.columnWidth(3)
+        # Get the remaining width after they fill the tableWidget
+        rwidth = self.twList.contentsRect().width() - owidth
+
+        # Default the tableWidget to truncate series names
+        self.twList.setColumnWidth(0, rwidth)
+
+        # Resize row height so the whole series can still be seen
+        self.twList.resizeRowsToContents()
 
     def showEvent(self, event: QtGui.QShowEvent) -> None:
         self.perform_query()
