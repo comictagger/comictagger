@@ -1715,7 +1715,7 @@ You have {4-self.settings.settings_warning} warnings left.
             if self.talker_api.static_options.has_issues:
                 ct_md = self.talker_api.fetch_comic_data(match["issue_id"])
             else:
-                ct_md = self.talker_api.fetch_comic_data(match["volume_id"])
+                ct_md = self.talker_api.fetch_comic_data(series_id=match["volume_id"])
 
         except TalkerError as e:
             logger.exception(f"Save aborted.\n{e}")

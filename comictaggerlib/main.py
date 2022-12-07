@@ -191,6 +191,7 @@ See https://github.com/comictagger/comictagger/releases/1.5.5 for more informati
 
     # TODO Temp talker loader option
     talker = "comicvine"
+    # talker = "mangaupdates"
 
     try:
         talker_api = ct_api.get_comic_talker(talker)(  # type: ignore[call-arg]
