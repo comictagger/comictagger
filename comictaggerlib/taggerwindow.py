@@ -1047,93 +1047,92 @@ You have {4-self.settings.settings_warning} warnings left.
     def query_online(self, autoselect: bool = False, literal: bool = False) -> None:
         issue_number = str(self.leIssueNum.text()).strip()
 
-            # Only need this check is the source has issue level data.
-            if autoselect and issue_number == "" and self.talker_api.static_options.has_issues:
-                QtWidgets.QMessageBox.information(
-                    self, "Automatic Identify Search", "Can't auto-identify without an issue number (yet!)"
-                )
-                return
-
-            if str(self.leSeries.text()).strip() != "":
-                series_name = str(self.leSeries.text()).strip()
-            else:
-                QtWidgets.QMessageBox.information(self, "Online Search", "Need to enter a series name to search.")
-                return
-
-            year = utils.xlate(self.lePubYear.text(), True)
-
-            issue_count = utils.xlate(self.leIssueCount.text(), True)
-
-            cover_index_list = self.metadata.get_cover_page_index_list()
-            selector = VolumeSelectionWindow(
-                self,
-                series_name,
-                issue_number,
-                year,
-                issue_count,
-                cover_index_list,
-                self.comic_archive,
-                self.settings,
-                self.talker_api,
-                autoselect,
-                literal,
+        # Only need this check if the source has issue level data.
+        if autoselect and issue_number == "" and self.talker_api.static_options.has_issues:
+            QtWidgets.QMessageBox.information(
+                self, "Automatic Identify Search", "Can't auto-identify without an issue number (yet!)"
             )
+            return
 
-            selector.setWindowTitle(f"Search: '{series_name}' - Select Series")
+        if str(self.leSeries.text()).strip() != "":
+            series_name = str(self.leSeries.text()).strip()
+        else:
+            QtWidgets.QMessageBox.information(self, "Online Search", "Need to enter a series name to search.")
+            return
 
-            selector.setModal(True)
-            selector.exec()
+        year = utils.xlate(self.lePubYear.text(), True)
 
-            if selector.result():
-                # we should now have a volume ID
-                QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
+        issue_count = utils.xlate(self.leIssueCount.text(), True)
 
-                # copy the form onto metadata object
-                self.form_to_metadata()
+        cover_index_list = self.metadata.get_cover_page_index_list()
+        selector = VolumeSelectionWindow(
+            self,
+            series_name,
+            issue_number,
+            year,
+            issue_count,
+            cover_index_list,
+            self.comic_archive,
+            self.settings,
+            self.talker_api,
+            autoselect,
+            literal,
+        )
 
-                try:
-                    if selector.issue_id:
-                        new_metadata = self.talker_api.fetch_comic_data(selector.issue_id)
-                    elif selector.volume_id and selector.issue_number:
-                        # Would this ever be needed?
-                        new_metadata = self.talker_api.fetch_comic_data(
-                            series_id=selector.volume_id, issue_number=selector.issue_number
-                        )
-                    else:
-                        # TODO Check that if talker has_issues clicking okay in volume doesn't tag with series data
-                        # If a talker does not have issue data we should end up here
-                        new_metadata = self.talker_api.fetch_comic_data(series_id=selector.volume_id)
-                except TalkerError as e:
-                    QtWidgets.QApplication.restoreOverrideCursor()
-                    QtWidgets.QMessageBox.critical(
-                        self,
-                        f"{e.source} {e.code_name} Error",
-                        f"{e}",
+        selector.setWindowTitle(f"Search: '{series_name}' - Select Series")
+
+        selector.setModal(True)
+        selector.exec()
+
+        if selector.result():
+            # we should now have a volume ID
+            QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
+
+            # copy the form onto metadata object
+            self.form_to_metadata()
+
+            try:
+                if selector.issue_id:
+                    new_metadata = self.talker_api.fetch_comic_data(selector.issue_id)
+                elif selector.volume_id and selector.issue_number:
+                    # Would this ever be needed?
+                    new_metadata = self.talker_api.fetch_comic_data(
+                        series_id=selector.volume_id, issue_number=selector.issue_number
                     )
                 else:
-                    QtWidgets.QApplication.restoreOverrideCursor()
-                    if new_metadata is not None:
-                        if self.settings.apply_cbl_transform_on_cv_import:
-                            new_metadata = CBLTransformer(new_metadata, self.settings).apply()
+                    # If a talker does not have issue data we should end up here
+                    new_metadata = self.talker_api.fetch_comic_data(series_id=selector.volume_id)
+            except TalkerError as e:
+                QtWidgets.QApplication.restoreOverrideCursor()
+                QtWidgets.QMessageBox.critical(
+                    self,
+                    f"{e.source} {e.code_name} Error",
+                    f"{e}",
+                )
+            else:
+                QtWidgets.QApplication.restoreOverrideCursor()
+                if new_metadata is not None:
+                    if self.settings.apply_cbl_transform_on_cv_import:
+                        new_metadata = CBLTransformer(new_metadata, self.settings).apply()
 
-                        if self.settings.clear_form_before_populating_from_cv:
-                            self.clear_form()
+                    if self.settings.clear_form_before_populating_from_cv:
+                        self.clear_form()
 
-                        notes = (
-                            f"Tagged with ComicTagger {ctversion.version} using info from {self.talker_api.source_details.name} on"
-                            f" {datetime.now():%Y-%m-%d %H:%M:%S}.  [Issue ID {new_metadata.issue_id}]"
+                    notes = (
+                        f"Tagged with ComicTagger {ctversion.version} using info from {self.talker_api.source_details.name} on"
+                        f" {datetime.now():%Y-%m-%d %H:%M:%S}.  [Issue ID {new_metadata.issue_id}]"
+                    )
+                    self.metadata.overlay(
+                        new_metadata.replace(
+                            notes=utils.combine_notes(self.metadata.notes, notes, "Tagged with ComicTagger")
                         )
-                        self.metadata.overlay(
-                            new_metadata.replace(
-                                notes=utils.combine_notes(self.metadata.notes, notes, "Tagged with ComicTagger")
-                            )
-                        )
-                        # Now push the new combined data into the edit controls
-                        self.metadata_to_form()
-                    else:
-                        QtWidgets.QMessageBox.critical(
-                            self, "Search", f"Could not find an issue {selector.issue_number} for that series"
-                        )
+                    )
+                    # Now push the new combined data into the edit controls
+                    self.metadata_to_form()
+                else:
+                    QtWidgets.QMessageBox.critical(
+                        self, "Search", f"Could not find an issue {selector.issue_number} for that series"
+                    )
 
     def commit_metadata(self) -> None:
         if self.metadata is not None and self.comic_archive is not None:
