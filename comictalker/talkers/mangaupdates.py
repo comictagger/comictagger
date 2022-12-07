@@ -27,9 +27,8 @@ import requests
 from typing_extensions import TypedDict
 
 import comictalker.talker_utils as t_utils
-from comicapi import filenamelexer, filenameparser, utils
+from comicapi import utils
 from comicapi.genericmetadata import GenericMetadata
-from comicapi.issuestring import IssueString
 from comictaggerlib import ctversion
 from comictalker.comiccacher import ComicCacher
 from comictalker.resulttypes import ComicIssue, ComicVolume, Credits
@@ -422,7 +421,6 @@ class MangaUpdatesTalker(ComicTalker):
             id=issue["series_id"],
             image_url=image_url,
             image_thumb_url=image_thumb_url,
-            # issue_number= Taken from filename parse if available, never want to write it to cache as that would overwrite new files with different issue/chapter numbers
             rating=issue["bayesian_rating"] / 2,
             manga=manga,
             genres=genre_list,
