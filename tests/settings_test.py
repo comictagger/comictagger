@@ -6,226 +6,13 @@ import json
 import pytest
 
 import comictaggerlib.settings.manager
+from testing.settings import settings_cases
 
 
 def test_settings_manager():
     manager = comictaggerlib.settings.manager.Manager()
     defaults = manager.defaults()
     assert manager is not None and defaults is not None
-
-
-settings_cases = [
-    (
-        (
-            ("--test",),
-            dict(
-                action=None,
-                nargs=None,
-                const=None,
-                default=None,
-                type=None,
-                choices=None,
-                required=None,
-                help=None,
-                metavar=None,
-                dest=None,
-                cmdline=True,
-                file=True,
-                group="tst",
-                exclusive=False,
-            ),
-        ),
-        {
-            "action": None,
-            "choices": None,
-            "cmdline": True,
-            "const": None,
-            "default": None,
-            "dest": "test",
-            "exclusive": False,
-            "file": True,
-            "group": "tst",
-            "help": None,
-            "internal_name": "tst_test",
-            "metavar": "TEST",
-            "nargs": None,
-            "required": None,
-            "type": None,
-            "argparse_args": ("--test",),
-            "argparse_kwargs": {
-                "action": None,
-                "choices": None,
-                "const": None,
-                "default": None,
-                "dest": "tst_test",
-                "help": None,
-                "metavar": "TEST",
-                "nargs": None,
-                "required": None,
-                "type": None,
-            },
-        },
-    ),
-    (
-        (
-            (
-                "-t",
-                "--test",
-            ),
-            dict(
-                action=None,
-                nargs=None,
-                const=None,
-                default=None,
-                type=None,
-                choices=None,
-                required=None,
-                help=None,
-                metavar=None,
-                dest=None,
-                cmdline=True,
-                file=True,
-                group="tst",
-                exclusive=False,
-            ),
-        ),
-        {
-            "action": None,
-            "choices": None,
-            "cmdline": True,
-            "const": None,
-            "default": None,
-            "dest": "test",
-            "exclusive": False,
-            "file": True,
-            "group": "tst",
-            "help": None,
-            "internal_name": "tst_test",
-            "metavar": "TEST",
-            "nargs": None,
-            "required": None,
-            "type": None,
-            "argparse_args": (
-                "-t",
-                "--test",
-            ),
-            "argparse_kwargs": {
-                "action": None,
-                "choices": None,
-                "const": None,
-                "default": None,
-                "dest": "tst_test",
-                "help": None,
-                "metavar": "TEST",
-                "nargs": None,
-                "required": None,
-                "type": None,
-            },
-        },
-    ),
-    (
-        (
-            ("test",),
-            dict(
-                action=None,
-                nargs=None,
-                const=None,
-                default=None,
-                type=None,
-                choices=None,
-                required=None,
-                help=None,
-                metavar=None,
-                dest=None,
-                cmdline=True,
-                file=True,
-                group="tst",
-                exclusive=False,
-            ),
-        ),
-        {
-            "action": None,
-            "choices": None,
-            "cmdline": True,
-            "const": None,
-            "default": None,
-            "dest": "test",
-            "exclusive": False,
-            "file": True,
-            "group": "tst",
-            "help": None,
-            "internal_name": "tst_test",
-            "metavar": "TEST",
-            "nargs": None,
-            "required": None,
-            "type": None,
-            "argparse_args": ("tst_test",),
-            "argparse_kwargs": {
-                "action": None,
-                "choices": None,
-                "const": None,
-                "default": None,
-                "dest": None,
-                "help": None,
-                "metavar": "TEST",
-                "nargs": None,
-                "required": None,
-                "type": None,
-            },
-        },
-    ),
-    (
-        (
-            ("--test",),
-            dict(
-                action=None,
-                nargs=None,
-                const=None,
-                default=None,
-                type=None,
-                choices=None,
-                required=None,
-                help=None,
-                metavar=None,
-                dest=None,
-                cmdline=True,
-                file=True,
-                group="",
-                exclusive=False,
-            ),
-        ),
-        {
-            "action": None,
-            "choices": None,
-            "cmdline": True,
-            "const": None,
-            "default": None,
-            "dest": "test",
-            "exclusive": False,
-            "file": True,
-            "group": "",
-            "help": None,
-            "internal_name": "test",
-            "metavar": "TEST",
-            "nargs": None,
-            "required": None,
-            "type": None,
-            "argparse_args": ("--test",),
-            "argparse_kwargs": {
-                "action": None,
-                "choices": None,
-                "const": None,
-                "default": None,
-                "dest": "test",
-                "help": None,
-                "metavar": "TEST",
-                "nargs": None,
-                "required": None,
-                "type": None,
-            },
-        },
-    ),
-]
 
 
 @pytest.mark.parametrize("arguments, expected", settings_cases)
@@ -289,6 +76,7 @@ def test_normalize(settings_manager):
     assert "tst" in normalized
     assert "test" in normalized["tst"]
     assert normalized["tst"]["test"] == "hello"
+
     assert not hasattr(normalized_namespace, "test")
     assert hasattr(normalized_namespace, "tst_test")
     assert normalized_namespace.tst_test == "hello"
@@ -313,13 +101,21 @@ def test_normalize_merge(raw, raw2, expected, settings_manager):
 
 def test_parse_options(settings_manager, tmp_path):
     settings_file = tmp_path / "settings.json"
-    settings_file.write_text(json.dumps({"tst2": {"test2": "success"}}))
+    settings_file.write_text(json.dumps({"tst2": {"test2": "success"}, "tst3": {"test3": "fail"}}))
     settings_manager.add_group("tst", lambda parser: parser.add_setting("--test", default="hello", file=False))
     settings_manager.add_group("tst2", lambda parser: parser.add_setting("--test2", default="hello", cmdline=False))
+    settings_manager.add_group("tst3", lambda parser: parser.add_setting("--test3", default="hello"))
 
-    normalized = settings_manager.parse_options(settings_file, ["--test", "success"])
+    normalized = settings_manager.parse_options(settings_file, ["--test", "success", "--test3", "success"])
 
+    # Tests that the cli will override the default
     assert "test" in normalized["tst"]
     assert normalized["tst"]["test"] == "success"
+
+    # Tests that the settings file will override the default
     assert "test2" in normalized["tst2"]
     assert normalized["tst2"]["test2"] == "success"
+
+    # Tests that the cli will override the settings file
+    assert "test3" in normalized["tst3"]
+    assert normalized["tst3"]["test3"] == "success"
