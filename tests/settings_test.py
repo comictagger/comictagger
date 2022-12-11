@@ -54,17 +54,19 @@ def test_cmdline_only(settings_manager):
 
     file_normalized = settings_manager.normalize_options({}, file=True)
     cmdline_normalized = settings_manager.normalize_options({}, cmdline=True)
-    assert "test" not in file_normalized["tst"]
+
     assert "test" in cmdline_normalized["tst"]
-    assert "test2" in file_normalized["tst2"]
     assert "test2" not in cmdline_normalized["tst2"]
+
+    assert "test" not in file_normalized["tst"]
+    assert "test2" in file_normalized["tst2"]
 
 
 def test_normalize(settings_manager):
     settings_manager.add_group("tst", lambda parser: parser.add_setting("--test", default="hello"))
 
     defaults = settings_manager.defaults()
-    defaults["test"] = "fail"
+    defaults["test"] = "fail"  # Not defined in settings_manager
 
     defaults_namespace = settings_manager.get_namespace(defaults)
     defaults_namespace.test = "fail"
@@ -86,6 +88,7 @@ def test_normalize(settings_manager):
     "raw, raw2, expected",
     [
         ({"tst": {"test": "fail"}}, argparse.Namespace(tst_test="success"), "success"),
+        # hello is default so is not used in raw_options_2
         ({"tst": {"test": "success"}}, argparse.Namespace(tst_test="hello"), "success"),
         (argparse.Namespace(tst_test="fail"), {"tst": {"test": "success"}}, "success"),
         (argparse.Namespace(tst_test="success"), {"tst": {"test": "hello"}}, "success"),

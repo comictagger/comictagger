@@ -20,24 +20,24 @@ settings_cases = [
                 group="tst",
                 exclusive=False,
             ),
-        ),
+        ),  # Equivalent to Setting("--test", group="tst")
         {
             "action": None,
             "choices": None,
             "cmdline": True,
             "const": None,
             "default": None,
-            "dest": "test",
+            "dest": "test",  # dest is calculated by Setting and is not used by argparse
             "exclusive": False,
             "file": True,
             "group": "tst",
             "help": None,
-            "internal_name": "tst_test",
-            "metavar": "TEST",
+            "internal_name": "tst_test",  # Should almost always be "{group}_{dest}"
+            "metavar": "TEST",  # Set manually so argparse doesn't use TST_TEST
             "nargs": None,
             "required": None,
             "type": None,
-            "argparse_args": ("--test",),
+            "argparse_args": ("--test",),  # *args actually sent to argparse
             "argparse_kwargs": {
                 "action": None,
                 "choices": None,
@@ -49,7 +49,7 @@ settings_cases = [
                 "nargs": None,
                 "required": None,
                 "type": None,
-            },
+            },  # Non-None **kwargs sent to argparse
         },
     ),
     (
@@ -74,7 +74,7 @@ settings_cases = [
                 group="tst",
                 exclusive=False,
             ),
-        ),
+        ),  # Equivalent to Setting("-t", "--test", group="tst")
         {
             "action": None,
             "choices": None,
@@ -94,7 +94,7 @@ settings_cases = [
             "argparse_args": (
                 "-t",
                 "--test",
-            ),
+            ),  # Only difference with above is here
             "argparse_kwargs": {
                 "action": None,
                 "choices": None,
@@ -128,7 +128,7 @@ settings_cases = [
                 group="tst",
                 exclusive=False,
             ),
-        ),
+        ),  # Equivalent to Setting("test", group="tst")
         {
             "action": None,
             "choices": None,
@@ -151,7 +151,7 @@ settings_cases = [
                 "choices": None,
                 "const": None,
                 "default": None,
-                "dest": None,
+                "dest": None,  # Only difference with #1 is here, argparse sets dest based on the *args passed to it
                 "help": None,
                 "metavar": "TEST",
                 "nargs": None,
@@ -179,7 +179,7 @@ settings_cases = [
                 group="",
                 exclusive=False,
             ),
-        ),
+        ),  # Equivalent to Setting("test")
         {
             "action": None,
             "choices": None,
@@ -191,7 +191,7 @@ settings_cases = [
             "file": True,
             "group": "",
             "help": None,
-            "internal_name": "test",
+            "internal_name": "test",  # No group, leading _ is stripped
             "metavar": "TEST",
             "nargs": None,
             "required": None,
