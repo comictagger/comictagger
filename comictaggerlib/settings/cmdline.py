@@ -191,9 +191,7 @@ def register_options(parser: Manager) -> None:
         file=False,
     )
     parser.add_setting(
-        # "--no-overwrite",
-        # "--nooverwrite",
-        "--temporary",
+        "--no-overwrite",
         dest="no_overwrite",
         action="store_true",
         help="""Don't modify tag block if it already exists (relevant for -s or -c).""",

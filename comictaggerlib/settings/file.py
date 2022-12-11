@@ -94,9 +94,9 @@ def comicvine(parser: Manager) -> None:
     )
     parser.add_setting("--use-series-start-as-volume", default=False, action=argparse.BooleanOptionalAction)
     parser.add_setting(
-        "--overwrite",
+        "--clear-metadata",
         default=True,
-        help="Overwrite all existing metadata.\nMay be used in conjunction with -o, -f and -m.\n\n",
+        help="Clears all existing metadata during import, default is to merges metadata.\nMay be used in conjunction with -o, -f and -m.\n\n",
         dest="clear_metadata_on_import",
         action=argparse.BooleanOptionalAction,
     )
