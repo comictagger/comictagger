@@ -71,8 +71,8 @@ def test_normalize(settings_manager):
     defaults_namespace = settings_manager.get_namespace(defaults)
     defaults_namespace.test = "fail"
 
-    normalized = settings_manager.normalize_options(defaults, True)
-    normalized_namespace = settings_manager.get_namespace(settings_manager.normalize_options(defaults, True))
+    normalized = settings_manager.normalize_options(defaults, file=True)
+    normalized_namespace = settings_manager.get_namespace(settings_manager.normalize_options(defaults, file=True))
 
     assert "test" not in normalized
     assert "tst" in normalized
@@ -97,28 +97,56 @@ def test_normalize(settings_manager):
 def test_normalize_merge(raw, raw2, expected, settings_manager):
     settings_manager.add_group("tst", lambda parser: parser.add_setting("--test", default="hello"))
 
-    normalized = settings_manager.normalize_options(raw, True, raw_options_2=raw2)
+    normalized = settings_manager.normalize_options(raw, file=True, raw_options_2=raw2)
 
     assert normalized["tst"]["test"] == expected
 
 
-def test_parse_options(settings_manager, tmp_path):
+def test_cli_set(settings_manager, tmp_path):
     settings_file = tmp_path / "settings.json"
-    settings_file.write_text(json.dumps({"tst2": {"test2": "success"}, "tst3": {"test3": "fail"}}))
+    settings_file.write_text(json.dumps({}))
     settings_manager.add_group("tst", lambda parser: parser.add_setting("--test", default="hello", file=False))
-    settings_manager.add_group("tst2", lambda parser: parser.add_setting("--test2", default="hello", cmdline=False))
-    settings_manager.add_group("tst3", lambda parser: parser.add_setting("--test3", default="hello"))
 
-    normalized = settings_manager.parse_options(settings_file, ["--test", "success", "--test3", "success"])
+    normalized = settings_manager.parse_options(settings_file, ["--test", "success"])
 
-    # Tests that the cli will override the default
     assert "test" in normalized["tst"]
     assert normalized["tst"]["test"] == "success"
 
-    # Tests that the settings file will override the default
-    assert "test2" in normalized["tst2"]
-    assert normalized["tst2"]["test2"] == "success"
 
-    # Tests that the cli will override the settings file
-    assert "test3" in normalized["tst3"]
-    assert normalized["tst3"]["test3"] == "success"
+def test_file_set(settings_manager, tmp_path):
+    settings_file = tmp_path / "settings.json"
+    settings_file.write_text(
+        json.dumps(
+            {
+                "tst": {"test": "success"},
+            }
+        )
+    )
+    settings_manager.add_group("tst", lambda parser: parser.add_setting("--test", default="hello", cmdline=False))
+
+    normalized = settings_manager.parse_options(settings_file, [])
+
+    assert "test" in normalized["tst"]
+    assert normalized["tst"]["test"] == "success"
+
+
+def test_cli_override_file(settings_manager, tmp_path):
+    settings_file = tmp_path / "settings.json"
+    settings_file.write_text(json.dumps({"tst": {"test": "fail"}}))
+    settings_manager.add_group("tst", lambda parser: parser.add_setting("--test", default="hello"))
+
+    normalized = settings_manager.parse_options(settings_file, ["--test", "success"])
+
+    assert "test" in normalized["tst"]
+    assert normalized["tst"]["test"] == "success"
+
+
+def test_cli_explicit_default(settings_manager, tmp_path):
+    settings_file = tmp_path / "settings.json"
+    settings_file.write_text(json.dumps({"tst": {"test": "fail"}}))
+    settings_manager.add_group("tst", lambda parser: parser.add_setting("--test", default="success"))
+
+    normalized = settings_manager.parse_options(settings_file, ["--test", "success"])
+
+    assert "test" in normalized["tst"]
+    assert normalized["tst"]["test"] == "success"

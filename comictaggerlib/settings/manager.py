@@ -139,7 +139,7 @@ class Manager:
     def defaults(self) -> OptionValues:
         return self.normalize_options({}, file=True, cmdline=True)
 
-    def get_namespace(self, options: OptionValues) -> argparse.Namespace:
+    def get_namespace(self, options: OptionValues, defaults: bool = True) -> argparse.Namespace:
         """
         Returns an argparse.Namespace object with options in the form "{group_name}_{setting_name}"
         `options` should already be normalized.
@@ -150,14 +150,13 @@ class Manager:
             for setting_name, setting in group.items():
                 if hasattr(namespace, setting.internal_name):
                     raise Exception(f"Duplicate internal name: {setting.internal_name}")
-                setattr(
-                    namespace,
-                    setting.internal_name,
-                    options.get(group_name, {}).get(
-                        setting.dest,
-                        setting.default,
-                    ),
-                )
+                value, default = self.get_option(options, setting, group_name)
+                if not default or default and defaults:
+                    setattr(
+                        namespace,
+                        setting.internal_name,
+                        value,
+                    )
         setattr(namespace, "option_definitions", options.get("option_definitions"))
         return namespace
 
@@ -167,7 +166,7 @@ class Manager:
         self.option_definitions[self.current_group_name][setting.dest] = setting
 
     def create_argparser(self) -> None:
-        """Creates an argparser object from all cmdline settings"""
+        """Creates an :class:`argparse.ArgumentParser` from all cmdline settings"""
         groups: dict[str, ArgParser] = {}
         self.argparser = argparse.ArgumentParser(
             description=self.description,
@@ -201,7 +200,7 @@ class Manager:
         self.exclusive_group = False
 
     def exit(self, *args: Any, **kwargs: Any) -> NoReturn:
-        """Same as `argparser.ArgParser.exit`"""
+        """Same as :class:`~argparse.ArgumentParser`"""
         self.argparser.exit(*args, **kwargs)
         raise SystemExit(99)
 
@@ -248,6 +247,7 @@ class Manager:
         raw_options: OptionValues | argparse.Namespace,
         file: bool = False,
         cmdline: bool = False,
+        defaults: bool = True,
         raw_options_2: OptionValues | argparse.Namespace | None = None,
     ) -> OptionValues:
         """
@@ -261,9 +261,11 @@ class Manager:
             for setting_name, setting in group.items():
                 if (setting.cmdline and cmdline) or (setting.file and file):
                     # Ensures the option exists with the default if not already set
-                    group_options[setting_name], _ = self.get_option(raw_options, setting, group_name)
+                    value, default = self.get_option(raw_options, setting, group_name)
+                    if not default or default and defaults:
+                        group_options[setting_name] = value
 
-                    # will override with option from raw_options_2 if it exists
+                    # will override with option from raw_options_2 if it is not the default
                     if raw_options_2 is not None:
                         value, default = self.get_option(raw_options_2, setting, group_name)
                         if not default:
@@ -290,11 +292,11 @@ class Manager:
         self.create_argparser()
         ns = self.argparser.parse_args(args, namespace=namespace)
 
-        return self.normalize_options(ns, cmdline=True, file=False)
+        return self.normalize_options(ns, cmdline=True, file=True)
 
     def parse_options(self, config_path: pathlib.Path, args: list[str] | None = None) -> OptionValues:
         file_options = self.parse_file(config_path)
-        cli_options = self.parse_args(args)
+        cli_options = self.parse_args(args, self.get_namespace(file_options, defaults=False))
 
-        final_options = self.normalize_options(file_options, file=True, cmdline=True, raw_options_2=cli_options)
+        final_options = self.normalize_options(cli_options, file=True, cmdline=True)
         return final_options
