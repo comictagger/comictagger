@@ -438,7 +438,11 @@ class SettingsWindow(QtWidgets.QDialog):
         self.options["rename"]["strict"] = self.cbxRenameStrict.isChecked()
         self.options["rename"]["replacements"] = self.get_replacemnts()
 
-        settings.Manager().save_file(self.options, self.options["runtime"]["config"].user_config_dir / "settings.json")
+        settings.save_file(
+            self.options,
+            self.options["definitions"],
+            self.options["runtime"]["config"].user_config_dir / "settings.json",
+        )
         self.parent().options = self.options
         QtWidgets.QDialog.accept(self)
 
@@ -457,7 +461,7 @@ class SettingsWindow(QtWidgets.QDialog):
             QtWidgets.QMessageBox.warning(self, "API Key Test", "Key is NOT valid.")
 
     def reset_settings(self) -> None:
-        self.options = settings.Manager(definitions=self.options["option_definitions"]).defaults()
+        self.options = settings.defaults(self.options["definitions"])
         self.settings_to_form()
         QtWidgets.QMessageBox.information(self, self.name, self.name + " have been returned to default values.")
 

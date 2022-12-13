@@ -2003,8 +2003,10 @@ Have fun!
                 self.options["internal"]["last_filelist_sorted_column"],
                 self.options["internal"]["last_filelist_sorted_order"],
             ) = self.fileSelectionList.get_sorting()
-            settings.Manager().save_file(
-                self.options, self.options["runtime"]["config"].user_config_dir / "settings.json"
+            settings.save_file(
+                self.options,
+                self.options["definitions"],
+                self.options["runtime"]["config"].user_config_dir / "settings.json",
             )
 
             event.accept()
