@@ -31,6 +31,7 @@ from typing import Any, Callable
 from urllib.parse import urlparse
 
 import natsort
+import settngs
 from PyQt5 import QtCore, QtGui, QtNetwork, QtWidgets, uic
 
 from comicapi import utils
@@ -39,7 +40,7 @@ from comicapi.comicinfoxml import ComicInfoXml
 from comicapi.filenameparser import FileNameParser
 from comicapi.genericmetadata import GenericMetadata
 from comicapi.issuestring import IssueString
-from comictaggerlib import ctversion, settings
+from comictaggerlib import ctversion
 from comictaggerlib.applicationlogwindow import ApplicationLogWindow, QTextEditLogger
 from comictaggerlib.autotagmatchwindow import AutoTagMatchWindow
 from comictaggerlib.autotagprogresswindow import AutoTagProgressWindow
@@ -78,7 +79,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
     def __init__(
         self,
         file_list: list[str],
-        options: settings.OptionValues,
+        options: settngs.Config,
         talker_api: ComicTalker,
         parent: QtWidgets.QWidget | None = None,
     ) -> None:
@@ -87,17 +88,17 @@ class TaggerWindow(QtWidgets.QMainWindow):
         uic.loadUi(ui_path / "taggerwindow.ui", self)
         self.options = options
         if not options:
-            self.options = {}
+            self.options = ({}, {})
         self.talker_api = talker_api
         self.log_window = self.setup_logger()
 
         # prevent multiple instances
         socket = QtNetwork.QLocalSocket(self)
-        socket.connectToServer(options["internal"]["install_id"])
+        socket.connectToServer(options[0]["internal"]["install_id"])
         alive = socket.waitForConnected(3000)
         if alive:
             logger.setLevel(logging.INFO)
-            logger.info("Another application with key [%s] is already running", options["internal"]["install_id"])
+            logger.info("Another application with key [%s] is already running", options[0]["internal"]["install_id"])
             # send file list to other instance
             if file_list:
                 socket.write(pickle.dumps(file_list))
@@ -109,15 +110,15 @@ class TaggerWindow(QtWidgets.QMainWindow):
             # listen on a socket to prevent multiple instances
             self.socketServer = QtNetwork.QLocalServer(self)
             self.socketServer.newConnection.connect(self.on_incoming_socket_connection)
-            ok = self.socketServer.listen(options["internal"]["install_id"])
+            ok = self.socketServer.listen(options[0]["internal"]["install_id"])
             if not ok:
                 if self.socketServer.serverError() == QtNetwork.QAbstractSocket.SocketError.AddressInUseError:
-                    self.socketServer.removeServer(options["internal"]["install_id"])
-                    ok = self.socketServer.listen(options["internal"]["install_id"])
+                    self.socketServer.removeServer(options[0]["internal"]["install_id"])
+                    ok = self.socketServer.listen(options[0]["internal"]["install_id"])
                 if not ok:
                     logger.error(
                         "Cannot start local socket with key [%s]. Reason: %s",
-                        options["internal"]["install_id"],
+                        options[0]["internal"]["install_id"],
                         self.socketServer.errorString(),
                     )
                     sys.exit()
@@ -131,15 +132,15 @@ class TaggerWindow(QtWidgets.QMainWindow):
         grid_layout = QtWidgets.QGridLayout(self.tabPages)
         grid_layout.addWidget(self.page_list_editor)
 
-        self.fileSelectionList = FileSelectionList(self.widgetListHolder, self.options, self.dirty_flag_verification)
+        self.fileSelectionList = FileSelectionList(self.widgetListHolder, self.options[0], self.dirty_flag_verification)
         grid_layout = QtWidgets.QGridLayout(self.widgetListHolder)
         grid_layout.addWidget(self.fileSelectionList)
 
         self.fileSelectionList.selectionChanged.connect(self.file_list_selection_changed)
         self.fileSelectionList.listCleared.connect(self.file_list_cleared)
         self.fileSelectionList.set_sorting(
-            self.options["internal"]["last_filelist_sorted_column"],
-            QtCore.Qt.SortOrder(self.options["internal"]["last_filelist_sorted_order"]),
+            self.options[0]["internal"]["last_filelist_sorted_column"],
+            QtCore.Qt.SortOrder(self.options[0]["internal"]["last_filelist_sorted_order"]),
         )
 
         # we can't specify relative font sizes in the UI designer, so
@@ -157,13 +158,13 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
         self.setWindowIcon(QtGui.QIcon(str(graphics_path / "app.png")))
 
-        if options["runtime"]["type"] and isinstance(options["runtime"]["type"][0], int):
+        if options[0]["runtime"]["type"] and isinstance(options[0]["runtime"]["type"][0], int):
             # respect the command line option tag type
-            options["internal"]["last_selected_save_data_style"] = options["runtime"]["type"][0]
-            options["internal"]["last_selected_load_data_style"] = options["runtime"]["type"][0]
+            options[0]["internal"]["last_selected_save_data_style"] = options[0]["runtime"]["type"][0]
+            options[0]["internal"]["last_selected_load_data_style"] = options[0]["runtime"]["type"][0]
 
-        self.save_data_style = options["internal"]["last_selected_save_data_style"]
-        self.load_data_style = options["internal"]["last_selected_load_data_style"]
+        self.save_data_style = options[0]["internal"]["last_selected_save_data_style"]
+        self.load_data_style = options[0]["internal"]["last_selected_load_data_style"]
 
         self.setAcceptDrops(True)
         self.config_menus()
@@ -228,9 +229,12 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
         self.show()
         self.set_app_position()
-        if self.options["internal"]["last_form_side_width"] != -1:
+        if self.options[0]["internal"]["last_form_side_width"] != -1:
             self.splitter.setSizes(
-                [self.options["internal"]["last_form_side_width"], self.options["internal"]["last_list_side_width"]]
+                [
+                    self.options[0]["internal"]["last_form_side_width"],
+                    self.options[0]["internal"]["last_list_side_width"],
+                ]
             )
         self.raise_()
         QtCore.QCoreApplication.processEvents()
@@ -248,7 +252,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         if len(file_list) != 0:
             self.fileSelectionList.add_path_list(file_list)
 
-        if self.options["dialog"]["show_disclaimer"]:
+        if self.options[0]["dialog"]["show_disclaimer"]:
             checked = OptionalMessageDialog.msg(
                 self,
                 "Welcome!",
@@ -263,9 +267,9 @@ use ComicTagger on local copies of your comics.<br><br>
 Have fun!
 """,
             )
-            self.options["dialog"]["show_disclaimer"] = not checked
+            self.options[0]["dialog"]["show_disclaimer"] = not checked
 
-        if self.options["general"]["check_for_new_version"]:
+        if self.options[0]["general"]["check_for_new_version"]:
             self.check_latest_version_online()
 
     def open_file_event(self, url: QtCore.QUrl) -> None:
@@ -278,7 +282,7 @@ Have fun!
 
     def setup_logger(self) -> ApplicationLogWindow:
         try:
-            current_logs = (self.options["runtime"]["config"].user_log_dir / "ComicTagger.log").read_text("utf-8")
+            current_logs = (self.options[0]["runtime"]["config"].user_log_dir / "ComicTagger.log").read_text("utf-8")
         except Exception:
             current_logs = ""
         root_logger = logging.getLogger()
@@ -611,10 +615,10 @@ Have fun!
     def actual_load_current_archive(self) -> None:
         if self.metadata.is_empty and self.comic_archive is not None:
             self.metadata = self.comic_archive.metadata_from_filename(
-                self.options["filename"]["complicated_parser"],
-                self.options["filename"]["remove_c2c"],
-                self.options["filename"]["remove_fcbd"],
-                self.options["filename"]["remove_publisher"],
+                self.options[0]["filename"]["complicated_parser"],
+                self.options[0]["filename"]["remove_c2c"],
+                self.options[0]["filename"]["remove_fcbd"],
+                self.options[0]["filename"]["remove_publisher"],
             )
         if len(self.metadata.pages) == 0 and self.comic_archive is not None:
             self.metadata.set_default_page_list(self.comic_archive.get_number_of_pages())
@@ -982,10 +986,10 @@ Have fun!
             # copy the form onto metadata object
             self.form_to_metadata()
             new_metadata = self.comic_archive.metadata_from_filename(
-                self.options["filename"]["complicated_parser"],
-                self.options["filename"]["remove_c2c"],
-                self.options["filename"]["remove_fcbd"],
-                self.options["filename"]["remove_publisher"],
+                self.options[0]["filename"]["complicated_parser"],
+                self.options[0]["filename"]["remove_c2c"],
+                self.options[0]["filename"]["remove_fcbd"],
+                self.options[0]["filename"]["remove_publisher"],
                 split_words,
             )
             if new_metadata is not None:
@@ -1006,8 +1010,8 @@ Have fun!
         else:
             dialog.setFileMode(QtWidgets.QFileDialog.FileMode.ExistingFiles)
 
-        if self.options["internal"]["last_opened_folder"] is not None:
-            dialog.setDirectory(self.options["internal"]["last_opened_folder"])
+        if self.options[0]["internal"]["last_opened_folder"] is not None:
+            dialog.setDirectory(self.options[0]["internal"]["last_opened_folder"])
 
         if not folder_mode:
             archive_filter = "Comic archive files (*.cbz *.zip *.cbr *.rar *.cb7 *.7z)"
@@ -1057,7 +1061,7 @@ Have fun!
             issue_count,
             cover_index_list,
             self.comic_archive,
-            self.options,
+            self.options[0],
             self.talker_api,
             autoselect,
             literal,
@@ -1089,10 +1093,10 @@ Have fun!
             else:
                 QtWidgets.QApplication.restoreOverrideCursor()
                 if new_metadata is not None:
-                    if self.options["cbl"]["apply_cbl_transform_on_cv_import"]:
-                        new_metadata = CBLTransformer(new_metadata, self.options).apply()
+                    if self.options[0]["cbl"]["apply_cbl_transform_on_cv_import"]:
+                        new_metadata = CBLTransformer(new_metadata, self.options[0]).apply()
 
-                    if self.options["comicvine"]["clear_form_before_populating_from_cv"]:
+                    if self.options[0]["comicvine"]["clear_form_before_populating_from_cv"]:
                         self.clear_form()
 
                     notes = (
@@ -1147,7 +1151,7 @@ Have fun!
             "Change Tag Read Style", "If you change read tag style now, data in the form will be lost.  Are you sure?"
         ):
             self.load_data_style = self.cbLoadDataStyle.itemData(s)
-            self.options["internal"]["last_selected_load_data_style"] = self.load_data_style
+            self.options[0]["internal"]["last_selected_load_data_style"] = self.load_data_style
             self.update_menus()
             if self.comic_archive is not None:
                 self.load_archive(self.comic_archive)
@@ -1158,7 +1162,7 @@ Have fun!
 
     def set_save_data_style(self, s: int) -> None:
         self.save_data_style = self.cbSaveDataStyle.itemData(s)
-        self.options["internal"]["last_selected_save_data_style"] = self.save_data_style
+        self.options[0]["internal"]["last_selected_save_data_style"] = self.save_data_style
         self.update_style_tweaks()
         self.update_menus()
 
@@ -1383,10 +1387,13 @@ Have fun!
         settingswin.result()
 
     def set_app_position(self) -> None:
-        if self.options["internal"]["last_main_window_width"] != 0:
-            self.move(self.options["internal"]["last_main_window_x"], self.options["internal"]["last_main_window_y"])
+        if self.options[0]["internal"]["last_main_window_width"] != 0:
+            self.move(
+                self.options[0]["internal"]["last_main_window_x"], self.options[0]["internal"]["last_main_window_y"]
+            )
             self.resize(
-                self.options["internal"]["last_main_window_width"], self.options["internal"]["last_main_window_height"]
+                self.options[0]["internal"]["last_main_window_width"],
+                self.options[0]["internal"]["last_main_window_height"],
             )
         else:
             screen = QtGui.QGuiApplication.primaryScreen().geometry()
@@ -1656,9 +1663,9 @@ Have fun!
 
                         if (
                             dest_style == MetaDataStyle.CBI
-                            and self.options["cbl"]["apply_cbl_transform_on_bulk_operation"]
+                            and self.options[0]["cbl"]["apply_cbl_transform_on_bulk_operation"]
                         ):
-                            md = CBLTransformer(md, self.options).apply()
+                            md = CBLTransformer(md, self.options[0]).apply()
 
                         if not ca.write_metadata(md, dest_style):
                             failed_list.append(ca.path)
@@ -1696,8 +1703,8 @@ Have fun!
             logger.exception("Save aborted.")
 
         if not ct_md.is_empty:
-            if self.options["cbl"]["apply_cbl_transform_on_cv_import"]:
-                ct_md = CBLTransformer(ct_md, self.options).apply()
+            if self.options[0]["cbl"]["apply_cbl_transform_on_cv_import"]:
+                ct_md = CBLTransformer(ct_md, self.options[0]).apply()
 
         QtWidgets.QApplication.restoreOverrideCursor()
 
@@ -1716,7 +1723,7 @@ Have fun!
         self, ca: ComicArchive, match_results: OnlineMatchResults, dlg: AutoTagStartWindow
     ) -> tuple[bool, OnlineMatchResults]:
         success = False
-        ii = IssueIdentifier(ca, self.options, self.talker_api)
+        ii = IssueIdentifier(ca, self.options[0], self.talker_api)
 
         # read in metadata, and parse file name if not there
         try:
@@ -1726,10 +1733,10 @@ Have fun!
             logger.error("Failed to load metadata for %s: %s", ca.path, e)
         if md.is_empty:
             md = ca.metadata_from_filename(
-                self.options["filename"]["complicated_parser"],
-                self.options["filename"]["remove_c2c"],
-                self.options["filename"]["remove_fcbd"],
-                self.options["filename"]["remove_publisher"],
+                self.options[0]["filename"]["complicated_parser"],
+                self.options[0]["filename"]["remove_c2c"],
+                self.options[0]["filename"]["remove_fcbd"],
+                self.options[0]["filename"]["remove_publisher"],
                 dlg.split_words,
             )
             if dlg.ignore_leading_digits_in_filename and md.series is not None:
@@ -1815,7 +1822,7 @@ Have fun!
                     )
                     md.overlay(ct_md.replace(notes=utils.combine_notes(md.notes, notes, "Tagged with ComicTagger")))
 
-                if self.options["comicvine"]["auto_imprint"]:
+                if self.options[0]["comicvine"]["auto_imprint"]:
                     md.fix_publisher()
 
                 if not ca.write_metadata(md, self.save_data_style):
@@ -1844,7 +1851,7 @@ Have fun!
 
         atstartdlg = AutoTagStartWindow(
             self,
-            self.options,
+            self.options[0],
             (
                 f"You have selected {len(ca_list)} archive(s) to automatically identify and write {MetaDataStyle.name[style]} tags to."
                 "\n\nPlease choose options below, and select OK to Auto-Tag."
@@ -1947,7 +1954,7 @@ Have fun!
                     match_results.multiple_matches,
                     style,
                     self.actual_issue_data_fetch,
-                    self.options,
+                    self.options[0],
                     self.talker_api,
                 )
                 matchdlg.setModal(True)
@@ -1993,20 +2000,18 @@ Have fun!
             f"Exit {self.appName}", "If you quit now, data in the form will be lost.  Are you sure?"
         ):
             appsize = self.size()
-            self.options["internal"]["last_main_window_width"] = appsize.width()
-            self.options["internal"]["last_main_window_height"] = appsize.height()
-            self.options["internal"]["last_main_window_x"] = self.x()
-            self.options["internal"]["last_main_window_y"] = self.y()
-            self.options["internal"]["last_form_side_width"] = self.splitter.sizes()[0]
-            self.options["internal"]["last_list_side_width"] = self.splitter.sizes()[1]
+            self.options[0]["internal"]["last_main_window_width"] = appsize.width()
+            self.options[0]["internal"]["last_main_window_height"] = appsize.height()
+            self.options[0]["internal"]["last_main_window_x"] = self.x()
+            self.options[0]["internal"]["last_main_window_y"] = self.y()
+            self.options[0]["internal"]["last_form_side_width"] = self.splitter.sizes()[0]
+            self.options[0]["internal"]["last_list_side_width"] = self.splitter.sizes()[1]
             (
-                self.options["internal"]["last_filelist_sorted_column"],
-                self.options["internal"]["last_filelist_sorted_order"],
+                self.options[0]["internal"]["last_filelist_sorted_column"],
+                self.options[0]["internal"]["last_filelist_sorted_order"],
             ) = self.fileSelectionList.get_sorting()
-            settings.save_file(
-                self.options,
-                self.options["definitions"],
-                self.options["runtime"]["config"].user_config_dir / "settings.json",
+            settngs.save_file(
+                self.options[0], self.options[1], self.options[0]["runtime"]["config"].user_config_dir / "settings.json"
             )
 
             event.accept()
@@ -2056,7 +2061,7 @@ Have fun!
 
     def apply_cbl_transform(self) -> None:
         self.form_to_metadata()
-        self.metadata = CBLTransformer(self.metadata, self.options).apply()
+        self.metadata = CBLTransformer(self.metadata, self.options[0]).apply()
         self.metadata_to_form()
 
     def recalc_page_dimensions(self) -> None:
@@ -2101,7 +2106,7 @@ Have fun!
             QtCore.QTimer.singleShot(1, self.fileSelectionList.revert_selection)
             return
 
-        self.options["internal"]["last_opened_folder"] = os.path.abspath(os.path.split(comic_archive.path)[0])
+        self.options[0]["internal"]["last_opened_folder"] = os.path.abspath(os.path.split(comic_archive.path)[0])
         self.comic_archive = comic_archive
         try:
             self.metadata = self.comic_archive.read_metadata(self.load_data_style)
@@ -2134,12 +2139,12 @@ Have fun!
         version_checker = VersionChecker()
         self.version_check_complete(
             version_checker.get_latest_version(
-                self.options["internal"]["install_id"], self.options["general"]["send_usage_stats"]
+                self.options[0]["internal"]["install_id"], self.options[0]["general"]["send_usage_stats"]
             )
         )
 
     def version_check_complete(self, new_version: tuple[str, str]) -> None:
-        if new_version[0] not in (self.version, self.options["dialog"]["dont_notify_about_this_version"]):
+        if new_version[0] not in (self.version, self.options[0]["dialog"]["dont_notify_about_this_version"]):
             website = "https://github.com/comictagger/comictagger"
             checked = OptionalMessageDialog.msg(
                 self,
@@ -2150,7 +2155,7 @@ Have fun!
                 "Don't tell me about this version again",
             )
             if checked:
-                self.options["dialog"]["dont_notify_about_this_version"] = new_version[0]
+                self.options[0]["dialog"]["dont_notify_about_this_version"] = new_version[0]
 
     def on_incoming_socket_connection(self) -> None:
         # Accept connection from other instance.

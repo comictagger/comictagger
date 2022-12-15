@@ -20,11 +20,11 @@ import os
 import platform
 from typing import Callable, cast
 
+import settngs
 from PyQt5 import QtCore, QtWidgets, uic
 
 from comicapi import utils
 from comicapi.comicarchive import ComicArchive
-from comictaggerlib import settings
 from comictaggerlib.graphics import graphics_path
 from comictaggerlib.optionalmsgdialog import OptionalMessageDialog
 from comictaggerlib.settingswindow import linuxRarHelp, macRarHelp, windowsRarHelp
@@ -59,7 +59,7 @@ class FileSelectionList(QtWidgets.QWidget):
     def __init__(
         self,
         parent: QtWidgets.QWidget,
-        options: settings.OptionValues,
+        options: settngs.ConfigValues,
         dirty_flag_verification: Callable[[str, str], bool],
     ) -> None:
         super().__init__(parent)

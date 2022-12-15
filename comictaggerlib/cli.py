@@ -23,10 +23,12 @@ import sys
 from datetime import datetime
 from pprint import pprint
 
+import settngs
+
 from comicapi import utils
 from comicapi.comicarchive import ComicArchive, MetaDataStyle
 from comicapi.genericmetadata import GenericMetadata
-from comictaggerlib import ctversion, settings
+from comictaggerlib import ctversion
 from comictaggerlib.cbltransformer import CBLTransformer
 from comictaggerlib.filerenamer import FileRenamer, get_rename_dir
 from comictaggerlib.graphics import graphics_path
@@ -38,7 +40,7 @@ logger = logging.getLogger(__name__)
 
 
 class CLI:
-    def __init__(self, options: settings.OptionValues, talker_api: ComicTalker):
+    def __init__(self, options: settngs.Values, talker_api: ComicTalker):
         self.options = options
         self.talker_api = talker_api
         self.batch_mode = False

@@ -17,14 +17,15 @@ from __future__ import annotations
 
 import logging
 
+import settngs
+
 from comicapi.genericmetadata import CreditMetadata, GenericMetadata
-from comictaggerlib import settings
 
 logger = logging.getLogger(__name__)
 
 
 class CBLTransformer:
-    def __init__(self, metadata: GenericMetadata, options: settings.OptionValues) -> None:
+    def __init__(self, metadata: GenericMetadata, options: settngs.ConfigValues) -> None:
         self.metadata = metadata
         self.options = options
 

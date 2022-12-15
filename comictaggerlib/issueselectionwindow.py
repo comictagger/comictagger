@@ -17,10 +17,10 @@ from __future__ import annotations
 
 import logging
 
+import settngs
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
 from comicapi.issuestring import IssueString
-from comictaggerlib import settings
 from comictaggerlib.coverimagewidget import CoverImageWidget
 from comictaggerlib.ui import ui_path
 from comictaggerlib.ui.qtutils import reduce_widget_font_size
@@ -44,7 +44,7 @@ class IssueSelectionWindow(QtWidgets.QDialog):
     def __init__(
         self,
         parent: QtWidgets.QWidget,
-        options: settings.OptionValues,
+        options: settngs.ConfigValues,
         talker_api: ComicTalker,
         series_id: int,
         issue_number: str,

@@ -4,12 +4,13 @@ import argparse
 import uuid
 from typing import Any
 
+import settngs
+
+from comictaggerlib.ctoptions.types import AppendAction
 from comictaggerlib.defaults import DEFAULT_REPLACEMENTS, Replacement, Replacements
-from comictaggerlib.settings.manager import Manager
-from comictaggerlib.settings.types import AppendAction
 
 
-def general(parser: Manager) -> None:
+def general(parser: settngs.Manager) -> None:
     # General Settings
     parser.add_setting("--rar-exe-path", default="rar", help="The path to the rar program")
     parser.add_setting(
@@ -22,7 +23,7 @@ def general(parser: Manager) -> None:
     parser.add_setting("send_usage_stats", default=False, cmdline=False)
 
 
-def internal(parser: Manager) -> None:
+def internal(parser: settngs.Manager) -> None:
     # automatic settings
     parser.add_setting("install_id", default=uuid.uuid4().hex, cmdline=False)
     parser.add_setting("last_selected_save_data_style", default=0, cmdline=False)
@@ -38,7 +39,7 @@ def internal(parser: Manager) -> None:
     parser.add_setting("last_filelist_sorted_order", default=0, cmdline=False)
 
 
-def identifier(parser: Manager) -> None:
+def identifier(parser: settngs.Manager) -> None:
     # identifier settings
     parser.add_setting("--series-match-identify-thresh", default=91, type=int, help="")
     parser.add_setting(
@@ -49,7 +50,7 @@ def identifier(parser: Manager) -> None:
     )
 
 
-def dialog(parser: Manager) -> None:
+def dialog(parser: settngs.Manager) -> None:
     # Show/ask dialog flags
     parser.add_setting("ask_about_cbi_in_rar", default=True, cmdline=False)
     parser.add_setting("show_disclaimer", default=True, cmdline=False)
@@ -57,7 +58,7 @@ def dialog(parser: Manager) -> None:
     parser.add_setting("ask_about_usage_stats", default=True, cmdline=False)
 
 
-def filename(parser: Manager) -> None:
+def filename(parser: settngs.Manager) -> None:
     # filename parsing settings
     parser.add_setting(
         "--complicated-parser",
@@ -85,7 +86,7 @@ def filename(parser: Manager) -> None:
     )
 
 
-def comicvine(parser: Manager) -> None:
+def comicvine(parser: settngs.Manager) -> None:
     # Comic Vine settings
     parser.add_setting(
         "--series-match-search-thresh",
@@ -145,7 +146,7 @@ def comicvine(parser: Manager) -> None:
     )
 
 
-def cbl(parser: Manager) -> None:
+def cbl(parser: settngs.Manager) -> None:
     # CBL Transform settings
     parser.add_setting("--assume-lone-credit-is-primary", default=False, action=argparse.BooleanOptionalAction)
     parser.add_setting("--copy-characters-to-tags", default=False, action=argparse.BooleanOptionalAction)
@@ -158,7 +159,7 @@ def cbl(parser: Manager) -> None:
     parser.add_setting("--apply-cbl-transform-on-bulk-operation", default=False, action=argparse.BooleanOptionalAction)
 
 
-def rename(parser: Manager) -> None:
+def rename(parser: settngs.Manager) -> None:
     # Rename settings
     parser.add_setting("--template", default="{series} #{issue} ({year})", help="The teplate to use when renaming")
     parser.add_setting(
@@ -199,7 +200,7 @@ def rename(parser: Manager) -> None:
     )
 
 
-def autotag(parser: Manager) -> None:
+def autotag(parser: settngs.Manager) -> None:
     # Auto-tag stickies
     parser.add_setting(
         "--save-on-low-confidence",
@@ -238,7 +239,7 @@ def autotag(parser: Manager) -> None:
     )
 
 
-def validate_settings(options: dict[str, dict[str, Any]], parser: Manager) -> dict[str, dict[str, Any]]:
+def validate_settings(options: dict[str, dict[str, Any]], parser: settngs.Manager) -> dict[str, dict[str, Any]]:
     options["identifier"]["publisher_filter"] = [
         x.strip() for x in options["identifier"]["publisher_filter"] if x.strip()
     ]
@@ -249,7 +250,7 @@ def validate_settings(options: dict[str, dict[str, Any]], parser: Manager) -> di
     return options
 
 
-def register_settings(parser: Manager) -> None:
+def register_settings(parser: settngs.Manager) -> None:
     parser.add_group("general", general, False)
     parser.add_group("internal", internal, False)
     parser.add_group("identifier", identifier, False)

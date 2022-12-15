@@ -19,13 +19,13 @@ import argparse
 import logging
 import os
 import platform
-from typing import Any
+
+import settngs
 
 from comicapi import utils
 from comicapi.genericmetadata import GenericMetadata
 from comictaggerlib import ctversion
-from comictaggerlib.settings.manager import Manager
-from comictaggerlib.settings.types import ComicTaggerPaths, metadata_type, parse_metadata_from_string
+from comictaggerlib.ctoptions.types import ComicTaggerPaths, metadata_type, parse_metadata_from_string
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +49,7 @@ def initial_cmd_line_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def register_options(parser: Manager) -> None:
+def register_options(parser: settngs.Manager) -> None:
     parser.add_setting(
         "--config",
         help="Config directory defaults to ~/.Config/ComicTagger\non Linux, ~/Library/Application Support/ComicTagger on Mac and %%APPDATA%%\\ComicTagger on Windows\n",
@@ -200,7 +200,7 @@ def register_options(parser: Manager) -> None:
     parser.add_setting("files", nargs="*", file=False)
 
 
-def register_commands(parser: Manager) -> None:
+def register_commands(parser: settngs.Manager) -> None:
     parser.add_setting(
         "--version",
         action="store_true",
@@ -259,12 +259,12 @@ def register_commands(parser: Manager) -> None:
     )
 
 
-def register_commandline(parser: Manager) -> None:
+def register_commandline(parser: settngs.Manager) -> None:
     parser.add_group("commands", register_commands, True)
     parser.add_group("runtime", register_options)
 
 
-def validate_commandline_options(options: dict[str, dict[str, Any]], parser: Manager) -> dict[str, dict[str, Any]]:
+def validate_commandline_options(options: settngs.Values, parser: settngs.Manager) -> settngs.Values:
 
     if options["commands"]["version"]:
         parser.exit(

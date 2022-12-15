@@ -20,13 +20,13 @@ import logging
 import sys
 from typing import Any, Callable
 
+import settngs
 from typing_extensions import NotRequired, TypedDict
 
 from comicapi import utils
 from comicapi.comicarchive import ComicArchive
 from comicapi.genericmetadata import GenericMetadata
 from comicapi.issuestring import IssueString
-from comictaggerlib import settings
 from comictaggerlib.imagefetcher import ImageFetcher, ImageFetcherException
 from comictaggerlib.imagehasher import ImageHasher
 from comictaggerlib.resulttypes import IssueResult
@@ -72,7 +72,7 @@ class IssueIdentifier:
     result_one_good_match = 4
     result_multiple_good_matches = 5
 
-    def __init__(self, comic_archive: ComicArchive, options: settings.OptionValues, talker_api: ComicTalker) -> None:
+    def __init__(self, comic_archive: ComicArchive, options: settngs.ConfigValues, talker_api: ComicTalker) -> None:
         self.options = options
         self.talker_api = talker_api
         self.comic_archive: ComicArchive = comic_archive

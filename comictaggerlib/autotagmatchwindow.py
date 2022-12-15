@@ -19,11 +19,11 @@ import logging
 import os
 from typing import Callable
 
+import settngs
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
 from comicapi.comicarchive import MetaDataStyle
 from comicapi.genericmetadata import GenericMetadata
-from comictaggerlib import settings
 from comictaggerlib.coverimagewidget import CoverImageWidget
 from comictaggerlib.resulttypes import IssueResult, MultipleMatch
 from comictaggerlib.ui import ui_path
@@ -42,7 +42,7 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
         match_set_list: list[MultipleMatch],
         style: int,
         fetch_func: Callable[[IssueResult], GenericMetadata],
-        options: settings.OptionValues,
+        options: settngs.ConfigValues,
         talker_api: ComicTalker,
     ) -> None:
         super().__init__(parent)

@@ -17,16 +17,16 @@ from __future__ import annotations
 
 import logging
 
+import settngs
 from PyQt5 import QtCore, QtWidgets, uic
 
-from comictaggerlib import settings
 from comictaggerlib.ui import ui_path
 
 logger = logging.getLogger(__name__)
 
 
 class AutoTagStartWindow(QtWidgets.QDialog):
-    def __init__(self, parent: QtWidgets.QWidget, options: settings.OptionValues, msg: str) -> None:
+    def __init__(self, parent: QtWidgets.QWidget, options: settngs.ConfigValues, msg: str) -> None:
         super().__init__(parent)
 
         uic.loadUi(ui_path / "autotagstartwindow.ui", self)

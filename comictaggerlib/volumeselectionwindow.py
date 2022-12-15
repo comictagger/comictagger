@@ -19,13 +19,13 @@ import itertools
 import logging
 from collections import deque
 
+import settngs
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 from PyQt5.QtCore import pyqtSignal
 
 from comicapi import utils
 from comicapi.comicarchive import ComicArchive
 from comicapi.genericmetadata import GenericMetadata
-from comictaggerlib import settings
 from comictaggerlib.coverimagewidget import CoverImageWidget
 from comictaggerlib.issueidentifier import IssueIdentifier
 from comictaggerlib.issueselectionwindow import IssueSelectionWindow
@@ -111,7 +111,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
         issue_count: int,
         cover_index_list: list[int],
         comic_archive: ComicArchive | None,
-        options: settings.OptionValues,
+        options: settngs.ConfigValues,
         talker_api: ComicTalker,
         autoselect: bool = False,
         literal: bool = False,
