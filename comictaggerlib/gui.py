@@ -82,10 +82,12 @@ except ImportError as e:
     qt_available = False
 
 
-def open_tagger_window(talker_api: ComicTalker, options: settngs.Config, error: tuple[str, bool] | None) -> None:
+def open_tagger_window(
+    talker_api: ComicTalker, options: settngs.Config[settngs.Namespace], error: tuple[str, bool] | None
+) -> None:
     os.environ["QtWidgets.QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
     args = []
-    if options[0]["runtime"]["darkmode"]:
+    if options[0].runtime_darkmode:
         args.extend(["-platform", "windows:darkmode=2"])
     args.extend(sys.argv)
     app = Application(args)
@@ -95,7 +97,7 @@ def open_tagger_window(talker_api: ComicTalker, options: settngs.Config, error: 
             raise SystemExit(1)
 
     # needed to catch initial open file events (macOS)
-    app.openFileRequest.connect(lambda x: options[0]["runtime"]["files"].append(x.toLocalFile()))
+    app.openFileRequest.connect(lambda x: options[0].runtime_files.append(x.toLocalFile()))
 
     if platform.system() == "Darwin":
         # Set the MacOS dock icon
@@ -123,7 +125,7 @@ def open_tagger_window(talker_api: ComicTalker, options: settngs.Config, error: 
         QtWidgets.QApplication.processEvents()
 
     try:
-        tagger_window = TaggerWindow(options[0]["runtime"]["files"], options, talker_api)
+        tagger_window = TaggerWindow(options[0].runtime_files, options, talker_api)
         tagger_window.setWindowIcon(QtGui.QIcon(str(graphics_path / "app.png")))
         tagger_window.show()
 

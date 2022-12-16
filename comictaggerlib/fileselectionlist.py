@@ -57,10 +57,7 @@ class FileSelectionList(QtWidgets.QWidget):
     dataColNum = fileColNum
 
     def __init__(
-        self,
-        parent: QtWidgets.QWidget,
-        options: settngs.ConfigValues,
-        dirty_flag_verification: Callable[[str, str], bool],
+        self, parent: QtWidgets.QWidget, options: settngs.Namespace, dirty_flag_verification: Callable[[str, str], bool]
     ) -> None:
         super().__init__(parent)
 
@@ -227,7 +224,7 @@ class FileSelectionList(QtWidgets.QWidget):
             else:
                 QtWidgets.QMessageBox.information(self, "File/Folder Open", "No readable comic archives were found.")
 
-        if rar_added and not utils.which(self.options["general"]["rar_exe_path"] or "rar"):
+        if rar_added and not utils.which(self.options.general_rar_exe_path or "rar"):
             self.rar_ro_message()
 
         self.twList.setSortingEnabled(True)
@@ -281,7 +278,7 @@ class FileSelectionList(QtWidgets.QWidget):
         if self.is_list_dupe(path):
             return self.get_current_list_row(path)
 
-        ca = ComicArchive(path, self.options["general"]["rar_exe_path"], str(graphics_path / "nocover.png"))
+        ca = ComicArchive(path, self.options.general_rar_exe_path, str(graphics_path / "nocover.png"))
 
         if ca.seems_to_be_a_comic_archive():
             row: int = self.twList.rowCount()

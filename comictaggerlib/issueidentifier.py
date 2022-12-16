@@ -72,7 +72,7 @@ class IssueIdentifier:
     result_one_good_match = 4
     result_multiple_good_matches = 5
 
-    def __init__(self, comic_archive: ComicArchive, options: settngs.ConfigValues, talker_api: ComicTalker) -> None:
+    def __init__(self, comic_archive: ComicArchive, options: settngs.Namespace, talker_api: ComicTalker) -> None:
         self.options = options
         self.talker_api = talker_api
         self.comic_archive: ComicArchive = comic_archive
@@ -96,10 +96,10 @@ class IssueIdentifier:
 
         # used to eliminate series names that are too long based on our search
         # string
-        self.series_match_thresh = options["identifier"]["series_match_identify_thresh"]
+        self.series_match_thresh = options.identifier_series_match_identify_thresh
 
         # used to eliminate unlikely publishers
-        self.publisher_filter = [s.strip().casefold() for s in options["identifier"]["publisher_filter"]]
+        self.publisher_filter = [s.strip().casefold() for s in options.identifier_publisher_filter]
 
         self.additional_metadata = GenericMetadata()
         self.output_function: Callable[[str], None] = IssueIdentifier.default_write_output
@@ -201,10 +201,10 @@ class IssueIdentifier:
 
         # try to get some metadata from filename
         md_from_filename = ca.metadata_from_filename(
-            self.options["filename"]["complicated_parser"],
-            self.options["filename"]["remove_c2c"],
-            self.options["filename"]["remove_fcbd"],
-            self.options["filename"]["remove_publisher"],
+            self.options.filename_complicated_parser,
+            self.options.filename_remove_c2c,
+            self.options.filename_remove_fcbd,
+            self.options.filename_remove_publisher,
         )
 
         working_md = md_from_filename.copy()
@@ -255,7 +255,7 @@ class IssueIdentifier:
             return Score(score=0, url="", hash=0)
 
         try:
-            url_image_data = ImageFetcher(self.options["runtime"]["config"].user_cache_dir).fetch(
+            url_image_data = ImageFetcher(self.options.runtime_config.user_cache_dir).fetch(
                 primary_thumb_url, blocking=True
             )
         except ImageFetcherException as e:
@@ -277,7 +277,7 @@ class IssueIdentifier:
         if use_remote_alternates:
             for alt_url in alt_urls:
                 try:
-                    alt_url_image_data = ImageFetcher(self.options["runtime"]["config"].user_cache_dir).fetch(
+                    alt_url_image_data = ImageFetcher(self.options.runtime_config.user_cache_dir).fetch(
                         alt_url, blocking=True
                     )
                 except ImageFetcherException as e:

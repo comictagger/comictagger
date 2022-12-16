@@ -21,7 +21,6 @@ import logging.handlers
 import platform
 import signal
 import sys
-from typing import Any
 
 import settngs
 
@@ -50,8 +49,8 @@ logger = logging.getLogger("comictagger")
 logger.setLevel(logging.DEBUG)
 
 
-def update_publishers(options: dict[str, dict[str, Any]]) -> None:
-    json_file = options["runtime"]["config"].user_config_dir / "publishers.json"
+def update_publishers(options: settngs.Namespace) -> None:
+    json_file = options.runtime_config.user_config_dir / "publishers.json"
     if json_file.exists():
         try:
             utils.update_publishers(json.loads(json_file.read_text("utf-8")))
@@ -91,23 +90,26 @@ class App:
         ctoptions.register_settings(self.manager)
 
     def parse_options(self, config_paths: ctoptions.ComicTaggerPaths) -> None:
-        config, self.config_load_success = self.manager.parse_config(config_paths.user_config_dir / "settings.json")
-        options, definitions = config
-        options = ctoptions.validate_commandline_options(options, self.manager)
-        options = ctoptions.validate_settings(options, self.manager)
-        self.options = settngs.Config(options, definitions)
+        self.options, self.config_load_success = self.manager.parse_config(
+            config_paths.user_config_dir / "settings.json"
+        )
+        self.options = self.manager.get_namespace(self.options)
+
+        self.options = ctoptions.validate_commandline_options(self.options, self.manager)
+        self.options = ctoptions.validate_settings(self.options, self.manager)
+        self.options = self.options
 
     def initialize_dirs(self) -> None:
-        self.options[0]["runtime"]["config"].user_data_dir.mkdir(parents=True, exist_ok=True)
-        self.options[0]["runtime"]["config"].user_config_dir.mkdir(parents=True, exist_ok=True)
-        self.options[0]["runtime"]["config"].user_cache_dir.mkdir(parents=True, exist_ok=True)
-        self.options[0]["runtime"]["config"].user_state_dir.mkdir(parents=True, exist_ok=True)
-        self.options[0]["runtime"]["config"].user_log_dir.mkdir(parents=True, exist_ok=True)
-        logger.debug("user_data_dir: %s", self.options[0]["runtime"]["config"].user_data_dir)
-        logger.debug("user_config_dir: %s", self.options[0]["runtime"]["config"].user_config_dir)
-        logger.debug("user_cache_dir: %s", self.options[0]["runtime"]["config"].user_cache_dir)
-        logger.debug("user_state_dir: %s", self.options[0]["runtime"]["config"].user_state_dir)
-        logger.debug("user_log_dir: %s", self.options[0]["runtime"]["config"].user_log_dir)
+        self.options[0].runtime_config.user_data_dir.mkdir(parents=True, exist_ok=True)
+        self.options[0].runtime_config.user_config_dir.mkdir(parents=True, exist_ok=True)
+        self.options[0].runtime_config.user_cache_dir.mkdir(parents=True, exist_ok=True)
+        self.options[0].runtime_config.user_state_dir.mkdir(parents=True, exist_ok=True)
+        self.options[0].runtime_config.user_log_dir.mkdir(parents=True, exist_ok=True)
+        logger.debug("user_data_dir: %s", self.options[0].runtime_config.user_data_dir)
+        logger.debug("user_config_dir: %s", self.options[0].runtime_config.user_config_dir)
+        logger.debug("user_cache_dir: %s", self.options[0].runtime_config.user_cache_dir)
+        logger.debug("user_state_dir: %s", self.options[0].runtime_config.user_state_dir)
+        logger.debug("user_log_dir: %s", self.options[0].runtime_config.user_log_dir)
 
     def main(self) -> None:
         assert self.options is not None
@@ -130,18 +132,18 @@ class App:
         utils.load_publishers()
         update_publishers(self.options[0])
 
-        if not qt_available and not self.options[0]["runtime"]["no_gui"]:
-            self.options[0]["runtime"]["no_gui"] = True
+        if not qt_available and not self.options[0].runtime_no_gui:
+            self.options[0].runtime_no_gui = True
             logger.warning("PyQt5 is not available. ComicTagger is limited to command-line mode.")
 
         # manage the CV API key
         # None comparison is used so that the empty string can unset the value
-        if self.options[0]["comicvine"]["cv_api_key"] is not None or self.options[0]["comicvine"]["cv_url"] is not None:
-            settings_path = self.options[0]["runtime"]["config"].user_config_dir / "settings.json"
+        if self.options[0].comicvine_cv_api_key is not None or self.options[0].comicvine_cv_url is not None:
+            settings_path = self.options[0].runtime_config.user_config_dir / "settings.json"
             if self.config_load_success:
                 self.manager.save_file(self.options[0], settings_path)
 
-        if self.options[0]["commands"]["only_set_cv_key"]:
+        if self.options[0].commands_only_set_cv_key:
             if self.config_load_success:
                 print("Key set")  # noqa: T201
                 return
@@ -149,13 +151,13 @@ class App:
         try:
             talker_api = ct_api.get_comic_talker("comicvine")(  # type: ignore[call-arg]
                 version=version,
-                cache_folder=self.options[0]["runtime"]["config"].user_cache_dir,
-                series_match_thresh=self.options[0]["comicvine"]["series_match_search_thresh"],
-                remove_html_tables=self.options[0]["comicvine"]["remove_html_tables"],
-                use_series_start_as_volume=self.options[0]["comicvine"]["use_series_start_as_volume"],
-                wait_on_ratelimit=self.options[0]["autotag"]["wait_and_retry_on_rate_limit"],
-                api_url=self.options[0]["comicvine"]["cv_url"],
-                api_key=self.options[0]["comicvine"]["cv_api_key"],
+                cache_folder=self.options[0].runtime_config.user_cache_dir,
+                series_match_thresh=self.options[0].comicvine_series_match_search_thresh,
+                remove_html_tables=self.options[0].comicvine_remove_html_tables,
+                use_series_start_as_volume=self.options[0].comicvine_use_series_start_as_volume,
+                wait_on_ratelimit=self.options[0].autotag_wait_and_retry_on_rate_limit,
+                api_url=self.options[0].comicvine_cv_url,
+                api_key=self.options[0].comicvine_cv_api_key,
             )
         except TalkerError as e:
             logger.exception("Unable to load talker")
@@ -163,10 +165,10 @@ class App:
 
         if not self.config_load_success:
             error = (
-                f"Failed to load settings, check the log located in '{self.options[0]['runtime']['config'].user_log_dir}' for more details",
+                f"Failed to load settings, check the log located in '{self.options[0].runtime_config.user_log_dir}' for more details",
                 True,
             )
-        if self.options[0]["runtime"]["no_gui"]:
+        if self.options[0].runtime_no_gui:
             if error and error[1]:
                 print(f"A fatal error occurred please check the log for more information: {error[0]}")  # noqa: T201
                 raise SystemExit(1)

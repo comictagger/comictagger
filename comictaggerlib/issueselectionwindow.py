@@ -44,7 +44,7 @@ class IssueSelectionWindow(QtWidgets.QDialog):
     def __init__(
         self,
         parent: QtWidgets.QWidget,
-        options: settngs.ConfigValues,
+        options: settngs.Namespace,
         talker_api: ComicTalker,
         series_id: int,
         issue_number: str,
@@ -54,10 +54,7 @@ class IssueSelectionWindow(QtWidgets.QDialog):
         uic.loadUi(ui_path / "issueselectionwindow.ui", self)
 
         self.coverWidget = CoverImageWidget(
-            self.coverImageContainer,
-            CoverImageWidget.AltCoverMode,
-            options["runtime"]["config"].user_cache_dir,
-            talker_api,
+            self.coverImageContainer, CoverImageWidget.AltCoverMode, options.runtime_config.user_cache_dir, talker_api
         )
         gridlayout = QtWidgets.QGridLayout(self.coverImageContainer)
         gridlayout.addWidget(self.coverWidget)

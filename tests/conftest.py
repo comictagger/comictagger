@@ -117,7 +117,7 @@ def comicvine_api(
 
     cv = comictalker.talkers.comicvine.ComicVineTalker(
         version=mock_version[0],
-        cache_folder=options["runtime"]["config"].user_cache_dir,
+        cache_folder=options[0].runtime_config.user_cache_dir,
         api_url="",
         api_key="",
         series_match_thresh=90,
@@ -167,13 +167,13 @@ def options(settings_manager, tmp_path):
 
     comictaggerlib.ctoptions.register_commandline(settings_manager)
     comictaggerlib.ctoptions.register_settings(settings_manager)
-    defaults = settings_manager.defaults()
-    defaults["runtime"]["config"] = comictaggerlib.ctoptions.ComicTaggerPaths(tmp_path / "config")
-    defaults["runtime"]["config"].user_data_dir.mkdir(parents=True, exist_ok=True)
-    defaults["runtime"]["config"].user_config_dir.mkdir(parents=True, exist_ok=True)
-    defaults["runtime"]["config"].user_cache_dir.mkdir(parents=True, exist_ok=True)
-    defaults["runtime"]["config"].user_state_dir.mkdir(parents=True, exist_ok=True)
-    defaults["runtime"]["config"].user_log_dir.mkdir(parents=True, exist_ok=True)
+    defaults = settings_manager.get_namespace(settings_manager.defaults())
+    defaults[0].runtime_config = comictaggerlib.ctoptions.ComicTaggerPaths(tmp_path / "config")
+    defaults[0].runtime_config.user_data_dir.mkdir(parents=True, exist_ok=True)
+    defaults[0].runtime_config.user_config_dir.mkdir(parents=True, exist_ok=True)
+    defaults[0].runtime_config.user_cache_dir.mkdir(parents=True, exist_ok=True)
+    defaults[0].runtime_config.user_state_dir.mkdir(parents=True, exist_ok=True)
+    defaults[0].runtime_config.user_log_dir.mkdir(parents=True, exist_ok=True)
     yield defaults
 
 
@@ -185,4 +185,4 @@ def settings_manager():
 
 @pytest.fixture
 def comic_cache(options, mock_version) -> Generator[comictalker.comiccacher.ComicCacher, Any, None]:
-    yield comictalker.comiccacher.ComicCacher(options["runtime"]["config"].user_cache_dir, mock_version[0])
+    yield comictalker.comiccacher.ComicCacher(options[0].runtime_config.user_cache_dir, mock_version[0])

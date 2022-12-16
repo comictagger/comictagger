@@ -42,7 +42,7 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
         match_set_list: list[MultipleMatch],
         style: int,
         fetch_func: Callable[[IssueResult], GenericMetadata],
-        options: settngs.ConfigValues,
+        options: settngs.Namespace,
         talker_api: ComicTalker,
     ) -> None:
         super().__init__(parent)
@@ -54,10 +54,7 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
         self.current_match_set: MultipleMatch = match_set_list[0]
 
         self.altCoverWidget = CoverImageWidget(
-            self.altCoverContainer,
-            CoverImageWidget.AltCoverMode,
-            options["runtime"]["config"].user_cache_dir,
-            talker_api,
+            self.altCoverContainer, CoverImageWidget.AltCoverMode, options.runtime_config.user_cache_dir, talker_api
         )
         gridlayout = QtWidgets.QGridLayout(self.altCoverContainer)
         gridlayout.addWidget(self.altCoverWidget)
@@ -245,10 +242,10 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
         md = ca.read_metadata(self._style)
         if md.is_empty:
             md = ca.metadata_from_filename(
-                self.options["filename"]["complicated_parser"],
-                self.options["filename"]["remove_c2c"],
-                self.options["filename"]["remove_fcbd"],
-                self.options["filename"]["remove_publisher"],
+                self.options.filename_complicated_parser,
+                self.options.filename_remove_c2c,
+                self.options.filename_remove_fcbd,
+                self.options.filename_remove_publisher,
             )
 
         # now get the particular issue data

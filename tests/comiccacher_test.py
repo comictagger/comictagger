@@ -7,8 +7,9 @@ from testing.comicdata import search_results
 
 
 def test_create_cache(options, mock_version):
-    comictalker.comiccacher.ComicCacher(options["runtime"]["config"].user_cache_dir, mock_version[0])
-    assert (options["runtime"]["config"].user_cache_dir).exists()
+    settings, definitions = options
+    comictalker.comiccacher.ComicCacher(settings.runtime_config.user_cache_dir, mock_version[0])
+    assert (settings.runtime_config.user_cache_dir).exists()
 
 
 def test_search_results(comic_cache):

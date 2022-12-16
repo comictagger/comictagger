@@ -116,17 +116,18 @@ def register_options(parser: settngs.Manager) -> None:
         file=False,
     )
     parser.add_setting(
-        "--noabort",
+        "--abort",
         dest="abort_on_low_confidence",
-        action="store_false",
-        help="""Don't abort save operation when online match\nis of low confidence.\n\n""",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="""Abort save operation when online match\nis of low confidence.\n\n""",
         file=False,
     )
     parser.add_setting(
-        "--nosummary",
-        dest="show_save_summary",
-        action="store_false",
-        help="Suppress the default summary after a save operation.\n\n",
+        "--summary",
+        default=True,
+        action=argparse.BooleanOptionalAction,
+        help="Show the summary after a save operation.\n\n",
         file=False,
     )
     parser.add_setting(
@@ -175,7 +176,8 @@ def register_options(parser: settngs.Manager) -> None:
         file=False,
     )
     parser.add_setting(
-        "--terse",
+        "--quiet",
+        "-q",
         action="store_true",
         help="Don't say much (for print mode).",
         file=False,
@@ -191,10 +193,11 @@ def register_options(parser: settngs.Manager) -> None:
         file=False,
     )
     parser.add_setting(
-        "--no-overwrite",
-        dest="no_overwrite",
-        action="store_true",
-        help="""Don't modify tag block if it already exists (relevant for -s or -c).""",
+        "--overwrite",
+        dest="overwrite",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="""Apply metadata to already tagged archives (relevant for -s or -c).""",
         file=False,
     )
     parser.add_setting("files", nargs="*", file=False)
@@ -264,78 +267,78 @@ def register_commandline(parser: settngs.Manager) -> None:
     parser.add_group("runtime", register_options)
 
 
-def validate_commandline_options(options: settngs.Values, parser: settngs.Manager) -> settngs.Values:
+def validate_commandline_options(options: settngs.Config[settngs.Values], parser: settngs.Manager) -> settngs.Values:
 
-    if options["commands"]["version"]:
+    if options[0].commands_version:
         parser.exit(
             status=1,
             message=f"ComicTagger {ctversion.version}:  Copyright (c) 2012-2022 ComicTagger Team\n"
             "Distributed under Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)\n",
         )
 
-    options["runtime"]["no_gui"] = any(
+    options[0].runtime_no_gui = any(
         [
-            options["commands"]["print"],
-            options["commands"]["delete"],
-            options["commands"]["save"],
-            options["commands"]["copy"],
-            options["commands"]["rename"],
-            options["commands"]["export_to_zip"],
-            options["commands"]["only_set_cv_key"],
+            options[0].commands_print,
+            options[0].commands_delete,
+            options[0].commands_save,
+            options[0].commands_copy,
+            options[0].commands_rename,
+            options[0].commands_export_to_zip,
+            options[0].commands_only_set_cv_key,
         ]
     )
 
-    if platform.system() == "Windows" and options["runtime"]["glob"]:
+    if platform.system() == "Windows" and options[0].runtime_glob:
         # no globbing on windows shell, so do it for them
         import glob
 
-        globs = options["runtime"]["files"]
-        options["runtime"]["files"] = []
+        globs = options[0].runtime_files
+        options[0].runtime_files = []
         for item in globs:
-            options["runtime"]["files"].extend(glob.glob(item))
+            options[0].runtime_files.extend(glob.glob(item))
 
     if (
-        options["commands"]["only_set_cv_key"]
-        and options["comicvine"]["cv_api_key"] is None
-        and options["comicvine"]["cv_url"] is None
+        options[0].commands_only_set_cv_key
+        and options[0].comicvine_cv_api_key is None
+        and options[0].comicvine_cv_url is None
     ):
         parser.exit(message="Key not given!\n", status=1)
 
-    if not options["commands"]["only_set_cv_key"] and options["runtime"]["no_gui"] and not options["runtime"]["files"]:
+    if not options[0].commands_only_set_cv_key and options[0].runtime_no_gui and not options[0].runtime_files:
         parser.exit(message="Command requires at least one filename!\n", status=1)
 
-    if options["commands"]["delete"] and not options["runtime"]["type"]:
+    if options[0].commands_delete and not options[0].runtime_type:
         parser.exit(message="Please specify the type to delete with -t\n", status=1)
 
-    if options["commands"]["save"] and not options["runtime"]["type"]:
+    if options[0].commands_save and not options[0].runtime_type:
         parser.exit(message="Please specify the type to save with -t\n", status=1)
 
-    if options["commands"]["copy"]:
-        if not options["runtime"]["type"]:
+    if options[0].commands_copy:
+        if not options[0].runtime_type:
             parser.exit(message="Please specify the type to copy to with -t\n", status=1)
-        if len(options["commands"]["copy"]) > 1:
+        if len(options[0].commands_copy) > 1:
             parser.exit(message="Please specify only one type to copy to with -c\n", status=1)
-        options["commands"]["copy"] = options["commands"]["copy"][0]
+        options[0].commands_copy = options[0].commands_copy[0]
 
-    if options["runtime"]["recursive"]:
-        options["runtime"]["file_list"] = utils.get_recursive_filelist(options["runtime"]["files"])
+    if options[0].runtime_recursive:
+        options[0].runtime_file_list = utils.get_recursive_filelist(options[0].runtime_files)
     else:
-        options["runtime"]["file_list"] = options["runtime"]["files"]
+        options[0].runtime_file_list = options[0].runtime_files
 
     # take a crack at finding rar exe, if not set already
-    if options["general"]["rar_exe_path"].strip() in ("", "rar"):
+    if options[0].general_rar_exe_path.strip() in ("", "rar"):
         if platform.system() == "Windows":
             # look in some likely places for Windows machines
             if os.path.exists(r"C:\Program Files\WinRAR\Rar.exe"):
-                options["general"]["rar_exe_path"] = r"C:\Program Files\WinRAR\Rar.exe"
+                options[0].general_rar_exe_path = r"C:\Program Files\WinRAR\Rar.exe"
             elif os.path.exists(r"C:\Program Files (x86)\WinRAR\Rar.exe"):
-                options["general"]["rar_exe_path"] = r"C:\Program Files (x86)\WinRAR\Rar.exe"
+                options[0].general_rar_exe_path = r"C:\Program Files (x86)\WinRAR\Rar.exe"
         else:
             if os.path.exists("/opt/homebrew/bin"):
                 utils.add_to_path("/opt/homebrew/bin")
             # see if it's in the path of unix user
             rarpath = utils.which("rar")
             if rarpath is not None:
-                options["general"]["rar_exe_path"] = "rar"
+                options[0].general_rar_exe_path = "rar"
 
     return options

@@ -26,17 +26,17 @@ def general(parser: settngs.Manager) -> None:
 def internal(parser: settngs.Manager) -> None:
     # automatic settings
     parser.add_setting("install_id", default=uuid.uuid4().hex, cmdline=False)
-    parser.add_setting("last_selected_save_data_style", default=0, cmdline=False)
-    parser.add_setting("last_selected_load_data_style", default=0, cmdline=False)
+    parser.add_setting("save_data_style", default=0, cmdline=False)
+    parser.add_setting("load_data_style", default=0, cmdline=False)
     parser.add_setting("last_opened_folder", default="", cmdline=False)
-    parser.add_setting("last_main_window_width", default=0, cmdline=False)
-    parser.add_setting("last_main_window_height", default=0, cmdline=False)
-    parser.add_setting("last_main_window_x", default=0, cmdline=False)
-    parser.add_setting("last_main_window_y", default=0, cmdline=False)
-    parser.add_setting("last_form_side_width", default=-1, cmdline=False)
-    parser.add_setting("last_list_side_width", default=-1, cmdline=False)
-    parser.add_setting("last_filelist_sorted_column", default=-1, cmdline=False)
-    parser.add_setting("last_filelist_sorted_order", default=0, cmdline=False)
+    parser.add_setting("window_width", default=0, cmdline=False)
+    parser.add_setting("window_height", default=0, cmdline=False)
+    parser.add_setting("window_x", default=0, cmdline=False)
+    parser.add_setting("window_y", default=0, cmdline=False)
+    parser.add_setting("form_width", default=-1, cmdline=False)
+    parser.add_setting("list_width", default=-1, cmdline=False)
+    parser.add_setting("sort_column", default=-1, cmdline=False)
+    parser.add_setting("sort_direction", default=0, cmdline=False)
 
 
 def identifier(parser: settngs.Manager) -> None:
@@ -155,8 +155,8 @@ def cbl(parser: settngs.Manager) -> None:
     parser.add_setting("--copy-storyarcs-to-tags", default=False, action=argparse.BooleanOptionalAction)
     parser.add_setting("--copy-notes-to-comments", default=False, action=argparse.BooleanOptionalAction)
     parser.add_setting("--copy-weblink-to-comments", default=False, action=argparse.BooleanOptionalAction)
-    parser.add_setting("--apply-cbl-transform-on-cv-import", default=False, action=argparse.BooleanOptionalAction)
-    parser.add_setting("--apply-cbl-transform-on-bulk-operation", default=False, action=argparse.BooleanOptionalAction)
+    parser.add_setting("--apply-transform-on-import", default=False, action=argparse.BooleanOptionalAction)
+    parser.add_setting("--apply-transform-on-bulk-operation", default=False, action=argparse.BooleanOptionalAction)
 
 
 def rename(parser: settngs.Manager) -> None:
@@ -175,14 +175,16 @@ def rename(parser: settngs.Manager) -> None:
         help="Attempts to intelligently cleanup whitespace when renaming",
     )
     parser.add_setting(
-        "--set-extension-based-on-archive",
+        "--auto-extension",
+        dest="set_extension_based_on_archive",
         default=True,
         action=argparse.BooleanOptionalAction,
         help="Automatically sets the extension based on the archive type e.g. cbr for rar, cbz for zip",
     )
     parser.add_setting("--dir", default="", help="The directory to move renamed files to")
     parser.add_setting(
-        "--move-to-dir",
+        "--move",
+        dest="move_to_dir",
         default=False,
         action=argparse.BooleanOptionalAction,
         help="Enables moving renamed files to a separate directory",
@@ -231,7 +233,7 @@ def autotag(parser: settngs.Manager) -> None:
     parser.add_setting("remove_archive_after_successful_match", default=False, cmdline=False)
     parser.add_setting(
         "-w",
-        "--wait-on-cv-rate-limit",
+        "--wait-on-rate-limit",
         dest="wait_and_retry_on_rate_limit",
         action=argparse.BooleanOptionalAction,
         default=True,
@@ -239,13 +241,11 @@ def autotag(parser: settngs.Manager) -> None:
     )
 
 
-def validate_settings(options: dict[str, dict[str, Any]], parser: settngs.Manager) -> dict[str, dict[str, Any]]:
-    options["identifier"]["publisher_filter"] = [
-        x.strip() for x in options["identifier"]["publisher_filter"] if x.strip()
-    ]
-    options["rename"]["replacements"] = Replacements(
-        [Replacement(x[0], x[1], x[2]) for x in options["rename"]["replacements"][0]],
-        [Replacement(x[0], x[1], x[2]) for x in options["rename"]["replacements"][1]],
+def validate_settings(options: settngs.Config[settngs.Values], parser: settngs.Manager) -> dict[str, dict[str, Any]]:
+    options[0].identifier_publisher_filter = [x.strip() for x in options[0].identifier_publisher_filter if x.strip()]
+    options[0].rename_replacements = Replacements(
+        [Replacement(x[0], x[1], x[2]) for x in options[0].rename_replacements[0]],
+        [Replacement(x[0], x[1], x[2]) for x in options[0].rename_replacements[1]],
     )
     return options
 
