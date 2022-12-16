@@ -15,7 +15,6 @@
 # limitations under the License.
 from __future__ import annotations
 
-import argparse
 import json
 import logging
 import operator
@@ -32,6 +31,7 @@ from typing import Any, Callable
 from urllib.parse import urlparse
 
 import natsort
+import settngs
 from PyQt5 import QtCore, QtGui, QtNetwork, QtWidgets, uic
 
 from comicapi import utils
@@ -58,7 +58,6 @@ from comictaggerlib.pagebrowser import PageBrowserWindow
 from comictaggerlib.pagelisteditor import PageListEditor
 from comictaggerlib.renamewindow import RenameWindow
 from comictaggerlib.resulttypes import IssueResult, MultipleMatch, OnlineMatchResults
-from comictaggerlib.settings import ComicTaggerSettings
 from comictaggerlib.settingswindow import SettingsWindow
 from comictaggerlib.ui import ui_path
 from comictaggerlib.ui.qtutils import center_window_on_parent, reduce_widget_font_size
@@ -80,25 +79,24 @@ class TaggerWindow(QtWidgets.QMainWindow):
     def __init__(
         self,
         file_list: list[str],
-        settings: ComicTaggerSettings,
+        options: settngs.Config,
         talker_api: ComicTalker,
         parent: QtWidgets.QWidget | None = None,
-        opts: argparse.Namespace | None = None,
     ) -> None:
         super().__init__(parent)
 
         uic.loadUi(ui_path / "taggerwindow.ui", self)
-        self.settings = settings
+        self.options = options
         self.talker_api = talker_api
         self.log_window = self.setup_logger()
 
         # prevent multiple instances
         socket = QtNetwork.QLocalSocket(self)
-        socket.connectToServer(settings.install_id)
+        socket.connectToServer(options[0].internal_install_id)
         alive = socket.waitForConnected(3000)
         if alive:
             logger.setLevel(logging.INFO)
-            logger.info("Another application with key [%s] is already running", settings.install_id)
+            logger.info("Another application with key [%s] is already running", options[0].internal_install_id)
             # send file list to other instance
             if file_list:
                 socket.write(pickle.dumps(file_list))
@@ -110,20 +108,20 @@ class TaggerWindow(QtWidgets.QMainWindow):
             # listen on a socket to prevent multiple instances
             self.socketServer = QtNetwork.QLocalServer(self)
             self.socketServer.newConnection.connect(self.on_incoming_socket_connection)
-            ok = self.socketServer.listen(settings.install_id)
+            ok = self.socketServer.listen(options[0].internal_install_id)
             if not ok:
                 if self.socketServer.serverError() == QtNetwork.QAbstractSocket.SocketError.AddressInUseError:
-                    self.socketServer.removeServer(settings.install_id)
-                    ok = self.socketServer.listen(settings.install_id)
+                    self.socketServer.removeServer(options[0].internal_install_id)
+                    ok = self.socketServer.listen(options[0].internal_install_id)
                 if not ok:
                     logger.error(
                         "Cannot start local socket with key [%s]. Reason: %s",
-                        settings.install_id,
+                        options[0].internal_install_id,
                         self.socketServer.errorString(),
                     )
                     sys.exit()
 
-        self.archiveCoverWidget = CoverImageWidget(self.coverImageContainer, talker_api, CoverImageWidget.ArchiveMode)
+        self.archiveCoverWidget = CoverImageWidget(self.coverImageContainer, CoverImageWidget.ArchiveMode, None, None)
         grid_layout = QtWidgets.QGridLayout(self.coverImageContainer)
         grid_layout.addWidget(self.archiveCoverWidget)
         grid_layout.setContentsMargins(0, 0, 0, 0)
@@ -132,14 +130,15 @@ class TaggerWindow(QtWidgets.QMainWindow):
         grid_layout = QtWidgets.QGridLayout(self.tabPages)
         grid_layout.addWidget(self.page_list_editor)
 
-        self.fileSelectionList = FileSelectionList(self.widgetListHolder, self.settings, self.dirty_flag_verification)
+        self.fileSelectionList = FileSelectionList(self.widgetListHolder, self.options[0], self.dirty_flag_verification)
         grid_layout = QtWidgets.QGridLayout(self.widgetListHolder)
         grid_layout.addWidget(self.fileSelectionList)
 
         self.fileSelectionList.selectionChanged.connect(self.file_list_selection_changed)
         self.fileSelectionList.listCleared.connect(self.file_list_cleared)
         self.fileSelectionList.set_sorting(
-            self.settings.last_filelist_sorted_column, QtCore.Qt.SortOrder(self.settings.last_filelist_sorted_order)
+            self.options[0].internal_sort_column,
+            QtCore.Qt.SortOrder(self.options[0].internal_sort_direction),
         )
 
         # we can't specify relative font sizes in the UI designer, so
@@ -156,14 +155,14 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.scrollAreaWidgetContents.adjustSize()
 
         self.setWindowIcon(QtGui.QIcon(str(graphics_path / "app.png")))
-        # TODO: this needs to be looked at
-        if opts is not None and opts.type:
-            # respect the command line option tag type
-            settings.last_selected_save_data_style = opts.type[0]
-            settings.last_selected_load_data_style = opts.type[0]
 
-        self.save_data_style = settings.last_selected_save_data_style
-        self.load_data_style = settings.last_selected_load_data_style
+        if options[0].runtime_type and isinstance(options[0].runtime_type[0], int):
+            # respect the command line option tag type
+            options[0].internal_save_data_style = options[0].runtime_type[0]
+            options[0].internal_load_data_style = options[0].runtime_type[0]
+
+        self.save_data_style = options[0].internal_save_data_style
+        self.load_data_style = options[0].internal_load_data_style
 
         self.setAcceptDrops(True)
         self.config_menus()
@@ -228,8 +227,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
         self.show()
         self.set_app_position()
-        if self.settings.last_form_side_width != -1:
-            self.splitter.setSizes([self.settings.last_form_side_width, self.settings.last_list_side_width])
+        if self.options[0].internal_form_width != -1:
+            self.splitter.setSizes([self.options[0].internal_form_width, self.options[0].internal_list_width])
         self.raise_()
         QtCore.QCoreApplication.processEvents()
         self.resizeEvent(None)
@@ -246,7 +245,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         if len(file_list) != 0:
             self.fileSelectionList.add_path_list(file_list)
 
-        if self.settings.show_disclaimer:
+        if self.options[0].dialog_show_disclaimer:
             checked = OptionalMessageDialog.msg(
                 self,
                 "Welcome!",
@@ -261,26 +260,9 @@ use ComicTagger on local copies of your comics.<br><br>
 Have fun!
 """,
             )
-            self.settings.show_disclaimer = not checked
+            self.options[0].dialog_show_disclaimer = not checked
 
-        if self.settings.settings_warning < 4:
-            checked = OptionalMessageDialog.msg(
-                self,
-                "Warning!",
-                f"""<span style="font-size:15px">
-{"&nbsp;"*100}
-The next release will save settings in a different format
-<span style="font-weight: bold;font-size:19px">no settings will be transfered</span> to the new version.<br/>
-See <a href="https://github.com/comictagger/comictagger/releases/1.5.5">https://github.com/comictagger/comictagger/releases/1.5.5</a>
-for more information
-<br/><br/>
-You have {4-self.settings.settings_warning} warnings left.
-</span>""",
-            )
-            if checked:
-                self.settings.settings_warning += 1
-
-        if self.settings.check_for_new_version:
+        if self.options[0].general_check_for_new_version:
             self.check_latest_version_online()
 
     def open_file_event(self, url: QtCore.QUrl) -> None:
@@ -293,7 +275,7 @@ You have {4-self.settings.settings_warning} warnings left.
 
     def setup_logger(self) -> ApplicationLogWindow:
         try:
-            current_logs = (ComicTaggerSettings.get_settings_folder() / "logs" / "ComicTagger.log").read_text("utf-8")
+            current_logs = (self.options[0].runtime_config.user_log_dir / "ComicTagger.log").read_text("utf-8")
         except Exception:
             current_logs = ""
         root_logger = logging.getLogger()
@@ -494,7 +476,6 @@ You have {4-self.settings.settings_warning} warnings left.
         if non_zip_count != 0:
             EW = ExportWindow(
                 self,
-                self.settings,
                 (
                     f"You have selected {non_zip_count} archive(s) to export  to Zip format. "
                     """ New archives will be created in the same folder as the original.
@@ -627,10 +608,10 @@ You have {4-self.settings.settings_warning} warnings left.
     def actual_load_current_archive(self) -> None:
         if self.metadata.is_empty and self.comic_archive is not None:
             self.metadata = self.comic_archive.metadata_from_filename(
-                self.settings.complicated_parser,
-                self.settings.remove_c2c,
-                self.settings.remove_fcbd,
-                self.settings.remove_publisher,
+                self.options[0].filename_complicated_parser,
+                self.options[0].filename_remove_c2c,
+                self.options[0].filename_remove_fcbd,
+                self.options[0].filename_remove_publisher,
             )
         if len(self.metadata.pages) == 0 and self.comic_archive is not None:
             self.metadata.set_default_page_list(self.comic_archive.get_number_of_pages())
@@ -998,10 +979,10 @@ You have {4-self.settings.settings_warning} warnings left.
             # copy the form onto metadata object
             self.form_to_metadata()
             new_metadata = self.comic_archive.metadata_from_filename(
-                self.settings.complicated_parser,
-                self.settings.remove_c2c,
-                self.settings.remove_fcbd,
-                self.settings.remove_publisher,
+                self.options[0].filename_complicated_parser,
+                self.options[0].filename_remove_c2c,
+                self.options[0].filename_remove_fcbd,
+                self.options[0].filename_remove_publisher,
                 split_words,
             )
             if new_metadata is not None:
@@ -1022,8 +1003,8 @@ You have {4-self.settings.settings_warning} warnings left.
         else:
             dialog.setFileMode(QtWidgets.QFileDialog.FileMode.ExistingFiles)
 
-        if self.settings.last_opened_folder is not None:
-            dialog.setDirectory(self.settings.last_opened_folder)
+        if self.options[0].internal_last_opened_folder is not None:
+            dialog.setDirectory(self.options[0].internal_last_opened_folder)
 
         if not folder_mode:
             archive_filter = "Comic archive files (*.cbz *.zip *.cbr *.rar *.cb7 *.7z)"
@@ -1073,7 +1054,7 @@ You have {4-self.settings.settings_warning} warnings left.
             issue_count,
             cover_index_list,
             self.comic_archive,
-            self.settings,
+            self.options[0],
             self.talker_api,
             autoselect,
             literal,
@@ -1092,16 +1073,9 @@ You have {4-self.settings.settings_warning} warnings left.
             self.form_to_metadata()
 
             try:
-                if selector.issue_id:
-                    new_metadata = self.talker_api.fetch_comic_data(selector.issue_id)
-                elif selector.volume_id and selector.issue_number:
-                    # Would this ever be needed?
-                    new_metadata = self.talker_api.fetch_comic_data(
-                        series_id=selector.volume_id, issue_number=selector.issue_number
-                    )
-                else:
-                    # Only left with series? Isn't series only handled elsewhere?
-                    new_metadata = self.talker_api.fetch_comic_data(series_id=selector.volume_id)
+                new_metadata = self.talker_api.fetch_comic_data(
+                    issue_id=selector.issue_id or 0, series_id=selector.volume_id, issue_number=selector.issue_number
+                )
             except TalkerError as e:
                 QtWidgets.QApplication.restoreOverrideCursor()
                 QtWidgets.QMessageBox.critical(
@@ -1112,10 +1086,10 @@ You have {4-self.settings.settings_warning} warnings left.
             else:
                 QtWidgets.QApplication.restoreOverrideCursor()
                 if new_metadata is not None:
-                    if self.settings.apply_cbl_transform_on_cv_import:
-                        new_metadata = CBLTransformer(new_metadata, self.settings).apply()
+                    if self.options[0].cbl_apply_transform_on_import:
+                        new_metadata = CBLTransformer(new_metadata, self.options[0]).apply()
 
-                    if self.settings.clear_form_before_populating_from_cv:
+                    if self.options[0].comicvine_clear_form_before_populating_from_cv:
                         self.clear_form()
 
                     notes = (
@@ -1170,7 +1144,7 @@ You have {4-self.settings.settings_warning} warnings left.
             "Change Tag Read Style", "If you change read tag style now, data in the form will be lost.  Are you sure?"
         ):
             self.load_data_style = self.cbLoadDataStyle.itemData(s)
-            self.settings.last_selected_load_data_style = self.load_data_style
+            self.options[0].internal_load_data_style = self.load_data_style
             self.update_menus()
             if self.comic_archive is not None:
                 self.load_archive(self.comic_archive)
@@ -1181,7 +1155,7 @@ You have {4-self.settings.settings_warning} warnings left.
 
     def set_save_data_style(self, s: int) -> None:
         self.save_data_style = self.cbSaveDataStyle.itemData(s)
-        self.settings.last_selected_save_data_style = self.save_data_style
+        self.options[0].internal_save_data_style = self.save_data_style
         self.update_style_tweaks()
         self.update_menus()
 
@@ -1400,15 +1374,15 @@ You have {4-self.settings.settings_warning} warnings left.
 
     def show_settings(self) -> None:
 
-        settingswin = SettingsWindow(self, self.settings, self.talker_api)
+        settingswin = SettingsWindow(self, self.options, self.talker_api)
         settingswin.setModal(True)
         settingswin.exec()
         settingswin.result()
 
     def set_app_position(self) -> None:
-        if self.settings.last_main_window_width != 0:
-            self.move(self.settings.last_main_window_x, self.settings.last_main_window_y)
-            self.resize(self.settings.last_main_window_width, self.settings.last_main_window_height)
+        if self.options[0].internal_window_width != 0:
+            self.move(self.options[0].internal_window_x, self.options[0].internal_window_y)
+            self.resize(self.options[0].internal_window_width, self.options[0].internal_window_height)
         else:
             screen = QtGui.QGuiApplication.primaryScreen().geometry()
             size = self.frameGeometry()
@@ -1675,8 +1649,8 @@ You have {4-self.settings.settings_warning} warnings left.
                     if ca.has_metadata(src_style) and ca.is_writable():
                         md = ca.read_metadata(src_style)
 
-                        if dest_style == MetaDataStyle.CBI and self.settings.apply_cbl_transform_on_bulk_operation:
-                            md = CBLTransformer(md, self.settings).apply()
+                        if dest_style == MetaDataStyle.CBI and self.options[0].cbl_apply_transform_on_bulk_operation:
+                            md = CBLTransformer(md, self.options[0]).apply()
 
                         if not ca.write_metadata(md, dest_style):
                             failed_list.append(ca.path)
@@ -1710,12 +1684,12 @@ You have {4-self.settings.settings_warning} warnings left.
 
         try:
             ct_md = self.talker_api.fetch_comic_data(match["issue_id"])
-        except TalkerError as e:
-            logger.exception(f"Save aborted.\n{e}")
+        except TalkerError:
+            logger.exception("Save aborted.")
 
         if not ct_md.is_empty:
-            if self.settings.apply_cbl_transform_on_cv_import:
-                ct_md = CBLTransformer(ct_md, self.settings).apply()
+            if self.options[0].cbl_apply_transform_on_import:
+                ct_md = CBLTransformer(ct_md, self.options[0]).apply()
 
         QtWidgets.QApplication.restoreOverrideCursor()
 
@@ -1734,7 +1708,7 @@ You have {4-self.settings.settings_warning} warnings left.
         self, ca: ComicArchive, match_results: OnlineMatchResults, dlg: AutoTagStartWindow
     ) -> tuple[bool, OnlineMatchResults]:
         success = False
-        ii = IssueIdentifier(ca, self.settings, self.talker_api)
+        ii = IssueIdentifier(ca, self.options[0], self.talker_api)
 
         # read in metadata, and parse file name if not there
         try:
@@ -1744,10 +1718,10 @@ You have {4-self.settings.settings_warning} warnings left.
             logger.error("Failed to load metadata for %s: %s", ca.path, e)
         if md.is_empty:
             md = ca.metadata_from_filename(
-                self.settings.complicated_parser,
-                self.settings.remove_c2c,
-                self.settings.remove_fcbd,
-                self.settings.remove_publisher,
+                self.options[0].filename_complicated_parser,
+                self.options[0].filename_remove_c2c,
+                self.options[0].filename_remove_fcbd,
+                self.options[0].filename_remove_publisher,
                 dlg.split_words,
             )
             if dlg.ignore_leading_digits_in_filename and md.series is not None:
@@ -1833,7 +1807,7 @@ You have {4-self.settings.settings_warning} warnings left.
                     )
                     md.overlay(ct_md.replace(notes=utils.combine_notes(md.notes, notes, "Tagged with ComicTagger")))
 
-                if self.settings.auto_imprint:
+                if self.options[0].comicvine_auto_imprint:
                     md.fix_publisher()
 
                 if not ca.write_metadata(md, self.save_data_style):
@@ -1862,7 +1836,7 @@ You have {4-self.settings.settings_warning} warnings left.
 
         atstartdlg = AutoTagStartWindow(
             self,
-            self.settings,
+            self.options[0],
             (
                 f"You have selected {len(ca_list)} archive(s) to automatically identify and write {MetaDataStyle.name[style]} tags to."
                 "\n\nPlease choose options below, and select OK to Auto-Tag."
@@ -1965,7 +1939,7 @@ You have {4-self.settings.settings_warning} warnings left.
                     match_results.multiple_matches,
                     style,
                     self.actual_issue_data_fetch,
-                    self.settings,
+                    self.options[0],
                     self.talker_api,
                 )
                 matchdlg.setModal(True)
@@ -2011,17 +1985,17 @@ You have {4-self.settings.settings_warning} warnings left.
             f"Exit {self.appName}", "If you quit now, data in the form will be lost.  Are you sure?"
         ):
             appsize = self.size()
-            self.settings.last_main_window_width = appsize.width()
-            self.settings.last_main_window_height = appsize.height()
-            self.settings.last_main_window_x = self.x()
-            self.settings.last_main_window_y = self.y()
-            self.settings.last_form_side_width = self.splitter.sizes()[0]
-            self.settings.last_list_side_width = self.splitter.sizes()[1]
+            self.options[0].internal_window_width = appsize.width()
+            self.options[0].internal_window_height = appsize.height()
+            self.options[0].internal_window_x = self.x()
+            self.options[0].internal_window_y = self.y()
+            self.options[0].internal_form_width = self.splitter.sizes()[0]
+            self.options[0].internal_list_width = self.splitter.sizes()[1]
             (
-                self.settings.last_filelist_sorted_column,
-                self.settings.last_filelist_sorted_order,
+                self.options[0].internal_sort_column,
+                self.options[0].internal_sort_direction,
             ) = self.fileSelectionList.get_sorting()
-            self.settings.save()
+            settngs.save_file(self.options, self.options[0].runtime_config.user_config_dir / "settings.json")
 
             event.accept()
         else:
@@ -2070,7 +2044,7 @@ You have {4-self.settings.settings_warning} warnings left.
 
     def apply_cbl_transform(self) -> None:
         self.form_to_metadata()
-        self.metadata = CBLTransformer(self.metadata, self.settings).apply()
+        self.metadata = CBLTransformer(self.metadata, self.options[0]).apply()
         self.metadata_to_form()
 
     def recalc_page_dimensions(self) -> None:
@@ -2096,7 +2070,7 @@ You have {4-self.settings.settings_warning} warnings left.
             "File Rename", "If you rename files now, unsaved data in the form will be lost.  Are you sure?"
         ):
 
-            dlg = RenameWindow(self, ca_list, self.load_data_style, self.settings, self.talker_api)
+            dlg = RenameWindow(self, ca_list, self.load_data_style, self.options, self.talker_api)
             dlg.setModal(True)
             if dlg.exec() and self.comic_archive is not None:
                 self.fileSelectionList.update_selected_rows()
@@ -2115,7 +2089,7 @@ You have {4-self.settings.settings_warning} warnings left.
             QtCore.QTimer.singleShot(1, self.fileSelectionList.revert_selection)
             return
 
-        self.settings.last_opened_folder = os.path.abspath(os.path.split(comic_archive.path)[0])
+        self.options[0].internal_last_opened_folder = os.path.abspath(os.path.split(comic_archive.path)[0])
         self.comic_archive = comic_archive
         try:
             self.metadata = self.comic_archive.read_metadata(self.load_data_style)
@@ -2147,11 +2121,13 @@ You have {4-self.settings.settings_warning} warnings left.
     def check_latest_version_online(self) -> None:
         version_checker = VersionChecker()
         self.version_check_complete(
-            version_checker.get_latest_version(self.settings.install_id, self.settings.send_usage_stats)
+            version_checker.get_latest_version(
+                self.options[0].internal_install_id, self.options[0].general_send_usage_stats
+            )
         )
 
     def version_check_complete(self, new_version: tuple[str, str]) -> None:
-        if new_version[0] not in (self.version, self.settings.dont_notify_about_this_version):
+        if new_version[0] not in (self.version, self.options[0].dialog_dont_notify_about_this_version):
             website = "https://github.com/comictagger/comictagger"
             checked = OptionalMessageDialog.msg(
                 self,
@@ -2162,7 +2138,7 @@ You have {4-self.settings.settings_warning} warnings left.
                 "Don't tell me about this version again",
             )
             if checked:
-                self.settings.dont_notify_about_this_version = new_version[0]
+                self.options[0].dialog_dont_notify_about_this_version = new_version[0]
 
     def on_incoming_socket_connection(self) -> None:
         # Accept connection from other instance.

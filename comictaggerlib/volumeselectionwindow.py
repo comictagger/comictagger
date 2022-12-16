@@ -19,6 +19,7 @@ import itertools
 import logging
 from collections import deque
 
+import settngs
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 from PyQt5.QtCore import pyqtSignal
 
@@ -30,7 +31,6 @@ from comictaggerlib.issueidentifier import IssueIdentifier
 from comictaggerlib.issueselectionwindow import IssueSelectionWindow
 from comictaggerlib.matchselectionwindow import MatchSelectionWindow
 from comictaggerlib.progresswindow import IDProgressWindow
-from comictaggerlib.settings import ComicTaggerSettings
 from comictaggerlib.ui import ui_path
 from comictaggerlib.ui.qtutils import reduce_widget_font_size
 from comictalker.resulttypes import ComicVolume
@@ -111,7 +111,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
         issue_count: int,
         cover_index_list: list[int],
         comic_archive: ComicArchive | None,
-        settings: ComicTaggerSettings,
+        options: settngs.Namespace,
         talker_api: ComicTalker,
         autoselect: bool = False,
         literal: bool = False,
@@ -120,7 +120,9 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
 
         uic.loadUi(ui_path / "volumeselectionwindow.ui", self)
 
-        self.imageWidget = CoverImageWidget(self.imageContainer, talker_api, CoverImageWidget.URLMode)
+        self.imageWidget = CoverImageWidget(
+            self.imageContainer, CoverImageWidget.URLMode, options.runtime_config.user_cache_dir, talker_api
+        )
         gridlayout = QtWidgets.QGridLayout(self.imageContainer)
         gridlayout.addWidget(self.imageWidget)
         gridlayout.setContentsMargins(0, 0, 0, 0)
@@ -136,7 +138,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
             )
         )
 
-        self.settings = settings
+        self.options = options
         self.series_name = series_name
         self.issue_number = issue_number
         self.issue_id: int | None = None
@@ -154,7 +156,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
         self.progdialog: QtWidgets.QProgressDialog | None = None
         self.search_thread: SearchThread | None = None
 
-        self.use_filter = self.settings.always_use_publisher_filter
+        self.use_filter = self.options.comicvine_always_use_publisher_filter
 
         # Load to retrieve settings
         self.talker_api = talker_api
@@ -207,7 +209,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
         self.iddialog.rejected.connect(self.identify_cancel)
         self.iddialog.show()
 
-        self.ii = IssueIdentifier(self.comic_archive, self.settings, self.talker_api)
+        self.ii = IssueIdentifier(self.comic_archive, self.options, self.talker_api)
 
         md = GenericMetadata()
         md.series = self.series_name
@@ -280,7 +282,9 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
                 choices = True
 
             if choices:
-                selector = MatchSelectionWindow(self, matches, self.comic_archive, self.talker_api)
+                selector = MatchSelectionWindow(
+                    self, matches, self.comic_archive, talker_api=self.talker_api, options=self.options
+                )
                 selector.setModal(True)
                 selector.exec()
                 if selector.result():
@@ -296,7 +300,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
                 self.show_issues()
 
     def show_issues(self) -> None:
-        selector = IssueSelectionWindow(self, self.settings, self.talker_api, self.volume_id, self.issue_number)
+        selector = IssueSelectionWindow(self, self.options, self.talker_api, self.volume_id, self.issue_number)
         title = ""
         for record in self.ct_search_results:
             if record["id"] == self.volume_id:
@@ -324,7 +328,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
     def perform_query(self, refresh: bool = False) -> None:
 
         self.search_thread = SearchThread(
-            self.talker_api, self.series_name, refresh, self.literal, self.settings.id_series_match_search_thresh
+            self.talker_api, self.series_name, refresh, self.literal, self.options.comicvine_series_match_search_thresh
         )
         self.search_thread.searchComplete.connect(self.search_complete)
         self.search_thread.progressUpdate.connect(self.search_progress_update)
@@ -362,7 +366,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
     def search_complete(self) -> None:
         if self.progdialog is not None:
             self.progdialog.accept()
-            self.progdialog = None
+            del self.progdialog
         if self.search_thread is not None and self.search_thread.ct_error:
             # TODO Currently still opens the window
             QtWidgets.QMessageBox.critical(
@@ -376,7 +380,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
         # filter the publishers if enabled set
         if self.use_filter:
             try:
-                publisher_filter = {s.strip().casefold() for s in self.settings.id_publisher_filter.split(",")}
+                publisher_filter = {s.strip().casefold() for s in self.options.identifier_publisher_filter}
                 # use '' as publisher name if None
                 self.ct_search_results = list(
                     filter(
@@ -392,7 +396,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
         # compare as str in case extra chars ie. '1976?'
         # - missing (none) values being converted to 'None' - consistent with prior behaviour in v1.2.3
         # sort by start_year if set
-        if self.settings.sort_series_by_year:
+        if self.options.comicvine_sort_series_by_year:
             try:
                 self.ct_search_results = sorted(
                     self.ct_search_results,
@@ -410,7 +414,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
                 logger.exception("bad data error sorting results by count_of_issues")
 
         # move sanitized matches to the front
-        if self.settings.exact_series_matches_first:
+        if self.options.comicvine_exact_series_matches_first:
             try:
                 sanitized = utils.sanitize_title(self.series_name, False).casefold()
                 sanitized_no_articles = utils.sanitize_title(self.series_name, True).casefold()

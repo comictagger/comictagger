@@ -20,6 +20,7 @@ TODO: This should be re-factored using subclasses!
 from __future__ import annotations
 
 import logging
+import pathlib
 
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
@@ -63,16 +64,26 @@ class CoverImageWidget(QtWidgets.QWidget):
     image_fetch_complete = QtCore.pyqtSignal(QtCore.QByteArray)
 
     def __init__(
-        self, parent: QtWidgets.QWidget, talker_api: ComicTalker, mode: int, expand_on_click: bool = True
+        self,
+        parent: QtWidgets.QWidget,
+        mode: int,
+        cache_folder: pathlib.Path | None,
+        talker_api: ComicTalker | None,
+        expand_on_click: bool = True,
     ) -> None:
         super().__init__(parent)
 
-        self.cover_fetcher = ImageFetcher()
+        if mode not in (self.AltCoverMode, self.URLMode) or cache_folder is None:
+            self.cover_fetcher = None
+            self.talker_api = None
+        else:
+            self.cover_fetcher = ImageFetcher(cache_folder)
+            self.talker_api = None
         uic.loadUi(ui_path / "coverimagewidget.ui", self)
 
         reduce_widget_font_size(self.label)
 
-        self.talker_api = talker_api
+        self.cache_folder = cache_folder
         self.mode: int = mode
         self.page_loader: PageLoader | None = None
         self.showControls = True
@@ -221,8 +232,9 @@ class CoverImageWidget(QtWidgets.QWidget):
             self.label.setText(f"Page {self.imageIndex + 1} (of {self.imageCount})")
 
     def load_url(self) -> None:
+        assert isinstance(self.cache_folder, pathlib.Path)
         self.load_default()
-        self.cover_fetcher = ImageFetcher()
+        self.cover_fetcher = ImageFetcher(self.cache_folder)
         ImageFetcher.image_fetch_complete = self.image_fetch_complete.emit
         self.cover_fetcher.fetch(self.url_list[self.imageIndex])
 
