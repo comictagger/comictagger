@@ -179,10 +179,7 @@ class ComicVineTalker(ComicTalker):
         wait_on_ratelimit: bool = False,
     ):
         super().__init__(version, cache_folder, api_url, api_key)
-        self.source_details = SourceDetails(
-            name="Comic Vine",
-            ident="comicvine",
-        )
+        self.source_details = SourceDetails(name="Comic Vine", ident="comicvine")
         self.static_options = SourceStaticOptions(
             website="https://comicvine.gamespot.com/",
             has_issues=True,
@@ -218,11 +215,7 @@ class ComicVineTalker(ComicTalker):
             cv_response: CVResult = requests.get(
                 test_url,
                 headers={"user-agent": "comictagger/" + self.version},
-                params={
-                    "api_key": key,
-                    "format": "json",
-                    "field_list": "name",
-                },
+                params={"api_key": key, "format": "json", "field_list": "name"},
             ).json()
 
             # Bogus request, but if the key is wrong, you get error 100: "Invalid API Key"
@@ -624,10 +617,7 @@ class ComicVineTalker(ComicTalker):
         if f_record and f_record["complete"]:
             # Cache had full record
             return talker_utils.map_comic_issue_to_metadata(
-                f_record,
-                self.source_name_friendly,
-                self.remove_html_tables,
-                self.use_series_start_as_volume,
+                f_record, self.source_name_friendly, self.remove_html_tables, self.use_series_start_as_volume
             )
 
         if f_record is not None:

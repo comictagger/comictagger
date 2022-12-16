@@ -6,9 +6,10 @@ import comictalker.comiccacher
 from testing.comicdata import search_results
 
 
-def test_create_cache(settings, mock_version):
-    comictalker.comiccacher.ComicCacher(settings.get_settings_folder(), mock_version[0])
-    assert (settings.get_settings_folder() / "settings").exists()
+def test_create_cache(options, mock_version):
+    settings, definitions = options
+    comictalker.comiccacher.ComicCacher(settings.runtime_config.user_cache_dir, mock_version[0])
+    assert (settings.runtime_config.user_cache_dir).exists()
 
 
 def test_search_results(comic_cache):

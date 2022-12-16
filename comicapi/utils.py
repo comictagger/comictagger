@@ -234,7 +234,7 @@ def update_publishers(new_publishers: Mapping[str, Mapping[str, str]]) -> None:
             publishers[publisher] = ImprintDict(publisher, new_publishers[publisher])
 
 
-class ImprintDict(dict):
+class ImprintDict(dict):  # type: ignore
     """
     ImprintDict takes a publisher and a dict or mapping of lowercased
     imprint names to the proper imprint name. Retrieving a value from an
@@ -242,7 +242,7 @@ class ImprintDict(dict):
     if the key does not exist the key is returned as the publisher unchanged
     """
 
-    def __init__(self, publisher: str, mapping: tuple | Mapping = (), **kwargs: dict) -> None:
+    def __init__(self, publisher: str, mapping: tuple | Mapping = (), **kwargs: dict) -> None:  # type: ignore
         super().__init__(mapping, **kwargs)
         self.publisher = publisher
 

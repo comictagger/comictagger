@@ -14,7 +14,7 @@ import os
 from setuptools import find_packages, setup
 
 
-def read(fname):
+def read(fname: str) -> str:
     """
     Read the contents of a file.
     Parameters
@@ -60,7 +60,7 @@ setup(
     ),
     package_data={"comictaggerlib": ["ui/*", "graphics/*"], "comicapi": ["data/*"]},
     entry_points=dict(
-        console_scripts=["comictagger=comictaggerlib.main:ctmain"],
+        console_scripts=["comictagger=comictaggerlib.main:main"],
         pyinstaller40=[
             "hook-dirs = comictaggerlib.__pyinstaller:get_hook_dirs",
         ],

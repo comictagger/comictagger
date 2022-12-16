@@ -73,7 +73,7 @@ class PageListEditor(QtWidgets.QWidget):
 
         uic.loadUi(ui_path / "pagelisteditor.ui", self)
 
-        self.pageWidget = CoverImageWidget(self.pageContainer, talker_api, CoverImageWidget.ArchiveMode)
+        self.pageWidget = CoverImageWidget(self.pageContainer, CoverImageWidget.ArchiveMode, None, None)
         gridlayout = QtWidgets.QGridLayout(self.pageContainer)
         gridlayout.addWidget(self.pageWidget)
         gridlayout.setContentsMargins(0, 0, 0, 0)

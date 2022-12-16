@@ -9,11 +9,12 @@ from typing import Any
 
 import pytest
 import requests
+import settngs
 from PIL import Image
 
 import comicapi.comicarchive
 import comicapi.genericmetadata
-import comictaggerlib.settings
+import comictaggerlib.ctoptions
 import comictalker.comiccacher
 import comictalker.talkers.comicvine
 from comicapi import utils
@@ -55,7 +56,7 @@ def no_requests(monkeypatch) -> None:
 
 @pytest.fixture
 def comicvine_api(
-    monkeypatch, cbz, comic_cache, mock_version, settings
+    monkeypatch, cbz, comic_cache, mock_version, options
 ) -> comictalker.talkers.comicvine.ComicVineTalker:
     # Any arguments may be passed and mock_get() will always return our
     # mocked object, which only has the .json() method or None for invalid urls.
@@ -116,7 +117,7 @@ def comicvine_api(
 
     cv = comictalker.talkers.comicvine.ComicVineTalker(
         version=mock_version[0],
-        cache_folder=settings.get_settings_folder(),
+        cache_folder=options[0].runtime_config.user_cache_dir,
         api_url="",
         api_key="",
         series_match_thresh=90,
@@ -162,10 +163,26 @@ def seed_all_publishers(monkeypatch):
 
 
 @pytest.fixture
-def settings(tmp_path):
-    yield comictaggerlib.settings.ComicTaggerSettings(tmp_path / "settings")
+def options(settings_manager, tmp_path):
+
+    comictaggerlib.ctoptions.register_commandline(settings_manager)
+    comictaggerlib.ctoptions.register_settings(settings_manager)
+    defaults = settings_manager.get_namespace(settings_manager.defaults())
+    defaults[0].runtime_config = comictaggerlib.ctoptions.ComicTaggerPaths(tmp_path / "config")
+    defaults[0].runtime_config.user_data_dir.mkdir(parents=True, exist_ok=True)
+    defaults[0].runtime_config.user_config_dir.mkdir(parents=True, exist_ok=True)
+    defaults[0].runtime_config.user_cache_dir.mkdir(parents=True, exist_ok=True)
+    defaults[0].runtime_config.user_state_dir.mkdir(parents=True, exist_ok=True)
+    defaults[0].runtime_config.user_log_dir.mkdir(parents=True, exist_ok=True)
+    yield defaults
 
 
 @pytest.fixture
-def comic_cache(settings, mock_version) -> Generator[comictalker.comiccacher.ComicCacher, Any, None]:
-    yield comictalker.comiccacher.ComicCacher(settings.get_settings_folder(), mock_version[0])
+def settings_manager():
+    manager = settngs.Manager()
+    yield manager
+
+
+@pytest.fixture
+def comic_cache(options, mock_version) -> Generator[comictalker.comiccacher.ComicCacher, Any, None]:
+    yield comictalker.comiccacher.ComicCacher(options[0].runtime_config.user_cache_dir, mock_version[0])
