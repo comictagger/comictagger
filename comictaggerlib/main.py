@@ -19,7 +19,6 @@ import argparse
 import json
 import logging.handlers
 import platform
-import pprint
 import signal
 import sys
 from typing import Any
@@ -67,6 +66,7 @@ class App:
     def __init__(self) -> None:
         self.options = settngs.Config({}, {})
         self.initial_arg_parser = ctoptions.initial_cmd_line_parser()
+        self.config_load_success = False
 
     def run(self) -> None:
         opts = self.initialize()
@@ -74,7 +74,7 @@ class App:
         self.parse_options(opts.config)
         self.initialize_dirs()
 
-        self.ctmain()
+        self.main()
 
     def initialize(self) -> argparse.Namespace:
         opts, _ = self.initial_arg_parser.parse_known_args()
@@ -91,10 +91,8 @@ class App:
         ctoptions.register_settings(self.manager)
 
     def parse_options(self, config_paths: ctoptions.ComicTaggerPaths) -> None:
-        config, success = self.manager.parse_config(config_paths.user_config_dir / "settings.json")
+        config, self.config_load_success = self.manager.parse_config(config_paths.user_config_dir / "settings.json")
         options, definitions = config
-        if not success:
-            raise SystemExit(99)
         options = ctoptions.validate_commandline_options(options, self.manager)
         options = ctoptions.validate_settings(options, self.manager)
         self.options = settngs.Config(options, definitions)
@@ -111,19 +109,10 @@ class App:
         logger.debug("user_state_dir: %s", self.options[0]["runtime"]["config"].user_state_dir)
         logger.debug("user_log_dir: %s", self.options[0]["runtime"]["config"].user_log_dir)
 
-    def ctmain(self) -> None:
+    def main(self) -> None:
         assert self.options is not None
         # options already loaded
-
-        # manage the CV API key
-        # None comparison is used so that the empty string can unset the value
-        if self.options[0]["comicvine"]["cv_api_key"] is not None or self.options[0]["comicvine"]["cv_url"] is not None:
-            settings_path = self.options[0]["runtime"]["config"].user_config_dir / "settings.json"
-            self.manager.save_file(self.options[0], settings_path)
-        logger.debug(pprint.pformat(self.options[0]))
-        if self.options[0]["commands"]["only_set_cv_key"]:
-            print("Key set")  # noqa: T201
-            return
+        error = None
 
         signal.signal(signal.SIGINT, signal.SIG_DFL)
 
@@ -145,7 +134,18 @@ class App:
             self.options[0]["runtime"]["no_gui"] = True
             logger.warning("PyQt5 is not available. ComicTagger is limited to command-line mode.")
 
-        gui_exception = None
+        # manage the CV API key
+        # None comparison is used so that the empty string can unset the value
+        if self.options[0]["comicvine"]["cv_api_key"] is not None or self.options[0]["comicvine"]["cv_url"] is not None:
+            settings_path = self.options[0]["runtime"]["config"].user_config_dir / "settings.json"
+            if self.config_load_success:
+                self.manager.save_file(self.options[0], settings_path)
+
+        if self.options[0]["commands"]["only_set_cv_key"]:
+            if self.config_load_success:
+                print("Key set")  # noqa: T201
+                return
+
         try:
             talker_api = ct_api.get_comic_talker("comicvine")(  # type: ignore[call-arg]
                 version=version,
@@ -159,15 +159,20 @@ class App:
             )
         except TalkerError as e:
             logger.exception("Unable to load talker")
-            gui_exception = e
-            if self.options[0]["runtime"]["no_gui"]:
-                raise SystemExit(1)
+            error = (str(e), True)
 
+        if not self.config_load_success:
+            error = (
+                f"Failed to load settings, check the log located in '{self.options[0]['runtime']['config'].user_log_dir}' for more details",
+                True,
+            )
         if self.options[0]["runtime"]["no_gui"]:
+            if error and error[1]:
+                print(f"A fatal error occurred please check the log for more information: {error[0]}")  # noqa: T201
+                raise SystemExit(1)
             try:
                 cli.CLI(self.options[0], talker_api).run()
             except Exception:
                 logger.exception("CLI mode failed")
         else:
-
-            gui.open_tagger_window(talker_api, self.options, gui_exception)
+            gui.open_tagger_window(talker_api, self.options, error)

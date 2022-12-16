@@ -58,7 +58,7 @@ setup(
     packages=["comictaggerlib", "comicapi"],
     package_data={"comictaggerlib": ["ui/*", "graphics/*"], "comicapi": ["data/*"]},
     entry_points=dict(
-        console_scripts=["comictagger=comictaggerlib.main:ctmain"],
+        console_scripts=["comictagger=comictaggerlib.main:main"],
         pyinstaller40=[
             "hook-dirs = comictaggerlib.__pyinstaller:get_hook_dirs",
         ],

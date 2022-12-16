@@ -82,18 +82,17 @@ except ImportError as e:
     qt_available = False
 
 
-def open_tagger_window(talker_api: ComicTalker, options: settngs.Config, gui_exception: Exception | None) -> None:
+def open_tagger_window(talker_api: ComicTalker, options: settngs.Config, error: tuple[str, bool] | None) -> None:
     os.environ["QtWidgets.QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
     args = []
     if options[0]["runtime"]["darkmode"]:
         args.extend(["-platform", "windows:darkmode=2"])
     args.extend(sys.argv)
     app = Application(args)
-    if gui_exception is not None:
-        trace_back = "".join(traceback.format_tb(gui_exception.__traceback__))
-        log_msg = f"{type(gui_exception).__name__}: {gui_exception}\n\n{trace_back}"
-        show_exception_box(f"{log_msg}")
-        raise SystemExit(1)
+    if error is not None:
+        show_exception_box(error[0])
+        if error[1]:
+            raise SystemExit(1)
 
     # needed to catch initial open file events (macOS)
     app.openFileRequest.connect(lambda x: options[0]["runtime"]["files"].append(x.toLocalFile()))
