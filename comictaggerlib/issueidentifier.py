@@ -480,12 +480,7 @@ class IssueIdentifier:
                 alt_urls = issue["alt_image_urls"]
 
                 score_item = self.get_issue_cover_match_score(
-                    issue["id"],
-                    image_url,
-                    thumb_url,
-                    alt_urls,
-                    hash_list,
-                    use_remote_alternates=False,
+                    issue["id"], image_url, thumb_url, alt_urls, hash_list, use_remote_alternates=False
                 )
             except Exception:
                 logger.exception("Scoring series failed")

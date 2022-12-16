@@ -39,10 +39,7 @@ def setup_logging(verbose: int, log_dir: pathlib.Path) -> None:
         stream_handler.setLevel(logging.WARNING)
 
     logging.basicConfig(
-        handlers=[
-            stream_handler,
-            file_handler,
-        ],
+        handlers=[stream_handler, file_handler],
         level=logging.WARNING,
         format="%(asctime)s | %(name)s | %(levelname)s | %(message)s",
         datefmt="%Y-%m-%dT%H:%M:%S",

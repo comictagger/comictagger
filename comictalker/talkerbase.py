@@ -70,12 +70,7 @@ class TalkerError(Exception):
         source -- the name of the source producing the error
     """
 
-    codes = {
-        1: "General",
-        2: "Network",
-        3: "Data",
-        4: "Other",
-    }
+    codes = {1: "General", 2: "Network", 3: "Data", 4: "Other"}
 
     def __init__(self, source: str, desc: str, code: int = 4, sub_code: int = 0) -> None:
         super().__init__()

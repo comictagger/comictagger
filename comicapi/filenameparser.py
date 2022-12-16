@@ -995,11 +995,7 @@ def get_remainder(p: Parser) -> str:
             ]
             and i > 0
             and inp[i - 1].typ
-            in [
-                filenamelexer.ItemType.LeftBrace,
-                filenamelexer.ItemType.LeftParen,
-                filenamelexer.ItemType.LeftSBrace,
-            ]
+            in [filenamelexer.ItemType.LeftBrace, filenamelexer.ItemType.LeftParen, filenamelexer.ItemType.LeftSBrace]
         ):
             remainder = remainder.rstrip("[{(")
             continue
@@ -1108,10 +1104,7 @@ def join_title(lst: list[filenamelexer.Item]) -> str:
         if item.typ == filenamelexer.ItemType.Honorific and lst[i + 1].typ == filenamelexer.ItemType.Dot:
             continue
         # No space if the next item is an operator or symbol
-        if lst[i + 1].typ in [
-            filenamelexer.ItemType.Operator,
-            filenamelexer.ItemType.Symbol,
-        ]:
+        if lst[i + 1].typ in [filenamelexer.ItemType.Operator, filenamelexer.ItemType.Symbol]:
             continue
 
         # Add a space

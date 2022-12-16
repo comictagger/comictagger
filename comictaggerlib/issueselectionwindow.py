@@ -109,11 +109,7 @@ class IssueSelectionWindow(QtWidgets.QDialog):
             self.issue_list = self.talker_api.fetch_issues_by_volume(self.series_id)
         except TalkerError as e:
             QtWidgets.QApplication.restoreOverrideCursor()
-            QtWidgets.QMessageBox.critical(
-                self,
-                f"{e.source} {e.code_name} Error",
-                f"{e}",
-            )
+            QtWidgets.QMessageBox.critical(self, f"{e.source} {e.code_name} Error", f"{e}")
             return
 
         self.twList.setRowCount(0)

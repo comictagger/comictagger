@@ -137,8 +137,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.fileSelectionList.selectionChanged.connect(self.file_list_selection_changed)
         self.fileSelectionList.listCleared.connect(self.file_list_cleared)
         self.fileSelectionList.set_sorting(
-            self.options[0].internal_sort_column,
-            QtCore.Qt.SortOrder(self.options[0].internal_sort_direction),
+            self.options[0].internal_sort_column, QtCore.Qt.SortOrder(self.options[0].internal_sort_direction)
         )
 
         # we can't specify relative font sizes in the UI designer, so
@@ -1078,11 +1077,7 @@ Have fun!
                 )
             except TalkerError as e:
                 QtWidgets.QApplication.restoreOverrideCursor()
-                QtWidgets.QMessageBox.critical(
-                    self,
-                    f"{e.source} {e.code_name} Error",
-                    f"{e}",
-                )
+                QtWidgets.QMessageBox.critical(self, f"{e.source} {e.code_name} Error", f"{e}")
             else:
                 QtWidgets.QApplication.restoreOverrideCursor()
                 if new_metadata is not None:
