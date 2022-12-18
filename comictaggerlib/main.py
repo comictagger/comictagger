@@ -88,6 +88,7 @@ class App:
         )
         ctoptions.register_commandline(self.manager)
         ctoptions.register_settings(self.manager)
+        ct_api.register_talker_settings(self.manager)
 
     def parse_options(self, config_paths: ctoptions.ComicTaggerPaths) -> None:
         self.options, self.config_load_success = self.manager.parse_config(

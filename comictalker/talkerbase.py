@@ -20,6 +20,8 @@ import pathlib
 from typing import Callable
 from urllib.parse import urlsplit
 
+import settngs
+
 from comicapi.genericmetadata import GenericMetadata
 from comictalker.resulttypes import ComicIssue, ComicVolume
 
@@ -143,6 +145,10 @@ class ComicTalker:
 
     default_api_url: str = ""
     default_api_key: str = ""
+
+    @staticmethod
+    def register_settings(parser: settngs.Manager) -> None:
+        ...
 
     def __init__(self, version: str, cache_folder: pathlib.Path, api_url: str = "", api_key: str = "") -> None:
         # Identity name for the information source etc.

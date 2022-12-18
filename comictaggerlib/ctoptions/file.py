@@ -256,7 +256,6 @@ def register_settings(parser: settngs.Manager) -> None:
     parser.add_group("identifier", identifier, False)
     parser.add_group("dialog", dialog, False)
     parser.add_group("filename", filename, False)
-    parser.add_group("comicvine", comicvine, False)
     parser.add_group("cbl", cbl, False)
     parser.add_group("rename", rename, False)
     parser.add_group("autotag", autotag, False)

@@ -18,6 +18,8 @@ from __future__ import annotations
 import logging
 import sys
 
+import settngs
+
 if sys.version_info < (3, 10):
     from importlib_metadata import entry_points
 else:
@@ -26,6 +28,15 @@ else:
 from comictalker.talkerbase import ComicTalker, TalkerError
 
 logger = logging.getLogger(__name__)
+
+
+def register_talker_settings(manager: settngs.Manager) -> None:
+    talkers = get_talkers()
+    for talker, cls in talkers.items():
+        try:
+            cls.register_settings(manager)
+        except Exception:
+            logger.exception(f"Failed to register settings for {talker}")
 
 
 def get_comic_talker(source_name: str) -> type[ComicTalker]:
@@ -45,4 +56,5 @@ def get_talkers() -> dict[str, type[ComicTalker]]:
     talkers = {}
     for talker in talker_plugins:
         talkers[talker.name] = talker.load()
+
     return talkers
