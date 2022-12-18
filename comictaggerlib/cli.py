@@ -112,7 +112,7 @@ class CLI:
                     md = ct_md
                 else:
                     notes = (
-                        f"Tagged with ComicTagger {ctversion.version} using info from {talker_api.source_details.name} on"
+                        f"Tagged with ComicTagger {ctversion.version} using info from {self.talker_api.source_details.name} on"
                         f" {datetime.now():%Y-%m-%d %H:%M:%S}.  [Issue ID {ct_md.issue_id}]"
                     )
                     md.overlay(ct_md.replace(notes=utils.combine_notes(md.notes, notes, "Tagged with ComicTagger")))
@@ -432,7 +432,7 @@ class CLI:
                 md = ct_md
             else:
                 notes = (
-                    f"Tagged with ComicTagger {ctversion.version} using info from {talker_api.source_details.name} on"
+                    f"Tagged with ComicTagger {ctversion.version} using info from {self.talker_api.source_details.name} on"
                     f" {datetime.now():%Y-%m-%d %H:%M:%S}.  [Issue ID {ct_md.issue_id}]"
                 )
                 md.overlay(ct_md.replace(notes=utils.combine_notes(md.notes, notes, "Tagged with ComicTagger")))
