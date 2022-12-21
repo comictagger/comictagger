@@ -86,14 +86,8 @@ def filename(parser: settngs.Manager) -> None:
     )
 
 
-def comicvine(parser: settngs.Manager) -> None:
-    # Comic Vine settings
-    parser.add_setting(
-        "--series-match-search-thresh",
-        default=90,
-        type=int,
-    )
-    parser.add_setting("--use-series-start-as-volume", default=False, action=argparse.BooleanOptionalAction)
+def talkers_general(parser: settngs.Manager) -> None:
+    # General settings for all information talkers
     parser.add_setting(
         "--clear-metadata",
         default=True,
@@ -102,27 +96,12 @@ def comicvine(parser: settngs.Manager) -> None:
         action=argparse.BooleanOptionalAction,
     )
     parser.add_setting(
-        "--remove-html-tables",
-        default=False,
-        action=argparse.BooleanOptionalAction,
-        help="Removes html tables instead of converting them to text",
-    )
-    parser.add_setting(
-        "--cv-api-key",
-        help="Use the given Comic Vine API Key (persisted in settings).",
-    )
-    parser.add_setting(
-        "--cv-url",
-        help="Use the given Comic Vine URL (persisted in settings).",
-    )
-    parser.add_setting(
         "-a",
         "--auto-imprint",
         action=argparse.BooleanOptionalAction,
         default=False,
         help="Enables the auto imprint functionality.\ne.g. if the publisher is set to 'vertigo' it\nwill be updated to 'DC Comics' and the imprint\nproperty will be set to 'Vertigo'.\n\n",
     )
-
     parser.add_setting(
         "--sort-series-by-year", default=True, action=argparse.BooleanOptionalAction, help="Sorts series by year"
     )
@@ -139,10 +118,10 @@ def comicvine(parser: settngs.Manager) -> None:
         help="Enables the publisher filter",
     )
     parser.add_setting(
-        "--clear-form-before-populating-from-cv",
+        "--clear-form-before-populating",
         default=False,
         action=argparse.BooleanOptionalAction,
-        help="Clears all existing metadata when applying metadata from ComicVine",
+        help="Clears all existing metadata when applying metadata from comic source",
     )
 
 
@@ -256,6 +235,7 @@ def register_settings(parser: settngs.Manager) -> None:
     parser.add_group("identifier", identifier, False)
     parser.add_group("dialog", dialog, False)
     parser.add_group("filename", filename, False)
+    parser.add_group("talkers_general", talkers_general, False)
     parser.add_group("cbl", cbl, False)
     parser.add_group("rename", rename, False)
     parser.add_group("autotag", autotag, False)

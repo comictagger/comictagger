@@ -30,11 +30,11 @@ from comictalker.talkerbase import ComicTalker, TalkerError
 logger = logging.getLogger(__name__)
 
 
-def register_talker_settings(manager: settngs.Manager) -> None:
+def register_talker_settings(parser: settngs.Manager) -> None:
     talkers = get_talkers()
     for talker, cls in talkers.items():
         try:
-            cls.register_settings(manager)
+            parser.add_group(talker, cls.comic_settings, False)
         except Exception:
             logger.exception(f"Failed to register settings for {talker}")
 

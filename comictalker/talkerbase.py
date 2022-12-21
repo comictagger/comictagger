@@ -146,8 +146,7 @@ class ComicTalker:
     default_api_url: str = ""
     default_api_key: str = ""
 
-    @staticmethod
-    def register_settings(parser: settngs.Manager) -> None:
+    def comic_settings(parser: settngs.Manager) -> None:
         ...
 
     def __init__(self, version: str, cache_folder: pathlib.Path, api_url: str = "", api_key: str = "") -> None:

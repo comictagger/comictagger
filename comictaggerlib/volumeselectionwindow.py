@@ -156,7 +156,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
         self.progdialog: QtWidgets.QProgressDialog | None = None
         self.search_thread: SearchThread | None = None
 
-        self.use_filter = self.options.comicvine_always_use_publisher_filter
+        self.use_filter = self.options.talkers_general_always_use_publisher_filter
 
         # Load to retrieve settings
         self.talker_api = talker_api
@@ -404,7 +404,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
         # compare as str in case extra chars ie. '1976?'
         # - missing (none) values being converted to 'None' - consistent with prior behaviour in v1.2.3
         # sort by start_year if set
-        if self.options.comicvine_sort_series_by_year:
+        if self.options.talkers_general_sort_series_by_year:
             try:
                 self.ct_search_results = sorted(
                     self.ct_search_results,
@@ -422,7 +422,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
                 logger.exception("bad data error sorting results by count_of_issues")
 
         # move sanitized matches to the front
-        if self.options.comicvine_exact_series_matches_first:
+        if self.options.talkers_general_exact_series_matches_first:
             try:
                 sanitized = utils.sanitize_title(self.series_name, False).casefold()
                 sanitized_no_articles = utils.sanitize_title(self.series_name, True).casefold()

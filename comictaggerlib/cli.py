@@ -108,7 +108,7 @@ class CLI:
                 ca = match_set.ca
                 md = self.create_local_metadata(ca)
                 ct_md = self.actual_issue_data_fetch(match_set.matches[int(i) - 1]["issue_id"])
-                if self.options.comicvine_clear_metadata_on_import:
+                if self.options.talkers_general_clear_metadata_on_import:
                     md = ct_md
                 else:
                     notes = (
@@ -117,7 +117,7 @@ class CLI:
                     )
                     md.overlay(ct_md.replace(notes=utils.combine_notes(md.notes, notes, "Tagged with ComicTagger")))
 
-                if self.options.comicvine_auto_imprint:
+                if self.options.talkers_general_auto_imprint:
                     md.fix_publisher()
 
                 self.actual_metadata_save(ca, md)
@@ -428,7 +428,7 @@ class CLI:
                     match_results.fetch_data_failures.append(str(ca.path.absolute()))
                     return
 
-            if self.options.comicvine_clear_metadata_on_import:
+            if self.options.talkers_general_clear_metadata_on_import:
                 md = ct_md
             else:
                 notes = (
@@ -437,7 +437,7 @@ class CLI:
                 )
                 md.overlay(ct_md.replace(notes=utils.combine_notes(md.notes, notes, "Tagged with ComicTagger")))
 
-            if self.options.comicvine_auto_imprint:
+            if self.options.talkers_general_auto_imprint:
                 md.fix_publisher()
 
         # ok, done building our metadata. time to save

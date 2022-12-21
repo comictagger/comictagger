@@ -165,73 +165,32 @@ class CVIssueDetailResults(TypedDict, total=False):
 CV_RATE_LIMIT_STATUS = 107
 
 
-def comicvine_settings(parser: settngs.Manager) -> None:
-    # Comic Vine settings
-    parser.add_setting(
-        "--series-match-search-thresh",
-        default=90,
-        type=int,
-    )
-    parser.add_setting("--use-series-start-as-volume", default=False, action=argparse.BooleanOptionalAction)
-    parser.add_setting(
-        "--clear-metadata",
-        default=True,
-        help="Clears all existing metadata during import, default is to merges metadata.\nMay be used in conjunction with -o, -f and -m.\n\n",
-        dest="clear_metadata_on_import",
-        action=argparse.BooleanOptionalAction,
-    )
-    parser.add_setting(
-        "--remove-html-tables",
-        default=False,
-        action=argparse.BooleanOptionalAction,
-        help="Removes html tables instead of converting them to text",
-    )
-    parser.add_setting(
-        "--cv-api-key",
-        help="Use the given Comic Vine API Key (persisted in settings).",
-    )
-    parser.add_setting(
-        "--cv-url",
-        help="Use the given Comic Vine URL (persisted in settings).",
-    )
-    parser.add_setting(
-        "-a",
-        "--auto-imprint",
-        action=argparse.BooleanOptionalAction,
-        default=False,
-        help="Enables the auto imprint functionality.\ne.g. if the publisher is set to 'vertigo' it\nwill be updated to 'DC Comics' and the imprint\nproperty will be set to 'Vertigo'.\n\n",
-    )
-
-    parser.add_setting(
-        "--sort-series-by-year", default=True, action=argparse.BooleanOptionalAction, help="Sorts series by year"
-    )
-    parser.add_setting(
-        "--exact-series-matches-first",
-        default=True,
-        action=argparse.BooleanOptionalAction,
-        help="Puts series that are an exact match at the top of the list",
-    )
-    parser.add_setting(
-        "--always-use-publisher-filter",
-        default=False,
-        action=argparse.BooleanOptionalAction,
-        help="Enables the publisher filter",
-    )
-    parser.add_setting(
-        "--clear-form-before-populating-from-cv",
-        default=False,
-        action=argparse.BooleanOptionalAction,
-        help="Clears all existing metadata when applying metadata from ComicVine",
-    )
-
-
 class ComicVineTalker(ComicTalker):
     default_api_key = "27431e6787042105bd3e47e169a624521f89f3a4"
     default_api_url = "https://comicvine.gamespot.com/api"
 
-    @staticmethod
-    def register_settings(parser: settngs.Manager) -> None:
-        parser.add_group("comicvine", comicvine_settings, False)
+    def comic_settings(parser: settngs.Manager) -> None:
+        # Comic Vine settings
+        parser.add_setting(
+            "--series-match-search-thresh",
+            default=90,
+            type=int,
+        )
+        parser.add_setting("--use-series-start-as-volume", default=False, action=argparse.BooleanOptionalAction)
+        parser.add_setting(
+            "--remove-html-tables",
+            default=False,
+            action=argparse.BooleanOptionalAction,
+            help="Removes html tables instead of converting them to text",
+        )
+        parser.add_setting(
+            "--cv-api-key",
+            help="Use the given Comic Vine API Key (persisted in settings).",
+        )
+        parser.add_setting(
+            "--cv-url",
+            help="Use the given Comic Vine URL (persisted in settings).",
+        )
 
     def __init__(
         self,

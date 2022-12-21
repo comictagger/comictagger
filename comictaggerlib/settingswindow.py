@@ -283,12 +283,12 @@ class SettingsWindow(QtWidgets.QDialog):
         self.switch_parser()
 
         self.cbxUseSeriesStartAsVolume.setChecked(self.options[0].comicvine_use_series_start_as_volume)
-        self.cbxClearFormBeforePopulating.setChecked(self.options[0].comicvine_clear_form_before_populating_from_cv)
+        self.cbxClearFormBeforePopulating.setChecked(self.options[0].talkers_general_clear_form_before_populating)
         self.cbxRemoveHtmlTables.setChecked(self.options[0].comicvine_remove_html_tables)
 
-        self.cbxUseFilter.setChecked(self.options[0].comicvine_always_use_publisher_filter)
-        self.cbxSortByYear.setChecked(self.options[0].comicvine_sort_series_by_year)
-        self.cbxExactMatches.setChecked(self.options[0].comicvine_exact_series_matches_first)
+        self.cbxUseFilter.setChecked(self.options[0].talkers_general_always_use_publisher_filter)
+        self.cbxSortByYear.setChecked(self.options[0].talkers_general_sort_series_by_year)
+        self.cbxExactMatches.setChecked(self.options[0].talkers_general_exact_series_matches_first)
 
         self.leKey.setText(self.options[0].comicvine_cv_api_key)
         self.leURL.setText(self.options[0].comicvine_cv_url)
@@ -397,12 +397,12 @@ class SettingsWindow(QtWidgets.QDialog):
         self.options[0].filename_remove_publisher = self.cbxRemovePublisher.isChecked()
 
         self.options[0].comicvine_use_series_start_as_volume = self.cbxUseSeriesStartAsVolume.isChecked()
-        self.options[0].comicvine_clear_form_before_populating_from_cv = self.cbxClearFormBeforePopulating.isChecked()
+        self.options[0].talkers_general_clear_form_before_populating = self.cbxClearFormBeforePopulating.isChecked()
         self.options[0].comicvine_remove_html_tables = self.cbxRemoveHtmlTables.isChecked()
 
-        self.options[0].comicvine_always_use_publisher_filter = self.cbxUseFilter.isChecked()
-        self.options[0].comicvine_sort_series_by_year = self.cbxSortByYear.isChecked()
-        self.options[0].comicvine_exact_series_matches_first = self.cbxExactMatches.isChecked()
+        self.options[0].talkers_general_always_use_publisher_filter = self.cbxUseFilter.isChecked()
+        self.options[0].talkers_general_sort_series_by_year = self.cbxSortByYear.isChecked()
+        self.options[0].talkers_general_exact_series_matches_first = self.cbxExactMatches.isChecked()
 
         if self.leKey.text().strip():
             self.options[0].comicvine_cv_api_key = self.leKey.text().strip()
