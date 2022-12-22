@@ -420,16 +420,16 @@ class IssueIdentifier:
         # now sort the list by name length
         series_second_round_list.sort(key=lambda x: len(x["name"]), reverse=False)
 
-        # build a list of volume IDs
-        volume_id_list = []
+        # build a list of series IDs
+        series_id_list = []
         for series in series_second_round_list:
-            volume_id_list.append(series["id"])
+            series_id_list.append(series["id"])
 
         issue_list = None
         try:
-            if len(volume_id_list) > 0:
-                issue_list = self.talker_api.fetch_issues_by_volume_issue_num_and_year(
-                    volume_id_list, keys["issue_number"], keys["year"]
+            if len(series_id_list) > 0:
+                issue_list = self.talker_api.fetch_issues_by_series_issue_num_and_year(
+                    series_id_list, keys["issue_number"], keys["year"]
                 )
         except TalkerError as e:
             self.log_msg(f"Issue with while searching for series details. Aborting...\n{e}")
@@ -439,10 +439,10 @@ class IssueIdentifier:
             return []
 
         shortlist = []
-        # now re-associate the issues and volumes
+        # now re-associate the issues and series
         for issue in issue_list:
             for series in series_second_round_list:
-                if series["id"] == issue["volume"]["id"]:
+                if series["id"] == issue["series"]["id"]:
                     shortlist.append((series, issue))
                     break
 
@@ -453,7 +453,7 @@ class IssueIdentifier:
                 f"Found {len(shortlist)} series that have an issue #{keys['issue_number']} from {keys['year']}"
             )
 
-        # now we have a shortlist of volumes with the desired issue number
+        # now we have a shortlist of series with the desired issue number
         # Do first round of cover matching
         counter = len(shortlist)
         for series, issue in shortlist:
@@ -495,7 +495,7 @@ class IssueIdentifier:
                 "url_image_hash": score_item["hash"],
                 "issue_title": issue["name"],
                 "issue_id": issue["id"],
-                "volume_id": series["id"],
+                "series_id": series["id"],
                 "month": month,
                 "year": year,
                 "publisher": None,
@@ -561,7 +561,7 @@ class IssueIdentifier:
                 if self.callback is not None:
                     self.callback(counter, len(self.match_list) * 3)
                     counter += 1
-                self.log_msg(f"Examining alternate covers for ID: {m['volume_id']} {m['series']} ...", newline=False)
+                self.log_msg(f"Examining alternate covers for ID: {m['series_id']} {m['series']} ...", newline=False)
                 try:
                     score_item = self.get_issue_cover_match_score(
                         m["issue_id"],
@@ -615,7 +615,7 @@ class IssueIdentifier:
                 self.match_list.remove(match_item)
 
         # One more test for the case choosing limited series first issue vs a trade with the same cover:
-        # if we have a given issue count > 1 and the volume from CV has count==1, remove it from match list
+        # if we have a given issue count > 1 and the series from CV has count==1, remove it from match list
         if len(self.match_list) >= 2 and keys["issue_count"] is not None and keys["issue_count"] != 1:
             new_list = []
             for match in self.match_list:
@@ -623,7 +623,7 @@ class IssueIdentifier:
                     new_list.append(match)
                 else:
                     self.log_msg(
-                        f"Removing volume {match['series']} [{match['volume_id']}] from consideration (only 1 issue)"
+                        f"Removing series {match['series']} [{match['series_id']}] from consideration (only 1 issue)"
                     )
 
             if len(new_list) > 0:

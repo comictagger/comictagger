@@ -33,7 +33,7 @@ from comictaggerlib.matchselectionwindow import MatchSelectionWindow
 from comictaggerlib.progresswindow import IDProgressWindow
 from comictaggerlib.ui import ui_path
 from comictaggerlib.ui.qtutils import reduce_widget_font_size
-from comictalker.resulttypes import ComicVolume
+from comictalker.resulttypes import ComicSeries
 from comictalker.talkerbase import ComicTalker, TalkerError
 
 logger = logging.getLogger(__name__)
@@ -57,7 +57,7 @@ class SearchThread(QtCore.QThread):
         self.refresh: bool = refresh
         self.error_e: TalkerError
         self.ct_error = False
-        self.ct_search_results: list[ComicVolume] = []
+        self.ct_search_results: list[ComicSeries] = []
         self.literal = literal
         self.series_match_thresh = series_match_thresh
 
@@ -101,7 +101,7 @@ class IdentifyThread(QtCore.QThread):
         self.identifyComplete.emit()
 
 
-class VolumeSelectionWindow(QtWidgets.QDialog):
+class SeriesSelectionWindow(QtWidgets.QDialog):
     def __init__(
         self,
         parent: QtWidgets.QWidget,
@@ -118,7 +118,7 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
     ) -> None:
         super().__init__(parent)
 
-        uic.loadUi(ui_path / "volumeselectionwindow.ui", self)
+        uic.loadUi(ui_path / "serieselectionwindow.ui", self)
 
         self.imageWidget = CoverImageWidget(
             self.imageContainer, CoverImageWidget.URLMode, options.runtime_config.user_cache_dir, talker_api
@@ -144,11 +144,11 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
         self.issue_id: int | None = None
         self.year = year
         self.issue_count = issue_count
-        self.volume_id = 0
+        self.series_id = 0
         self.comic_archive = comic_archive
         self.immediate_autoselect = autoselect
         self.cover_index_list = cover_index_list
-        self.ct_search_results: list[ComicVolume] = []
+        self.ct_search_results: list[ComicSeries] = []
         self.literal = literal
         self.ii: IssueIdentifier | None = None
         self.iddialog: IDProgressWindow | None = None
@@ -294,16 +294,16 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
             if found_match is not None:
                 self.iddialog.accept()
 
-                self.volume_id = utils.xlate(found_match["volume_id"])
+                self.series_id = utils.xlate(found_match["series_id"])
                 self.issue_number = found_match["issue_number"]
                 self.select_by_id()
                 self.show_issues()
 
     def show_issues(self) -> None:
-        selector = IssueSelectionWindow(self, self.options, self.talker_api, self.volume_id, self.issue_number)
+        selector = IssueSelectionWindow(self, self.options, self.talker_api, self.series_id, self.issue_number)
         title = ""
         for record in self.ct_search_results:
-            if record["id"] == self.volume_id:
+            if record["id"] == self.series_id:
                 title = record["name"]
                 title += " (" + str(record["start_year"]) + ")"
                 title += " - "
@@ -313,15 +313,15 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
         selector.setModal(True)
         selector.exec()
         if selector.result():
-            # we should now have a volume ID
+            # we should now have a series ID
             self.issue_number = selector.issue_number
             self.issue_id = selector.issue_id
             self.accept()
 
     def select_by_id(self) -> None:
         for r in range(0, self.twList.rowCount()):
-            volume_id = self.twList.item(r, 0).data(QtCore.Qt.ItemDataRole.UserRole)
-            if volume_id == self.volume_id:
+            series_id = self.twList.item(r, 0).data(QtCore.Qt.ItemDataRole.UserRole)
+            if series_id == self.series_id:
                 self.twList.selectRow(r)
                 break
 
@@ -419,9 +419,9 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
                 sanitized = utils.sanitize_title(self.series_name, False).casefold()
                 sanitized_no_articles = utils.sanitize_title(self.series_name, True).casefold()
 
-                deques: list[deque[ComicVolume]] = [deque(), deque(), deque()]
+                deques: list[deque[ComicSeries]] = [deque(), deque(), deque()]
 
-                def categorize(result: ComicVolume) -> int:
+                def categorize(result: ComicSeries) -> int:
                     # We don't remove anything on this one so that we only get exact matches
                     if utils.sanitize_title(result["name"], True).casefold() == sanitized_no_articles:
                         return 0
@@ -517,11 +517,11 @@ class VolumeSelectionWindow(QtWidgets.QDialog):
         if prev is not None and prev.row() == curr.row():
             return
 
-        self.volume_id = self.twList.item(curr.row(), 0).data(QtCore.Qt.ItemDataRole.UserRole)
+        self.series_id = self.twList.item(curr.row(), 0).data(QtCore.Qt.ItemDataRole.UserRole)
 
-        # list selection was changed, update the info on the volume
+        # list selection was changed, update the info on the series
         for record in self.ct_search_results:
-            if record["id"] == self.volume_id:
+            if record["id"] == self.series_id:
                 if record["description"] is None:
                     self.teDetails.setText("")
                 else:
