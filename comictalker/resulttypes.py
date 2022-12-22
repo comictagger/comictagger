@@ -16,7 +16,7 @@ class ComicSeries(TypedDict, total=False):
     image_url: str
     name: Required[str]
     publisher: str
-    start_year: int
+    start_year: int | None
 
 
 class ComicIssue(TypedDict, total=False):

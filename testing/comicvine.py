@@ -23,7 +23,7 @@ cv_issue_result: dict[str, Any] = {
     "number_of_total_results": 1,
     "status_code": 1,
     "results": {
-        "aliases": [],
+        "aliases": None,
         "api_detail_url": "https://comicvine.gamespot.com/api/issue/4000-140529/",
         "associated_images": [],
         "character_credits": [],
@@ -118,7 +118,7 @@ cv_volume_result: dict[str, Any] = {
     "number_of_total_results": 1,
     "status_code": 1,
     "results": {
-        "aliases": [],
+        "aliases": None,
         "api_detail_url": "https://comicvine.gamespot.com/api/volume/4050-23437/",
         "count_of_issues": 6,
         "date_added": "2008-10-16 05:25:47",
@@ -159,7 +159,7 @@ cv_not_found = {
     "results": [],
 }
 comic_issue_result = ComicIssue(
-    aliases=cv_issue_result["results"]["aliases"],
+    aliases=cv_issue_result["results"]["aliases"] or [],
     cover_date=cv_issue_result["results"]["cover_date"],
     description=cv_issue_result["results"]["description"],
     id=cv_issue_result["results"]["id"],
@@ -169,10 +169,14 @@ comic_issue_result = ComicIssue(
     name=cv_issue_result["results"]["name"],
     site_detail_url=cv_issue_result["results"]["site_detail_url"],
     series=ComicSeries(
-        # api_detail_url=cv_issue_result["results"]["volume"]["api_detail_url"],
         id=cv_issue_result["results"]["volume"]["id"],
         name=cv_issue_result["results"]["volume"]["name"],
-        # site_detail_url=cv_issue_result["results"]["volume"]["site_detail_url"],
+        aliases=[],
+        count_of_issues=0,
+        description="",
+        image_url="",
+        publisher="",
+        start_year=None,
     ),
     characters=[],
     alt_image_urls=[],
