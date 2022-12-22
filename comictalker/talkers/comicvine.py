@@ -1,4 +1,5 @@
-"""ComicVine information source
+"""
+ComicVine information source
 """
 # Copyright 2012-2014 Anthony Beville
 #
@@ -459,12 +460,14 @@ class ComicVineTalker(ComicTalker):
         return formatted_search_results
 
     # Get issue or series information
-    def fetch_comic_data(self, issue_id: int = 0, series_id: int = 0, issue_number: str = "") -> GenericMetadata:
+    def fetch_comic_data(
+        self, issue_id: int | None = None, series_id: int | None = None, issue_number: str = ""
+    ) -> GenericMetadata:
         comic_data = GenericMetadata()
-        if issue_number and series_id:
-            comic_data = self.fetch_issue_data(series_id, issue_number)
-        elif issue_id:
+        if issue_id:
             comic_data = self.fetch_issue_data_by_issue_id(issue_id)
+        elif issue_number and series_id:
+            comic_data = self.fetch_issue_data(series_id, issue_number)
 
         return comic_data
 
