@@ -34,8 +34,6 @@ logger = logging.getLogger(__name__)
 
 
 class AutoTagMatchWindow(QtWidgets.QDialog):
-    volume_id = 0
-
     def __init__(
         self,
         parent: QtWidgets.QWidget,

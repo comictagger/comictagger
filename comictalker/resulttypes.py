@@ -8,7 +8,7 @@ class Credits(TypedDict):
     role: str
 
 
-class ComicVolume(TypedDict, total=False):
+class ComicSeries(TypedDict, total=False):
     aliases: list[str]
     count_of_issues: int
     description: str
@@ -29,7 +29,7 @@ class ComicIssue(TypedDict, total=False):
     issue_number: Required[str]
     name: Required[str]
     site_detail_url: str
-    volume: ComicVolume
+    series: ComicSeries
     alt_image_urls: list[str]
     characters: list[str]
     locations: list[str]

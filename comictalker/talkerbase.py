@@ -21,7 +21,7 @@ from typing import Callable
 from urllib.parse import urlsplit
 
 from comicapi.genericmetadata import GenericMetadata
-from comictalker.resulttypes import ComicIssue, ComicVolume
+from comictalker.resulttypes import ComicIssue, ComicSeries
 
 logger = logging.getLogger(__name__)
 
@@ -175,15 +175,15 @@ class ComicTalker:
         callback: Callable[[int, int], None] | None = None,
         refresh_cache: bool = False,
         literal: bool = False,
-    ) -> list[ComicVolume]:
-        """Searches for the series/volumes with the given series_name
+    ) -> list[ComicSeries]:
+        """Searches for the series with the given series_name
         callback is used for...
         refresh_cache signals if the data in the cache should be used
         literal indicates that no articles (a, the, etc.) should be removed when searching"""
         raise NotImplementedError
 
-    def fetch_issues_by_volume(self, series_id: int) -> list[ComicIssue]:
-        """Expected to return a list of issues with a given series/volume ID"""
+    def fetch_issues_by_series(self, series_id: int) -> list[ComicIssue]:
+        """Expected to return a list of issues with a given series ID"""
         raise NotImplementedError
 
     def fetch_comic_data(self, issue_id: int = 0, series_id: int = 0, issue_number: str = "") -> GenericMetadata:
@@ -193,8 +193,8 @@ class ComicTalker:
         3. Only issue_id: Retrieve the ISSUE information"""
         raise NotImplementedError
 
-    def fetch_issues_by_volume_issue_num_and_year(
-        self, volume_id_list: list[int], issue_number: str, year: str | int | None
+    def fetch_issues_by_series_issue_num_and_year(
+        self, series_id_list: list[int], issue_number: str, year: str | int | None
     ) -> list[ComicIssue]:
         """Searches for a list of issues within the given year. Used solely by issueidentifer"""
         raise NotImplementedError

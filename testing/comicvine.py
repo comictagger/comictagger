@@ -4,6 +4,7 @@ from typing import Any
 
 import comicapi.genericmetadata
 from comicapi import utils
+from comictalker.resulttypes import ComicIssue, ComicSeries
 from comictalker.talker_utils import cleanup_html
 
 
@@ -157,23 +158,30 @@ cv_not_found = {
     "status_code": 101,
     "results": [],
 }
-comic_issue_result: dict[str, Any] = {
-    "aliases": cv_issue_result["results"]["aliases"],
-    "cover_date": cv_issue_result["results"]["cover_date"],
-    "description": cv_issue_result["results"]["description"],
-    "id": cv_issue_result["results"]["id"],
-    "image_url": cv_issue_result["results"]["image"]["super_url"],
-    "image_thumb_url": cv_issue_result["results"]["image"]["thumb_url"],
-    "issue_number": cv_issue_result["results"]["issue_number"],
-    "name": cv_issue_result["results"]["name"],
-    "site_detail_url": cv_issue_result["results"]["site_detail_url"],
-    "volume": {
-        "api_detail_url": cv_issue_result["results"]["volume"]["api_detail_url"],
-        "id": cv_issue_result["results"]["volume"]["id"],
-        "name": cv_issue_result["results"]["volume"]["name"],
-        "site_detail_url": cv_issue_result["results"]["volume"]["site_detail_url"],
-    },
-}
+comic_issue_result = ComicIssue(
+    aliases=cv_issue_result["results"]["aliases"],
+    cover_date=cv_issue_result["results"]["cover_date"],
+    description=cv_issue_result["results"]["description"],
+    id=cv_issue_result["results"]["id"],
+    image_url=cv_issue_result["results"]["image"]["super_url"],
+    image_thumb_url=cv_issue_result["results"]["image"]["thumb_url"],
+    issue_number=cv_issue_result["results"]["issue_number"],
+    name=cv_issue_result["results"]["name"],
+    site_detail_url=cv_issue_result["results"]["site_detail_url"],
+    series=ComicSeries(
+        # api_detail_url=cv_issue_result["results"]["volume"]["api_detail_url"],
+        id=cv_issue_result["results"]["volume"]["id"],
+        name=cv_issue_result["results"]["volume"]["name"],
+        # site_detail_url=cv_issue_result["results"]["volume"]["site_detail_url"],
+    ),
+    characters=[],
+    alt_image_urls=[],
+    complete=False,
+    credits=[],
+    locations=[],
+    story_arcs=[],
+    teams=[],
+)
 date = utils.parse_date_str(cv_issue_result["results"]["cover_date"])
 
 cv_md = comicapi.genericmetadata.GenericMetadata(

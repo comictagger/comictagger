@@ -58,11 +58,11 @@ from comictaggerlib.pagebrowser import PageBrowserWindow
 from comictaggerlib.pagelisteditor import PageListEditor
 from comictaggerlib.renamewindow import RenameWindow
 from comictaggerlib.resulttypes import IssueResult, MultipleMatch, OnlineMatchResults
+from comictaggerlib.serieselectionwindow import SeriesSelectionWindow
 from comictaggerlib.settingswindow import SettingsWindow
 from comictaggerlib.ui import ui_path
 from comictaggerlib.ui.qtutils import center_window_on_parent, reduce_widget_font_size
 from comictaggerlib.versionchecker import VersionChecker
-from comictaggerlib.volumeselectionwindow import VolumeSelectionWindow
 from comictalker.talkerbase import ComicTalker, TalkerError
 
 logger = logging.getLogger(__name__)
@@ -1045,7 +1045,7 @@ Have fun!
         issue_count = utils.xlate(self.leIssueCount.text(), True)
 
         cover_index_list = self.metadata.get_cover_page_index_list()
-        selector = VolumeSelectionWindow(
+        selector = SeriesSelectionWindow(
             self,
             series_name,
             issue_number,
@@ -1065,7 +1065,7 @@ Have fun!
         selector.exec()
 
         if selector.result():
-            # we should now have a volume ID
+            # we should now have a series ID
             QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
 
             # copy the form onto metadata object
@@ -1073,7 +1073,7 @@ Have fun!
 
             try:
                 new_metadata = self.talker_api.fetch_comic_data(
-                    issue_id=selector.issue_id or 0, series_id=selector.volume_id, issue_number=selector.issue_number
+                    issue_id=selector.issue_id or 0, series_id=selector.series_id, issue_number=selector.issue_number
                 )
             except TalkerError as e:
                 QtWidgets.QApplication.restoreOverrideCursor()

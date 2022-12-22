@@ -39,8 +39,6 @@ class IssueNumberTableWidgetItem(QtWidgets.QTableWidgetItem):
 
 
 class IssueSelectionWindow(QtWidgets.QDialog):
-    volume_id = 0
-
     def __init__(
         self,
         parent: QtWidgets.QWidget,
@@ -106,7 +104,7 @@ class IssueSelectionWindow(QtWidgets.QDialog):
         QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
 
         try:
-            self.issue_list = self.talker_api.fetch_issues_by_volume(self.series_id)
+            self.issue_list = self.talker_api.fetch_issues_by_series(self.series_id)
         except TalkerError as e:
             QtWidgets.QApplication.restoreOverrideCursor()
             QtWidgets.QMessageBox.critical(self, f"{e.source} {e.code_name} Error", f"{e}")

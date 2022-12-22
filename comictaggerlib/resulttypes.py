@@ -13,7 +13,7 @@ class IssueResult(TypedDict):
     url_image_hash: int
     issue_title: str
     issue_id: int  # int?
-    volume_id: int  # int?
+    series_id: int  # int?
     month: int | None
     year: int | None
     publisher: str | None
