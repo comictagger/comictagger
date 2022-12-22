@@ -4,6 +4,7 @@ from typing import Any
 
 import comicapi.genericmetadata
 from comicapi import utils
+from comictalker.resulttypes import ComicIssue, ComicSeries
 from comictalker.talker_utils import cleanup_html
 
 
@@ -22,7 +23,7 @@ cv_issue_result: dict[str, Any] = {
     "number_of_total_results": 1,
     "status_code": 1,
     "results": {
-        "aliases": [],
+        "aliases": None,
         "api_detail_url": "https://comicvine.gamespot.com/api/issue/4000-140529/",
         "associated_images": [],
         "character_credits": [],
@@ -117,7 +118,7 @@ cv_volume_result: dict[str, Any] = {
     "number_of_total_results": 1,
     "status_code": 1,
     "results": {
-        "aliases": [],
+        "aliases": None,
         "api_detail_url": "https://comicvine.gamespot.com/api/volume/4050-23437/",
         "count_of_issues": 6,
         "date_added": "2008-10-16 05:25:47",
@@ -157,23 +158,34 @@ cv_not_found = {
     "status_code": 101,
     "results": [],
 }
-comic_issue_result: dict[str, Any] = {
-    "aliases": cv_issue_result["results"]["aliases"],
-    "cover_date": cv_issue_result["results"]["cover_date"],
-    "description": cv_issue_result["results"]["description"],
-    "id": cv_issue_result["results"]["id"],
-    "image_url": cv_issue_result["results"]["image"]["super_url"],
-    "image_thumb_url": cv_issue_result["results"]["image"]["thumb_url"],
-    "issue_number": cv_issue_result["results"]["issue_number"],
-    "name": cv_issue_result["results"]["name"],
-    "site_detail_url": cv_issue_result["results"]["site_detail_url"],
-    "volume": {
-        "api_detail_url": cv_issue_result["results"]["volume"]["api_detail_url"],
-        "id": cv_issue_result["results"]["volume"]["id"],
-        "name": cv_issue_result["results"]["volume"]["name"],
-        "site_detail_url": cv_issue_result["results"]["volume"]["site_detail_url"],
-    },
-}
+comic_issue_result = ComicIssue(
+    aliases=cv_issue_result["results"]["aliases"] or [],
+    cover_date=cv_issue_result["results"]["cover_date"],
+    description=cv_issue_result["results"]["description"],
+    id=cv_issue_result["results"]["id"],
+    image_url=cv_issue_result["results"]["image"]["super_url"],
+    image_thumb_url=cv_issue_result["results"]["image"]["thumb_url"],
+    issue_number=cv_issue_result["results"]["issue_number"],
+    name=cv_issue_result["results"]["name"],
+    site_detail_url=cv_issue_result["results"]["site_detail_url"],
+    series=ComicSeries(
+        id=cv_issue_result["results"]["volume"]["id"],
+        name=cv_issue_result["results"]["volume"]["name"],
+        aliases=[],
+        count_of_issues=0,
+        description="",
+        image_url="",
+        publisher="",
+        start_year=None,
+    ),
+    characters=[],
+    alt_image_urls=[],
+    complete=False,
+    credits=[],
+    locations=[],
+    story_arcs=[],
+    teams=[],
+)
 date = utils.parse_date_str(cv_issue_result["results"]["cover_date"])
 
 cv_md = comicapi.genericmetadata.GenericMetadata(

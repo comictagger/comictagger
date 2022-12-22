@@ -36,8 +36,8 @@ def map_comic_issue_to_metadata(
     metadata.is_empty = False
 
     # Is this best way to go about checking?
-    if issue_results["volume"].get("name"):
-        metadata.series = utils.xlate(issue_results["volume"]["name"])
+    if issue_results["series"].get("name"):
+        metadata.series = utils.xlate(issue_results["series"]["name"])
     if issue_results.get("issue_number"):
         metadata.issue = IssueString(issue_results["issue_number"]).as_string()
     if issue_results.get("name"):
@@ -45,17 +45,17 @@ def map_comic_issue_to_metadata(
     if issue_results.get("image_url"):
         metadata.cover_image = issue_results["image_url"]
 
-    if issue_results["volume"].get("publisher"):
-        metadata.publisher = utils.xlate(issue_results["volume"]["publisher"])
+    if issue_results["series"].get("publisher"):
+        metadata.publisher = utils.xlate(issue_results["series"]["publisher"])
 
     if issue_results.get("cover_date"):
         metadata.day, metadata.month, metadata.year = utils.parse_date_str(issue_results["cover_date"])
-    elif issue_results["volume"].get("start_year"):
-        metadata.year = utils.xlate(issue_results["volume"]["start_year"], True)
+    elif issue_results["series"].get("start_year"):
+        metadata.year = utils.xlate(issue_results["series"]["start_year"], True)
 
     metadata.comments = cleanup_html(issue_results["description"], remove_html_tables)
     if use_year_volume:
-        metadata.volume = issue_results["volume"]["start_year"]
+        metadata.volume = issue_results["series"]["start_year"]
 
     metadata.tag_origin = source
     metadata.issue_id = issue_results["id"]

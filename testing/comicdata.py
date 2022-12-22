@@ -5,7 +5,7 @@ import comictalker.resulttypes
 from comicapi import utils
 
 search_results = [
-    comictalker.resulttypes.ComicVolume(
+    comictalker.resulttypes.ComicSeries(
         count_of_issues=1,
         description="this is a description",
         id=1,
@@ -15,7 +15,7 @@ search_results = [
         start_year=0,
         aliases=[],
     ),
-    comictalker.resulttypes.ComicVolume(
+    comictalker.resulttypes.ComicSeries(
         count_of_issues=1,
         description="this is a description",
         id=2,

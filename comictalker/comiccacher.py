@@ -23,7 +23,7 @@ import pathlib
 import sqlite3 as lite
 from typing import Any
 
-from comictalker.resulttypes import ComicIssue, ComicVolume
+from comictalker.resulttypes import ComicIssue, ComicSeries
 
 logger = logging.getLogger(__name__)
 
@@ -74,7 +74,7 @@ class ComicCacher:
             cur = con.cursor()
             # source_name,name,id,start_year,publisher,image,description,count_of_issues
             cur.execute(
-                "CREATE TABLE VolumeSearchCache("
+                "CREATE TABLE SeriesSearchCache("
                 + "search_term TEXT,"
                 + "id INT NOT NULL,"
                 + "timestamp DATE DEFAULT (datetime('now','localtime')),"
@@ -82,7 +82,7 @@ class ComicCacher:
             )
 
             cur.execute(
-                "CREATE TABLE Volumes("
+                "CREATE TABLE Series("
                 + "id INT NOT NULL,"
                 + "name TEXT,"
                 + "publisher TEXT,"
@@ -99,7 +99,7 @@ class ComicCacher:
             cur.execute(
                 "CREATE TABLE Issues("
                 + "id INT NOT NULL,"
-                + "volume_id INT,"
+                + "series_id INT,"
                 + "name TEXT,"
                 + "issue_number TEXT,"
                 + "image_url TEXT,"
@@ -120,7 +120,7 @@ class ComicCacher:
                 + "PRIMARY KEY (id, source_name))"
             )
 
-    def add_search_results(self, source_name: str, search_term: str, ct_search_results: list[ComicVolume]) -> None:
+    def add_search_results(self, source_name: str, search_term: str, ct_search_results: list[ComicSeries]) -> None:
         con = lite.connect(self.db_file)
 
         with con:
@@ -129,14 +129,14 @@ class ComicCacher:
 
             # remove all previous entries with this search term
             cur.execute(
-                "DELETE FROM VolumeSearchCache WHERE search_term = ? AND source_name = ?",
+                "DELETE FROM SeriesSearchCache WHERE search_term = ? AND source_name = ?",
                 [search_term.casefold(), source_name],
             )
 
             # now add in new results
             for record in ct_search_results:
                 cur.execute(
-                    "INSERT INTO VolumeSearchCache " + "(source_name, search_term, id) " + "VALUES(?, ?, ?)",
+                    "INSERT INTO SeriesSearchCache " + "(source_name, search_term, id) " + "VALUES(?, ?, ?)",
                     (source_name, search_term.casefold(), record["id"]),
                 )
 
@@ -152,9 +152,9 @@ class ComicCacher:
                     "timestamp": datetime.datetime.now(),
                     "aliases": "\n".join(record.get("aliases", [])),
                 }
-                self.upsert(cur, "volumes", data)
+                self.upsert(cur, "series", data)
 
-    def get_search_results(self, source_name: str, search_term: str) -> list[ComicVolume]:
+    def get_search_results(self, source_name: str, search_term: str) -> list[ComicSeries]:
         results = []
         con = lite.connect(self.db_file)
         with con:
@@ -162,16 +162,16 @@ class ComicCacher:
             cur = con.cursor()
 
             cur.execute(
-                "SELECT * FROM VolumeSearchCache INNER JOIN Volumes on"
-                " VolumeSearchCache.id=Volumes.id AND VolumeSearchCache.source_name=Volumes.source_name"
-                " WHERE search_term=? AND VolumeSearchCache.source_name=?",
+                "SELECT * FROM SeriesSearchCache INNER JOIN Series on"
+                " SeriesSearchCache.id=Series.id AND SeriesSearchCache.source_name=Series.source_name"
+                " WHERE search_term=? AND SeriesSearchCache.source_name=?",
                 [search_term.casefold(), source_name],
             )
 
             rows = cur.fetchall()
             # now process the results
             for record in rows:
-                result = ComicVolume(
+                result = ComicSeries(
                     id=record[4],
                     name=record[5],
                     publisher=record[6],
@@ -186,7 +186,7 @@ class ComicCacher:
 
         return results
 
-    def add_volume_info(self, source_name: str, volume_record: ComicVolume) -> None:
+    def add_series_info(self, source_name: str, series_record: ComicSeries) -> None:
         con = lite.connect(self.db_file)
 
         with con:
@@ -195,20 +195,20 @@ class ComicCacher:
             timestamp = datetime.datetime.now()
 
             data = {
-                "id": volume_record["id"],
+                "id": series_record["id"],
                 "source_name": source_name,
-                "name": volume_record["name"],
-                "publisher": volume_record.get("publisher", ""),
-                "count_of_issues": volume_record.get("count_of_issues"),
-                "start_year": volume_record.get("start_year"),
-                "image_url": volume_record.get("image_url", ""),
-                "description": volume_record.get("description", ""),
+                "name": series_record["name"],
+                "publisher": series_record.get("publisher", ""),
+                "count_of_issues": series_record.get("count_of_issues"),
+                "start_year": series_record.get("start_year"),
+                "image_url": series_record.get("image_url", ""),
+                "description": series_record.get("description", ""),
                 "timestamp": timestamp,
-                "aliases": "\n".join(volume_record.get("aliases", [])),
+                "aliases": "\n".join(series_record.get("aliases", [])),
             }
-            self.upsert(cur, "volumes", data)
+            self.upsert(cur, "series", data)
 
-    def add_volume_issues_info(self, source_name: str, volume_issues: list[ComicIssue]) -> None:
+    def add_series_issues_info(self, source_name: str, series_issues: list[ComicIssue]) -> None:
         con = lite.connect(self.db_file)
 
         with con:
@@ -218,10 +218,10 @@ class ComicCacher:
 
             # add in issues
 
-            for issue in volume_issues:
+            for issue in series_issues:
                 data = {
                     "id": issue["id"],
-                    "volume_id": issue["volume"]["id"],
+                    "series_id": issue["series"]["id"],
                     "source_name": source_name,
                     "name": issue["name"],
                     "issue_number": issue["issue_number"],
@@ -242,8 +242,8 @@ class ComicCacher:
                 }
                 self.upsert(cur, "issues", data)
 
-    def get_volume_info(self, volume_id: int, source_name: str, purge: bool = True) -> ComicVolume | None:
-        result: ComicVolume | None = None
+    def get_series_info(self, series_id: int, source_name: str, purge: bool = True) -> ComicSeries | None:
+        result: ComicSeries | None = None
 
         con = lite.connect(self.db_file)
         with con:
@@ -251,12 +251,12 @@ class ComicCacher:
             con.text_factory = str
 
             if purge:
-                # purge stale volume info
+                # purge stale series info
                 a_week_ago = datetime.datetime.today() - datetime.timedelta(days=7)
-                cur.execute("DELETE FROM Volumes WHERE timestamp  < ?", [str(a_week_ago)])
+                cur.execute("DELETE FROM Series WHERE timestamp  < ?", [str(a_week_ago)])
 
             # fetch
-            cur.execute("SELECT * FROM Volumes" " WHERE id=? AND source_name=?", [volume_id, source_name])
+            cur.execute("SELECT * FROM Series" " WHERE id=? AND source_name=?", [series_id, source_name])
 
             row = cur.fetchone()
 
@@ -264,7 +264,7 @@ class ComicCacher:
                 return result
 
             # since ID is primary key, there is only one row
-            result = ComicVolume(
+            result = ComicSeries(
                 id=row[0],
                 name=row[1],
                 publisher=row[2],
@@ -277,9 +277,9 @@ class ComicCacher:
 
         return result
 
-    def get_volume_issues_info(self, volume_id: int, source_name: str) -> list[ComicIssue]:
-        # get_volume_info should only fail if someone is doing something weird
-        volume = self.get_volume_info(volume_id, source_name, False) or ComicVolume(id=volume_id, name="")
+    def get_series_issues_info(self, series_id: int, source_name: str) -> list[ComicIssue]:
+        # get_series_info should only fail if someone is doing something weird
+        series = self.get_series_info(series_id, source_name, False) or ComicSeries(id=series_id, name="")
         con = lite.connect(self.db_file)
         with con:
             cur = con.cursor()
@@ -296,9 +296,9 @@ class ComicCacher:
             cur.execute(
                 (
                     "SELECT source_name,id,name,issue_number,site_detail_url,cover_date,image_url,thumb_url,description,aliases,alt_image_urls,characters,locations,credits,teams,story_arcs,complete"
-                    " FROM Issues WHERE volume_id=? AND source_name=?"
+                    " FROM Issues WHERE series_id=? AND source_name=?"
                 ),
-                [volume_id, source_name],
+                [series_id, source_name],
             )
             rows = cur.fetchall()
 
@@ -312,7 +312,7 @@ class ComicCacher:
                     cover_date=row[5],
                     image_url=row[6],
                     description=row[8],
-                    volume=volume,
+                    series=series,
                     aliases=row[9].strip().splitlines(),
                     alt_image_urls=row[10].strip().splitlines(),
                     characters=row[11].strip().splitlines(),
@@ -340,7 +340,7 @@ class ComicCacher:
 
             cur.execute(
                 (
-                    "SELECT source_name,id,name,issue_number,site_detail_url,cover_date,image_url,thumb_url,description,aliases,volume_id,alt_image_urls,characters,locations,credits,teams,story_arcs,complete"
+                    "SELECT source_name,id,name,issue_number,site_detail_url,cover_date,image_url,thumb_url,description,aliases,series_id,alt_image_urls,characters,locations,credits,teams,story_arcs,complete"
                     " FROM Issues WHERE id=? AND source_name=?"
                 ),
                 [issue_id, source_name],
@@ -350,8 +350,8 @@ class ComicCacher:
             record = None
 
             if row:
-                # get_volume_info should only fail if someone is doing something weird
-                volume = self.get_volume_info(row[10], source_name, False) or ComicVolume(id=row[10], name="")
+                # get_series_info should only fail if someone is doing something weird
+                series = self.get_series_info(row[10], source_name, False) or ComicSeries(id=row[10], name="")
 
                 # now process the results
 
@@ -364,7 +364,7 @@ class ComicCacher:
                     image_url=row[6],
                     image_thumb_url=row[7],
                     description=row[8],
-                    volume=volume,
+                    series=series,
                     aliases=row[9].strip().splitlines(),
                     alt_image_urls=row[11].strip().splitlines(),
                     characters=row[12].strip().splitlines(),

@@ -32,8 +32,6 @@ logger = logging.getLogger(__name__)
 
 
 class MatchSelectionWindow(QtWidgets.QDialog):
-    volume_id = 0
-
     def __init__(
         self,
         parent: QtWidgets.QWidget,
