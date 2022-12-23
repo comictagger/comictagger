@@ -186,12 +186,12 @@ class ComicTalker:
         """
         raise NotImplementedError
 
-    def fetch_issues_by_series(self, series_id: int) -> list[ComicIssue]:
+    def fetch_issues_by_series(self, series_id: str) -> list[ComicIssue]:
         """Expected to return a list of issues with a given series ID"""
         raise NotImplementedError
 
     def fetch_comic_data(
-        self, issue_id: int | None = None, series_id: int | None = None, issue_number: str = ""
+        self, issue_id: str | None = None, series_id: str | None = None, issue_number: str = ""
     ) -> GenericMetadata:
         """
         This function should return an instance of GenericMetadata for a single issue.
@@ -208,7 +208,7 @@ class ComicTalker:
         raise NotImplementedError
 
     def fetch_issues_by_series_issue_num_and_year(
-        self, series_id_list: list[int], issue_number: str, year: int | None
+        self, series_id_list: list[str], issue_number: str, year: int | None
     ) -> list[ComicIssue]:
         """
         This function should return a single issue for each series id in

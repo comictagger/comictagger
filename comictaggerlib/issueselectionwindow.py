@@ -44,7 +44,7 @@ class IssueSelectionWindow(QtWidgets.QDialog):
         parent: QtWidgets.QWidget,
         options: settngs.Namespace,
         talker_api: ComicTalker,
-        series_id: int,
+        series_id: str,
         issue_number: str,
     ) -> None:
         super().__init__(parent)
@@ -70,7 +70,7 @@ class IssueSelectionWindow(QtWidgets.QDialog):
         )
 
         self.series_id = series_id
-        self.issue_id: int | None = None
+        self.issue_id: str = ""
         self.options = options
         self.talker_api = talker_api
         self.url_fetch_thread = None
@@ -81,7 +81,7 @@ class IssueSelectionWindow(QtWidgets.QDialog):
         else:
             self.issue_number = issue_number
 
-        self.initial_id: int | None = None
+        self.initial_id: str = ""
         self.perform_query()
 
         self.twList.resizeColumnsToContents()

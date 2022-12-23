@@ -12,8 +12,8 @@ class IssueResult(TypedDict):
     cv_issue_count: int
     url_image_hash: int
     issue_title: str
-    issue_id: int  # int?
-    series_id: int  # int?
+    issue_id: str
+    series_id: str
     month: int | None
     year: int | None
     publisher: str | None

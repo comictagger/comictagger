@@ -237,7 +237,7 @@ class IssueIdentifier:
 
     def get_issue_cover_match_score(
         self,
-        issue_id: int,
+        issue_id: str,
         primary_img_url: str,
         primary_thumb_url: str,
         alt_urls: list[str],
@@ -254,7 +254,7 @@ class IssueIdentifier:
 
         try:
             url_image_data = ImageFetcher(self.options.runtime_config.user_cache_dir).fetch(
-                primary_thumb_url, blocking=True
+                primary_img_url, blocking=True
             )
         except ImageFetcherException as e:
             self.log_msg("Network issue while fetching cover image from Comic Vine. Aborting...")
@@ -390,13 +390,8 @@ class IssueIdentifier:
             date_approved = True
 
             # remove any series that starts after the issue year
-            if (
-                keys["year"] is not None
-                and str(keys["year"]).isdigit()
-                and item["start_year"] is not None
-                and str(item["start_year"]).isdigit()
-            ):
-                if int(keys["year"]) < int(item["start_year"]):
+            if keys["year"] is not None and item["start_year"] is not None:
+                if keys["year"] < item["start_year"]:
                     date_approved = False
 
             for name in [item["name"], *item["aliases"]]:
@@ -420,16 +415,13 @@ class IssueIdentifier:
         # now sort the list by name length
         series_second_round_list.sort(key=lambda x: len(x["name"]), reverse=False)
 
-        # build a list of series IDs
-        series_id_list = []
-        for series in series_second_round_list:
-            series_id_list.append(series["id"])
+        series_by_id = {series["id"]: series for series in series_second_round_list}
 
         issue_list = None
         try:
-            if len(series_id_list) > 0:
+            if len(series_by_id) > 0:
                 issue_list = self.talker_api.fetch_issues_by_series_issue_num_and_year(
-                    series_id_list, keys["issue_number"], keys["year"]
+                    list(series_by_id.keys()), keys["issue_number"], keys["year"]
                 )
         except TalkerError as e:
             self.log_msg(f"Issue with while searching for series details. Aborting...\n{e}")
@@ -440,11 +432,10 @@ class IssueIdentifier:
 
         shortlist = []
         # now re-associate the issues and series
+        # is this really needed?
         for issue in issue_list:
-            for series in series_second_round_list:
-                if series["id"] == issue["series"]["id"]:
-                    shortlist.append((series, issue))
-                    break
+            if issue["series"]["id"] in series_by_id:
+                shortlist.append((series_by_id[issue["series"]["id"]], issue))
 
         if keys["year"] is None:
             self.log_msg(f"Found {len(shortlist)} series that have an issue #{keys['issue_number']}")
@@ -501,7 +492,6 @@ class IssueIdentifier:
                 "publisher": None,
                 "image_url": image_url,
                 "thumb_url": thumb_url,
-                # "page_url": page_url,
                 "alt_image_urls": alt_urls,
                 "description": issue["description"],
             }

@@ -45,7 +45,7 @@ class CLI:
         self.talker_api = talker_api
         self.batch_mode = False
 
-    def actual_issue_data_fetch(self, issue_id: int) -> GenericMetadata:
+    def actual_issue_data_fetch(self, issue_id: str) -> GenericMetadata:
         # now get the particular issue data
         try:
             ct_md = self.talker_api.fetch_comic_data(issue_id)

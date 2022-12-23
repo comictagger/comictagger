@@ -58,7 +58,7 @@ from comictaggerlib.pagebrowser import PageBrowserWindow
 from comictaggerlib.pagelisteditor import PageListEditor
 from comictaggerlib.renamewindow import RenameWindow
 from comictaggerlib.resulttypes import IssueResult, MultipleMatch, OnlineMatchResults
-from comictaggerlib.serieselectionwindow import SeriesSelectionWindow
+from comictaggerlib.seriesselectionwindow import SeriesSelectionWindow
 from comictaggerlib.settingswindow import SettingsWindow
 from comictaggerlib.ui import ui_path
 from comictaggerlib.ui.qtutils import center_window_on_parent, reduce_widget_font_size
@@ -1073,7 +1073,7 @@ Have fun!
 
             try:
                 new_metadata = self.talker_api.fetch_comic_data(
-                    issue_id=selector.issue_id or 0, series_id=selector.series_id, issue_number=selector.issue_number
+                    issue_id=selector.issue_id, series_id=selector.series_id, issue_number=selector.issue_number
                 )
             except TalkerError as e:
                 QtWidgets.QApplication.restoreOverrideCursor()

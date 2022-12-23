@@ -118,7 +118,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
     ) -> None:
         super().__init__(parent)
 
-        uic.loadUi(ui_path / "serieselectionwindow.ui", self)
+        uic.loadUi(ui_path / "seriesselectionwindow.ui", self)
 
         self.imageWidget = CoverImageWidget(
             self.imageContainer, CoverImageWidget.URLMode, options.runtime_config.user_cache_dir, talker_api
@@ -141,10 +141,10 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         self.options = options
         self.series_name = series_name
         self.issue_number = issue_number
-        self.issue_id: int | None = None
+        self.issue_id: str = ""
         self.year = year
         self.issue_count = issue_count
-        self.series_id = 0
+        self.series_id: str = ""
         self.comic_archive = comic_archive
         self.immediate_autoselect = autoselect
         self.cover_index_list = cover_index_list

@@ -77,14 +77,14 @@ class ComicCacher:
             cur.execute(
                 "CREATE TABLE SeriesSearchCache("
                 + "search_term TEXT,"
-                + "id INT NOT NULL,"
+                + "id TEXT NOT NULL,"
                 + "timestamp DATE DEFAULT (datetime('now','localtime')),"
                 + "source_name TEXT NOT NULL)"
             )
 
             cur.execute(
                 "CREATE TABLE Series("
-                + "id INT NOT NULL,"
+                + "id TEXT NOT NULL,"
                 + "name TEXT,"
                 + "publisher TEXT,"
                 + "count_of_issues INT,"
@@ -99,8 +99,8 @@ class ComicCacher:
 
             cur.execute(
                 "CREATE TABLE Issues("
-                + "id INT NOT NULL,"
-                + "series_id INT,"
+                + "id TEXT NOT NULL,"
+                + "series_id TEXT,"
                 + "name TEXT,"
                 + "issue_number TEXT,"
                 + "image_url TEXT,"
@@ -248,7 +248,7 @@ class ComicCacher:
                 }
                 self.upsert(cur, "issues", data)
 
-    def get_series_info(self, series_id: int, source_name: str, purge: bool = True) -> ComicSeries | None:
+    def get_series_info(self, series_id: str, source_name: str, purge: bool = True) -> ComicSeries | None:
         result: ComicSeries | None = None
 
         con = lite.connect(self.db_file)
@@ -286,7 +286,7 @@ class ComicCacher:
 
         return result
 
-    def get_series_issues_info(self, series_id: int, source_name: str) -> list[ComicIssue]:
+    def get_series_issues_info(self, series_id: str, source_name: str) -> list[ComicIssue]:
         # get_series_info should only fail if someone is doing something weird
         series = self.get_series_info(series_id, source_name, False) or ComicSeries(id=series_id, name="")
         con = lite.connect(self.db_file)
