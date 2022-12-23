@@ -1,5 +1,3 @@
-"""A template for an information source
-"""
 # Copyright 2012-2014 Anthony Beville
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,11 +21,9 @@ from urllib.parse import urlsplit
 import settngs
 
 from comicapi.genericmetadata import GenericMetadata
-from comictalker.resulttypes import ComicIssue, ComicVolume
+from comictalker.resulttypes import ComicIssue, ComicSeries
 
 logger = logging.getLogger(__name__)
-
-# NOTE: Series and Volume are synonymous. Some sources (ComicVine) use "volume" and others (MangaUpdates) use "series".
 
 
 class SourceDetails:
@@ -35,7 +31,7 @@ class SourceDetails:
         self,
         name: str = "",
         ident: str = "",
-        logo: str = "",  # Will be scaled if greater than 100px width and 250px height in comictalker/talkers/logos
+        logo: str = "",
     ):
         self.name = name
         self.id = ident
@@ -151,10 +147,8 @@ class ComicTalker:
 
     def __init__(self, version: str, cache_folder: pathlib.Path, api_url: str = "", api_key: str = "") -> None:
         # Identity name for the information source etc.
-        self.source_details: SourceDetails = (
-            SourceDetails()
-        )  # Can use this to test if custom talker has been configured
-        self.static_options: SourceStaticOptions = SourceStaticOptions()
+        self.source_details = SourceDetails()
+        self.static_options = SourceStaticOptions()
         self.api_key = api_key
         self.cache_folder = cache_folder
         self.version = version
@@ -171,7 +165,10 @@ class ComicTalker:
         self.api_url = tmp_url.geturl()
 
     def check_api_key(self, key: str, url: str) -> bool:
-        """If the talker has or requires an API key, this function should test its validity"""
+        """
+        This function should return true if the given api key and url are valid.
+        If the Talker does not use an api key it should validate that the url works.
+        """
         raise NotImplementedError
 
     def search_for_series(
@@ -180,26 +177,49 @@ class ComicTalker:
         callback: Callable[[int, int], None] | None = None,
         refresh_cache: bool = False,
         literal: bool = False,
-    ) -> list[ComicVolume]:
-        """Searches for the series/volumes with the given series_name
-        callback is used for...
-        refresh_cache signals if the data in the cache should be used
-        literal indicates that no articles (a, the, etc.) should be removed when searching"""
+    ) -> list[ComicSeries]:
+        """
+        This function should return a list of series that match the given series name
+        according to the source the Talker uses.
+        Sanitizing the series name is the responsibility of the talker.
+        If `literal` == True then it is requested that no filtering or
+        transformation/sanitizing of the title or results be performed by the talker.
+        A sensible amount of results should be returned.
+        For example the `ComicVineTalker` stops requesting new pages after the results
+        become too different from the `series_name`  by use of the `titles_match` function
+        provided by the `comicapi.utils` module, and only allows a maximum of 5 pages
+        """
         raise NotImplementedError
 
-    def fetch_issues_by_volume(self, series_id: int) -> list[ComicIssue]:
-        """Expected to return a list of issues with a given series/volume ID"""
+    def fetch_issues_by_series(self, series_id: str) -> list[ComicIssue]:
+        """Expected to return a list of issues with a given series ID"""
         raise NotImplementedError
 
-    def fetch_comic_data(self, issue_id: int = 0, series_id: int = 0, issue_number: str = "") -> GenericMetadata:
-        """This function is expected to handle a few possibilities:
-        1. Only series_id passed in: Retrieve the SERIES/VOLUME information only
-        2. series_id and issue_number: Retrieve the ISSUE information
-        3. Only issue_id: Retrieve the ISSUE information"""
+    def fetch_comic_data(
+        self, issue_id: str | None = None, series_id: str | None = None, issue_number: str = ""
+    ) -> GenericMetadata:
+        """
+        This function should return an instance of GenericMetadata for a single issue.
+        It is guaranteed that either `issue_id` or (`series_id` and `issue_number` is set).
+        Below is an example of how this function might be implemented:
+
+        if issue_number and series_id:
+            return self.fetch_issue_data(series_id, issue_number)
+        elif issue_id:
+            return self.fetch_issue_data_by_issue_id(issue_id)
+        else:
+            return GenericMetadata()
+        """
         raise NotImplementedError
 
-    def fetch_issues_by_volume_issue_num_and_year(
-        self, volume_id_list: list[int], issue_number: str, year: str | int | None
+    def fetch_issues_by_series_issue_num_and_year(
+        self, series_id_list: list[str], issue_number: str, year: int | None
     ) -> list[ComicIssue]:
-        """Searches for a list of issues within the given year. Used solely by issueidentifer"""
+        """
+        This function should return a single issue for each series id in
+        the `series_id_list` and it should match the issue_number.
+        Preferably it should also only return issues published in the given `year`.
+        If there is no year given (`year` == None) or the Talker does not have issue publication info
+        return the results unfiltered.
+        """
         raise NotImplementedError

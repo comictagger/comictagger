@@ -1,43 +1,52 @@
 from __future__ import annotations
 
-from typing_extensions import Required, TypedDict
+import copy
+import dataclasses
 
 
-class Credits(TypedDict):
+@dataclasses.dataclass
+class Credit:
     name: str
     role: str
 
 
-class ComicVolume(TypedDict, total=False):
+@dataclasses.dataclass
+class ComicSeries:
     aliases: list[str]
-    count_of_issues: int
+    count_of_issues: int | None
     description: str
-    id: Required[int]
+    id: str
     image_url: str
-    name: Required[str]
+    name: str
     publisher: str
-    start_year: int
+    start_year: int | None
+
+    def copy(self) -> ComicSeries:
+        return copy.deepcopy(self)
 
 
-class ComicIssue(TypedDict, total=False):
+@dataclasses.dataclass
+class ComicIssue:
     aliases: list[str]
     cover_date: str
     description: str
-    id: int
+    id: str
     image_url: str
-    image_thumb_url: str
     issue_number: str
     rating: float
     manga: str
     genres: list[str]
     tags: list[str]
-    name: Required[str]
+    name: str
     site_detail_url: str
-    volume: ComicVolume
+    series: ComicSeries
     alt_image_urls: list[str]
     characters: list[str]
     locations: list[str]
-    credits: list[Credits]
+    credits: list[Credit]
     teams: list[str]
     story_arcs: list[str]
     complete: bool  # Is this a complete ComicIssue? or is there more data to fetch
+
+    def copy(self) -> ComicIssue:
+        return copy.deepcopy(self)

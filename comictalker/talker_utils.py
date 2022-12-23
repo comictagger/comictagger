@@ -35,58 +35,53 @@ def map_comic_issue_to_metadata(
     metadata = GenericMetadata()
     metadata.is_empty = False
 
-    # Is this best way to go about checking?
-    if issue_results["volume"].get("name"):
-        metadata.series = utils.xlate(issue_results["volume"]["name"])
-    if issue_results.get("issue_number"):
-        metadata.issue = IssueString(issue_results["issue_number"]).as_string()
-    if issue_results.get("name"):
-        metadata.title = utils.xlate(issue_results["name"])
-    if issue_results.get("image_url"):
-        metadata.cover_image = issue_results["image_url"]
-    # TODO Should this number ever be used?
-    # if source != "comicvine" and issue_results["volume"]["count_of_issues"] > 0:
-    # metadata.issue_count = issue_results["volume"]["count_of_issues"]
+    metadata.series = utils.xlate(issue_results.series.name)
+    metadata.issue = IssueString(issue_results.issue_number).as_string()
 
-    if issue_results["volume"].get("publisher"):
-        metadata.publisher = utils.xlate(issue_results["volume"]["publisher"])
+    if issue_results.name:
+        metadata.title = utils.xlate(issue_results.name)
+    if issue_results.image_url:
+        metadata.cover_image = issue_results.image_url
 
-    if issue_results.get("cover_date"):
-        metadata.day, metadata.month, metadata.year = utils.parse_date_str(issue_results["cover_date"])
-    elif issue_results["volume"].get("start_year"):
-        metadata.year = utils.xlate(issue_results["volume"]["start_year"], True)
+    if issue_results.series.publisher:
+        metadata.publisher = utils.xlate(issue_results.series.publisher)
 
-    metadata.comments = cleanup_html(issue_results["description"], remove_html_tables)
+    if issue_results.cover_date:
+        metadata.day, metadata.month, metadata.year = utils.parse_date_str(issue_results.cover_date)
+    elif issue_results.series.start_year:
+        metadata.year = utils.xlate(issue_results.series.start_year, True)
+
+    metadata.comments = cleanup_html(issue_results.description, remove_html_tables)
     if use_year_volume:
-        metadata.volume = issue_results["volume"]["start_year"]
+        metadata.volume = issue_results.series.start_year
 
     metadata.tag_origin = source
-    metadata.issue_id = issue_results["id"]
-    metadata.web_link = issue_results["site_detail_url"]
+    metadata.issue_id = issue_results.id
+    metadata.web_link = issue_results.site_detail_url
 
-    for person in issue_results["credits"]:
-        if "role" in person:
-            roles = person["role"].split(",")
+    for person in issue_results.credits:
+        if person.role:
+            roles = person.role.split(",")
             for role in roles:
                 # can we determine 'primary' from CV??
-                metadata.add_credit(person["name"], role.title().strip(), False)
+                metadata.add_credit(person.name, role.title().strip(), False)
 
-    if issue_results.get("characters"):
-        metadata.characters = ", ".join(issue_results["characters"])
-    if issue_results.get("teams"):
-        metadata.teams = ", ".join(issue_results["teams"])
-    if issue_results.get("locations"):
-        metadata.locations = ", ".join(issue_results["locations"])
-    if issue_results.get("story_arcs"):
-        metadata.story_arc = ", ".join(issue_results["story_arcs"])
-    if issue_results.get("genres"):
-        metadata.genre = ", ".join(issue_results["genres"])
-    if issue_results.get("tags"):
-        metadata.tags = set(issue_results["tags"])
-    if issue_results.get("manga"):
-        metadata.manga = issue_results["manga"]
-    if issue_results.get("rating"):
-        metadata.critical_rating = issue_results["rating"]
+    if issue_results.characters:
+        metadata.characters = ", ".join(issue_results.characters)
+    if issue_results.teams:
+        metadata.teams = ", ".join(issue_results.teams)
+    if issue_results.locations:
+        metadata.locations = ", ".join(issue_results.locations)
+    if issue_results.story_arcs:
+        metadata.story_arc = ", ".join(issue_results.story_arcs)
+    if issue_results.genres:
+        metadata.genre = ", ".join(issue_results.genres)
+    if issue_results.tags:
+        metadata.tags = set(issue_results.tags)
+    if issue_results.manga:
+        metadata.manga = issue_results.manga
+    if issue_results.rating:
+        metadata.critical_rating = issue_results.rating
 
     return metadata
 

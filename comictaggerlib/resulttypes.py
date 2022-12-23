@@ -9,11 +9,11 @@ class IssueResult(TypedDict):
     series: str
     distance: int
     issue_number: str
-    cv_issue_count: int
+    cv_issue_count: int | None
     url_image_hash: int
     issue_title: str
-    issue_id: int  # int?
-    volume_id: int  # int?
+    issue_id: str
+    series_id: str
     month: int | None
     year: int | None
     publisher: str | None

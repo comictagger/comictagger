@@ -39,14 +39,12 @@ class IssueNumberTableWidgetItem(QtWidgets.QTableWidgetItem):
 
 
 class IssueSelectionWindow(QtWidgets.QDialog):
-    volume_id = 0
-
     def __init__(
         self,
         parent: QtWidgets.QWidget,
         options: settngs.Namespace,
         talker_api: ComicTalker,
-        series_id: int,
+        series_id: str,
         issue_number: str,
     ) -> None:
         super().__init__(parent)
@@ -72,7 +70,7 @@ class IssueSelectionWindow(QtWidgets.QDialog):
         )
 
         self.series_id = series_id
-        self.issue_id: int | None = None
+        self.issue_id: str = ""
         self.options = options
         self.talker_api = talker_api
         self.url_fetch_thread = None
@@ -83,7 +81,7 @@ class IssueSelectionWindow(QtWidgets.QDialog):
         else:
             self.issue_number = issue_number
 
-        self.initial_id: int | None = None
+        self.initial_id: str = ""
         self.perform_query()
 
         self.twList.resizeColumnsToContents()
@@ -106,7 +104,7 @@ class IssueSelectionWindow(QtWidgets.QDialog):
         QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
 
         try:
-            self.issue_list = self.talker_api.fetch_issues_by_volume(self.series_id)
+            self.issue_list = self.talker_api.fetch_issues_by_series(self.series_id)
         except TalkerError as e:
             QtWidgets.QApplication.restoreOverrideCursor()
             QtWidgets.QMessageBox.critical(self, f"{e.source} {e.code_name} Error", f"{e}")
@@ -120,15 +118,15 @@ class IssueSelectionWindow(QtWidgets.QDialog):
         for record in self.issue_list:
             self.twList.insertRow(row)
 
-            item_text = record["issue_number"]
+            item_text = record.issue_number
             item = IssueNumberTableWidgetItem(item_text)
             item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
-            item.setData(QtCore.Qt.ItemDataRole.UserRole, record["id"])
+            item.setData(QtCore.Qt.ItemDataRole.UserRole, record.id)
             item.setData(QtCore.Qt.ItemDataRole.DisplayRole, item_text)
             item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
             self.twList.setItem(row, 0, item)
 
-            item_text = record["cover_date"]
+            item_text = record.cover_date
             if item_text is None:
                 item_text = ""
             # remove the day of "YYYY-MM-DD"
@@ -141,7 +139,7 @@ class IssueSelectionWindow(QtWidgets.QDialog):
             qtw_item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
             self.twList.setItem(row, 1, qtw_item)
 
-            item_text = record["name"]
+            item_text = record.name
             if item_text is None:
                 item_text = ""
             qtw_item = QtWidgets.QTableWidgetItem(item_text)
@@ -150,10 +148,10 @@ class IssueSelectionWindow(QtWidgets.QDialog):
             self.twList.setItem(row, 2, qtw_item)
 
             if (
-                IssueString(record["issue_number"]).as_string().casefold()
+                IssueString(record.issue_number).as_string().casefold()
                 == IssueString(self.issue_number).as_string().casefold()
             ):
-                self.initial_id = record["id"]
+                self.initial_id = record.id
 
             row += 1
 
@@ -176,12 +174,12 @@ class IssueSelectionWindow(QtWidgets.QDialog):
 
         # list selection was changed, update the the issue cover
         for record in self.issue_list:
-            if record["id"] == self.issue_id:
-                self.issue_number = record["issue_number"]
-                self.coverWidget.set_issue_details(self.issue_id, [record["image_url"], *record["alt_image_urls"]])
-                if record["description"] is None:
+            if record.id == self.issue_id:
+                self.issue_number = record.issue_number
+                self.coverWidget.set_issue_details(self.issue_id, [record.image_url, *record.alt_image_urls])
+                if record.description is None:
                     self.teDescription.setText("")
                 else:
-                    self.teDescription.setText(record["description"])
+                    self.teDescription.setText(record.description)
 
                 break

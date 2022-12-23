@@ -91,7 +91,7 @@ class CoverImageWidget(QtWidgets.QWidget):
         self.current_pixmap = QtGui.QPixmap()
 
         self.comic_archive: ComicArchive | None = None
-        self.issue_id: int | None = None
+        self.issue_id: str = ""
         self.issue_url: str | None = None
         self.url_list: list[str] = []
         if self.page_loader is not None:
@@ -116,7 +116,7 @@ class CoverImageWidget(QtWidgets.QWidget):
 
     def reset_widget(self) -> None:
         self.comic_archive = None
-        self.issue_id = None
+        self.issue_id = ""
         self.issue_url = None
         self.url_list = []
         if self.page_loader is not None:
@@ -160,7 +160,7 @@ class CoverImageWidget(QtWidgets.QWidget):
             self.imageCount = 1
             self.update_content()
 
-    def set_issue_details(self, issue_id: int, url_list: list[str]) -> None:
+    def set_issue_details(self, issue_id: str, url_list: list[str]) -> None:
         if self.mode == CoverImageWidget.AltCoverMode:
             self.reset_widget()
             self.update_content()

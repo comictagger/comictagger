@@ -21,13 +21,13 @@ def test_search_results(comic_cache):
     assert search_results == comic_cache.get_search_results("test", "test search")
 
 
-@pytest.mark.parametrize("volume_info", search_results)
-def test_volume_info(comic_cache, volume_info):
-    comic_cache.add_volume_info(volume_record=volume_info, source_name="test")
-    vi = volume_info.copy()
-    del vi["description"]
-    del vi["image_url"]
-    cache_result = comic_cache.get_volume_info(volume_id=volume_info["id"], source_name="test")
-    del cache_result["description"]
-    del cache_result["image_url"]
+@pytest.mark.parametrize("series_info", search_results)
+def test_series_info(comic_cache, series_info):
+    comic_cache.add_series_info(series_record=series_info, source_name="test")
+    vi = series_info.copy()
+    # del vi["description"]
+    # del vi["image_url"]
+    cache_result = comic_cache.get_series_info(series_id=series_info.id, source_name="test")
+    # del cache_result["description"]
+    # del cache_result["image_url"]
     assert vi == cache_result

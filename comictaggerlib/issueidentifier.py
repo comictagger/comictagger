@@ -30,7 +30,6 @@ from comicapi.issuestring import IssueString
 from comictaggerlib.imagefetcher import ImageFetcher, ImageFetcherException
 from comictaggerlib.imagehasher import ImageHasher
 from comictaggerlib.resulttypes import IssueResult
-from comictalker.resulttypes import ComicIssue, ComicVolume
 from comictalker.talkerbase import ComicTalker, TalkerError
 
 logger = logging.getLogger(__name__)
@@ -358,15 +357,9 @@ class IssueIdentifier:
         keys["issue_number"] = IssueString(keys["issue_number"]).as_string()
 
         # we need, at minimum, a series and issue number
-        # Unless this is a series only talker
-        if self.talker_api.static_options.has_issues:
-            if not (keys["series"] and keys["issue_number"]):
-                self.log_msg("Not enough info for a search!")
-                return []
-        else:
-            if not keys["series"]:
-                self.log_msg("Not enough info for a search!")
-                return []
+        if not (keys["series"] and keys["issue_number"]):
+            self.log_msg("Not enough info for a search!")
+            return []
 
         self.log_msg("Going to search for:")
         self.log_msg("\tSeries: " + keys["series"])
@@ -399,22 +392,17 @@ class IssueIdentifier:
             date_approved = True
 
             # remove any series that starts after the issue year
-            if (
-                keys["year"] is not None
-                and str(keys["year"]).isdigit()
-                and item["start_year"] is not None
-                and str(item["start_year"]).isdigit()
-            ):
-                if int(keys["year"]) < int(item["start_year"]):
+            if keys["year"] is not None and item.start_year is not None:
+                if keys["year"] < item.start_year:
                     date_approved = False
 
-            for name in [item["name"], *item["aliases"]]:
+            for name in [item.name, *item.aliases]:
                 if utils.titles_match(keys["series"], name, self.series_match_thresh):
                     length_approved = True
                     break
             # remove any series from publishers on the filter
-            if item["publisher"] is not None:
-                publisher = item["publisher"]
+            if item.publisher is not None:
+                publisher = item.publisher
                 if publisher is not None and publisher.casefold() in self.publisher_filter:
                     publisher_approved = False
 
@@ -427,53 +415,29 @@ class IssueIdentifier:
             self.callback(0, len(series_second_round_list))
 
         # now sort the list by name length
-        series_second_round_list.sort(key=lambda x: len(x["name"]), reverse=False)
+        series_second_round_list.sort(key=lambda x: len(x.name), reverse=False)
 
-        # build a list of volume IDs
-        volume_id_list = []
-        for series in series_second_round_list:
-            volume_id_list.append(series["id"])
+        series_by_id = {series.id: series for series in series_second_round_list}
 
         issue_list = None
-        if self.talker_api.static_options.has_issues:
-            try:
-                if len(volume_id_list) > 0:
-                    issue_list = self.talker_api.fetch_issues_by_volume_issue_num_and_year(
-                        volume_id_list, keys["issue_number"], keys["year"]
-                    )
-            except TalkerError as e:
-                self.log_msg(f"Issue with while searching for series details. Aborting...\n{e}")
-                return []
-        else:
-            # As there are no issues in a series talker, copy over the series data to issue list
-            issue_list = []
-            for series in series_second_round_list:
-                comic_to_issue = ComicIssue(
-                    aliases=series["aliases"],
-                    cover_date=f"{series['start_year']}-0-0",
-                    description=series["description"],
-                    id=series["id"],
-                    image_url=series["image_url"],
-                    alt_image_urls=[],
-                    issue_number="",
-                    name=series["name"],
-                    volume=ComicVolume(
-                        id=series["id"],
-                        name=series["name"],
-                    ),
+        try:
+            if len(series_by_id) > 0:
+                issue_list = self.talker_api.fetch_issues_by_series_issue_num_and_year(
+                    list(series_by_id.keys()), keys["issue_number"], keys["year"]
                 )
-                issue_list.append(comic_to_issue)
+        except TalkerError as e:
+            self.log_msg(f"Issue with while searching for series details. Aborting...\n{e}")
+            return []
 
         if issue_list is None:
             return []
 
         shortlist = []
-        # now re-associate the issues and volumes
+        # now re-associate the issues and series
+        # is this really needed?
         for issue in issue_list:
-            for series in series_second_round_list:
-                if series["id"] == issue["volume"]["id"]:
-                    shortlist.append((series, issue))
-                    break
+            if issue.series.id in series_by_id:
+                shortlist.append((series_by_id[issue.series.id], issue))
 
         if keys["year"] is None:
             self.log_msg(f"Found {len(shortlist)} series that have an issue #{keys['issue_number']}")
@@ -482,7 +446,7 @@ class IssueIdentifier:
                 f"Found {len(shortlist)} series that have an issue #{keys['issue_number']} from {keys['year']}"
             )
 
-        # now we have a shortlist of volumes with the desired issue number
+        # now we have a shortlist of series with the desired issue number
         # Do first round of cover matching
         counter = len(shortlist)
         for series, issue in shortlist:
@@ -491,12 +455,12 @@ class IssueIdentifier:
                 counter += 1
 
             self.log_msg(
-                f"Examining covers for  ID: {series['id']} {series['name']} ({series['start_year']}) ...",
+                f"Examining covers for  ID: {series.id} {series.name} ({series.start_year}) ...",
                 newline=False,
             )
 
             # parse out the cover date
-            _, month, year = utils.parse_date_str(issue["cover_date"])
+            _, month, year = utils.parse_date_str(issue.cover_date)
 
             # Now check the cover match against the primary image
             hash_list = [cover_hash]
@@ -504,8 +468,8 @@ class IssueIdentifier:
                 hash_list.append(narrow_cover_hash)
 
             try:
-                image_url = issue["image_url"]
-                alt_urls = issue["alt_image_urls"]
+                image_url = issue.image_url
+                alt_urls = issue.alt_image_urls
 
                 score_item = self.get_issue_cover_match_score(
                     primary_img_url=image_url,
@@ -519,23 +483,23 @@ class IssueIdentifier:
                 return self.match_list
 
             match: IssueResult = {
-                "series": f"{series['name']} ({series['start_year']})",
+                "series": f"{series.name} ({series.start_year})",
                 "distance": score_item["score"],
                 "issue_number": keys["issue_number"],
-                "cv_issue_count": series["count_of_issues"],
+                "cv_issue_count": series.count_of_issues,
                 "url_image_hash": score_item["hash"],
-                "issue_title": issue["name"],
-                "issue_id": issue["id"],
-                "volume_id": series["id"],
+                "issue_title": issue.name,
+                "issue_id": issue.id,
+                "series_id": series.id,
                 "month": month,
                 "year": year,
                 "publisher": None,
                 "image_url": image_url,
                 "alt_image_urls": alt_urls,
-                "description": issue["description"],
+                "description": issue.description,
             }
-            if series["publisher"] is not None:
-                match["publisher"] = series["publisher"]
+            if series.publisher is not None:
+                match["publisher"] = series.publisher
 
             self.match_list.append(match)
 
@@ -590,7 +554,7 @@ class IssueIdentifier:
                 if self.callback is not None:
                     self.callback(counter, len(self.match_list) * 3)
                     counter += 1
-                self.log_msg(f"Examining alternate covers for ID: {m['volume_id']} {m['series']} ...", newline=False)
+                self.log_msg(f"Examining alternate covers for ID: {m['series_id']} {m['series']} ...", newline=False)
                 try:
                     score_item = self.get_issue_cover_match_score(
                         m["image_url"],
@@ -642,7 +606,7 @@ class IssueIdentifier:
                 self.match_list.remove(match_item)
 
         # One more test for the case choosing limited series first issue vs a trade with the same cover:
-        # if we have a given issue count > 1 and the volume from CV has count==1, remove it from match list
+        # if we have a given issue count > 1 and the series from CV has count==1, remove it from match list
         if len(self.match_list) >= 2 and keys["issue_count"] is not None and keys["issue_count"] != 1:
             new_list = []
             for match in self.match_list:
@@ -650,7 +614,7 @@ class IssueIdentifier:
                     new_list.append(match)
                 else:
                     self.log_msg(
-                        f"Removing volume {match['series']} [{match['volume_id']}] from consideration (only 1 issue)"
+                        f"Removing series {match['series']} [{match['series_id']}] from consideration (only 1 issue)"
                     )
 
             if len(new_list) > 0:
