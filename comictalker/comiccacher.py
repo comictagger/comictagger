@@ -105,7 +105,6 @@ class ComicCacher:
                 + "name TEXT,"
                 + "issue_number TEXT,"
                 + "image_url TEXT,"
-                + "thumb_url TEXT,"
                 + "cover_date TEXT,"
                 + "site_detail_url TEXT,"
                 + "description TEXT,"
@@ -249,8 +248,8 @@ class ComicCacher:
                     "story_arcs": "\n".join(issue.story_arcs),
                     "genres": "\n".join(issue.genres),
                     "tags": "\n".join(issue.tags),
-                    "rating": issue.rating),
-                    "manga": issue.manga),
+                    "rating": issue.rating,
+                    "manga": issue.manga,
                     "credits": json.dumps([dataclasses.asdict(x) for x in issue.credits]),
                     "complete": issue.complete,
                 }
@@ -321,7 +320,7 @@ class ComicCacher:
 
             cur.execute(
                 (
-                    "SELECT source_name,id,name,issue_number,site_detail_url,cover_date,image_url,thumb_url,description,aliases,alt_image_urls,characters,locations,credits,teams,story_arcs,genres,tags,rating,manga,complete"
+                    "SELECT source_name,id,name,issue_number,site_detail_url,cover_date,image_url,description,aliases,alt_image_urls,characters,locations,credits,teams,story_arcs,genres,tags,rating,manga,complete"
                     " FROM Issues WHERE series_id=? AND source_name=?"
                 ),
                 [series_id, source_name],
@@ -332,10 +331,11 @@ class ComicCacher:
             for row in rows:
                 credits = []
                 try:
-                    for credit in json.loads(row[13]):
+                    for credit in json.loads(row[12]):
                         credits.append(Credit(**credit))
                 finally:
-                    logger.exception("credits failed")
+                    # All will fail unless complete
+                    logger.debug("credits failed")
                 record = ComicIssue(
                     id=row[1],
                     name=row[2],
@@ -343,27 +343,27 @@ class ComicCacher:
                     site_detail_url=row[4],
                     cover_date=row[5],
                     image_url=row[6],
-                    description=row[8],
+                    description=row[7],
                     series=series,
-                    aliases=row[9].strip().splitlines(),
-                    alt_image_urls=row[10].strip().splitlines(),
-                    characters=row[11].strip().splitlines(),
-                    locations=row[12].strip().splitlines(),
+                    aliases=row[8].strip().splitlines(),
+                    alt_image_urls=row[9].strip().splitlines(),
+                    characters=row[10].strip().splitlines(),
+                    locations=row[11].strip().splitlines(),
                     credits=credits,
-                    teams=row[14].strip().splitlines(),
-                    story_arcs=row[15].strip().splitlines(),
-                    genres=row[16].strip().splitlines(),
-                    tags=row[17].strip().splitlines(),
-                    rating=row[18],
-                    manga=row[19],
-                    complete=bool(row[20]),
+                    teams=row[13].strip().splitlines(),
+                    story_arcs=row[14].strip().splitlines(),
+                    genres=row[15].strip().splitlines(),
+                    tags=row[16].strip().splitlines(),
+                    rating=row[17],
+                    manga=row[18],
+                    complete=bool(row[19]),
                 )
 
                 results.append(record)
 
         return results
 
-    def get_issue_info(self, issue_id: int, source_name: str) -> ComicIssue | None:
+    def get_issue_info(self, issue_id: str, source_name: str) -> ComicIssue | None:
         con = lite.connect(self.db_file)
         with con:
             cur = con.cursor()
@@ -399,6 +399,13 @@ class ComicCacher:
                 )
 
                 # now process the results
+                credits = []
+                try:
+                    for credit in json.loads(row[13]):
+                        credits.append(Credit(**credit))
+                finally:
+                    # All will fail unless complete
+                    logger.debug("credits failed")
 
                 record = ComicIssue(
                     id=row[1],
@@ -413,7 +420,7 @@ class ComicCacher:
                     alt_image_urls=row[10].strip().splitlines(),
                     characters=row[11].strip().splitlines(),
                     locations=row[12].strip().splitlines(),
-                    credits=json.loads(row[13]),
+                    credits=credits,
                     teams=row[14].strip().splitlines(),
                     story_arcs=row[15].strip().splitlines(),
                     genres=row[16].strip().splitlines(),

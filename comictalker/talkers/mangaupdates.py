@@ -31,7 +31,7 @@ from comicapi import utils
 from comicapi.genericmetadata import GenericMetadata
 from comictaggerlib import ctversion
 from comictalker.comiccacher import ComicCacher
-from comictalker.resulttypes import ComicIssue, ComicVolume, Credits
+from comictalker.resulttypes import ComicIssue, ComicSeries, Credit
 from comictalker.talkerbase import ComicTalker, SourceDetails, SourceStaticOptions, TalkerDataError, TalkerNetworkError
 
 logger = logging.getLogger(__name__)
@@ -320,7 +320,7 @@ class MangaUpdatesTalker(ComicTalker):
 
         raise TalkerNetworkError(self.source_name_friendly, 5)
 
-    def format_search_results(self, search_results: list[MUResult]) -> list[ComicVolume]:
+    def format_search_results(self, search_results: list[MUResult]) -> list[ComicSeries]:
 
         formatted_results = []
         for record in search_results:
@@ -340,11 +340,11 @@ class MangaUpdatesTalker(ComicTalker):
                 title = record["record"]["title"]
 
             formatted_results.append(
-                ComicVolume(
+                ComicSeries(
                     aliases=[record["hit_title"]],  # Not returned from search, use to store hit_title
                     count_of_issues=0,  # Not returned from search
                     description=record["record"].get("description", ""),
-                    id=record["record"]["series_id"],
+                    id=str(record["record"]["series_id"]),
                     image_url=image_url,
                     name=title,
                     publisher="",  # Publisher not returned from search
@@ -354,11 +354,10 @@ class MangaUpdatesTalker(ComicTalker):
 
         return formatted_results
 
-    def format_issue(self, issue: MUIssue, volume: ComicVolume, complete: bool = True) -> ComicIssue:
+    def format_issue(self, issue: MUIssue, volume: ComicSeries, complete: bool = True) -> ComicIssue:
         # Will always be complete
 
         image_url = issue["image"]["url"].get("original", "")
-        image_thumb_url = issue["image"]["url"].get("thumb", "")
 
         aliases_list = []
         for alias in issue["associated"]:
@@ -374,16 +373,16 @@ class MangaUpdatesTalker(ComicTalker):
 
         persons_list = []
         for person in issue["authors"]:
-            persons_list.append(Credits(name=person["name"], role=person["type"]))
+            persons_list.append(Credit(name=person["name"], role=person["type"]))
 
         # Use search title can desync between series search and fetching the issue so do this:
         title = issue["title"]
-        if self.settings_options["use_search_title"] and len(volume["aliases"]) == 1:
-            title = volume["aliases"][0]
+        if self.settings_options["use_search_title"] and len(volume.aliases) == 1:
+            title = volume.aliases[0]
 
         issue_title = ""
         if self.settings_options["dup_title"]:
-            issue_title = volume["name"]
+            issue_title = volume.name
 
         start_year = utils.xlate(issue["year"], True)
 
@@ -408,26 +407,25 @@ class MangaUpdatesTalker(ComicTalker):
         if reg_match is not None:
             count_of_issue = utils.xlate(reg_match.group(2), True)
 
-        volume["name"] = title
-        volume["count_of_issues"] = count_of_issue
-        volume["start_year"] = start_year
-        volume["publisher"] = publisher
-        volume["image_url"] = image_url
-        volume["description"] = issue.get("description", "")
+        volume.name = title
+        volume.count_of_issues = count_of_issue
+        volume.start_year = start_year
+        volume.publisher = publisher
+        volume.image_url = image_url
+        volume.description = issue.get("description", "")
 
         formatted_results = ComicIssue(
             aliases=aliases_list,
             description=issue.get("description", ""),
-            id=issue["series_id"],
+            id=str(issue["series_id"]),
             image_url=image_url,
-            image_thumb_url=image_thumb_url,
             rating=issue["bayesian_rating"] / 2,
             manga=manga,
             genres=genre_list,
             tags=tag_list,
             name=issue_title,
             site_detail_url=issue.get("url", ""),
-            volume=volume,
+            series=volume,
             credits=persons_list,
             complete=complete,
         )
@@ -440,7 +438,7 @@ class MangaUpdatesTalker(ComicTalker):
         callback: Callable[[int, int], None] | None = None,
         refresh_cache: bool = False,
         literal: bool = False,
-    ) -> list[ComicVolume]:
+    ) -> list[ComicSeries]:
 
         # Sanitize the series name for searching
         search_series_name = utils.sanitize_title(series_name, literal)
@@ -538,16 +536,18 @@ class MangaUpdatesTalker(ComicTalker):
         return formatted_search_results
 
     # Get issue or volume information
-    def fetch_comic_data(self, issue_id: int = 0, series_id: int = 0, issue_number: str = "") -> GenericMetadata:
+    def fetch_comic_data(
+        self, issue_id: str | None = None, series_id: str | None = None, issue_number: str = ""
+    ) -> GenericMetadata:
         # issue_id in this case is series_id because MU lacks issue data
         # before we search online, look in our cache, since we might already have this info
         cvc = ComicCacher(self.cache_folder, self.version)
-        cached_issues_result = cvc.get_issue_info(series_id, self.source_name)
+        cached_issues_result = cvc.get_issue_info(str(series_id), self.source_name)
 
-        # It's possible a new search with new options has wiped the volume publisher so refresh if it's empty
+        # It's possible a new search with new options has wiped the series publisher so refresh if it's empty
         if (
             cached_issues_result
-            and cached_issues_result["volume"]["publisher"]
+            and cached_issues_result.series.publisher
             and self.flags[0] == self.settings_options["use_search_title"]
             and self.flags[3] == self.settings_options["use_original_publisher"]
             and self.flags[4] == self.settings_options["dup_title"]
@@ -557,7 +557,7 @@ class MangaUpdatesTalker(ComicTalker):
                 cached_issues_result,
                 self.source_name_friendly,
                 False,
-                self.settings_options["use_series_start_as_volume"],
+                bool(self.settings_options["use_series_start_as_volume"]),
             )
 
         issue_url = urljoin(self.api_url, f"series/{series_id}")
@@ -571,14 +571,14 @@ class MangaUpdatesTalker(ComicTalker):
         # issue_results["issue_number"] = issue_number
 
         # Fetch the cached volume info which should have the hit_title in aliases
-        volume = cvc.get_volume_info(series_id, self.source_name)
+        volume = cvc.get_series_info(str(series_id), self.source_name)
 
         if volume is None:
-            volume = ComicVolume(
+            volume = ComicSeries(
                 aliases=[],
                 count_of_issues=0,
                 description="",
-                id=series_id,
+                id=str(series_id),
                 image_url="",
                 name="",
                 publisher="",
@@ -588,10 +588,10 @@ class MangaUpdatesTalker(ComicTalker):
         # Format to expected output
         formatted_issues_result = self.format_issue(issue_results, volume, True)
 
-        cvc.add_volume_issues_info(self.source_name, [formatted_issues_result])
+        cvc.add_series_issues_info(self.source_name, [formatted_issues_result])
 
-        # Volume will now have publisher so update cache record
-        cvc.add_volume_info(self.source_name, formatted_issues_result["volume"])
+        # Series will now have publisher so update cache record
+        cvc.add_series_info(self.source_name, formatted_issues_result.series)
 
         # Refresh options flags
         self.flags[0] = self.settings_options["use_search_title"]
@@ -603,5 +603,5 @@ class MangaUpdatesTalker(ComicTalker):
             formatted_issues_result,
             self.source_name_friendly,
             False,
-            self.settings_options["use_series_start_as_volume"],
+            bool(self.settings_options["use_series_start_as_volume"]),
         )

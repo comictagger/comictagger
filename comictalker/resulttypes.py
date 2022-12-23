@@ -27,26 +27,27 @@ class ComicSeries:
 
 @dataclasses.dataclass
 class ComicIssue:
-    aliases: list[str]
-    cover_date: str
-    description: str
-    id: str
-    image_url: str
-    issue_number: str
-    rating: float
-    manga: str
-    genres: list[str]
-    tags: list[str]
-    name: str
-    site_detail_url: str
     series: ComicSeries
-    alt_image_urls: list[str]
-    characters: list[str]
-    locations: list[str]
     credits: list[Credit]
-    teams: list[str]
-    story_arcs: list[str]
-    complete: bool  # Is this a complete ComicIssue? or is there more data to fetch
+
+    aliases: list[str] = dataclasses.field(default_factory=list)
+    cover_date: str = ""
+    description: str = ""
+    id: str = ""
+    image_url: str = ""
+    issue_number: str = ""
+    rating: float = 0
+    manga: str = ""
+    genres: list[str] = dataclasses.field(default_factory=list)
+    tags: list[str] = dataclasses.field(default_factory=list)
+    name: str = ""
+    site_detail_url: str = ""
+    alt_image_urls: list[str] = dataclasses.field(default_factory=list)
+    characters: list[str] = dataclasses.field(default_factory=list)
+    locations: list[str] = dataclasses.field(default_factory=list)
+    teams: list[str] = dataclasses.field(default_factory=list)
+    story_arcs: list[str] = dataclasses.field(default_factory=list)
+    complete: bool = False  # Is this a complete ComicIssue? or is there more data to fetch
 
     def copy(self) -> ComicIssue:
         return copy.deepcopy(self)

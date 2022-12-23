@@ -637,7 +637,7 @@ class ComicVineTalker(ComicTalker):
     def fetch_issue_data_by_issue_id(self, issue_id: str) -> GenericMetadata:
         # before we search online, look in our cache, since we might already have this info
         cvc = ComicCacher(self.cache_folder, self.version)
-        cached_issues_result = cvc.get_issue_info(int(issue_id), self.source_name)
+        cached_issues_result = cvc.get_issue_info(str(issue_id), self.source_name)
 
         if cached_issues_result and cached_issues_result.complete:
             return talker_utils.map_comic_issue_to_metadata(

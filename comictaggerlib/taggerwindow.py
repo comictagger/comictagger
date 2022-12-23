@@ -1682,7 +1682,7 @@ Have fun!
             if self.talker_api.static_options.has_issues:
                 ct_md = self.talker_api.fetch_comic_data(match["issue_id"])
             else:
-                ct_md = self.talker_api.fetch_comic_data(series_id=match["volume_id"])
+                ct_md = self.talker_api.fetch_comic_data(series_id=match["series_id"])
 
         except TalkerError:
             logger.exception("Save aborted.")
