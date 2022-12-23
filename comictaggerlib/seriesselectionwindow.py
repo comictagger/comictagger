@@ -303,9 +303,9 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         selector = IssueSelectionWindow(self, self.options, self.talker_api, self.series_id, self.issue_number)
         title = ""
         for record in self.ct_search_results:
-            if record["id"] == self.series_id:
-                title = record["name"]
-                title += " (" + str(record["start_year"]) + ")"
+            if record.id == self.series_id:
+                title = record.name
+                title += " (" + str(record.start_year) + ")"
                 title += " - "
                 break
 
@@ -384,8 +384,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
                 # use '' as publisher name if None
                 self.ct_search_results = list(
                     filter(
-                        lambda d: ("" if d["publisher"] is None else str(d["publisher"]).casefold())
-                        not in publisher_filter,
+                        lambda d: ("" if d.publisher is None else str(d.publisher).casefold()) not in publisher_filter,
                         self.ct_search_results,
                     )
                 )
@@ -400,7 +399,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
             try:
                 self.ct_search_results = sorted(
                     self.ct_search_results,
-                    key=lambda i: (str(i["start_year"]), str(i["count_of_issues"])),
+                    key=lambda i: (str(i.start_year), str(i.count_of_issues)),
                     reverse=True,
                 )
             except Exception:
@@ -408,7 +407,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         else:
             try:
                 self.ct_search_results = sorted(
-                    self.ct_search_results, key=lambda i: str(i["count_of_issues"]), reverse=True
+                    self.ct_search_results, key=lambda i: str(i.count_of_issues), reverse=True
                 )
             except Exception:
                 logger.exception("bad data error sorting results by count_of_issues")
@@ -423,11 +422,11 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
 
                 def categorize(result: ComicSeries) -> int:
                     # We don't remove anything on this one so that we only get exact matches
-                    if utils.sanitize_title(result["name"], True).casefold() == sanitized_no_articles:
+                    if utils.sanitize_title(result.name, True).casefold() == sanitized_no_articles:
                         return 0
 
                     # this ensures that 'The Joker' is near the top even if you search 'Joker'
-                    if utils.sanitize_title(result["name"], False).casefold() in sanitized:
+                    if utils.sanitize_title(result.name, False).casefold() in sanitized:
                         return 1
                     return 2
 
@@ -448,28 +447,28 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         for record in self.ct_search_results:
             self.twList.insertRow(row)
 
-            item_text = record["name"]
+            item_text = record.name
             item = QtWidgets.QTableWidgetItem(item_text)
             item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
-            item.setData(QtCore.Qt.ItemDataRole.UserRole, record["id"])
+            item.setData(QtCore.Qt.ItemDataRole.UserRole, record.id)
             item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
             self.twList.setItem(row, 0, item)
 
-            item_text = str(record["start_year"])
+            item_text = str(record.start_year)
             item = QtWidgets.QTableWidgetItem(item_text)
             item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
             item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
             self.twList.setItem(row, 1, item)
 
-            item_text = str(record["count_of_issues"])
+            item_text = str(record.count_of_issues)
             item = QtWidgets.QTableWidgetItem(item_text)
             item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
-            item.setData(QtCore.Qt.ItemDataRole.DisplayRole, record["count_of_issues"])
+            item.setData(QtCore.Qt.ItemDataRole.DisplayRole, record.count_of_issues)
             item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
             self.twList.setItem(row, 2, item)
 
-            if record["publisher"] is not None:
-                item_text = record["publisher"]
+            if record.publisher is not None:
+                item_text = record.publisher
                 item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
                 item = QtWidgets.QTableWidgetItem(item_text)
                 item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
@@ -521,10 +520,10 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
 
         # list selection was changed, update the info on the series
         for record in self.ct_search_results:
-            if record["id"] == self.series_id:
-                if record["description"] is None:
+            if record.id == self.series_id:
+                if record.description is None:
                     self.teDetails.setText("")
                 else:
-                    self.teDetails.setText(record["description"])
-                self.imageWidget.set_url(record["image_url"])
+                    self.teDetails.setText(record.description)
+                self.imageWidget.set_url(record.image_url)
                 break

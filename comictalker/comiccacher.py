@@ -2,7 +2,7 @@
 #
 # Copyright 2012-2014 Anthony Beville
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
+# Licensed under the Apache License, Version 2.0 (the "License;
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
@@ -15,6 +15,7 @@
 # limitations under the License.
 from __future__ import annotations
 
+import dataclasses
 import datetime
 import json
 import logging
@@ -23,7 +24,7 @@ import pathlib
 import sqlite3 as lite
 from typing import Any
 
-from comictalker.resulttypes import ComicIssue, ComicSeries
+from comictalker.resulttypes import ComicIssue, ComicSeries, Credit
 
 logger = logging.getLogger(__name__)
 
@@ -141,21 +142,21 @@ class ComicCacher:
                     (
                         source_name,
                         search_term.casefold(),
-                        record["id"],
+                        record.id,
                     ),
                 )
 
                 data = {
-                    "id": record["id"],
+                    "id": record.id,
                     "source_name": source_name,
-                    "name": record["name"],
-                    "publisher": record.get("publisher", ""),
-                    "count_of_issues": record.get("count_of_issues"),
-                    "start_year": record.get("start_year"),
-                    "image_url": record.get("image_url", ""),
-                    "description": record.get("description", ""),
+                    "name": record.name,
+                    "publisher": record.publisher,
+                    "count_of_issues": record.count_of_issues,
+                    "start_year": record.start_year,
+                    "image_url": record.image_url,
+                    "description": record.description,
                     "timestamp": datetime.datetime.now(),
-                    "aliases": "\n".join(record.get("aliases", [])),
+                    "aliases": "\n".join(record.aliases),
                 }
                 self.upsert(cur, "series", data)
 
@@ -201,16 +202,16 @@ class ComicCacher:
             timestamp = datetime.datetime.now()
 
             data = {
-                "id": series_record["id"],
+                "id": series_record.id,
                 "source_name": source_name,
-                "name": series_record["name"],
-                "publisher": series_record.get("publisher", ""),
-                "count_of_issues": series_record.get("count_of_issues"),
-                "start_year": series_record.get("start_year"),
-                "image_url": series_record.get("image_url", ""),
-                "description": series_record.get("description", ""),
+                "name": series_record.name,
+                "publisher": series_record.publisher,
+                "count_of_issues": series_record.count_of_issues,
+                "start_year": series_record.start_year,
+                "image_url": series_record.image_url,
+                "description": series_record.description,
                 "timestamp": timestamp,
-                "aliases": "\n".join(series_record.get("aliases", [])),
+                "aliases": "\n".join(series_record.aliases),
             }
             self.upsert(cur, "series", data)
 
@@ -226,25 +227,24 @@ class ComicCacher:
 
             for issue in series_issues:
                 data = {
-                    "id": issue["id"],
-                    "series_id": issue["series"]["id"],
+                    "id": issue.id,
+                    "series_id": issue.series.id,
                     "source_name": source_name,
-                    "name": issue["name"],
-                    "issue_number": issue["issue_number"],
-                    "site_detail_url": issue.get("site_detail_url"),
-                    "cover_date": issue.get("cover_date"),
-                    "image_url": issue.get("image_url", ""),
-                    "thumb_url": issue.get("image_thumb_url", ""),
-                    "description": issue.get("description", ""),
+                    "name": issue.name,
+                    "issue_number": issue.issue_number,
+                    "site_detail_url": issue.site_detail_url,
+                    "cover_date": issue.cover_date,
+                    "image_url": issue.image_url,
+                    "description": issue.description,
                     "timestamp": timestamp,
-                    "aliases": "\n".join(issue.get("aliases", [])),
-                    "alt_image_urls": "\n".join(issue.get("alt_image_urls", [])),
-                    "characters": "\n".join(issue.get("characters", [])),
-                    "locations": "\n".join(issue.get("locations", [])),
-                    "teams": "\n".join(issue.get("teams", [])),
-                    "story_arcs": "\n".join(issue.get("story_arcs", [])),
-                    "credits": json.dumps(issue.get("credits")),
-                    "complete": issue["complete"],
+                    "aliases": "\n".join(issue.aliases),
+                    "alt_image_urls": "\n".join(issue.alt_image_urls),
+                    "characters": "\n".join(issue.characters),
+                    "locations": "\n".join(issue.locations),
+                    "teams": "\n".join(issue.teams),
+                    "story_arcs": "\n".join(issue.story_arcs),
+                    "credits": json.dumps([dataclasses.asdict(x) for x in issue.credits]),
+                    "complete": issue.complete,
                 }
                 self.upsert(cur, "issues", data)
 
@@ -288,7 +288,16 @@ class ComicCacher:
 
     def get_series_issues_info(self, series_id: str, source_name: str) -> list[ComicIssue]:
         # get_series_info should only fail if someone is doing something weird
-        series = self.get_series_info(series_id, source_name, False) or ComicSeries(id=series_id, name="")
+        series = self.get_series_info(series_id, source_name, False) or ComicSeries(
+            id=series_id,
+            name="",
+            description="",
+            image_url="",
+            publisher="",
+            start_year=None,
+            aliases=[],
+            count_of_issues=None,
+        )
         con = lite.connect(self.db_file)
         with con:
             cur = con.cursor()
@@ -313,6 +322,12 @@ class ComicCacher:
 
             # now process the results
             for row in rows:
+                credits = []
+                try:
+                    for credit in json.loads(row[13]):
+                        credits.append(Credit(**credit))
+                finally:
+                    logger.exception("credits failed")
                 record = ComicIssue(
                     id=row[1],
                     name=row[2],
@@ -326,7 +341,7 @@ class ComicCacher:
                     alt_image_urls=row[10].strip().splitlines(),
                     characters=row[11].strip().splitlines(),
                     locations=row[12].strip().splitlines(),
-                    credits=json.loads(row[13]),
+                    credits=credits,
                     teams=row[14].strip().splitlines(),
                     story_arcs=row[15].strip().splitlines(),
                     complete=bool(row[16]),
@@ -349,7 +364,7 @@ class ComicCacher:
 
             cur.execute(
                 (
-                    "SELECT source_name,id,name,issue_number,site_detail_url,cover_date,image_url,thumb_url,description,aliases,series_id,alt_image_urls,characters,locations,credits,teams,story_arcs,complete"
+                    "SELECT source_name,id,name,issue_number,site_detail_url,cover_date,image_url,description,aliases,series_id,alt_image_urls,characters,locations,credits,teams,story_arcs,complete"
                     " FROM Issues WHERE id=? AND source_name=?"
                 ),
                 [issue_id, source_name],
@@ -360,7 +375,16 @@ class ComicCacher:
 
             if row:
                 # get_series_info should only fail if someone is doing something weird
-                series = self.get_series_info(row[10], source_name, False) or ComicSeries(id=row[10], name="")
+                series = self.get_series_info(row[10], source_name, False) or ComicSeries(
+                    id=row[10],
+                    name="",
+                    description="",
+                    image_url="",
+                    publisher="",
+                    start_year=None,
+                    aliases=[],
+                    count_of_issues=None,
+                )
 
                 # now process the results
 
@@ -371,17 +395,16 @@ class ComicCacher:
                     site_detail_url=row[4],
                     cover_date=row[5],
                     image_url=row[6],
-                    image_thumb_url=row[7],
-                    description=row[8],
+                    description=row[7],
                     series=series,
-                    aliases=row[9].strip().splitlines(),
-                    alt_image_urls=row[11].strip().splitlines(),
-                    characters=row[12].strip().splitlines(),
-                    locations=row[13].strip().splitlines(),
-                    credits=json.loads(row[14]),
-                    teams=row[15].strip().splitlines(),
-                    story_arcs=row[16].strip().splitlines(),
-                    complete=bool(row[17]),
+                    aliases=row[8].strip().splitlines(),
+                    alt_image_urls=row[10].strip().splitlines(),
+                    characters=row[11].strip().splitlines(),
+                    locations=row[12].strip().splitlines(),
+                    credits=json.loads(row[13]),
+                    teams=row[14].strip().splitlines(),
+                    story_arcs=row[15].strip().splitlines(),
+                    complete=bool(row[16]),
                 )
 
             return record

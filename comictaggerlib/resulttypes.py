@@ -9,7 +9,7 @@ class IssueResult(TypedDict):
     series: str
     distance: int
     issue_number: str
-    cv_issue_count: int
+    cv_issue_count: int | None
     url_image_hash: int
     issue_title: str
     issue_id: str
@@ -18,7 +18,6 @@ class IssueResult(TypedDict):
     year: int | None
     publisher: str | None
     image_url: str
-    thumb_url: str
     alt_image_urls: list[str]
     description: str
 

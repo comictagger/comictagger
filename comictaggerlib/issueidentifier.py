@@ -239,7 +239,6 @@ class IssueIdentifier:
         self,
         issue_id: str,
         primary_img_url: str,
-        primary_thumb_url: str,
         alt_urls: list[str],
         local_cover_hash_list: list[int],
         use_remote_alternates: bool = False,
@@ -390,17 +389,17 @@ class IssueIdentifier:
             date_approved = True
 
             # remove any series that starts after the issue year
-            if keys["year"] is not None and item["start_year"] is not None:
-                if keys["year"] < item["start_year"]:
+            if keys["year"] is not None and item.start_year is not None:
+                if keys["year"] < item.start_year:
                     date_approved = False
 
-            for name in [item["name"], *item["aliases"]]:
+            for name in [item.name, *item.aliases]:
                 if utils.titles_match(keys["series"], name, self.series_match_thresh):
                     length_approved = True
                     break
             # remove any series from publishers on the filter
-            if item["publisher"] is not None:
-                publisher = item["publisher"]
+            if item.publisher is not None:
+                publisher = item.publisher
                 if publisher is not None and publisher.casefold() in self.publisher_filter:
                     publisher_approved = False
 
@@ -413,9 +412,9 @@ class IssueIdentifier:
             self.callback(0, len(series_second_round_list))
 
         # now sort the list by name length
-        series_second_round_list.sort(key=lambda x: len(x["name"]), reverse=False)
+        series_second_round_list.sort(key=lambda x: len(x.name), reverse=False)
 
-        series_by_id = {series["id"]: series for series in series_second_round_list}
+        series_by_id = {series.id: series for series in series_second_round_list}
 
         issue_list = None
         try:
@@ -434,8 +433,8 @@ class IssueIdentifier:
         # now re-associate the issues and series
         # is this really needed?
         for issue in issue_list:
-            if issue["series"]["id"] in series_by_id:
-                shortlist.append((series_by_id[issue["series"]["id"]], issue))
+            if issue.series.id in series_by_id:
+                shortlist.append((series_by_id[issue.series.id], issue))
 
         if keys["year"] is None:
             self.log_msg(f"Found {len(shortlist)} series that have an issue #{keys['issue_number']}")
@@ -453,12 +452,12 @@ class IssueIdentifier:
                 counter += 1
 
             self.log_msg(
-                f"Examining covers for  ID: {series['id']} {series['name']} ({series['start_year']}) ...",
+                f"Examining covers for  ID: {series.id} {series.name} ({series.start_year}) ...",
                 newline=False,
             )
 
             # parse out the cover date
-            _, month, year = utils.parse_date_str(issue["cover_date"])
+            _, month, year = utils.parse_date_str(issue.cover_date)
 
             # Now check the cover match against the primary image
             hash_list = [cover_hash]
@@ -466,12 +465,11 @@ class IssueIdentifier:
                 hash_list.append(narrow_cover_hash)
 
             try:
-                image_url = issue["image_url"]
-                thumb_url = issue["image_thumb_url"]
-                alt_urls = issue["alt_image_urls"]
+                image_url = issue.image_url
+                alt_urls = issue.alt_image_urls
 
                 score_item = self.get_issue_cover_match_score(
-                    issue["id"], image_url, thumb_url, alt_urls, hash_list, use_remote_alternates=False
+                    issue.id, image_url, alt_urls, hash_list, use_remote_alternates=False
                 )
             except Exception:
                 logger.exception("Scoring series failed")
@@ -479,24 +477,23 @@ class IssueIdentifier:
                 return self.match_list
 
             match: IssueResult = {
-                "series": f"{series['name']} ({series['start_year']})",
+                "series": f"{series.name} ({series.start_year})",
                 "distance": score_item["score"],
                 "issue_number": keys["issue_number"],
-                "cv_issue_count": series["count_of_issues"],
+                "cv_issue_count": series.count_of_issues,
                 "url_image_hash": score_item["hash"],
-                "issue_title": issue["name"],
-                "issue_id": issue["id"],
-                "series_id": series["id"],
+                "issue_title": issue.name,
+                "issue_id": issue.id,
+                "series_id": series.id,
                 "month": month,
                 "year": year,
                 "publisher": None,
                 "image_url": image_url,
-                "thumb_url": thumb_url,
                 "alt_image_urls": alt_urls,
-                "description": issue["description"],
+                "description": issue.description,
             }
-            if series["publisher"] is not None:
-                match["publisher"] = series["publisher"]
+            if series.publisher is not None:
+                match["publisher"] = series.publisher
 
             self.match_list.append(match)
 
@@ -556,7 +553,6 @@ class IssueIdentifier:
                     score_item = self.get_issue_cover_match_score(
                         m["issue_id"],
                         m["image_url"],
-                        m["thumb_url"],
                         m["alt_image_urls"],
                         hash_list,
                         use_remote_alternates=True,

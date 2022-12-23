@@ -31,7 +31,7 @@ from comicapi import utils
 from comicapi.genericmetadata import GenericMetadata
 from comicapi.issuestring import IssueString
 from comictalker.comiccacher import ComicCacher
-from comictalker.resulttypes import ComicIssue, ComicSeries, Credits
+from comictalker.resulttypes import ComicIssue, ComicSeries, Credit
 from comictalker.talkerbase import ComicTalker, SourceDetails, SourceStaticOptions, TalkerDataError, TalkerNetworkError
 
 logger = logging.getLogger(__name__)
@@ -311,10 +311,8 @@ class ComicVineTalker(ComicTalker):
             # Extract image super and thumb to name only
             if record.get("image") is None:
                 image_url = ""
-                image_thumb_url = ""
             else:
                 image_url = record["image"].get("super_url", "")
-                image_thumb_url = record["image"].get("thumb_url", "")
 
             alt_images_list = []
             for alt in record["associated_images"]:
@@ -343,7 +341,9 @@ class ComicVineTalker(ComicTalker):
             persons_list = []
             if record.get("person_credits"):
                 for person in record["person_credits"]:
-                    persons_list.append(Credits(name=person["name"], role=person["role"]))
+                    persons_list.append(Credit(name=person["name"], role=person["role"]))
+
+            series = self.fetch_series_data(record["volume"]["id"])
 
             formatted_results.append(
                 ComicIssue(
@@ -352,11 +352,10 @@ class ComicVineTalker(ComicTalker):
                     description=record.get("description", ""),
                     id=str(record["id"]),
                     image_url=image_url,
-                    image_thumb_url=image_thumb_url,
                     issue_number=record["issue_number"],
                     name=record["name"],
                     site_detail_url=record.get("site_detail_url", ""),
-                    series=self.format_search_results([record["volume"]])[0],  # CV uses volume to mean series
+                    series=series,  # CV uses volume to mean series
                     alt_image_urls=alt_images_list,
                     characters=character_list,
                     locations=location_list,
@@ -505,7 +504,7 @@ class ComicVineTalker(ComicTalker):
 
         series_data = self.fetch_series_data(int(series_id))
 
-        if len(cached_series_issues_result) == series_data["count_of_issues"]:
+        if len(cached_series_issues_result) == series_data.count_of_issues:
             return cached_series_issues_result
 
         params = {  # CV uses volume to mean series
@@ -594,20 +593,20 @@ class ComicVineTalker(ComicTalker):
             if not IssueString(issue_number).as_string():
                 issue_number = "1"
             if (
-                IssueString(record["issue_number"]).as_string().casefold()
+                IssueString(record.issue_number).as_string().casefold()
                 == IssueString(issue_number).as_string().casefold()
             ):
                 f_record = record
                 break
 
-        if f_record and f_record["complete"]:
+        if f_record and f_record.complete:
             # Cache had full record
             return talker_utils.map_comic_issue_to_metadata(
                 f_record, self.source_name_friendly, self.remove_html_tables, self.use_series_start_as_volume
             )
 
         if f_record is not None:
-            return self.fetch_issue_data_by_issue_id(f_record["id"])
+            return self.fetch_issue_data_by_issue_id(f_record.id)
         return GenericMetadata()
 
     def fetch_issue_data_by_issue_id(self, issue_id: str) -> GenericMetadata:
@@ -615,7 +614,7 @@ class ComicVineTalker(ComicTalker):
         cvc = ComicCacher(self.cache_folder, self.version)
         cached_issues_result = cvc.get_issue_info(int(issue_id), self.source_name)
 
-        if cached_issues_result and cached_issues_result["complete"]:
+        if cached_issues_result and cached_issues_result.complete:
             return talker_utils.map_comic_issue_to_metadata(
                 cached_issues_result,
                 self.source_name_friendly,
@@ -633,7 +632,7 @@ class ComicVineTalker(ComicTalker):
         cv_issues = self.format_issue_results([issue_results], True)
 
         # Due to issue not returning publisher, fetch the series.
-        cv_issues[0]["series"] = self.fetch_series_data(int(cv_issues[0]["series"]["id"]))
+        cv_issues[0].series = self.fetch_series_data(int(cv_issues[0].series.id))
 
         cvc.add_series_issues_info(self.source_name, cv_issues)
 
