@@ -34,11 +34,6 @@ def test_get_issue_cover_match_score(cbz, options, comicvine_api):
     settings, definitions = options
     ii = comictaggerlib.issueidentifier.IssueIdentifier(cbz, settings, comicvine_api)
     score = ii.get_issue_cover_match_score(
-        int(
-            comicapi.issuestring.IssueString(
-                cbz.read_metadata(comicapi.comicarchive.MetaDataStyle.CIX).issue
-            ).as_float()
-        ),
         "https://comicvine.gamespot.com/a/uploads/scale_large/0/574/585444-109004_20080707014047_large.jpg",
         "https://comicvine.gamespot.com/cory-doctorows-futuristic-tales-of-the-here-and-no/4000-140529/",
         [ii.calculate_hash(cbz.get_page(0))],
