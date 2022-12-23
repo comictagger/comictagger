@@ -30,6 +30,7 @@ from comicapi.issuestring import IssueString
 from comictaggerlib.imagefetcher import ImageFetcher, ImageFetcherException
 from comictaggerlib.imagehasher import ImageHasher
 from comictaggerlib.resulttypes import IssueResult
+from comictalker.resulttypes import ComicIssue, ComicVolume
 from comictalker.talkerbase import ComicTalker, TalkerError
 
 logger = logging.getLogger(__name__)
@@ -357,9 +358,15 @@ class IssueIdentifier:
         keys["issue_number"] = IssueString(keys["issue_number"]).as_string()
 
         # we need, at minimum, a series and issue number
-        if not (keys["series"] and keys["issue_number"]):
-            self.log_msg("Not enough info for a search!")
-            return []
+        # Unless this is a series only talker
+        if self.talker_api.static_options.has_issues:
+            if not (keys["series"] and keys["issue_number"]):
+                self.log_msg("Not enough info for a search!")
+                return []
+        else:
+            if not keys["series"]:
+                self.log_msg("Not enough info for a search!")
+                return []
 
         self.log_msg("Going to search for:")
         self.log_msg("\tSeries: " + keys["series"])
@@ -422,15 +429,13 @@ class IssueIdentifier:
         # now sort the list by name length
         series_second_round_list.sort(key=lambda x: len(x["name"]), reverse=False)
 
-        # Does the talker have issue level data?
+        # build a list of volume IDs
+        volume_id_list = []
+        for series in series_second_round_list:
+            volume_id_list.append(series["id"])
+
+        issue_list = None
         if self.talker_api.static_options.has_issues:
-            # build a list of volume IDs
-            volume_id_list = []
-
-            for series in series_second_round_list:
-                volume_id_list.append(series["id"])
-
-            issue_list = None
             try:
                 if len(volume_id_list) > 0:
                     issue_list = self.talker_api.fetch_issues_by_volume_issue_num_and_year(
@@ -439,128 +444,104 @@ class IssueIdentifier:
             except TalkerError as e:
                 self.log_msg(f"Issue with while searching for series details. Aborting...\n{e}")
                 return []
-
-            if issue_list is None:
-                return []
-
-            shortlist = []
-            # now re-associate the issues and volumes
-            for issue in issue_list:
-                for series in series_second_round_list:
-                    if series["id"] == issue["volume"]["id"]:
-                        shortlist.append((series, issue))
-                        break
-
-            if keys["year"] is None:
-                self.log_msg(f"Found {len(shortlist)} series that have an issue #{keys['issue_number']}")
-            else:
-                self.log_msg(
-                    f"Found {len(shortlist)} series that have an issue #{keys['issue_number']} from {keys['year']}"
-                )
-
-            # now we have a shortlist of volumes with the desired issue number
-            # Do first round of cover matching
-            counter = len(shortlist)
-            for series, issue in shortlist:
-                if self.callback is not None:
-                    self.callback(counter, len(shortlist) * 3)
-                    counter += 1
-
-                self.log_msg(
-                    f"Examining covers for  ID: {series['id']} {series['name']} ({series['start_year']}) ...",
-                    newline=False,
-                )
-
-                # parse out the cover date
-                _, month, year = utils.parse_date_str(issue["cover_date"])
-
-                # Now check the cover match against the primary image
-                hash_list = [cover_hash]
-                if narrow_cover_hash is not None:
-                    hash_list.append(narrow_cover_hash)
-
-                try:
-                    image_url = issue["image_url"]
-                    alt_urls = issue["alt_image_urls"]
-
-                    score_item = self.get_issue_cover_match_score(
-                        primary_img_url=image_url,
-                        alt_urls=alt_urls,
-                        local_cover_hash_list=hash_list,
-                        use_remote_alternates=False,
-                    )
-                except Exception:
-                    logger.exception("Scoring series failed")
-                    self.match_list = []
-                    return self.match_list
-
-                issue_match: IssueResult = {
-                    "series": f"{series['name']} ({series['start_year']})",
-                    "distance": score_item["score"],
-                    "issue_number": keys["issue_number"],
-                    "cv_issue_count": series["count_of_issues"],
-                    "url_image_hash": score_item["hash"],
-                    "issue_title": issue["name"],
-                    "issue_id": issue["id"],
-                    "volume_id": series["id"],
-                    "month": month,
-                    "year": year,
-                    "publisher": None,
-                    "image_url": image_url,
-                    "alt_image_urls": alt_urls,
-                    "description": issue["description"],
-                }
-                if series["publisher"] is not None:
-                    issue_match["publisher"] = series["publisher"]
-
-                self.match_list.append(issue_match)
-
-                self.log_msg(f" --> {issue_match['distance']}", newline=False)
-
-                self.log_msg("")
         else:
-            # No issues level data so check against series data
+            # As there are no issues in a series talker, copy over the series data to issue list
+            issue_list = []
             for series in series_second_round_list:
-                hash_list = [cover_hash]
-                if narrow_cover_hash is not None:
-                    hash_list.append(narrow_cover_hash)
+                comic_to_issue = ComicIssue(
+                    aliases=series["aliases"],
+                    cover_date=f"{series['start_year']}-0-0",
+                    description=series["description"],
+                    id=series["id"],
+                    image_url=series["image_url"],
+                    alt_image_urls=[],
+                    issue_number="",
+                    name=series["name"],
+                    volume=ComicVolume(
+                        id=series["id"],
+                        name=series["name"],
+                    ),
+                )
+                issue_list.append(comic_to_issue)
 
-                try:
-                    # TODO Possible for series to have alt covers?
+        if issue_list is None:
+            return []
 
-                    score_item = self.get_issue_cover_match_score(
-                        primary_img_url=series["image_url"],
-                        alt_urls=[],
-                        local_cover_hash_list=hash_list,
-                        use_remote_alternates=False,
-                    )
-                except Exception:
-                    self.match_list = []
-                    return self.match_list
+        shortlist = []
+        # now re-associate the issues and volumes
+        for issue in issue_list:
+            for series in series_second_round_list:
+                if series["id"] == issue["volume"]["id"]:
+                    shortlist.append((series, issue))
+                    break
 
-                series_match: IssueResult = {
-                    "series": f"{series['name']} ({series['start_year']})",
-                    "distance": score_item["score"],
-                    "issue_number": "",
-                    "cv_issue_count": series["count_of_issues"],
-                    "url_image_hash": score_item["hash"],
-                    "issue_title": series["name"],
-                    "issue_id": 0,
-                    "volume_id": series["id"],
-                    "month": 0,
-                    "year": utils.xlate(series["start_year"], True),
-                    "publisher": series["publisher"],
-                    "image_url": series["image_url"],
-                    "alt_image_urls": [],
-                    "description": series["description"],
-                }
-                if series["publisher"] is not None:
-                    series_match["publisher"] = series["publisher"]
+        if keys["year"] is None:
+            self.log_msg(f"Found {len(shortlist)} series that have an issue #{keys['issue_number']}")
+        else:
+            self.log_msg(
+                f"Found {len(shortlist)} series that have an issue #{keys['issue_number']} from {keys['year']}"
+            )
 
-                self.match_list.append(series_match)
+        # now we have a shortlist of volumes with the desired issue number
+        # Do first round of cover matching
+        counter = len(shortlist)
+        for series, issue in shortlist:
+            if self.callback is not None:
+                self.callback(counter, len(shortlist) * 3)
+                counter += 1
 
-                self.log_msg(f" --> {series_match['distance']}", newline=False)
-                self.log_msg("")
+            self.log_msg(
+                f"Examining covers for  ID: {series['id']} {series['name']} ({series['start_year']}) ...",
+                newline=False,
+            )
+
+            # parse out the cover date
+            _, month, year = utils.parse_date_str(issue["cover_date"])
+
+            # Now check the cover match against the primary image
+            hash_list = [cover_hash]
+            if narrow_cover_hash is not None:
+                hash_list.append(narrow_cover_hash)
+
+            try:
+                image_url = issue["image_url"]
+                alt_urls = issue["alt_image_urls"]
+
+                score_item = self.get_issue_cover_match_score(
+                    primary_img_url=image_url,
+                    alt_urls=alt_urls,
+                    local_cover_hash_list=hash_list,
+                    use_remote_alternates=False,
+                )
+            except Exception:
+                logger.exception("Scoring series failed")
+                self.match_list = []
+                return self.match_list
+
+            match: IssueResult = {
+                "series": f"{series['name']} ({series['start_year']})",
+                "distance": score_item["score"],
+                "issue_number": keys["issue_number"],
+                "cv_issue_count": series["count_of_issues"],
+                "url_image_hash": score_item["hash"],
+                "issue_title": issue["name"],
+                "issue_id": issue["id"],
+                "volume_id": series["id"],
+                "month": month,
+                "year": year,
+                "publisher": None,
+                "image_url": image_url,
+                "alt_image_urls": alt_urls,
+                "description": issue["description"],
+            }
+            if series["publisher"] is not None:
+                match["publisher"] = series["publisher"]
+
+            self.match_list.append(match)
+
+            self.log_msg(f" --> {match['distance']}", newline=False)
+
+            self.log_msg("")
 
         if len(self.match_list) == 0:
             self.log_msg(":-( no matches!")
