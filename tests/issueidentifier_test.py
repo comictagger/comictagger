@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import pytest
 
-import comicapi.comicarchive
-import comicapi.issuestring
 import comictaggerlib.issueidentifier
 import testing.comicdata
 import testing.comicvine

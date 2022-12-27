@@ -13,10 +13,10 @@
 # limitations under the License.
 from __future__ import annotations
 
+import argparse
 import logging
 import pathlib
 from typing import Callable
-from urllib.parse import urlsplit
 
 import settngs
 
@@ -142,27 +142,23 @@ class ComicTalker:
     default_api_url: str = ""
     default_api_key: str = ""
 
-    def comic_settings(parser: settngs.Manager) -> None:
-        ...
+    @classmethod
+    def comic_settings(cls, parser: settngs.Manager) -> None:
+        """Talker settings."""
 
-    def __init__(self, version: str, cache_folder: pathlib.Path, api_url: str = "", api_key: str = "") -> None:
+    @classmethod
+    def parse_settings(cls, settings: argparse.Namespace) -> None:
+        """Parse settings."""
+
+    def __init__(self, version: str, cache_folder: pathlib.Path) -> None:
         # Identity name for the information source etc.
         self.source_details = SourceDetails()
         self.static_options = SourceStaticOptions()
-        self.api_key = api_key
         self.cache_folder = cache_folder
         self.version = version
 
-        self.api_key = api_key or self.default_api_key
-        self.api_url = api_url or self.default_api_url
-
-        tmp_url = urlsplit(self.api_url)
-
-        # joinurl only works properly if there is a trailing slash
-        if tmp_url.path and tmp_url.path[-1] != "/":
-            tmp_url = tmp_url._replace(path=tmp_url.path + "/")
-
-        self.api_url = tmp_url.geturl()
+        self.api_key = ""
+        self.api_url = ""
 
     def check_api_key(self, key: str, url: str) -> bool:
         """

@@ -118,12 +118,6 @@ def comicvine_api(
     cv = comictalker.talkers.comicvine.ComicVineTalker(
         version=mock_version[0],
         cache_folder=options[0].runtime_config.user_cache_dir,
-        api_url="",
-        api_key="",
-        series_match_thresh=90,
-        remove_html_tables=False,
-        use_series_start_as_volume=False,
-        wait_on_ratelimit=False,
     )
     return cv
 

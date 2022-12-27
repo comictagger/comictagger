@@ -229,7 +229,7 @@ def validate_settings(options: settngs.Config[settngs.Values], parser: settngs.M
     return options
 
 
-def register_settings(parser: settngs.Manager) -> None:
+def register_settings(parser: settngs.Manager, talkers: dict[str, Any]) -> None:
     parser.add_group("general", general, False)
     parser.add_group("internal", internal, False)
     parser.add_group("identifier", identifier, False)
@@ -239,3 +239,7 @@ def register_settings(parser: settngs.Manager) -> None:
     parser.add_group("cbl", cbl, False)
     parser.add_group("rename", rename, False)
     parser.add_group("autotag", autotag, False)
+
+    # Register talker plugin settings
+    for talker, cls in talkers.items():
+        parser.add_group(talker, cls.comic_settings, False)

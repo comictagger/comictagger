@@ -157,41 +157,16 @@ class ComicVineTalker(ComicTalker):
     default_api_key = "27431e6787042105bd3e47e169a624521f89f3a4"
     default_api_url = "https://comicvine.gamespot.com/api"
 
-    def comic_settings(parser: settngs.Manager) -> None:
-        # Comic Vine settings
-        parser.add_setting(
-            "--series-match-search-thresh",
-            default=90,
-            type=int,
-        )
-        parser.add_setting("--use-series-start-as-volume", default=False, action=argparse.BooleanOptionalAction)
-        parser.add_setting(
-            "--remove-html-tables",
-            default=False,
-            action=argparse.BooleanOptionalAction,
-            help="Removes html tables instead of converting them to text",
-        )
-        parser.add_setting(
-            "--cv-api-key",
-            help="Use the given Comic Vine API Key (persisted in settings).",
-        )
-        parser.add_setting(
-            "--cv-url",
-            help="Use the given Comic Vine URL (persisted in settings).",
-        )
+    # Settings
+    api_url: str = ""
+    api_key: str = ""
+    series_match_thresh: int = 90
+    remove_html_tables: bool = False
+    use_series_start_as_volume: bool = False
+    wait_on_ratelimit: bool = False
 
-    def __init__(
-        self,
-        version: str,
-        cache_folder: pathlib.Path,
-        api_url: str = "",
-        api_key: str = "",
-        series_match_thresh: int = 90,
-        remove_html_tables: bool = False,
-        use_series_start_as_volume: bool = False,
-        wait_on_ratelimit: bool = False,
-    ):
-        super().__init__(version, cache_folder, api_url, api_key)
+    def __init__(self, version: str, cache_folder: pathlib.Path):
+        super().__init__(version, cache_folder)
         self.source_details = SourceDetails(name="Comic Vine", ident="comicvine")
         self.static_options = SourceStaticOptions(
             website="https://comicvine.gamespot.com/",
@@ -206,14 +181,65 @@ class ComicVineTalker(ComicTalker):
         self.source_name: str = self.source_details.id
         self.source_name_friendly: str = self.source_details.name
 
-        self.wait_for_rate_limit: bool = wait_on_ratelimit
+        # If cls api_url or api_key is empty, use default
+        self.api_url = ComicVineTalker.api_url or ComicVineTalker.default_api_url
+        self.api_key = ComicVineTalker.api_key or ComicVineTalker.default_api_key
+
+        tmp_url = urlsplit(self.api_url)
+
+        # joinurl only works properly if there is a trailing slash
+        if tmp_url.path and tmp_url.path[-1] != "/":
+            tmp_url = tmp_url._replace(path=tmp_url.path + "/")
+
+        self.api_url = tmp_url.geturl()
+
+        self.wait_for_rate_limit: bool = ComicVineTalker.wait_on_ratelimit
         # NOTE: This was hardcoded before which is why it isn't passed in
         self.wait_for_rate_limit_time: int = 20
 
-        self.remove_html_tables: bool = remove_html_tables
-        self.use_series_start_as_volume: bool = use_series_start_as_volume
+        self.remove_html_tables: bool = ComicVineTalker.remove_html_tables
+        self.use_series_start_as_volume: bool = ComicVineTalker.use_series_start_as_volume
 
-        self.series_match_thresh: int = series_match_thresh
+        self.series_match_thresh: int = ComicVineTalker.series_match_thresh
+
+    @classmethod
+    def comic_settings(cls, parser: settngs.Manager) -> None:
+        # Might be general settings?
+        parser.add_setting(
+            "--series-match-search-thresh",
+            default=90,
+            type=int,
+        )
+        parser.add_setting("--cv-use-series-start-as-volume", default=False, action=argparse.BooleanOptionalAction)
+
+        # Comic Vine settings
+        parser.add_setting("--cv-wait-on-ratelimit", default=False, action=argparse.BooleanOptionalAction)
+        parser.add_setting(
+            "--cv-remove-html-tables",
+            default=False,
+            action=argparse.BooleanOptionalAction,
+            help="Removes html tables instead of converting them to text.",
+        )
+        parser.add_setting(
+            "--cv-api-key",
+            help="Use the given Comic Vine API Key.",
+        )
+        parser.add_setting(
+            "--cv-url",
+            help="Use the given Comic Vine URL.",
+        )
+
+    @classmethod
+    def parse_settings(cls, settings: settngs.Config) -> None:
+        """Parse settings."""
+        if settings[0].comicvine_cv_remove_html_tables:
+            cls.remove_html_tables = bool(settings[0].comicvine_cv_remove_html_tables)
+        if settings[0].comicvine_cv_use_series_start_as_volume:
+            cls.use_series_start_as_volume = settings[0].comicvine_cv_use_series_start_as_volume
+        if settings[0].comicvine_cv_api_key:
+            cls.api_key = settings[0].comicvine_cv_api_key
+        if settings[0].comicvine_cv_url:
+            cls.api_url = settings[0].comicvine_cv_url
 
     def check_api_key(self, key: str, url: str) -> bool:
         if not url:

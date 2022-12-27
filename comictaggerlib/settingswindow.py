@@ -282,9 +282,9 @@ class SettingsWindow(QtWidgets.QDialog):
         self.cbxRemovePublisher.setChecked(self.options[0].filename_remove_publisher)
         self.switch_parser()
 
-        self.cbxUseSeriesStartAsVolume.setChecked(self.options[0].comicvine_use_series_start_as_volume)
+        self.cbxUseSeriesStartAsVolume.setChecked(self.options[0].comicvine_cv_use_series_start_as_volume)
         self.cbxClearFormBeforePopulating.setChecked(self.options[0].talkers_general_clear_form_before_populating)
-        self.cbxRemoveHtmlTables.setChecked(self.options[0].comicvine_remove_html_tables)
+        self.cbxRemoveHtmlTables.setChecked(self.options[0].comicvine_cv_remove_html_tables)
 
         self.cbxUseFilter.setChecked(self.options[0].talkers_general_always_use_publisher_filter)
         self.cbxSortByYear.setChecked(self.options[0].talkers_general_sort_series_by_year)
@@ -386,7 +386,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.options[0].general_check_for_new_version = self.cbxCheckForNewVersion.isChecked()
 
         self.options[0].identifier_series_match_identify_thresh = self.sbNameMatchIdentifyThresh.value()
-        self.options[0].comicvine_series_match_search_thresh = self.sbNameMatchSearchThresh.value()
+        self.options[0].comicvine_cv_series_match_search_thresh = self.sbNameMatchSearchThresh.value()
         self.options[0].identifier_publisher_filter = [
             x.strip() for x in str(self.tePublisherFilter.toPlainText()).splitlines() if x.strip()
         ]
@@ -396,9 +396,9 @@ class SettingsWindow(QtWidgets.QDialog):
         self.options[0].filename_remove_fcbd = self.cbxRemoveFCBD.isChecked()
         self.options[0].filename_remove_publisher = self.cbxRemovePublisher.isChecked()
 
-        self.options[0].comicvine_use_series_start_as_volume = self.cbxUseSeriesStartAsVolume.isChecked()
+        self.options[0].comicvine_cv_use_series_start_as_volume = self.cbxUseSeriesStartAsVolume.isChecked()
         self.options[0].talkers_general_clear_form_before_populating = self.cbxClearFormBeforePopulating.isChecked()
-        self.options[0].comicvine_remove_html_tables = self.cbxRemoveHtmlTables.isChecked()
+        self.options[0].comicvine_cv_remove_html_tables = self.cbxRemoveHtmlTables.isChecked()
 
         self.options[0].talkers_general_always_use_publisher_filter = self.cbxUseFilter.isChecked()
         self.options[0].talkers_general_sort_series_by_year = self.cbxSortByYear.isChecked()

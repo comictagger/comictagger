@@ -15,15 +15,17 @@
 # limitations under the License.
 from __future__ import annotations
 
+import argparse
 import json
 import logging
 import pathlib
 import re
 import time
 from typing import Any, Callable, cast
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlsplit
 
 import requests
+import settngs
 from typing_extensions import TypedDict
 
 import comictalker.talker_utils as t_utils
@@ -210,18 +212,89 @@ class MUIssue(TypedDict):
 class MangaUpdatesTalker(ComicTalker):
     default_api_url = "https://api.mangaupdates.com/v1"
 
-    def __init__(
-        self,
-        version: str,
-        cache_folder: pathlib.Path,
-        api_url: str = "",
-        api_key: str = "",
-        series_match_thresh: int = 90,
-        remove_html_tables: bool = False,
-        use_series_start_as_volume: bool = False,
-        wait_on_ratelimit: bool = False,
-    ):
-        super().__init__(version, cache_folder, api_url, api_key)
+    # Settings
+    api_url: str = "https://api.mangaupdates.com/v1"
+    series_match_thresh: int = 90
+    use_series_start_as_volume: bool = False
+    use_search_title: bool = False
+    dup_title: bool = False
+    use_original_publisher: bool = False
+    filter_nsfw: bool = False
+    filter_dojin: bool = False
+    use_ongoing: bool = False
+
+    @classmethod
+    def comic_settings(cls, parser: settngs.Manager) -> None:
+        # Might be general settings?
+        """parser.add_setting(
+            "--series-match-search-thresh",
+            default=90,
+            type=int,
+        )"""
+        parser.add_setting("--mu_use-series-start-as-volume", default=False, action=argparse.BooleanOptionalAction)
+
+        # Manga Updates settings
+        parser.add_setting(
+            "--mu-use-search-title",
+            default=False,
+            action=argparse.BooleanOptionalAction,
+            help="Use search title instead of English.",
+        )
+        parser.add_setting(
+            "--mu-dup-title",
+            default=False,
+            action=argparse.BooleanOptionalAction,
+            help="Duplicate series name to title.",
+        )
+        parser.add_setting(
+            "--mu-use-original-publisher",
+            default=False,
+            action=argparse.BooleanOptionalAction,
+            help="Use the original publisher instead of English language publisher.",
+        )
+        parser.add_setting(
+            "--mu-filter-nsfw",
+            default=False,
+            action=argparse.BooleanOptionalAction,
+            help="Filter out NSFW from results.",
+        )
+        parser.add_setting(
+            "--mu-filter-dojin",
+            default=False,
+            action=argparse.BooleanOptionalAction,
+            help="Filter out dojin from results.",
+        )
+        parser.add_setting(
+            "--mu-use-ongoing",
+            default=False,
+            action=argparse.BooleanOptionalAction,
+            help="Use the ongoing count for total volumes.",
+        )
+        parser.add_setting(
+            "--mu-url",
+            help="Use the given Manga Updates URL.",
+        )
+
+    @classmethod
+    def parse_settings(cls, settings: settngs.Config) -> None:
+        """Parse settings."""
+        if settings[0].mangaupdates_mu_use_search_title:
+            cls.use_search_title = settings[0].mangaupdates_mu_use_search_title
+        if settings[0].mangaupdates_mu_dup_title:
+            cls.dup_title = settings[0].mangaupdates_mu_dup_title
+        if settings[0].mangaupdates_mu_use_original_publisher:
+            cls.use_original_publisher = settings[0].mangaupdates_mu_use_original_publisher
+        if settings[0].mangaupdates_mu_filter_nsfw:
+            cls.filter_nsfw = settings[0].mangaupdates_mu_filter_nsfw
+        if settings[0].mangaupdates_mu_filter_dojin:
+            cls.filter_dojin = settings[0].mangaupdates_mu_filter_dojin
+        if settings[0].mangaupdates_mu_use_ongoing:
+            cls.use_ongoing = settings[0].mangaupdates_mu_use_ongoing
+        if settings[0].mangaupdates_mu_use_series_start_as_volume:
+            cls.use_series_start_as_volume = settings[0].mangaupdates_mu_use_series_start_as_volume
+
+    def __init__(self, version: str, cache_folder: pathlib.Path):
+        super().__init__(version, cache_folder)
         self.source_details = SourceDetails(
             name="Manga Updates",
             ident="mangaupdates",
@@ -235,25 +308,30 @@ class MangaUpdatesTalker(ComicTalker):
             has_nsfw=True,
             has_censored_covers=True,
         )
-        # TODO Temp holder for settings
         self.settings_options = {
-            "use_search_title": False,
-            "dup_title": False,
-            "use_original_publisher": False,
-            "filter_nsfw": False,
-            "filter_dojin": False,
-            "use_ongoing": False,
-            "use_series_start_as_volume": False,
-            "api_url": "https://api.mangaupdates.com/v1",
+            "use_search_title": MangaUpdatesTalker.use_search_title,
+            "dup_title": MangaUpdatesTalker.dup_title,
+            "use_original_publisher": MangaUpdatesTalker.use_original_publisher,
+            "filter_nsfw": MangaUpdatesTalker.filter_nsfw,
+            "filter_dojin": MangaUpdatesTalker.filter_dojin,
+            "use_ongoing": MangaUpdatesTalker.use_ongoing,
+            "use_series_start_as_volume": MangaUpdatesTalker.use_series_start_as_volume,
+            "api_url": MangaUpdatesTalker.api_url,
         }
 
         # Identity name for the information source
         self.source_name: str = self.source_details.id
         self.source_name_friendly: str = self.source_details.name
 
-        self.series_match_thresh: int = series_match_thresh
+        tmp_url = urlsplit(self.api_url)
 
-        # TODO Overwrite default settings with saved
+        # joinurl only works properly if there is a trailing slash
+        if tmp_url.path and tmp_url.path[-1] != "/":
+            tmp_url = tmp_url._replace(path=tmp_url.path + "/")
+
+        self.api_url = tmp_url.geturl()
+
+        self.series_match_thresh: int = MangaUpdatesTalker.series_match_thresh
 
         # Flags for comparing cache options to know if the cache needs to be refreshed.
         self.flags = []

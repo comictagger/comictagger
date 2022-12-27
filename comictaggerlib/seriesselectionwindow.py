@@ -337,7 +337,11 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
     def perform_query(self, refresh: bool = False) -> None:
 
         self.search_thread = SearchThread(
-            self.talker_api, self.series_name, refresh, self.literal, self.options.comicvine_series_match_search_thresh
+            self.talker_api,
+            self.series_name,
+            refresh,
+            self.literal,
+            self.options.comicvine_series_match_search_thresh,
         )
         self.search_thread.searchComplete.connect(self.search_complete)
         self.search_thread.progressUpdate.connect(self.search_progress_update)
