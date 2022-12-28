@@ -161,6 +161,17 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         # Load to retrieve settings
         self.talker_api = talker_api
 
+        # Display talker logo and set url
+        self.lblSourceName.setText(
+            f'<html><head/><body><p>Data Source: <a href="{talker_api.static_options.website}"><span style=" text-decoration: underline; color:#5d88ca;">{talker_api.static_options.website}</span></a></p></body></html>'
+        )
+        source_label_logo = QtGui.QPixmap(talker_api.source_details.logo)
+        if source_label_logo.height() > 100 or source_label_logo.width() > 300:
+            source_label_logo = source_label_logo.scaled(
+                300, 100, QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation
+            )
+        self.lblSourceLogo.setPixmap(source_label_logo)
+
         # Set the minimum row height to the default.
         # this way rows will be more consistent when resizeRowsToContents is called
         self.twList.verticalHeader().setMinimumSectionSize(self.twList.verticalHeader().defaultSectionSize())

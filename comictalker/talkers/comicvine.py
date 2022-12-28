@@ -167,7 +167,9 @@ class ComicVineTalker(ComicTalker):
 
     def __init__(self, version: str, cache_folder: pathlib.Path):
         super().__init__(version, cache_folder)
-        self.source_details = SourceDetails(name="Comic Vine", ident="comicvine")
+        self.source_details = SourceDetails(
+            name="Comic Vine", ident="comicvine", logo="comictalker/talkers/logos/comicvine.png"
+        )
         self.static_options = SourceStaticOptions(
             website="https://comicvine.gamespot.com/",
             has_issues=True,
