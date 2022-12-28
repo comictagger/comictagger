@@ -75,7 +75,7 @@ class AutoTagStartWindow(QtWidgets.QDialog):
         self.remove_after_success = False
         self.wait_and_retry_on_rate_limit = False
         self.search_string = ""
-        self.name_length_match_tolerance = self.options.comicvine_cv_series_match_search_thresh
+        self.name_length_match_tolerance = self.options.comicvine_series_match_search_thresh
         self.split_words = self.cbxSplitWords.isChecked()
 
     def search_string_toggle(self) -> None:
