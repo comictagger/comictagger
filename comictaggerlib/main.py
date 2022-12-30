@@ -154,7 +154,7 @@ class App:
 
         # TODO Temp talker loader option
         talker = "comicvine"
-        # talker = "mangaupdates"
+        talker = "mangaupdates"
 
         try:
             talker_api = ct_api.get_comic_talker(talker)(  # type: ignore[call-arg]

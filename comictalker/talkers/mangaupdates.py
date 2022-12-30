@@ -223,6 +223,57 @@ class MangaUpdatesTalker(ComicTalker):
     filter_dojin: bool = False
     use_ongoing: bool = False
 
+    def __init__(self, version: str, cache_folder: pathlib.Path):
+        super().__init__(version, cache_folder)
+        self.source_details = SourceDetails(
+            name="Manga Updates",
+            ident="mangaupdates",
+            logo="comictalker/talkers/logos/mangaupdates.jpg",
+        )
+        self.static_options = SourceStaticOptions(
+            website="https://www.mangaupdates.com",
+            has_issues=False,
+            has_alt_covers=False,
+            requires_apikey=False,
+            has_nsfw=True,
+            has_censored_covers=True,
+        )
+        self.settings_options = {
+            "use_search_title": MangaUpdatesTalker.use_search_title,
+            "dup_title": MangaUpdatesTalker.dup_title,
+            "use_original_publisher": MangaUpdatesTalker.use_original_publisher,
+            "filter_nsfw": MangaUpdatesTalker.filter_nsfw,
+            "filter_dojin": MangaUpdatesTalker.filter_dojin,
+            "use_ongoing": MangaUpdatesTalker.use_ongoing,
+            "use_series_start_as_volume": MangaUpdatesTalker.use_series_start_as_volume,
+            "api_url": MangaUpdatesTalker.api_url,
+        }
+
+        # Identity name for the information source
+        self.source_name: str = self.source_details.id
+        self.source_name_friendly: str = self.source_details.name
+
+        # If cls api_url or api_key is empty, use default
+        self.api_url = MangaUpdatesTalker.api_url or MangaUpdatesTalker.default_api_url
+
+        tmp_url = urlsplit(self.api_url)
+
+        # joinurl only works properly if there is a trailing slash
+        if tmp_url.path and tmp_url.path[-1] != "/":
+            tmp_url = tmp_url._replace(path=tmp_url.path + "/")
+
+        self.api_url = tmp_url.geturl()
+
+        self.series_match_thresh: int = MangaUpdatesTalker.series_match_thresh
+
+        # Flags for comparing cache options to know if the cache needs to be refreshed.
+        self.flags = []
+        self.flags.append(self.settings_options["use_search_title"])
+        self.flags.append(self.settings_options["filter_nsfw"])
+        self.flags.append(self.settings_options["filter_dojin"])
+        self.flags.append(self.settings_options["use_original_publisher"])
+        self.flags.append(self.settings_options["dup_title"])
+
     @classmethod
     def comic_settings(cls, parser: settngs.Manager) -> None:
         # Might be general settings?
@@ -293,54 +344,6 @@ class MangaUpdatesTalker(ComicTalker):
         if settings[0].mangaupdates_mu_use_series_start_as_volume:
             cls.use_series_start_as_volume = settings[0].mangaupdates_mu_use_series_start_as_volume
 
-    def __init__(self, version: str, cache_folder: pathlib.Path):
-        super().__init__(version, cache_folder)
-        self.source_details = SourceDetails(
-            name="Manga Updates",
-            ident="mangaupdates",
-            logo="comictalker/talkers/logos/mangaupdates.jpg",
-        )
-        self.static_options = SourceStaticOptions(
-            website="https://www.mangaupdates.com",
-            has_issues=False,
-            has_alt_covers=False,
-            requires_apikey=False,
-            has_nsfw=True,
-            has_censored_covers=True,
-        )
-        self.settings_options = {
-            "use_search_title": MangaUpdatesTalker.use_search_title,
-            "dup_title": MangaUpdatesTalker.dup_title,
-            "use_original_publisher": MangaUpdatesTalker.use_original_publisher,
-            "filter_nsfw": MangaUpdatesTalker.filter_nsfw,
-            "filter_dojin": MangaUpdatesTalker.filter_dojin,
-            "use_ongoing": MangaUpdatesTalker.use_ongoing,
-            "use_series_start_as_volume": MangaUpdatesTalker.use_series_start_as_volume,
-            "api_url": MangaUpdatesTalker.api_url,
-        }
-
-        # Identity name for the information source
-        self.source_name: str = self.source_details.id
-        self.source_name_friendly: str = self.source_details.name
-
-        tmp_url = urlsplit(self.api_url)
-
-        # joinurl only works properly if there is a trailing slash
-        if tmp_url.path and tmp_url.path[-1] != "/":
-            tmp_url = tmp_url._replace(path=tmp_url.path + "/")
-
-        self.api_url = tmp_url.geturl()
-
-        self.series_match_thresh: int = MangaUpdatesTalker.series_match_thresh
-
-        # Flags for comparing cache options to know if the cache needs to be refreshed.
-        self.flags = []
-        self.flags.append(self.settings_options["use_search_title"])
-        self.flags.append(self.settings_options["filter_nsfw"])
-        self.flags.append(self.settings_options["filter_dojin"])
-        self.flags.append(self.settings_options["use_original_publisher"])
-        self.flags.append(self.settings_options["dup_title"])
-
     def check_api_key(self, key: str, url: str) -> bool:
         return False
 
@@ -399,38 +402,38 @@ class MangaUpdatesTalker(ComicTalker):
         raise TalkerNetworkError(self.source_name_friendly, 5)
 
     def format_search_results(self, search_results: list[MUResult]) -> list[ComicSeries]:
-
         formatted_results = []
         for record in search_results:
-            if record["record"]["image"]["url"]["original"] is None:
-                image_url = ""
-            else:
-                image_url = record["record"]["image"]["url"]["original"]
-
-            if record["record"]["year"] is None:
-                start_year = 0
-            else:
-                start_year = utils.xlate(record["record"]["year"], True)
-
-            if self.settings_options["use_search_title"]:
-                title = record["hit_title"]
-            else:
-                title = record["record"]["title"]
-
-            formatted_results.append(
-                ComicSeries(
-                    aliases=[record["hit_title"]],  # Not returned from search, use to store hit_title
-                    count_of_issues=0,  # Not returned from search
-                    description=record["record"].get("description", ""),
-                    id=str(record["record"]["series_id"]),
-                    image_url=image_url,
-                    name=title,
-                    publisher="",  # Publisher not returned from search
-                    start_year=start_year,
-                )
-            )
+            formatted_results.append(self.format_series(record))
 
         return formatted_results
+
+    def format_series(self, record: MUResult) -> ComicSeries:
+        if record["record"]["image"]["url"]["original"] is None:
+            image_url = ""
+        else:
+            image_url = record["record"]["image"]["url"]["original"]
+
+        if record["record"]["year"] is None:
+            start_year = 0
+        else:
+            start_year = utils.xlate(record["record"]["year"], True)
+
+        if self.settings_options["use_search_title"]:
+            title = record["hit_title"]
+        else:
+            title = record["record"]["title"]
+
+        return ComicSeries(
+            aliases=[record["hit_title"]],  # Not returned from search, use to store hit_title
+            count_of_issues=0,  # Not returned from search
+            description=record["record"].get("description", ""),
+            id=str(record["record"]["series_id"]),
+            image_url=image_url,
+            name=title,
+            publisher="",  # Publisher not returned from search
+            start_year=start_year,
+        )
 
     def format_issue(self, issue: MUIssue, volume: ComicSeries, complete: bool = True) -> ComicIssue:
         # Will always be complete
@@ -617,6 +620,24 @@ class MangaUpdatesTalker(ComicTalker):
     def fetch_comic_data(
         self, issue_id: str | None = None, series_id: str | None = None, issue_number: str = ""
     ) -> GenericMetadata:
+        # Could be sent "issue_id" only which is actually series_id
+        if issue_id and series_id is None:
+            series_id = issue_id
+
+        if series_id is not None:
+            series = self.fetch_series_data(int(series_id))
+        else:
+            return GenericMetadata()
+
+        # Now, map the ComicIssue data to generic metadata
+        return t_utils.map_comic_issue_to_metadata(
+            series,
+            self.source_name_friendly,
+            False,
+            bool(self.settings_options["use_series_start_as_volume"]),
+        )
+
+    def fetch_series_data(self, series_id: int) -> ComicIssue:
         # issue_id in this case is series_id because MU lacks issue data
         # before we search online, look in our cache, since we might already have this info
         cvc = ComicCacher(self.cache_folder, self.version)
@@ -630,13 +651,7 @@ class MangaUpdatesTalker(ComicTalker):
             and self.flags[3] == self.settings_options["use_original_publisher"]
             and self.flags[4] == self.settings_options["dup_title"]
         ):
-
-            return t_utils.map_comic_issue_to_metadata(
-                cached_issues_result,
-                self.source_name_friendly,
-                False,
-                bool(self.settings_options["use_series_start_as_volume"]),
-            )
+            return cached_issues_result
 
         issue_url = urljoin(self.api_url, f"series/{series_id}")
         # params = {"api_key": self.api_key, "format": "json"}
@@ -676,10 +691,13 @@ class MangaUpdatesTalker(ComicTalker):
         self.flags[3] = self.settings_options["use_original_publisher"]
         self.flags[4] = self.settings_options["dup_title"]
 
-        # Now, map the ComicIssue data to generic metadata
-        return t_utils.map_comic_issue_to_metadata(
-            formatted_issues_result,
-            self.source_name_friendly,
-            False,
-            bool(self.settings_options["use_series_start_as_volume"]),
-        )
+        return formatted_issues_result
+
+    def fetch_issues_by_series_issue_num_and_year(
+        self, series_id_list: list[str], issue_number: str, year: str | int | None
+    ) -> list[ComicIssue]:
+        series_list = []
+        for series_id in series_id_list:
+            series_list.append(self.fetch_series_data(int(series_id)))
+
+        return series_list
