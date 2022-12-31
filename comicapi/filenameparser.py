@@ -132,8 +132,8 @@ class FileNameParser:
         else:
             # only one word? Check to see if there is a digit, if so use it as the issue number and the series
             if any(char.isnumeric() for char in word_list[0][0]):
-                issue = word_list[0][0]
-            return issue, start, end
+                issue = word_list[0][0].removeprefix("#")
+            return issue, word_list[0][1], word_list[0][2]
 
         # Now try to search for the likely issue number word in the list
 
@@ -172,6 +172,8 @@ class FileNameParser:
 
         if issue_start != 0:
             filename = filename[:issue_start]
+        else:
+            filename = filename.lstrip("#")
 
         # in case there is no issue number, remove some obvious stuff
         if "--" in filename:
@@ -232,7 +234,7 @@ class FileNameParser:
         if volume:
             series = re.sub(r"\s+v(|ol|olume)$", "", series)
 
-        return series, volume.strip()
+        return series.strip().strip("-_.").strip(), volume.strip()
 
     def get_year(self, filename: str, issue_end: int) -> str:
 
@@ -428,37 +430,35 @@ def parse(p: Parser) -> Callable[[Parser], Callable | None] | None:  # type: ign
             p.firstItem = False
             return parse_issue_number
 
-        # The issue number should hopefully not be in parentheses
-        if p.in_something == 0:
+        # Issue number is not 4 digits e.g. a year
+        # If this is still used in 7978 years, something is terribly wrong
+        if len(item.val.lstrip("0")) != 4:
             # Assume that operators indicate a non-issue number e.g. IG-88 or 88-IG
             if filenamelexer.ItemType.Operator not in (p.peek().typ, p.peek_back().typ):
                 # It is common to use '89 to refer to an annual reprint from 1989
                 if item.val[0] != "'":
-                    # Issue number is not 4 digits e.g. a year
-                    # If this is still used in 7978 years, something is terribly wrong
-                    if len(item.val.lstrip("0")) != 4:
-                        # An issue number starting with # Was not found and no previous number was found
-                        if p.issue_number_at is None:
-                            # Series has already been started/parsed,
-                            # filters out leading alternate numbers leading alternate number
-                            if len(p.series_parts) > 0:
-                                return parse_issue_number
+                    # An issue number starting with # Was not found and no previous number was found
+                    if p.issue_number_at is None:
+                        # Series has already been started/parsed,
+                        # filters out leading alternate numbers leading alternate number
+                        if len(p.series_parts) > 0:
+                            return parse_issue_number
             else:
                 p.operator_rejected.append(item)
                 # operator rejected used later to add back to the series/title
 
         # It is more likely to be a year if it is inside parentheses.
         if p.in_something > 0:
-            likely_year = True
-            likely_issue_number = len(item.val) < 4
+            likely_year = len(item.val.lstrip("0")) == 4
+            likely_issue_number = not likely_year
 
         # If numbers are directly followed by text it most likely isn't a year e.g. 2048px
         if p.peek().typ == filenamelexer.ItemType.Text:
             likely_year = False
-            likely_issue_number = p.in_something <= 0
+            likely_issue_number = p.in_something == 0
 
         # Is either a full year '2001' or a short year "'89"
-        if len(item.val) == 4 or item.val[0] == "'":
+        if len(item.val.lstrip("0")) == 4 or item.val[0] == "'":
             series = " ".join([x.val for x in p.series_parts])
             if p.series_parts and series.casefold().endswith("free comic book day"):
                 likely_issue_number = False
@@ -784,10 +784,13 @@ def parse_series(p: Parser) -> Callable[[Parser], Callable | None] | None:  # ty
                 p.filename_info["volume"] = t2do.convert(item.val)
                 break
 
+            # This is 6 in '1 of 6'
+            if series[current_part] and series[current_part][-1].val.casefold() == "of":
+                series[current_part].append(item)
             if p.peek().typ == filenamelexer.ItemType.Space:
                 p.get()
                 # We have 2 numbers, add the first to the series and then go back to parse
-                if p.peek().typ == filenamelexer.ItemType.Number:
+                if p.peek().typ in [filenamelexer.ItemType.Number, filenamelexer.ItemType.IssueNumber]:
                     series[current_part].append(item)
                     break
 
@@ -795,9 +798,6 @@ def parse_series(p: Parser) -> Callable[[Parser], Callable | None] | None:  # ty
                 p.backup()  # Whitespace
                 p.backup()  # The number
                 break
-            # This is 6 in '1 of 6'
-            if series[current_part] and series[current_part][-1].val.casefold() == "of":
-                series[current_part].append(item)
 
             # We have 1 number break here, it's possible it's the issue
             else:
@@ -1102,7 +1102,7 @@ def get_number(p: Parser, index: int) -> filenamelexer.Item | None:
             filenamelexer.ItemType.Space,
         ]:
             continue
-        if i.typ == filenamelexer.ItemType.Number:
+        if i.typ in [filenamelexer.ItemType.Number, filenamelexer.ItemType.IssueNumber]:
             # We got our number, time to leave
             return i
         # This is not a number and not an ignorable type, give up looking for the number this count belongs to
