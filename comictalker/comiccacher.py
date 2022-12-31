@@ -326,7 +326,7 @@ class ComicCacher:
                 try:
                     for credit in json.loads(row[13]):
                         credits.append(Credit(**credit))
-                finally:
+                except Exception:
                     logger.exception("credits failed")
                 record = ComicIssue(
                     id=row[1],
