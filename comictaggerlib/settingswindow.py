@@ -440,8 +440,8 @@ class SettingsWindow(QtWidgets.QDialog):
         self.select_file(self.leRarExePath, "RAR")
 
     def clear_cache(self) -> None:
-        ImageFetcher(self.options[0].runtime_config.cache_folder).clear_cache()
-        ComicCacher(self.options[0].runtime_config.cache_folder, version).clear_cache()
+        ImageFetcher(self.options[0].runtime_config.user_cache_dir).clear_cache()
+        ComicCacher(self.options[0].runtime_config.user_cache_dir, version).clear_cache()
         QtWidgets.QMessageBox.information(self, self.name, "Cache has been cleared.")
 
     def test_api_key(self) -> None:
