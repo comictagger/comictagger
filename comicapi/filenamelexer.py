@@ -60,7 +60,6 @@ key = {
     "tar": ItemType.ArchiveType,
     "7z": ItemType.ArchiveType,
     "annual": ItemType.ComicType,
-    "book": ItemType.ComicType,
     "volume": ItemType.InfoSpecifier,
     "vol.": ItemType.InfoSpecifier,
     "vol": ItemType.InfoSpecifier,

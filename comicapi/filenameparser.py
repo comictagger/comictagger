@@ -355,7 +355,7 @@ class Parser:
         self.in_brace = 0  # In {}
         self.in_s_brace = 0  # In []
         self.in_paren = 0  # In ()
-        self.year_candidates: list[tuple[bool, filenamelexer.Item]] = []
+        self.year_candidates: list[tuple[bool, bool, filenamelexer.Item]] = []
         self.series_parts: list[filenamelexer.Item] = []
         self.title_parts: list[filenamelexer.Item] = []
         self.used_items: list[filenamelexer.Item] = []
@@ -422,6 +422,7 @@ def parse(p: Parser) -> Callable[[Parser], Callable | None] | None:  # type: ign
     # Need to figure out if this is the issue number
     if item.typ == filenamelexer.ItemType.Number:
         likely_year = False
+        likely_issue_number = True
         if p.firstItem and p.first_is_alt:
             p.alt = True
             p.firstItem = False
@@ -433,8 +434,9 @@ def parse(p: Parser) -> Callable[[Parser], Callable | None] | None:  # type: ign
             if filenamelexer.ItemType.Operator not in (p.peek().typ, p.peek_back().typ):
                 # It is common to use '89 to refer to an annual reprint from 1989
                 if item.val[0] != "'":
-                    # Issue number is less than 4 digits. very few series go above 999
-                    if len(item.val.lstrip("0")) < 4:
+                    # Issue number is not 4 digits e.g. a year
+                    # If this is still used in 7978 years, something is terribly wrong
+                    if len(item.val.lstrip("0")) != 4:
                         # An issue number starting with # Was not found and no previous number was found
                         if p.issue_number_at is None:
                             # Series has already been started/parsed,
@@ -448,13 +450,18 @@ def parse(p: Parser) -> Callable[[Parser], Callable | None] | None:  # type: ign
         # It is more likely to be a year if it is inside parentheses.
         if p.in_something > 0:
             likely_year = True
+            likely_issue_number = len(item.val) < 4
 
         # If numbers are directly followed by text it most likely isn't a year e.g. 2048px
         if p.peek().typ == filenamelexer.ItemType.Text:
             likely_year = False
+            likely_issue_number = p.in_something <= 0
 
         # Is either a full year '2001' or a short year "'89"
         if len(item.val) == 4 or item.val[0] == "'":
+            series = " ".join([x.val for x in p.series_parts])
+            if p.series_parts and series.casefold().endswith("free comic book day"):
+                likely_issue_number = False
             if p.in_something == 0:
                 # Append to series in case it is a part of the title, but only if were not inside parenthesis
                 p.series_parts.append(item)
@@ -475,6 +482,7 @@ def parse(p: Parser) -> Callable[[Parser], Callable | None] | None:  # type: ign
                     ]:
                         op.append(p.get())
                         if p.peek().typ == filenamelexer.ItemType.Number:
+                            likely_issue_number = False
                             day = p.get()
                             fulldate = [month, day, item]
                             p.used_items.extend(op)
@@ -492,7 +500,8 @@ def parse(p: Parser) -> Callable[[Parser], Callable | None] | None:  # type: ign
                     p.backup()
                     # TODO never happens
 
-            p.year_candidates.append((likely_year, item))
+            likely_issue_number = likely_issue_number and item.val[0] != "'"
+            p.year_candidates.append((likely_year, likely_issue_number, item))
         # Ensures that IG-88 gets added back to the series/title
         elif (
             p.in_something == 0
@@ -548,19 +557,12 @@ def parse(p: Parser) -> Callable[[Parser], Callable | None] | None:  # type: ign
         if p.peek().typ == filenamelexer.ItemType.Space:
             p.get()
 
-        if (
-            p.series_parts
-            and "free comic book" in (" ".join([x.val for x in p.series_parts]) + " " + item.val).casefold()
-        ):
-            p.filename_info["fcbd"] = True
-            series_append = True
-        # If the next item is a number it's probably the volume
-        elif p.peek().typ == filenamelexer.ItemType.Number or (
+        if p.peek().typ == filenamelexer.ItemType.Number or (
             p.peek().typ == filenamelexer.ItemType.Text and t2d.convert(p.peek().val).isnumeric()
         ):
             number = p.get()
             # Mark volume info. Text will be added to the title/series later
-            if item.val.casefold() in ["book", "tpb"]:
+            if item.val.casefold() in ["tpb"]:
                 p.title_parts.extend([item, number])
                 p.filename_info["volume"] = t2do.convert(number.val)
                 p.filename_info["issue"] = t2do.convert(number.val)
@@ -573,7 +575,7 @@ def parse(p: Parser) -> Callable[[Parser], Callable | None] | None:  # type: ign
                 p.filename_info["annual"] = True
                 num = t2d.convert(number.val)
                 if num.isnumeric() and len(num) == 4:
-                    p.year_candidates.append((True, number))
+                    p.year_candidates.append((True, False, number))
                 else:
                     p.backup()
 
@@ -717,15 +719,8 @@ def parse_series(p: Parser) -> Callable[[Parser], Callable | None] | None:  # ty
 
     prev_space = False
 
-    # 'free comic book day' screws things up. #TODO look into removing book from ComicType?
-
     # We stop parsing the series when certain things come up if nothing was done with them continue where we left off
-    if (
-        p.series_parts
-        and p.series_parts[-1].val.casefold() == "book"
-        or p.peek_back().typ == filenamelexer.ItemType.Number
-        or item.typ == filenamelexer.ItemType.Calendar
-    ):
+    if p.peek_back().typ in [filenamelexer.ItemType.Number, filenamelexer.ItemType.Calendar]:
         series_parts = p.series_parts
         p.series_parts = []
     # Skip is only true if we have come across '--' or '__'
@@ -782,6 +777,13 @@ def parse_series(p: Parser) -> Callable[[Parser], Callable | None] | None:  # ty
             break
 
         elif item.typ == filenamelexer.ItemType.Number:
+            # Special case for the word 'book'
+            if series[current_part] and series[current_part][-1].val.casefold() == "book":
+                title_parts.append(series[current_part].pop())
+                title_parts.append(item)
+                p.filename_info["volume"] = t2do.convert(item.val)
+                break
+
             if p.peek().typ == filenamelexer.ItemType.Space:
                 p.get()
                 # We have 2 numbers, add the first to the series and then go back to parse
@@ -842,30 +844,47 @@ def resolve_year(p: Parser) -> None:
         # Sort by likely_year boolean
         p.year_candidates.sort(key=itemgetter(0))
 
-        # Take the last year e.g. (2007) 2099 (2008) becomes 2099 2007 2008 and takes 2008
-        selected_year = p.year_candidates.pop()[1]
+        if "issue" not in p.filename_info:
+            year = p.year_candidates.pop(0)
+            if year[1]:
+                p.filename_info["issue"] = year[2].val
+                p.used_items.append(year[2])
+                # Remove year from series and title
+                if year[2] in p.series_parts:
+                    p.series_parts.remove(year[2])
+                if year[2] in p.title_parts:
+                    p.title_parts.remove(year[2])
+                if not p.year_candidates:
+                    return
+            else:
+                p.year_candidates.insert(0, year)
 
-        p.filename_info["year"] = selected_year.val
-        p.used_items.append(selected_year)
+        # Take the last year e.g. (2007) 2099 (2008) becomes 2099 2007 2008 and takes 2008
+        selected_year = p.year_candidates.pop()
+
+        p.filename_info["year"] = selected_year[2].val
+        p.used_items.append(selected_year[2])
 
         # (2008) Title (2009) is many times used to denote the series year if we don't have a volume we use it
         if "volume" not in p.filename_info and p.year_candidates and p.year_candidates[-1][0]:
-            vol = p.year_candidates.pop()[1]
-            p.filename_info["volume"] = vol.val
-            p.used_items.append(vol)
+            year = p.year_candidates[-1]
+            if year[2] not in p.series_parts and year[2] not in p.title_parts:
+                vol = p.year_candidates.pop()[2]
+                p.filename_info["volume"] = vol.val
+                p.used_items.append(vol)
 
-            # Remove volume from series and title
-            # note: this never happens
-            if vol in p.series_parts:
-                p.series_parts.remove(vol)
-            if vol in p.title_parts:
-                p.title_parts.remove(vol)
+                # Remove volume from series and title
+                # note: this never happens
+                if vol in p.series_parts:
+                    p.series_parts.remove(vol)
+                if vol in p.title_parts:
+                    p.title_parts.remove(vol)
 
         # Remove year from series and title
-        if selected_year in p.series_parts:
-            p.series_parts.remove(selected_year)
-        if selected_year in p.title_parts:
-            p.title_parts.remove(selected_year)
+        if selected_year[2] in p.series_parts:
+            p.series_parts.remove(selected_year[2])
+        if selected_year[2] in p.title_parts:
+            p.title_parts.remove(selected_year[2])
 
 
 def resolve_issue(p: Parser) -> None:
@@ -874,7 +893,7 @@ def resolve_issue(p: Parser) -> None:
         issue_num = p.series_parts.pop()
 
         # If the number we just popped is a year put it back on it's probably part of the series e.g. Spider-Man 2099
-        if issue_num in [x[1] for x in p.year_candidates]:
+        if issue_num in [x[2] for x in p.year_candidates]:
             p.series_parts.append(issue_num)
         else:
             # If this number was rejected because of an operator and the operator is still there add it back
@@ -926,6 +945,9 @@ def parse_finish(p: Parser) -> Callable[[Parser], Callable | None] | None:  # ty
         p.used_items.extend(p.series_parts)
     else:
         p.filename_info["series"] = p.filename_info["issue"]
+
+    if "free comic book" in p.filename_info["series"].casefold():
+        p.filename_info["fcbd"] = True
 
     p.filename_info["title"] = join_title(p.title_parts)
     p.used_items.extend(p.title_parts)
@@ -1017,7 +1039,7 @@ def parse_info_specifier(p: Parser) -> Callable[[Parser], Callable | None] | Non
     if p.peek().typ == filenamelexer.ItemType.Space:
         p.get()
 
-    # Handles 'book 3' and 'book three'
+    # Handles 'volume 3' and 'volume three'
     if p.peek().typ == filenamelexer.ItemType.Number or (
         p.peek().typ == filenamelexer.ItemType.Text and t2d.convert(p.peek().val).isnumeric()
     ):

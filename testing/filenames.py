@@ -11,6 +11,7 @@ format is
 """
 from __future__ import annotations
 
+import datetime
 import os
 import os.path
 import pathlib
@@ -62,6 +63,38 @@ fnames = [
             "series": "ms. Marvel",
             "title": "",
             "publisher": "Marvel",
+            "volume": "",
+            "year": "",
+            "remainder": "",
+            "issue_count": "",
+            "alternate": "",
+        },
+        False,
+    ),
+    (
+        f"action comics {datetime.datetime.now().year}.cbz",
+        "issue number is current year (digits == 4)",
+        {
+            "issue": f"{datetime.datetime.now().year}",
+            "series": "action comics",
+            "title": "",
+            "publisher": "",
+            "volume": "",
+            "year": "",
+            "remainder": "",
+            "issue_count": "",
+            "alternate": "",
+        },
+        False,
+    ),
+    (
+        f"action comics #{datetime.datetime.now().year}.cbz",
+        "issue number is current year (digits == 4)",
+        {
+            "issue": f"{datetime.datetime.now().year}",
+            "series": "action comics",
+            "title": "",
+            "publisher": "",
             "volume": "",
             "year": "",
             "remainder": "",
