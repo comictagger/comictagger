@@ -35,7 +35,7 @@ from comictalker.talkerbase import ComicTalker, TalkerError
 logger = logging.getLogger(__name__)
 
 try:
-    from PIL import Image
+    from PIL import Image, ImageChops
 
     pil_available = True
 except ImportError:
@@ -165,6 +165,48 @@ class IssueIdentifier:
         output.close()
 
         return cropped_image_data
+
+    # Adapted from https://stackoverflow.com/a/10616717/20629671
+    def crop_border(self, image_data: bytes, ratio: int) -> bytes | None:
+        im = Image.open(io.BytesIO(image_data))
+
+        # RGBA doesn't work????
+        tmp = im.convert("RGB")
+
+        bg = Image.new("RGB", tmp.size, "black")
+        diff = ImageChops.difference(tmp, bg)
+        diff = ImageChops.add(diff, diff, 2.0, -100)
+
+        bbox = diff.getbbox()
+
+        width_percent = 0
+        height_percent = 0
+
+        # If bbox is None that should mean it's solid black
+        if bbox:
+            width = bbox[2] - bbox[0]
+            height = bbox[3] - bbox[1]
+
+            # Convert to percent
+            width_percent = 100 - ((width / im.width) * 100)
+            height_percent = 100 - ((height / im.height) * 100)
+            logger.debug(
+                "Width: %s Height: %s, ratio: %s  %s ratio met: %s",
+                im.width,
+                im.height,
+                width_percent,
+                height_percent,
+                width_percent > ratio or height_percent > ratio,
+            )
+
+        # If there is a difference return the image otherwise return None
+        if width_percent > ratio or height_percent > ratio:
+            output = io.BytesIO()
+            im.crop(bbox).save(output, format="PNG")
+            cropped_image_data = output.getvalue()
+            output.close()
+            return cropped_image_data
+        return None
 
     def set_progress_callback(self, cb_func: Callable[[int, int], None]) -> None:
         self.callback = cb_func
@@ -308,8 +350,7 @@ class IssueIdentifier:
                     self.log_msg(score, False)
 
                 if score <= self.strong_score_thresh:
-                    # such a good score, we can quit now, since for sure we
-                    # have a winner
+                    # such a good score, we can quit now, since for sure we have a winner
                     done = True
                     break
             if done:
@@ -463,6 +504,11 @@ class IssueIdentifier:
             hash_list = [cover_hash]
             if narrow_cover_hash is not None:
                 hash_list.append(narrow_cover_hash)
+
+            cropped_border = self.crop_border(cover_image_data, self.options.identifier_border_crop_percent)
+            if cropped_border is not None:
+                hash_list.append(self.calculate_hash(cropped_border))
+                logger.info("Adding cropped cover to the hashlist")
 
             try:
                 image_url = issue.image_url

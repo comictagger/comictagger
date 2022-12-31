@@ -43,6 +43,13 @@ def identifier(parser: settngs.Manager) -> None:
     # identifier settings
     parser.add_setting("--series-match-identify-thresh", default=91, type=int, help="")
     parser.add_setting(
+        "-b",
+        "--border-crop-percent",
+        default=10,
+        type=int,
+        help="ComicTagger will automatically add an additional cover that has any black borders cropped. If the difference in height is less than %(default)s%% the cover will not be cropped.",
+    )
+    parser.add_setting(
         "--publisher-filter",
         default=["Panini Comics", "Abril", "Planeta DeAgostini", "Editorial Televisa", "Dino Comics"],
         action=AppendAction,
