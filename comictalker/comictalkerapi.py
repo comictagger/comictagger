@@ -16,23 +16,50 @@
 from __future__ import annotations
 
 import logging
+import sys
+from typing import NamedTuple
 
-import comictalker.talkers.comicvine
+if sys.version_info < (3, 10):
+    from importlib_metadata import EntryPoint, distributions
+else:
+    from importlib.metadata import EntryPoint, distributions
+
 from comictalker.talkerbase import ComicTalker, TalkerError
 
 logger = logging.getLogger(__name__)
 
 
-def get_comic_talker(source_name: str) -> type[ComicTalker]:
-    """Retrieve the available sources modules"""
-    sources = get_talkers()
-    if source_name not in sources:
-        raise TalkerError(source=source_name, code=4, desc="The talker does not exist")
-
-    talker = sources[source_name]
-    return talker
+class Plugin(NamedTuple):
+    package: str
+    version: str
+    entry_point: EntryPoint
 
 
-def get_talkers() -> dict[str, type[ComicTalker]]:
-    """Returns all comic talker modules NOT objects"""
-    return {"comicvine": comictalker.talkers.comicvine.ComicVineTalker}
+def get_comic_talker(talker_name: str) -> type[ComicTalker]:
+    """Returns the requested talker module"""
+    talkers = get_talkers()
+    if talker_name not in talkers:
+        raise TalkerError(source=talker_name, code=4, desc="The talker does not exist")
+
+    return talkers[talker_name].entry_point.load()
+
+
+def get_talkers() -> dict[str, Plugin]:
+    """Returns all comic talker plugins (internal and external)"""
+    talkers: dict[str, Plugin] = {}
+    for dist in distributions():
+        eps = dist.entry_points
+
+        # perf: skip parsing `.metadata` (slow) if no entry points match
+        if not any(ep.group in ("comictagger_talkers") for ep in eps):
+            continue
+
+        # assigned to prevent continual reparsing
+        meta = dist.metadata
+
+        for ep in eps:
+            # Only want comic talkers
+            if ep.group == "comictagger_talkers":
+                talkers[ep.name] = Plugin(ep.name, meta["version"], ep)
+
+    return talkers

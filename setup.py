@@ -64,6 +64,9 @@ setup(
         pyinstaller40=[
             "hook-dirs = comictaggerlib.__pyinstaller:get_hook_dirs",
         ],
+        comictagger_talkers=[
+            "comicvine = comictalker.talkers.comicvine:ComicVineTalker",
+        ],
     ),
     classifiers=[
         "Development Status :: 4 - Beta",
