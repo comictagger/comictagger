@@ -66,8 +66,10 @@ class App:
         self.options = settngs.Config({}, {})
         self.initial_arg_parser = ctoptions.initial_cmd_line_parser()
         self.config_load_success = False
+        self.talker_plugins: dict = {}
 
     def run(self) -> None:
+        self.talker_plugins = ct_api.get_talkers()
         opts = self.initialize()
         self.register_options()
         self.parse_options(opts.config)
@@ -87,7 +89,7 @@ class App:
             "For more help visit the wiki at: https://github.com/comictagger/comictagger/wiki",
         )
         ctoptions.register_commandline(self.manager)
-        ctoptions.register_settings(self.manager)
+        ctoptions.register_settings(self.manager, self.talker_plugins)
 
     def parse_options(self, config_paths: ctoptions.ComicTaggerPaths) -> None:
         self.options, self.config_load_success = self.manager.parse_config(
@@ -98,6 +100,18 @@ class App:
         self.options = ctoptions.validate_commandline_options(self.options, self.manager)
         self.options = ctoptions.validate_settings(self.options, self.manager)
         self.options = self.options
+
+        # parse talker settings
+        for loaded in self.talker_plugins.values():
+            parse_options = getattr(loaded, "parse_settings", None)
+            if parse_options is None:
+                logger.warning(f"Failed to find parse_settings in talker {loaded}")
+                continue
+
+            try:
+                parse_options(self.options)
+            except Exception as e:
+                logger.warning(f"Failed to parse talker options for {loaded}: {e}")
 
     def initialize_dirs(self) -> None:
         self.options[0].runtime_config.user_data_dir.mkdir(parents=True, exist_ok=True)
@@ -136,28 +150,12 @@ class App:
             self.options[0].runtime_no_gui = True
             logger.warning("PyQt5 is not available. ComicTagger is limited to command-line mode.")
 
-        # manage the CV API key
-        # None comparison is used so that the empty string can unset the value
-        if self.options[0].comicvine_cv_api_key is not None or self.options[0].comicvine_cv_url is not None:
-            settings_path = self.options[0].runtime_config.user_config_dir / "settings.json"
-            if self.config_load_success:
-                self.manager.save_file(self.options[0], settings_path)
-
-        if self.options[0].commands_only_set_cv_key:
-            if self.config_load_success:
-                print("Key set")  # noqa: T201
-                return
+        # TODO Have option to save passed in config options and quit?
 
         try:
             talker_api = ct_api.get_comic_talker("comicvine")(  # type: ignore[call-arg]
                 version=version,
                 cache_folder=self.options[0].runtime_config.user_cache_dir,
-                series_match_thresh=self.options[0].comicvine_series_match_search_thresh,
-                remove_html_tables=self.options[0].comicvine_remove_html_tables,
-                use_series_start_as_volume=self.options[0].comicvine_use_series_start_as_volume,
-                wait_on_ratelimit=self.options[0].autotag_wait_and_retry_on_rate_limit,
-                api_url=self.options[0].comicvine_cv_url,
-                api_key=self.options[0].comicvine_cv_api_key,
             )
         except TalkerError as e:
             logger.exception("Unable to load talker")

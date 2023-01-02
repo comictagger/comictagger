@@ -13,10 +13,12 @@
 # limitations under the License.
 from __future__ import annotations
 
+import argparse
 import logging
 import pathlib
 from typing import Callable
-from urllib.parse import urlsplit
+
+import settngs
 
 from comicapi.genericmetadata import GenericMetadata
 from comictalker.resulttypes import ComicIssue, ComicSeries
@@ -148,16 +150,16 @@ class ComicTalker:
         self.cache_folder = cache_folder
         self.version = version
 
-        self.api_key = api_key or self.default_api_key
-        self.api_url = api_url or self.default_api_url
+        self.api_key = ""
+        self.api_url = ""
 
-        tmp_url = urlsplit(self.api_url)
+    @classmethod
+    def comic_settings(cls, parser: settngs.Manager) -> None:
+        """Talker settings."""
 
-        # joinurl only works properly if there is a trailing slash
-        if tmp_url.path and tmp_url.path[-1] != "/":
-            tmp_url = tmp_url._replace(path=tmp_url.path + "/")
-
-        self.api_url = tmp_url.geturl()
+    @classmethod
+    def parse_settings(cls, settings: argparse.Namespace) -> None:
+        """Parse settings."""
 
     def check_api_key(self, key: str, url: str) -> bool:
         """
