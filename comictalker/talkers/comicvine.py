@@ -167,7 +167,9 @@ class ComicVineTalker(ComicTalker):
         wait_on_ratelimit: bool = False,
     ):
         super().__init__(version, cache_folder, api_url, api_key)
-        self.source_details = SourceDetails(name="Comic Vine", ident="comicvine")
+        self.source_details = SourceDetails(
+            name="Comic Vine", ident="comicvine", logo="comictalker/talkers/logos/comicvine.png"
+        )
         self.static_options = SourceStaticOptions(
             website="https://comicvine.gamespot.com/",
             has_issues=True,
