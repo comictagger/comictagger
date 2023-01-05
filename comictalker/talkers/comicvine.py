@@ -152,6 +152,8 @@ CV_RATE_LIMIT_STATUS = 107
 
 
 class ComicVineTalker(ComicTalker):
+    display_name = "Comic Vine"
+    talker_version = "0.1"
     default_api_key = "27431e6787042105bd3e47e169a624521f89f3a4"
     default_api_url = "https://comicvine.gamespot.com/api"
 

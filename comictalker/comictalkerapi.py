@@ -17,22 +17,16 @@ from __future__ import annotations
 
 import logging
 import sys
-from typing import NamedTuple
+from functools import cache
 
 if sys.version_info < (3, 10):
-    from importlib_metadata import EntryPoint, distributions
+    from importlib_metadata import entry_points
 else:
-    from importlib.metadata import EntryPoint, distributions
+    from importlib.metadata import entry_points
 
 from comictalker.talkerbase import ComicTalker, TalkerError
 
 logger = logging.getLogger(__name__)
-
-
-class Plugin(NamedTuple):
-    package: str
-    version: str
-    entry_point: EntryPoint
 
 
 def get_comic_talker(talker_name: str) -> type[ComicTalker]:
@@ -41,25 +35,24 @@ def get_comic_talker(talker_name: str) -> type[ComicTalker]:
     if talker_name not in talkers:
         raise TalkerError(source=talker_name, code=4, desc="The talker does not exist")
 
-    return talkers[talker_name].entry_point.load()
+    return talkers[talker_name]
 
 
-def get_talkers() -> dict[str, Plugin]:
+@cache
+def get_talkers():
     """Returns all comic talker plugins (internal and external)"""
-    talkers: dict[str, Plugin] = {}
-    for dist in distributions():
-        eps = dist.entry_points
+    talkers = {}
 
-        # perf: skip parsing `.metadata` (slow) if no entry points match
-        if not any(ep.group in ("comictagger_talkers") for ep in eps):
-            continue
-
-        # assigned to prevent continual reparsing
-        meta = dist.metadata
-
-        for ep in eps:
-            # Only want comic talkers
-            if ep.group == "comictagger_talkers":
-                talkers[ep.name] = Plugin(ep.name, meta["version"], ep)
+    for ep in entry_points(group="comictagger_talkers"):
+        try:
+            talkers[ep.name] = ep.load()
+            logger.info(
+                "Found talker ID: %s, name: %s, version: %s",
+                ep.name,
+                talkers[ep.name].display_name,
+                talkers[ep.name].talker_version,
+            )
+        except Exception:
+            logger.exception("Failed to load talker: %s", ep.name)
 
     return talkers

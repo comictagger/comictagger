@@ -137,6 +137,8 @@ class TalkerDataError(TalkerError):
 class ComicTalker:
     """The base class for all comic source talkers"""
 
+    display_name: str = ""
+    talker_version: str = ""
     default_api_url: str = ""
     default_api_key: str = ""
 
