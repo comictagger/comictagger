@@ -153,7 +153,7 @@ class App:
         # TODO Have option to save passed in config options and quit?
 
         try:
-            talker_api = ct_api.get_comic_talker("comicvine")(  # type: ignore[call-arg]
+            talker_api = ct_api.get_comic_talker(self.options[0].talkers_general_source)(  # type: ignore[call-arg]
                 version=version,
                 cache_folder=self.options[0].runtime_config.user_cache_dir,
             )
