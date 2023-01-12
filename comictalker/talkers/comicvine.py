@@ -168,7 +168,9 @@ class ComicVineTalker(ComicTalker):
     ):
         super().__init__(version, cache_folder, api_url, api_key)
         self.source_details = SourceDetails(
-            name="Comic Vine", ident="comicvine", logo="comictalker/talkers/logos/comicvine.png"
+            name="Comic Vine",
+            ident="comicvine",
+            logo="https://comicvine.gamespot.com/a/bundles/comicvinesite/images/logo.png",
         )
         self.static_options = SourceStaticOptions(
             website="https://comicvine.gamespot.com/",

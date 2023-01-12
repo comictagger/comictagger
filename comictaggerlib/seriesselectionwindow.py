@@ -163,14 +163,20 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
 
         # Display talker logo and set url
         self.lblSourceName.setText(
-            f'<html><head/><body><p>Data Source: <a href="{talker_api.static_options.website}"><span style=" text-decoration: underline; color:#5d88ca;">{talker_api.static_options.website}</span></a></p></body></html>'
+            f'Data Source: <a href="{talker_api.static_options.website}">{talker_api.static_options.website}</a>'
         )
-        source_label_logo = QtGui.QPixmap(talker_api.source_details.logo)
-        if source_label_logo.height() > 100 or source_label_logo.width() > 300:
-            source_label_logo = source_label_logo.scaled(
-                300, 100, QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation
-            )
-        self.lblSourceLogo.setPixmap(source_label_logo)
+
+        self.imageSourceWidget = CoverImageWidget(
+            self.lblSourceLogo,
+            CoverImageWidget.URLMode,
+            options.runtime_config.user_cache_dir,
+            talker_api,
+            False,
+        )
+        gridlayoutSourceLogo = QtWidgets.QGridLayout(self.lblSourceLogo)
+        gridlayoutSourceLogo.addWidget(self.imageSourceWidget)
+        gridlayoutSourceLogo.setContentsMargins(0, 0, 0, 0)
+        self.imageSourceWidget.set_url(talker_api.source_details.logo)
 
         # Set the minimum row height to the default.
         # this way rows will be more consistent when resizeRowsToContents is called
