@@ -2,6 +2,10 @@ from __future__ import annotations
 
 import logging.handlers
 import pathlib
+import platform
+import sys
+
+from comictaggerlib.ctversion import version
 
 logger = logging.getLogger("comictagger")
 
@@ -43,4 +47,11 @@ def setup_logging(verbose: int, log_dir: pathlib.Path) -> None:
         level=logging.WARNING,
         format="%(asctime)s | %(name)s | %(levelname)s | %(message)s",
         datefmt="%Y-%m-%dT%H:%M:%S",
+    )
+
+    logger.info(
+        "ComicTagger Version: %s running on: %s PyInstaller: %s",
+        version,
+        platform.system(),
+        "Yes" if getattr(sys, "frozen", None) else "No",
     )
