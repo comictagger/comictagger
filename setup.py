@@ -64,7 +64,7 @@ setup(
         "pyinstaller40": [
             "hook-dirs = comictaggerlib.__pyinstaller:get_hook_dirs",
         ],
-        "comicapi.archivers": [
+        "comicapi.archiver": [
             "zip = comicapi.archivers.zip:ZipArchiver",
             "sevenzip = comicapi.archivers.sevenzip:SevenZipArchiver",
             "rar = comicapi.archivers.rar:RarArchiver",

@@ -53,16 +53,17 @@ archivers: list[type[Archiver]] = []
 
 
 def load_archive_plugins() -> None:
-    for arch in entry_points(group="comicapi_archivers"):
-        try:
-            archiver: type[Archiver] = arch.load()
-            if archiver.enabled:
-                if not arch.module.startswith("comicapi"):
-                    archivers.insert(0, archiver)
-                else:
-                    archivers.append(archiver)
-        except Exception:
-            logger.warning("Failed to load talker: %s", arch.name)
+    if not archivers:
+        for arch in entry_points(group="comicapi.archiver"):
+            try:
+                archiver: type[Archiver] = arch.load()
+                if archiver.enabled:
+                    if not arch.module.startswith("comicapi"):
+                        archivers.insert(0, archiver)
+                    else:
+                        archivers.append(archiver)
+            except Exception:
+                logger.warning("Failed to load talker: %s", arch.name)
 
 
 class MetaDataStyle:
