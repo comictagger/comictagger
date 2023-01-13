@@ -17,29 +17,18 @@ from __future__ import annotations
 
 import logging
 import sys
-from functools import cache
 
 if sys.version_info < (3, 10):
     from importlib_metadata import entry_points
 else:
     from importlib.metadata import entry_points
 
-from comictalker.talkerbase import ComicTalker, TalkerError
+from comictalker.talkerbase import ComicTalker
 
 logger = logging.getLogger(__name__)
 
 
-def get_comic_talker(talker_name: str) -> type[ComicTalker]:
-    """Returns the requested talker module"""
-    talkers = get_talkers()
-    if talker_name not in talkers:
-        raise TalkerError(source=talker_name, code=4, desc="The talker does not exist")
-
-    return talkers[talker_name]
-
-
-@cache
-def get_talkers():
+def get_talkers() -> dict[str, ComicTalker]:
     """Returns all comic talker plugins (internal and external)"""
     talkers = {}
 

@@ -66,6 +66,7 @@ class App:
         self.options = settngs.Config({}, {})
         self.initial_arg_parser = ctoptions.initial_cmd_line_parser()
         self.config_load_success = False
+        self.talker_plugins = ct_api.get_talkers()
 
     def run(self) -> None:
         opts = self.initialize()
@@ -149,7 +150,7 @@ class App:
                 return
 
         try:
-            talker_api = ct_api.get_comic_talker("comicvine")(  # type: ignore[call-arg]
+            talker_api = self.talker_plugins["comicvine"](  # type: ignore[operator, call-arg]
                 version=version,
                 cache_folder=self.options[0].runtime_config.user_cache_dir,
                 series_match_thresh=self.options[0].comicvine_series_match_search_thresh,
