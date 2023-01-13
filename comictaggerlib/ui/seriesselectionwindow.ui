@@ -67,13 +67,28 @@
        </item>
        <item>
         <widget class="QLabel" name="lblSourceName">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>300</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="text">
           <string>Data Source:</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QLabel" name="lblSourceLogo">
+        <widget class="QWidget" name="imageSourceLogo" native="true">
          <property name="minimumSize">
           <size>
            <width>300</width>
@@ -83,14 +98,8 @@
          <property name="maximumSize">
           <size>
            <width>300</width>
-           <height>100</height>
+           <height>16777215</height>
           </size>
-         </property>
-         <property name="midLineWidth">
-          <number>0</number>
-         </property>
-         <property name="text">
-          <string/>
          </property>
         </widget>
        </item>

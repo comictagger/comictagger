@@ -163,19 +163,19 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
 
         # Display talker logo and set url
         self.lblSourceName.setText(
-            f'Data Source: <a href="{talker_api.static_options.website}">{talker_api.static_options.website}</a>'
+            f'Data Source: <a href="{talker_api.static_options.website}">{talker_api.source_details.name}</a>'
         )
 
         self.imageSourceWidget = CoverImageWidget(
-            self.lblSourceLogo,
+            self.imageSourceLogo,
             CoverImageWidget.URLMode,
             options.runtime_config.user_cache_dir,
             talker_api,
             False,
         )
-        gridlayoutSourceLogo = QtWidgets.QGridLayout(self.lblSourceLogo)
+        gridlayoutSourceLogo = QtWidgets.QGridLayout(self.imageSourceLogo)
         gridlayoutSourceLogo.addWidget(self.imageSourceWidget)
-        gridlayoutSourceLogo.setContentsMargins(0, 0, 0, 0)
+        gridlayoutSourceLogo.setContentsMargins(0, 2, 0, 0)
         self.imageSourceWidget.set_url(talker_api.source_details.logo)
 
         # Set the minimum row height to the default.
