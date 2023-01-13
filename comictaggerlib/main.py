@@ -161,8 +161,6 @@ class App:
                 True,
             )
 
-        comicapi.comicarchive.load_archive_plugins()
-
         if self.options[0].runtime_no_gui:
             if error and error[1]:
                 print(f"A fatal error occurred please check the log for more information: {error[0]}")  # noqa: T201

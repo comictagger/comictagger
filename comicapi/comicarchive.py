@@ -102,6 +102,7 @@ class ComicArchive:
 
         self.archiver: Archiver = UnknownArchiver.open(self.path)
 
+        load_archive_plugins()
         for archiver in archivers:
             if archiver.is_valid(self.path):
                 self.archiver = archiver.open(self.path)
