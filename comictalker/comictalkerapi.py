@@ -28,7 +28,7 @@ from comictalker.talkerbase import ComicTalker
 logger = logging.getLogger(__name__)
 
 
-def get_talkers() -> dict[str, ComicTalker]:
+def get_talkers() -> dict[str, type[ComicTalker]]:
     """Returns all comic talker plugins (internal and external)"""
     talkers = {}
 

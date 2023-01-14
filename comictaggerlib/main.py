@@ -150,7 +150,7 @@ class App:
                 return
 
         try:
-            talker_api = self.talker_plugins["comicvine"](  # type: ignore[operator, call-arg]
+            talker_api = self.talker_plugins["comicvine"](  # type: ignore[call-arg]
                 version=version,
                 cache_folder=self.options[0].runtime_config.user_cache_dir,
                 series_match_thresh=self.options[0].comicvine_series_match_search_thresh,
