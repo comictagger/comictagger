@@ -29,7 +29,6 @@ from comicapi import utils
 from comictaggerlib import cli, ctoptions
 from comictaggerlib.ctversion import version
 from comictaggerlib.log import setup_logging
-from comictalker.talkerbase import TalkerError
 
 if sys.version_info < (3, 10):
     import importlib_metadata
@@ -150,7 +149,7 @@ class App:
                 return
 
         try:
-            talker_api = self.talker_plugins["comicvine"](  # type: ignore[call-arg]
+            talker_api = self.talker_plugins["comicvin"](  # type: ignore[call-arg]
                 version=version,
                 cache_folder=self.options[0].runtime_config.user_cache_dir,
                 series_match_thresh=self.options[0].comicvine_series_match_search_thresh,
@@ -160,9 +159,12 @@ class App:
                 api_url=self.options[0].comicvine_cv_url,
                 api_key=self.options[0].comicvine_cv_api_key,
             )
-        except TalkerError as e:
+        except KeyError as e:
+            logger.exception(f"Talker name id {e} not found!")
+            error = (f"Talker name id {e} not found!", True)
+        except Exception:
             logger.exception("Unable to load talker")
-            error = (str(e), True)
+            error = ("Unable to load talker", True)
 
         if not self.config_load_success:
             error = (
@@ -178,4 +180,7 @@ class App:
             except Exception:
                 logger.exception("CLI mode failed")
         else:
+            if error and error[1]:
+                print(f"A fatal error occurred please check the log for more information: {error[0]}")  # noqa: T201
+                raise SystemExit(1)
             gui.open_tagger_window(talker_api, self.options, error)
