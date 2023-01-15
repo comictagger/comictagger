@@ -66,10 +66,9 @@ class App:
         self.options = settngs.Config({}, {})
         self.initial_arg_parser = ctoptions.initial_cmd_line_parser()
         self.config_load_success = False
-        self.talker_plugins: dict = {}
+        self.talker_plugins = ct_api.get_talkers()
 
     def run(self) -> None:
-        self.talker_plugins = ct_api.get_talkers()
         opts = self.initialize()
         self.register_options()
         self.parse_options(opts.config)
