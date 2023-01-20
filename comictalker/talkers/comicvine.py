@@ -174,6 +174,7 @@ class ComicVineTalker(ComicTalker):
         )
         self.static_options = SourceStaticOptions(
             website="https://comicvine.gamespot.com/",
+            attribution_string="Data Source:",
             has_issues=True,
             has_alt_covers=True,
             requires_apikey=True,

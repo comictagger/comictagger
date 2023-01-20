@@ -76,6 +76,23 @@ class IssueSelectionWindow(QtWidgets.QDialog):
         self.url_fetch_thread = None
         self.issue_list: list[ComicIssue] = []
 
+        # Display talker logo and set url
+        self.lblIssuesSourceName.setText(
+            f'{talker_api.static_options.attribution_string} <a href="{talker_api.static_options.website}">{talker_api.source_details.name}</a>'
+        )
+
+        self.imageIssuesSourceWidget = CoverImageWidget(
+            self.imageIssuesSourceLogo,
+            CoverImageWidget.URLMode,
+            options.runtime_config.user_cache_dir,
+            talker_api,
+            False,
+        )
+        gridlayoutIssuesSourceLogo = QtWidgets.QGridLayout(self.imageIssuesSourceLogo)
+        gridlayoutIssuesSourceLogo.addWidget(self.imageIssuesSourceWidget)
+        gridlayoutIssuesSourceLogo.setContentsMargins(0, 2, 0, 0)
+        self.imageIssuesSourceWidget.set_url(talker_api.source_details.logo)
+
         if issue_number is None or issue_number == "":
             self.issue_number = "1"
         else:
