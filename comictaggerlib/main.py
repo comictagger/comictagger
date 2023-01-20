@@ -112,6 +112,22 @@ class App:
         logger.debug("user_log_dir: %s", self.options[0].runtime_config.user_log_dir)
 
     def main(self) -> None:
+        def load_talker(talker):
+            try:
+                return self.talker_plugins[talker](  # type: ignore[call-arg]
+                    version=version,
+                    cache_folder=self.options[0].runtime_config.user_cache_dir,
+                    series_match_thresh=self.options[0].comicvine_series_match_search_thresh,
+                    remove_html_tables=self.options[0].comicvine_remove_html_tables,
+                    use_series_start_as_volume=self.options[0].comicvine_use_series_start_as_volume,
+                    wait_on_ratelimit=self.options[0].autotag_wait_and_retry_on_rate_limit,
+                    api_url=self.options[0].comicvine_cv_url,
+                    api_key=self.options[0].comicvine_cv_api_key,
+                )
+            except Exception:
+                logger.exception("Unable to load talker %s", talker)
+                return False
+
         assert self.options is not None
         # options already loaded
         error = None
@@ -148,23 +164,18 @@ class App:
                 print("Key set")  # noqa: T201
                 return
 
-        try:
-            talker_api = self.talker_plugins["comicvin"](  # type: ignore[call-arg]
-                version=version,
-                cache_folder=self.options[0].runtime_config.user_cache_dir,
-                series_match_thresh=self.options[0].comicvine_series_match_search_thresh,
-                remove_html_tables=self.options[0].comicvine_remove_html_tables,
-                use_series_start_as_volume=self.options[0].comicvine_use_series_start_as_volume,
-                wait_on_ratelimit=self.options[0].autotag_wait_and_retry_on_rate_limit,
-                api_url=self.options[0].comicvine_cv_url,
-                api_key=self.options[0].comicvine_cv_api_key,
-            )
-        except KeyError as e:
-            logger.exception(f"Talker name id {e} not found!")
-            error = (f"Talker name id {e} not found!", True)
-        except Exception:
-            logger.exception("Unable to load talker")
-            error = ("Unable to load talker", True)
+        talker_api = load_talker("comicvine")
+        if not talker_api:
+            if self.options[0].runtime_no_gui:
+                # Need to hard exit on talker error with the CLI
+                error = (
+                    "Unable to load talker. Please check your source name ID is correct in your config file or your command line option.",
+                    True,
+                )
+            else:
+                # Give someone the opportunity to change the talker via the GUI
+                # TODO Change True to False once GUI source changing is implemented
+                error = ("Unable to load talker. Please select another from the settings.", True)
 
         if not self.config_load_success:
             error = (
