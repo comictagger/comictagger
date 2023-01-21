@@ -127,5 +127,5 @@ class SevenZipArchiver(Archiver):
         return "Seven Zip"
 
     @classmethod
-    def is_valid(cls, path: pathlib.Path | str) -> bool:
+    def is_valid(cls, path: pathlib.Path) -> bool:
         return py7zr.is_7zfile(path)

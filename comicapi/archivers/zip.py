@@ -129,7 +129,7 @@ class ZipArchiver(Archiver):
         return "ZIP"
 
     @classmethod
-    def is_valid(cls, path: pathlib.Path | str) -> bool:
+    def is_valid(cls, path: pathlib.Path) -> bool:
         return zipfile.is_zipfile(path)
 
     def write_zip_comment(self, filename: pathlib.Path | str, comment: str) -> bool:

@@ -93,5 +93,5 @@ class FolderArchiver(Archiver):
         return "Folder"
 
     @classmethod
-    def is_valid(cls, path: pathlib.Path | str) -> bool:
-        return os.path.isdir(path)
+    def is_valid(cls, path: pathlib.Path) -> bool:
+        return path.is_dir()

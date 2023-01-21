@@ -246,7 +246,7 @@ class RarArchiver(Archiver):
         return "RAR"
 
     @classmethod
-    def is_valid(cls, path: pathlib.Path | str) -> bool:
+    def is_valid(cls, path: pathlib.Path) -> bool:
         if rar_support:
             return rarfile.is_rarfile(str(path))
         return False
