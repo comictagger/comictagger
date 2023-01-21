@@ -170,3 +170,7 @@ class App:
                 logger.exception("CLI mode failed")
         else:
             gui.open_tagger_window(talker_api, self.options, error)
+
+
+def main():
+    App().run()
