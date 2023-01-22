@@ -162,9 +162,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         self.talker_api = talker_api
 
         # Display talker logo and set url
-        self.lblSourceName.setText(
-            f'{talker_api.static_options.attribution_string} <a href="{talker_api.static_options.website}">{talker_api.source_details.name}</a>'
-        )
+        self.lblSourceName.setText(talker_api.static_options.attribution_string)
 
         self.imageSourceWidget = CoverImageWidget(
             self.imageSourceLogo,
