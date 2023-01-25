@@ -16,6 +16,8 @@
 from __future__ import annotations
 
 import logging
+import pathlib
+from typing import Any, TypedDict
 
 import comictalker.talkers.comicvine
 from comictalker.talkerbase import ComicTalker, TalkerError
@@ -23,16 +25,37 @@ from comictalker.talkerbase import ComicTalker, TalkerError
 logger = logging.getLogger(__name__)
 
 
-def get_comic_talker(source_name: str) -> type[ComicTalker]:
-    """Retrieve the available sources modules"""
-    sources = get_talkers()
-    if source_name not in sources:
-        raise TalkerError(source=source_name, code=4, desc="The talker does not exist")
-
-    talker = sources[source_name]
-    return talker
+class TalkerPlugin(TypedDict, total=False):
+    cls: type[ComicTalker]
+    obj: ComicTalker
 
 
-def get_talkers() -> dict[str, type[ComicTalker]]:
+def set_talker_settings(talker, settings) -> None:
+    try:
+        talker.set_settings(settings)
+    except Exception as e:
+        logger.exception(
+            f"Failed to set talker settings for {talker.talker_id}, will use defaults. Error: {str(e)}",
+        )
+        raise TalkerError(source=talker.talker_id, code=4, desc="Could not apply talker settings, will use defaults")
+
+
+def get_talker_objects(
+    version: str, cache_folder: pathlib.Path, settings: dict[str, Any], plugins: dict[str, TalkerPlugin]
+) -> dict[str, TalkerPlugin]:
+    for talker_name, talker in plugins.items():
+        try:
+            obj = talker["cls"](version, cache_folder)
+            plugins[talker_name]["obj"] = obj
+        except Exception:
+            logger.exception("Failed to create talker object")
+            raise TalkerError(source=talker_name, code=4, desc="Failed to initialise talker object")
+
+        # Run outside of try block so as to keep except separate
+        set_talker_settings(plugins[talker_name]["obj"], settings)
+    return plugins
+
+
+def get_talkers() -> dict[str, TalkerPlugin]:
     """Returns all comic talker modules NOT objects"""
-    return {"comicvine": comictalker.talkers.comicvine.ComicVineTalker}
+    return {"comicvine": TalkerPlugin(cls=comictalker.talkers.comicvine.ComicVineTalker)}

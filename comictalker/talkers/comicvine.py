@@ -154,16 +154,7 @@ CV_RATE_LIMIT_STATUS = 107
 
 
 class ComicVineTalker(ComicTalker):
-    default_api_key = "27431e6787042105bd3e47e169a624521f89f3a4"
-    default_api_url = "https://comicvine.gamespot.com/api"
-
-    # Settings
-    api_url: str = ""
-    api_key: str = ""
-    series_match_thresh: int = 90
-    remove_html_tables: bool = False
-    use_series_start_as_volume: bool = False
-    wait_on_ratelimit: bool = False
+    talker_id = "comicvine"
 
     def __init__(
         self,
@@ -171,7 +162,7 @@ class ComicVineTalker(ComicTalker):
         cache_folder: pathlib.Path,
     ):
         super().__init__(version, cache_folder)
-        self.source_details = SourceDetails(name="Comic Vine", ident="comicvine")
+        self.source_details = SourceDetails(name="Comic Vine", ident=ComicVineTalker.talker_id)
         self.static_options = SourceStaticOptions(
             website="https://comicvine.gamespot.com/",
             has_issues=True,
@@ -180,14 +171,17 @@ class ComicVineTalker(ComicTalker):
             has_nsfw=False,
             has_censored_covers=False,
         )
+        # Default settings
+        self.api_url: str = "https://comicvine.gamespot.com/api"
+        self.api_key: str = "27431e6787042105bd3e47e169a624521f89f3a4"
+        self.series_match_thresh: int = 90
+        self.remove_html_tables: bool = False
+        self.use_series_start_as_volume: bool = False
+        self.wait_for_rate_limit: bool = False
 
         # Identity name for the information source
         self.source_name: str = self.source_details.id
         self.source_name_friendly: str = self.source_details.name
-
-        # If cls api_url or api_key is empty, use default
-        self.api_url = ComicVineTalker.api_url or ComicVineTalker.default_api_url
-        self.api_key = ComicVineTalker.api_key or ComicVineTalker.default_api_key
 
         tmp_url = urlsplit(self.api_url)
 
@@ -197,14 +191,8 @@ class ComicVineTalker(ComicTalker):
 
         self.api_url = tmp_url.geturl()
 
-        self.wait_for_rate_limit: bool = ComicVineTalker.wait_on_ratelimit
-        # NOTE: This was hardcoded before which is why it isn't passed in
+        # NOTE: This was hardcoded before which is why it isn't in settings
         self.wait_for_rate_limit_time: int = 20
-
-        self.remove_html_tables: bool = ComicVineTalker.remove_html_tables
-        self.use_series_start_as_volume: bool = ComicVineTalker.use_series_start_as_volume
-
-        self.series_match_thresh: int = ComicVineTalker.series_match_thresh
 
     @classmethod
     def comic_settings(cls, parser: settngs.Manager) -> None:
@@ -233,17 +221,24 @@ class ComicVineTalker(ComicTalker):
             help="Use the given Comic Vine URL.",
         )
 
-    @classmethod
-    def parse_settings(cls, settings: settngs.Config) -> None:
-        """Parse settings."""
-        if settings[0].comicvine_cv_remove_html_tables:
-            cls.remove_html_tables = bool(settings[0].comicvine_cv_remove_html_tables)
-        if settings[0].comicvine_cv_use_series_start_as_volume:
-            cls.use_series_start_as_volume = settings[0].comicvine_cv_use_series_start_as_volume
-        if settings[0].comicvine_cv_api_key:
-            cls.api_key = settings[0].comicvine_cv_api_key
-        if settings[0].comicvine_cv_url:
-            cls.api_url = settings[0].comicvine_cv_url
+    def set_settings(self, settings: argparse.Namespace) -> None:
+        """Set settings."""
+        if settings.comicvine_cv_remove_html_tables:
+            self.remove_html_tables = bool(settings.comicvine_cv_remove_html_tables)
+        if settings.comicvine_cv_use_series_start_as_volume:
+            self.use_series_start_as_volume = settings.comicvine_cv_use_series_start_as_volume
+        if settings.comicvine_cv_api_key:
+            self.api_key = settings.comicvine_cv_api_key
+        if settings.comicvine_cv_url:
+            try:
+                tmp_url = urlsplit(settings.comicvine_cv_url)
+                # joinurl only works properly if there is a trailing slash
+                if tmp_url.path and tmp_url.path[-1] != "/":
+                    tmp_url = tmp_url._replace(path=tmp_url.path + "/")
+
+                self.api_url = tmp_url.geturl()
+            except Exception:
+                logger.exception("Failed to parse new talker URL for %s, will use default", self.talker_id)
 
     def check_api_key(self, key: str, url: str) -> bool:
         if not url:

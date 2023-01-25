@@ -139,27 +139,23 @@ class TalkerDataError(TalkerError):
 class ComicTalker:
     """The base class for all comic source talkers"""
 
-    default_api_url: str = ""
-    default_api_key: str = ""
+    talker_id = ""
 
-    def __init__(self, version: str, cache_folder: pathlib.Path, api_url: str = "", api_key: str = "") -> None:
+    def __init__(self, version: str, cache_folder: pathlib.Path) -> None:
         # Identity name for the information source etc.
         self.source_details = SourceDetails()
         self.static_options = SourceStaticOptions()
-        self.api_key = api_key
         self.cache_folder = cache_folder
         self.version = version
-
-        self.api_key = ""
-        self.api_url = ""
+        self.api_key: str = ""
+        self.api_url: str = ""
 
     @classmethod
     def comic_settings(cls, parser: settngs.Manager) -> None:
         """Talker settings."""
 
-    @classmethod
-    def parse_settings(cls, settings: argparse.Namespace) -> None:
-        """Parse settings."""
+    def set_settings(self, settings: argparse.Namespace) -> None:
+        """Apply talker settings from config to object."""
 
     def check_api_key(self, key: str, url: str) -> bool:
         """

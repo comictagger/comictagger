@@ -93,7 +93,7 @@ def filename(parser: settngs.Manager) -> None:
     )
 
 
-def talkers_general(parser: settngs.Manager) -> None:
+def talkers(parser: settngs.Manager) -> None:
     # General settings for all information talkers
     parser.add_setting("--source", default="comicvine", help="Use a specified source by source ID")
     parser.add_setting("--use-series-start-as-volume", default=False, action=argparse.BooleanOptionalAction)
@@ -239,17 +239,13 @@ def validate_settings(options: settngs.Config[settngs.Values], parser: settngs.M
     return options
 
 
-def register_settings(parser: settngs.Manager, talkers: dict[str, Any]) -> None:
+def register_settings(parser: settngs.Manager) -> None:
     parser.add_group("general", general, False)
     parser.add_group("internal", internal, False)
     parser.add_group("identifier", identifier, False)
     parser.add_group("dialog", dialog, False)
     parser.add_group("filename", filename, False)
-    parser.add_group("talkers_general", talkers_general, False)
+    parser.add_group("talkers", talkers, False)
     parser.add_group("cbl", cbl, False)
     parser.add_group("rename", rename, False)
     parser.add_group("autotag", autotag, False)
-
-    # Register talker plugin settings
-    for talker, cls in talkers.items():
-        parser.add_group(talker, cls.comic_settings, False)

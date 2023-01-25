@@ -66,6 +66,7 @@ class App:
         self.options = settngs.Config({}, {})
         self.initial_arg_parser = ctoptions.initial_cmd_line_parser()
         self.config_load_success = False
+        # First get a list of classes
         self.talker_plugins = ct_api.get_talkers()
 
     def run(self) -> None:
@@ -73,6 +74,7 @@ class App:
         self.register_options()
         self.parse_options(opts.config)
         self.initialize_dirs()
+        self.initialize_talkers()
 
         self.main()
 
@@ -88,7 +90,8 @@ class App:
             "For more help visit the wiki at: https://github.com/comictagger/comictagger/wiki",
         )
         ctoptions.register_commandline(self.manager)
-        ctoptions.register_settings(self.manager, self.talker_plugins)
+        ctoptions.register_settings(self.manager)
+        ctoptions.register_talker_settings(self.manager, self.talker_plugins)
 
     def parse_options(self, config_paths: ctoptions.ComicTaggerPaths) -> None:
         self.options, self.config_load_success = self.manager.parse_config(
@@ -99,18 +102,6 @@ class App:
         self.options = ctoptions.validate_commandline_options(self.options, self.manager)
         self.options = ctoptions.validate_settings(self.options, self.manager)
         self.options = self.options
-
-        # parse talker settings
-        for loaded in self.talker_plugins.values():
-            parse_options = getattr(loaded, "parse_settings", None)
-            if parse_options is None:
-                logger.warning(f"Failed to find parse_settings in talker {loaded}")
-                continue
-
-            try:
-                parse_options(self.options)
-            except Exception as e:
-                logger.warning(f"Failed to parse talker options for {loaded}: {e}")
 
     def initialize_dirs(self) -> None:
         self.options[0].runtime_config.user_data_dir.mkdir(parents=True, exist_ok=True)
@@ -123,6 +114,17 @@ class App:
         logger.debug("user_cache_dir: %s", self.options[0].runtime_config.user_cache_dir)
         logger.debug("user_state_dir: %s", self.options[0].runtime_config.user_state_dir)
         logger.debug("user_log_dir: %s", self.options[0].runtime_config.user_log_dir)
+
+    def initialize_talkers(self) -> None:
+        try:
+            self.talker_plugins = ct_api.get_talker_objects(
+                version=version,
+                cache_folder=self.options[0].runtime_config.user_cache_dir,
+                settings=self.options[0],
+                plugins=self.talker_plugins,
+            )
+        except Exception:
+            logger.exception("Failed to initialize talkers. See log for full details.")
 
     def main(self) -> None:
         assert self.options is not None
@@ -152,12 +154,9 @@ class App:
         # TODO Have option to save passed in config options and quit?
 
         try:
-            talker_api = ct_api.get_comic_talker(self.options[0].talkers_general_source)(  # type: ignore[call-arg]
-                version=version,
-                cache_folder=self.options[0].runtime_config.user_cache_dir,
-            )
+            talker_api = self.talker_plugins[self.options[0].talkers_source]["obj"]
         except TalkerError as e:
-            logger.exception("Unable to load talker")
+            logger.exception(f"Unable to load talker {self.options[0].talkers_source}. Error: {str(e)}")
             error = (str(e), True)
 
         if not self.config_load_success:
