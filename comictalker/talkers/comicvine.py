@@ -154,15 +154,13 @@ CV_RATE_LIMIT_STATUS = 107
 
 
 class ComicVineTalker(ComicTalker):
-    talker_id = "comicvine"
-
     def __init__(
         self,
         version: str,
         cache_folder: pathlib.Path,
     ):
         super().__init__(version, cache_folder)
-        self.source_details = SourceDetails(name="Comic Vine", ident=ComicVineTalker.talker_id)
+        self.source_details = SourceDetails(name="Comic Vine", ident="comicvine")
         self.static_options = SourceStaticOptions(
             website="https://comicvine.gamespot.com/",
             has_issues=True,
@@ -194,17 +192,9 @@ class ComicVineTalker(ComicTalker):
         # NOTE: This was hardcoded before which is why it isn't in settings
         self.wait_for_rate_limit_time: int = 20
 
-    @classmethod
-    def comic_settings(cls, parser: settngs.Manager) -> None:
-        # Might be general settings?
-        parser.add_setting(
-            "--series-match-search-thresh",
-            default=90,
-            type=int,
-        )
+    def comic_settings(self, parser: settngs.Manager) -> None:
+        """Register settings"""
         parser.add_setting("--cv-use-series-start-as-volume", default=False, action=argparse.BooleanOptionalAction)
-
-        # Comic Vine settings
         parser.add_setting("--cv-wait-on-ratelimit", default=False, action=argparse.BooleanOptionalAction)
         parser.add_setting(
             "--cv-remove-html-tables",
@@ -238,7 +228,7 @@ class ComicVineTalker(ComicTalker):
 
                 self.api_url = tmp_url.geturl()
             except Exception:
-                logger.exception("Failed to parse new talker URL for %s, will use default", self.talker_id)
+                logger.exception("Failed to parse new talker URL for %s, will use default", self.source_name)
 
     def check_api_key(self, key: str, url: str) -> bool:
         if not url:

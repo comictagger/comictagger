@@ -271,7 +271,7 @@ class SettingsWindow(QtWidgets.QDialog):
         # Copy values from settings to form
         self.leRarExePath.setText(self.options[0].general_rar_exe_path)
         self.sbNameMatchIdentifyThresh.setValue(self.options[0].identifier_series_match_identify_thresh)
-        self.sbNameMatchSearchThresh.setValue(self.options[0].comicvine_series_match_search_thresh)
+        self.sbNameMatchSearchThresh.setValue(self.options[0].talkers_series_match_search_thresh)
         self.tePublisherFilter.setPlainText("\n".join(self.options[0].identifier_publisher_filter))
 
         self.cbxCheckForNewVersion.setChecked(self.options[0].general_check_for_new_version)
@@ -386,7 +386,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.options[0].general_check_for_new_version = self.cbxCheckForNewVersion.isChecked()
 
         self.options[0].identifier_series_match_identify_thresh = self.sbNameMatchIdentifyThresh.value()
-        self.options[0].comicvine_series_match_search_thresh = self.sbNameMatchSearchThresh.value()
+        self.options[0].talkers_series_match_search_thresh = self.sbNameMatchSearchThresh.value()
         self.options[0].identifier_publisher_filter = [
             x.strip() for x in str(self.tePublisherFilter.toPlainText()).splitlines() if x.strip()
         ]

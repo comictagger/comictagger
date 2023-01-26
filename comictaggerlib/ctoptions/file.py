@@ -96,7 +96,11 @@ def filename(parser: settngs.Manager) -> None:
 def talkers(parser: settngs.Manager) -> None:
     # General settings for all information talkers
     parser.add_setting("--source", default="comicvine", help="Use a specified source by source ID")
-    parser.add_setting("--use-series-start-as-volume", default=False, action=argparse.BooleanOptionalAction)
+    parser.add_setting(
+        "--series-match-search-thresh",
+        default=90,
+        type=int,
+    )
     parser.add_setting(
         "--clear-metadata",
         default=True,

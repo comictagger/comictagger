@@ -21,6 +21,7 @@ import logging.handlers
 import platform
 import signal
 import sys
+from typing import Any
 
 import settngs
 
@@ -29,7 +30,6 @@ from comicapi import utils
 from comictaggerlib import cli, ctoptions
 from comictaggerlib.ctversion import version
 from comictaggerlib.log import setup_logging
-from comictalker.talkerbase import TalkerError
 
 if sys.version_info < (3, 10):
     import importlib_metadata
@@ -66,14 +66,14 @@ class App:
         self.options = settngs.Config({}, {})
         self.initial_arg_parser = ctoptions.initial_cmd_line_parser()
         self.config_load_success = False
-        # First get a list of classes
-        self.talker_plugins = ct_api.get_talkers()
+        self.talker_plugins: dict[str, Any] = {}
 
     def run(self) -> None:
         opts = self.initialize()
+        self.initialize_dirs(opts.config)
+        self.talker_plugins = ct_api.get_talkers(version, opts.config.user_cache_dir)
         self.register_options()
         self.parse_options(opts.config)
-        self.initialize_dirs()
         self.initialize_talkers()
 
         self.main()
@@ -103,28 +103,27 @@ class App:
         self.options = ctoptions.validate_settings(self.options, self.manager)
         self.options = self.options
 
-    def initialize_dirs(self) -> None:
-        self.options[0].runtime_config.user_data_dir.mkdir(parents=True, exist_ok=True)
-        self.options[0].runtime_config.user_config_dir.mkdir(parents=True, exist_ok=True)
-        self.options[0].runtime_config.user_cache_dir.mkdir(parents=True, exist_ok=True)
-        self.options[0].runtime_config.user_state_dir.mkdir(parents=True, exist_ok=True)
-        self.options[0].runtime_config.user_log_dir.mkdir(parents=True, exist_ok=True)
-        logger.debug("user_data_dir: %s", self.options[0].runtime_config.user_data_dir)
-        logger.debug("user_config_dir: %s", self.options[0].runtime_config.user_config_dir)
-        logger.debug("user_cache_dir: %s", self.options[0].runtime_config.user_cache_dir)
-        logger.debug("user_state_dir: %s", self.options[0].runtime_config.user_state_dir)
-        logger.debug("user_log_dir: %s", self.options[0].runtime_config.user_log_dir)
+    def initialize_dirs(self, paths: ctoptions.ComicTaggerPaths) -> None:
+        paths.user_data_dir.mkdir(parents=True, exist_ok=True)
+        paths.user_config_dir.mkdir(parents=True, exist_ok=True)
+        paths.user_cache_dir.mkdir(parents=True, exist_ok=True)
+        paths.user_state_dir.mkdir(parents=True, exist_ok=True)
+        paths.user_log_dir.mkdir(parents=True, exist_ok=True)
+        logger.debug("user_data_dir: %s", paths.user_data_dir)
+        logger.debug("user_config_dir: %s", paths.user_config_dir)
+        logger.debug("user_cache_dir: %s", paths.user_cache_dir)
+        logger.debug("user_state_dir: %s", paths.user_state_dir)
+        logger.debug("user_log_dir: %s", paths.user_log_dir)
 
     def initialize_talkers(self) -> None:
+        # Apply talker settings from config file
         try:
-            self.talker_plugins = ct_api.get_talker_objects(
-                version=version,
-                cache_folder=self.options[0].runtime_config.user_cache_dir,
-                settings=self.options[0],
-                plugins=self.talker_plugins,
-            )
-        except Exception:
-            logger.exception("Failed to initialize talkers. See log for full details.")
+            for talker_name, talker in self.talker_plugins.items():
+                ct_api.set_talker_settings(talker, self.options[0])
+        except Exception as e:
+            # Remove talker as we failed to apply the settings
+            del self.talker_plugins[e.source]  # type: ignore[attr-defined]
+            logger.exception("Failed to initialize talker settings. Error %s", str(e))
 
     def main(self) -> None:
         assert self.options is not None
@@ -154,10 +153,12 @@ class App:
         # TODO Have option to save passed in config options and quit?
 
         try:
-            talker_api = self.talker_plugins[self.options[0].talkers_source]["obj"]
-        except TalkerError as e:
+            talker_api = self.talker_plugins[self.options[0].talkers_source]
+        except Exception as e:
             logger.exception(f"Unable to load talker {self.options[0].talkers_source}. Error: {str(e)}")
-            error = (str(e), True)
+            talker_api = None
+            # TODO error True can be changed to False after the talker settings menu generation is in
+            error = (f"Unable to load talker {self.options[0].talkers_source}. Error: {str(e)}", True)
 
         if not self.config_load_success:
             error = (

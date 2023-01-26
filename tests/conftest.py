@@ -157,16 +157,11 @@ def seed_all_publishers(monkeypatch):
     monkeypatch.setattr(utils, "publishers", publisher_seed)
 
 
-def get_plugins() -> dict:
-    return comictalker.comictalkerapi.get_talkers()
-
-
 @pytest.fixture
 def options(settings_manager, tmp_path):
 
     comictaggerlib.ctoptions.register_commandline(settings_manager)
     comictaggerlib.ctoptions.register_settings(settings_manager)
-    comictaggerlib.ctoptions.register_talker_settings(settings_manager, get_plugins())
     defaults = settings_manager.get_namespace(settings_manager.defaults())
     defaults[0].runtime_config = comictaggerlib.ctoptions.ComicTaggerPaths(tmp_path / "config")
     defaults[0].runtime_config.user_data_dir.mkdir(parents=True, exist_ok=True)

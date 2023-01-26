@@ -15,9 +15,10 @@
 # limitations under the License.
 from __future__ import annotations
 
+import argparse
 import logging
 import pathlib
-from typing import Any, TypedDict
+from typing import Any
 
 import comictalker.talkers.comicvine
 from comictalker.talkerbase import ComicTalker, TalkerError
@@ -25,37 +26,25 @@ from comictalker.talkerbase import ComicTalker, TalkerError
 logger = logging.getLogger(__name__)
 
 
-class TalkerPlugin(TypedDict, total=False):
-    cls: type[ComicTalker]
-    obj: ComicTalker
-
-
-def set_talker_settings(talker, settings) -> None:
+def set_talker_settings(talker: ComicTalker, settings: argparse.Namespace) -> None:
     try:
         talker.set_settings(settings)
     except Exception as e:
         logger.exception(
-            f"Failed to set talker settings for {talker.talker_id}, will use defaults. Error: {str(e)}",
+            f"Failed to set talker settings for {talker.source_details.name}, will use defaults. Error: {str(e)}",
         )
-        raise TalkerError(source=talker.talker_id, code=4, desc="Could not apply talker settings, will use defaults")
+        raise TalkerError(source=talker.source_details.name, code=4, desc="Could not apply talker settings")
 
 
-def get_talker_objects(
-    version: str, cache_folder: pathlib.Path, settings: dict[str, Any], plugins: dict[str, TalkerPlugin]
-) -> dict[str, TalkerPlugin]:
-    for talker_name, talker in plugins.items():
+def get_talkers(version: str, cache: pathlib.Path) -> dict[str, Any]:
+    """Returns all comic talker instances"""
+    # TODO separate PR will bring talkers in via entry points. TalkerError etc. source will then be a var
+    talkers = {}
+    for talker in [comictalker.talkers.comicvine.ComicVineTalker]:
         try:
-            obj = talker["cls"](version, cache_folder)
-            plugins[talker_name]["obj"] = obj
+            obj = talker(version, cache)
+            talkers[obj.source_details.id] = obj
         except Exception:
-            logger.exception("Failed to create talker object")
-            raise TalkerError(source=talker_name, code=4, desc="Failed to initialise talker object")
-
-        # Run outside of try block so as to keep except separate
-        set_talker_settings(plugins[talker_name]["obj"], settings)
-    return plugins
-
-
-def get_talkers() -> dict[str, TalkerPlugin]:
-    """Returns all comic talker modules NOT objects"""
-    return {"comicvine": TalkerPlugin(cls=comictalker.talkers.comicvine.ComicVineTalker)}
+            logger.exception("Failed to load talker: %s", "comicvine")
+            raise TalkerError(source="comicvine", code=4, desc="Failed to initialise talker")
+    return talkers
