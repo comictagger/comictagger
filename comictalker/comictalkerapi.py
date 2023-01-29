@@ -32,7 +32,7 @@ def get_talkers() -> dict[str, type[ComicTalker]]:
     """Returns all comic talker plugins (internal and external)"""
     talkers = {}
 
-    for ep in entry_points(group="comictagger_talkers"):
+    for ep in entry_points(group="comictagger.talkers"):
         try:
             talkers[ep.name] = ep.load()
             logger.info(

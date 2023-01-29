@@ -191,7 +191,4 @@ class App:
             except Exception:
                 logger.exception("CLI mode failed")
         else:
-            if error and error[1]:
-                print(f"A fatal error occurred please check the log for more information: {error[0]}")  # noqa: T201
-                raise SystemExit(1)
             gui.open_tagger_window(talker_api, self.options, error)
