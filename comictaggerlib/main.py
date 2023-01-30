@@ -21,7 +21,7 @@ import logging.handlers
 import platform
 import signal
 import sys
-from typing import Any
+from collections.abc import Mapping
 
 import settngs
 
@@ -30,6 +30,7 @@ from comicapi import utils
 from comictaggerlib import cli, ctoptions
 from comictaggerlib.ctversion import version
 from comictaggerlib.log import setup_logging
+from comictalker.talkerbase import ComicTalker
 
 if sys.version_info < (3, 10):
     import importlib_metadata
@@ -66,7 +67,7 @@ class App:
         self.options = settngs.Config({}, {})
         self.initial_arg_parser = ctoptions.initial_cmd_line_parser()
         self.config_load_success = False
-        self.talker_plugins: dict[str, Any] = {}
+        self.talker_plugins: Mapping[str, ComicTalker] = {}
 
     def run(self) -> None:
         opts = self.initialize()
@@ -74,7 +75,6 @@ class App:
         self.talker_plugins = ct_api.get_talkers(version, opts.config.user_cache_dir)
         self.register_options()
         self.parse_options(opts.config)
-        self.initialize_talkers()
 
         self.main()
 
@@ -97,6 +97,7 @@ class App:
         self.options, self.config_load_success = self.manager.parse_config(
             config_paths.user_config_dir / "settings.json"
         )
+        self.initialize_talkers()
         self.options = self.manager.get_namespace(self.options)
 
         self.options = ctoptions.validate_commandline_options(self.options, self.manager)
@@ -119,7 +120,7 @@ class App:
         # Apply talker settings from config file
         try:
             for talker_name, talker in self.talker_plugins.items():
-                ct_api.set_talker_settings(talker, self.options[0])
+                ct_api.set_talker_settings(talker, self.options[0][talker_name])
         except Exception as e:
             # Remove talker as we failed to apply the settings
             del self.talker_plugins[e.source]  # type: ignore[attr-defined]
@@ -156,7 +157,6 @@ class App:
             talker_api = self.talker_plugins[self.options[0].talkers_source]
         except Exception as e:
             logger.exception(f"Unable to load talker {self.options[0].talkers_source}. Error: {str(e)}")
-            talker_api = None
             # TODO error True can be changed to False after the talker settings menu generation is in
             error = (f"Unable to load talker {self.options[0].talkers_source}. Error: {str(e)}", True)
 

@@ -13,10 +13,9 @@
 # limitations under the License.
 from __future__ import annotations
 
-import argparse
 import logging
 import pathlib
-from typing import Callable
+from typing import Any, Callable
 
 import settngs
 
@@ -148,11 +147,12 @@ class ComicTalker:
         self.api_key: str = ""
         self.api_url: str = ""
 
-    def comic_settings(self, parser: settngs.Manager) -> None:
-        """Talker settings."""
+    def register_settings(self, parser: settngs.Manager) -> None:
+        """Allows registering settings using the settngs package with an argparse like interface"""
 
-    def set_settings(self, settings: argparse.Namespace) -> None:
-        """Apply talker settings from config to object."""
+    def parse_settings(self, settings: dict[str, Any]) -> None:
+        """settings is a dictionary of options defined in register_settings.
+        It is only guaranteed that the settings defined in register_settings will be present."""
 
     def check_api_key(self, key: str, url: str) -> bool:
         """
