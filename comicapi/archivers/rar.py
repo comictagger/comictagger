@@ -29,10 +29,10 @@ class RarArchiver(Archiver):
     """RAR implementation"""
 
     enabled = rar_support
+    exe = "rar"
 
-    def __init__(self, rar_exe_path: str = "rar") -> None:
+    def __init__(self) -> None:
         super().__init__()
-        self.rar_exe_path = shutil.which(rar_exe_path) or ""
 
         # windows only, keeps the cmd.exe from popping up
         if platform.system() == "Windows":
@@ -46,7 +46,7 @@ class RarArchiver(Archiver):
         return rarc.comment.decode("utf-8") if rarc else ""
 
     def set_comment(self, comment: str) -> bool:
-        if rar_support and self.rar_exe_path:
+        if rar_support and self.exe:
             try:
                 # write comment to temp file
                 with tempfile.TemporaryDirectory() as tmp_dir:
@@ -57,7 +57,7 @@ class RarArchiver(Archiver):
 
                     # use external program to write comment to Rar archive
                     proc_args = [
-                        self.rar_exe_path,
+                        self.exe,
                         "c",
                         f"-w{working_dir}",
                         "-c-",
@@ -130,10 +130,10 @@ class RarArchiver(Archiver):
         raise OSError
 
     def remove_file(self, archive_file: str) -> bool:
-        if self.rar_exe_path:
+        if self.exe:
             # use external program to remove file from Rar archive
             result = subprocess.run(
-                [self.rar_exe_path, "d", "-c-", self.path, archive_file],
+                [self.exe, "d", "-c-", self.path, archive_file],
                 startupinfo=self.startupinfo,
                 stdout=subprocess.DEVNULL,
                 stdin=subprocess.DEVNULL,
@@ -155,14 +155,14 @@ class RarArchiver(Archiver):
             return False
 
     def write_file(self, archive_file: str, data: bytes) -> bool:
-        if self.rar_exe_path:
+        if self.exe:
             archive_path = pathlib.PurePosixPath(archive_file)
             archive_name = archive_path.name
             archive_parent = str(archive_path.parent).lstrip("./")
 
             # use external program to write file to Rar archive
             result = subprocess.run(
-                [self.rar_exe_path, "a", f"-si{archive_name}", f"-ap{archive_parent}", "-c-", "-ep", self.path],
+                [self.exe, "a", f"-si{archive_name}", f"-ap{archive_parent}", "-c-", "-ep", self.path],
                 input=data,
                 startupinfo=self.startupinfo,
                 stdout=subprocess.DEVNULL,
@@ -217,7 +217,7 @@ class RarArchiver(Archiver):
                         with open(rar_cwd / filename, mode="w+b") as tmp_file:
                             tmp_file.write(data)
                 result = subprocess.run(
-                    [self.rar_exe_path, "a", "-r", "-c-", str(rar_path.absolute()), "."],
+                    [self.exe, "a", "-r", "-c-", str(rar_path.absolute()), "."],
                     cwd=rar_cwd.absolute(),
                     startupinfo=self.startupinfo,
                     stdout=subprocess.DEVNULL,
@@ -237,7 +237,7 @@ class RarArchiver(Archiver):
             return True
 
     def is_writable(self) -> bool:
-        return bool(self.rar_exe_path and os.path.exists(self.rar_exe_path))
+        return bool(self.exe and (os.path.exists(self.exe) or shutil.which(self.exe)))
 
     def extension(self) -> str:
         return ".cbr"

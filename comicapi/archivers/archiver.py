@@ -13,6 +13,13 @@ class Archiver(Protocol):
     path: pathlib.Path
 
     """
+    The name of the executable used for this archiver. This should be the base name of the executable.
+    For example if 'rar.exe' is needed this should be "rar".
+    If an executable is not used this should be the empty string.
+    """
+    exe: str = ""
+
+    """
     Whether or not this archiver is enabled.
     If external imports are required and are not available this should be false. See rar.py and sevenzip.py.
     """
@@ -114,7 +121,9 @@ class Archiver(Protocol):
     def open(cls, path: pathlib.Path) -> Archiver:
         """
         Opens the given archive.
-        Should always return a an Archver. Should never cause an exception, is_valid will always be called before open.
+        Should always return a an Archver.
+        Should never cause an exception no file operations should take place in this method,
+        is_valid will always be called before open.
         """
         archiver = cls()
         archiver.path = path

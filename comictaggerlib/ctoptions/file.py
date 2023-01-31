@@ -248,7 +248,7 @@ def autotag(parser: settngs.Manager) -> None:
     )
 
 
-def validate_settings(options: settngs.Config[settngs.Values], parser: settngs.Manager) -> dict[str, dict[str, Any]]:
+def validate_settings(options: settngs.Config[settngs.Values]) -> dict[str, dict[str, Any]]:
     options[0].identifier_publisher_filter = [x.strip() for x in options[0].identifier_publisher_filter if x.strip()]
     options[0].rename_replacements = Replacements(
         [Replacement(x[0], x[1], x[2]) for x in options[0].rename_replacements[0]],
