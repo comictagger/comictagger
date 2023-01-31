@@ -560,7 +560,7 @@ class CLI:
             logger.error("Cannot find %s", filename)
             return
 
-        ca = ComicArchive(filename, self.options.general_rar_exe_path, str(graphics_path / "nocover.png"))
+        ca = ComicArchive(filename, str(graphics_path / "nocover.png"))
 
         if not ca.seems_to_be_a_comic_archive():
             logger.error("Sorry, but %s is not a comic archive!", filename)

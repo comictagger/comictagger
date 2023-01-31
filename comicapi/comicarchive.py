@@ -82,7 +82,6 @@ class ComicArchive:
     def __init__(
         self,
         path: pathlib.Path | str,
-        rar_exe_path: str = "rar",
         default_image_path: pathlib.Path | str | None = None,
     ) -> None:
         self.cbi_md: GenericMetadata | None = None
@@ -96,7 +95,6 @@ class ComicArchive:
         self.page_count: int | None = None
         self.page_list: list[str] = []
 
-        self.rar_exe_path = shutil.which(rar_exe_path or "rar") or ""
         self.ci_xml_filename = "ComicInfo.xml"
         self.comet_default_filename = "CoMet.xml"
         self.reset_cache()

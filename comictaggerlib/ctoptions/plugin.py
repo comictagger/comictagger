@@ -23,6 +23,8 @@ def archiver(manager: settngs.Manager) -> None:
 
 
 def validate_plugin_settings(options: settngs.Config) -> settngs.Config:
+    if "archiver" not in options[1]:
+        return options
     cfg = settngs.normalize_config(options, file=True, cmdline=True, defaults=False)
     for archiver in comicapi.comicarchive.archivers:
         exe_name = archiver.exe.replace(" ", "-").replace("_", "-").strip().strip("-").replace("-", "_")

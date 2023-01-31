@@ -18,7 +18,6 @@ from __future__ import annotations
 import argparse
 import logging
 import os
-import pathlib
 import platform
 
 import settngs
@@ -325,13 +324,6 @@ def validate_commandline_options(options: settngs.Config[settngs.Values], parser
         options[0].runtime_file_list = utils.get_recursive_filelist(options[0].runtime_files)
     else:
         options[0].runtime_file_list = options[0].runtime_files
-
-    rar_path = pathlib.Path(options[0].general_rar_exe_path)
-    if rar_path.is_absolute() and rar_path.exists():
-        if rar_path.is_dir():
-            utils.add_to_path(str(rar_path))
-        else:
-            utils.add_to_path(str(rar_path.parent))
 
     # take a crack at finding rar exe if it's not in the path
     if not utils.which("rar"):
