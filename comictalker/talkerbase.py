@@ -40,7 +40,7 @@ class SourceStaticOptions:
     def __init__(
         self,
         website: str = "",
-        attribution_string: str = "",  # Full string including web link: Source: <a href='http://website'>Example</a>
+        attribution_string: str = "",  # Full string including web link, example: Metadata provided by <a href='http://website'>Example</a>
         has_issues: bool = False,
         has_alt_covers: bool = False,
         requires_apikey: bool = False,
