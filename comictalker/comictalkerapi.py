@@ -39,7 +39,7 @@ def set_talker_settings(talker: ComicTalker, settings: dict[str, Any]) -> None:
 def get_talkers(version: str, cache: pathlib.Path) -> Mapping[str, ComicTalker]:
     """Returns all comic talker instances"""
     # TODO separate PR will bring talkers in via entry points. TalkerError etc. source will then be a var
-    talkers = {}
+    talkers: dict[str, ComicTalker] = {}
 
     for talker in [comictalker.talkers.comicvine.ComicVineTalker]:
         try:
