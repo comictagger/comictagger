@@ -42,4 +42,4 @@ def validate_plugin_settings(options: settngs.Config) -> settngs.Config:
 
 
 def register_plugin_settings(manager: settngs.Manager):
-    manager.add_group("archiver", archiver, False)
+    manager.add_persistent_group("archiver", archiver, False)
