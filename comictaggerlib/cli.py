@@ -217,14 +217,7 @@ class CLI:
             if self.batch_mode:
                 brief = f"{ca.path}: "
 
-            if ca.is_sevenzip():
-                brief += "7Z archive     "
-            elif ca.is_zip():
-                brief += "ZIP archive    "
-            elif ca.is_rar():
-                brief += "RAR archive    "
-            elif ca.is_folder():
-                brief += "Folder archive "
+            brief += ca.archiver.name() + " archive "
 
             brief += f"({page_count: >3} pages)"
             brief += "  tags:[ "
@@ -460,12 +453,7 @@ class CLI:
 
         new_ext = ""  # default
         if self.options.filename_rename_set_extension_based_on_archive:
-            if ca.is_sevenzip():
-                new_ext = ".cb7"
-            elif ca.is_zip():
-                new_ext = ".cbz"
-            elif ca.is_rar():
-                new_ext = ".cbr"
+            new_ext = ca.extension()
 
         renamer = FileRenamer(
             md,
@@ -572,7 +560,7 @@ class CLI:
             logger.error("Cannot find %s", filename)
             return
 
-        ca = ComicArchive(filename, self.options.general_rar_exe_path, str(graphics_path / "nocover.png"))
+        ca = ComicArchive(filename, str(graphics_path / "nocover.png"))
 
         if not ca.seems_to_be_a_comic_archive():
             logger.error("Sorry, but %s is not a comic archive!", filename)

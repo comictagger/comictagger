@@ -12,13 +12,6 @@ from comictaggerlib.defaults import DEFAULT_REPLACEMENTS, Replacement, Replaceme
 
 def general(parser: settngs.Manager) -> None:
     # General Settings
-    parser.add_setting("--rar-exe-path", default="rar", help="The path to the rar program")
-    parser.add_setting(
-        "--allow-cbi-in-rar",
-        default=True,
-        action=argparse.BooleanOptionalAction,
-        help="Allows ComicBookLover tags in RAR/CBR files",
-    )
     parser.add_setting("check_for_new_version", default=False, cmdline=False)
     parser.add_setting("send_usage_stats", default=False, cmdline=False)
 
@@ -59,7 +52,6 @@ def identifier(parser: settngs.Manager) -> None:
 
 def dialog(parser: settngs.Manager) -> None:
     # Show/ask dialog flags
-    parser.add_setting("ask_about_cbi_in_rar", default=True, cmdline=False)
     parser.add_setting("show_disclaimer", default=True, cmdline=False)
     parser.add_setting("dont_notify_about_this_version", default="", cmdline=False)
     parser.add_setting("ask_about_usage_stats", default=True, cmdline=False)
@@ -248,7 +240,7 @@ def autotag(parser: settngs.Manager) -> None:
     )
 
 
-def validate_settings(options: settngs.Config[settngs.Values], parser: settngs.Manager) -> dict[str, dict[str, Any]]:
+def validate_settings(options: settngs.Config[settngs.Values]) -> dict[str, dict[str, Any]]:
     options[0].identifier_publisher_filter = [x.strip() for x in options[0].identifier_publisher_filter if x.strip()]
     options[0].rename_replacements = Replacements(
         [Replacement(x[0], x[1], x[2]) for x in options[0].rename_replacements[0]],

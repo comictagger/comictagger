@@ -68,11 +68,15 @@ class App:
 
     def run(self) -> None:
         opts = self.initialize()
+        self.load_plugins()
         self.register_options()
         self.parse_options(opts.config)
         self.initialize_dirs()
 
         self.main()
+
+    def load_plugins(self) -> None:
+        comicapi.comicarchive.load_archive_plugins()
 
     def initialize(self) -> argparse.Namespace:
         opts, _ = self.initial_arg_parser.parse_known_args()
@@ -87,6 +91,7 @@ class App:
         )
         ctoptions.register_commandline(self.manager)
         ctoptions.register_settings(self.manager)
+        ctoptions.register_plugin_settings(self.manager)
 
     def parse_options(self, config_paths: ctoptions.ComicTaggerPaths) -> None:
         self.options, self.config_load_success = self.manager.parse_config(
@@ -95,7 +100,8 @@ class App:
         self.options = self.manager.get_namespace(self.options)
 
         self.options = ctoptions.validate_commandline_options(self.options, self.manager)
-        self.options = ctoptions.validate_settings(self.options, self.manager)
+        self.options = ctoptions.validate_settings(self.options)
+        self.options = ctoptions.validate_plugin_settings(self.options)
         self.options = self.options
 
     def initialize_dirs(self) -> None:
@@ -160,6 +166,7 @@ class App:
                 f"Failed to load settings, check the log located in '{self.options[0].runtime_config.user_log_dir}' for more details",
                 True,
             )
+
         if self.options[0].runtime_no_gui:
             if error and error[1]:
                 print(f"A fatal error occurred please check the log for more information: {error[0]}")  # noqa: T201
