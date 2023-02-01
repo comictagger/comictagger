@@ -25,16 +25,16 @@ logger = logging.getLogger(__name__)
 
 
 class VersionChecker:
-    def get_request_url(self, uuid: str, use_stats: bool) -> tuple[str, dict[str, str]]:
+    def get_request_url(self, uuid: str) -> tuple[str, dict[str, str]]:
 
         base_url = "https://api.github.com/repos/comictagger/comictagger/releases/latest"
         params: dict[str, str] = {}
 
         return base_url, params
 
-    def get_latest_version(self, uuid: str, use_stats: bool = True) -> tuple[str, str]:
+    def get_latest_version(self, uuid: str) -> tuple[str, str]:
         try:
-            url, params = self.get_request_url(uuid, use_stats)
+            url, params = self.get_request_url(uuid)
             release = requests.get(
                 url,
                 params=params,

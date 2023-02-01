@@ -2106,11 +2106,7 @@ Have fun!
 
     def check_latest_version_online(self) -> None:
         version_checker = VersionChecker()
-        self.version_check_complete(
-            version_checker.get_latest_version(
-                self.options[0].internal_install_id, self.options[0].general_send_usage_stats
-            )
-        )
+        self.version_check_complete(version_checker.get_latest_version(self.options[0].internal_install_id))
 
     def version_check_complete(self, new_version: tuple[str, str]) -> None:
         if new_version[0] not in (self.version, self.options[0].dialog_dont_notify_about_this_version):
