@@ -167,9 +167,14 @@ class ComicVineTalker(ComicTalker):
         wait_on_ratelimit: bool = False,
     ):
         super().__init__(version, cache_folder, api_url, api_key)
-        self.source_details = SourceDetails(name="Comic Vine", ident="comicvine")
+        self.source_details = SourceDetails(
+            name="Comic Vine",
+            ident="comicvine",
+            logo="https://comicvine.gamespot.com/a/bundles/comicvinesite/images/logo.png",
+        )
         self.static_options = SourceStaticOptions(
             website="https://comicvine.gamespot.com/",
+            attribution_string="Metadata provided by <a href='https://comicvine.gamespot.com/'>Comic Vine</a>",
             has_issues=True,
             has_alt_covers=True,
             requires_apikey=True,

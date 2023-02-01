@@ -161,6 +161,21 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         # Load to retrieve settings
         self.talker_api = talker_api
 
+        # Display talker logo and set url
+        self.lblSourceName.setText(talker_api.static_options.attribution_string)
+
+        self.imageSourceWidget = CoverImageWidget(
+            self.imageSourceLogo,
+            CoverImageWidget.URLMode,
+            options.runtime_config.user_cache_dir,
+            talker_api,
+            False,
+        )
+        gridlayoutSourceLogo = QtWidgets.QGridLayout(self.imageSourceLogo)
+        gridlayoutSourceLogo.addWidget(self.imageSourceWidget)
+        gridlayoutSourceLogo.setContentsMargins(0, 2, 0, 0)
+        self.imageSourceWidget.set_url(talker_api.source_details.logo)
+
         # Set the minimum row height to the default.
         # this way rows will be more consistent when resizeRowsToContents is called
         self.twList.verticalHeader().setMinimumSectionSize(self.twList.verticalHeader().defaultSectionSize())
