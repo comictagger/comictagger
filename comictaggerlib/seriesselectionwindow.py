@@ -111,7 +111,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         issue_count: int,
         cover_index_list: list[int],
         comic_archive: ComicArchive | None,
-        options: settngs.Namespace,
+        config: settngs.Namespace,
         talker_api: ComicTalker,
         autoselect: bool = False,
         literal: bool = False,
@@ -121,7 +121,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         uic.loadUi(ui_path / "seriesselectionwindow.ui", self)
 
         self.imageWidget = CoverImageWidget(
-            self.imageContainer, CoverImageWidget.URLMode, options.runtime_config.user_cache_dir, talker_api
+            self.imageContainer, CoverImageWidget.URLMode, config.runtime_config.user_cache_dir, talker_api
         )
         gridlayout = QtWidgets.QGridLayout(self.imageContainer)
         gridlayout.addWidget(self.imageWidget)
@@ -138,7 +138,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
             )
         )
 
-        self.options = options
+        self.config = config
         self.series_name = series_name
         self.issue_number = issue_number
         self.issue_id: str = ""
@@ -156,18 +156,18 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         self.progdialog: QtWidgets.QProgressDialog | None = None
         self.search_thread: SearchThread | None = None
 
-        self.use_filter = self.options.talkers_always_use_publisher_filter
+        self.use_filter = self.config.talkers_always_use_publisher_filter
 
         # Load to retrieve settings
         self.talker_api = talker_api
 
         # Display talker logo and set url
-        self.lblSourceName.setText(talker_api.static_options.attribution_string)
+        self.lblSourceName.setText(talker_api.static_config.attribution_string)
 
         self.imageSourceWidget = CoverImageWidget(
             self.imageSourceLogo,
             CoverImageWidget.URLMode,
-            options.runtime_config.user_cache_dir,
+            config.runtime_config.user_cache_dir,
             talker_api,
             False,
         )
@@ -224,7 +224,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         self.iddialog.rejected.connect(self.identify_cancel)
         self.iddialog.show()
 
-        self.ii = IssueIdentifier(self.comic_archive, self.options, self.talker_api)
+        self.ii = IssueIdentifier(self.comic_archive, self.config, self.talker_api)
 
         md = GenericMetadata()
         md.series = self.series_name
@@ -298,7 +298,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
 
             if choices:
                 selector = MatchSelectionWindow(
-                    self, matches, self.comic_archive, talker_api=self.talker_api, options=self.options
+                    self, matches, self.comic_archive, talker_api=self.talker_api, config=self.config
                 )
                 selector.setModal(True)
                 selector.exec()
@@ -315,7 +315,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
                 self.show_issues()
 
     def show_issues(self) -> None:
-        selector = IssueSelectionWindow(self, self.options, self.talker_api, self.series_id, self.issue_number)
+        selector = IssueSelectionWindow(self, self.config, self.talker_api, self.series_id, self.issue_number)
         title = ""
         for record in self.ct_search_results:
             if record.id == self.series_id:
@@ -343,7 +343,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
     def perform_query(self, refresh: bool = False) -> None:
 
         self.search_thread = SearchThread(
-            self.talker_api, self.series_name, refresh, self.literal, self.options.talkers_series_match_search_thresh
+            self.talker_api, self.series_name, refresh, self.literal, self.config.talkers_series_match_search_thresh
         )
         self.search_thread.searchComplete.connect(self.search_complete)
         self.search_thread.progressUpdate.connect(self.search_progress_update)
@@ -395,7 +395,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         # filter the publishers if enabled set
         if self.use_filter:
             try:
-                publisher_filter = {s.strip().casefold() for s in self.options.identifier_publisher_filter}
+                publisher_filter = {s.strip().casefold() for s in self.config.identifier_publisher_filter}
                 # use '' as publisher name if None
                 self.ct_search_results = list(
                     filter(
@@ -410,7 +410,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         # compare as str in case extra chars ie. '1976?'
         # - missing (none) values being converted to 'None' - consistent with prior behaviour in v1.2.3
         # sort by start_year if set
-        if self.options.talkers_sort_series_by_year:
+        if self.config.talkers_sort_series_by_year:
             try:
                 self.ct_search_results = sorted(
                     self.ct_search_results,
@@ -428,7 +428,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
                 logger.exception("bad data error sorting results by count_of_issues")
 
         # move sanitized matches to the front
-        if self.options.talkers_exact_series_matches_first:
+        if self.config.talkers_exact_series_matches_first:
             try:
                 sanitized = utils.sanitize_title(self.series_name, False).casefold()
                 sanitized_no_articles = utils.sanitize_title(self.series_name, True).casefold()

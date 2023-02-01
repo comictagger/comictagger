@@ -34,7 +34,7 @@ from comicapi.genericmetadata import GenericMetadata
 from comicapi.issuestring import IssueString
 from comictalker.comiccacher import ComicCacher
 from comictalker.resulttypes import ComicIssue, ComicSeries, Credit
-from comictalker.talkerbase import ComicTalker, SourceDetails, SourceStaticOptions, TalkerDataError, TalkerNetworkError
+from comictalker.talkerbase import ComicTalker, SourceDetails, SourceStaticSettings, TalkerDataError, TalkerNetworkError
 
 logger = logging.getLogger(__name__)
 
@@ -165,7 +165,7 @@ class ComicVineTalker(ComicTalker):
             ident="comicvine",
             logo="https://comicvine.gamespot.com/a/bundles/comicvinesite/images/logo.png",
         )
-        self.static_options = SourceStaticOptions(
+        self.static_config = SourceStaticSettings(
             website="https://comicvine.gamespot.com/",
             attribution_string="Metadata provided by <a href='https://comicvine.gamespot.com/'>Comic Vine</a>",
             has_issues=True,

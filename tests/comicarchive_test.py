@@ -123,7 +123,7 @@ def test_invalid_zip(tmp_comic):
 
 archivers = [
     pytest.param(x.load(), marks=pytest.mark.xfail(not (x.load().enabled), reason="archiver not enabled"))
-    for x in entry_points(group="comicapi_archivers")
+    for x in entry_points(group="comicapi.archiver")
 ]
 
 

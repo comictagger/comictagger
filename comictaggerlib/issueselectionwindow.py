@@ -42,7 +42,7 @@ class IssueSelectionWindow(QtWidgets.QDialog):
     def __init__(
         self,
         parent: QtWidgets.QWidget,
-        options: settngs.Namespace,
+        config: settngs.Namespace,
         talker_api: ComicTalker,
         series_id: str,
         issue_number: str,
@@ -52,7 +52,7 @@ class IssueSelectionWindow(QtWidgets.QDialog):
         uic.loadUi(ui_path / "issueselectionwindow.ui", self)
 
         self.coverWidget = CoverImageWidget(
-            self.coverImageContainer, CoverImageWidget.AltCoverMode, options.runtime_config.user_cache_dir, talker_api
+            self.coverImageContainer, CoverImageWidget.AltCoverMode, config.runtime_config.user_cache_dir, talker_api
         )
         gridlayout = QtWidgets.QGridLayout(self.coverImageContainer)
         gridlayout.addWidget(self.coverWidget)
@@ -71,18 +71,18 @@ class IssueSelectionWindow(QtWidgets.QDialog):
 
         self.series_id = series_id
         self.issue_id: str = ""
-        self.options = options
+        self.config = config
         self.talker_api = talker_api
         self.url_fetch_thread = None
         self.issue_list: list[ComicIssue] = []
 
         # Display talker logo and set url
-        self.lblIssuesSourceName.setText(talker_api.static_options.attribution_string)
+        self.lblIssuesSourceName.setText(talker_api.static_config.attribution_string)
 
         self.imageIssuesSourceWidget = CoverImageWidget(
             self.imageIssuesSourceLogo,
             CoverImageWidget.URLMode,
-            options.runtime_config.user_cache_dir,
+            config.runtime_config.user_cache_dir,
             talker_api,
             False,
         )

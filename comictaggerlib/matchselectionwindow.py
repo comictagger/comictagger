@@ -37,7 +37,7 @@ class MatchSelectionWindow(QtWidgets.QDialog):
         parent: QtWidgets.QWidget,
         matches: list[IssueResult],
         comic_archive: ComicArchive,
-        options: settngs.Values,
+        config: settngs.Values,
         talker_api: ComicTalker,
     ) -> None:
         super().__init__(parent)
@@ -45,7 +45,7 @@ class MatchSelectionWindow(QtWidgets.QDialog):
         uic.loadUi(ui_path / "matchselectionwindow.ui", self)
 
         self.altCoverWidget = CoverImageWidget(
-            self.altCoverContainer, CoverImageWidget.AltCoverMode, options.runtime_config.user_cache_dir, talker_api
+            self.altCoverContainer, CoverImageWidget.AltCoverMode, config.runtime_config.user_cache_dir, talker_api
         )
         gridlayout = QtWidgets.QGridLayout(self.altCoverContainer)
         gridlayout.addWidget(self.altCoverWidget)

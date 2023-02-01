@@ -1,4 +1,4 @@
-"""CLI options class for ComicTagger app"""
+"""CLI settings for ComicTagger"""
 #
 # Copyright 2012-2014 Anthony Beville
 #
@@ -25,14 +25,14 @@ import settngs
 from comicapi import utils
 from comicapi.genericmetadata import GenericMetadata
 from comictaggerlib import ctversion
-from comictaggerlib.ctoptions.types import ComicTaggerPaths, metadata_type, parse_metadata_from_string
+from comictaggerlib.ctsettings.types import ComicTaggerPaths, metadata_type, parse_metadata_from_string
 
 logger = logging.getLogger(__name__)
 
 
-def initial_cmd_line_parser() -> argparse.ArgumentParser:
+def initial_commandline_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(add_help=False)
-    # Ensure this stays up to date with register_options
+    # Ensure this stays up to date with register_settings
     parser.add_argument(
         "--config",
         help="Config directory defaults to ~/.ComicTagger\non Linux/Mac and %%APPDATA%% on Windows\n",
@@ -49,7 +49,7 @@ def initial_cmd_line_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def register_options(parser: settngs.Manager) -> None:
+def register_settings(parser: settngs.Manager) -> None:
     parser.add_setting(
         "--config",
         help="Config directory defaults to ~/.Config/ComicTagger\non Linux, ~/Library/Application Support/ComicTagger on Mac and %%APPDATA%%\\ComicTagger on Windows\n",
@@ -262,68 +262,61 @@ def register_commands(parser: settngs.Manager) -> None:
     )
 
 
-def register_commandline(parser: settngs.Manager) -> None:
+def register_commandline_settings(parser: settngs.Manager) -> None:
     parser.add_group("commands", register_commands, True)
-    parser.add_group("runtime", register_options)
+    parser.add_group("runtime", register_settings)
 
 
-def validate_commandline_options(options: settngs.Config[settngs.Values], parser: settngs.Manager) -> settngs.Values:
+def validate_commandline_settings(config: settngs.Config[settngs.Values], parser: settngs.Manager) -> settngs.Values:
 
-    if options[0].commands_version:
+    if config[0].commands_version:
         parser.exit(
             status=1,
             message=f"ComicTagger {ctversion.version}:  Copyright (c) 2012-2022 ComicTagger Team\n"
             "Distributed under Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)\n",
         )
 
-    options[0].runtime_no_gui = any(
+    config[0].runtime_no_gui = any(
         [
-            options[0].commands_print,
-            options[0].commands_delete,
-            options[0].commands_save,
-            options[0].commands_copy,
-            options[0].commands_rename,
-            options[0].commands_export_to_zip,
-            options[0].commands_only_set_cv_key,
+            config[0].commands_print,
+            config[0].commands_delete,
+            config[0].commands_save,
+            config[0].commands_copy,
+            config[0].commands_rename,
+            config[0].commands_export_to_zip,
+            config[0].commands_only_set_cv_key,
         ]
     )
 
-    if platform.system() == "Windows" and options[0].runtime_glob:
+    if platform.system() == "Windows" and config[0].runtime_glob:
         # no globbing on windows shell, so do it for them
         import glob
 
-        globs = options[0].runtime_files
-        options[0].runtime_files = []
+        globs = config[0].runtime_files
+        config[0].runtime_files = []
         for item in globs:
-            options[0].runtime_files.extend(glob.glob(item))
+            config[0].runtime_files.extend(glob.glob(item))
 
-    if (
-        options[0].commands_only_set_cv_key
-        and options[0].talker_comicvine_cv_api_key is None
-        and options[0].talker_comicvine_cv_url is None
-    ):
-        parser.exit(message="Key not given!\n", status=1)
-
-    if not options[0].commands_only_set_cv_key and options[0].runtime_no_gui and not options[0].runtime_files:
+    if not config[0].commands_only_set_cv_key and config[0].runtime_no_gui and not config[0].runtime_files:
         parser.exit(message="Command requires at least one filename!\n", status=1)
 
-    if options[0].commands_delete and not options[0].runtime_type:
+    if config[0].commands_delete and not config[0].runtime_type:
         parser.exit(message="Please specify the type to delete with -t\n", status=1)
 
-    if options[0].commands_save and not options[0].runtime_type:
+    if config[0].commands_save and not config[0].runtime_type:
         parser.exit(message="Please specify the type to save with -t\n", status=1)
 
-    if options[0].commands_copy:
-        if not options[0].runtime_type:
+    if config[0].commands_copy:
+        if not config[0].runtime_type:
             parser.exit(message="Please specify the type to copy to with -t\n", status=1)
-        if len(options[0].commands_copy) > 1:
+        if len(config[0].commands_copy) > 1:
             parser.exit(message="Please specify only one type to copy to with -c\n", status=1)
-        options[0].commands_copy = options[0].commands_copy[0]
+        config[0].commands_copy = config[0].commands_copy[0]
 
-    if options[0].runtime_recursive:
-        options[0].runtime_file_list = utils.get_recursive_filelist(options[0].runtime_files)
+    if config[0].runtime_recursive:
+        config[0].runtime_file_list = utils.get_recursive_filelist(config[0].runtime_files)
     else:
-        options[0].runtime_file_list = options[0].runtime_files
+        config[0].runtime_file_list = config[0].runtime_files
 
     # take a crack at finding rar exe if it's not in the path
     if not utils.which("rar"):
@@ -337,4 +330,4 @@ def validate_commandline_options(options: settngs.Config[settngs.Values], parser
             if os.path.exists("/opt/homebrew/bin"):
                 utils.add_to_path("/opt/homebrew/bin")
 
-    return options
+    return config

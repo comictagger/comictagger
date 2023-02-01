@@ -6,7 +6,7 @@ import os
 import settngs
 
 import comicapi.comicarchive
-import comictaggerlib.ctoptions
+import comictaggerlib.ctsettings
 
 logger = logging.getLogger("comictagger")
 
@@ -24,17 +24,17 @@ def archiver(manager: settngs.Manager) -> None:
 
 
 def register_talker_settings(manager: settngs.Manager) -> None:
-    for talker_name, talker in comictaggerlib.ctoptions.talker_plugins.items():
+    for talker_name, talker in comictaggerlib.ctsettings.talkers.items():
         try:
             manager.add_persistent_group("talker_" + talker_name, talker.register_settings, False)
         except Exception:
             logger.exception("Failed to register settings for %s", talker_name)
 
 
-def validate_archive_settings(options: settngs.Config) -> settngs.Config:
-    if "archiver" not in options[1]:
-        return options
-    cfg = settngs.normalize_config(options, file=True, cmdline=True, defaults=False)
+def validate_archive_settings(config: settngs.Config[settngs.Namespace]) -> settngs.Config[settngs.Namespace]:
+    if "archiver" not in config[1]:
+        return config
+    cfg = settngs.normalize_config(config, file=True, cmdline=True, defaults=False)
     for archiver in comicapi.comicarchive.archivers:
         exe_name = settngs.sanitize_name(archiver.exe)
         if (
@@ -47,28 +47,29 @@ def validate_archive_settings(options: settngs.Config) -> settngs.Config:
             else:
                 archiver.exe = cfg[0]["archiver"][exe_name]
 
-    return options
+    return config
 
 
-def validate_talker_settings(options: settngs.Config) -> settngs.Config:
+def validate_talker_settings(config: settngs.Config[settngs.Namespace]) -> settngs.Config[settngs.Namespace]:
     # Apply talker settings from config file
-    for talker_name, talker in list(comictaggerlib.ctoptions.talker_plugins.items()):
+    cfg = settngs.normalize_config(config, True, True)
+    for talker_name, talker in list(comictaggerlib.ctsettings.talkers.items()):
         try:
-            talker.parse_settings(options[0]["talker_" + talker_name])
+            talker.parse_settings(cfg[0]["talker_" + talker_name])
         except Exception as e:
             # Remove talker as we failed to apply the settings
-            del comictaggerlib.ctoptions.talker_plugins[talker_name]
+            del comictaggerlib.ctsettings.talkers[talker_name]
             logger.exception("Failed to initialize talker settings: %s", e)
 
-    return options
+    return config
 
 
-def validate_plugin_settings(options: settngs.Config) -> settngs.Config:
-    options = validate_archive_settings(options)
-    options = validate_talker_settings(options)
-    return options
+def validate_plugin_settings(config: settngs.Config[settngs.Namespace]) -> settngs.Config[settngs.Namespace]:
+    config = validate_archive_settings(config)
+    config = validate_talker_settings(config)
+    return config
 
 
-def register_plugin_settings(manager: settngs.Manager):
+def register_plugin_settings(manager: settngs.Manager) -> None:
     manager.add_persistent_group("archiver", archiver, False)
     register_talker_settings(manager)

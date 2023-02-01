@@ -6,10 +6,10 @@ import comictalker.comiccacher
 from testing.comicdata import search_results
 
 
-def test_create_cache(options, mock_version):
-    settings, definitions = options
-    comictalker.comiccacher.ComicCacher(settings.runtime_config.user_cache_dir, mock_version[0])
-    assert (settings.runtime_config.user_cache_dir).exists()
+def test_create_cache(config, mock_version):
+    config, definitions = config
+    comictalker.comiccacher.ComicCacher(config.runtime_config.user_cache_dir, mock_version[0])
+    assert (config.runtime_config.user_cache_dir).exists()
 
 
 def test_search_results(comic_cache):
@@ -25,9 +25,5 @@ def test_search_results(comic_cache):
 def test_series_info(comic_cache, series_info):
     comic_cache.add_series_info(series_record=series_info, source_name="test")
     vi = series_info.copy()
-    # del vi["description"]
-    # del vi["image_url"]
     cache_result = comic_cache.get_series_info(series_id=series_info.id, source_name="test")
-    # del cache_result["description"]
-    # del cache_result["image_url"]
     assert vi == cache_result
