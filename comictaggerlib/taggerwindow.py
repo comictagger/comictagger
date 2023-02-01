@@ -696,16 +696,7 @@ Have fun!
 
         self.lblFilename.setText(filename)
 
-        if ca.is_sevenzip():
-            self.lblArchiveType.setText("7Z archive")
-        elif ca.is_zip():
-            self.lblArchiveType.setText("ZIP archive")
-        elif ca.is_rar():
-            self.lblArchiveType.setText("RAR archive")
-        elif ca.is_folder():
-            self.lblArchiveType.setText("Folder archive")
-        else:
-            self.lblArchiveType.setText("")
+        self.lblArchiveType.setText(ca.archiver.name() + " archive")
 
         page_count = f" ({ca.get_number_of_pages()} pages)"
         self.lblPageCount.setText(page_count)

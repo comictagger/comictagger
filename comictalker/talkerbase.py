@@ -41,6 +41,7 @@ class SourceStaticOptions:
     def __init__(
         self,
         website: str = "",
+        attribution_string: str = "",  # Full string including web link, example: Metadata provided by <a href='http://website'>Example</a>
         has_issues: bool = False,
         has_alt_covers: bool = False,
         requires_apikey: bool = False,
@@ -48,6 +49,7 @@ class SourceStaticOptions:
         has_censored_covers: bool = False,
     ) -> None:
         self.website = website
+        self.attribution_string = attribution_string
         self.has_issues = has_issues
         self.has_alt_covers = has_alt_covers
         self.requires_apikey = requires_apikey

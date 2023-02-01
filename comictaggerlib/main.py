@@ -18,15 +18,14 @@ from __future__ import annotations
 import argparse
 import json
 import logging.handlers
-import platform
 import signal
 import sys
 from collections.abc import Mapping
 
 import settngs
 
+import comicapi
 import comictalker.comictalkerapi as ct_api
-from comicapi import utils
 from comictaggerlib import cli, ctoptions
 from comictaggerlib.ctversion import version
 from comictaggerlib.log import setup_logging
@@ -54,7 +53,7 @@ def update_publishers(options: settngs.Namespace) -> None:
     json_file = options.runtime_config.user_config_dir / "publishers.json"
     if json_file.exists():
         try:
-            utils.update_publishers(json.loads(json_file.read_text("utf-8")))
+            comicapi.utils.update_publishers(json.loads(json_file.read_text("utf-8")))
         except Exception:
             logger.exception("Failed to load publishers from %s", json_file)
             # show_exception_box(str(e))
@@ -71,12 +70,16 @@ class App:
 
     def run(self) -> None:
         opts = self.initialize()
+        self.load_plugins()
         self.initialize_dirs(opts.config)
         self.talker_plugins = ct_api.get_talkers(version, opts.config.user_cache_dir)
         self.register_options()
         self.parse_options(opts.config)
 
         self.main()
+
+    def load_plugins(self) -> None:
+        comicapi.comicarchive.load_archive_plugins()
 
     def initialize(self) -> argparse.Namespace:
         opts, _ = self.initial_arg_parser.parse_known_args()
@@ -91,6 +94,7 @@ class App:
         )
         ctoptions.register_commandline(self.manager)
         ctoptions.register_settings(self.manager)
+        ctoptions.register_plugin_settings(self.manager)
         ctoptions.register_talker_settings(self.manager, self.talker_plugins)
 
     def parse_options(self, config_paths: ctoptions.ComicTaggerPaths) -> None:
@@ -101,7 +105,8 @@ class App:
         self.options = self.manager.get_namespace(self.options)
 
         self.options = ctoptions.validate_commandline_options(self.options, self.manager)
-        self.options = ctoptions.validate_settings(self.options, self.manager)
+        self.options = ctoptions.validate_settings(self.options)
+        self.options = ctoptions.validate_plugin_settings(self.options)
         self.options = self.options
 
     def initialize_dirs(self, paths: ctoptions.ComicTaggerPaths) -> None:
@@ -133,18 +138,11 @@ class App:
 
         signal.signal(signal.SIGINT, signal.SIG_DFL)
 
-        logger.info(
-            "ComicTagger Version: %s running on: %s PyInstaller: %s",
-            version,
-            platform.system(),
-            "Yes" if getattr(sys, "frozen", None) else "No",
-        )
-
         logger.debug("Installed Packages")
         for pkg in sorted(importlib_metadata.distributions(), key=lambda x: x.name):
             logger.debug("%s\t%s", pkg.metadata["Name"], pkg.metadata["Version"])
 
-        utils.load_publishers()
+        comicapi.utils.load_publishers()
         update_publishers(self.options[0])
 
         if not qt_available and not self.options[0].runtime_no_gui:
@@ -165,6 +163,7 @@ class App:
                 f"Failed to load settings, check the log located in '{self.options[0].runtime_config.user_log_dir}' for more details",
                 True,
             )
+
         if self.options[0].runtime_no_gui:
             if error and error[1]:
                 print(f"A fatal error occurred please check the log for more information: {error[0]}")  # noqa: T201
@@ -175,3 +174,7 @@ class App:
                 logger.exception("CLI mode failed")
         else:
             gui.open_tagger_window(talker_api, self.options, error)
+
+
+def main():
+    App().run()

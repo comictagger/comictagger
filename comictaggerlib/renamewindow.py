@@ -73,13 +73,8 @@ class RenameWindow(QtWidgets.QDialog):
         self.renamer.replacements = self.options[0].rename_replacements
 
         new_ext = ca.path.suffix  # default
-        if self.options[0].rename_set_extension_based_on_archive:
-            if ca.is_sevenzip():
-                new_ext = ".cb7"
-            elif ca.is_zip():
-                new_ext = ".cbz"
-            elif ca.is_rar():
-                new_ext = ".cbr"
+        if self.options[0].filename_rename_set_extension_based_on_archive:
+            new_ext = ca.extension()
 
         if md is None:
             md = ca.read_metadata(self.data_style)
@@ -206,7 +201,7 @@ class RenameWindow(QtWidgets.QDialog):
                     logger.info("%s: Filename is already good!", comic[1])
                     continue
 
-                if not comic[0].is_writable(check_rar_status=False):
+                if not comic[0].is_writable(check_archive_status=False):
                     continue
 
                 comic[0].rename(utils.unique_file(full_path))
