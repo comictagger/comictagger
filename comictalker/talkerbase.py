@@ -151,10 +151,12 @@ class ComicTalker:
 
     def register_settings(self, parser: settngs.Manager) -> None:
         """Allows registering settings using the settngs package with an argparse like interface"""
+        return None
 
     def parse_settings(self, settings: dict[str, Any]) -> None:
         """settings is a dictionary of options defined in register_settings.
         It is only guaranteed that the settings defined in register_settings will be present."""
+        return None
 
     def check_api_key(self, key: str, url: str) -> bool:
         """

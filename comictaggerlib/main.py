@@ -123,13 +123,13 @@ class App:
 
     def initialize_talkers(self) -> None:
         # Apply talker settings from config file
-        try:
-            for talker_name, talker in self.talker_plugins.items():
-                ct_api.set_talker_settings(talker, self.options[0][talker_name])
-        except Exception as e:
-            # Remove talker as we failed to apply the settings
-            del self.talker_plugins[e.source]  # type: ignore[attr-defined]
-            logger.exception("Failed to initialize talker settings. Error %s", str(e))
+        for talker_name, talker in list(self.talker_plugins.items()):
+            try:
+                talker.parse_settings(self.options[0]["talker_" + talker_name])
+            except Exception as e:
+                # Remove talker as we failed to apply the settings
+                del self.talker_plugins[talker_name]  # type: ignore[attr-defined]
+                logger.exception("Failed to initialize talker settings. Error %s", e)
 
     def main(self) -> None:
         assert self.options is not None
@@ -149,14 +149,17 @@ class App:
             self.options[0].runtime_no_gui = True
             logger.warning("PyQt5 is not available. ComicTagger is limited to command-line mode.")
 
-        # TODO Have option to save passed in config options and quit?
+        if self.options[0].commands_only_set_cv_key:
+            if self.config_load_success:
+                print("Key set")  # noqa: T201
+                return
 
         try:
             talker_api = self.talker_plugins[self.options[0].talkers_source]
-        except Exception as e:
-            logger.exception(f"Unable to load talker {self.options[0].talkers_source}. Error: {str(e)}")
+        except Exception:
+            logger.exception(f"Unable to load talker {self.options[0].talkers_source}")
             # TODO error True can be changed to False after the talker settings menu generation is in
-            error = (f"Unable to load talker {self.options[0].talkers_source}. Error: {str(e)}", True)
+            error = (f"Unable to load talker {self.options[0].talkers_source}", True)
 
         if not self.config_load_success:
             error = (

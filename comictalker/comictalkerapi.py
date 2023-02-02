@@ -18,22 +18,11 @@ from __future__ import annotations
 import logging
 import pathlib
 from collections.abc import Mapping
-from typing import Any
 
 import comictalker.talkers.comicvine
 from comictalker.talkerbase import ComicTalker, TalkerError
 
 logger = logging.getLogger(__name__)
-
-
-def set_talker_settings(talker: ComicTalker, settings: dict[str, Any]) -> None:
-    try:
-        talker.parse_settings(settings)
-    except Exception as e:
-        logger.exception(
-            f"Failed to set talker settings for {talker.source_details.name}, will use defaults. Error: {str(e)}",
-        )
-        raise TalkerError(source=talker.source_details.name, code=4, desc="Could not apply talker settings")
 
 
 def get_talkers(version: str, cache: pathlib.Path) -> Mapping[str, ComicTalker]:
