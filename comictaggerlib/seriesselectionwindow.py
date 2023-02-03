@@ -65,7 +65,7 @@ class SearchThread(QtCore.QThread):
         try:
             self.ct_error = False
             self.ct_search_results = self.talker_api.search_for_series(
-                self.series_name, self.prog_callback, self.refresh, self.literal
+                self.series_name, self.prog_callback, self.refresh, self.literal, self.series_match_thresh
             )
         except TalkerError as e:
             self.ct_search_results = []

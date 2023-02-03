@@ -177,7 +177,6 @@ class ComicVineTalker(ComicTalker):
         # Default settings
         self.api_url: str = "https://comicvine.gamespot.com/api"
         self.api_key: str = "27431e6787042105bd3e47e169a624521f89f3a4"
-        self.series_match_thresh: int = 90
         self.remove_html_tables: bool = False
         self.use_series_start_as_volume: bool = False
         self.wait_for_rate_limit: bool = False
@@ -412,6 +411,7 @@ class ComicVineTalker(ComicTalker):
         callback: Callable[[int, int], None] | None = None,
         refresh_cache: bool = False,
         literal: bool = False,
+        series_match_thresh: int = 90,
     ) -> list[ComicSeries]:
         # Sanitize the series name for comicvine searching, comicvine search ignore symbols
         search_series_name = utils.sanitize_title(series_name, literal)
@@ -470,7 +470,7 @@ class ComicVineTalker(ComicTalker):
             if not literal:
                 # Stop searching once any entry falls below the threshold
                 stop_searching = any(
-                    not utils.titles_match(search_series_name, series["name"], self.series_match_thresh)
+                    not utils.titles_match(search_series_name, series["name"], series_match_thresh)
                     for series in cv_response["results"]
                 )
 

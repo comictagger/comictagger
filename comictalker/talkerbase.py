@@ -171,6 +171,7 @@ class ComicTalker:
         callback: Callable[[int, int], None] | None = None,
         refresh_cache: bool = False,
         literal: bool = False,
+        series_match_thresh: int = 90,
     ) -> list[ComicSeries]:
         """
         This function should return a list of series that match the given series name
