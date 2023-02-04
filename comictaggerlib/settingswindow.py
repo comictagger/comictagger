@@ -181,11 +181,14 @@ class SettingsWindow(QtWidgets.QDialog):
         self.leIssueNumPadding.setValidator(validator)
 
         self.leRenameTemplate.setToolTip(f"<pre>{html.escape(template_tooltip)}</pre>")
-        self.settings_to_form()
         self.rename_error: Exception | None = None
+
+        self.connect_signals()
+        self.settings_to_form()
         self.rename_test()
         self.dir_test()
 
+    def connect_signals(self) -> None:
         self.btnBrowseRar.clicked.connect(self.select_rar)
         self.btnClearCache.clicked.connect(self.clear_cache)
         self.btnResetSettings.clicked.connect(self.reset_settings)
@@ -208,6 +211,27 @@ class SettingsWindow(QtWidgets.QDialog):
         self.leIssueNumPadding.textEdited.connect(self.rename_test)
         self.twLiteralReplacements.cellChanged.connect(self.rename_test)
         self.twValueReplacements.cellChanged.connect(self.rename_test)
+
+    def disconnect_signals(self) -> None:
+        self.btnAddLiteralReplacement.clicked.disconnect()
+        self.btnAddValueReplacement.clicked.disconnect()
+        self.btnBrowseRar.clicked.disconnect()
+        self.btnClearCache.clicked.disconnect()
+        self.btnRemoveLiteralReplacement.clicked.disconnect()
+        self.btnRemoveValueReplacement.clicked.disconnect()
+        self.btnResetSettings.clicked.disconnect()
+        self.btnTemplateHelp.clicked.disconnect()
+        self.btnTestKey.clicked.disconnect()
+        self.cbxChangeExtension.clicked.disconnect()
+        self.cbxComplicatedParser.clicked.disconnect()
+        self.cbxMoveFiles.clicked.disconnect()
+        self.cbxRenameStrict.clicked.disconnect()
+        self.cbxSmartCleanup.clicked.disconnect()
+        self.leDirectory.textEdited.disconnect()
+        self.leIssueNumPadding.textEdited.disconnect()
+        self.leRenameTemplate.textEdited.disconnect()
+        self.twLiteralReplacements.cellChanged.disconnect()
+        self.twValueReplacements.cellChanged.disconnect()
 
     def addLiteralReplacement(self) -> None:
         self.insertRow(self.twLiteralReplacements, self.twLiteralReplacements.rowCount(), Replacement("", "", False))
@@ -247,7 +271,7 @@ class SettingsWindow(QtWidgets.QDialog):
         fr = FileRenamer(
             md_test,
             platform="universal" if self.cbxRenameStrict.isChecked() else "auto",
-            replacements=self.get_replacemnts(),
+            replacements=self.get_replacements(),
         )
         fr.move = self.cbxMoveFiles.isChecked()
         fr.set_template(template)
@@ -268,6 +292,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.cbxRemovePublisher.setEnabled(complicated)
 
     def settings_to_form(self) -> None:
+        self.disconnect_signals()
         # Copy values from settings to form
         if "archiver" in self.config[1] and "rar" in self.config[1]["archiver"]:
             self.leRarExePath.setText(getattr(self.config[0], self.config[1]["archiver"]["rar"].internal_name))
@@ -322,8 +347,9 @@ class SettingsWindow(QtWidgets.QDialog):
                 table.removeRow(i)
             for row, replacement in enumerate(replacments):
                 self.insertRow(table, row, replacement)
+        self.connect_signals()
 
-    def get_replacemnts(self) -> Replacements:
+    def get_replacements(self) -> Replacements:
         literal_replacements = []
         value_replacements = []
         for row in range(self.twLiteralReplacements.rowCount()):
@@ -434,7 +460,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.config[0].rename_dir = self.leDirectory.text()
 
         self.config[0].rename_strict = self.cbxRenameStrict.isChecked()
-        self.config[0].rename_replacements = self.get_replacemnts()
+        self.config[0].rename_replacements = self.get_replacements()
 
         settngs.save_file(self.config, self.config[0].runtime_config.user_config_dir / "settings.json")
         self.parent().config = self.config
@@ -455,7 +481,7 @@ class SettingsWindow(QtWidgets.QDialog):
             QtWidgets.QMessageBox.warning(self, "API Key Test", "Key is NOT valid.")
 
     def reset_settings(self) -> None:
-        self.config = settngs.Config(settngs.defaults(self.config[1]), self.config[1])
+        self.config = settngs.get_namespace(settngs.defaults(self.config[1]))
         self.settings_to_form()
         QtWidgets.QMessageBox.information(self, self.name, self.name + " have been returned to default values.")
 
