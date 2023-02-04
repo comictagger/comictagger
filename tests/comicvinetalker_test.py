@@ -17,7 +17,7 @@ def test_search_for_series(comicvine_api, comic_cache):
 
 
 def test_fetch_series_data(comicvine_api, comic_cache):
-    result = comicvine_api.fetch_series_data(23437)
+    result = comicvine_api._fetch_series_data(23437)
     # del result["description"]
     # del result["image_url"]
     cache_result = comic_cache.get_series_info(23437, comicvine_api.id)
@@ -56,6 +56,6 @@ cv_issue = [
 
 @pytest.mark.parametrize("series_id, issue_number, expected", cv_issue)
 def test_fetch_issue_data(comicvine_api, series_id, issue_number, expected):
-    results = comicvine_api.fetch_issue_data(series_id, issue_number)
+    results = comicvine_api._fetch_issue_data(series_id, issue_number)
     results.notes = None
     assert results == expected

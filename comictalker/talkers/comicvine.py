@@ -160,11 +160,7 @@ class ComicVineTalker(ComicTalker):
     website: str = "https://comicvine.gamespot.com/"
     attribution: str = f"Metadata provided by <a href='{website}'>{name}</a>"
 
-    def __init__(
-        self,
-        version: str,
-        cache_folder: pathlib.Path,
-    ):
+    def __init__(self, version: str, cache_folder: pathlib.Path):
         super().__init__(version, cache_folder)
         # Default settings
         self.api_url: str = "https://comicvine.gamespot.com/api"
@@ -239,161 +235,6 @@ class ComicVineTalker(ComicTalker):
         except Exception:
             return False
 
-    def get_cv_content(self, url: str, params: dict[str, Any]) -> CVResult:
-        """
-        Get the content from the CV server.  If we're in "wait mode" and status code is a rate limit error
-        sleep for a bit and retry.
-        """
-        total_time_waited = 0
-        limit_wait_time = 1
-        counter = 0
-        wait_times = [1, 2, 3, 4]
-        while True:
-            cv_response: CVResult = self.get_url_content(url, params)
-            if self.wait_on_ratelimit and cv_response["status_code"] == CV_STATUS_RATELIMIT:
-                logger.info(f"Rate limit encountered.  Waiting for {limit_wait_time} minutes\n")
-                time.sleep(limit_wait_time * 60)
-                total_time_waited += limit_wait_time
-                limit_wait_time = wait_times[counter]
-                if counter < 3:
-                    counter += 1
-                # don't wait much more than 20 minutes
-                if total_time_waited < self.wait_on_ratelimit_time:
-                    continue
-            if cv_response["status_code"] != 1:
-                logger.debug(
-                    f"{self.name} query failed with error #{cv_response['status_code']}:  [{cv_response['error']}]."
-                )
-                raise TalkerNetworkError(self.name, 0, f"{cv_response['status_code']}: {cv_response['error']}")
-
-            # it's all good
-            break
-        return cv_response
-
-    def get_url_content(self, url: str, params: dict[str, Any]) -> Any:
-        # connect to server:
-        # if there is a 500 error, try a few more times before giving up
-        # any other error, just bail
-        for tries in range(3):
-            try:
-                resp = requests.get(url, params=params, headers={"user-agent": "comictagger/" + self.version})
-                if resp.status_code == 200:
-                    return resp.json()
-                if resp.status_code == 500:
-                    logger.debug(f"Try #{tries + 1}: ")
-                    time.sleep(1)
-                    logger.debug(str(resp.status_code))
-                else:
-                    break
-
-            except requests.exceptions.Timeout:
-                logger.debug(f"Connection to {self.name} timed out.")
-                raise TalkerNetworkError(self.name, 4)
-            except requests.exceptions.RequestException as e:
-                logger.debug(f"Request exception: {e}")
-                raise TalkerNetworkError(self.name, 0, str(e)) from e
-            except json.JSONDecodeError as e:
-                logger.debug(f"JSON decode error: {e}")
-                raise TalkerDataError(self.name, 2, "ComicVine did not provide json")
-
-        raise TalkerNetworkError(self.name, 5)
-
-    def format_search_results(self, search_results: list[CVSeries]) -> list[ComicSeries]:
-        formatted_results = []
-        for record in search_results:
-            # Flatten publisher to name only
-            if record.get("publisher") is None:
-                pub_name = ""
-            else:
-                pub_name = record["publisher"].get("name", "")
-
-            if record.get("image") is None:
-                image_url = ""
-            else:
-                image_url = record["image"].get("super_url", "")
-
-            start_year = utils.xlate(record.get("start_year", ""), True)
-
-            aliases = record.get("aliases") or ""
-
-            formatted_results.append(
-                ComicSeries(
-                    aliases=aliases.splitlines(),
-                    count_of_issues=record.get("count_of_issues", 0),
-                    description=record.get("description", ""),
-                    id=str(record["id"]),
-                    image_url=image_url,
-                    name=record["name"],
-                    publisher=pub_name,
-                    start_year=start_year,
-                )
-            )
-
-        return formatted_results
-
-    def format_issue_results(self, issue_results: list[CVIssue], complete: bool = False) -> list[ComicIssue]:
-        formatted_results = []
-        for record in issue_results:
-            # Extract image super and thumb to name only
-            if record.get("image") is None:
-                image_url = ""
-            else:
-                image_url = record["image"].get("super_url", "")
-
-            alt_images_list = []
-            for alt in record["associated_images"]:
-                alt_images_list.append(alt["original_url"])
-
-            character_list = []
-            if record.get("character_credits"):
-                for char in record["character_credits"]:
-                    character_list.append(char["name"])
-
-            location_list = []
-            if record.get("location_credits"):
-                for loc in record["location_credits"]:
-                    location_list.append(loc["name"])
-
-            teams_list = []
-            if record.get("team_credits"):
-                for loc in record["team_credits"]:
-                    teams_list.append(loc["name"])
-
-            story_list = []
-            if record.get("story_arc_credits"):
-                for loc in record["story_arc_credits"]:
-                    story_list.append(loc["name"])
-
-            persons_list = []
-            if record.get("person_credits"):
-                for person in record["person_credits"]:
-                    persons_list.append(Credit(name=person["name"], role=person["role"]))
-
-            series = self.fetch_series_data(record["volume"]["id"])
-
-            formatted_results.append(
-                ComicIssue(
-                    aliases=record["aliases"].split("\n") if record["aliases"] else [],
-                    cover_date=record.get("cover_date", ""),
-                    description=record.get("description", ""),
-                    id=str(record["id"]),
-                    image_url=image_url,
-                    issue_number=record["issue_number"],
-                    name=record["name"],
-                    site_detail_url=record.get("site_detail_url", ""),
-                    series=series,  # CV uses volume to mean series
-                    alt_image_urls=alt_images_list,
-                    characters=character_list,
-                    locations=location_list,
-                    teams=teams_list,
-                    story_arcs=story_list,
-                    credits=persons_list,
-                    complete=complete,
-                )
-            )
-
-        return formatted_results
-
     def search_for_series(
         self,
         series_name: str,
@@ -425,7 +266,7 @@ class ComicVineTalker(ComicTalker):
             "limit": 100,
         }
 
-        cv_response: CVResult[list[CVSeries]] = self.get_cv_content(urljoin(self.api_url, "search"), params)
+        cv_response: CVResult[list[CVSeries]] = self._get_cv_content(urljoin(self.api_url, "search"), params)
 
         search_results: list[CVSeries] = []
 
@@ -471,7 +312,7 @@ class ComicVineTalker(ComicTalker):
             page += 1
 
             params["page"] = page
-            cv_response = self.get_cv_content(urljoin(self.api_url, "search"), params)
+            cv_response = self._get_cv_content(urljoin(self.api_url, "search"), params)
 
             search_results.extend(cv_response["results"])
             current_result_count += cv_response["number_of_page_results"]
@@ -480,7 +321,7 @@ class ComicVineTalker(ComicTalker):
                 callback(current_result_count, total_result_count)
 
         # Format result to ComicIssue
-        formatted_search_results = self.format_search_results(search_results)
+        formatted_search_results = self._format_search_results(search_results)
 
         # Cache these search results, even if it's literal we cache the results
         # The most it will cause is extra processing time
@@ -488,48 +329,23 @@ class ComicVineTalker(ComicTalker):
 
         return formatted_search_results
 
-    # Get issue or series information
     def fetch_comic_data(
         self, issue_id: str | None = None, series_id: str | None = None, issue_number: str = ""
     ) -> GenericMetadata:
         comic_data = GenericMetadata()
         if issue_id:
-            comic_data = self.fetch_issue_data_by_issue_id(issue_id)
+            comic_data = self._fetch_issue_data_by_issue_id(issue_id)
         elif issue_number and series_id:
-            comic_data = self.fetch_issue_data(int(series_id), issue_number)
+            comic_data = self._fetch_issue_data(int(series_id), issue_number)
 
         return comic_data
-
-    def fetch_series_data(self, series_id: int) -> ComicSeries:
-        # before we search online, look in our cache, since we might already have this info
-        cvc = ComicCacher(self.cache_folder, self.version)
-        cached_series_result = cvc.get_series_info(str(series_id), self.id)
-
-        if cached_series_result is not None:
-            return cached_series_result
-
-        series_url = urljoin(self.api_url, f"volume/{CVTypeID.Volume}-{series_id}")  # CV uses volume to mean series
-
-        params = {
-            "api_key": self.api_key,
-            "format": "json",
-        }
-        cv_response: CVResult[CVSeries] = self.get_cv_content(series_url, params)
-
-        series_results = cv_response["results"]
-        formatted_series_results = self.format_search_results([series_results])
-
-        if series_results:
-            cvc.add_series_info(self.id, formatted_series_results[0])
-
-        return formatted_series_results[0]
 
     def fetch_issues_by_series(self, series_id: str) -> list[ComicIssue]:
         # before we search online, look in our cache, since we might already have this info
         cvc = ComicCacher(self.cache_folder, self.version)
         cached_series_issues_result = cvc.get_series_issues_info(series_id, self.id)
 
-        series_data = self.fetch_series_data(int(series_id))
+        series_data = self._fetch_series_data(int(series_id))
 
         if len(cached_series_issues_result) == series_data.count_of_issues:
             return cached_series_issues_result
@@ -541,7 +357,7 @@ class ComicVineTalker(ComicTalker):
             "field_list": "id,volume,issue_number,name,image,cover_date,site_detail_url,description,aliases,associated_images",
             "offset": 0,
         }
-        cv_response: CVResult[list[CVIssue]] = self.get_cv_content(urljoin(self.api_url, "issues/"), params)
+        cv_response: CVResult[list[CVIssue]] = self._get_cv_content(urljoin(self.api_url, "issues/"), params)
 
         current_result_count = cv_response["number_of_page_results"]
         total_result_count = cv_response["number_of_total_results"]
@@ -556,13 +372,13 @@ class ComicVineTalker(ComicTalker):
             offset += cv_response["number_of_page_results"]
 
             params["offset"] = offset
-            cv_response = self.get_cv_content(urljoin(self.api_url, "issues/"), params)
+            cv_response = self._get_cv_content(urljoin(self.api_url, "issues/"), params)
 
             series_issues_result.extend(cv_response["results"])
             current_result_count += cv_response["number_of_page_results"]
 
         # Format to expected output
-        formatted_series_issues_result = self.format_issue_results(series_issues_result)
+        formatted_series_issues_result = self._format_issue_results(series_issues_result)
 
         cvc.add_series_issues_info(self.id, formatted_series_issues_result)
 
@@ -587,7 +403,7 @@ class ComicVineTalker(ComicTalker):
             "filter": flt,
         }
 
-        cv_response: CVResult[list[CVIssue]] = self.get_cv_content(urljoin(self.api_url, "issues/"), params)
+        cv_response: CVResult[list[CVIssue]] = self._get_cv_content(urljoin(self.api_url, "issues/"), params)
 
         current_result_count = cv_response["number_of_page_results"]
         total_result_count = cv_response["number_of_total_results"]
@@ -602,16 +418,195 @@ class ComicVineTalker(ComicTalker):
             offset += cv_response["number_of_page_results"]
 
             params["offset"] = offset
-            cv_response = self.get_cv_content(urljoin(self.api_url, "issues/"), params)
+            cv_response = self._get_cv_content(urljoin(self.api_url, "issues/"), params)
 
             filtered_issues_result.extend(cv_response["results"])
             current_result_count += cv_response["number_of_page_results"]
 
-        formatted_filtered_issues_result = self.format_issue_results(filtered_issues_result)
+        formatted_filtered_issues_result = self._format_issue_results(filtered_issues_result)
 
         return formatted_filtered_issues_result
 
-    def fetch_issue_data(self, series_id: int, issue_number: str) -> GenericMetadata:
+    def _get_cv_content(self, url: str, params: dict[str, Any]) -> CVResult:
+        """
+        Get the content from the CV server.  If we're in "wait mode" and status code is a rate limit error
+        sleep for a bit and retry.
+        """
+        total_time_waited = 0
+        limit_wait_time = 1
+        counter = 0
+        wait_times = [1, 2, 3, 4]
+        while True:
+            cv_response: CVResult = self._get_url_content(url, params)
+            if self.wait_on_ratelimit and cv_response["status_code"] == CV_STATUS_RATELIMIT:
+                logger.info(f"Rate limit encountered.  Waiting for {limit_wait_time} minutes\n")
+                time.sleep(limit_wait_time * 60)
+                total_time_waited += limit_wait_time
+                limit_wait_time = wait_times[counter]
+                if counter < 3:
+                    counter += 1
+                # don't wait much more than 20 minutes
+                if total_time_waited < self.wait_on_ratelimit_time:
+                    continue
+            if cv_response["status_code"] != 1:
+                logger.debug(
+                    f"{self.name} query failed with error #{cv_response['status_code']}:  [{cv_response['error']}]."
+                )
+                raise TalkerNetworkError(self.name, 0, f"{cv_response['status_code']}: {cv_response['error']}")
+
+            # it's all good
+            break
+        return cv_response
+
+    def _get_url_content(self, url: str, params: dict[str, Any]) -> Any:
+        # connect to server:
+        # if there is a 500 error, try a few more times before giving up
+        # any other error, just bail
+        for tries in range(3):
+            try:
+                resp = requests.get(url, params=params, headers={"user-agent": "comictagger/" + self.version})
+                if resp.status_code == 200:
+                    return resp.json()
+                if resp.status_code == 500:
+                    logger.debug(f"Try #{tries + 1}: ")
+                    time.sleep(1)
+                    logger.debug(str(resp.status_code))
+                else:
+                    break
+
+            except requests.exceptions.Timeout:
+                logger.debug(f"Connection to {self.name} timed out.")
+                raise TalkerNetworkError(self.name, 4)
+            except requests.exceptions.RequestException as e:
+                logger.debug(f"Request exception: {e}")
+                raise TalkerNetworkError(self.name, 0, str(e)) from e
+            except json.JSONDecodeError as e:
+                logger.debug(f"JSON decode error: {e}")
+                raise TalkerDataError(self.name, 2, "ComicVine did not provide json")
+
+        raise TalkerNetworkError(self.name, 5)
+
+    def _format_search_results(self, search_results: list[CVSeries]) -> list[ComicSeries]:
+        formatted_results = []
+        for record in search_results:
+            # Flatten publisher to name only
+            if record.get("publisher") is None:
+                pub_name = ""
+            else:
+                pub_name = record["publisher"].get("name", "")
+
+            if record.get("image") is None:
+                image_url = ""
+            else:
+                image_url = record["image"].get("super_url", "")
+
+            start_year = utils.xlate(record.get("start_year", ""), True)
+
+            aliases = record.get("aliases") or ""
+
+            formatted_results.append(
+                ComicSeries(
+                    aliases=aliases.splitlines(),
+                    count_of_issues=record.get("count_of_issues", 0),
+                    description=record.get("description", ""),
+                    id=str(record["id"]),
+                    image_url=image_url,
+                    name=record["name"],
+                    publisher=pub_name,
+                    start_year=start_year,
+                )
+            )
+
+        return formatted_results
+
+    def _format_issue_results(self, issue_results: list[CVIssue], complete: bool = False) -> list[ComicIssue]:
+        formatted_results = []
+        for record in issue_results:
+            # Extract image super and thumb to name only
+            if record.get("image") is None:
+                image_url = ""
+            else:
+                image_url = record["image"].get("super_url", "")
+
+            alt_images_list = []
+            for alt in record["associated_images"]:
+                alt_images_list.append(alt["original_url"])
+
+            character_list = []
+            if record.get("character_credits"):
+                for char in record["character_credits"]:
+                    character_list.append(char["name"])
+
+            location_list = []
+            if record.get("location_credits"):
+                for loc in record["location_credits"]:
+                    location_list.append(loc["name"])
+
+            teams_list = []
+            if record.get("team_credits"):
+                for loc in record["team_credits"]:
+                    teams_list.append(loc["name"])
+
+            story_list = []
+            if record.get("story_arc_credits"):
+                for loc in record["story_arc_credits"]:
+                    story_list.append(loc["name"])
+
+            persons_list = []
+            if record.get("person_credits"):
+                for person in record["person_credits"]:
+                    persons_list.append(Credit(name=person["name"], role=person["role"]))
+
+            series = self._fetch_series_data(record["volume"]["id"])
+
+            formatted_results.append(
+                ComicIssue(
+                    aliases=record["aliases"].split("\n") if record["aliases"] else [],
+                    cover_date=record.get("cover_date", ""),
+                    description=record.get("description", ""),
+                    id=str(record["id"]),
+                    image_url=image_url,
+                    issue_number=record["issue_number"],
+                    name=record["name"],
+                    site_detail_url=record.get("site_detail_url", ""),
+                    series=series,  # CV uses volume to mean series
+                    alt_image_urls=alt_images_list,
+                    characters=character_list,
+                    locations=location_list,
+                    teams=teams_list,
+                    story_arcs=story_list,
+                    credits=persons_list,
+                    complete=complete,
+                )
+            )
+
+        return formatted_results
+
+    def _fetch_series_data(self, series_id: int) -> ComicSeries:
+        # before we search online, look in our cache, since we might already have this info
+        cvc = ComicCacher(self.cache_folder, self.version)
+        cached_series_result = cvc.get_series_info(str(series_id), self.id)
+
+        if cached_series_result is not None:
+            return cached_series_result
+
+        series_url = urljoin(self.api_url, f"volume/{CVTypeID.Volume}-{series_id}")  # CV uses volume to mean series
+
+        params = {
+            "api_key": self.api_key,
+            "format": "json",
+        }
+        cv_response: CVResult[CVSeries] = self._get_cv_content(series_url, params)
+
+        series_results = cv_response["results"]
+        formatted_series_results = self._format_search_results([series_results])
+
+        if series_results:
+            cvc.add_series_info(self.id, formatted_series_results[0])
+
+        return formatted_series_results[0]
+
+    def _fetch_issue_data(self, series_id: int, issue_number: str) -> GenericMetadata:
         issues_list_results = self.fetch_issues_by_series(str(series_id))
 
         # Loop through issue list to find the required issue info
@@ -633,10 +628,10 @@ class ComicVineTalker(ComicTalker):
             )
 
         if f_record is not None:
-            return self.fetch_issue_data_by_issue_id(f_record.id)
+            return self._fetch_issue_data_by_issue_id(f_record.id)
         return GenericMetadata()
 
-    def fetch_issue_data_by_issue_id(self, issue_id: str) -> GenericMetadata:
+    def _fetch_issue_data_by_issue_id(self, issue_id: str) -> GenericMetadata:
         # before we search online, look in our cache, since we might already have this info
         cvc = ComicCacher(self.cache_folder, self.version)
         cached_issues_result = cvc.get_issue_info(int(issue_id), self.id)
@@ -651,15 +646,15 @@ class ComicVineTalker(ComicTalker):
 
         issue_url = urljoin(self.api_url, f"issue/{CVTypeID.Issue}-{issue_id}")
         params = {"api_key": self.api_key, "format": "json"}
-        cv_response: CVResult[CVIssue] = self.get_cv_content(issue_url, params)
+        cv_response: CVResult[CVIssue] = self._get_cv_content(issue_url, params)
 
         issue_results = cv_response["results"]
 
         # Format to expected output
-        cv_issues = self.format_issue_results([issue_results], True)
+        cv_issues = self._format_issue_results([issue_results], True)
 
         # Due to issue not returning publisher, fetch the series.
-        cv_issues[0].series = self.fetch_series_data(int(cv_issues[0].series.id))
+        cv_issues[0].series = self._fetch_series_data(int(cv_issues[0].series.id))
 
         cvc.add_series_issues_info(self.id, cv_issues)
 
