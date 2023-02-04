@@ -15,8 +15,9 @@ from __future__ import annotations
 
 import logging
 import pathlib
-from typing import Callable
-from urllib.parse import urlsplit
+from typing import Any, Callable
+
+import settngs
 
 from comicapi.genericmetadata import GenericMetadata
 from comictalker.resulttypes import ComicIssue, ComicSeries
@@ -139,27 +140,23 @@ class TalkerDataError(TalkerError):
 class ComicTalker:
     """The base class for all comic source talkers"""
 
-    default_api_url: str = ""
-    default_api_key: str = ""
-
-    def __init__(self, version: str, cache_folder: pathlib.Path, api_url: str = "", api_key: str = "") -> None:
+    def __init__(self, version: str, cache_folder: pathlib.Path) -> None:
         # Identity name for the information source etc.
         self.source_details = SourceDetails()
         self.static_options = SourceStaticOptions()
-        self.api_key = api_key
         self.cache_folder = cache_folder
         self.version = version
+        self.api_key: str = ""
+        self.api_url: str = ""
 
-        self.api_key = api_key or self.default_api_key
-        self.api_url = api_url or self.default_api_url
+    def register_settings(self, parser: settngs.Manager) -> None:
+        """Allows registering settings using the settngs package with an argparse like interface"""
+        return None
 
-        tmp_url = urlsplit(self.api_url)
-
-        # joinurl only works properly if there is a trailing slash
-        if tmp_url.path and tmp_url.path[-1] != "/":
-            tmp_url = tmp_url._replace(path=tmp_url.path + "/")
-
-        self.api_url = tmp_url.geturl()
+    def parse_settings(self, settings: dict[str, Any]) -> None:
+        """settings is a dictionary of options defined in register_settings.
+        It is only guaranteed that the settings defined in register_settings will be present."""
+        return None
 
     def check_api_key(self, key: str, url: str) -> bool:
         """
@@ -174,6 +171,7 @@ class ComicTalker:
         callback: Callable[[int, int], None] | None = None,
         refresh_cache: bool = False,
         literal: bool = False,
+        series_match_thresh: int = 90,
     ) -> list[ComicSeries]:
         """
         This function should return a list of series that match the given series name
