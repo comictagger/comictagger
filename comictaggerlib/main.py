@@ -54,9 +54,8 @@ def update_publishers(options: settngs.Namespace) -> None:
     if json_file.exists():
         try:
             comicapi.utils.update_publishers(json.loads(json_file.read_text("utf-8")))
-        except Exception:
-            logger.exception("Failed to load publishers from %s", json_file)
-            # show_exception_box(str(e))
+        except Exception as e:
+            logger.exception("Failed to load publishers from %s: %s", json_file, e)
 
 
 class App:
@@ -70,16 +69,16 @@ class App:
 
     def run(self) -> None:
         opts = self.initialize()
-        self.load_plugins()
         self.initialize_dirs(opts.config)
-        self.talker_plugins = ct_api.get_talkers(version, opts.config.user_cache_dir)
+        self.load_plugins(opts)
         self.register_options()
-        self.parse_options(opts.config)
+        self.options = self.parse_options(opts.config)
 
         self.main()
 
-    def load_plugins(self) -> None:
+    def load_plugins(self, opts) -> None:
         comicapi.comicarchive.load_archive_plugins()
+        ctoptions.talker_plugins = ct_api.get_talkers(version, opts.config.user_cache_dir)
 
     def initialize(self) -> argparse.Namespace:
         opts, _ = self.initial_arg_parser.parse_known_args()
@@ -95,19 +94,15 @@ class App:
         ctoptions.register_commandline(self.manager)
         ctoptions.register_settings(self.manager)
         ctoptions.register_plugin_settings(self.manager)
-        ctoptions.register_talker_settings(self.manager, self.talker_plugins)
 
-    def parse_options(self, config_paths: ctoptions.ComicTaggerPaths) -> None:
-        self.options, self.config_load_success = self.manager.parse_config(
-            config_paths.user_config_dir / "settings.json"
-        )
-        self.initialize_talkers()
-        self.options = self.manager.get_namespace(self.options)
+    def parse_options(self, config_paths: ctoptions.ComicTaggerPaths) -> settngs.Config:
+        options, self.config_load_success = self.manager.parse_config(config_paths.user_config_dir / "settings.json")
+        options = self.manager.get_namespace(options)
 
-        self.options = ctoptions.validate_commandline_options(self.options, self.manager)
-        self.options = ctoptions.validate_settings(self.options)
-        self.options = ctoptions.validate_plugin_settings(self.options)
-        self.options = self.options
+        options = ctoptions.validate_commandline_options(options, self.manager)
+        options = ctoptions.validate_settings(options)
+        options = ctoptions.validate_plugin_settings(options)
+        return options
 
     def initialize_dirs(self, paths: ctoptions.ComicTaggerPaths) -> None:
         paths.user_data_dir.mkdir(parents=True, exist_ok=True)
@@ -120,16 +115,6 @@ class App:
         logger.debug("user_cache_dir: %s", paths.user_cache_dir)
         logger.debug("user_state_dir: %s", paths.user_state_dir)
         logger.debug("user_log_dir: %s", paths.user_log_dir)
-
-    def initialize_talkers(self) -> None:
-        # Apply talker settings from config file
-        for talker_name, talker in list(self.talker_plugins.items()):
-            try:
-                talker.parse_settings(self.options[0]["talker_" + talker_name])
-            except Exception as e:
-                # Remove talker as we failed to apply the settings
-                del self.talker_plugins[talker_name]  # type: ignore[attr-defined]
-                logger.exception("Failed to initialize talker settings. Error %s", e)
 
     def main(self) -> None:
         assert self.options is not None
@@ -156,10 +141,10 @@ class App:
 
         try:
             talker_api = self.talker_plugins[self.options[0].talkers_source]
-        except Exception:
+        except Exception as e:
             logger.exception(f"Unable to load talker {self.options[0].talkers_source}")
             # TODO error True can be changed to False after the talker settings menu generation is in
-            error = (f"Unable to load talker {self.options[0].talkers_source}", True)
+            error = (f"Unable to load talker {self.options[0].talkers_source}: {e}", True)
 
         if not self.config_load_success:
             error = (
