@@ -115,7 +115,6 @@ class IssueSelectionWindow(QtWidgets.QDialog):
                     break
 
     def perform_query(self) -> None:
-
         QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
 
         try:
@@ -179,7 +178,6 @@ class IssueSelectionWindow(QtWidgets.QDialog):
         self.accept()
 
     def current_item_changed(self, curr: QtCore.QModelIndex | None, prev: QtCore.QModelIndex | None) -> None:
-
         if curr is None:
             return
         if prev is not None and prev.row() == curr.row():

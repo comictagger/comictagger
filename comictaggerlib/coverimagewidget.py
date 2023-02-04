@@ -40,7 +40,6 @@ def clickable(widget: QtWidgets.QWidget) -> QtCore.pyqtBoundSignal:
     """Allow a label to be clickable"""
 
     class Filter(QtCore.QObject):
-
         dblclicked = QtCore.pyqtSignal()
 
         def eventFilter(self, obj: QtCore.QObject, event: QtCore.QEvent) -> bool:

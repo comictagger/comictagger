@@ -39,13 +39,7 @@ def initial_commandline_parser() -> argparse.ArgumentParser:
         type=ComicTaggerPaths,
         default=ComicTaggerPaths(),
     )
-    parser.add_argument(
-        "-v",
-        "--verbose",
-        action="count",
-        default=0,
-        help="Be noisy when doing what it does.",
-    )
+    parser.add_argument("-v", "--verbose", action="count", default=0, help="Be noisy when doing what it does.")
     return parser
 
 
@@ -162,26 +156,9 @@ def register_settings(parser: settngs.Manager) -> None:
         help="Don't actually modify file (only relevant for -d, -s, or -r).\n\n",
         file=False,
     )
-    parser.add_setting(
-        "--darkmode",
-        action="store_true",
-        help="Windows only. Force a dark pallet",
-        file=False,
-    )
-    parser.add_setting(
-        "-g",
-        "--glob",
-        action="store_true",
-        help="Windows only. Enable globbing",
-        file=False,
-    )
-    parser.add_setting(
-        "--quiet",
-        "-q",
-        action="store_true",
-        help="Don't say much (for print mode).",
-        file=False,
-    )
+    parser.add_setting("--darkmode", action="store_true", help="Windows only. Force a dark pallet", file=False)
+    parser.add_setting("-g", "--glob", action="store_true", help="Windows only. Enable globbing", file=False)
+    parser.add_setting("--quiet", "-q", action="store_true", help="Don't say much (for print mode).", file=False)
 
     parser.add_setting(
         "-t",
@@ -204,12 +181,7 @@ def register_settings(parser: settngs.Manager) -> None:
 
 
 def register_commands(parser: settngs.Manager) -> None:
-    parser.add_setting(
-        "--version",
-        action="store_true",
-        help="Display version.",
-        file=False,
-    )
+    parser.add_setting("--version", action="store_true", help="Display version.", file=False)
 
     parser.add_setting(
         "-p",

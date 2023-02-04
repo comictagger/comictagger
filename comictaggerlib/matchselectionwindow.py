@@ -76,7 +76,6 @@ class MatchSelectionWindow(QtWidgets.QDialog):
         self.update_data()
 
     def update_data(self) -> None:
-
         self.set_cover_image()
         self.populate_table()
         self.twList.resizeColumnsToContents()
@@ -86,7 +85,6 @@ class MatchSelectionWindow(QtWidgets.QDialog):
         self.setWindowTitle(f"Select correct match: {os.path.split(path)[1]}")
 
     def populate_table(self) -> None:
-
         self.twList.setRowCount(0)
 
         self.twList.setSortingEnabled(False)
@@ -145,7 +143,6 @@ class MatchSelectionWindow(QtWidgets.QDialog):
         self.accept()
 
     def current_item_changed(self, curr: QtCore.QModelIndex, prev: QtCore.QModelIndex) -> None:
-
         if curr is None:
             return
         if prev is not None and prev.row() == curr.row():

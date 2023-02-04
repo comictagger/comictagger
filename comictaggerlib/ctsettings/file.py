@@ -86,11 +86,7 @@ def filename(parser: settngs.Manager) -> None:
 def talker(parser: settngs.Manager) -> None:
     # General settings for talkers
     parser.add_setting("--source", default="comicvine", help="Use a specified source by source ID")
-    parser.add_setting(
-        "--series-match-search-thresh",
-        default=90,
-        type=int,
-    )
+    parser.add_setting("--series-match-search-thresh", default=90, type=int)
     parser.add_setting(
         "--clear-metadata",
         default=True,
@@ -178,11 +174,7 @@ def rename(parser: settngs.Manager) -> None:
         action=argparse.BooleanOptionalAction,
         help="Ensures that filenames are valid for all OSs",
     )
-    parser.add_setting(
-        "replacements",
-        default=DEFAULT_REPLACEMENTS,
-        cmdline=False,
-    )
+    parser.add_setting("replacements", default=DEFAULT_REPLACEMENTS, cmdline=False)
 
 
 def autotag(parser: settngs.Manager) -> None:

@@ -75,7 +75,6 @@ CBIContainer = TypedDict("CBIContainer", {"appID": str, "lastModified": str, "Co
 
 class ComicBookInfo:
     def metadata_from_string(self, string: str) -> GenericMetadata:
-
         cbi_container = json.loads(string)
 
         metadata = GenericMetadata()

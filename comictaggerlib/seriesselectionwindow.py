@@ -44,12 +44,7 @@ class SearchThread(QtCore.QThread):
     progressUpdate = pyqtSignal(int, int)
 
     def __init__(
-        self,
-        talker: ComicTalker,
-        series_name: str,
-        refresh: bool,
-        literal: bool = False,
-        series_match_thresh: int = 90,
+        self, talker: ComicTalker, series_name: str, refresh: bool, literal: bool = False, series_match_thresh: int = 90
     ) -> None:
         QtCore.QThread.__init__(self)
         self.talker = talker
@@ -210,7 +205,6 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         self.perform_query(refresh=False)
 
     def auto_select(self) -> None:
-
         if self.comic_archive is None:
             QtWidgets.QMessageBox.information(self, "Auto-Select", "You need to load a comic first!")
             return
@@ -263,7 +257,6 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
 
     def identify_complete(self) -> None:
         if self.ii is not None and self.iddialog is not None and self.comic_archive is not None:
-
             matches = self.ii.match_list
             result = self.ii.search_result
 
@@ -341,7 +334,6 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
                 break
 
     def perform_query(self, refresh: bool = False) -> None:
-
         self.search_thread = SearchThread(
             self.talker, self.series_name, refresh, self.literal, self.config.talker_series_match_search_thresh
         )
@@ -525,7 +517,6 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         self.show_issues()
 
     def current_item_changed(self, curr: QtCore.QModelIndex | None, prev: QtCore.QModelIndex | None) -> None:
-
         if curr is None:
             return
         if prev is not None and prev.row() == curr.row():

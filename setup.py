@@ -55,15 +55,11 @@ setup(
     author="ComicTagger team",
     author_email="comictagger@gmail.com",
     url="https://github.com/comictagger/comictagger",
-    packages=find_packages(
-        exclude=["tests", "testing"],
-    ),
+    packages=find_packages(exclude=["tests", "testing"]),
     package_data={"comictaggerlib": ["ui/*", "graphics/*"], "comicapi": ["data/*"]},
     entry_points={
         "console_scripts": ["comictagger=comictaggerlib.main:main"],
-        "pyinstaller40": [
-            "hook-dirs = comictaggerlib.__pyinstaller:get_hook_dirs",
-        ],
+        "pyinstaller40": ["hook-dirs = comictaggerlib.__pyinstaller:get_hook_dirs"],
         "comicapi.archiver": [
             "zip = comicapi.archivers.zip:ZipArchiver",
             "sevenzip = comicapi.archivers.sevenzip:SevenZipArchiver",

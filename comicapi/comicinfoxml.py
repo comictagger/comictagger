@@ -28,7 +28,6 @@ logger = logging.getLogger(__name__)
 
 
 class ComicInfoXml:
-
     writer_synonyms = ["writer", "plotter", "scripter"]
     penciller_synonyms = ["artist", "penciller", "penciler", "breakdowns"]
     inker_synonyms = ["inker", "artist", "finishes"]
@@ -49,7 +48,6 @@ class ComicInfoXml:
         return parsable_credits
 
     def metadata_from_string(self, string: bytes) -> GenericMetadata:
-
         tree = ET.ElementTree(ET.fromstring(string))
         return self.convert_xml_to_metadata(tree)
 
@@ -59,7 +57,6 @@ class ComicInfoXml:
         return str(tree_str)
 
     def convert_metadata_to_xml(self, metadata: GenericMetadata, xml: bytes = b"") -> ElementTree:
-
         # shorthand for the metadata
         md = metadata
 
@@ -113,7 +110,6 @@ class ComicInfoXml:
         # first, loop thru credits, and build a list for each role that CIX
         # supports
         for credit in metadata.credits:
-
             if credit["role"].casefold() in set(self.writer_synonyms):
                 credit_writer_list.append(credit["person"].replace(",", ""))
 
@@ -178,7 +174,6 @@ class ComicInfoXml:
         return tree
 
     def convert_xml_to_metadata(self, tree: ElementTree) -> GenericMetadata:
-
         root = tree.getroot()
 
         if root.tag != "ComicInfo":

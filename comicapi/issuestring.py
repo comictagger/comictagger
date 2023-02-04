@@ -27,7 +27,6 @@ logger = logging.getLogger(__name__)
 
 class IssueString:
     def __init__(self, text: str | None) -> None:
-
         # break up the issue number string into 2 parts: the numeric and suffix string.
         # (assumes that the numeric portion is always first)
 

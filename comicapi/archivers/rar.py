@@ -84,7 +84,6 @@ class RarArchiver(Archiver):
             return False
 
     def read_file(self, archive_file: str) -> bytes:
-
         rarc = self.get_rar_obj()
         if rarc is None:
             return b""

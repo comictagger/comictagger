@@ -79,11 +79,7 @@ class MetaDataStyle:
 class ComicArchive:
     logo_data = b""
 
-    def __init__(
-        self,
-        path: pathlib.Path | str,
-        default_image_path: pathlib.Path | str | None = None,
-    ) -> None:
+    def __init__(self, path: pathlib.Path | str, default_image_path: pathlib.Path | str | None = None) -> None:
         self.cbi_md: GenericMetadata | None = None
         self.cix_md: GenericMetadata | None = None
         self.comet_filename: str | None = None
@@ -166,7 +162,6 @@ class ComicArchive:
         return self.archiver.extension()
 
     def read_metadata(self, style: int) -> GenericMetadata:
-
         if style == MetaDataStyle.CIX:
             return self.read_cix()
         if style == MetaDataStyle.CBI:
@@ -416,7 +411,6 @@ class ComicArchive:
 
     def has_cix(self) -> bool:
         if self._has_cix is None:
-
             if not self.seems_to_be_a_comic_archive():
                 self._has_cix = False
             elif self.ci_xml_filename in self.archiver.get_filename_list():
@@ -463,7 +457,6 @@ class ComicArchive:
         return raw_comet
 
     def write_comet(self, metadata: GenericMetadata) -> bool:
-
         if metadata is not None:
             if not self.has_comet():
                 self.comet_filename = self.comet_default_filename
@@ -556,7 +549,6 @@ class ComicArchive:
         remove_publisher: bool = False,
         split_words: bool = False,
     ) -> GenericMetadata:
-
         metadata = GenericMetadata()
 
         filename = self.path.name

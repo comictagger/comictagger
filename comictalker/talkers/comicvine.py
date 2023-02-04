@@ -181,6 +181,8 @@ class ComicVineTalker(ComicTalker):
         self.wait_on_ratelimit_time: int = 20
 
     def register_settings(self, parser: settngs.Manager) -> None:
+        parser.add_setting("--cv-api-key", help="Use the given Comic Vine API Key.")
+        parser.add_setting("--cv-url", help="Use the given Comic Vine URL.")
         parser.add_setting("--cv-use-series-start-as-volume", default=False, action=argparse.BooleanOptionalAction)
         parser.add_setting("--cv-wait-on-ratelimit", default=False, action=argparse.BooleanOptionalAction)
         parser.add_setting(
@@ -188,14 +190,6 @@ class ComicVineTalker(ComicTalker):
             default=False,
             action=argparse.BooleanOptionalAction,
             help="Removes html tables instead of converting them to text.",
-        )
-        parser.add_setting(
-            "--cv-api-key",
-            help="Use the given Comic Vine API Key.",
-        )
-        parser.add_setting(
-            "--cv-url",
-            help="Use the given Comic Vine URL.",
         )
 
     def parse_settings(self, settings: dict[str, Any]) -> dict[str, Any]:
@@ -296,7 +290,6 @@ class ComicVineTalker(ComicTalker):
 
         # see if we need to keep asking for more pages...
         while current_result_count < total_result_count:
-
             if not literal:
                 # Stop searching once any entry falls below the threshold
                 stop_searching = any(

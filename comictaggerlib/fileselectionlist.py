@@ -180,7 +180,6 @@ class FileSelectionList(QtWidgets.QWidget):
             self.listCleared.emit()
 
     def add_path_list(self, pathlist: list[str]) -> None:
-
         filelist = utils.get_recursive_filelist(pathlist)
         # we now have a list of files to add
 

@@ -105,7 +105,6 @@ class MetadataFormatter(string.Formatter):
         result = []
         lstrip = False
         for literal_text, field_name, format_spec, conversion in self.parse(format_string):
-
             # output the literal text
             if literal_text:
                 if lstrip:

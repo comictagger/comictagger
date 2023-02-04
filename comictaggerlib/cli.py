@@ -90,7 +90,7 @@ class CLI:
         # sort match list by year
         match_set.matches.sort(key=lambda k: k["year"] or 0)
 
-        for (counter, m) in enumerate(match_set.matches):
+        for counter, m in enumerate(match_set.matches):
             counter += 1
             print(
                 "    {}. {} #{} [{}] ({}/{}) - {}".format(

@@ -46,11 +46,9 @@ def fetch_complete(image_data: bytes | QtCore.QByteArray) -> None:
 
 
 class ImageFetcher:
-
     image_fetch_complete = fetch_complete
 
     def __init__(self, cache_folder: pathlib.Path) -> None:
-
         self.db_file = cache_folder / "image_url_cache.db"
         self.cache_folder = cache_folder / "image_cache"
 
@@ -117,7 +115,6 @@ class ImageFetcher:
         ImageFetcher.image_fetch_complete(image_data)
 
     def create_image_db(self) -> None:
-
         # this will wipe out any existing version
         open(self.db_file, "wb").close()
 
@@ -135,7 +132,6 @@ class ImageFetcher:
             cur.execute("CREATE TABLE Images(url TEXT,filename TEXT,timestamp TEXT,PRIMARY KEY (url))")
 
     def add_image_to_cache(self, url: str, image_data: bytes | QtCore.QByteArray) -> None:
-
         con = lite.connect(self.db_file)
 
         with con:
@@ -150,7 +146,6 @@ class ImageFetcher:
             cur.execute("INSERT or REPLACE INTO Images VALUES(?, ?, ?)", (url, filename, timestamp))
 
     def get_image_from_cache(self, url: str) -> bytes:
-
         con = lite.connect(self.db_file)
         with con:
             cur = con.cursor()

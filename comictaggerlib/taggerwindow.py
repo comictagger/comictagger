@@ -293,7 +293,6 @@ class TaggerWindow(QtWidgets.QMainWindow):
         return qapplogwindow
 
     def reset_app(self) -> None:
-
         self.archiveCoverWidget.clear()
         self.comic_archive = None
         self.dirty_flag = False
@@ -309,7 +308,6 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.page_loader = None
 
     def update_app_title(self) -> None:
-
         self.setWindowIcon(QtGui.QIcon(str(graphics_path / "app.png")))
 
         if self.comic_archive is None:
@@ -327,7 +325,6 @@ class TaggerWindow(QtWidgets.QMainWindow):
             self.setWindowTitle(f"{self.appName} - {self.comic_archive.path}{mod_str}{ro_str}")
 
     def config_menus(self) -> None:
-
         # File Menu
         self.actionExit.setShortcut("Ctrl+Q")
         self.actionExit.setStatusTip("Exit application")
@@ -570,7 +567,6 @@ class TaggerWindow(QtWidgets.QMainWindow):
             dlg.exec()
 
     def about_app(self) -> None:
-
         website = "https://github.com/comictagger/comictagger"
         email = "comictagger@gmail.com"
         license_link = "http://www.apache.org/licenses/LICENSE-2.0"
@@ -597,7 +593,6 @@ class TaggerWindow(QtWidgets.QMainWindow):
     def dragEnterEvent(self, event: QtGui.QDragEnterEvent) -> None:
         self.droppedFiles = []
         if event.mimeData().hasUrls():
-
             # walk through the URL list and build a file list
             for url in event.mimeData().urls():
                 if url.isValid() and url.scheme() == "file":
@@ -641,7 +636,6 @@ class TaggerWindow(QtWidgets.QMainWindow):
             self.archiveCoverWidget.set_archive(self.comic_archive, cover_idx)
 
     def update_menus(self) -> None:
-
         # First just disable all the questionable items
         self.actionAutoTag.setEnabled(False)
         self.actionCopyTags.setEnabled(False)
@@ -686,7 +680,6 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 self.actionWrite_Tags.setEnabled(True)
 
     def update_info_box(self) -> None:
-
         ca = self.comic_archive
 
         if ca is None:
@@ -734,7 +727,6 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.connect_child_dirty_flag_signals(self.tabWidget)
 
     def connect_child_dirty_flag_signals(self, widget: QtCore.QObject) -> None:
-
         if isinstance(widget, QtWidgets.QLineEdit):
             widget.textEdited.connect(self.set_dirty_flag)
         if isinstance(widget, QtWidgets.QTextEdit):
@@ -763,7 +755,6 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.clear_dirty_flag()
 
     def clear_children(self, widget: QtCore.QObject) -> None:
-
         if isinstance(widget, (QtWidgets.QLineEdit, QtWidgets.QTextEdit)):
             widget.setText("")
         if isinstance(widget, QtWidgets.QComboBox):
@@ -992,7 +983,6 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.select_file(folder_mode=True)
 
     def select_file(self, folder_mode: bool = False) -> None:
-
         dialog = QtWidgets.QFileDialog(self)
         if folder_mode:
             dialog.setFileMode(QtWidgets.QFileDialog.FileMode.Directory)
@@ -1286,7 +1276,6 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.twCredits.item(row, 0).setText("Yes")
 
     def modify_credits(self, edit: bool) -> None:
-
         if edit:
             row = self.twCredits.currentRow()
             role = self.twCredits.item(row, 1).text()
@@ -1365,7 +1354,6 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 QtWidgets.QMessageBox.warning(self, self.tr("Web Link"), self.tr("Web Link is invalid."))
 
     def show_settings(self) -> None:
-
         settingswin = SettingsWindow(self, self.config, self.current_talker())
         settingswin.setModal(True)
         settingswin.exec()
@@ -1396,7 +1384,6 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.update_style_tweaks()
 
     def populate_combo_boxes(self) -> None:
-
         # Add the entries to the tag style combobox
         self.cbLoadDataStyle.addItem("ComicBookLover", MetaDataStyle.CBI)
         self.cbLoadDataStyle.addItem("ComicRack", MetaDataStyle.CIX)
@@ -1669,7 +1656,6 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 dlg.exec()
 
     def actual_issue_data_fetch(self, match: IssueResult) -> GenericMetadata:
-
         # now get the particular issue data OR series data
         ct_md = GenericMetadata()
         QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
@@ -2061,7 +2047,6 @@ class TaggerWindow(QtWidgets.QMainWindow):
         if self.dirty_flag_verification(
             "File Rename", "If you rename files now, unsaved data in the form will be lost.  Are you sure?"
         ):
-
             dlg = RenameWindow(self, ca_list, self.load_data_style, self.config, self.current_talker())
             dlg.setModal(True)
             if dlg.exec() and self.comic_archive is not None:

@@ -149,7 +149,6 @@ class IssueIdentifier:
             return 1.5
 
     def crop_cover(self, image_data: bytes) -> bytes:
-
         im = Image.open(io.BytesIO(image_data))
         w, h = im.size
 
@@ -215,7 +214,6 @@ class IssueIdentifier:
         self.cover_url_callback = cb_func
 
     def get_search_keys(self) -> SearchKeys:
-
         ca = self.comic_archive
 
         search_keys: SearchKeys

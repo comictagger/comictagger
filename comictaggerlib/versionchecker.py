@@ -26,7 +26,6 @@ logger = logging.getLogger(__name__)
 
 class VersionChecker:
     def get_request_url(self, uuid: str) -> tuple[str, dict[str, str]]:
-
         base_url = "https://api.github.com/repos/comictagger/comictagger/releases/latest"
         params: dict[str, str] = {}
 

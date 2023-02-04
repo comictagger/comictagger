@@ -125,13 +125,7 @@ additional_imprints = [
 all_imprints = imprints + additional_imprints
 
 seed_imprints = {
-    "Marvel": utils.ImprintDict(
-        "Marvel",
-        {
-            "marvel comics": "",
-            "aircel": "Aircel Comics",
-        },
-    )
+    "Marvel": utils.ImprintDict("Marvel", {"marvel comics": "", "aircel": "Aircel Comics"}),
 }
 
 additional_seed_imprints = {

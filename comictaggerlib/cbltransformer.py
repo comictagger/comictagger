@@ -42,7 +42,6 @@ class CBLTransformer:
                     append_to_tags_if_unique(item)
 
         if self.config.cbl_assume_lone_credit_is_primary:
-
             # helper
             def set_lone_primary(role_list: list[str]) -> tuple[CreditMetadata | None, int]:
                 lone_credit: CreditMetadata | None = None

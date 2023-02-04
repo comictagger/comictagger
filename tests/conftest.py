@@ -36,7 +36,6 @@ def tmp_comic(tmp_path):
 
 @pytest.fixture
 def cbz_double_cover(tmp_path, tmp_comic):
-
     cover = Image.open(io.BytesIO(tmp_comic.get_page(0)))
 
     other_page = Image.open(io.BytesIO(tmp_comic.get_page(tmp_comic.get_number_of_pages() - 1)))
@@ -67,7 +66,6 @@ def comicvine_api(monkeypatch, cbz, comic_cache, mock_version, config) -> comict
         return cv_list
 
     def mock_get(*args, **kwargs):
-
         if args:
             if args[0].startswith("https://comicvine.gamespot.com/api/volume/4050-23437"):
                 cv_result = copy.deepcopy(comicvine.cv_volume_result)
@@ -157,7 +155,6 @@ def seed_all_publishers(monkeypatch):
 
 @pytest.fixture
 def config(settings_manager, tmp_path):
-
     comictaggerlib.ctsettings.register_commandline_settings(settings_manager)
     comictaggerlib.ctsettings.register_file_settings(settings_manager)
     defaults = settings_manager.get_namespace(settings_manager.defaults())

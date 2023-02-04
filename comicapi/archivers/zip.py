@@ -148,7 +148,6 @@ class ZipArchiver(Archiver):
 
         try:
             with open(filename, mode="r+b") as file:
-
                 # the starting position, relative to EOF
                 pos = -4
                 found = False
@@ -167,7 +166,6 @@ class ZipArchiver(Archiver):
                         pos = pos - 1
 
                 if found:
-
                     # now skip forward 20 bytes to the comment length word
                     pos += 20
                     file.seek(pos, 2)

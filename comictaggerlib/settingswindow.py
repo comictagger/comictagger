@@ -495,7 +495,6 @@ class SettingsWindow(QtWidgets.QDialog):
         QtWidgets.QMessageBox.information(self, self.name, self.name + " have been returned to default values.")
 
     def select_file(self, control: QtWidgets.QLineEdit, name: str) -> None:
-
         dialog = QtWidgets.QFileDialog(self)
         dialog.setFileMode(QtWidgets.QFileDialog.FileMode.ExistingFile)
 

@@ -80,7 +80,6 @@ class PageBrowserWindow(QtWidgets.QDialog):
         self.pageWidget.clear()
 
     def set_comic_archive(self, ca: ComicArchive) -> None:
-
         self.comic_archive = ca
         self.page_count = ca.get_number_of_pages()
         self.current_page_num = 0
@@ -92,7 +91,6 @@ class PageBrowserWindow(QtWidgets.QDialog):
             self.btnPrev.setEnabled(True)
 
     def next_page(self) -> None:
-
         if self.current_page_num + 1 < self.page_count:
             self.current_page_num += 1
         else:
@@ -100,7 +98,6 @@ class PageBrowserWindow(QtWidgets.QDialog):
         self.set_page()
 
     def prev_page(self) -> None:
-
         if self.current_page_num - 1 >= 0:
             self.current_page_num -= 1
         else:

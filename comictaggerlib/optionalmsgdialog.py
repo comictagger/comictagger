@@ -93,7 +93,6 @@ class OptionalMessageDialog(QtWidgets.QDialog):
 
     @staticmethod
     def msg(parent: QtWidgets.QWidget, title: str, msg: str, checked: bool = False, check_text: str = "") -> bool:
-
         d = OptionalMessageDialog(parent, StyleMessage, title, msg, checked=checked, check_text=check_text)
 
         d.exec()
@@ -103,7 +102,6 @@ class OptionalMessageDialog(QtWidgets.QDialog):
     def question(
         parent: QtWidgets.QWidget, title: str, msg: str, checked: bool = False, check_text: str = ""
     ) -> tuple[bool, bool]:
-
         d = OptionalMessageDialog(parent, StyleQuestion, title, msg, checked=checked, check_text=check_text)
 
         d.exec()
@@ -114,7 +112,6 @@ class OptionalMessageDialog(QtWidgets.QDialog):
     def msg_no_checkbox(
         parent: QtWidgets.QWidget, title: str, msg: str, checked: bool = False, check_text: str = ""
     ) -> bool:
-
         d = OptionalMessageDialog(parent, StyleMessage, title, msg, checked=checked, check_text=check_text)
         d.theCheckBox.hide()
 

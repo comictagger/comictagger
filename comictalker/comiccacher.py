@@ -61,7 +61,6 @@ class ComicCacher:
             pass
 
     def create_cache_db(self) -> None:
-
         # create the version file
         with open(self.version_file, "w", encoding="utf-8") as f:
             f.write(self.version)
@@ -139,11 +138,7 @@ class ComicCacher:
             for record in ct_search_results:
                 cur.execute(
                     "INSERT INTO SeriesSearchCache " + "(source_name, search_term, id) " + "VALUES(?, ?, ?)",
-                    (
-                        source_name,
-                        search_term.casefold(),
-                        record.id,
-                    ),
+                    (source_name, search_term.casefold(), record.id),
                 )
 
                 data = {
@@ -196,7 +191,6 @@ class ComicCacher:
         con = lite.connect(self.db_file)
 
         with con:
-
             cur = con.cursor()
 
             timestamp = datetime.datetime.now()
@@ -262,10 +256,7 @@ class ComicCacher:
                 cur.execute("DELETE FROM Series WHERE timestamp  < ?", [str(a_week_ago)])
 
             # fetch
-            cur.execute(
-                "SELECT * FROM Series" " WHERE id=? AND source_name=?",
-                [series_id, source_name],
-            )
+            cur.execute("SELECT * FROM Series" " WHERE id=? AND source_name=?", [series_id, source_name])
 
             row = cur.fetchone()
 

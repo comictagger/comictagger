@@ -13,11 +13,7 @@ def test_create_cache(config, mock_version):
 
 
 def test_search_results(comic_cache):
-    comic_cache.add_search_results(
-        "test",
-        "test search",
-        search_results,
-    )
+    comic_cache.add_search_results("test", "test search", search_results)
     assert search_results == comic_cache.get_search_results("test", "test search")
 
 

@@ -113,9 +113,7 @@ class RenameWindow(QtWidgets.QDialog):
                 return
             except Exception as e:
                 logger.exception(
-                    "Formatter failure: %s metadata: %s",
-                    self.config[0].rename_template,
-                    self.renamer.metadata,
+                    "Formatter failure: %s metadata: %s", self.config[0].rename_template, self.renamer.metadata
                 )
                 QtWidgets.QMessageBox.critical(
                     self,
@@ -170,7 +168,6 @@ class RenameWindow(QtWidgets.QDialog):
             self.do_preview()
 
     def accept(self) -> None:
-
         prog_dialog = QtWidgets.QProgressDialog("", "Cancel", 0, len(self.rename_list), self)
         prog_dialog.setWindowTitle("Renaming Archives")
         prog_dialog.setWindowModality(QtCore.Qt.WindowModality.WindowModal)
@@ -180,7 +177,6 @@ class RenameWindow(QtWidgets.QDialog):
 
         try:
             for idx, comic in enumerate(zip(self.comic_archive_list, self.rename_list)):
-
                 QtCore.QCoreApplication.processEvents()
                 if prog_dialog.wasCanceled():
                     break
