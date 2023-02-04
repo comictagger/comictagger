@@ -17,7 +17,6 @@ from __future__ import annotations
 
 import logging
 import pathlib
-from collections.abc import Mapping
 
 import comictalker.talkers.comicvine
 from comictalker.talkerbase import ComicTalker, TalkerError
@@ -25,7 +24,7 @@ from comictalker.talkerbase import ComicTalker, TalkerError
 logger = logging.getLogger(__name__)
 
 
-def get_talkers(version: str, cache: pathlib.Path) -> Mapping[str, ComicTalker]:
+def get_talkers(version: str, cache: pathlib.Path) -> dict[str, ComicTalker]:
     """Returns all comic talker instances"""
     # TODO separate PR will bring talkers in via entry points. TalkerError etc. source will then be a var
     talkers: dict[str, ComicTalker] = {}
