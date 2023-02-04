@@ -299,8 +299,8 @@ def validate_commandline_options(options: settngs.Config[settngs.Values], parser
 
     if (
         options[0].commands_only_set_cv_key
-        and options[0].comicvine_cv_api_key is None
-        and options[0].comicvine_cv_url is None
+        and options[0].talker_comicvine_cv_api_key is None
+        and options[0].talker_comicvine_cv_url is None
     ):
         parser.exit(message="Key not given!\n", status=1)
 

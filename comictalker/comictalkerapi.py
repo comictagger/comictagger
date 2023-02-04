@@ -16,6 +16,8 @@
 from __future__ import annotations
 
 import logging
+import pathlib
+from collections.abc import Mapping
 
 import comictalker.talkers.comicvine
 from comictalker.talkerbase import ComicTalker, TalkerError
@@ -23,16 +25,16 @@ from comictalker.talkerbase import ComicTalker, TalkerError
 logger = logging.getLogger(__name__)
 
 
-def get_comic_talker(source_name: str) -> type[ComicTalker]:
-    """Retrieve the available sources modules"""
-    sources = get_talkers()
-    if source_name not in sources:
-        raise TalkerError(source=source_name, code=4, desc="The talker does not exist")
+def get_talkers(version: str, cache: pathlib.Path) -> Mapping[str, ComicTalker]:
+    """Returns all comic talker instances"""
+    # TODO separate PR will bring talkers in via entry points. TalkerError etc. source will then be a var
+    talkers: dict[str, ComicTalker] = {}
 
-    talker = sources[source_name]
-    return talker
-
-
-def get_talkers() -> dict[str, type[ComicTalker]]:
-    """Returns all comic talker modules NOT objects"""
-    return {"comicvine": comictalker.talkers.comicvine.ComicVineTalker}
+    for talker in [comictalker.talkers.comicvine.ComicVineTalker]:
+        try:
+            obj = talker(version, cache)
+            talkers[obj.source_details.id] = obj
+        except Exception:
+            logger.exception("Failed to load talker: %s", "comicvine")
+            raise TalkerError(source="comicvine", code=4, desc="Failed to initialise talker")
+    return talkers

@@ -85,34 +85,20 @@ def filename(parser: settngs.Manager) -> None:
     )
 
 
-def comicvine(parser: settngs.Manager) -> None:
-    # Comic Vine settings
+def talkers(parser: settngs.Manager) -> None:
+    # General settings for all information talkers
+    parser.add_setting("--source", default="comicvine", help="Use a specified source by source ID")
     parser.add_setting(
         "--series-match-search-thresh",
         default=90,
         type=int,
     )
-    parser.add_setting("--use-series-start-as-volume", default=False, action=argparse.BooleanOptionalAction)
     parser.add_setting(
         "--clear-metadata",
         default=True,
         help="Clears all existing metadata during import, default is to merges metadata.\nMay be used in conjunction with -o, -f and -m.\n\n",
         dest="clear_metadata_on_import",
         action=argparse.BooleanOptionalAction,
-    )
-    parser.add_setting(
-        "--remove-html-tables",
-        default=False,
-        action=argparse.BooleanOptionalAction,
-        help="Removes html tables instead of converting them to text",
-    )
-    parser.add_setting(
-        "--cv-api-key",
-        help="Use the given Comic Vine API Key (persisted in settings).",
-    )
-    parser.add_setting(
-        "--cv-url",
-        help="Use the given Comic Vine URL (persisted in settings).",
     )
     parser.add_setting(
         "-a",
@@ -138,10 +124,10 @@ def comicvine(parser: settngs.Manager) -> None:
         help="Enables the publisher filter",
     )
     parser.add_setting(
-        "--clear-form-before-populating-from-cv",
+        "--clear-form-before-populating",
         default=False,
         action=argparse.BooleanOptionalAction,
-        help="Clears all existing metadata when applying metadata from ComicVine",
+        help="Clears all existing metadata when applying metadata from comic source",
     )
 
 
@@ -255,7 +241,7 @@ def register_settings(parser: settngs.Manager) -> None:
     parser.add_group("identifier", identifier, False)
     parser.add_group("dialog", dialog, False)
     parser.add_group("filename", filename, False)
-    parser.add_group("comicvine", comicvine, False)
+    parser.add_group("talkers", talkers, False)
     parser.add_group("cbl", cbl, False)
     parser.add_group("rename", rename, False)
     parser.add_group("autotag", autotag, False)

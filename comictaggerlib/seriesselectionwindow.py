@@ -65,7 +65,7 @@ class SearchThread(QtCore.QThread):
         try:
             self.ct_error = False
             self.ct_search_results = self.talker_api.search_for_series(
-                self.series_name, self.prog_callback, self.refresh, self.literal
+                self.series_name, self.prog_callback, self.refresh, self.literal, self.series_match_thresh
             )
         except TalkerError as e:
             self.ct_search_results = []
@@ -156,7 +156,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         self.progdialog: QtWidgets.QProgressDialog | None = None
         self.search_thread: SearchThread | None = None
 
-        self.use_filter = self.options.comicvine_always_use_publisher_filter
+        self.use_filter = self.options.talkers_always_use_publisher_filter
 
         # Load to retrieve settings
         self.talker_api = talker_api
@@ -343,7 +343,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
     def perform_query(self, refresh: bool = False) -> None:
 
         self.search_thread = SearchThread(
-            self.talker_api, self.series_name, refresh, self.literal, self.options.comicvine_series_match_search_thresh
+            self.talker_api, self.series_name, refresh, self.literal, self.options.talkers_series_match_search_thresh
         )
         self.search_thread.searchComplete.connect(self.search_complete)
         self.search_thread.progressUpdate.connect(self.search_progress_update)
@@ -410,7 +410,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         # compare as str in case extra chars ie. '1976?'
         # - missing (none) values being converted to 'None' - consistent with prior behaviour in v1.2.3
         # sort by start_year if set
-        if self.options.comicvine_sort_series_by_year:
+        if self.options.talkers_sort_series_by_year:
             try:
                 self.ct_search_results = sorted(
                     self.ct_search_results,
@@ -428,7 +428,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
                 logger.exception("bad data error sorting results by count_of_issues")
 
         # move sanitized matches to the front
-        if self.options.comicvine_exact_series_matches_first:
+        if self.options.talkers_exact_series_matches_first:
             try:
                 sanitized = utils.sanitize_title(self.series_name, False).casefold()
                 sanitized_no_articles = utils.sanitize_title(self.series_name, True).casefold()

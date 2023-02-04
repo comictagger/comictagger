@@ -16,6 +16,7 @@ ComicVine information source
 # limitations under the License.
 from __future__ import annotations
 
+import argparse
 import json
 import logging
 import pathlib
@@ -24,6 +25,7 @@ from typing import Any, Callable, Generic, TypeVar
 from urllib.parse import urljoin, urlsplit
 
 import requests
+import settngs
 from typing_extensions import Required, TypedDict
 
 import comictalker.talker_utils as talker_utils
@@ -152,21 +154,12 @@ CV_RATE_LIMIT_STATUS = 107
 
 
 class ComicVineTalker(ComicTalker):
-    default_api_key = "27431e6787042105bd3e47e169a624521f89f3a4"
-    default_api_url = "https://comicvine.gamespot.com/api"
-
     def __init__(
         self,
         version: str,
         cache_folder: pathlib.Path,
-        api_url: str = "",
-        api_key: str = "",
-        series_match_thresh: int = 90,
-        remove_html_tables: bool = False,
-        use_series_start_as_volume: bool = False,
-        wait_on_ratelimit: bool = False,
     ):
-        super().__init__(version, cache_folder, api_url, api_key)
+        super().__init__(version, cache_folder)
         self.source_details = SourceDetails(
             name="Comic Vine",
             ident="comicvine",
@@ -181,19 +174,58 @@ class ComicVineTalker(ComicTalker):
             has_nsfw=False,
             has_censored_covers=False,
         )
+        # Default settings
+        self.api_url: str = "https://comicvine.gamespot.com/api"
+        self.api_key: str = "27431e6787042105bd3e47e169a624521f89f3a4"
+        self.remove_html_tables: bool = False
+        self.use_series_start_as_volume: bool = False
+        self.wait_for_rate_limit: bool = False
 
         # Identity name for the information source
         self.source_name: str = self.source_details.id
         self.source_name_friendly: str = self.source_details.name
 
-        self.wait_for_rate_limit: bool = wait_on_ratelimit
-        # NOTE: This was hardcoded before which is why it isn't passed in
+        tmp_url = urlsplit(self.api_url)
+
+        # joinurl only works properly if there is a trailing slash
+        if tmp_url.path and tmp_url.path[-1] != "/":
+            tmp_url = tmp_url._replace(path=tmp_url.path + "/")
+
+        self.api_url = tmp_url.geturl()
+
+        # NOTE: This was hardcoded before which is why it isn't in settings
         self.wait_for_rate_limit_time: int = 20
 
-        self.remove_html_tables: bool = remove_html_tables
-        self.use_series_start_as_volume: bool = use_series_start_as_volume
+    def register_settings(self, parser: settngs.Manager) -> None:
+        parser.add_setting("--cv-use-series-start-as-volume", default=False, action=argparse.BooleanOptionalAction)
+        parser.add_setting("--cv-wait-on-ratelimit", default=False, action=argparse.BooleanOptionalAction)
+        parser.add_setting(
+            "--cv-remove-html-tables",
+            default=False,
+            action=argparse.BooleanOptionalAction,
+            help="Removes html tables instead of converting them to text.",
+        )
+        parser.add_setting(
+            "--cv-api-key",
+            help="Use the given Comic Vine API Key.",
+        )
+        parser.add_setting(
+            "--cv-url",
+            help="Use the given Comic Vine URL.",
+        )
 
-        self.series_match_thresh: int = series_match_thresh
+    def parse_settings(self, settings: dict[str, Any]) -> None:
+        self.remove_html_tables = settings["cv_remove_html_tables"]
+        self.use_series_start_as_volume = settings["cv_use_series_start_as_volume"]
+        if settings["cv_api_key"]:
+            self.api_key = settings["cv_api_key"]
+        if settings["cv_url"]:
+            tmp_url = urlsplit(settings["cv_url"])
+            # joinurl only works properly if there is a trailing slash
+            if tmp_url.path and tmp_url.path[-1] != "/":
+                tmp_url = tmp_url._replace(path=tmp_url.path + "/")
+
+            self.api_url = tmp_url.geturl()
 
     def check_api_key(self, key: str, url: str) -> bool:
         if not url:
@@ -379,6 +411,7 @@ class ComicVineTalker(ComicTalker):
         callback: Callable[[int, int], None] | None = None,
         refresh_cache: bool = False,
         literal: bool = False,
+        series_match_thresh: int = 90,
     ) -> list[ComicSeries]:
         # Sanitize the series name for comicvine searching, comicvine search ignore symbols
         search_series_name = utils.sanitize_title(series_name, literal)
@@ -437,7 +470,7 @@ class ComicVineTalker(ComicTalker):
             if not literal:
                 # Stop searching once any entry falls below the threshold
                 stop_searching = any(
-                    not utils.titles_match(search_series_name, series["name"], self.series_match_thresh)
+                    not utils.titles_match(search_series_name, series["name"], series_match_thresh)
                     for series in cv_response["results"]
                 )
 

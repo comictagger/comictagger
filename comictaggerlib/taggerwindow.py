@@ -1075,7 +1075,7 @@ Have fun!
                     if self.options[0].cbl_apply_transform_on_import:
                         new_metadata = CBLTransformer(new_metadata, self.options[0]).apply()
 
-                    if self.options[0].comicvine_clear_form_before_populating_from_cv:
+                    if self.options[0].talkers_clear_form_before_populating:
                         self.clear_form()
 
                     notes = (
@@ -1793,7 +1793,7 @@ Have fun!
                     )
                     md.overlay(ct_md.replace(notes=utils.combine_notes(md.notes, notes, "Tagged with ComicTagger")))
 
-                if self.options[0].comicvine_auto_imprint:
+                if self.options[0].talkers_auto_imprint:
                     md.fix_publisher()
 
                 if not ca.write_metadata(md, self.save_data_style):
