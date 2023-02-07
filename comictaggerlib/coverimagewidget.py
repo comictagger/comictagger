@@ -218,11 +218,13 @@ class CoverImageWidget(QtWidgets.QWidget):
             self.btnRight.setEnabled(False)
             self.btnLeft.hide()
             self.btnRight.hide()
+            self.label.hide()
         else:
             self.btnLeft.setEnabled(True)
             self.btnRight.setEnabled(True)
             self.btnLeft.show()
             self.btnRight.show()
+            self.label.show()
 
         if self.imageIndex == -1 or self.imageCount == 1:
             self.label.setText("")
