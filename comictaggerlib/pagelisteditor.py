@@ -23,7 +23,6 @@ from comicapi.comicarchive import ComicArchive, MetaDataStyle
 from comicapi.genericmetadata import ImageMetadata, PageType
 from comictaggerlib.coverimagewidget import CoverImageWidget
 from comictaggerlib.ui import ui_path
-from comictalker.talkerbase import ComicTalker
 
 logger = logging.getLogger(__name__)
 
@@ -68,7 +67,7 @@ class PageListEditor(QtWidgets.QWidget):
         PageType.Deleted: "Deleted",
     }
 
-    def __init__(self, parent: QtWidgets.QWidget, talker_api: ComicTalker) -> None:
+    def __init__(self, parent: QtWidgets.QWidget) -> None:
         super().__init__(parent)
 
         uic.loadUi(ui_path / "pagelisteditor.ui", self)

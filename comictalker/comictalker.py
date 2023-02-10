@@ -25,38 +25,6 @@ from comictalker.resulttypes import ComicIssue, ComicSeries
 logger = logging.getLogger(__name__)
 
 
-class SourceDetails:
-    def __init__(
-        self,
-        name: str = "",
-        ident: str = "",
-        logo: str = "",
-    ):
-        self.name = name
-        self.id = ident
-        self.logo = logo
-
-
-class SourceStaticSettings:
-    def __init__(
-        self,
-        website: str = "",
-        attribution_string: str = "",  # Full string including web link, example: Metadata provided by <a href='http://website'>Example</a>
-        has_issues: bool = False,
-        has_alt_covers: bool = False,
-        requires_apikey: bool = False,
-        has_nsfw: bool = False,
-        has_censored_covers: bool = False,
-    ) -> None:
-        self.website = website
-        self.attribution_string = attribution_string
-        self.has_issues = has_issues
-        self.has_alt_covers = has_alt_covers
-        self.requires_apikey = requires_apikey
-        self.has_nsfw = has_nsfw
-        self.has_censored_covers = has_censored_covers
-
-
 class TalkerError(Exception):
     """Base class exception for information sources.
 
@@ -71,10 +39,8 @@ class TalkerError(Exception):
 
     codes = {1: "General", 2: "Network", 3: "Data", 4: "Other"}
 
-    def __init__(self, source: str, desc: str, code: int = 4, sub_code: int = 0) -> None:
+    def __init__(self, source: str, desc: str = "Unknown", code: int = 4, sub_code: int = 0) -> None:
         super().__init__()
-        if desc == "":
-            desc = "Unknown"
         self.desc = desc
         self.code = code
         self.code_name = self.codes[code]
@@ -136,14 +102,16 @@ class TalkerDataError(TalkerError):
         super().__init__(source, desc, 3, sub_code)
 
 
-# Class talkers instance
 class ComicTalker:
     """The base class for all comic source talkers"""
 
+    name: str = "Example"
+    id: str = "example"
+    logo_url: str = "https://example.com/logo.png"
+    website: str = "https://example.com/"
+    attribution: str = f"Metadata provided by <a href='{website}'>{name}</a>"
+
     def __init__(self, version: str, cache_folder: pathlib.Path) -> None:
-        # Identity name for the information source etc.
-        self.source_details = SourceDetails()
-        self.static_config = SourceStaticSettings()
         self.cache_folder = cache_folder
         self.version = version
         self.api_key: str = ""
@@ -153,10 +121,12 @@ class ComicTalker:
         """Allows registering settings using the settngs package with an argparse like interface"""
         return None
 
-    def parse_settings(self, settings: dict[str, Any]) -> None:
-        """settings is a dictionary of options defined in register_settings.
-        It is only guaranteed that the settings defined in register_settings will be present."""
-        return None
+    def parse_settings(self, settings: dict[str, Any]) -> dict[str, Any]:
+        """
+        settings is a dictionary of settings defined in register_settings.
+        It is only guaranteed that the settings defined in register_settings will be present.
+        """
+        return settings
 
     def check_api_key(self, key: str, url: str) -> bool:
         """
@@ -186,10 +156,6 @@ class ComicTalker:
         """
         raise NotImplementedError
 
-    def fetch_issues_by_series(self, series_id: str) -> list[ComicIssue]:
-        """Expected to return a list of issues with a given series ID"""
-        raise NotImplementedError
-
     def fetch_comic_data(
         self, issue_id: str | None = None, series_id: str | None = None, issue_number: str = ""
     ) -> GenericMetadata:
@@ -205,6 +171,10 @@ class ComicTalker:
         else:
             return GenericMetadata()
         """
+        raise NotImplementedError
+
+    def fetch_issues_by_series(self, series_id: str) -> list[ComicIssue]:
+        """Expected to return a list of issues with a given series ID"""
         raise NotImplementedError
 
     def fetch_issues_by_series_issue_num_and_year(

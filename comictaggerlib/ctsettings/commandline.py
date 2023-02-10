@@ -267,8 +267,9 @@ def register_commandline_settings(parser: settngs.Manager) -> None:
     parser.add_group("runtime", register_settings)
 
 
-def validate_commandline_settings(config: settngs.Config[settngs.Values], parser: settngs.Manager) -> settngs.Values:
-
+def validate_commandline_settings(
+    config: settngs.Config[settngs.Namespace], parser: settngs.Manager
+) -> settngs.Config[settngs.Namespace]:
     if config[0].commands_version:
         parser.exit(
             status=1,

@@ -24,7 +24,7 @@ import sys
 import settngs
 
 import comicapi
-import comictalker.comictalkerapi as ct_api
+import comictalker
 from comictaggerlib import cli, ctsettings
 from comictaggerlib.ctversion import version
 from comictaggerlib.log import setup_logging
@@ -34,21 +34,22 @@ if sys.version_info < (3, 10):
 else:
     import importlib.metadata as importlib_metadata
 
+logger = logging.getLogger("comictagger")
+
 try:
     from comictaggerlib import gui
 
     qt_available = gui.qt_available
 except Exception:
+    logger.exception("Qt unavailable")
     qt_available = False
-
-logger = logging.getLogger("comictagger")
 
 
 logger.setLevel(logging.DEBUG)
 
 
-def update_publishers(config: settngs.Namespace) -> None:
-    json_file = config.runtime_config.user_config_dir / "publishers.json"
+def update_publishers(config: settngs.Config[settngs.Namespace]) -> None:
+    json_file = config[0].runtime_config.user_config_dir / "publishers.json"
     if json_file.exists():
         try:
             comicapi.utils.update_publishers(json.loads(json_file.read_text("utf-8")))
@@ -60,7 +61,7 @@ class App:
     """docstring for App"""
 
     def __init__(self) -> None:
-        self.config = settngs.Config({}, {})
+        self.config: settngs.Config[settngs.Namespace]
         self.initial_arg_parser = ctsettings.initial_commandline_parser()
         self.config_load_success = False
 
@@ -73,9 +74,9 @@ class App:
 
         self.main()
 
-    def load_plugins(self, opts) -> None:
+    def load_plugins(self, opts: argparse.Namespace) -> None:
         comicapi.comicarchive.load_archive_plugins()
-        ctsettings.talkers = ct_api.get_talkers(version, opts.config.user_cache_dir)
+        ctsettings.talkers = comictalker.get_talkers(version, opts.config.user_cache_dir)
 
     def initialize(self) -> argparse.Namespace:
         conf, _ = self.initial_arg_parser.parse_known_args()
@@ -92,9 +93,9 @@ class App:
         ctsettings.register_file_settings(self.manager)
         ctsettings.register_plugin_settings(self.manager)
 
-    def parse_settings(self, config_paths: ctsettings.ComicTaggerPaths) -> settngs.Config:
-        config, self.config_load_success = self.manager.parse_config(config_paths.user_config_dir / "settings.json")
-        config = self.manager.get_namespace(config)
+    def parse_settings(self, config_paths: ctsettings.ComicTaggerPaths) -> settngs.Config[settngs.Namespace]:
+        cfg, self.config_load_success = self.manager.parse_config(config_paths.user_config_dir / "settings.json")
+        config = self.manager.get_namespace(cfg)
 
         config = ctsettings.validate_commandline_settings(config, self.manager)
         config = ctsettings.validate_file_settings(config)
@@ -125,7 +126,7 @@ class App:
             logger.debug("%s\t%s", pkg.metadata["Name"], pkg.metadata["Version"])
 
         comicapi.utils.load_publishers()
-        update_publishers(self.config[0])
+        update_publishers(self.config)
 
         if not qt_available and not self.config[0].runtime_no_gui:
             self.config[0].runtime_no_gui = True
@@ -143,31 +144,26 @@ class App:
                 print("Key set")  # noqa: T201
                 return
 
-        try:
-            talker_api = ctsettings.talkers[self.config[0].talkers_source]
-        except Exception as e:
-            logger.exception(f"Unable to load talker {self.config[0].talkers_source}")
-            error = (f"Unable to load talker {self.config[0].talkers_source}: {e}", True)
-            talker_api = None
-
         if not self.config_load_success:
             error = (
                 f"Failed to load settings, check the log located in '{self.config[0].runtime_config.user_log_dir}' for more details",
                 True,
             )
 
+        talkers = ctsettings.talkers
+        del ctsettings.talkers
+
         if self.config[0].runtime_no_gui:
             if error and error[1]:
                 print(f"A fatal error occurred please check the log for more information: {error[0]}")  # noqa: T201
                 raise SystemExit(1)
-            assert talker_api is not None
             try:
-                cli.CLI(self.config[0], talker_api).run()
+                cli.CLI(self.config[0], talkers).run()
             except Exception:
                 logger.exception("CLI mode failed")
         else:
-            gui.open_tagger_window(talker_api, self.config, error)
+            gui.open_tagger_window(talkers, self.config, error)
 
 
-def main():
+def main() -> None:
     App().run()

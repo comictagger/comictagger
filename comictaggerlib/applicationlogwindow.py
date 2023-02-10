@@ -23,7 +23,7 @@ class QTextEditLogger(QtCore.QObject, logging.Handler):
 
 
 class ApplicationLogWindow(QtWidgets.QDialog):
-    def __init__(self, log_handler: QTextEditLogger, parent: QtCore.QObject = None) -> None:
+    def __init__(self, log_handler: QTextEditLogger, parent: QtCore.QObject | None = None) -> None:
         super().__init__(parent)
         uic.loadUi(ui_path / "logwindow.ui", self)
 

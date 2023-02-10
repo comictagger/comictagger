@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import argparse
 import uuid
-from typing import Any
 
 import settngs
 
@@ -84,8 +83,8 @@ def filename(parser: settngs.Manager) -> None:
     )
 
 
-def talkers(parser: settngs.Manager) -> None:
-    # General settings for all information talkers
+def talker(parser: settngs.Manager) -> None:
+    # General settings for talkers
     parser.add_setting("--source", default="comicvine", help="Use a specified source by source ID")
     parser.add_setting(
         "--series-match-search-thresh",
@@ -225,7 +224,7 @@ def autotag(parser: settngs.Manager) -> None:
     )
 
 
-def validate_file_settings(config: settngs.Config[settngs.Values]) -> dict[str, dict[str, Any]]:
+def validate_file_settings(config: settngs.Config[settngs.Namespace]) -> settngs.Config[settngs.Namespace]:
     config[0].identifier_publisher_filter = [x.strip() for x in config[0].identifier_publisher_filter if x.strip()]
     config[0].rename_replacements = Replacements(
         [Replacement(x[0], x[1], x[2]) for x in config[0].rename_replacements[0]],
@@ -240,7 +239,7 @@ def register_file_settings(parser: settngs.Manager) -> None:
     parser.add_group("identifier", identifier, False)
     parser.add_group("dialog", dialog, False)
     parser.add_group("filename", filename, False)
-    parser.add_group("talkers", talkers, False)
+    parser.add_group("talker", talker, False)
     parser.add_group("cbl", cbl, False)
     parser.add_group("rename", rename, False)
     parser.add_group("autotag", autotag, False)
