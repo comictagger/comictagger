@@ -33,8 +33,8 @@ from comictaggerlib.matchselectionwindow import MatchSelectionWindow
 from comictaggerlib.progresswindow import IDProgressWindow
 from comictaggerlib.ui import ui_path
 from comictaggerlib.ui.qtutils import reduce_widget_font_size
+from comictalker.comictalker import ComicTalker, TalkerError
 from comictalker.resulttypes import ComicSeries
-from comictalker.talkerbase import ComicTalker, TalkerError
 
 logger = logging.getLogger(__name__)
 
@@ -45,14 +45,14 @@ class SearchThread(QtCore.QThread):
 
     def __init__(
         self,
-        talker_api: ComicTalker,
+        talker: ComicTalker,
         series_name: str,
         refresh: bool,
         literal: bool = False,
         series_match_thresh: int = 90,
     ) -> None:
         QtCore.QThread.__init__(self)
-        self.talker_api = talker_api
+        self.talker = talker
         self.series_name = series_name
         self.refresh: bool = refresh
         self.error_e: TalkerError
@@ -64,7 +64,7 @@ class SearchThread(QtCore.QThread):
     def run(self) -> None:
         try:
             self.ct_error = False
-            self.ct_search_results = self.talker_api.search_for_series(
+            self.ct_search_results = self.talker.search_for_series(
                 self.series_name, self.prog_callback, self.refresh, self.literal, self.series_match_thresh
             )
         except TalkerError as e:
@@ -112,7 +112,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         cover_index_list: list[int],
         comic_archive: ComicArchive | None,
         config: settngs.Namespace,
-        talker_api: ComicTalker,
+        talker: ComicTalker,
         autoselect: bool = False,
         literal: bool = False,
     ) -> None:
@@ -121,7 +121,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         uic.loadUi(ui_path / "seriesselectionwindow.ui", self)
 
         self.imageWidget = CoverImageWidget(
-            self.imageContainer, CoverImageWidget.URLMode, config.runtime_config.user_cache_dir, talker_api
+            self.imageContainer, CoverImageWidget.URLMode, config.runtime_config.user_cache_dir, talker
         )
         gridlayout = QtWidgets.QGridLayout(self.imageContainer)
         gridlayout.addWidget(self.imageWidget)
@@ -156,25 +156,25 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         self.progdialog: QtWidgets.QProgressDialog | None = None
         self.search_thread: SearchThread | None = None
 
-        self.use_filter = self.config.talkers_always_use_publisher_filter
+        self.use_filter = self.config.talker_always_use_publisher_filter
 
         # Load to retrieve settings
-        self.talker_api = talker_api
+        self.talker = talker
 
         # Display talker logo and set url
-        self.lblSourceName.setText(talker_api.static_config.attribution_string)
+        self.lblSourceName.setText(talker.attribution)
 
         self.imageSourceWidget = CoverImageWidget(
             self.imageSourceLogo,
             CoverImageWidget.URLMode,
             config.runtime_config.user_cache_dir,
-            talker_api,
+            talker,
             False,
         )
         gridlayoutSourceLogo = QtWidgets.QGridLayout(self.imageSourceLogo)
         gridlayoutSourceLogo.addWidget(self.imageSourceWidget)
         gridlayoutSourceLogo.setContentsMargins(0, 2, 0, 0)
-        self.imageSourceWidget.set_url(talker_api.source_details.logo)
+        self.imageSourceWidget.set_url(talker.logo_url)
 
         # Set the minimum row height to the default.
         # this way rows will be more consistent when resizeRowsToContents is called
@@ -224,7 +224,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         self.iddialog.rejected.connect(self.identify_cancel)
         self.iddialog.show()
 
-        self.ii = IssueIdentifier(self.comic_archive, self.config, self.talker_api)
+        self.ii = IssueIdentifier(self.comic_archive, self.config, self.talker)
 
         md = GenericMetadata()
         md.series = self.series_name
@@ -298,7 +298,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
 
             if choices:
                 selector = MatchSelectionWindow(
-                    self, matches, self.comic_archive, talker_api=self.talker_api, config=self.config
+                    self, matches, self.comic_archive, talker=self.talker, config=self.config
                 )
                 selector.setModal(True)
                 selector.exec()
@@ -315,7 +315,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
                 self.show_issues()
 
     def show_issues(self) -> None:
-        selector = IssueSelectionWindow(self, self.config, self.talker_api, self.series_id, self.issue_number)
+        selector = IssueSelectionWindow(self, self.config, self.talker, self.series_id, self.issue_number)
         title = ""
         for record in self.ct_search_results:
             if record.id == self.series_id:
@@ -343,7 +343,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
     def perform_query(self, refresh: bool = False) -> None:
 
         self.search_thread = SearchThread(
-            self.talker_api, self.series_name, refresh, self.literal, self.config.talkers_series_match_search_thresh
+            self.talker, self.series_name, refresh, self.literal, self.config.talker_series_match_search_thresh
         )
         self.search_thread.searchComplete.connect(self.search_complete)
         self.search_thread.progressUpdate.connect(self.search_progress_update)
@@ -410,7 +410,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         # compare as str in case extra chars ie. '1976?'
         # - missing (none) values being converted to 'None' - consistent with prior behaviour in v1.2.3
         # sort by start_year if set
-        if self.config.talkers_sort_series_by_year:
+        if self.config.talker_sort_series_by_year:
             try:
                 self.ct_search_results = sorted(
                     self.ct_search_results,
@@ -428,7 +428,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
                 logger.exception("bad data error sorting results by count_of_issues")
 
         # move sanitized matches to the front
-        if self.config.talkers_exact_series_matches_first:
+        if self.config.talker_exact_series_matches_first:
             try:
                 sanitized = utils.sanitize_title(self.series_name, False).casefold()
                 sanitized_no_articles = utils.sanitize_title(self.series_name, True).casefold()

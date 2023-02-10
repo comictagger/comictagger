@@ -30,7 +30,7 @@ from comicapi.issuestring import IssueString
 from comictaggerlib.imagefetcher import ImageFetcher, ImageFetcherException
 from comictaggerlib.imagehasher import ImageHasher
 from comictaggerlib.resulttypes import IssueResult
-from comictalker.talkerbase import ComicTalker, TalkerError
+from comictalker.comictalker import ComicTalker, TalkerError
 
 logger = logging.getLogger(__name__)
 
@@ -72,9 +72,9 @@ class IssueIdentifier:
     result_one_good_match = 4
     result_multiple_good_matches = 5
 
-    def __init__(self, comic_archive: ComicArchive, config: settngs.Namespace, talker_api: ComicTalker) -> None:
+    def __init__(self, comic_archive: ComicArchive, config: settngs.Namespace, talker: ComicTalker) -> None:
         self.config = config
-        self.talker_api = talker_api
+        self.talker = talker
         self.comic_archive: ComicArchive = comic_archive
         self.image_hasher = 1
 
@@ -188,8 +188,8 @@ class IssueIdentifier:
             height = bbox[3] - bbox[1]
 
             # Convert to percent
-            width_percent = 100 - ((width / im.width) * 100)
-            height_percent = 100 - ((height / im.height) * 100)
+            width_percent = int(100 - ((width / im.width) * 100))
+            height_percent = int(100 - ((height / im.height) * 100))
             logger.debug(
                 "Width: %s Height: %s, ratio: %s  %s ratio met: %s",
                 im.width,
@@ -411,7 +411,7 @@ class IssueIdentifier:
 
         self.log_msg(f"Searching for {keys['series']} #{keys['issue_number']} ...")
         try:
-            ct_search_results = self.talker_api.search_for_series(keys["series"])
+            ct_search_results = self.talker.search_for_series(keys["series"])
         except TalkerError as e:
             self.log_msg(f"Error searching for series.\n{e}")
             return []
@@ -460,7 +460,7 @@ class IssueIdentifier:
         issue_list = None
         try:
             if len(series_by_id) > 0:
-                issue_list = self.talker_api.fetch_issues_by_series_issue_num_and_year(
+                issue_list = self.talker.fetch_issues_by_series_issue_num_and_year(
                     list(series_by_id.keys()), keys["issue_number"], keys["year"]
                 )
         except TalkerError as e:

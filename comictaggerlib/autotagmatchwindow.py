@@ -28,7 +28,7 @@ from comictaggerlib.coverimagewidget import CoverImageWidget
 from comictaggerlib.resulttypes import IssueResult, MultipleMatch
 from comictaggerlib.ui import ui_path
 from comictaggerlib.ui.qtutils import reduce_widget_font_size
-from comictalker.talkerbase import ComicTalker
+from comictalker.comictalker import ComicTalker
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +41,7 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
         style: int,
         fetch_func: Callable[[IssueResult], GenericMetadata],
         config: settngs.Namespace,
-        talker_api: ComicTalker,
+        talker: ComicTalker,
     ) -> None:
         super().__init__(parent)
 
@@ -52,7 +52,7 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
         self.current_match_set: MultipleMatch = match_set_list[0]
 
         self.altCoverWidget = CoverImageWidget(
-            self.altCoverContainer, CoverImageWidget.AltCoverMode, config.runtime_config.user_cache_dir, talker_api
+            self.altCoverContainer, CoverImageWidget.AltCoverMode, config.runtime_config.user_cache_dir, talker
         )
         gridlayout = QtWidgets.QGridLayout(self.altCoverContainer)
         gridlayout.addWidget(self.altCoverWidget)

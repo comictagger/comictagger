@@ -24,8 +24,8 @@ from comicapi.issuestring import IssueString
 from comictaggerlib.coverimagewidget import CoverImageWidget
 from comictaggerlib.ui import ui_path
 from comictaggerlib.ui.qtutils import reduce_widget_font_size
+from comictalker.comictalker import ComicTalker, TalkerError
 from comictalker.resulttypes import ComicIssue
-from comictalker.talkerbase import ComicTalker, TalkerError
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +43,7 @@ class IssueSelectionWindow(QtWidgets.QDialog):
         self,
         parent: QtWidgets.QWidget,
         config: settngs.Namespace,
-        talker_api: ComicTalker,
+        talker: ComicTalker,
         series_id: str,
         issue_number: str,
     ) -> None:
@@ -52,7 +52,7 @@ class IssueSelectionWindow(QtWidgets.QDialog):
         uic.loadUi(ui_path / "issueselectionwindow.ui", self)
 
         self.coverWidget = CoverImageWidget(
-            self.coverImageContainer, CoverImageWidget.AltCoverMode, config.runtime_config.user_cache_dir, talker_api
+            self.coverImageContainer, CoverImageWidget.AltCoverMode, config.runtime_config.user_cache_dir, talker
         )
         gridlayout = QtWidgets.QGridLayout(self.coverImageContainer)
         gridlayout.addWidget(self.coverWidget)
@@ -72,24 +72,24 @@ class IssueSelectionWindow(QtWidgets.QDialog):
         self.series_id = series_id
         self.issue_id: str = ""
         self.config = config
-        self.talker_api = talker_api
+        self.talker = talker
         self.url_fetch_thread = None
         self.issue_list: list[ComicIssue] = []
 
         # Display talker logo and set url
-        self.lblIssuesSourceName.setText(talker_api.static_config.attribution_string)
+        self.lblIssuesSourceName.setText(talker.attribution)
 
         self.imageIssuesSourceWidget = CoverImageWidget(
             self.imageIssuesSourceLogo,
             CoverImageWidget.URLMode,
             config.runtime_config.user_cache_dir,
-            talker_api,
+            talker,
             False,
         )
         gridlayoutIssuesSourceLogo = QtWidgets.QGridLayout(self.imageIssuesSourceLogo)
         gridlayoutIssuesSourceLogo.addWidget(self.imageIssuesSourceWidget)
         gridlayoutIssuesSourceLogo.setContentsMargins(0, 2, 0, 0)
-        self.imageIssuesSourceWidget.set_url(talker_api.source_details.logo)
+        self.imageIssuesSourceWidget.set_url(talker.logo_url)
 
         if issue_number is None or issue_number == "":
             self.issue_number = "1"
@@ -119,7 +119,7 @@ class IssueSelectionWindow(QtWidgets.QDialog):
         QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
 
         try:
-            self.issue_list = self.talker_api.fetch_issues_by_series(self.series_id)
+            self.issue_list = self.talker.fetch_issues_by_series(self.series_id)
         except TalkerError as e:
             QtWidgets.QApplication.restoreOverrideCursor()
             QtWidgets.QMessageBox.critical(self, f"{e.source} {e.code_name} Error", f"{e}")

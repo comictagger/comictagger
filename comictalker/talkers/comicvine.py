@@ -33,8 +33,8 @@ from comicapi import utils
 from comicapi.genericmetadata import GenericMetadata
 from comicapi.issuestring import IssueString
 from comictalker.comiccacher import ComicCacher
+from comictalker.comictalker import ComicTalker, TalkerDataError, TalkerNetworkError
 from comictalker.resulttypes import ComicIssue, ComicSeries, Credit
-from comictalker.talkerbase import ComicTalker, SourceDetails, SourceStaticSettings, TalkerDataError, TalkerNetworkError
 
 logger = logging.getLogger(__name__)
 
@@ -150,40 +150,28 @@ class CVResult(TypedDict, Generic[T]):
     version: str
 
 
-CV_RATE_LIMIT_STATUS = 107
+CV_STATUS_RATELIMIT = 107
 
 
 class ComicVineTalker(ComicTalker):
+    name: str = "Comic Vine"
+    id: str = "comicvine"
+    logo_url: str = "https://comicvine.gamespot.com/a/bundles/comicvinesite/images/logo.png"
+    website: str = "https://comicvine.gamespot.com/"
+    attribution: str = f"Metadata provided by <a href='{website}'>{name}</a>"
+
     def __init__(
         self,
         version: str,
         cache_folder: pathlib.Path,
     ):
         super().__init__(version, cache_folder)
-        self.source_details = SourceDetails(
-            name="Comic Vine",
-            ident="comicvine",
-            logo="https://comicvine.gamespot.com/a/bundles/comicvinesite/images/logo.png",
-        )
-        self.static_config = SourceStaticSettings(
-            website="https://comicvine.gamespot.com/",
-            attribution_string="Metadata provided by <a href='https://comicvine.gamespot.com/'>Comic Vine</a>",
-            has_issues=True,
-            has_alt_covers=True,
-            requires_apikey=True,
-            has_nsfw=False,
-            has_censored_covers=False,
-        )
         # Default settings
         self.api_url: str = "https://comicvine.gamespot.com/api"
         self.api_key: str = "27431e6787042105bd3e47e169a624521f89f3a4"
         self.remove_html_tables: bool = False
         self.use_series_start_as_volume: bool = False
-        self.wait_for_rate_limit: bool = False
-
-        # Identity name for the information source
-        self.source_name: str = self.source_details.id
-        self.source_name_friendly: str = self.source_details.name
+        self.wait_on_ratelimit: bool = False
 
         tmp_url = urlsplit(self.api_url)
 
@@ -194,7 +182,7 @@ class ComicVineTalker(ComicTalker):
         self.api_url = tmp_url.geturl()
 
         # NOTE: This was hardcoded before which is why it isn't in settings
-        self.wait_for_rate_limit_time: int = 20
+        self.wait_on_ratelimit_time: int = 20
 
     def register_settings(self, parser: settngs.Manager) -> None:
         parser.add_setting("--cv-use-series-start-as-volume", default=False, action=argparse.BooleanOptionalAction)
@@ -214,9 +202,7 @@ class ComicVineTalker(ComicTalker):
             help="Use the given Comic Vine URL.",
         )
 
-    def parse_settings(self, settings: dict[str, Any]) -> None:
-        self.remove_html_tables = settings["cv_remove_html_tables"]
-        self.use_series_start_as_volume = settings["cv_use_series_start_as_volume"]
+    def parse_settings(self, settings: dict[str, Any]) -> dict[str, Any]:
         if settings["cv_api_key"]:
             self.api_key = settings["cv_api_key"]
         if settings["cv_url"]:
@@ -226,6 +212,11 @@ class ComicVineTalker(ComicTalker):
                 tmp_url = tmp_url._replace(path=tmp_url.path + "/")
 
             self.api_url = tmp_url.geturl()
+
+        self.use_series_start_as_volume = settings["cv_use_series_start_as_volume"]
+        self.wait_on_ratelimit = settings["cv_wait_on_ratelimit"]
+        self.remove_html_tables = settings["cv_remove_html_tables"]
+        return settngs
 
     def check_api_key(self, key: str, url: str) -> bool:
         if not url:
@@ -259,7 +250,7 @@ class ComicVineTalker(ComicTalker):
         wait_times = [1, 2, 3, 4]
         while True:
             cv_response: CVResult = self.get_url_content(url, params)
-            if self.wait_for_rate_limit and cv_response["status_code"] == CV_RATE_LIMIT_STATUS:
+            if self.wait_on_ratelimit and cv_response["status_code"] == CV_STATUS_RATELIMIT:
                 logger.info(f"Rate limit encountered.  Waiting for {limit_wait_time} minutes\n")
                 time.sleep(limit_wait_time * 60)
                 total_time_waited += limit_wait_time
@@ -267,15 +258,13 @@ class ComicVineTalker(ComicTalker):
                 if counter < 3:
                     counter += 1
                 # don't wait much more than 20 minutes
-                if total_time_waited < self.wait_for_rate_limit_time:
+                if total_time_waited < self.wait_on_ratelimit_time:
                     continue
             if cv_response["status_code"] != 1:
                 logger.debug(
-                    f"{self.source_name_friendly} query failed with error #{cv_response['status_code']}:  [{cv_response['error']}]."
+                    f"{self.name} query failed with error #{cv_response['status_code']}:  [{cv_response['error']}]."
                 )
-                raise TalkerNetworkError(
-                    self.source_name_friendly, 0, f"{cv_response['status_code']}: {cv_response['error']}"
-                )
+                raise TalkerNetworkError(self.name, 0, f"{cv_response['status_code']}: {cv_response['error']}")
 
             # it's all good
             break
@@ -298,16 +287,16 @@ class ComicVineTalker(ComicTalker):
                     break
 
             except requests.exceptions.Timeout:
-                logger.debug(f"Connection to {self.source_name_friendly} timed out.")
-                raise TalkerNetworkError(self.source_name_friendly, 4)
+                logger.debug(f"Connection to {self.name} timed out.")
+                raise TalkerNetworkError(self.name, 4)
             except requests.exceptions.RequestException as e:
                 logger.debug(f"Request exception: {e}")
-                raise TalkerNetworkError(self.source_name_friendly, 0, str(e)) from e
+                raise TalkerNetworkError(self.name, 0, str(e)) from e
             except json.JSONDecodeError as e:
                 logger.debug(f"JSON decode error: {e}")
-                raise TalkerDataError(self.source_name_friendly, 2, "ComicVine did not provide json")
+                raise TalkerDataError(self.name, 2, "ComicVine did not provide json")
 
-        raise TalkerNetworkError(self.source_name_friendly, 5)
+        raise TalkerNetworkError(self.name, 5)
 
     def format_search_results(self, search_results: list[CVSeries]) -> list[ComicSeries]:
         formatted_results = []
@@ -415,13 +404,13 @@ class ComicVineTalker(ComicTalker):
     ) -> list[ComicSeries]:
         # Sanitize the series name for comicvine searching, comicvine search ignore symbols
         search_series_name = utils.sanitize_title(series_name, literal)
-        logger.info(f"{self.source_name_friendly} searching: {search_series_name}")
+        logger.info(f"{self.name} searching: {search_series_name}")
 
         # Before we search online, look in our cache, since we might have done this same search recently
         # For literal searches always retrieve from online
         cvc = ComicCacher(self.cache_folder, self.version)
         if not refresh_cache and not literal:
-            cached_search_results = cvc.get_search_results(self.source_name, series_name)
+            cached_search_results = cvc.get_search_results(self.id, series_name)
 
             if len(cached_search_results) > 0:
                 return cached_search_results
@@ -495,7 +484,7 @@ class ComicVineTalker(ComicTalker):
 
         # Cache these search results, even if it's literal we cache the results
         # The most it will cause is extra processing time
-        cvc.add_search_results(self.source_name, series_name, formatted_search_results)
+        cvc.add_search_results(self.id, series_name, formatted_search_results)
 
         return formatted_search_results
 
@@ -514,7 +503,7 @@ class ComicVineTalker(ComicTalker):
     def fetch_series_data(self, series_id: int) -> ComicSeries:
         # before we search online, look in our cache, since we might already have this info
         cvc = ComicCacher(self.cache_folder, self.version)
-        cached_series_result = cvc.get_series_info(str(series_id), self.source_name)
+        cached_series_result = cvc.get_series_info(str(series_id), self.id)
 
         if cached_series_result is not None:
             return cached_series_result
@@ -531,14 +520,14 @@ class ComicVineTalker(ComicTalker):
         formatted_series_results = self.format_search_results([series_results])
 
         if series_results:
-            cvc.add_series_info(self.source_name, formatted_series_results[0])
+            cvc.add_series_info(self.id, formatted_series_results[0])
 
         return formatted_series_results[0]
 
     def fetch_issues_by_series(self, series_id: str) -> list[ComicIssue]:
         # before we search online, look in our cache, since we might already have this info
         cvc = ComicCacher(self.cache_folder, self.version)
-        cached_series_issues_result = cvc.get_series_issues_info(series_id, self.source_name)
+        cached_series_issues_result = cvc.get_series_issues_info(series_id, self.id)
 
         series_data = self.fetch_series_data(int(series_id))
 
@@ -575,7 +564,7 @@ class ComicVineTalker(ComicTalker):
         # Format to expected output
         formatted_series_issues_result = self.format_issue_results(series_issues_result)
 
-        cvc.add_series_issues_info(self.source_name, formatted_series_issues_result)
+        cvc.add_series_issues_info(self.id, formatted_series_issues_result)
 
         return formatted_series_issues_result
 
@@ -640,7 +629,7 @@ class ComicVineTalker(ComicTalker):
         if f_record and f_record.complete:
             # Cache had full record
             return talker_utils.map_comic_issue_to_metadata(
-                f_record, self.source_name_friendly, self.remove_html_tables, self.use_series_start_as_volume
+                f_record, self.name, self.remove_html_tables, self.use_series_start_as_volume
             )
 
         if f_record is not None:
@@ -650,12 +639,12 @@ class ComicVineTalker(ComicTalker):
     def fetch_issue_data_by_issue_id(self, issue_id: str) -> GenericMetadata:
         # before we search online, look in our cache, since we might already have this info
         cvc = ComicCacher(self.cache_folder, self.version)
-        cached_issues_result = cvc.get_issue_info(int(issue_id), self.source_name)
+        cached_issues_result = cvc.get_issue_info(int(issue_id), self.id)
 
         if cached_issues_result and cached_issues_result.complete:
             return talker_utils.map_comic_issue_to_metadata(
                 cached_issues_result,
-                self.source_name_friendly,
+                self.name,
                 self.remove_html_tables,
                 self.use_series_start_as_volume,
             )
@@ -672,12 +661,12 @@ class ComicVineTalker(ComicTalker):
         # Due to issue not returning publisher, fetch the series.
         cv_issues[0].series = self.fetch_series_data(int(cv_issues[0].series.id))
 
-        cvc.add_series_issues_info(self.source_name, cv_issues)
+        cvc.add_series_issues_info(self.id, cv_issues)
 
         # Now, map the ComicIssue data to generic metadata
         return talker_utils.map_comic_issue_to_metadata(
             cv_issues[0],
-            self.source_name_friendly,
+            self.name,
             self.remove_html_tables,
             self.use_series_start_as_volume,
         )

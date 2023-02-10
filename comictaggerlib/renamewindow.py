@@ -27,7 +27,7 @@ from comictaggerlib.filerenamer import FileRenamer, get_rename_dir
 from comictaggerlib.settingswindow import SettingsWindow
 from comictaggerlib.ui import ui_path
 from comictaggerlib.ui.qtutils import center_window_on_parent
-from comictalker.talkerbase import ComicTalker
+from comictalker.comictalker import ComicTalker
 
 logger = logging.getLogger(__name__)
 
@@ -38,8 +38,8 @@ class RenameWindow(QtWidgets.QDialog):
         parent: QtWidgets.QWidget,
         comic_archive_list: list[ComicArchive],
         data_style: int,
-        config: settngs.Config,
-        talker_api: ComicTalker,
+        config: settngs.Config[settngs.Namespace],
+        talker: ComicTalker,
     ) -> None:
         super().__init__(parent)
 
@@ -55,7 +55,7 @@ class RenameWindow(QtWidgets.QDialog):
         )
 
         self.config = config
-        self.talker_api = talker_api
+        self.talker = talker
         self.comic_archive_list = comic_archive_list
         self.data_style = data_style
         self.rename_list: list[str] = []
@@ -162,7 +162,7 @@ class RenameWindow(QtWidgets.QDialog):
         self.twList.setSortingEnabled(True)
 
     def modify_settings(self) -> None:
-        settingswin = SettingsWindow(self, self.config, self.talker_api)
+        settingswin = SettingsWindow(self, self.config, self.talker)
         settingswin.setModal(True)
         settingswin.show_rename_tab()
         settingswin.exec()

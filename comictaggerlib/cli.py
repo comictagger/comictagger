@@ -34,21 +34,27 @@ from comictaggerlib.filerenamer import FileRenamer, get_rename_dir
 from comictaggerlib.graphics import graphics_path
 from comictaggerlib.issueidentifier import IssueIdentifier
 from comictaggerlib.resulttypes import MultipleMatch, OnlineMatchResults
-from comictalker.talkerbase import ComicTalker, TalkerError
+from comictalker.comictalker import ComicTalker, TalkerError
 
 logger = logging.getLogger(__name__)
 
 
 class CLI:
-    def __init__(self, config: settngs.Values, talker_api: ComicTalker):
+    def __init__(self, config: settngs.Namespace, talkers: dict[str, ComicTalker]):
         self.config = config
-        self.talker_api = talker_api
+        self.talkers = talkers
         self.batch_mode = False
+
+    def current_talker(self) -> ComicTalker:
+        if self.config[0].talker_source in self.talkers:
+            return self.talkers[self.config[0].talker_source]
+        logger.error("Could not find the '%s' talker", self.config[0].talker_source)
+        raise SystemExit(2)
 
     def actual_issue_data_fetch(self, issue_id: str) -> GenericMetadata:
         # now get the particular issue data
         try:
-            ct_md = self.talker_api.fetch_comic_data(issue_id)
+            ct_md = self.current_talker().fetch_comic_data(issue_id)
         except TalkerError as e:
             logger.exception(f"Error retrieving issue details. Save aborted.\n{e}")
             return GenericMetadata()
@@ -108,7 +114,7 @@ class CLI:
                 ca = match_set.ca
                 md = self.create_local_metadata(ca)
                 ct_md = self.actual_issue_data_fetch(match_set.matches[int(i) - 1]["issue_id"])
-                if self.config.talkers_clear_metadata_on_import:
+                if self.config.talker_clear_metadata_on_import:
                     md = ct_md
                 else:
                     notes = (
@@ -117,7 +123,7 @@ class CLI:
                     )
                     md.overlay(ct_md.replace(notes=utils.combine_notes(md.notes, notes, "Tagged with ComicTagger")))
 
-                if self.config.talkers_auto_imprint:
+                if self.config.talker_auto_imprint:
                     md.fix_publisher()
 
                 self.actual_metadata_save(ca, md)
@@ -342,7 +348,7 @@ class CLI:
             if self.config.runtime_issue_id is not None:
                 # we were given the actual issue ID to search with
                 try:
-                    ct_md = self.talker_api.fetch_comic_data(self.config.runtime_issue_id)
+                    ct_md = self.current_talker().fetch_comic_data(self.config.runtime_issue_id)
                 except TalkerError as e:
                     logger.exception(f"Error retrieving issue details. Save aborted.\n{e}")
                     match_results.fetch_data_failures.append(str(ca.path.absolute()))
@@ -361,7 +367,7 @@ class CLI:
                     match_results.no_matches.append(str(ca.path.absolute()))
                     return
 
-                ii = IssueIdentifier(ca, self.config, self.talker_api)
+                ii = IssueIdentifier(ca, self.config, self.current_talker())
 
                 def myoutput(text: str) -> None:
                     if self.config.runtime_verbose:
@@ -421,7 +427,7 @@ class CLI:
                     match_results.fetch_data_failures.append(str(ca.path.absolute()))
                     return
 
-            if self.config.talkers_clear_metadata_on_import:
+            if self.config.talker_clear_metadata_on_import:
                 md = ct_md
             else:
                 notes = (
@@ -430,7 +436,7 @@ class CLI:
                 )
                 md.overlay(ct_md.replace(notes=utils.combine_notes(md.notes, notes, "Tagged with ComicTagger")))
 
-            if self.config.talkers_auto_imprint:
+            if self.config.talker_auto_imprint:
                 md.fix_publisher()
 
         # ok, done building our metadata. time to save

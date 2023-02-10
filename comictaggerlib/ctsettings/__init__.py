@@ -8,7 +8,7 @@ from comictaggerlib.ctsettings.commandline import (
 from comictaggerlib.ctsettings.file import register_file_settings, validate_file_settings
 from comictaggerlib.ctsettings.plugin import register_plugin_settings, validate_plugin_settings
 from comictaggerlib.ctsettings.types import ComicTaggerPaths
-from comictalker.talkerbase import ComicTalker
+from comictalker import ComicTalker
 
 talkers: dict[str, ComicTalker] = {}
 

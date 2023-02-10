@@ -15,8 +15,8 @@ from PIL import Image
 import comicapi.comicarchive
 import comicapi.genericmetadata
 import comictaggerlib.ctsettings
+import comictalker
 import comictalker.comiccacher
-import comictalker.comictalkerapi
 import comictalker.talkers.comicvine
 from comicapi import utils
 from testing import comicvine, filenames
