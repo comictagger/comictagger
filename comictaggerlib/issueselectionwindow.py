@@ -86,6 +86,7 @@ class IssueSelectionWindow(QtWidgets.QDialog):
             talker,
             False,
         )
+        self.imageIssuesSourceWidget.showControls = False
         gridlayoutIssuesSourceLogo = QtWidgets.QGridLayout(self.imageIssuesSourceLogo)
         gridlayoutIssuesSourceLogo.addWidget(self.imageIssuesSourceWidget)
         gridlayoutIssuesSourceLogo.setContentsMargins(0, 2, 0, 0)
