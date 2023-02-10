@@ -49,7 +49,7 @@ class AutoTagStartWindow(QtWidgets.QDialog):
         self.cbxIgnoreLeadingDigitsInFilename.setChecked(self.config.autotag_ignore_leading_numbers_in_filename)
         self.cbxRemoveAfterSuccess.setChecked(self.config.autotag_remove_archive_after_successful_match)
         self.cbxWaitForRateLimit.setChecked(self.config.autotag_wait_and_retry_on_rate_limit)
-        self.cbxAutoImprint.setChecked(self.config.talkers_auto_imprint)
+        self.cbxAutoImprint.setChecked(self.config.talker_auto_imprint)
 
         nlmt_tip = """<html>The <b>Name Match Ratio Threshold: Auto-Identify</b> is for eliminating automatic
                 search matches that are too long compared to your series name search. The lower
@@ -75,7 +75,7 @@ class AutoTagStartWindow(QtWidgets.QDialog):
         self.remove_after_success = False
         self.wait_and_retry_on_rate_limit = False
         self.search_string = ""
-        self.name_length_match_tolerance = self.config.talkers_series_match_search_thresh
+        self.name_length_match_tolerance = self.config.talker_series_match_search_thresh
         self.split_words = self.cbxSplitWords.isChecked()
 
     def search_string_toggle(self) -> None:

@@ -32,7 +32,7 @@ from comictaggerlib.filerenamer import FileRenamer, Replacement, Replacements
 from comictaggerlib.imagefetcher import ImageFetcher
 from comictaggerlib.ui import ui_path
 from comictalker.comiccacher import ComicCacher
-from comictalker.talkerbase import ComicTalker
+from comictalker.comictalker import ComicTalker
 
 logger = logging.getLogger(__name__)
 
@@ -130,7 +130,9 @@ Spider-Geddon #1 - New Players; Check In
 
 
 class SettingsWindow(QtWidgets.QDialog):
-    def __init__(self, parent: QtWidgets.QWidget, config: settngs.Config, talker_api: ComicTalker) -> None:
+    def __init__(
+        self, parent: QtWidgets.QWidget, config: settngs.Config[settngs.Namespace], talker: ComicTalker
+    ) -> None:
         super().__init__(parent)
 
         uic.loadUi(ui_path / "settingswindow.ui", self)
@@ -140,7 +142,7 @@ class SettingsWindow(QtWidgets.QDialog):
         )
 
         self.config = config
-        self.talker_api = talker_api
+        self.talker = talker
         self.name = "Settings"
 
         if platform.system() == "Windows":
@@ -294,12 +296,12 @@ class SettingsWindow(QtWidgets.QDialog):
     def settings_to_form(self) -> None:
         self.disconnect_signals()
         # Copy values from settings to form
-        if "archiver" in self.config[1] and "rar" in self.config[1]["archiver"]:
-            self.leRarExePath.setText(getattr(self.config[0], self.config[1]["archiver"]["rar"].internal_name))
+        if "archiver" in self.config[1] and "rar" in self.config[1]["archiver"].v:
+            self.leRarExePath.setText(getattr(self.config[0], self.config[1]["archiver"].v["rar"].internal_name))
         else:
             self.leRarExePath.setEnabled(False)
         self.sbNameMatchIdentifyThresh.setValue(self.config[0].identifier_series_match_identify_thresh)
-        self.sbNameMatchSearchThresh.setValue(self.config[0].talkers_series_match_search_thresh)
+        self.sbNameMatchSearchThresh.setValue(self.config[0].talker_series_match_search_thresh)
         self.tePublisherFilter.setPlainText("\n".join(self.config[0].identifier_publisher_filter))
 
         self.cbxCheckForNewVersion.setChecked(self.config[0].general_check_for_new_version)
@@ -311,12 +313,12 @@ class SettingsWindow(QtWidgets.QDialog):
         self.switch_parser()
 
         self.cbxUseSeriesStartAsVolume.setChecked(self.config[0].talker_comicvine_cv_use_series_start_as_volume)
-        self.cbxClearFormBeforePopulating.setChecked(self.config[0].talkers_clear_form_before_populating)
+        self.cbxClearFormBeforePopulating.setChecked(self.config[0].talker_clear_form_before_populating)
         self.cbxRemoveHtmlTables.setChecked(self.config[0].talker_comicvine_cv_remove_html_tables)
 
-        self.cbxUseFilter.setChecked(self.config[0].talkers_always_use_publisher_filter)
-        self.cbxSortByYear.setChecked(self.config[0].talkers_sort_series_by_year)
-        self.cbxExactMatches.setChecked(self.config[0].talkers_exact_series_matches_first)
+        self.cbxUseFilter.setChecked(self.config[0].talker_always_use_publisher_filter)
+        self.cbxSortByYear.setChecked(self.config[0].talker_sort_series_by_year)
+        self.cbxExactMatches.setChecked(self.config[0].talker_exact_series_matches_first)
 
         self.leKey.setText(self.config[0].talker_comicvine_cv_api_key)
         self.leURL.setText(self.config[0].talker_comicvine_cv_url)
@@ -403,11 +405,11 @@ class SettingsWindow(QtWidgets.QDialog):
                 )
 
         # Copy values from form to settings and save
-        if "archiver" in self.config[1] and "rar" in self.config[1]["archiver"]:
-            setattr(self.config[0], self.config[1]["archiver"]["rar"].internal_name, str(self.leRarExePath.text()))
+        if "archiver" in self.config[1] and "rar" in self.config[1]["archiver"].v:
+            setattr(self.config[0], self.config[1]["archiver"].v["rar"].internal_name, str(self.leRarExePath.text()))
 
             # make sure rar program is now in the path for the rar class
-            if self.config[0].archivers_rar:
+            if self.config[0].archiver_rar:
                 utils.add_to_path(os.path.dirname(str(self.leRarExePath.text())))
 
         if not str(self.leIssueNumPadding.text()).isdigit():
@@ -416,7 +418,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.config[0].general_check_for_new_version = self.cbxCheckForNewVersion.isChecked()
 
         self.config[0].identifier_series_match_identify_thresh = self.sbNameMatchIdentifyThresh.value()
-        self.config[0].talkers_series_match_search_thresh = self.sbNameMatchSearchThresh.value()
+        self.config[0].talker_series_match_search_thresh = self.sbNameMatchSearchThresh.value()
         self.config[0].identifier_publisher_filter = [
             x.strip() for x in str(self.tePublisherFilter.toPlainText()).splitlines() if x.strip()
         ]
@@ -427,20 +429,20 @@ class SettingsWindow(QtWidgets.QDialog):
         self.config[0].filename_remove_publisher = self.cbxRemovePublisher.isChecked()
 
         self.config[0].talker_comicvine_cv_use_series_start_as_volume = self.cbxUseSeriesStartAsVolume.isChecked()
-        self.config[0].talkers_clear_form_before_populating = self.cbxClearFormBeforePopulating.isChecked()
+        self.config[0].talker_clear_form_before_populating = self.cbxClearFormBeforePopulating.isChecked()
         self.config[0].talker_comicvine_cv_remove_html_tables = self.cbxRemoveHtmlTables.isChecked()
 
-        self.config[0].talkers_always_use_publisher_filter = self.cbxUseFilter.isChecked()
-        self.config[0].talkers_sort_series_by_year = self.cbxSortByYear.isChecked()
-        self.config[0].talkers_exact_series_matches_first = self.cbxExactMatches.isChecked()
+        self.config[0].talker_always_use_publisher_filter = self.cbxUseFilter.isChecked()
+        self.config[0].talker_sort_series_by_year = self.cbxSortByYear.isChecked()
+        self.config[0].talker_exact_series_matches_first = self.cbxExactMatches.isChecked()
 
         if self.leKey.text().strip():
             self.config[0].talker_comicvine_cv_api_key = self.leKey.text().strip()
-            self.talker_api.api_key = self.config[0].talker_comicvine_cv_api_key
+            self.talker.api_key = self.config[0].talker_comicvine_cv_api_key
 
         if self.leURL.text().strip():
             self.config[0].talker_comicvine_cv_url = self.leURL.text().strip()
-            self.talker_api.api_url = self.config[0].talker_comicvine_cv_url
+            self.talker.api_url = self.config[0].talker_comicvine_cv_url
 
         self.config[0].cbl_assume_lone_credit_is_primary = self.cbxAssumeLoneCreditIsPrimary.isChecked()
         self.config[0].cbl_copy_characters_to_tags = self.cbxCopyCharactersToTags.isChecked()
@@ -462,9 +464,16 @@ class SettingsWindow(QtWidgets.QDialog):
         self.config[0].rename_strict = self.cbxRenameStrict.isChecked()
         self.config[0].rename_replacements = self.get_replacements()
 
+        self.update_talkers_config()
+
         settngs.save_file(self.config, self.config[0].runtime_config.user_config_dir / "settings.json")
         self.parent().config = self.config
         QtWidgets.QDialog.accept(self)
+
+    def update_talkers_config(self) -> None:
+        cfg = settngs.normalize_config(self.config, True, True)
+        if f"talker_{self.talker.id}" in cfg[0]:
+            self.talker.parse_settings(cfg[0][f"talker_{self.talker.id}"])
 
     def select_rar(self) -> None:
         self.select_file(self.leRarExePath, "RAR")
@@ -475,7 +484,7 @@ class SettingsWindow(QtWidgets.QDialog):
         QtWidgets.QMessageBox.information(self, self.name, "Cache has been cleared.")
 
     def test_api_key(self) -> None:
-        if self.talker_api.check_api_key(self.leKey.text().strip(), self.leURL.text().strip()):
+        if self.talker.check_api_key(self.leKey.text().strip(), self.leURL.text().strip()):
             QtWidgets.QMessageBox.information(self, "API Key Test", "Key is valid!")
         else:
             QtWidgets.QMessageBox.warning(self, "API Key Test", "Key is NOT valid.")

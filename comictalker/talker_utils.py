@@ -1,5 +1,3 @@
-"""Generic sources utils to format API data and the like.
-"""
 # Copyright 2012-2014 Anthony Beville
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,7 +21,7 @@ from bs4 import BeautifulSoup
 from comicapi import utils
 from comicapi.genericmetadata import GenericMetadata
 from comicapi.issuestring import IssueString
-from comictalker.talkerbase import ComicIssue
+from comictalker.resulttypes import ComicIssue
 
 logger = logging.getLogger(__name__)
 

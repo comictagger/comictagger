@@ -163,7 +163,7 @@ def titles_match(search_title: str, record_title: str, threshold: int = 90) -> b
 
     sanitized_search = sanitize_title(search_title)
     sanitized_record = sanitize_title(record_title)
-    ratio: int = rapidfuzz.fuzz.ratio(sanitized_search, sanitized_record)
+    ratio = int(rapidfuzz.fuzz.ratio(sanitized_search, sanitized_record))
     logger.debug(
         "search title: %s ; record title: %s ; ratio: %d ; match threshold: %d",
         search_title,

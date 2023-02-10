@@ -10,7 +10,7 @@ import types
 import settngs
 
 from comictaggerlib.graphics import graphics_path
-from comictalker.talkerbase import ComicTalker
+from comictalker.comictalker import ComicTalker
 
 logger = logging.getLogger("comictagger")
 try:
@@ -83,7 +83,7 @@ except ImportError as e:
 
 
 def open_tagger_window(
-    talker_api: ComicTalker | None, config: settngs.Config[settngs.Namespace], error: tuple[str, bool] | None
+    talkers: dict[str, ComicTalker], config: settngs.Config[settngs.Namespace], error: tuple[str, bool] | None
 ) -> None:
     os.environ["QtWidgets.QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
     args = []
@@ -95,8 +95,6 @@ def open_tagger_window(
         show_exception_box(error[0])
         if error[1]:
             raise SystemExit(1)
-
-    assert talker_api is not None
 
     # needed to catch initial open file events (macOS)
     app.openFileRequest.connect(lambda x: config[0].runtime_files.append(x.toLocalFile()))
@@ -127,7 +125,7 @@ def open_tagger_window(
         QtWidgets.QApplication.processEvents()
 
     try:
-        tagger_window = TaggerWindow(config[0].runtime_files, config, talker_api)
+        tagger_window = TaggerWindow(config[0].runtime_files, config, talkers)
         tagger_window.setWindowIcon(QtGui.QIcon(str(graphics_path / "app.png")))
         tagger_window.show()
 
