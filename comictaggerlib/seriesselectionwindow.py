@@ -171,6 +171,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
             talker_api,
             False,
         )
+        self.imageSourceWidget.showControls = False
         gridlayoutSourceLogo = QtWidgets.QGridLayout(self.imageSourceLogo)
         gridlayoutSourceLogo.addWidget(self.imageSourceWidget)
         gridlayoutSourceLogo.setContentsMargins(0, 2, 0, 0)
