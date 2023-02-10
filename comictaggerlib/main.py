@@ -20,16 +20,14 @@ import json
 import logging.handlers
 import signal
 import sys
-from collections.abc import Mapping
 
 import settngs
 
 import comicapi
 import comictalker.comictalkerapi as ct_api
-from comictaggerlib import cli, ctoptions
+from comictaggerlib import cli, ctsettings
 from comictaggerlib.ctversion import version
 from comictaggerlib.log import setup_logging
-from comictalker.talkerbase import ComicTalker
 
 if sys.version_info < (3, 10):
     import importlib_metadata
@@ -49,8 +47,8 @@ logger = logging.getLogger("comictagger")
 logger.setLevel(logging.DEBUG)
 
 
-def update_publishers(options: settngs.Namespace) -> None:
-    json_file = options.runtime_config.user_config_dir / "publishers.json"
+def update_publishers(config: settngs.Namespace) -> None:
+    json_file = config.runtime_config.user_config_dir / "publishers.json"
     if json_file.exists():
         try:
             comicapi.utils.update_publishers(json.loads(json_file.read_text("utf-8")))
@@ -62,49 +60,48 @@ class App:
     """docstring for App"""
 
     def __init__(self) -> None:
-        self.options = settngs.Config({}, {})
-        self.initial_arg_parser = ctoptions.initial_cmd_line_parser()
+        self.config = settngs.Config({}, {})
+        self.initial_arg_parser = ctsettings.initial_commandline_parser()
         self.config_load_success = False
-        self.talker_plugins: Mapping[str, ComicTalker] = {}
 
     def run(self) -> None:
-        opts = self.initialize()
-        self.initialize_dirs(opts.config)
-        self.load_plugins(opts)
-        self.register_options()
-        self.options = self.parse_options(opts.config)
+        conf = self.initialize()
+        self.initialize_dirs(conf.config)
+        self.load_plugins(conf)
+        self.register_settings()
+        self.config = self.parse_settings(conf.config)
 
         self.main()
 
     def load_plugins(self, opts) -> None:
         comicapi.comicarchive.load_archive_plugins()
-        ctoptions.talker_plugins = ct_api.get_talkers(version, opts.config.user_cache_dir)
+        ctsettings.talkers = ct_api.get_talkers(version, opts.config.user_cache_dir)
 
     def initialize(self) -> argparse.Namespace:
-        opts, _ = self.initial_arg_parser.parse_known_args()
-        assert opts is not None
-        setup_logging(opts.verbose, opts.config.user_log_dir)
-        return opts
+        conf, _ = self.initial_arg_parser.parse_known_args()
+        assert conf is not None
+        setup_logging(conf.verbose, conf.config.user_log_dir)
+        return conf
 
-    def register_options(self) -> None:
+    def register_settings(self) -> None:
         self.manager = settngs.Manager(
             """A utility for reading and writing metadata to comic archives.\n\n\nIf no options are given, %(prog)s will run in windowed mode.""",
             "For more help visit the wiki at: https://github.com/comictagger/comictagger/wiki",
         )
-        ctoptions.register_commandline(self.manager)
-        ctoptions.register_settings(self.manager)
-        ctoptions.register_plugin_settings(self.manager)
+        ctsettings.register_commandline_settings(self.manager)
+        ctsettings.register_file_settings(self.manager)
+        ctsettings.register_plugin_settings(self.manager)
 
-    def parse_options(self, config_paths: ctoptions.ComicTaggerPaths) -> settngs.Config:
-        options, self.config_load_success = self.manager.parse_config(config_paths.user_config_dir / "settings.json")
-        options = self.manager.get_namespace(options)
+    def parse_settings(self, config_paths: ctsettings.ComicTaggerPaths) -> settngs.Config:
+        config, self.config_load_success = self.manager.parse_config(config_paths.user_config_dir / "settings.json")
+        config = self.manager.get_namespace(config)
 
-        options = ctoptions.validate_commandline_options(options, self.manager)
-        options = ctoptions.validate_settings(options)
-        options = ctoptions.validate_plugin_settings(options)
-        return options
+        config = ctsettings.validate_commandline_settings(config, self.manager)
+        config = ctsettings.validate_file_settings(config)
+        config = ctsettings.validate_plugin_settings(config)
+        return config
 
-    def initialize_dirs(self, paths: ctoptions.ComicTaggerPaths) -> None:
+    def initialize_dirs(self, paths: ctsettings.ComicTaggerPaths) -> None:
         paths.user_data_dir.mkdir(parents=True, exist_ok=True)
         paths.user_config_dir.mkdir(parents=True, exist_ok=True)
         paths.user_cache_dir.mkdir(parents=True, exist_ok=True)
@@ -117,8 +114,8 @@ class App:
         logger.debug("user_log_dir: %s", paths.user_log_dir)
 
     def main(self) -> None:
-        assert self.options is not None
-        # options already loaded
+        assert self.config is not None
+        # config already loaded
         error = None
 
         signal.signal(signal.SIGINT, signal.SIG_DFL)
@@ -128,40 +125,48 @@ class App:
             logger.debug("%s\t%s", pkg.metadata["Name"], pkg.metadata["Version"])
 
         comicapi.utils.load_publishers()
-        update_publishers(self.options[0])
+        update_publishers(self.config[0])
 
-        if not qt_available and not self.options[0].runtime_no_gui:
-            self.options[0].runtime_no_gui = True
+        if not qt_available and not self.config[0].runtime_no_gui:
+            self.config[0].runtime_no_gui = True
             logger.warning("PyQt5 is not available. ComicTagger is limited to command-line mode.")
 
-        if self.options[0].commands_only_set_cv_key:
+        # manage the CV API key
+        # None comparison is used so that the empty string can unset the value
+        if self.config[0].talker_comicvine_cv_api_key is not None or self.config[0].talker_comicvine_cv_url is not None:
+            settings_path = self.config[0].runtime_config.user_config_dir / "settings.json"
+            if self.config_load_success:
+                self.manager.save_file(self.config[0], settings_path)
+
+        if self.config[0].commands_only_set_cv_key:
             if self.config_load_success:
                 print("Key set")  # noqa: T201
                 return
 
         try:
-            talker_api = self.talker_plugins[self.options[0].talkers_source]
+            talker_api = ctsettings.talkers[self.config[0].talkers_source]
         except Exception as e:
-            logger.exception(f"Unable to load talker {self.options[0].talkers_source}")
-            # TODO error True can be changed to False after the talker settings menu generation is in
-            error = (f"Unable to load talker {self.options[0].talkers_source}: {e}", True)
+            logger.exception(f"Unable to load talker {self.config[0].talkers_source}")
+            error = (f"Unable to load talker {self.config[0].talkers_source}: {e}", True)
+            talker_api = None
 
         if not self.config_load_success:
             error = (
-                f"Failed to load settings, check the log located in '{self.options[0].runtime_config.user_log_dir}' for more details",
+                f"Failed to load settings, check the log located in '{self.config[0].runtime_config.user_log_dir}' for more details",
                 True,
             )
 
-        if self.options[0].runtime_no_gui:
+        if self.config[0].runtime_no_gui:
             if error and error[1]:
                 print(f"A fatal error occurred please check the log for more information: {error[0]}")  # noqa: T201
                 raise SystemExit(1)
+            assert talker_api is not None
             try:
-                cli.CLI(self.options[0], talker_api).run()
+                cli.CLI(self.config[0], talker_api).run()
             except Exception:
                 logger.exception("CLI mode failed")
         else:
-            gui.open_tagger_window(talker_api, self.options, error)
+            gui.open_tagger_window(talker_api, self.config, error)
 
 
 def main():

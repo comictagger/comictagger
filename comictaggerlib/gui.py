@@ -83,11 +83,11 @@ except ImportError as e:
 
 
 def open_tagger_window(
-    talker_api: ComicTalker, options: settngs.Config[settngs.Namespace], error: tuple[str, bool] | None
+    talker_api: ComicTalker | None, config: settngs.Config[settngs.Namespace], error: tuple[str, bool] | None
 ) -> None:
     os.environ["QtWidgets.QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
     args = []
-    if options[0].runtime_darkmode:
+    if config[0].runtime_darkmode:
         args.extend(["-platform", "windows:darkmode=2"])
     args.extend(sys.argv)
     app = Application(args)
@@ -96,8 +96,10 @@ def open_tagger_window(
         if error[1]:
             raise SystemExit(1)
 
+    assert talker_api is not None
+
     # needed to catch initial open file events (macOS)
-    app.openFileRequest.connect(lambda x: options[0].runtime_files.append(x.toLocalFile()))
+    app.openFileRequest.connect(lambda x: config[0].runtime_files.append(x.toLocalFile()))
 
     if platform.system() == "Darwin":
         # Set the MacOS dock icon
@@ -125,7 +127,7 @@ def open_tagger_window(
         QtWidgets.QApplication.processEvents()
 
     try:
-        tagger_window = TaggerWindow(options[0].runtime_files, options, talker_api)
+        tagger_window = TaggerWindow(config[0].runtime_files, config, talker_api)
         tagger_window.setWindowIcon(QtGui.QIcon(str(graphics_path / "app.png")))
         tagger_window.show()
 

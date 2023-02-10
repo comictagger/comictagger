@@ -6,14 +6,13 @@ from typing import Any
 
 import settngs
 
-from comictaggerlib.ctoptions.types import AppendAction
+from comictaggerlib.ctsettings.types import AppendAction
 from comictaggerlib.defaults import DEFAULT_REPLACEMENTS, Replacement, Replacements
 
 
 def general(parser: settngs.Manager) -> None:
     # General Settings
     parser.add_setting("check_for_new_version", default=False, cmdline=False)
-    parser.add_setting("send_usage_stats", default=False, cmdline=False)
 
 
 def internal(parser: settngs.Manager) -> None:
@@ -226,16 +225,16 @@ def autotag(parser: settngs.Manager) -> None:
     )
 
 
-def validate_settings(options: settngs.Config[settngs.Values]) -> dict[str, dict[str, Any]]:
-    options[0].identifier_publisher_filter = [x.strip() for x in options[0].identifier_publisher_filter if x.strip()]
-    options[0].rename_replacements = Replacements(
-        [Replacement(x[0], x[1], x[2]) for x in options[0].rename_replacements[0]],
-        [Replacement(x[0], x[1], x[2]) for x in options[0].rename_replacements[1]],
+def validate_file_settings(config: settngs.Config[settngs.Values]) -> dict[str, dict[str, Any]]:
+    config[0].identifier_publisher_filter = [x.strip() for x in config[0].identifier_publisher_filter if x.strip()]
+    config[0].rename_replacements = Replacements(
+        [Replacement(x[0], x[1], x[2]) for x in config[0].rename_replacements[0]],
+        [Replacement(x[0], x[1], x[2]) for x in config[0].rename_replacements[1]],
     )
-    return options
+    return config
 
 
-def register_settings(parser: settngs.Manager) -> None:
+def register_file_settings(parser: settngs.Manager) -> None:
     parser.add_group("general", general, False)
     parser.add_group("internal", internal, False)
     parser.add_group("identifier", identifier, False)

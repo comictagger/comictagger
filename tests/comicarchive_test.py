@@ -121,10 +121,17 @@ def test_invalid_zip(tmp_comic):
     assert not result
 
 
-archivers = [
-    pytest.param(x.load(), marks=pytest.mark.xfail(not (x.load().enabled), reason="archiver not enabled"))
-    for x in entry_points(group="comicapi_archivers")
-]
+archivers = []
+
+for x in entry_points(group="comicapi.archiver"):
+    archiver = x.load()
+    supported = archiver.enabled
+    exe_found = True
+    if archiver.exe != "":
+        exe_found = bool(shutil.which(archiver.exe))
+    archivers.append(
+        pytest.param(archiver, marks=pytest.mark.xfail(not (supported and exe_found), reason="archiver not enabled"))
+    )
 
 
 @pytest.mark.parametrize("archiver", archivers)

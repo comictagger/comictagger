@@ -40,19 +40,19 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
         match_set_list: list[MultipleMatch],
         style: int,
         fetch_func: Callable[[IssueResult], GenericMetadata],
-        options: settngs.Namespace,
+        config: settngs.Namespace,
         talker_api: ComicTalker,
     ) -> None:
         super().__init__(parent)
 
         uic.loadUi(ui_path / "matchselectionwindow.ui", self)
 
-        self.options = options
+        self.config = config
 
         self.current_match_set: MultipleMatch = match_set_list[0]
 
         self.altCoverWidget = CoverImageWidget(
-            self.altCoverContainer, CoverImageWidget.AltCoverMode, options.runtime_config.user_cache_dir, talker_api
+            self.altCoverContainer, CoverImageWidget.AltCoverMode, config.runtime_config.user_cache_dir, talker_api
         )
         gridlayout = QtWidgets.QGridLayout(self.altCoverContainer)
         gridlayout.addWidget(self.altCoverWidget)
@@ -240,10 +240,10 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
         md = ca.read_metadata(self._style)
         if md.is_empty:
             md = ca.metadata_from_filename(
-                self.options.filename_complicated_parser,
-                self.options.filename_remove_c2c,
-                self.options.filename_remove_fcbd,
-                self.options.filename_remove_publisher,
+                self.config.filename_complicated_parser,
+                self.config.filename_remove_c2c,
+                self.config.filename_remove_fcbd,
+                self.config.filename_remove_publisher,
             )
 
         # now get the particular issue data
