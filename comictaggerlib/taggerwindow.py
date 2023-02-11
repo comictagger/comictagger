@@ -1354,7 +1354,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 QtWidgets.QMessageBox.warning(self, self.tr("Web Link"), self.tr("Web Link is invalid."))
 
     def show_settings(self) -> None:
-        settingswin = SettingsWindow(self, self.config, self.current_talker())
+        settingswin = SettingsWindow(self, self.config, self.talkers)
         settingswin.setModal(True)
         settingswin.exec()
         settingswin.result()
@@ -2047,7 +2047,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         if self.dirty_flag_verification(
             "File Rename", "If you rename files now, unsaved data in the form will be lost.  Are you sure?"
         ):
-            dlg = RenameWindow(self, ca_list, self.load_data_style, self.config, self.current_talker())
+            dlg = RenameWindow(self, ca_list, self.load_data_style, self.config, self.talkers)
             dlg.setModal(True)
             if dlg.exec() and self.comic_archive is not None:
                 self.fileSelectionList.update_selected_rows()

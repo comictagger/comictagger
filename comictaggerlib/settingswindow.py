@@ -15,6 +15,7 @@
 # limitations under the License.
 from __future__ import annotations
 
+import argparse
 import html
 import logging
 import os
@@ -131,7 +132,7 @@ Spider-Geddon #1 - New Players; Check In
 
 class SettingsWindow(QtWidgets.QDialog):
     def __init__(
-        self, parent: QtWidgets.QWidget, config: settngs.Config[settngs.Namespace], talker: ComicTalker
+        self, parent: QtWidgets.QWidget, config: settngs.Config[settngs.Namespace], talkers: dict[str, ComicTalker]
     ) -> None:
         super().__init__(parent)
 
@@ -142,7 +143,7 @@ class SettingsWindow(QtWidgets.QDialog):
         )
 
         self.config = config
-        self.talker = talker
+        self.talkers = talkers
         self.name = "Settings"
 
         if platform.system() == "Windows":
@@ -194,7 +195,6 @@ class SettingsWindow(QtWidgets.QDialog):
         self.btnBrowseRar.clicked.connect(self.select_rar)
         self.btnClearCache.clicked.connect(self.clear_cache)
         self.btnResetSettings.clicked.connect(self.reset_settings)
-        self.btnTestKey.clicked.connect(self.test_api_key)
         self.btnTemplateHelp.clicked.connect(self.show_template_help)
         self.cbxMoveFiles.clicked.connect(self.dir_test)
         self.leDirectory.textEdited.connect(self.dir_test)
@@ -223,7 +223,6 @@ class SettingsWindow(QtWidgets.QDialog):
         self.btnRemoveValueReplacement.clicked.disconnect()
         self.btnResetSettings.clicked.disconnect()
         self.btnTemplateHelp.clicked.disconnect()
-        self.btnTestKey.clicked.disconnect()
         self.cbxChangeExtension.clicked.disconnect()
         self.cbxComplicatedParser.clicked.disconnect()
         self.cbxMoveFiles.clicked.disconnect()
@@ -234,6 +233,100 @@ class SettingsWindow(QtWidgets.QDialog):
         self.leRenameTemplate.textEdited.disconnect()
         self.twLiteralReplacements.cellChanged.disconnect()
         self.twValueReplacements.cellChanged.disconnect()
+
+        self.sources: dict = {}
+        self.generate_source_option_tabs()
+
+    def generate_source_option_tabs(self) -> None:
+        def format_internal_name(int_name: str = "") -> str:
+            # Presume talker_<name>_<nm>
+            int_name_split = int_name.split("_")
+            del int_name_split[0:3]
+            int_name_split[0] = int_name_split[0].capitalize()
+            new_name = " ".join(int_name_split)
+            return new_name
+
+        # Add source sub tabs to Comic Sources tab
+        for talker_id, talker_obj in self.talkers.items():
+            # Add source to general tab dropdown list
+            self.cobxInfoSource.addItem(talker_obj.name, talker_id)
+
+            # Use a dict to make a var name from var
+            source_info = {}
+            tab_name = talker_id
+            source_info[tab_name] = {"tab": QtWidgets.QWidget(), "widgets": {}}
+            layout_grid = QtWidgets.QGridLayout()
+            row = 0
+
+            full_talker_name = "talker_" + talker_id
+            for option in self.config[1][full_talker_name][1].values():
+                current_widget = None
+                if option.action is not None and isinstance(option.action, type(argparse.BooleanOptionalAction)):
+                    # bool equals a checkbox (QCheckBox)
+                    current_widget = QtWidgets.QCheckBox(format_internal_name(option.internal_name))
+                    # Set widget status
+                    current_widget.setChecked(getattr(self.config[0], option.internal_name))
+                    # Add widget and span all columns
+                    layout_grid.addWidget(current_widget, row, 0, 1, -1)
+                elif isinstance(option.type, type(int)):
+                    # int equals a spinbox (QSpinBox)
+                    lbl = QtWidgets.QLabel(option.internal_name)
+                    # Create a label
+                    layout_grid.addWidget(lbl, row, 0)
+                    current_widget = QtWidgets.QSpinBox()
+                    current_widget.setRange(0, 9999)
+                    current_widget.setValue(getattr(self.config[0], option.internal_name))
+                    layout_grid.addWidget(current_widget, row, 1, alignment=QtCore.Qt.AlignLeft)
+                elif isinstance(option.type, type(float)):
+                    # float equals a spinbox (QDoubleSpinBox)
+                    lbl = QtWidgets.QLabel(format_internal_name(option.internal_name))
+                    # Create a label
+                    layout_grid.addWidget(lbl, row, 0)
+                    current_widget = QtWidgets.QDoubleSpinBox()
+                    current_widget.setRange(0, 9999.99)
+                    current_widget.setValue(getattr(self.config[0], option.internal_name))
+                    layout_grid.addWidget(current_widget, row, 1, alignment=QtCore.Qt.AlignLeft)
+                # type of None should be string
+                elif option.type is None or isinstance(option.type, type(str)):
+                    # str equals a text field (QLineEdit)
+                    lbl = QtWidgets.QLabel(format_internal_name(option.internal_name))
+                    # Create a label
+                    layout_grid.addWidget(lbl, row, 0)
+                    current_widget = QtWidgets.QLineEdit()
+                    # Set widget status
+                    current_widget.setText(getattr(self.config[0], option.internal_name))
+                    layout_grid.addWidget(current_widget, row, 1)
+                    # Special case for api_key, make a test button
+                    if option.internal_name.endswith("api_key"):
+                        btn = QtWidgets.QPushButton("Test Key")
+                        layout_grid.addWidget(btn, row, 2)
+                        btn.clicked.connect(lambda state, sn=talker_id: self.test_api_key(sn))
+                row += 1
+
+                if current_widget:
+                    # Add tooltip text
+                    current_widget.setToolTip(option.help)
+
+                    source_info[tab_name]["widgets"][option.internal_name] = current_widget
+                else:
+                    # An empty current_widget implies an unsupported type
+                    logger.info(f"Unsupported talker option found. Name: {option.internal_name} Type: {option.type}")
+
+            # Add vertical spacer
+            vspacer = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+            layout_grid.addItem(vspacer, row, 0)
+            # Display the new widgets
+            source_info[tab_name]["tab"].setLayout(layout_grid)
+
+            # Add new sub tab to Comic Source tab
+            self.tTalkerTabs.addTab(source_info[tab_name]["tab"], talker_obj.name)
+            self.sources.update(source_info)
+
+        # Select active source in dropdown
+        self.cobxInfoSource.setCurrentIndex(self.cobxInfoSource.findData(self.config[0].talker_source))
+
+        # Set General as start tab
+        self.tabWidget.setCurrentIndex(0)
 
     def addLiteralReplacement(self) -> None:
         self.insertRow(self.twLiteralReplacements, self.twLiteralReplacements.rowCount(), Replacement("", "", False))
@@ -312,16 +405,10 @@ class SettingsWindow(QtWidgets.QDialog):
         self.cbxRemovePublisher.setChecked(self.config[0].filename_remove_publisher)
         self.switch_parser()
 
-        self.cbxUseSeriesStartAsVolume.setChecked(self.config[0].talker_comicvine_cv_use_series_start_as_volume)
         self.cbxClearFormBeforePopulating.setChecked(self.config[0].talker_clear_form_before_populating)
-        self.cbxRemoveHtmlTables.setChecked(self.config[0].talker_comicvine_cv_remove_html_tables)
-
         self.cbxUseFilter.setChecked(self.config[0].talker_always_use_publisher_filter)
         self.cbxSortByYear.setChecked(self.config[0].talker_sort_series_by_year)
         self.cbxExactMatches.setChecked(self.config[0].talker_exact_series_matches_first)
-
-        self.leKey.setText(self.config[0].talker_comicvine_cv_api_key)
-        self.leURL.setText(self.config[0].talker_comicvine_cv_url)
 
         self.cbxAssumeLoneCreditIsPrimary.setChecked(self.config[0].cbl_assume_lone_credit_is_primary)
         self.cbxCopyCharactersToTags.setChecked(self.config[0].cbl_copy_characters_to_tags)
@@ -428,21 +515,12 @@ class SettingsWindow(QtWidgets.QDialog):
         self.config[0].filename_remove_fcbd = self.cbxRemoveFCBD.isChecked()
         self.config[0].filename_remove_publisher = self.cbxRemovePublisher.isChecked()
 
-        self.config[0].talker_comicvine_cv_use_series_start_as_volume = self.cbxUseSeriesStartAsVolume.isChecked()
         self.config[0].talker_clear_form_before_populating = self.cbxClearFormBeforePopulating.isChecked()
-        self.config[0].talker_comicvine_cv_remove_html_tables = self.cbxRemoveHtmlTables.isChecked()
-
         self.config[0].talker_always_use_publisher_filter = self.cbxUseFilter.isChecked()
         self.config[0].talker_sort_series_by_year = self.cbxSortByYear.isChecked()
         self.config[0].talker_exact_series_matches_first = self.cbxExactMatches.isChecked()
 
-        if self.leKey.text().strip():
-            self.config[0].talker_comicvine_cv_api_key = self.leKey.text().strip()
-            self.talker.api_key = self.config[0].talker_comicvine_cv_api_key
-
-        if self.leURL.text().strip():
-            self.config[0].talker_comicvine_cv_url = self.leURL.text().strip()
-            self.talker.api_url = self.config[0].talker_comicvine_cv_url
+        self.config[0].talker_source = str(self.cobxInfoSource.itemData(self.cobxInfoSource.currentIndex()))
 
         self.config[0].cbl_assume_lone_credit_is_primary = self.cbxAssumeLoneCreditIsPrimary.isChecked()
         self.config[0].cbl_copy_characters_to_tags = self.cbxCopyCharactersToTags.isChecked()
@@ -464,6 +542,19 @@ class SettingsWindow(QtWidgets.QDialog):
         self.config[0].rename_strict = self.cbxRenameStrict.isChecked()
         self.config[0].rename_replacements = self.get_replacements()
 
+        # Read settings from sources tabs and generate self.settings.config data
+        for tab in self.sources.items():
+            for name, widget in tab[1]["widgets"].items():
+                widget_value = None
+                if isinstance(widget, (QtWidgets.QSpinBox, QtWidgets.QDoubleSpinBox)):
+                    widget_value = widget.value()
+                elif isinstance(widget, QtWidgets.QLineEdit):
+                    widget_value = widget.text().strip()
+                elif isinstance(widget, QtWidgets.QCheckBox):
+                    widget_value = widget.isChecked()
+
+                setattr(self.config[0], name, widget_value)
+
         self.update_talkers_config()
 
         settngs.save_file(self.config, self.config[0].runtime_config.user_config_dir / "settings.json")
@@ -472,8 +563,8 @@ class SettingsWindow(QtWidgets.QDialog):
 
     def update_talkers_config(self) -> None:
         cfg = settngs.normalize_config(self.config, True, True)
-        if f"talker_{self.talker.id}" in cfg[0]:
-            self.talker.parse_settings(cfg[0][f"talker_{self.talker.id}"])
+        for talker, talker_obj in self.talkers.items():
+            talker_obj.parse_settings(cfg[0][f"talker_{talker}"])
 
     def select_rar(self) -> None:
         self.select_file(self.leRarExePath, "RAR")
@@ -483,11 +574,20 @@ class SettingsWindow(QtWidgets.QDialog):
         ComicCacher(self.config[0].runtime_config.user_cache_dir, version).clear_cache()
         QtWidgets.QMessageBox.information(self, self.name, "Cache has been cleared.")
 
-    def test_api_key(self) -> None:
-        if self.talker.check_api_key(self.leKey.text().strip(), self.leURL.text().strip()):
+    def test_api_key(self, source_id) -> None:
+        # Find URL and API key
+        for tab in self.sources.items():
+            for name, widget in tab[1]["widgets"].items():
+                if tab[0] == source_id:
+                    if name.endswith("api_key"):
+                        key = widget.text().strip()
+                    if name.endswith("url"):
+                        url = widget.text().strip()
+
+        if self.talkers[source_id].check_api_key(key, url):
             QtWidgets.QMessageBox.information(self, "API Key Test", "Key is valid!")
         else:
-            QtWidgets.QMessageBox.warning(self, "API Key Test", "Key is NOT valid.")
+            QtWidgets.QMessageBox.warning(self, "API Key Test", "Key is NOT valid!")
 
     def reset_settings(self) -> None:
         self.config = settngs.get_namespace(settngs.defaults(self.config[1]))

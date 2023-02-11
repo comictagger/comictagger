@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>702</width>
-    <height>513</height>
+    <height>559</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -28,7 +28,7 @@
         </sizepolicy>
        </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>3</number>
        </property>
        <widget class="QWidget" name="tGeneral">
         <attribute name="title">
@@ -308,75 +308,11 @@
          </item>
         </layout>
        </widget>
-       <widget class="QWidget" name="tComicVine">
+       <widget class="QWidget" name="tComicTalkers">
         <attribute name="title">
-         <string>Comic Vine</string>
+         <string>Comic Sources</string>
         </attribute>
         <layout class="QVBoxLayout" name="verticalLayout_4">
-         <item>
-          <widget class="QGroupBox" name="grpBoxCVTop">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <layout class="QVBoxLayout" name="verticalLayout_5">
-            <item>
-             <layout class="QVBoxLayout" name="verticalLayout_3">
-              <item>
-               <widget class="QCheckBox" name="cbxUseSeriesStartAsVolume">
-                <property name="text">
-                 <string>Use Series Start Date as Volume</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QCheckBox" name="cbxClearFormBeforePopulating">
-                <property name="text">
-                 <string>Clear Form Before Importing Comic Vine data</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QCheckBox" name="cbxRemoveHtmlTables">
-                <property name="text">
-                 <string>Remove HTML tables from CV summary field</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="Line" name="line_4">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QCheckBox" name="cbxSortByYear">
-                <property name="text">
-                 <string>Initially sort Series search results by Starting Year instead of No. Issues</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QCheckBox" name="cbxExactMatches">
-                <property name="text">
-                 <string>Initially show Series Name exact matches first</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-           </layout>
-          </widget>
-         </item>
          <item>
           <widget class="Line" name="line_4">
            <property name="sizePolicy">
@@ -391,99 +327,126 @@
           </widget>
          </item>
          <item>
-          <widget class="QGroupBox" name="grpBoxKey">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
+          <widget class="QTabWidget" name="tTalkerTabs">
+           <property name="currentIndex">
+            <number>0</number>
            </property>
-           <layout class="QGridLayout" name="gridLayout_8">
-            <item row="0" column="0" colspan="3">
-             <widget class="QLabel" name="lblKeyHelp">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Expanding" vsizetype="MinimumExpanding">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;A personal API key from &lt;a href=&quot;http://www.comicvine.com/api/&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;Comic Vine&lt;/span&gt;&lt;/a&gt; is recommended in order to search for tag data. Login (or create a new account) there to get your key, and enter it below.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-              </property>
-              <property name="textFormat">
-               <enum>Qt::RichText</enum>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
-              </property>
-              <property name="wordWrap">
-               <bool>true</bool>
-              </property>
-              <property name="openExternalLinks">
-               <bool>true</bool>
-              </property>
-              <property name="textInteractionFlags">
-               <set>Qt::LinksAccessibleByKeyboard|Qt::LinksAccessibleByMouse</set>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="2">
-             <widget class="QPushButton" name="btnTestKey">
-              <property name="text">
-               <string>Test Key</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="1">
-             <widget class="QLineEdit" name="leKey">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="MinimumExpanding" vsizetype="Maximum">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="readOnly">
-               <bool>false</bool>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="0">
-             <widget class="QLabel" name="lblKey">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>120</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>200</width>
-                <height>16777215</height>
-               </size>
-              </property>
-              <property name="text">
-               <string>Comic Vine API Key</string>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="0">
-             <widget class="QLabel" name="lblURL">
-              <property name="text">
-               <string>Comic Vine URL</string>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="1">
-             <widget class="QLineEdit" name="leURL"/>
-            </item>
-           </layout>
+           <widget class="QWidget" name="tabTalkersGeneral">
+            <attribute name="title">
+             <string>General</string>
+            </attribute>
+            <widget class="QCheckBox" name="cbxUseSeriesStartAsVolume">
+             <property name="geometry">
+              <rect>
+               <x>10</x>
+               <y>70</y>
+               <width>650</width>
+               <height>22</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Use Series Start Date as Volume</string>
+             </property>
+            </widget>
+            <widget class="QCheckBox" name="cbxClearFormBeforePopulating">
+             <property name="geometry">
+              <rect>
+               <x>10</x>
+               <y>90</y>
+               <width>666</width>
+               <height>22</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Clear Form Before Importing Comic Vine data</string>
+             </property>
+            </widget>
+            <widget class="QCheckBox" name="cbxSortByYear">
+             <property name="geometry">
+              <rect>
+               <x>10</x>
+               <y>130</y>
+               <width>666</width>
+               <height>22</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Initially sort Series search results by Starting Year instead of No. Issues</string>
+             </property>
+            </widget>
+            <widget class="QCheckBox" name="cbxExactMatches">
+             <property name="geometry">
+              <rect>
+               <x>10</x>
+               <y>150</y>
+               <width>666</width>
+               <height>22</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Initially show Series Name exact matches first</string>
+             </property>
+            </widget>
+            <widget class="Line" name="line_4">
+             <property name="geometry">
+              <rect>
+               <x>5</x>
+               <y>120</y>
+               <width>648</width>
+               <height>3</height>
+              </rect>
+             </property>
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+            <widget class="QComboBox" name="cobxInfoSource">
+             <property name="geometry">
+              <rect>
+               <x>190</x>
+               <y>13</y>
+               <width>301</width>
+               <height>32</height>
+              </rect>
+             </property>
+            </widget>
+            <widget class="QLabel" name="leInfoSource">
+             <property name="geometry">
+              <rect>
+               <x>15</x>
+               <y>13</y>
+               <width>171</width>
+               <height>32</height>
+              </rect>
+             </property>
+             <property name="text">
+              <string>Select Information Source:</string>
+             </property>
+            </widget>
+            <widget class="Line" name="line">
+             <property name="geometry">
+              <rect>
+               <x>5</x>
+               <y>60</y>
+               <width>648</width>
+               <height>3</height>
+              </rect>
+             </property>
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </widget>
           </widget>
+         </item>
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout_3"/>
          </item>
          <item>
           <spacer name="verticalSpacer_3">
@@ -774,24 +737,15 @@
             <property name="text">
              <string>Find</string>
             </property>
-            <property name="textAlignment">
-             <set>AlignCenter</set>
-            </property>
            </column>
            <column>
             <property name="text">
              <string>Replacement</string>
             </property>
-            <property name="textAlignment">
-             <set>AlignCenter</set>
-            </property>
            </column>
            <column>
             <property name="text">
              <string>Strict Only</string>
-            </property>
-            <property name="textAlignment">
-             <set>AlignCenter</set>
             </property>
            </column>
           </widget>
@@ -819,24 +773,15 @@
             <property name="text">
              <string>Find</string>
             </property>
-            <property name="textAlignment">
-             <set>AlignCenter</set>
-            </property>
            </column>
            <column>
             <property name="text">
              <string>Replacement</string>
             </property>
-            <property name="textAlignment">
-             <set>AlignCenter</set>
-            </property>
            </column>
            <column>
             <property name="text">
              <string>Strict Only</string>
-            </property>
-            <property name="textAlignment">
-             <set>AlignCenter</set>
             </property>
            </column>
           </widget>
