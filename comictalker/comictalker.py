@@ -118,7 +118,10 @@ class ComicTalker:
         self.api_url: str = ""
 
     def register_settings(self, parser: settngs.Manager) -> None:
-        """Allows registering settings using the settngs package with an argparse like interface"""
+        """
+        Allows registering settings using the settngs package with an argparse like interface
+        NOTE: The order used will be reflected within the settings menu
+        """
         return None
 
     def parse_settings(self, settings: dict[str, Any]) -> dict[str, Any]:
@@ -128,10 +131,15 @@ class ComicTalker:
         """
         return settings
 
-    def check_api_key(self, key: str, url: str) -> bool:
+    def check_api_key(self, key: str) -> bool:
         """
-        This function should return true if the given api key and url are valid.
-        If the Talker does not use an api key it should validate that the url works.
+        This function should return true if the given api key is valid.
+        """
+        raise NotImplementedError
+
+    def check_api_url(self, url: str) -> bool:
+        """
+        This function should return true if the given url is valid.
         """
         raise NotImplementedError
 

@@ -181,8 +181,6 @@ class ComicVineTalker(ComicTalker):
         self.wait_on_ratelimit_time: int = 20
 
     def register_settings(self, parser: settngs.Manager) -> None:
-        parser.add_setting("--cv-api-key", help="Use the given Comic Vine API Key.")
-        parser.add_setting("--cv-url", help="Use the given Comic Vine URL.")
         parser.add_setting("--cv-use-series-start-as-volume", default=False, action=argparse.BooleanOptionalAction)
         parser.add_setting("--cv-wait-on-ratelimit", default=False, action=argparse.BooleanOptionalAction)
         parser.add_setting(
@@ -191,6 +189,8 @@ class ComicVineTalker(ComicTalker):
             action=argparse.BooleanOptionalAction,
             help="Removes html tables instead of converting them to text.",
         )
+        parser.add_setting("--cv-api-key", help="Use the given Comic Vine API Key.")
+        parser.add_setting("--cv-url", help="Use the given Comic Vine URL.")
 
     def parse_settings(self, settings: dict[str, Any]) -> dict[str, Any]:
         if settings["cv_api_key"]:
@@ -208,7 +208,23 @@ class ComicVineTalker(ComicTalker):
         self.remove_html_tables = settings["cv_remove_html_tables"]
         return settngs
 
-    def check_api_key(self, key: str, url: str) -> bool:
+    def check_api_key(self, key: str) -> bool:
+        url = self.api_url
+        try:
+            test_url = urljoin(url, "issue/1/")
+
+            cv_response: CVResult = requests.get(
+                test_url,
+                headers={"user-agent": "comictagger/" + self.version},
+                params={"api_key": key, "format": "json", "field_list": "name"},
+            ).json()
+
+            # Bogus request, but if the key is wrong, you get error 100: "Invalid API Key"
+            return cv_response["status_code"] != 100
+        except Exception:
+            return False
+
+    def check_api_url(self, url: str) -> bool:
         if not url:
             url = self.api_url
         try:
@@ -221,11 +237,11 @@ class ComicVineTalker(ComicTalker):
             cv_response: CVResult = requests.get(
                 test_url,
                 headers={"user-agent": "comictagger/" + self.version},
-                params={"api_key": key, "format": "json", "field_list": "name"},
+                params={"api_key": self.api_key, "format": "json", "field_list": "name"},
             ).json()
 
-            # Bogus request, but if the key is wrong, you get error 100: "Invalid API Key"
-            return cv_response["status_code"] != 100
+            # Bogus request, but if the url is correct, you get error 102: "Error in URL Format"
+            return cv_response["status_code"] == 102
         except Exception:
             return False
 

@@ -15,7 +15,6 @@
 # limitations under the License.
 from __future__ import annotations
 
-import argparse
 import html
 import logging
 import os
@@ -26,6 +25,7 @@ from typing import Any
 import settngs
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
+import comictaggerlib.ui.talkeruigenerator
 from comicapi import utils
 from comicapi.genericmetadata import md_test
 from comictaggerlib.ctversion import version
@@ -190,6 +190,15 @@ class SettingsWindow(QtWidgets.QDialog):
         self.settings_to_form()
         self.rename_test()
         self.dir_test()
+        self.sources: dict = {}
+        self.sources = comictaggerlib.ui.talkeruigenerator.generate_source_option_tabs(
+            parent, self.tTalkerTabs, self.config, self.talkers
+        )
+        # Select active source in dropdown
+        self.cobxInfoSource.setCurrentIndex(self.cobxInfoSource.findData(self.config[0].talker_source))
+
+        # Set General as start tab
+        self.tabWidget.setCurrentIndex(0)
 
     def connect_signals(self) -> None:
         self.btnBrowseRar.clicked.connect(self.select_rar)
@@ -233,100 +242,6 @@ class SettingsWindow(QtWidgets.QDialog):
         self.leRenameTemplate.textEdited.disconnect()
         self.twLiteralReplacements.cellChanged.disconnect()
         self.twValueReplacements.cellChanged.disconnect()
-
-        self.sources: dict = {}
-        self.generate_source_option_tabs()
-
-    def generate_source_option_tabs(self) -> None:
-        def format_internal_name(int_name: str = "") -> str:
-            # Presume talker_<name>_<nm>
-            int_name_split = int_name.split("_")
-            del int_name_split[0:3]
-            int_name_split[0] = int_name_split[0].capitalize()
-            new_name = " ".join(int_name_split)
-            return new_name
-
-        # Add source sub tabs to Comic Sources tab
-        for talker_id, talker_obj in self.talkers.items():
-            # Add source to general tab dropdown list
-            self.cobxInfoSource.addItem(talker_obj.name, talker_id)
-
-            # Use a dict to make a var name from var
-            source_info = {}
-            tab_name = talker_id
-            source_info[tab_name] = {"tab": QtWidgets.QWidget(), "widgets": {}}
-            layout_grid = QtWidgets.QGridLayout()
-            row = 0
-
-            full_talker_name = "talker_" + talker_id
-            for option in self.config[1][full_talker_name][1].values():
-                current_widget = None
-                if option.action is not None and isinstance(option.action, type(argparse.BooleanOptionalAction)):
-                    # bool equals a checkbox (QCheckBox)
-                    current_widget = QtWidgets.QCheckBox(format_internal_name(option.internal_name))
-                    # Set widget status
-                    current_widget.setChecked(getattr(self.config[0], option.internal_name))
-                    # Add widget and span all columns
-                    layout_grid.addWidget(current_widget, row, 0, 1, -1)
-                elif isinstance(option.type, type(int)):
-                    # int equals a spinbox (QSpinBox)
-                    lbl = QtWidgets.QLabel(option.internal_name)
-                    # Create a label
-                    layout_grid.addWidget(lbl, row, 0)
-                    current_widget = QtWidgets.QSpinBox()
-                    current_widget.setRange(0, 9999)
-                    current_widget.setValue(getattr(self.config[0], option.internal_name))
-                    layout_grid.addWidget(current_widget, row, 1, alignment=QtCore.Qt.AlignLeft)
-                elif isinstance(option.type, type(float)):
-                    # float equals a spinbox (QDoubleSpinBox)
-                    lbl = QtWidgets.QLabel(format_internal_name(option.internal_name))
-                    # Create a label
-                    layout_grid.addWidget(lbl, row, 0)
-                    current_widget = QtWidgets.QDoubleSpinBox()
-                    current_widget.setRange(0, 9999.99)
-                    current_widget.setValue(getattr(self.config[0], option.internal_name))
-                    layout_grid.addWidget(current_widget, row, 1, alignment=QtCore.Qt.AlignLeft)
-                # type of None should be string
-                elif option.type is None or isinstance(option.type, type(str)):
-                    # str equals a text field (QLineEdit)
-                    lbl = QtWidgets.QLabel(format_internal_name(option.internal_name))
-                    # Create a label
-                    layout_grid.addWidget(lbl, row, 0)
-                    current_widget = QtWidgets.QLineEdit()
-                    # Set widget status
-                    current_widget.setText(getattr(self.config[0], option.internal_name))
-                    layout_grid.addWidget(current_widget, row, 1)
-                    # Special case for api_key, make a test button
-                    if option.internal_name.endswith("api_key"):
-                        btn = QtWidgets.QPushButton("Test Key")
-                        layout_grid.addWidget(btn, row, 2)
-                        btn.clicked.connect(lambda state, sn=talker_id: self.test_api_key(sn))
-                row += 1
-
-                if current_widget:
-                    # Add tooltip text
-                    current_widget.setToolTip(option.help)
-
-                    source_info[tab_name]["widgets"][option.internal_name] = current_widget
-                else:
-                    # An empty current_widget implies an unsupported type
-                    logger.info(f"Unsupported talker option found. Name: {option.internal_name} Type: {option.type}")
-
-            # Add vertical spacer
-            vspacer = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-            layout_grid.addItem(vspacer, row, 0)
-            # Display the new widgets
-            source_info[tab_name]["tab"].setLayout(layout_grid)
-
-            # Add new sub tab to Comic Source tab
-            self.tTalkerTabs.addTab(source_info[tab_name]["tab"], talker_obj.name)
-            self.sources.update(source_info)
-
-        # Select active source in dropdown
-        self.cobxInfoSource.setCurrentIndex(self.cobxInfoSource.findData(self.config[0].talker_source))
-
-        # Set General as start tab
-        self.tabWidget.setCurrentIndex(0)
 
     def addLiteralReplacement(self) -> None:
         self.insertRow(self.twLiteralReplacements, self.twLiteralReplacements.rowCount(), Replacement("", "", False))
@@ -542,7 +457,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.config[0].rename_strict = self.cbxRenameStrict.isChecked()
         self.config[0].rename_replacements = self.get_replacements()
 
-        # Read settings from sources tabs and generate self.settings.config data
+        # Read settings from sources tabs and generate self.config data
         for tab in self.sources.items():
             for name, widget in tab[1]["widgets"].items():
                 widget_value = None
@@ -573,21 +488,6 @@ class SettingsWindow(QtWidgets.QDialog):
         ImageFetcher(self.config[0].runtime_config.user_cache_dir).clear_cache()
         ComicCacher(self.config[0].runtime_config.user_cache_dir, version).clear_cache()
         QtWidgets.QMessageBox.information(self, self.name, "Cache has been cleared.")
-
-    def test_api_key(self, source_id) -> None:
-        # Find URL and API key
-        for tab in self.sources.items():
-            for name, widget in tab[1]["widgets"].items():
-                if tab[0] == source_id:
-                    if name.endswith("api_key"):
-                        key = widget.text().strip()
-                    if name.endswith("url"):
-                        url = widget.text().strip()
-
-        if self.talkers[source_id].check_api_key(key, url):
-            QtWidgets.QMessageBox.information(self, "API Key Test", "Key is valid!")
-        else:
-            QtWidgets.QMessageBox.warning(self, "API Key Test", "Key is NOT valid!")
 
     def reset_settings(self) -> None:
         self.config = settngs.get_namespace(settngs.defaults(self.config[1]))
