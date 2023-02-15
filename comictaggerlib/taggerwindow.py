@@ -1014,8 +1014,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
     def query_online(self, autoselect: bool = False, literal: bool = False) -> None:
         issue_number = str(self.leIssueNum.text()).strip()
 
-        # Only need this check is the source has issue level data.
-        if autoselect and issue_number == "":
+        # Only need this check if the source has issue level data.
+        if autoselect and issue_number == "" and self.current_talker().has_issues:
             QtWidgets.QMessageBox.information(
                 self, "Automatic Identify Search", "Can't auto-identify without an issue number (yet!)"
             )
@@ -1661,7 +1661,11 @@ class TaggerWindow(QtWidgets.QMainWindow):
         QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
 
         try:
-            ct_md = self.current_talker().fetch_comic_data(match["issue_id"])
+            if self.current_talker().has_issues:
+                ct_md = self.current_talker().fetch_comic_data(match["issue_id"])
+            else:
+                ct_md = self.current_talker().fetch_comic_data(series_id=match["series_id"])
+
         except TalkerError:
             logger.exception("Save aborted.")
 

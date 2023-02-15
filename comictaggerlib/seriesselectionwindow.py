@@ -195,6 +195,15 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         self.btnIssues.setEnabled(enabled)
         self.btnAutoSelect.setEnabled(enabled)
 
+        if self.talker.has_issues:
+            self.btnIssues.setEnabled(enabled)
+            self.btnAutoSelect.setEnabled(enabled)
+        else:
+            self.btnIssues.setEnabled(False)
+            self.btnIssues.setToolTip("Unsupported by " + self.talker.name)
+            self.btnAutoSelect.setEnabled(False)
+            self.btnAutoSelect.setToolTip("Unsupported by " + self.talker.name)
+
         self.buttonBox.button(QtWidgets.QDialogButtonBox.StandardButton.Ok).setEnabled(enabled)
 
     def requery(self) -> None:
@@ -210,36 +219,39 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
             QtWidgets.QMessageBox.information(self, "Auto-Select", "You need to load a comic first!")
             return
 
-        if self.issue_number is None or self.issue_number == "":
-            QtWidgets.QMessageBox.information(self, "Auto-Select", "Can't auto-select without an issue number (yet!)")
-            return
+        if self.talker.has_issues:
+            if not self.issue_number:
+                QtWidgets.QMessageBox.information(
+                    self, "Auto-Select", "Can't auto-select without an issue number (yet!)"
+                )
+                return
 
-        self.iddialog = IDProgressWindow(self)
-        self.iddialog.setModal(True)
-        self.iddialog.rejected.connect(self.identify_cancel)
-        self.iddialog.show()
+            self.iddialog = IDProgressWindow(self)
+            self.iddialog.setModal(True)
+            self.iddialog.rejected.connect(self.identify_cancel)
+            self.iddialog.show()
 
-        self.ii = IssueIdentifier(self.comic_archive, self.config, self.talker)
+            self.ii = IssueIdentifier(self.comic_archive, self.config, self.talker)
 
-        md = GenericMetadata()
-        md.series = self.series_name
-        md.issue = self.issue_number
-        md.year = self.year
-        md.issue_count = self.issue_count
+            md = GenericMetadata()
+            md.series = self.series_name
+            md.issue = self.issue_number
+            md.year = self.year
+            md.issue_count = self.issue_count
 
-        self.ii.set_additional_metadata(md)
-        self.ii.only_use_additional_meta_data = True
+            self.ii.set_additional_metadata(md)
+            self.ii.only_use_additional_meta_data = True
 
-        self.ii.cover_page_index = int(self.cover_index_list[0])
+            self.ii.cover_page_index = int(self.cover_index_list[0])
 
-        self.id_thread = IdentifyThread(self.ii)
-        self.id_thread.identifyComplete.connect(self.identify_complete)
-        self.id_thread.identifyLogMsg.connect(self.log_id_output)
-        self.id_thread.identifyProgress.connect(self.identify_progress)
+            self.id_thread = IdentifyThread(self.ii)
+            self.id_thread.identifyComplete.connect(self.identify_complete)
+            self.id_thread.identifyLogMsg.connect(self.log_id_output)
+            self.id_thread.identifyProgress.connect(self.identify_progress)
 
-        self.id_thread.start()
+            self.id_thread.start()
 
-        self.iddialog.exec()
+            self.iddialog.exec()
 
     def log_id_output(self, text: str) -> None:
         if self.iddialog is not None:
@@ -515,7 +527,11 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         self.auto_select()
 
     def cell_double_clicked(self, r: int, c: int) -> None:
-        self.show_issues()
+        if self.talker.has_issues:
+            self.show_issues()
+        else:
+            # Pass back to have taggerwindow get full series data
+            self.accept()
 
     def current_item_changed(self, curr: QtCore.QModelIndex | None, prev: QtCore.QModelIndex | None) -> None:
         if curr is None:

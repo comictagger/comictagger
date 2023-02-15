@@ -18,7 +18,7 @@ from __future__ import annotations
 import io
 import logging
 import sys
-from typing import Any, Callable
+from typing import Any, Callable, cast
 
 import settngs
 from typing_extensions import NotRequired, TypedDict
@@ -296,7 +296,7 @@ class IssueIdentifier:
                 primary_img_url, blocking=True
             )
         except ImageFetcherException as e:
-            self.log_msg("Network issue while fetching cover image from Comic Vine. Aborting...")
+            self.log_msg(f"Network issue while fetching cover image from {self.talker.name}. Aborting...")
             raise IssueIdentifierNetworkError from e
 
         if self.cancel:
@@ -318,7 +318,7 @@ class IssueIdentifier:
                         alt_url, blocking=True
                     )
                 except ImageFetcherException as e:
-                    self.log_msg("Network issue while fetching alt. cover image from Comic Vine. Aborting...")
+                    self.log_msg(f"Network issue while fetching alt. cover image from {self.talker.name}. Aborting...")
                     raise IssueIdentifierNetworkError from e
 
                 if self.cancel:
@@ -393,13 +393,20 @@ class IssueIdentifier:
         keys["issue_number"] = IssueString(keys["issue_number"]).as_string()
 
         # we need, at minimum, a series and issue number
-        if not (keys["series"] and keys["issue_number"]):
-            self.log_msg("Not enough info for a search!")
-            return []
+        # Unless this is a series only talker
+        if self.talker.has_issues:
+            if not (keys["series"] and keys["issue_number"]):
+                self.log_msg("Not enough info for a search!")
+                return []
+        else:
+            if not keys["series"]:
+                self.log_msg("Not enough info for a search!")
+                return []
 
         self.log_msg("Going to search for:")
         self.log_msg("\tSeries: " + keys["series"])
-        self.log_msg("\tIssue:  " + keys["issue_number"])
+        if keys["issue_number"]:
+            self.log_msg("\tIssue:  " + keys["issue_number"])
         if keys["issue_count"] is not None:
             self.log_msg("\tCount:  " + str(keys["issue_count"]))
         if keys["year"] is not None:
@@ -429,7 +436,7 @@ class IssueIdentifier:
 
             # remove any series that starts after the issue year
             if keys["year"] is not None and item.start_year is not None:
-                if keys["year"] < item.start_year:
+                if int(keys["year"]) < int(item.start_year):
                     date_approved = False
 
             for name in [item.name, *item.aliases]:
@@ -459,7 +466,7 @@ class IssueIdentifier:
         try:
             if len(series_by_id) > 0:
                 issue_list = self.talker.fetch_issues_by_series_issue_num_and_year(
-                    list(series_by_id.keys()), keys["issue_number"], keys["year"]
+                    list(series_by_id.keys()), cast(str, keys["issue_number"]), keys["year"]
                 )
         except TalkerError as e:
             self.log_msg(f"Issue with while searching for series details. Aborting...\n{e}")
@@ -523,7 +530,7 @@ class IssueIdentifier:
             match: IssueResult = {
                 "series": f"{series.name} ({series.start_year})",
                 "distance": score_item["score"],
-                "issue_number": keys["issue_number"],
+                "issue_number": cast(str, keys["issue_number"]),
                 "cv_issue_count": series.count_of_issues,
                 "url_image_hash": score_item["hash"],
                 "issue_title": issue.name,
