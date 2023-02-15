@@ -2,7 +2,7 @@
 #
 # Copyright 2012-2014 Anthony Beville
 #
-# Licensed under the Apache License, Version 2.0 (the "License;
+# Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
@@ -92,6 +92,7 @@ class ComicCacher:
                 + "image_url TEXT,"
                 + "aliases TEXT,"  # Newline separated
                 + "description TEXT,"
+                + "genres TEXT,"  # Newline separated. For filtering etc.
                 + "timestamp DATE DEFAULT (datetime('now','localtime')), "
                 + "source_name TEXT NOT NULL,"
                 + "PRIMARY KEY (id, source_name))"
@@ -117,6 +118,10 @@ class ComicCacher:
                 + "credits TEXT,"  # JSON: "{"name": "Bob Shakespeare", "role": "Writer"}"
                 + "teams TEXT,"  # Newline separated
                 + "story_arcs TEXT,"  # Newline separated
+                + "genres TEXT,"  # Newline separated
+                + "tags TEXT,"  # Newline separated
+                + "rating FLOAT,"
+                + "manga TEXT,"  # Yes/Yes (Right to Left)/No
                 + "complete BOOL,"  # Is the data complete? Includes characters, locations, credits.
                 + "PRIMARY KEY (id, source_name))"
             )
@@ -150,6 +155,7 @@ class ComicCacher:
                     "start_year": record.start_year,
                     "image_url": record.image_url,
                     "description": record.description,
+                    "genres": "\n".join(record.genres),
                     "timestamp": datetime.datetime.now(),
                     "aliases": "\n".join(record.aliases),
                 }
@@ -181,6 +187,7 @@ class ComicCacher:
                     image_url=record[9],
                     aliases=record[10].strip().splitlines(),
                     description=record[11],
+                    genres=record[12].strip().splitlines(),
                 )
 
                 results.append(result)
@@ -204,6 +211,7 @@ class ComicCacher:
                 "start_year": series_record.start_year,
                 "image_url": series_record.image_url,
                 "description": series_record.description,
+                "genres": "\n".join(series_record.genres),
                 "timestamp": timestamp,
                 "aliases": "\n".join(series_record.aliases),
             }
@@ -237,6 +245,10 @@ class ComicCacher:
                     "locations": "\n".join(issue.locations),
                     "teams": "\n".join(issue.teams),
                     "story_arcs": "\n".join(issue.story_arcs),
+                    "genres": "\n".join(issue.genres),
+                    "tags": "\n".join(issue.tags),
+                    "rating": issue.rating,
+                    "manga": issue.manga,
                     "credits": json.dumps([dataclasses.asdict(x) for x in issue.credits]),
                     "complete": issue.complete,
                 }
@@ -273,6 +285,7 @@ class ComicCacher:
                 image_url=row[5],
                 aliases=row[6].strip().splitlines(),
                 description=row[7],
+                genres=row[8].strip().splitlines(),
             )
 
         return result
@@ -283,6 +296,7 @@ class ComicCacher:
             id=series_id,
             name="",
             description="",
+            genres=[],
             image_url="",
             publisher="",
             start_year=None,
@@ -304,7 +318,7 @@ class ComicCacher:
 
             cur.execute(
                 (
-                    "SELECT source_name,id,name,issue_number,site_detail_url,cover_date,image_url,thumb_url,description,aliases,alt_image_urls,characters,locations,credits,teams,story_arcs,complete"
+                    "SELECT source_name,id,name,issue_number,site_detail_url,cover_date,image_url,thumb_url,description,aliases,alt_image_urls,characters,locations,credits,teams,story_arcs,genres,tags,rating,manga,complete"
                     " FROM Issues WHERE series_id=? AND source_name=?"
                 ),
                 [series_id, source_name],
@@ -335,7 +349,11 @@ class ComicCacher:
                     credits=credits,
                     teams=row[14].strip().splitlines(),
                     story_arcs=row[15].strip().splitlines(),
-                    complete=bool(row[16]),
+                    genres=row[16].strip().splitlines(),
+                    tags=row[17].strip().splitlines(),
+                    rating=row[18],
+                    manga=row[19],
+                    complete=bool(row[20]),
                 )
 
                 results.append(record)
@@ -355,7 +373,7 @@ class ComicCacher:
 
             cur.execute(
                 (
-                    "SELECT source_name,id,name,issue_number,site_detail_url,cover_date,image_url,description,aliases,series_id,alt_image_urls,characters,locations,credits,teams,story_arcs,complete"
+                    "SELECT source_name,id,name,issue_number,site_detail_url,cover_date,image_url,description,aliases,series_id,alt_image_urls,characters,locations,credits,teams,story_arcs,genres,tags,rating,manga,complete"
                     " FROM Issues WHERE id=? AND source_name=?"
                 ),
                 [issue_id, source_name],
@@ -370,6 +388,7 @@ class ComicCacher:
                     id=row[10],
                     name="",
                     description="",
+                    genres=[],
                     image_url="",
                     publisher="",
                     start_year=None,
@@ -395,7 +414,11 @@ class ComicCacher:
                     credits=json.loads(row[13]),
                     teams=row[14].strip().splitlines(),
                     story_arcs=row[15].strip().splitlines(),
-                    complete=bool(row[16]),
+                    genres=row[16].strip().splitlines(),
+                    tags=row[17].strip().splitlines(),
+                    rating=row[18],
+                    manga=row[19],
+                    complete=bool(row[20]),
                 )
 
             return record

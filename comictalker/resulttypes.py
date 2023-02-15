@@ -20,6 +20,7 @@ class ComicSeries:
     name: str
     publisher: str
     start_year: int | None
+    genres: list[str]
 
     def copy(self) -> ComicSeries:
         return copy.deepcopy(self)
@@ -33,6 +34,10 @@ class ComicIssue:
     id: str
     image_url: str
     issue_number: str
+    rating: float
+    manga: str
+    genres: list[str]
+    tags: list[str]
     name: str
     site_detail_url: str
     series: ComicSeries

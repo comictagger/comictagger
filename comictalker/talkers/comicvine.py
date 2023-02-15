@@ -507,6 +507,7 @@ class ComicVineTalker(ComicTalker):
                     name=record["name"],
                     publisher=pub_name,
                     start_year=start_year,
+                    genres=[],
                 )
             )
 
@@ -568,6 +569,10 @@ class ComicVineTalker(ComicTalker):
                     locations=location_list,
                     teams=teams_list,
                     story_arcs=story_list,
+                    rating=0,
+                    manga="",
+                    genres=[],
+                    tags=[],
                     credits=persons_list,
                     complete=complete,
                 )

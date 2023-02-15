@@ -72,6 +72,14 @@ def map_comic_issue_to_metadata(
         metadata.locations = ", ".join(issue_results.locations)
     if issue_results.story_arcs:
         metadata.story_arc = ", ".join(issue_results.story_arcs)
+    if issue_results.genres:
+        metadata.genre = ", ".join(issue_results.genres)
+    if issue_results.tags:
+        metadata.tags = set(issue_results.tags)
+    if issue_results.manga:
+        metadata.manga = issue_results.manga
+    if issue_results.rating:
+        metadata.critical_rating = issue_results.rating
 
     return metadata
 
