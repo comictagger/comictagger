@@ -110,6 +110,7 @@ class ComicTalker:
     logo_url: str = "https://example.com/logo.png"
     website: str = "https://example.com/"
     attribution: str = f"Metadata provided by <a href='{website}'>{name}</a>"
+    has_issues: bool = True
 
     def __init__(self, version: str, cache_folder: pathlib.Path) -> None:
         self.cache_folder = cache_folder

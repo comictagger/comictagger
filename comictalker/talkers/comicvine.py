@@ -159,6 +159,7 @@ class ComicVineTalker(ComicTalker):
     logo_url: str = "https://comicvine.gamespot.com/a/bundles/comicvinesite/images/logo.png"
     website: str = "https://comicvine.gamespot.com/"
     attribution: str = f"Metadata provided by <a href='{website}'>{name}</a>"
+    has_issues: bool = True
 
     def __init__(self, version: str, cache_folder: pathlib.Path):
         super().__init__(version, cache_folder)
