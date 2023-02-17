@@ -34,8 +34,10 @@ jobs:
 
       - name: Commit and push AUTHORS
         run: |
-          git pull
-          git config --global user.name "${{ env.CI_COMMIT_AUTHOR }}"
-          git config --global user.email "${{ env.CI_COMMIT_EMAIL }}"
-          git commit -a -m "${{ env.CI_COMMIT_MESSAGE }}"
-          git push
+          if ! git diff --exit-code; then
+            git pull
+            git config --global user.name "${{ env.CI_COMMIT_AUTHOR }}"
+            git config --global user.email "${{ env.CI_COMMIT_EMAIL }}"
+            git commit -a -m "${{ env.CI_COMMIT_MESSAGE }}"
+            git push
+          fi
