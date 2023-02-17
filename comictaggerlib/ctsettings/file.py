@@ -46,6 +46,12 @@ def identifier(parser: settngs.Manager) -> None:
         action=AppendAction,
         help="When enabled filters the listed publishers from all search results",
     )
+    parser.add_setting(
+        "--tpb-detection",
+        default=False,
+        action=argparse.BooleanOptionalAction,
+        help="Enables TPB detection. May stop comics not marked as a TPB in ComicVine from being found.",
+    )
 
 
 def dialog(parser: settngs.Manager) -> None:

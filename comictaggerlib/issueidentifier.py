@@ -48,6 +48,7 @@ class SearchKeys(TypedDict):
     month: int | None
     year: int | None
     issue_count: int | None
+    page_count: int | None
 
 
 class Score(TypedDict):
@@ -100,6 +101,8 @@ class IssueIdentifier:
 
         # used to eliminate unlikely publishers
         self.publisher_filter = [s.strip().casefold() for s in config.identifier_publisher_filter]
+
+        self.tpb_detection = config.identifier_tpb_detection
 
         self.additional_metadata = GenericMetadata()
         self.output_function: Callable[[str], None] = IssueIdentifier.default_write_output
@@ -224,6 +227,7 @@ class IssueIdentifier:
                 year=self.additional_metadata.year,
                 month=self.additional_metadata.month,
                 issue_count=self.additional_metadata.issue_count,
+                page_count=None,
             )
             return search_keys
 
@@ -260,6 +264,7 @@ class IssueIdentifier:
             year=working_md.year,
             month=working_md.month,
             issue_count=working_md.issue_count,
+            page_count=len(working_md.pages),
         )
 
         return search_keys
@@ -645,19 +650,33 @@ class IssueIdentifier:
                 self.match_list.remove(match_item)
 
         # One more test for the case choosing limited series first issue vs a trade with the same cover:
-        # if we have a given issue count > 1 and the series from CV has count==1, remove it from match list
-        if len(self.match_list) >= 2 and keys["issue_count"] is not None and keys["issue_count"] != 1:
-            new_list = []
-            for match in self.match_list:
-                if match["cv_issue_count"] != 1:
-                    new_list.append(match)
-                else:
-                    self.log_msg(
-                        f"Removing series {match['series']} [{match['series_id']}] from consideration (only 1 issue)"
-                    )
+        # if we have an issue count == 1 or a page count > 100, we only include TPBs
+        if len(self.match_list) >= 2 and (keys["issue_count"] is not None or keys["page_count"] is not None):
+            issue_count = keys["issue_count"] or 0
+            page_count = keys["page_count"] or 0
+            if issue_count == 1:
+                if self.tpb_detection and page_count > 100:
+                    new_list = []
+                    for match in self.match_list:
+                        if "tpb" in match["issue_title"].casefold():
+                            new_list.append(match)
+                        else:
+                            self.log_msg(
+                                f"Removing series {match['series']} [{match['series_id']}] from consideration (not a tpb)"
+                            )
+            # if we have a given issue count > 1 and the series from CV has count==1, remove it from match list
+            else:
+                new_list = []
+                for match in self.match_list:
+                    if match["cv_issue_count"] == 1:
+                        self.log_msg(
+                            f"Removing series {match['series']} [{match['series_id']}] from consideration (only 1 issue)"
+                        )
+                    else:
+                        new_list.append(match)
 
-            if len(new_list) > 0:
-                self.match_list = new_list
+                if len(new_list) > 0:
+                    self.match_list = new_list
 
         if len(self.match_list) == 1:
             self.log_msg("--------------------------------------------------------------------------")
