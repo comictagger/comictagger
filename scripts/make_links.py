@@ -4,7 +4,7 @@ Make some tree structures and symbolic links to comic files based on metadata
 organizing by date and series, in different trees
 """
 
-# Copyright 2012 Anthony Beville
+# Copyright 2012 ComicTagger Authors
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.

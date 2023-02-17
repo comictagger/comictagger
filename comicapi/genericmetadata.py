@@ -5,7 +5,7 @@ tagging schemes and databases, such as ComicVine or GCD.  This makes conversion
 possible, however lossy it might be
 
 """
-# Copyright 2012-2014 Anthony Beville
+# Copyright 2012-2014 ComicTagger Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
