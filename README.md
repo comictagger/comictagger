@@ -61,3 +61,9 @@ choco install comictagger
  2. Clone this repository `git clone https://github.com/comictagger/comictagger.git`
  3. `pip3 install -r requirements_dev.txt`
  7. `pip3 install .` or `pip3 install .[GUI]`
+
+
+## Contributors
+
+<!-- readme: beville,davide-romanini,collaborators,contributors -start -->
+<!-- readme: beville,davide-romanini,collaborators,contributors -end -->
