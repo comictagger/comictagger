@@ -2,7 +2,7 @@ name: Contributions
 on:
   push:
     branches:
-      - '**'
+      - 'develop'
     tags-ignore:
       - '**'
 
