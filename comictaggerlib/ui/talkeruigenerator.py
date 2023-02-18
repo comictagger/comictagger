@@ -15,7 +15,6 @@ def call_check_api_key(
     talker_id: str,
     sources_info: dict[str, QtWidgets.QWidget],
     talkers: dict[str, ComicTalker],
-    parent: QtWidgets.QWidget,
 ):
     key = ""
     # Find the correct widget to get the API key
@@ -24,16 +23,15 @@ def call_check_api_key(
             key = widget.text().strip()
 
     if talkers[talker_id].check_api_key(key):
-        QtWidgets.QMessageBox.information(parent, "API Key Test", "Key is valid!")
+        QtWidgets.QMessageBox.information(None, "API Key Test", "Key is valid!")
     else:
-        QtWidgets.QMessageBox.warning(parent, "API Key Test", "Key is NOT valid!")
+        QtWidgets.QMessageBox.warning(None, "API Key Test", "Key is NOT valid!")
 
 
 def call_check_api_url(
     talker_id: str,
     sources_info: dict[str, QtWidgets.QWidget],
     talkers: dict[str, ComicTalker],
-    parent: QtWidgets.QWidget,
 ):
     url = ""
     # Find the correct widget to get the URL key
@@ -42,29 +40,27 @@ def call_check_api_url(
             url = widget.text().strip()
 
     if talkers[talker_id].check_api_url(url):
-        QtWidgets.QMessageBox.information(parent, "API Key Test", "URL is valid!")
+        QtWidgets.QMessageBox.information(None, "API Key Test", "URL is valid!")
     else:
-        QtWidgets.QMessageBox.warning(parent, "API Key Test", "URL is NOT valid!")
+        QtWidgets.QMessageBox.warning(None, "API Key Test", "URL is NOT valid!")
 
 
-def test_api_key(
+def api_key_btn_connect(
     btn: QtWidgets.QPushButton,
     talker_id: str,
     sources_info: dict[str, QtWidgets.QWidget],
     talkers: dict[str, ComicTalker],
-    parent: QtWidgets.QWidget,
 ) -> None:
-    btn.clicked.connect(lambda: call_check_api_key(talker_id, sources_info, talkers, parent))
+    btn.clicked.connect(lambda: call_check_api_key(talker_id, sources_info, talkers))
 
 
-def test_api_url(
+def api_url_btn_connect(
     btn: QtWidgets.QPushButton,
     talker_id: str,
     sources_info: dict[str, QtWidgets.QWidget],
     talkers: dict[str, ComicTalker],
-    parent: QtWidgets.QWidget,
 ) -> None:
-    btn.clicked.connect(lambda: call_check_api_url(talker_id, sources_info, talkers, parent))
+    btn.clicked.connect(lambda: call_check_api_url(talker_id, sources_info, talkers))
 
 
 def format_internal_name(int_name: str = "") -> str:
@@ -77,12 +73,10 @@ def format_internal_name(int_name: str = "") -> str:
 
 
 def generate_checkbox(
-    option: settngs.Setting, value: bool, layout: QtWidgets.QGridLayout
+    option: settngs.Setting, layout: QtWidgets.QGridLayout
 ) -> tuple[QtWidgets.QGridLayout, QtWidgets.QCheckBox]:
     # bool equals a checkbox (QCheckBox)
     widget = QtWidgets.QCheckBox(format_internal_name(option.internal_name))
-    # Set widget status
-    widget.setChecked(value)
     # Add tooltip text
     widget.setToolTip(option.help)
     # Add widget and span all columns
@@ -101,7 +95,6 @@ def generate_spinbox(
         layout.addWidget(lbl, layout.rowCount() + 1, 0)
         widget = QtWidgets.QSpinBox()
         widget.setRange(0, 9999)
-        widget.setValue(value)
         widget.setToolTip(option.help)
         layout.addWidget(widget, layout.rowCount() - 1, 1, alignment=QtCore.Qt.AlignLeft)
 
@@ -112,7 +105,6 @@ def generate_spinbox(
         layout.addWidget(lbl, layout.rowCount() + 1, 0)
         widget = QtWidgets.QDoubleSpinBox()
         widget.setRange(0, 9999.99)
-        widget.setValue(value)
         widget.setToolTip(option.help)
         layout.addWidget(widget, layout.rowCount() - 1, 1, alignment=QtCore.Qt.AlignLeft)
 
@@ -120,7 +112,7 @@ def generate_spinbox(
 
 
 def generate_textbox(
-    option: settngs.Setting, value: str, layout: QtWidgets.QGridLayout
+    option: settngs.Setting, layout: QtWidgets.QGridLayout
 ) -> tuple[QtWidgets.QGridLayout, QtWidgets.QLineEdit, QtWidgets.QPushButton]:
     btn = None
     # str equals a text field (QLineEdit)
@@ -129,8 +121,6 @@ def generate_textbox(
     layout.addWidget(lbl, layout.rowCount() + 1, 0)
     widget = QtWidgets.QLineEdit()
     widget.setObjectName(option.internal_name)
-    # Set widget status
-    widget.setText(value)
     widget.setToolTip(option.help)
     layout.addWidget(widget, layout.rowCount() - 1, 1)
     # Special case for api_key, make a test button
@@ -145,8 +135,23 @@ def generate_textbox(
     return layout, widget, btn
 
 
+def settings_to_talker_form(sources: dict[str, QtWidgets.QWidget], config: settngs.Config[settngs.Namespace]):
+    for talker in sources.items():
+        for name, widget in talker[1]["widgets"].items():
+            value = getattr(config[0], name)
+            value_type = type(value)
+            try:
+                if value_type is str:
+                    widget.setText(value)
+                if value_type is int or value_type is float:
+                    widget.setValue(value)
+                if value_type is bool:
+                    widget.setChecked(value)
+            except Exception:
+                logger.debug("Failed to set value of %s", name)
+
+
 def generate_source_option_tabs(
-    parent: QtWidgets.QWidget,
     tabs: QtWidgets.QTabWidget,
     config: settngs.Config[settngs.Namespace],
     talkers: dict[str, ComicTalker],
@@ -156,11 +161,12 @@ def generate_source_option_tabs(
     """
 
     sources: dict = {}
+    cobxInfoSource = tabs.findChildren(QtWidgets.QComboBox, "cobxInfoSource")[0]
 
     # Add source sub tabs to Comic Sources tab
     for talker_id, talker_obj in talkers.items():
         # Add source to general tab dropdown list
-        tabs.findChildren(QtWidgets.QComboBox, "cobxInfoSource")[0].addItem(talker_obj.name, talker_id)
+        cobxInfoSource.addItem(talker_obj.name, talker_id)
 
         # Use a dict to make a var name from var
         source_info = {}
@@ -171,32 +177,29 @@ def generate_source_option_tabs(
         for option in config[1][f"talker_{talker_id}"][1].values():
             current_widget = None
             if option.action is not None and (
-                isinstance(option.action, type(argparse.BooleanOptionalAction))
+                option.action is argparse.BooleanOptionalAction
+                or option.action is bool
                 or option.action == "store_true"
                 or option.action == "store_false"
             ):
-                layout_grid, current_widget = generate_checkbox(
-                    option, getattr(config[0], option.internal_name), layout_grid
-                )
+                layout_grid, current_widget = generate_checkbox(option, layout_grid)
                 source_info[tab_name]["widgets"][option.internal_name] = current_widget
-            elif isinstance(option.type, type(int)) or isinstance(option.type, type(float)):
+            elif option.type is int or option.type is float:
                 layout_grid, current_widget = generate_spinbox(
                     option, getattr(config[0], option.internal_name), layout_grid
                 )
                 source_info[tab_name]["widgets"][option.internal_name] = current_widget
             # option.type of None should be string
-            elif option.type is None or isinstance(option.type, type(str)):
-                layout_grid, current_widget, btn = generate_textbox(
-                    option, getattr(config[0], option.internal_name), layout_grid
-                )
+            elif option.type is None or option.type is str:
+                layout_grid, current_widget, btn = generate_textbox(option, layout_grid)
                 source_info[tab_name]["widgets"][option.internal_name] = current_widget
 
                 if option.internal_name.endswith("key"):
                     # Attach test api function to button. A better way?
-                    test_api_key(btn, talker_id, source_info, talkers, parent)
+                    api_key_btn_connect(btn, talker_id, source_info, talkers)
                 if option.internal_name.endswith("url"):
                     # Attach test api function to button. A better way?
-                    test_api_url(btn, talker_id, source_info, talkers, parent)
+                    api_url_btn_connect(btn, talker_id, source_info, talkers)
             else:
                 logger.debug(f"Unsupported talker option found. Name: {option.internal_name} Type: {option.type}")
 

@@ -186,16 +186,13 @@ class SettingsWindow(QtWidgets.QDialog):
         self.leRenameTemplate.setToolTip(f"<pre>{html.escape(template_tooltip)}</pre>")
         self.rename_error: Exception | None = None
 
+        self.sources: dict = comictaggerlib.ui.talkeruigenerator.generate_source_option_tabs(
+            self.tTalkerTabs, self.config, self.talkers
+        )
         self.connect_signals()
         self.settings_to_form()
         self.rename_test()
         self.dir_test()
-        self.sources: dict = {}
-        self.sources = comictaggerlib.ui.talkeruigenerator.generate_source_option_tabs(
-            parent, self.tTalkerTabs, self.config, self.talkers
-        )
-        # Select active source in dropdown
-        self.cobxInfoSource.setCurrentIndex(self.cobxInfoSource.findData(self.config[0].talker_source))
 
         # Set General as start tab
         self.tabWidget.setCurrentIndex(0)
@@ -351,6 +348,13 @@ class SettingsWindow(QtWidgets.QDialog):
                 table.removeRow(i)
             for row, replacement in enumerate(replacments):
                 self.insertRow(table, row, replacement)
+
+        # Set talker values
+        comictaggerlib.ui.talkeruigenerator.settings_to_talker_form(self.sources, self.config)
+
+        # Select active source in dropdown
+        self.cobxInfoSource.setCurrentIndex(self.cobxInfoSource.findData(self.config[0].talker_source))
+
         self.connect_signals()
 
     def get_replacements(self) -> Replacements:
