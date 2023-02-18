@@ -142,7 +142,11 @@ def settings_to_talker_form(sources: dict[str, QtWidgets.QWidget], config: settn
             value_type = type(value)
             try:
                 if value_type is str:
-                    widget.setText(value)
+                    # Special case for general dropdown box
+                    if name == "talker_source":
+                        widget.setCurrentIndex(widget.findData(config[0].talker_source))
+                    else:
+                        widget.setText(value)
                 if value_type is int or value_type is float:
                     widget.setValue(value)
                 if value_type is bool:
@@ -161,15 +165,28 @@ def generate_source_option_tabs(
     """
 
     sources: dict = {}
-    cobxInfoSource = tabs.findChildren(QtWidgets.QComboBox, "cobxInfoSource")[0]
+    # Use a dict to make a var name from var
+    source_info = {}
+
+    # Add General tab
+    source_info["general"] = {"tab": QtWidgets.QWidget(), "widgets": {}}
+    general_layout = QtWidgets.QGridLayout()
+    lbl_info = QtWidgets.QLabel("Information Source:")
+    cbx_info = QtWidgets.QComboBox()
+    general_layout.addWidget(lbl_info, 0, 0, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Maximum)
+    general_layout.addWidget(cbx_info, 0, 1, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Maximum)
+    vspacer = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+    general_layout.addItem(vspacer, 1, 0)
+    source_info["general"]["widgets"]["talker_source"] = cbx_info
+
+    source_info["general"]["tab"].setLayout(general_layout)
+    tabs.addTab(source_info["general"]["tab"], "General")
 
     # Add source sub tabs to Comic Sources tab
     for talker_id, talker_obj in talkers.items():
         # Add source to general tab dropdown list
-        cobxInfoSource.addItem(talker_obj.name, talker_id)
+        source_info["general"]["widgets"]["talker_source"].addItem(talker_obj.name, talker_id)
 
-        # Use a dict to make a var name from var
-        source_info = {}
         tab_name = talker_id
         source_info[tab_name] = {"tab": QtWidgets.QWidget(), "widgets": {}}
         layout_grid = QtWidgets.QGridLayout()

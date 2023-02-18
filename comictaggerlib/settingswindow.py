@@ -306,7 +306,7 @@ class SettingsWindow(QtWidgets.QDialog):
         else:
             self.leRarExePath.setEnabled(False)
         self.sbNameMatchIdentifyThresh.setValue(self.config[0].identifier_series_match_identify_thresh)
-        self.sbNameMatchSearchThresh.setValue(self.config[0].talker_series_match_search_thresh)
+        self.sbNameMatchSearchThresh.setValue(self.config[0].identifier_series_match_search_thresh)
         self.tePublisherFilter.setPlainText("\n".join(self.config[0].identifier_publisher_filter))
 
         self.cbxCheckForNewVersion.setChecked(self.config[0].general_check_for_new_version)
@@ -317,10 +317,10 @@ class SettingsWindow(QtWidgets.QDialog):
         self.cbxRemovePublisher.setChecked(self.config[0].filename_remove_publisher)
         self.switch_parser()
 
-        self.cbxClearFormBeforePopulating.setChecked(self.config[0].talker_clear_form_before_populating)
-        self.cbxUseFilter.setChecked(self.config[0].talker_always_use_publisher_filter)
-        self.cbxSortByYear.setChecked(self.config[0].talker_sort_series_by_year)
-        self.cbxExactMatches.setChecked(self.config[0].talker_exact_series_matches_first)
+        self.cbxClearFormBeforePopulating.setChecked(self.config[0].identifier_clear_form_before_populating)
+        self.cbxUseFilter.setChecked(self.config[0].identifier_always_use_publisher_filter)
+        self.cbxSortByYear.setChecked(self.config[0].identifier_sort_series_by_year)
+        self.cbxExactMatches.setChecked(self.config[0].identifier_exact_series_matches_first)
 
         self.cbxAssumeLoneCreditIsPrimary.setChecked(self.config[0].cbl_assume_lone_credit_is_primary)
         self.cbxCopyCharactersToTags.setChecked(self.config[0].cbl_copy_characters_to_tags)
@@ -351,9 +351,6 @@ class SettingsWindow(QtWidgets.QDialog):
 
         # Set talker values
         comictaggerlib.ui.talkeruigenerator.settings_to_talker_form(self.sources, self.config)
-
-        # Select active source in dropdown
-        self.cobxInfoSource.setCurrentIndex(self.cobxInfoSource.findData(self.config[0].talker_source))
 
         self.connect_signals()
 
@@ -424,7 +421,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.config[0].general_check_for_new_version = self.cbxCheckForNewVersion.isChecked()
 
         self.config[0].identifier_series_match_identify_thresh = self.sbNameMatchIdentifyThresh.value()
-        self.config[0].talker_series_match_search_thresh = self.sbNameMatchSearchThresh.value()
+        self.config[0].identifier_series_match_search_thresh = self.sbNameMatchSearchThresh.value()
         self.config[0].identifier_publisher_filter = [
             x.strip() for x in str(self.tePublisherFilter.toPlainText()).splitlines() if x.strip()
         ]
@@ -434,12 +431,10 @@ class SettingsWindow(QtWidgets.QDialog):
         self.config[0].filename_remove_fcbd = self.cbxRemoveFCBD.isChecked()
         self.config[0].filename_remove_publisher = self.cbxRemovePublisher.isChecked()
 
-        self.config[0].talker_clear_form_before_populating = self.cbxClearFormBeforePopulating.isChecked()
-        self.config[0].talker_always_use_publisher_filter = self.cbxUseFilter.isChecked()
-        self.config[0].talker_sort_series_by_year = self.cbxSortByYear.isChecked()
-        self.config[0].talker_exact_series_matches_first = self.cbxExactMatches.isChecked()
-
-        self.config[0].talker_source = str(self.cobxInfoSource.itemData(self.cobxInfoSource.currentIndex()))
+        self.config[0].identifier_clear_form_before_populating = self.cbxClearFormBeforePopulating.isChecked()
+        self.config[0].identifier_always_use_publisher_filter = self.cbxUseFilter.isChecked()
+        self.config[0].identifier_sort_series_by_year = self.cbxSortByYear.isChecked()
+        self.config[0].identifier_exact_series_matches_first = self.cbxExactMatches.isChecked()
 
         self.config[0].cbl_assume_lone_credit_is_primary = self.cbxAssumeLoneCreditIsPrimary.isChecked()
         self.config[0].cbl_copy_characters_to_tags = self.cbxCopyCharactersToTags.isChecked()
@@ -471,6 +466,9 @@ class SettingsWindow(QtWidgets.QDialog):
                     widget_value = widget.text().strip()
                 elif isinstance(widget, QtWidgets.QCheckBox):
                     widget_value = widget.isChecked()
+                # The talker source dropdown
+                elif isinstance(widget, QtWidgets.QComboBox):
+                    widget_value = widget.itemData(widget.currentIndex())
 
                 setattr(self.config[0], name, widget_value)
 
