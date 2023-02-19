@@ -187,7 +187,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.rename_error: Exception | None = None
 
         self.sources: dict = comictaggerlib.ui.talkeruigenerator.generate_source_option_tabs(
-            self.tTalkerTabs, self.config, self.talkers
+            self.tComicTalkers, self.config, self.talkers
         )
         self.connect_signals()
         self.settings_to_form()
@@ -456,21 +456,8 @@ class SettingsWindow(QtWidgets.QDialog):
         self.config[0].rename_strict = self.cbxRenameStrict.isChecked()
         self.config[0].rename_replacements = self.get_replacements()
 
-        # Read settings from sources tabs and generate self.config data
-        for tab in self.sources.items():
-            for name, widget in tab[1]["widgets"].items():
-                widget_value = None
-                if isinstance(widget, (QtWidgets.QSpinBox, QtWidgets.QDoubleSpinBox)):
-                    widget_value = widget.value()
-                elif isinstance(widget, QtWidgets.QLineEdit):
-                    widget_value = widget.text().strip()
-                elif isinstance(widget, QtWidgets.QCheckBox):
-                    widget_value = widget.isChecked()
-                # The talker source dropdown
-                elif isinstance(widget, QtWidgets.QComboBox):
-                    widget_value = widget.itemData(widget.currentIndex())
-
-                setattr(self.config[0], name, widget_value)
+        # Read settings from talker tabs
+        comictaggerlib.ui.talkeruigenerator.form_settings_to_config(self.sources, self.config)
 
         self.update_talkers_config()
 

@@ -340,15 +340,7 @@
         <attribute name="title">
          <string>Comic Sources</string>
         </attribute>
-        <layout class="QVBoxLayout" name="verticalLayout_4">
-         <item>
-          <widget class="QTabWidget" name="tTalkerTabs">
-           <property name="currentIndex">
-            <number>-1</number>
-           </property>
-          </widget>
-         </item>
-        </layout>
+        <layout class="QVBoxLayout" name="verticalLayout_4"/>
        </widget>
        <widget class="QWidget" name="tCBL">
         <attribute name="title">
