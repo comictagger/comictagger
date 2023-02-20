@@ -8,7 +8,7 @@ pycountry
 #pyicu; sys_platform == 'linux' or sys_platform == 'darwin'
 rapidfuzz>=2.12.0
 requests==2.*
-settngs==0.5.0
+settngs==0.6.2
 text2digits
 typing_extensions
 wordninja

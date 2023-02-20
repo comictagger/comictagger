@@ -181,16 +181,29 @@ class ComicVineTalker(ComicTalker):
         self.wait_on_ratelimit_time: int = 20
 
     def register_settings(self, parser: settngs.Manager) -> None:
-        parser.add_setting("--cv-use-series-start-as-volume", default=False, action=argparse.BooleanOptionalAction)
-        parser.add_setting("--cv-wait-on-ratelimit", default=False, action=argparse.BooleanOptionalAction)
+        parser.add_setting(
+            "--cv-use-series-start-as-volume",
+            default=False,
+            action=argparse.BooleanOptionalAction,
+            display_name="Use series start as volume",
+            help="Use the series start year as the volume number",
+        )
+        parser.add_setting(
+            "--cv-wait-on-ratelimit",
+            default=False,
+            action=argparse.BooleanOptionalAction,
+            display_name="Wait on ratelimit",
+            help="Wait when the rate limit is hit",
+        )
         parser.add_setting(
             "--cv-remove-html-tables",
             default=False,
             action=argparse.BooleanOptionalAction,
-            help="Removes html tables instead of converting them to text.",
+            display_name="Remove HTML tables",
+            help="Removes html tables instead of converting them to text",
         )
-        parser.add_setting("--cv-api-key", help="Use the given Comic Vine API Key.")
-        parser.add_setting("--cv-url", help="Use the given Comic Vine URL.")
+        parser.add_setting("--cv-api-key", display_name="API Key", help="Use the given Comic Vine API Key")
+        parser.add_setting("--cv-url", display_name="URL", help="Use the given Comic Vine URL")
 
     def parse_settings(self, settings: dict[str, Any]) -> dict[str, Any]:
         if settings["cv_api_key"]:
