@@ -7,6 +7,7 @@ import comictaggerlib.ui.talkeruigenerator
 test_names = [
     ("cv_test_name", "Test name"),
     ("cv2_test_name", "Test name"),
+    ("mu_use_this_test", "Use this test"),
 ]
 
 
