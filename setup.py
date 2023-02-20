@@ -66,6 +66,9 @@ setup(
             "rar = comicapi.archivers.rar:RarArchiver",
             "folder = comicapi.archivers.folder:FolderArchiver",
         ],
+        "comictagger.talkers": [
+            "comicvine = comictalker.talkers.comicvine:ComicVineTalker",
+        ],
     },
     classifiers=[
         "Development Status :: 4 - Beta",
