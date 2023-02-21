@@ -26,13 +26,16 @@ def get_talkers(version: str, cache: pathlib.Path) -> dict[str, ComicTalker]:
     """Returns all comic talker instances"""
     talkers: dict[str, ComicTalker] = {}
 
-    for talker in entry_points(group="comictagger.talkers"):
+    for talker in entry_points(group="comictagger.talker"):
         try:
             talker_cls = talker.load()
             obj = talker_cls(version, cache)
-            talkers[obj.id] = obj
+            if obj.id != talker.name:
+                logger.error("Talker ID must be the same as the entry point name")
+                continue
+            talkers[talker.name] = obj
+
         except Exception:
             logger.exception("Failed to load talker: %s", talker.name)
-            raise TalkerError(source=talker.name, code=4, desc="Failed to initialise talker")
 
     return talkers

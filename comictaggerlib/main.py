@@ -119,6 +119,15 @@ class App:
         # config already loaded
         error = None
 
+        talkers = ctsettings.talkers
+        del ctsettings.talkers
+
+        if len(talkers) < 1:
+            error = error = (
+                f"Failed to load any talkers, please re-install and check the log located in '{self.config[0].runtime_config.user_log_dir}' for more details",
+                True,
+            )
+
         signal.signal(signal.SIGINT, signal.SIG_DFL)
 
         logger.debug("Installed Packages")
@@ -134,7 +143,10 @@ class App:
 
         # manage the CV API key
         # None comparison is used so that the empty string can unset the value
-        if self.config[0].talker_comicvine_cv_api_key is not None or self.config[0].talker_comicvine_cv_url is not None:
+        if not error and (
+            self.config[0].talker_comicvine_comicvine_key is not None
+            or self.config[0].talker_comicvine_comicvine_url is not None
+        ):
             settings_path = self.config[0].runtime_config.user_config_dir / "settings.json"
             if self.config_load_success:
                 self.manager.save_file(self.config[0], settings_path)
@@ -149,9 +161,6 @@ class App:
                 f"Failed to load settings, check the log located in '{self.config[0].runtime_config.user_log_dir}' for more details",
                 True,
             )
-
-        talkers = ctsettings.talkers
-        del ctsettings.talkers
 
         if self.config[0].runtime_no_gui:
             if error and error[1]:

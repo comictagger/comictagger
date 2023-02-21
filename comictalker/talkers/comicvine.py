@@ -22,7 +22,7 @@ import logging
 import pathlib
 import time
 from typing import Any, Callable, Generic, TypeVar
-from urllib.parse import urljoin, urlsplit
+from urllib.parse import urljoin
 
 import requests
 import settngs
@@ -156,33 +156,36 @@ CV_STATUS_RATELIMIT = 107
 class ComicVineTalker(ComicTalker):
     name: str = "Comic Vine"
     id: str = "comicvine"
-    logo_url: str = "https://comicvine.gamespot.com/a/bundles/comicvinesite/images/logo.png"
-    website: str = "https://comicvine.gamespot.com/"
+    website: str = "https://comicvine.gamespot.com"
+    logo_url: str = f"{website}/a/bundles/comicvinesite/images/logo.png"
     attribution: str = f"Metadata provided by <a href='{website}'>{name}</a>"
 
     def __init__(self, version: str, cache_folder: pathlib.Path):
         super().__init__(version, cache_folder)
         # Default settings
-        self.api_url: str = "https://comicvine.gamespot.com/api"
-        self.api_key: str = "27431e6787042105bd3e47e169a624521f89f3a4"
+        self.default_api_url = self.api_url = f"{self.website}/api/"
+        self.default_api_key = self.api_key = "27431e6787042105bd3e47e169a624521f89f3a4"
         self.remove_html_tables: bool = False
         self.use_series_start_as_volume: bool = False
         self.wait_on_ratelimit: bool = False
-
-        tmp_url = urlsplit(self.api_url)
-
-        # joinurl only works properly if there is a trailing slash
-        if tmp_url.path and tmp_url.path[-1] != "/":
-            tmp_url = tmp_url._replace(path=tmp_url.path + "/")
-
-        self.api_url = tmp_url.geturl()
 
         # NOTE: This was hardcoded before which is why it isn't in settings
         self.wait_on_ratelimit_time: int = 20
 
     def register_settings(self, parser: settngs.Manager) -> None:
-        parser.add_setting("--cv-api-key", help="Use the given Comic Vine API Key.")
-        parser.add_setting("--cv-url", help="Use the given Comic Vine URL.")
+        # The empty string being the default allows this setting to be unset, allowing the default to change
+        parser.add_setting(
+            f"--{self.id}-key",
+            default="",
+            display_name="API Key",
+            help=f"Use the given Comic Vine API Key. (default: {self.default_api_key})",
+        )
+        parser.add_setting(
+            f"--{self.id}-url",
+            default="",
+            display_name="API URL",
+            help=f"Use the given Comic Vine URL. (default: {self.default_api_url})",
+        )
         parser.add_setting("--cv-use-series-start-as-volume", default=False, action=argparse.BooleanOptionalAction)
         parser.add_setting("--cv-wait-on-ratelimit", default=False, action=argparse.BooleanOptionalAction)
         parser.add_setting(
@@ -193,35 +196,24 @@ class ComicVineTalker(ComicTalker):
         )
 
     def parse_settings(self, settings: dict[str, Any]) -> dict[str, Any]:
-        if settings["cv_api_key"]:
-            self.api_key = settings["cv_api_key"]
-        if settings["cv_url"]:
-            tmp_url = urlsplit(settings["cv_url"])
-            # joinurl only works properly if there is a trailing slash
-            if tmp_url.path and tmp_url.path[-1] != "/":
-                tmp_url = tmp_url._replace(path=tmp_url.path + "/")
-
-            self.api_url = tmp_url.geturl()
+        settings = super().parse_settings(settings)
 
         self.use_series_start_as_volume = settings["cv_use_series_start_as_volume"]
         self.wait_on_ratelimit = settings["cv_wait_on_ratelimit"]
         self.remove_html_tables = settings["cv_remove_html_tables"]
-        return settngs
+        return settings
 
     def check_api_key(self, key: str, url: str) -> bool:
+        url = talker_utils.fix_url(url)
         if not url:
-            url = self.api_url
+            url = self.default_api_url
         try:
-            tmp_url = urlsplit(url)
-            if tmp_url.path and tmp_url.path[-1] != "/":
-                tmp_url = tmp_url._replace(path=tmp_url.path + "/")
-            url = tmp_url.geturl()
             test_url = urljoin(url, "issue/1/")
 
             cv_response: CVResult = requests.get(
                 test_url,
                 headers={"user-agent": "comictagger/" + self.version},
-                params={"api_key": key, "format": "json", "field_list": "name"},
+                params={"api_key": key or self.default_api_key, "format": "json", "field_list": "name"},
             ).json()
 
             # Bogus request, but if the key is wrong, you get error 100: "Invalid API Key"

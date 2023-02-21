@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import logging
 import re
+from urllib.parse import urlsplit
 
 from bs4 import BeautifulSoup
 
@@ -24,6 +25,14 @@ from comicapi.issuestring import IssueString
 from comictalker.resulttypes import ComicIssue
 
 logger = logging.getLogger(__name__)
+
+
+def fix_url(url: str) -> str:
+    tmp_url = urlsplit(url)
+    # joinurl only works properly if there is a trailing slash
+    if tmp_url.path and tmp_url.path[-1] != "/":
+        tmp_url = tmp_url._replace(path=tmp_url.path + "/")
+    return tmp_url.geturl()
 
 
 def map_comic_issue_to_metadata(

@@ -236,7 +236,7 @@ def register_commands(parser: settngs.Manager) -> None:
 
 def register_commandline_settings(parser: settngs.Manager) -> None:
     parser.add_group("commands", register_commands, True)
-    parser.add_group("runtime", register_settings)
+    parser.add_persistent_group("runtime", register_settings)
 
 
 def validate_commandline_settings(

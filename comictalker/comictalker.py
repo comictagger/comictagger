@@ -21,6 +21,7 @@ import settngs
 
 from comicapi.genericmetadata import GenericMetadata
 from comictalker.resulttypes import ComicIssue, ComicSeries
+from comictalker.talker_utils import fix_url
 
 logger = logging.getLogger(__name__)
 
@@ -107,15 +108,15 @@ class ComicTalker:
 
     name: str = "Example"
     id: str = "example"
-    logo_url: str = "https://example.com/logo.png"
-    website: str = "https://example.com/"
+    website: str = "https://example.com"
+    logo_url: str = f"{website}/logo.png"
     attribution: str = f"Metadata provided by <a href='{website}'>{name}</a>"
 
     def __init__(self, version: str, cache_folder: pathlib.Path) -> None:
         self.cache_folder = cache_folder
         self.version = version
-        self.api_key: str = ""
-        self.api_url: str = ""
+        self.api_key = self.default_api_key = ""
+        self.api_url = self.default_api_url = ""
 
     def register_settings(self, parser: settngs.Manager) -> None:
         """Allows registering settings using the settngs package with an argparse like interface"""
@@ -126,6 +127,15 @@ class ComicTalker:
         settings is a dictionary of settings defined in register_settings.
         It is only guaranteed that the settings defined in register_settings will be present.
         """
+        if settings[f"{self.id}_key"]:
+            self.api_key = settings[f"{self.id}_key"]
+        if settings[f"{self.id}_url"]:
+            self.api_url = fix_url(settings[f"{self.id}_url"])
+
+        if self.api_key == "":
+            self.api_key = self.default_api_key
+        if self.api_url == "":
+            self.api_url = self.default_api_url
         return settings
 
     def check_api_key(self, key: str, url: str) -> bool:
