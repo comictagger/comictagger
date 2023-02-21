@@ -201,7 +201,7 @@ def generate_source_option_tabs(
             current_widget = None
             if option.action is not None and (
                 option.action is argparse.BooleanOptionalAction
-                or option.action is bool
+                or option.type is bool
                 or option.action == "store_true"
                 or option.action == "store_false"
             ):
@@ -214,7 +214,7 @@ def generate_source_option_tabs(
                 current_widget = generate_doublespinbox(option, layout_grid)
                 sources["tabs"][tab_name]["widgets"][option.internal_name] = current_widget
             # option.type of None should be string
-            elif option.type is None or option.type is str:
+            elif (option.type is None and option.action is None) or option.type is str:
                 current_widget, btn = generate_textbox(option, layout_grid)
                 sources["tabs"][tab_name]["widgets"][option.internal_name] = current_widget
 
