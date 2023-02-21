@@ -108,7 +108,7 @@ def generate_textbox(
     layout.addWidget(widget, row, 1)
 
     # Special case for api_key, make a test button
-    if option.internal_name.endswith("api_key"):
+    if option.internal_name.endswith("key"):
         btn = QtWidgets.QPushButton("Test Key")
         layout.addWidget(btn, row, 2)
 
