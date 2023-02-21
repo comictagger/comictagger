@@ -4,7 +4,7 @@ Display cover images from either a local archive, or from Comic Vine.
 TODO: This should be re-factored using subclasses!
 """
 #
-# Copyright 2012-2014 Anthony Beville
+# Copyright 2012-2014 ComicTagger Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.

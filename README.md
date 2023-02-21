@@ -61,3 +61,112 @@ choco install comictagger
  2. Clone this repository `git clone https://github.com/comictagger/comictagger.git`
  3. `pip3 install -r requirements_dev.txt`
  7. `pip3 install .` or `pip3 install .[GUI]`
+
+
+## Contributors
+
+<!-- readme: beville,davide-romanini,collaborators,contributors -start -->
+<table>
+<tr>
+    <td align="center">
+        <a href="https://github.com/beville">
+            <img src="https://avatars.githubusercontent.com/u/7294848?v=4" width="100;" alt="beville"/>
+            <br />
+            <sub><b>beville</b></sub>
+        </a>
+    </td>
+    <td align="center">
+        <a href="https://github.com/davide-romanini">
+            <img src="https://avatars.githubusercontent.com/u/731199?v=4" width="100;" alt="davide-romanini"/>
+            <br />
+            <sub><b>davide-romanini</b></sub>
+        </a>
+    </td>
+    <td align="center">
+        <a href="https://github.com/mizaki">
+            <img src="https://avatars.githubusercontent.com/u/1141189?v=4" width="100;" alt="mizaki"/>
+            <br />
+            <sub><b>mizaki</b></sub>
+        </a>
+    </td>
+    <td align="center">
+        <a href="https://github.com/lordwelch">
+            <img src="https://avatars.githubusercontent.com/u/7547075?v=4" width="100;" alt="lordwelch"/>
+            <br />
+            <sub><b>lordwelch</b></sub>
+        </a>
+    </td>
+    <td align="center">
+        <a href="https://github.com/MichaelFitzurka">
+            <img src="https://avatars.githubusercontent.com/u/27830765?v=4" width="100;" alt="MichaelFitzurka"/>
+            <br />
+            <sub><b>MichaelFitzurka</b></sub>
+        </a>
+    </td>
+    <td align="center">
+        <a href="https://github.com/fcanc">
+            <img src="https://avatars.githubusercontent.com/u/4999486?v=4" width="100;" alt="fcanc"/>
+            <br />
+            <sub><b>fcanc</b></sub>
+        </a>
+    </td></tr>
+<tr>
+    <td align="center">
+        <a href="https://github.com/abuchanan920">
+            <img src="https://avatars.githubusercontent.com/u/368793?v=4" width="100;" alt="abuchanan920"/>
+            <br />
+            <sub><b>abuchanan920</b></sub>
+        </a>
+    </td>
+    <td align="center">
+        <a href="https://github.com/AlbanSeurat">
+            <img src="https://avatars.githubusercontent.com/u/500180?v=4" width="100;" alt="AlbanSeurat"/>
+            <br />
+            <sub><b>AlbanSeurat</b></sub>
+        </a>
+    </td>
+    <td align="center">
+        <a href="https://github.com/rhaussmann">
+            <img src="https://avatars.githubusercontent.com/u/7084007?v=4" width="100;" alt="rhaussmann"/>
+            <br />
+            <sub><b>rhaussmann</b></sub>
+        </a>
+    </td>
+    <td align="center">
+        <a href="https://github.com/jpcranford">
+            <img src="https://avatars.githubusercontent.com/u/21347202?v=4" width="100;" alt="jpcranford"/>
+            <br />
+            <sub><b>jpcranford</b></sub>
+        </a>
+    </td>
+    <td align="center">
+        <a href="https://github.com/PawlakMarek">
+            <img src="https://avatars.githubusercontent.com/u/26022173?v=4" width="100;" alt="PawlakMarek"/>
+            <br />
+            <sub><b>PawlakMarek</b></sub>
+        </a>
+    </td>
+    <td align="center">
+        <a href="https://github.com/Xav83">
+            <img src="https://avatars.githubusercontent.com/u/6787157?v=4" width="100;" alt="Xav83"/>
+            <br />
+            <sub><b>Xav83</b></sub>
+        </a>
+    </td></tr>
+<tr>
+    <td align="center">
+        <a href="https://github.com/thFrgttn">
+            <img src="https://avatars.githubusercontent.com/u/39759781?v=4" width="100;" alt="thFrgttn"/>
+            <br />
+            <sub><b>thFrgttn</b></sub>
+        </a>
+    </td>
+    <td align="center">
+        <a href="https://github.com/tlc">
+            <img src="https://avatars.githubusercontent.com/u/19436?v=4" width="100;" alt="tlc"/>
+            <br />
+            <sub><b>tlc</b></sub>
+        </a>
+    </td></tr>
+</table>
+<!-- readme: beville,davide-romanini,collaborators,contributors -end -->

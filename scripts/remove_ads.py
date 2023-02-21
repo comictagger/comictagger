@@ -5,7 +5,7 @@ and deleted. Walks recursively through the given folders.  Originals
 are kept in a sub-folder at the level of the original
 """
 
-# Copyright 2013 Anthony Beville
+# Copyright 2013 ComicTagger Authors
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
