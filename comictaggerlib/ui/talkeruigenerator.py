@@ -140,7 +140,7 @@ def settings_to_talker_form(sources: dict[str, QtWidgets.QWidget], config: settn
 
 def form_settings_to_config(sources: dict[str, QtWidgets.QWidget], config: settngs.Config[settngs.Namespace]) -> None:
     # Source combo box value
-    config[0].talker_source = sources["talker_source"].itemData(sources["talker_source"].currentIndex())
+    config[0].talker_source = sources["talker_source"].currentData()
 
     for tab in sources["tabs"].items():
         for name, widget in tab[1]["widgets"].items():
