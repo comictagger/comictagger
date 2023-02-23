@@ -135,6 +135,8 @@ class ComicTalker:
         if settings[f"{self.id}_url"]:
             self.api_url = fix_url(settings[f"{self.id}_url"])
 
+        settings[f"{self.id}_url"] = self.api_url
+
         if self.api_key == "":
             self.api_key = self.default_api_key
         if self.api_url == "":
