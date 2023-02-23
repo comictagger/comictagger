@@ -338,7 +338,7 @@
        </widget>
        <widget class="QWidget" name="tComicTalkers">
         <attribute name="title">
-         <string>Comic Sources</string>
+         <string>Metadata Sources</string>
         </attribute>
         <layout class="QVBoxLayout" name="verticalLayout_4"/>
        </widget>

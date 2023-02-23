@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import logging
+from functools import partial
 
 import settngs
 from PyQt5 import QtCore, QtWidgets
@@ -11,56 +12,53 @@ from comictalker.comictalker import ComicTalker
 logger = logging.getLogger(__name__)
 
 
-def call_check_api_key(
+def generate_api_widgets(
     talker_id: str,
-    sources_info: dict[str, QtWidgets.QWidget],
+    sources: dict[str, QtWidgets.QWidget],
+    config: settngs.Config[settngs.Namespace],
+    layout: QtWidgets.QGridLayout,
     talkers: dict[str, ComicTalker],
 ):
-    key = ""
-    # Find the correct widget to get the API key
-    for name, widget in sources_info[talker_id]["widgets"].items():
-        if name.startswith("talker_" + talker_id) and name.endswith("api_key"):
-            key = widget.text().strip()
+    # *args enforces keyword arguments and allows position arguments to be ignored
+    def call_check_api(*args, le_url: QtWidgets.QLineEdit, le_key: QtWidgets.QLineEdit, talker_id: str):
+        url = ""
+        key = ""
+        if le_key is not None:
+            key = le_key.text().strip()
+        if le_url is not None:
+            url = le_url.text().strip()
+        QtWidgets.QMessageBox.information(None, "API Test", talkers[talker_id].check_api_key(url, key))
 
-    if talkers[talker_id].check_api_key(key):
-        QtWidgets.QMessageBox.information(None, "API Key Test", "Key is valid!")
-    else:
-        QtWidgets.QMessageBox.warning(None, "API Key Test", "Key is NOT valid!")
+    # get the actual config objects in case they have overwritten the default
+    talker_key = config[1][f"talker_{talker_id}"][1][f"{talker_id}_key"]
+    talker_url = config[1][f"talker_{talker_id}"][1][f"{talker_id}_url"]
+    btn_test_row = None
+    le_key = None
+    le_url = None
 
+    # only file settings are saved
+    if talker_key.file:
+        # record the current row so we know where to add the button
+        btn_test_row = layout.rowCount()
+        le_key = generate_textbox(talker_key, layout)
+        # To enable setting and getting
+        sources["tabs"][talker_id]["widgets"][f"talker_{talker_id}_{talker_id}_key"] = le_key
 
-def call_check_api_url(
-    talker_id: str,
-    sources_info: dict[str, QtWidgets.QWidget],
-    talkers: dict[str, ComicTalker],
-):
-    url = ""
-    # Find the correct widget to get the URL key
-    for name, widget in sources_info[talker_id]["widgets"].items():
-        if name.startswith("talker_" + talker_id) and name.endswith("url"):
-            url = widget.text().strip()
+    # only file settings are saved
+    if talker_url.file:
+        # record the current row so we know where to add the button
+        # We overwrite so that the default will be next to the url text box
+        btn_test_row = layout.rowCount()
+        le_url = generate_textbox(talker_url, layout)
+        # To enable setting and getting
+        sources["tabs"][talker_id]["widgets"][f"talker_{talker_id}_{talker_id}_url"] = le_url
 
-    if talkers[talker_id].check_api_url(url):
-        QtWidgets.QMessageBox.information(None, "API Key Test", "URL is valid!")
-    else:
-        QtWidgets.QMessageBox.warning(None, "API Key Test", "URL is NOT valid!")
-
-
-def api_key_btn_connect(
-    btn: QtWidgets.QPushButton,
-    talker_id: str,
-    sources_info: dict[str, QtWidgets.QWidget],
-    talkers: dict[str, ComicTalker],
-) -> None:
-    btn.clicked.connect(lambda: call_check_api_key(talker_id, sources_info, talkers))
-
-
-def api_url_btn_connect(
-    btn: QtWidgets.QPushButton,
-    talker_id: str,
-    sources_info: dict[str, QtWidgets.QWidget],
-    talkers: dict[str, ComicTalker],
-) -> None:
-    btn.clicked.connect(lambda: call_check_api_url(talker_id, sources_info, talkers))
+    # The button row was recorded so we add it
+    if btn_test_row is not None:
+        btn = QtWidgets.QPushButton("Test API")
+        layout.addWidget(btn, btn_test_row, 2)
+        # partial is used as connect will pass in event information
+        btn.clicked.connect(partial(call_check_api, le_url=le_url, le_key=le_key, talker_id=talker_id))
 
 
 def generate_checkbox(option: settngs.Setting, layout: QtWidgets.QGridLayout) -> QtWidgets.QCheckBox:
@@ -95,33 +93,21 @@ def generate_doublespinbox(option: settngs.Setting, layout: QtWidgets.QGridLayou
     return widget
 
 
-def generate_textbox(
-    option: settngs.Setting, layout: QtWidgets.QGridLayout
-) -> tuple[QtWidgets.QLineEdit, QtWidgets.QPushButton]:
-    btn = None
+def generate_textbox(option: settngs.Setting, layout: QtWidgets.QGridLayout) -> QtWidgets.QLineEdit:
     row = layout.rowCount()
     lbl = QtWidgets.QLabel(option.display_name)
     layout.addWidget(lbl, row, 0)
     widget = QtWidgets.QLineEdit()
-    widget.setObjectName(option.internal_name)
+    lbl.setToolTip(option.help)
     widget.setToolTip(option.help)
     layout.addWidget(widget, row, 1)
 
-    # Special case for api_key, make a test button
-    if option.internal_name.endswith("key"):
-        btn = QtWidgets.QPushButton("Test Key")
-        layout.addWidget(btn, row, 2)
-
-    if option.internal_name.endswith("url"):
-        btn = QtWidgets.QPushButton("Test URL")
-        layout.addWidget(btn, row, 2)
-
-    return widget, btn
+    return widget
 
 
 def settings_to_talker_form(sources: dict[str, QtWidgets.QWidget], config: settngs.Config[settngs.Namespace]) -> None:
-    # Set the active talker in sources combo box
-    sources["talker_source"].setCurrentIndex(sources["talker_source"].findData(config[0].talker_source))
+    # Set the active talker via id in sources combo box
+    sources["cbx_select_talker"].setCurrentIndex(sources["cbx_select_talker"].findData(config[0].talker_source))
 
     for talker in sources["tabs"].items():
         for name, widget in talker[1]["widgets"].items():
@@ -140,7 +126,7 @@ def settings_to_talker_form(sources: dict[str, QtWidgets.QWidget], config: settn
 
 def form_settings_to_config(sources: dict[str, QtWidgets.QWidget], config: settngs.Config[settngs.Namespace]) -> None:
     # Source combo box value
-    config[0].talker_source = sources["talker_source"].currentData()
+    config[0].talker_source = sources["cbx_select_talker"].currentData()
 
     for tab in sources["tabs"].items():
         for name, widget in tab[1]["widgets"].items():
@@ -171,33 +157,37 @@ def generate_source_option_tabs(
     comic_talker_tab_layout = comic_talker_tab.layout()
 
     talker_layout = QtWidgets.QGridLayout()
-    lbl_info = QtWidgets.QLabel("Information Source:")
-    cbx_info = QtWidgets.QComboBox()
+    lbl_select_talker = QtWidgets.QLabel("Metadata Sources:")
+    cbx_select_talker = QtWidgets.QComboBox()
     line = QtWidgets.QFrame()
     line.setFrameShape(QtWidgets.QFrame.HLine)
     line.setFrameShadow(QtWidgets.QFrame.Sunken)
     talker_tabs = QtWidgets.QTabWidget()
 
-    talker_layout.addWidget(lbl_info, 0, 0, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Maximum)
-    talker_layout.addWidget(cbx_info, 0, 1, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Maximum)
+    talker_layout.addWidget(lbl_select_talker, 0, 0, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Maximum)
+    talker_layout.addWidget(cbx_select_talker, 0, 1, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Maximum)
     talker_layout.addWidget(line, 1, 0, 1, -1)
     talker_layout.addWidget(talker_tabs, 2, 0, 1, -1)
 
     comic_talker_tab_layout.addLayout(talker_layout)
 
-    # Add cbx_info combobox to sources for getting and setting talker
-    sources["talker_source"] = cbx_info
+    # Add combobox to sources for getting and setting talker
+    sources["cbx_select_talker"] = cbx_select_talker
 
     # Add source sub tabs to Comic Sources tab
     for talker_id, talker_obj in talkers.items():
         # Add source to general tab dropdown list
-        cbx_info.addItem(talker_obj.name, talker_id)
+        cbx_select_talker.addItem(talker_obj.name, talker_id)
 
         tab_name = talker_id
         sources["tabs"][tab_name] = {"tab": QtWidgets.QWidget(), "widgets": {}}
         layout_grid = QtWidgets.QGridLayout()
 
         for option in config[1][f"talker_{talker_id}"][1].values():
+            if not option.file:
+                continue
+            if option.dest in (f"{talker_id}_url", f"{talker_id}_key"):
+                continue
             current_widget = None
             if option.action is not None and (
                 option.action is argparse.BooleanOptionalAction
@@ -215,17 +205,13 @@ def generate_source_option_tabs(
                 sources["tabs"][tab_name]["widgets"][option.internal_name] = current_widget
             # option.type of None should be string
             elif (option.type is None and option.action is None) or option.type is str:
-                current_widget, btn = generate_textbox(option, layout_grid)
+                current_widget = generate_textbox(option, layout_grid)
                 sources["tabs"][tab_name]["widgets"][option.internal_name] = current_widget
-
-                if option.internal_name.endswith("key"):
-                    # Attach test api function to button. A better way?
-                    api_key_btn_connect(btn, talker_id, sources, talkers)
-                if option.internal_name.endswith("url"):
-                    # Attach test api function to button. A better way?
-                    api_url_btn_connect(btn, talker_id, sources, talkers)
             else:
                 logger.debug(f"Unsupported talker option found. Name: {option.internal_name} Type: {option.type}")
+
+        # Add talker URL and API key fields
+        generate_api_widgets(talker_id, sources, config, layout_grid, talkers)
 
         # Add vertical spacer
         vspacer = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
