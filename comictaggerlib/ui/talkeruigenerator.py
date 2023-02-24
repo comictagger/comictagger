@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import logging
 from functools import partial
+from typing import NamedTuple
 
 import settngs
 from PyQt5 import QtCore, QtWidgets
@@ -10,6 +11,11 @@ from PyQt5 import QtCore, QtWidgets
 from comictalker.comictalker import ComicTalker
 
 logger = logging.getLogger(__name__)
+
+
+class TalkerTab(NamedTuple):
+    tab: QtWidgets.QWidget
+    widgets: dict[str, QtWidgets.QWidget]
 
 
 def generate_api_widgets(
@@ -27,7 +33,12 @@ def generate_api_widgets(
             key = le_key.text().strip()
         if le_url is not None:
             url = le_url.text().strip()
-        QtWidgets.QMessageBox.information(None, "API Test", talkers[talker_id].check_api_key(url, key))
+
+        check_text, check_bool = talkers[talker_id].check_api_key(url, key)
+        if check_bool:
+            QtWidgets.QMessageBox.information(None, "API Test Success", check_text)
+        else:
+            QtWidgets.QMessageBox.warning(None, "API Test Failed", check_text)
 
     # get the actual config objects in case they have overwritten the default
     talker_key = config[1][f"talker_{talker_id}"][1][f"{talker_id}_key"]
@@ -42,7 +53,7 @@ def generate_api_widgets(
         btn_test_row = layout.rowCount()
         le_key = generate_textbox(talker_key, layout)
         # To enable setting and getting
-        sources["tabs"][talker_id]["widgets"][f"talker_{talker_id}_{talker_id}_key"] = le_key
+        sources["tabs"][talker_id].widgets[f"talker_{talker_id}_{talker_id}_key"] = le_key
 
     # only file settings are saved
     if talker_url.file:
@@ -51,7 +62,7 @@ def generate_api_widgets(
         btn_test_row = layout.rowCount()
         le_url = generate_textbox(talker_url, layout)
         # To enable setting and getting
-        sources["tabs"][talker_id]["widgets"][f"talker_{talker_id}_{talker_id}_url"] = le_url
+        sources["tabs"][talker_id].widgets[f"talker_{talker_id}_{talker_id}_url"] = le_url
 
     # The button row was recorded so we add it
     if btn_test_row is not None:
@@ -72,6 +83,7 @@ def generate_checkbox(option: settngs.Setting, layout: QtWidgets.QGridLayout) ->
 def generate_spinbox(option: settngs.Setting, layout: QtWidgets.QGridLayout) -> QtWidgets.QSpinBox:
     row = layout.rowCount()
     lbl = QtWidgets.QLabel(option.display_name)
+    lbl.setToolTip(option.help)
     layout.addWidget(lbl, row, 0)
     widget = QtWidgets.QSpinBox()
     widget.setRange(0, 9999)
@@ -84,6 +96,7 @@ def generate_spinbox(option: settngs.Setting, layout: QtWidgets.QGridLayout) -> 
 def generate_doublespinbox(option: settngs.Setting, layout: QtWidgets.QGridLayout) -> QtWidgets.QDoubleSpinBox:
     row = layout.rowCount()
     lbl = QtWidgets.QLabel(option.display_name)
+    lbl.setToolTip(option.help)
     layout.addWidget(lbl, row, 0)
     widget = QtWidgets.QDoubleSpinBox()
     widget.setRange(0, 9999.99)
@@ -96,9 +109,9 @@ def generate_doublespinbox(option: settngs.Setting, layout: QtWidgets.QGridLayou
 def generate_textbox(option: settngs.Setting, layout: QtWidgets.QGridLayout) -> QtWidgets.QLineEdit:
     row = layout.rowCount()
     lbl = QtWidgets.QLabel(option.display_name)
+    lbl.setToolTip(option.help)
     layout.addWidget(lbl, row, 0)
     widget = QtWidgets.QLineEdit()
-    lbl.setToolTip(option.help)
     widget.setToolTip(option.help)
     layout.addWidget(widget, row, 1)
 
@@ -110,7 +123,7 @@ def settings_to_talker_form(sources: dict[str, QtWidgets.QWidget], config: settn
     sources["cbx_select_talker"].setCurrentIndex(sources["cbx_select_talker"].findData(config[0].talker_source))
 
     for talker in sources["tabs"].items():
-        for name, widget in talker[1]["widgets"].items():
+        for name, widget in talker[1].widgets.items():
             value = getattr(config[0], name)
             value_type = type(value)
             try:
@@ -129,7 +142,7 @@ def form_settings_to_config(sources: dict[str, QtWidgets.QWidget], config: settn
     config[0].talker_source = sources["cbx_select_talker"].currentData()
 
     for tab in sources["tabs"].items():
-        for name, widget in tab[1]["widgets"].items():
+        for name, widget in tab[1].widgets.items():
             widget_value = None
             if isinstance(widget, (QtWidgets.QSpinBox, QtWidgets.QDoubleSpinBox)):
                 widget_value = widget.value()
@@ -157,7 +170,7 @@ def generate_source_option_tabs(
     comic_talker_tab_layout = comic_talker_tab.layout()
 
     talker_layout = QtWidgets.QGridLayout()
-    lbl_select_talker = QtWidgets.QLabel("Metadata Sources:")
+    lbl_select_talker = QtWidgets.QLabel("Metadata Source:")
     cbx_select_talker = QtWidgets.QComboBox()
     line = QtWidgets.QFrame()
     line.setFrameShape(QtWidgets.QFrame.HLine)
@@ -180,7 +193,7 @@ def generate_source_option_tabs(
         cbx_select_talker.addItem(talker_obj.name, talker_id)
 
         tab_name = talker_id
-        sources["tabs"][tab_name] = {"tab": QtWidgets.QWidget(), "widgets": {}}
+        sources["tabs"][tab_name] = TalkerTab(tab=QtWidgets.QWidget(), widgets={})
         layout_grid = QtWidgets.QGridLayout()
 
         for option in config[1][f"talker_{talker_id}"][1].values():
@@ -196,17 +209,17 @@ def generate_source_option_tabs(
                 or option.action == "store_false"
             ):
                 current_widget = generate_checkbox(option, layout_grid)
-                sources["tabs"][tab_name]["widgets"][option.internal_name] = current_widget
+                sources["tabs"][tab_name].widgets[option.internal_name] = current_widget
             elif option.type is int:
                 current_widget = generate_spinbox(option, layout_grid)
-                sources["tabs"][tab_name]["widgets"][option.internal_name] = current_widget
+                sources["tabs"][tab_name].widgets[option.internal_name] = current_widget
             elif option.type is float:
                 current_widget = generate_doublespinbox(option, layout_grid)
-                sources["tabs"][tab_name]["widgets"][option.internal_name] = current_widget
+                sources["tabs"][tab_name].widgets[option.internal_name] = current_widget
             # option.type of None should be string
             elif (option.type is None and option.action is None) or option.type is str:
                 current_widget = generate_textbox(option, layout_grid)
-                sources["tabs"][tab_name]["widgets"][option.internal_name] = current_widget
+                sources["tabs"][tab_name]("widget")[option.internal_name] = current_widget
             else:
                 logger.debug(f"Unsupported talker option found. Name: {option.internal_name} Type: {option.type}")
 
@@ -217,9 +230,9 @@ def generate_source_option_tabs(
         vspacer = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         layout_grid.addItem(vspacer, layout_grid.rowCount() + 1, 0)
         # Display the new widgets
-        sources["tabs"][tab_name]["tab"].setLayout(layout_grid)
+        sources["tabs"][tab_name].tab.setLayout(layout_grid)
 
         # Add new sub tab to Comic Source tab
-        talker_tabs.addTab(sources["tabs"][tab_name]["tab"], talker_obj.name)
+        talker_tabs.addTab(sources["tabs"][tab_name].tab, talker_obj.name)
 
     return sources

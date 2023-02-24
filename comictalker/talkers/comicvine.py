@@ -216,11 +216,7 @@ class ComicVineTalker(ComicTalker):
         self.remove_html_tables = settings["cv_remove_html_tables"]
         return settings
 
-    def check_api_key(
-        self,
-        url: str,
-        key: str,
-    ) -> str:
+    def check_api_key(self, url: str, key: str) -> tuple[str, bool]:
         url = talker_utils.fix_url(url)
         if not url:
             url = self.default_api_url
@@ -235,11 +231,11 @@ class ComicVineTalker(ComicTalker):
 
             # Bogus request, but if the key is wrong, you get error 100: "Invalid API Key"
             if cv_response["status_code"] != 100:
-                return "API key is valid"
+                return "The API key is valid", True
             else:
-                return "API key is INVALID!"
+                return "The API key is INVALID!", False
         except Exception:
-            return "Failed to connect to the URL!"
+            return "Failed to connect to the URL!", False
 
     def search_for_series(
         self,

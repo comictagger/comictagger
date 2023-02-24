@@ -141,9 +141,9 @@ class ComicTalker:
             self.api_url = self.default_api_url
         return settings
 
-    def check_api_key(self, url: str, key: str) -> str:
+    def check_api_key(self, url: str, key: str) -> tuple[str, bool]:
         """
-        This function should return a string with the test outcome for display to user.
+        This function should return a string with the test outcome for display to user and a bool.
         """
         raise NotImplementedError
 
