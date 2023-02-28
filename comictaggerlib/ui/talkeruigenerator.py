@@ -219,7 +219,7 @@ def generate_source_option_tabs(
             # option.type of None should be string
             elif (option.type is None and option.action is None) or option.type is str:
                 current_widget = generate_textbox(option, layout_grid)
-                sources["tabs"][tab_name]("widget")[option.internal_name] = current_widget
+                sources["tabs"][tab_name].widget[option.internal_name] = current_widget
             else:
                 logger.debug(f"Unsupported talker option found. Name: {option.internal_name} Type: {option.type}")
 
