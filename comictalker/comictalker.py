@@ -120,8 +120,8 @@ class ComicTalker:
 
     def register_settings(self, parser: settngs.Manager) -> None:
         """
-        Allows registering settings using the settngs package with an argparse like interface
-        NOTE: The order used will be reflected within the settings menu
+        Allows registering settings using the settngs package with an argparse like interface.
+        The order that settings are declared is the order they will be displayed.
         """
         return None
 
@@ -145,13 +145,14 @@ class ComicTalker:
 
     def check_api_key(self, url: str, key: str) -> tuple[str, bool]:
         """
-        This function should return a string with the test outcome for display to user and a bool.
-        """
-        raise NotImplementedError
+        This function should return (msg, True) if the given API key and URL are valid,
+        where msg is a message to display to the user.
 
-    def check_api_url(self, url: str) -> bool:
-        """
-        This function should return true if the given url is valid.
+        This function should return (msg, False) if the given API key or URL are not valid,
+        where msg is a message to display to the user.
+
+        If the Talker does not use an API key it should validate that the URL works.
+        If the Talker does not use an API key or URL it should check that the source is available.
         """
         raise NotImplementedError
 
@@ -166,10 +167,14 @@ class ComicTalker:
         """
         This function should return a list of series that match the given series name
         according to the source the Talker uses.
+
         Sanitizing the series name is the responsibility of the talker.
+
         If `literal` == True then it is requested that no filtering or
         transformation/sanitizing of the title or results be performed by the talker.
+
         A sensible amount of results should be returned.
+
         For example the `ComicVineTalker` stops requesting new pages after the results
         become too different from the `series_name`  by use of the `titles_match` function
         provided by the `comicapi.utils` module, and only allows a maximum of 5 pages
@@ -203,7 +208,9 @@ class ComicTalker:
         """
         This function should return a single issue for each series id in
         the `series_id_list` and it should match the issue_number.
+
         Preferably it should also only return issues published in the given `year`.
+
         If there is no year given (`year` == None) or the Talker does not have issue publication info
         return the results unfiltered.
         """
