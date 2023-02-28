@@ -114,7 +114,7 @@ class CLI:
                 ca = match_set.ca
                 md = self.create_local_metadata(ca)
                 ct_md = self.actual_issue_data_fetch(match_set.matches[int(i) - 1]["issue_id"])
-                if self.config.talker_clear_metadata_on_import:
+                if self.config.identifier_clear_metadata_on_import:
                     md = ct_md
                 else:
                     notes = (
@@ -123,7 +123,7 @@ class CLI:
                     )
                     md.overlay(ct_md.replace(notes=utils.combine_notes(md.notes, notes, "Tagged with ComicTagger")))
 
-                if self.config.talker_auto_imprint:
+                if self.config.identifier_auto_imprint:
                     md.fix_publisher()
 
                 self.actual_metadata_save(ca, md)
@@ -427,7 +427,7 @@ class CLI:
                     match_results.fetch_data_failures.append(str(ca.path.absolute()))
                     return
 
-            if self.config.talker_clear_metadata_on_import:
+            if self.config.identifier_clear_metadata_on_import:
                 md = ct_md
             else:
                 notes = (
@@ -436,7 +436,7 @@ class CLI:
                 )
                 md.overlay(ct_md.replace(notes=utils.combine_notes(md.notes, notes, "Tagged with ComicTagger")))
 
-            if self.config.talker_auto_imprint:
+            if self.config.identifier_auto_imprint:
                 md.fix_publisher()
 
         # ok, done building our metadata. time to save

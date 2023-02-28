@@ -1071,7 +1071,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                     if self.config[0].cbl_apply_transform_on_import:
                         new_metadata = CBLTransformer(new_metadata, self.config[0]).apply()
 
-                    if self.config[0].talker_clear_form_before_populating:
+                    if self.config[0].identifier_clear_form_before_populating:
                         self.clear_form()
 
                     notes = (
@@ -1785,7 +1785,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                     )
                     md.overlay(ct_md.replace(notes=utils.combine_notes(md.notes, notes, "Tagged with ComicTagger")))
 
-                if self.config[0].talker_auto_imprint:
+                if self.config[0].identifier_auto_imprint:
                     md.fix_publisher()
 
                 if not ca.write_metadata(md, self.save_data_style):
