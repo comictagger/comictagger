@@ -98,4 +98,3 @@ jobs:
             dist/*.zip
             dist/*${{ fromJSON('["never", ""]')[runner.os == 'Linux'] }}.whl
             dist/*.AppImage
-
