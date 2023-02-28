@@ -173,6 +173,27 @@ class ComicVineTalker(ComicTalker):
         self.wait_on_ratelimit_time: int = 20
 
     def register_settings(self, parser: settngs.Manager) -> None:
+        parser.add_setting(
+            "--cv-use-series-start-as-volume",
+            default=False,
+            action=argparse.BooleanOptionalAction,
+            display_name="Use series start as volume",
+            help="Use the series start year as the volume number",
+        )
+        parser.add_setting(
+            "--cv-wait-on-ratelimit",
+            default=False,
+            action=argparse.BooleanOptionalAction,
+            display_name="Wait on ratelimit",
+            help="Wait when the rate limit is hit",
+        )
+        parser.add_setting(
+            "--cv-remove-html-tables",
+            default=False,
+            action=argparse.BooleanOptionalAction,
+            display_name="Remove HTML tables",
+            help="Removes html tables instead of converting them to text",
+        )
         # The empty string being the default allows this setting to be unset, allowing the default to change
         parser.add_setting(
             f"--{self.id}-key",
@@ -186,14 +207,6 @@ class ComicVineTalker(ComicTalker):
             display_name="API URL",
             help=f"Use the given Comic Vine URL. (default: {self.default_api_url})",
         )
-        parser.add_setting("--cv-use-series-start-as-volume", default=False, action=argparse.BooleanOptionalAction)
-        parser.add_setting("--cv-wait-on-ratelimit", default=False, action=argparse.BooleanOptionalAction)
-        parser.add_setting(
-            "--cv-remove-html-tables",
-            default=False,
-            action=argparse.BooleanOptionalAction,
-            help="Removes html tables instead of converting them to text.",
-        )
 
     def parse_settings(self, settings: dict[str, Any]) -> dict[str, Any]:
         settings = super().parse_settings(settings)
@@ -203,7 +216,7 @@ class ComicVineTalker(ComicTalker):
         self.remove_html_tables = settings["cv_remove_html_tables"]
         return settings
 
-    def check_api_key(self, key: str, url: str) -> bool:
+    def check_api_key(self, url: str, key: str) -> tuple[str, bool]:
         url = talker_utils.fix_url(url)
         if not url:
             url = self.default_api_url
@@ -217,9 +230,12 @@ class ComicVineTalker(ComicTalker):
             ).json()
 
             # Bogus request, but if the key is wrong, you get error 100: "Invalid API Key"
-            return cv_response["status_code"] != 100
+            if cv_response["status_code"] != 100:
+                return "The API key is valid", True
+            else:
+                return "The API key is INVALID!", False
         except Exception:
-            return False
+            return "Failed to connect to the URL!", False
 
     def search_for_series(
         self,

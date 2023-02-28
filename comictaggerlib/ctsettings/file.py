@@ -46,6 +46,43 @@ def identifier(parser: settngs.Manager) -> None:
         action=AppendAction,
         help="When enabled filters the listed publishers from all search results",
     )
+    parser.add_setting("--series-match-search-thresh", default=90, type=int)
+    parser.add_setting(
+        "--clear-metadata",
+        default=True,
+        help="Clears all existing metadata during import, default is to merges metadata.\nMay be used in conjunction with -o, -f and -m.\n\n",
+        dest="clear_metadata_on_import",
+        action=argparse.BooleanOptionalAction,
+    )
+    parser.add_setting(
+        "-a",
+        "--auto-imprint",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="Enables the auto imprint functionality.\ne.g. if the publisher is set to 'vertigo' it\nwill be updated to 'DC Comics' and the imprint\nproperty will be set to 'Vertigo'.\n\n",
+    )
+
+    parser.add_setting(
+        "--sort-series-by-year", default=True, action=argparse.BooleanOptionalAction, help="Sorts series by year"
+    )
+    parser.add_setting(
+        "--exact-series-matches-first",
+        default=True,
+        action=argparse.BooleanOptionalAction,
+        help="Puts series that are an exact match at the top of the list",
+    )
+    parser.add_setting(
+        "--always-use-publisher-filter",
+        default=False,
+        action=argparse.BooleanOptionalAction,
+        help="Enables the publisher filter",
+    )
+    parser.add_setting(
+        "--clear-form-before-populating",
+        default=False,
+        action=argparse.BooleanOptionalAction,
+        help="Clears all existing metadata when applying metadata from comic source",
+    )
 
 
 def dialog(parser: settngs.Manager) -> None:
@@ -86,43 +123,6 @@ def filename(parser: settngs.Manager) -> None:
 def talker(parser: settngs.Manager) -> None:
     # General settings for talkers
     parser.add_setting("--source", default="comicvine", help="Use a specified source by source ID")
-    parser.add_setting("--series-match-search-thresh", default=90, type=int)
-    parser.add_setting(
-        "--clear-metadata",
-        default=True,
-        help="Clears all existing metadata during import, default is to merges metadata.\nMay be used in conjunction with -o, -f and -m.\n\n",
-        dest="clear_metadata_on_import",
-        action=argparse.BooleanOptionalAction,
-    )
-    parser.add_setting(
-        "-a",
-        "--auto-imprint",
-        action=argparse.BooleanOptionalAction,
-        default=False,
-        help="Enables the auto imprint functionality.\ne.g. if the publisher is set to 'vertigo' it\nwill be updated to 'DC Comics' and the imprint\nproperty will be set to 'Vertigo'.\n\n",
-    )
-
-    parser.add_setting(
-        "--sort-series-by-year", default=True, action=argparse.BooleanOptionalAction, help="Sorts series by year"
-    )
-    parser.add_setting(
-        "--exact-series-matches-first",
-        default=True,
-        action=argparse.BooleanOptionalAction,
-        help="Puts series that are an exact match at the top of the list",
-    )
-    parser.add_setting(
-        "--always-use-publisher-filter",
-        default=False,
-        action=argparse.BooleanOptionalAction,
-        help="Enables the publisher filter",
-    )
-    parser.add_setting(
-        "--clear-form-before-populating",
-        default=False,
-        action=argparse.BooleanOptionalAction,
-        help="Clears all existing metadata when applying metadata from comic source",
-    )
 
 
 def cbl(parser: settngs.Manager) -> None:
