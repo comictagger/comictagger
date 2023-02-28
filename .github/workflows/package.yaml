@@ -74,6 +74,11 @@ jobs:
         run: |
           make dist
 
+      - name: Build AppImage package
+        run: |
+          make appimage
+        if: runner.os == 'Linux'
+
       - name: Get release name
         if: startsWith(github.ref, 'refs/tags/')
         shell: bash
@@ -92,3 +97,5 @@ jobs:
           files: |
             dist/*.zip
             dist/*${{ fromJSON('["never", ""]')[runner.os == 'Linux'] }}.whl
+            dist/*.AppImage
+

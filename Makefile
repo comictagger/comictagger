@@ -61,4 +61,12 @@ $(INSTALL_STAMP): $(PYTHON_VENV) requirements.txt requirements_dev.txt
 
 dist:
 	pyinstaller -y comictagger.spec
-	cd dist && zip -m -r $(FINAL_NAME).zip $(APP_NAME)
+	cd dist && zip -r $(FINAL_NAME).zip $(APP_NAME)
+
+appimage: dist
+	cp -a dist/comictagger dist/appimage
+	curl -L https://github.com/AppImage/AppImageKit/releases/latest/download/appimagetool-x86_64.AppImage > dist/appimagetool
+	chmod +x dist/appimagetool
+	cd dist/appimage/ && ln -s comictaggerlib/graphics/app.png app.png && ln -s comictagger AppRun
+	sed -e 's|/usr/local/share/comictagger/app.png|app|g' -e 's|%%CTSCRIPT%% %F|./comictagger|g' desktop-integration/linux/ComicTagger.desktop > dist/appimage/AppRun.desktop
+	cd dist && ./appimagetool appimage
