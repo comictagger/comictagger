@@ -25,7 +25,7 @@ else
 	FINAL_NAME=ComicTagger-$(VERSION_STR)-$(shell uname -s)
 endif
 
-.PHONY: all clean pydist dist CI check
+.PHONY: all clean pydist dist CI check appimage
 
 all: clean dist
 
@@ -59,14 +59,18 @@ $(INSTALL_STAMP): $(PYTHON_VENV) requirements.txt requirements_dev.txt
 	$(PYTHON_VENV) -m pip install -e .
 	touch $(INSTALL_STAMP)
 
-dist:
+dist: dist/$(FINAL_NAME).zip
+
+dist/$(FINAL_NAME).zip:
 	pyinstaller -y comictagger.spec
 	cd dist && zip -r $(FINAL_NAME).zip $(APP_NAME)
 
-appimage: dist
-	cp -a dist/comictagger dist/appimage
+dist/appimagetool:
 	curl -L https://github.com/AppImage/AppImageKit/releases/latest/download/appimagetool-x86_64.AppImage > dist/appimagetool
 	chmod +x dist/appimagetool
+
+appimage: dist dist/appimagetool
+	rm -rf dist/appimage && cp -a dist/comictagger dist/appimage
 	cd dist/appimage/ && ln -s comictaggerlib/graphics/app.png app.png && ln -s comictagger AppRun
 	sed -e 's|/usr/local/share/comictagger/app.png|app|g' -e 's|%%CTSCRIPT%% %F|./comictagger|g' desktop-integration/linux/ComicTagger.desktop > dist/appimage/AppRun.desktop
 	cd dist && ./appimagetool appimage
