@@ -77,9 +77,12 @@ def map_comic_issue_to_metadata(
     if issue_results.tags:
         metadata.tags = set(issue_results.tags)
     if issue_results.manga:
-        metadata.manga = issue_results.manga
+        if issue_results.manga in ["Yes", "yes", "No", "no", "YesAndRightToLeft", "yesandrighttoleft"]:
+            metadata.manga = issue_results.manga
+        else:
+            metadata.manga = "Unknown"
     if issue_results.rating:
-        metadata.critical_rating = issue_results.rating
+        metadata.critical_rating = utils.xlate(issue_results.rating, is_float=True)
 
     return metadata
 
