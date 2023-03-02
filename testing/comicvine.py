@@ -176,6 +176,7 @@ comic_issue_result = ComicIssue(
         image_url=cv_volume_result["results"]["image"]["super_url"],
         publisher=cv_volume_result["results"]["publisher"]["name"],
         start_year=int(cv_volume_result["results"]["start_year"]),
+        genres=[],
     ),
     characters=[],
     alt_image_urls=[],
@@ -183,6 +184,10 @@ comic_issue_result = ComicIssue(
     credits=[],
     locations=[],
     story_arcs=[],
+    rating=0,
+    manga="",
+    genres=[],
+    tags=[],
     teams=[],
 )
 date = utils.parse_date_str(cv_issue_result["results"]["cover_date"])
