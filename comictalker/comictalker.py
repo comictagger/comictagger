@@ -132,7 +132,7 @@ class ComicTalker:
         """
         if settings.get(f"{self.id}_key"):
             self.api_key = settings[f"{self.id}_key"]
-        if settings[f"{self.id}_url"]:
+        if settings.get(f"{self.id}_url"):
             self.api_url = fix_url(settings[f"{self.id}_url"])
 
         settings[f"{self.id}_url"] = self.api_url
