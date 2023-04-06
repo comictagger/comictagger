@@ -458,18 +458,18 @@ class CLI:
             return
 
         new_ext = ""  # default
-        if self.config.filename_rename_set_extension_based_on_archive:
+        if self.config.rename_set_extension_based_on_archive:
             new_ext = ca.extension()
 
         renamer = FileRenamer(
             md,
-            platform="universal" if self.config.filename_rename_strict else "auto",
+            platform="universal" if self.config.rename_strict else "auto",
             replacements=self.config.rename_replacements,
         )
-        renamer.set_template(self.config.filename_rename_template)
-        renamer.set_issue_zero_padding(self.config.filename_rename_issue_number_padding)
-        renamer.set_smart_cleanup(self.config.filename_rename_use_smart_string_cleanup)
-        renamer.move = self.config.filename_rename_move_to_dir
+        renamer.set_template(self.config.rename_template)
+        renamer.set_issue_zero_padding(self.config.rename_issue_number_padding)
+        renamer.set_smart_cleanup(self.config.rename_use_smart_string_cleanup)
+        renamer.move = self.config.rename_move_to_dir
 
         try:
             new_name = renamer.determine_name(ext=new_ext)
@@ -481,17 +481,13 @@ class CLI:
                 "Please consult the template help in the settings "
                 "and the documentation on the format at "
                 "https://docs.python.org/3/library/string.html#format-string-syntax",
-                self.config.filename_rename_template,
+                self.config.rename_template,
             )
             return
         except Exception:
-            logger.exception(
-                "Formatter failure: %s metadata: %s", self.config.filename_rename_template, renamer.metadata
-            )
+            logger.exception("Formatter failure: %s metadata: %s", self.config.rename_template, renamer.metadata)
 
-        folder = get_rename_dir(
-            ca, self.config.filename_rename_dir if self.config.filename_rename_move_to_dir else None
-        )
+        folder = get_rename_dir(ca, self.config.rename_dir if self.config.rename_move_to_dir else None)
 
         full_path = folder / new_name
 
