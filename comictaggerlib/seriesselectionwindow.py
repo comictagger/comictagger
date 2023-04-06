@@ -245,7 +245,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         md = GenericMetadata()
         md.series = self.series_name
         md.issue = self.issue_number
-        md.year = self.year
+        md.cover_date.year = self.year
         md.issue_count = self.issue_count
 
         self.ii.set_additional_metadata(md)

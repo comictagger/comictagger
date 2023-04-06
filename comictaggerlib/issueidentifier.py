@@ -221,8 +221,8 @@ class IssueIdentifier:
             search_keys = SearchKeys(
                 series=self.additional_metadata.series,
                 issue_number=self.additional_metadata.issue,
-                year=self.additional_metadata.year,
-                month=self.additional_metadata.month,
+                year=self.additional_metadata.cover_date.year,
+                month=self.additional_metadata.cover_date.month,
                 issue_count=self.additional_metadata.issue_count,
             )
             return search_keys
@@ -257,8 +257,8 @@ class IssueIdentifier:
         search_keys = SearchKeys(
             series=working_md.series,
             issue_number=working_md.issue,
-            year=working_md.year,
-            month=working_md.month,
+            year=working_md.cover_date.year,
+            month=working_md.cover_date.month,
             issue_count=working_md.issue_count,
         )
 
@@ -525,8 +525,8 @@ class IssueIdentifier:
                 "issue_title": issue.title or "",
                 "issue_id": issue.issue_id or "",
                 "series_id": series.id,
-                "month": issue.month,
-                "year": issue.year,
+                "month": issue.cover_date.month,
+                "year": issue.cover_date.year,
                 "publisher": None,
                 "image_url": image_url,
                 "alt_image_urls": alt_urls,

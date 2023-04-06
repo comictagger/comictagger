@@ -5,6 +5,9 @@ import io
 import pytest
 from PIL import Image
 
+import comicapi.comicarchive
+import comicapi.genericmetadata
+import comicapi.issuestring
 import comictaggerlib.issueidentifier
 import testing.comicdata
 import testing.comicvine
@@ -60,8 +63,12 @@ def test_search(cbz, config, comicvine_api):
         "issue_title": testing.comicvine.cv_issue_result["results"]["name"],
         "issue_id": str(testing.comicvine.cv_issue_result["results"]["id"]),
         "series_id": str(testing.comicvine.cv_volume_result["results"]["id"]),
-        "month": testing.comicvine.date[1],
-        "year": testing.comicvine.date[2],
+        "month": comicapi.genericmetadata.Date.parse_date(
+            testing.comicvine.cv_issue_result["results"]["cover_date"]
+        ).month,
+        "year": comicapi.genericmetadata.Date.parse_date(
+            testing.comicvine.cv_issue_result["results"]["cover_date"]
+        ).year,
         "publisher": testing.comicvine.cv_volume_result["results"]["publisher"]["name"],
         "image_url": testing.comicvine.cv_issue_result["results"]["image"]["super_url"],
         "description": testing.comicvine.cv_issue_result["results"]["description"],

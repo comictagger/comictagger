@@ -20,7 +20,7 @@ import xml.etree.ElementTree as ET
 from typing import Any
 
 from comicapi import utils
-from comicapi.genericmetadata import GenericMetadata
+from comicapi.genericmetadata import Date, GenericMetadata
 
 logger = logging.getLogger(__name__)
 
@@ -85,11 +85,7 @@ class CoMet:
         if md.manga is not None and md.manga == "YesAndRightToLeft":
             assign("readingDirection", "rtl")
 
-        if md.year is not None:
-            date_str = f"{md.year:04}"
-            if md.month is not None:
-                date_str += f"-{md.month:02}"
-            assign("date", date_str)
+        assign("date", f"{md.cover_date.year or ''}-{md.cover_date.month or ''}".strip("-"))
 
         assign("coverImage", md.cover_image)
 
@@ -154,7 +150,7 @@ class CoMet:
         md.identifier = utils.xlate(get("identifier"))
         md.last_mark = utils.xlate(get("lastMark"))
 
-        _, md.month, md.year = utils.parse_date_str(utils.xlate(get("date")))
+        md.cover_date = Date.parse_date(utils.xlate(get("date")))
 
         md.cover_image = utils.xlate(get("coverImage"))
 

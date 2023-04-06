@@ -30,7 +30,7 @@ from pyrate_limiter import Limiter, RequestRate
 from typing_extensions import Required, TypedDict
 
 from comicapi import utils
-from comicapi.genericmetadata import ComicSeries, GenericMetadata, TagOrigin
+from comicapi.genericmetadata import ComicSeries, Date, GenericMetadata, TagOrigin
 from comicapi.issuestring import IssueString
 from comictalker import talker_utils
 from comictalker.comiccacher import ComicCacher
@@ -110,6 +110,7 @@ class CVIssue(TypedDict, total=False):
     character_died_in: None
     concept_credits: list[CVCredit]
     cover_date: str
+    store_date: str
     date_added: str
     date_last_updated: str
     deck: None
@@ -129,7 +130,6 @@ class CVIssue(TypedDict, total=False):
     object_credits: list[CVCredit]
     person_credits: list[CVPersonCredit]
     site_detail_url: str
-    store_date: str
     story_arc_credits: list[CVCredit]
     team_credits: list[CVCredit]
     team_disbanded_in: None
@@ -353,7 +353,7 @@ class ComicVineTalker(ComicTalker):
         params: dict[str, str | int] = {  # CV uses volume to mean series
             "api_key": self.api_key,
             "format": "json",
-            "field_list": "id,volume,issue_number,name,image,cover_date,site_detail_url,description,aliases,associated_images",
+            "field_list": "id,volume,issue_number,name,image,cover_date,store_date,site_detail_url,description,aliases,associated_images",
             "filter": flt,
         }
 
@@ -605,6 +605,8 @@ class ComicVineTalker(ComicTalker):
             web_link=utils.xlate(issue.get("site_detail_url")),
             series=utils.xlate(series.name),
             series_aliases=series.aliases,
+            cover_date=Date.parse_date(issue.get("cover_date", "")),
+            store_date=Date.parse_date(issue.get("store_date", "")),
         )
         if issue.get("image") is None:
             md.cover_image = ""
@@ -640,8 +642,8 @@ class ComicVineTalker(ComicTalker):
 
         series = self._fetch_series_data(issue["volume"]["id"])
         if issue.get("cover_date"):
-            md.day, md.month, md.year = utils.parse_date_str(issue.get("cover_date"))
+            md.cover_date.day, md.cover_date.month, md.cover_date.year = utils.parse_date_str(issue.get("cover_date"))
         elif series.start_year:
-            md.year = utils.xlate_int(series.start_year)
+            md.cover_date.year = utils.xlate_int(series.start_year)
 
         return md

@@ -704,6 +704,20 @@ for p in names:
 
 rnames = [
     (
+        "{series} {month_name}",
+        False,
+        "universal",
+        "Cory Doctorow's Futuristic Tales of the Here and Now October.cbz",
+        does_not_raise(),
+    ),
+    (
+        "{series} {month_abbr}",
+        False,
+        "universal",
+        "Cory Doctorow's Futuristic Tales of the Here and Now Oct.cbz",
+        does_not_raise(),
+    ),
+    (
         "{series!c} {price} {year}",  # Capitalize
         False,
         "universal",

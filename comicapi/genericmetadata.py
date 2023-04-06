@@ -20,6 +20,7 @@ possible, however lossy it might be
 # limitations under the License.
 from __future__ import annotations
 
+import calendar
 import copy
 import dataclasses
 import logging
@@ -92,6 +93,62 @@ class TagOrigin(NamedTuple):
 
 
 @dataclasses.dataclass
+class Date:
+    year: int | None = None
+    month: int | None = None
+    day: int | None = None
+    month_name: str = dataclasses.field(init=False, repr=False, default="")
+    month_abbr: str = dataclasses.field(init=False, repr=False, default="")
+
+    @classmethod
+    def parse_date(cls, date_str: str | None) -> Date:
+        day = None
+        month = None
+        year = None
+        if date_str:
+            parts = date_str.split("-")
+            year = utils.xlate_int(parts[0])
+            if len(parts) > 1:
+                month = utils.xlate_int(parts[1])
+                if len(parts) > 2:
+                    day = utils.xlate_int(parts[2])
+        return Date(year, month, day)
+
+    def __str__(self) -> str:
+        date_str = ""
+        if self.year is not None:
+            date_str = f"{self.year:04}"
+            if self.month is not None:
+                date_str += f"-{self.month:02}"
+                if self.day is not None:
+                    date_str += f"-{self.day:02}"
+        return date_str
+
+    def copy(self) -> Date:
+        return copy.deepcopy(self)
+
+    def replace(self, /, **kwargs: Any) -> Date:
+        tmp = self.copy()
+        tmp.__dict__.update(kwargs)
+        return tmp
+
+    # We hijack the month property in order to update the month_name and month_abbr attributes
+    @property  # type: ignore[no-redef]
+    def month(self) -> int:  # noqa: F811
+        return self.__dict__["month"]
+
+    @month.setter
+    def month(self, month: int | None):
+        if month is None:
+            self.__dict__["month_name"] = ""
+            self.__dict__["month_abbr"] = ""
+        else:
+            self.__dict__["month_name"] = calendar.month_name[month]
+            self.__dict__["month_abbr"] = calendar.month_abbr[month]
+        self.__dict__["month"] = month
+
+
+@dataclasses.dataclass
 class GenericMetadata:
     writer_synonyms = ["writer", "plotter", "scripter"]
     penciller_synonyms = ["artist", "penciller", "penciler", "breakdowns"]
@@ -112,9 +169,8 @@ class GenericMetadata:
     title: str | None = None
     title_aliases: list[str] = dataclasses.field(default_factory=list)
     publisher: str | None = None
-    month: int | None = None
-    year: int | None = None
-    day: int | None = None
+    cover_date: Date = Date(None, None, None)
+    store_date: Date = Date(None, None, None)
     issue_count: int | None = None
     volume: int | None = None
     genres: list[str] = dataclasses.field(default_factory=list)
@@ -172,6 +228,25 @@ class GenericMetadata:
         tmp.__dict__.update(kwargs)
         return tmp
 
+    def _assign(self, cur: str, new: Any) -> None:
+        if new is not None:
+            if isinstance(new, str) and not new:
+                setattr(self, cur, None)
+
+            elif isinstance(new, list) and len(new) == 0:
+                pass
+
+            elif isinstance(new, Date):
+                date = getattr(self, cur)
+                if date is None:
+                    date = Date(None, None, None)
+                GenericMetadata._assign(date, "day", new.day)
+                GenericMetadata._assign(date, "month", new.month)
+                GenericMetadata._assign(date, "year", new.year)
+
+            else:
+                setattr(self, cur, new)
+
     def overlay(self, new_md: GenericMetadata) -> None:
         """Overlay a metadata object on this one
 
@@ -179,51 +254,41 @@ class GenericMetadata:
         to this one.
         """
 
-        def assign(cur: str, new: Any) -> None:
-            if new is not None:
-                if isinstance(new, str) and len(new) == 0:
-                    setattr(self, cur, None)
-                elif isinstance(new, list) and len(new) == 0:
-                    pass
-                else:
-                    setattr(self, cur, new)
-
         if not new_md.is_empty:
             self.is_empty = False
 
-        assign("series", new_md.series)
-        assign("series_id", new_md.series_id)
-        assign("issue", new_md.issue)
-        assign("issue_id", new_md.issue_id)
-        assign("issue_count", new_md.issue_count)
-        assign("title", new_md.title)
-        assign("publisher", new_md.publisher)
-        assign("day", new_md.day)
-        assign("month", new_md.month)
-        assign("year", new_md.year)
-        assign("volume", new_md.volume)
-        assign("volume_count", new_md.volume_count)
-        assign("language", new_md.language)
-        assign("country", new_md.country)
-        assign("critical_rating", new_md.critical_rating)
-        assign("alternate_series", new_md.alternate_series)
-        assign("alternate_number", new_md.alternate_number)
-        assign("alternate_count", new_md.alternate_count)
-        assign("imprint", new_md.imprint)
-        assign("web_link", new_md.web_link)
-        assign("format", new_md.format)
-        assign("manga", new_md.manga)
-        assign("black_and_white", new_md.black_and_white)
-        assign("maturity_rating", new_md.maturity_rating)
-        assign("scan_info", new_md.scan_info)
-        assign("description", new_md.description)
-        assign("notes", new_md.notes)
+        self._assign("series", new_md.series)
+        self._assign("series_id", new_md.series_id)
+        self._assign("issue", new_md.issue)
+        self._assign("issue_id", new_md.issue_id)
+        self._assign("issue_count", new_md.issue_count)
+        self._assign("title", new_md.title)
+        self._assign("publisher", new_md.publisher)
+        self._assign("cover_date", new_md.cover_date)
+        self._assign("store_date", new_md.store_date)
+        self._assign("volume", new_md.volume)
+        self._assign("volume_count", new_md.volume_count)
+        self._assign("language", new_md.language)
+        self._assign("country", new_md.country)
+        self._assign("critical_rating", new_md.critical_rating)
+        self._assign("alternate_series", new_md.alternate_series)
+        self._assign("alternate_number", new_md.alternate_number)
+        self._assign("alternate_count", new_md.alternate_count)
+        self._assign("imprint", new_md.imprint)
+        self._assign("web_link", new_md.web_link)
+        self._assign("format", new_md.format)
+        self._assign("manga", new_md.manga)
+        self._assign("black_and_white", new_md.black_and_white)
+        self._assign("maturity_rating", new_md.maturity_rating)
+        self._assign("scan_info", new_md.scan_info)
+        self._assign("description", new_md.description)
+        self._assign("notes", new_md.notes)
 
-        assign("price", new_md.price)
-        assign("is_version_of", new_md.is_version_of)
-        assign("rights", new_md.rights)
-        assign("identifier", new_md.identifier)
-        assign("last_mark", new_md.last_mark)
+        self._assign("price", new_md.price)
+        self._assign("is_version_of", new_md.is_version_of)
+        self._assign("rights", new_md.rights)
+        self._assign("identifier", new_md.identifier)
+        self._assign("last_mark", new_md.last_mark)
 
         self.overlay_credits(new_md.credits)
         # TODO
@@ -233,16 +298,16 @@ class GenericMetadata:
 
         # For now, go the easy route, where any overlay
         # value wipes out the whole list
-        assign("series_aliases", new_md.series_aliases)
-        assign("title_aliases", new_md.title_aliases)
-        assign("genres", new_md.genres)
-        assign("story_arcs", new_md.story_arcs)
-        assign("series_groups", new_md.series_groups)
-        assign("characters", new_md.characters)
-        assign("teams", new_md.teams)
-        assign("locations", new_md.locations)
-        assign("tags", new_md.tags)
-        assign("pages", new_md.pages)
+        self._assign("series_aliases", new_md.series_aliases)
+        self._assign("title_aliases", new_md.title_aliases)
+        self._assign("genres", new_md.genres)
+        self._assign("story_arcs", new_md.story_arcs)
+        self._assign("series_groups", new_md.series_groups)
+        self._assign("characters", new_md.characters)
+        self._assign("teams", new_md.teams)
+        self._assign("locations", new_md.locations)
+        self._assign("tags", new_md.tags)
+        self._assign("pages", new_md.pages)
 
     def overlay_credits(self, new_credits: list[Credit]) -> None:
         for c in new_credits:
@@ -412,9 +477,7 @@ md_test: GenericMetadata = GenericMetadata(
     issue_id="140529",
     title="Anda's Game",
     publisher="IDW Publishing",
-    month=10,
-    year=2007,
-    day=1,
+    cover_date=Date(month=10, year=2007, day=1),
     issue_count=6,
     volume=1,
     genres=["Sci-Fi"],

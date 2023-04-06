@@ -21,7 +21,7 @@ from datetime import datetime
 from typing import Any, Literal, TypedDict
 
 from comicapi import utils
-from comicapi.genericmetadata import GenericMetadata
+from comicapi.genericmetadata import Date, GenericMetadata
 
 logger = logging.getLogger(__name__)
 
@@ -85,8 +85,9 @@ class ComicBookInfo:
         metadata.title = utils.xlate(cbi["title"])
         metadata.issue = utils.xlate(cbi["issue"])
         metadata.publisher = utils.xlate(cbi["publisher"])
-        metadata.month = utils.xlate_int(cbi["publicationMonth"])
-        metadata.year = utils.xlate_int(cbi["publicationYear"])
+
+        metadata.cover_date = Date(utils.xlate_int(cbi["publicationYear"]), utils.xlate_int(cbi["publicationMonth"]))
+
         metadata.issue_count = utils.xlate_int(cbi["numberOfIssues"])
         metadata.description = utils.xlate(cbi["comments"])
         metadata.genres = utils.split(cbi["genre"], ",")
@@ -148,8 +149,8 @@ class ComicBookInfo:
         assign("title", utils.xlate(metadata.title))
         assign("issue", utils.xlate(metadata.issue))
         assign("publisher", utils.xlate(metadata.publisher))
-        assign("publicationMonth", utils.xlate_int(metadata.month))
-        assign("publicationYear", utils.xlate_int(metadata.year))
+        assign("publicationMonth", utils.xlate_int(metadata.cover_date.month))
+        assign("publicationYear", utils.xlate_int(metadata.cover_date.year))
         assign("numberOfIssues", utils.xlate_int(metadata.issue_count))
         assign("comments", utils.xlate(metadata.description))
         assign("genre", utils.xlate(",".join(metadata.genres)))

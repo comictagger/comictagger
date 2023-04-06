@@ -24,7 +24,7 @@ import sqlite3
 from typing import Any, cast
 
 from comicapi import utils
-from comicapi.genericmetadata import ComicSeries, Credit, GenericMetadata, TagOrigin
+from comicapi.genericmetadata import ComicSeries, Credit, Date, GenericMetadata, TagOrigin
 
 logger = logging.getLogger(__name__)
 
@@ -114,6 +114,7 @@ class ComicCacher:
                 + "image_url TEXT,"
                 + "thumb_url TEXT,"
                 + "cover_date TEXT,"
+                + "store_date TEXT,"
                 + "site_detail_url TEXT,"
                 + "description TEXT,"
                 + "aliases TEXT,"  # Newline separated
@@ -219,7 +220,8 @@ class ComicCacher:
                     "issue_number": issue.issue,
                     "volume": issue.volume,
                     "site_detail_url": issue.web_link,
-                    "cover_date": f"{issue.year}-{issue.month}-{issue.day}",
+                    "cover_date": str(issue.cover_date),
+                    "store_date": str(issue.store_date),
                     "image_url": issue.cover_image,
                     "description": issue.description,
                     "timestamp": timestamp,
@@ -436,7 +438,8 @@ class ComicCacher:
                 cover_image=row["image_url"],
                 credits=credits,
                 critical_rating=row["critical_rating"],
-                day=day,
+                cover_date=Date.parse_date(row["cover_date"]),
+                store_date=Date.parse_date(row["store_date"]),
                 description=row["description"],
                 genres=utils.split(row["genres"], "\n"),
                 issue=row["issue_number"],
@@ -446,7 +449,6 @@ class ComicCacher:
                 locations=utils.split(row["locations"], "\n"),
                 manga=row["manga"],
                 maturity_rating=row["maturity_rating"],
-                month=month,
                 publisher=series.publisher,
                 series=series.name,
                 series_aliases=series.aliases,
@@ -459,7 +461,6 @@ class ComicCacher:
                 volume=row["volume"],
                 volume_count=series.count_of_volumes,
                 web_link=row["site_detail_url"],
-                year=year,
             ),
             row["complete"],
         )

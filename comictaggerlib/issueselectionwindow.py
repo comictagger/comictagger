@@ -165,10 +165,10 @@ class IssueSelectionWindow(QtWidgets.QDialog):
             self.twList.setItem(row, 0, item)
 
             item_text = ""
-            if issue.year is not None:
-                item_text = f"{issue.year:04}"
-            if issue.month is not None:
-                item_text = f"{issue.month:02}"
+            if issue.cover_date.year is not None:
+                item_text = f"{issue.cover_date.year:04}"
+            if issue.cover_date.month is not None:
+                item_text = f"{issue.cover_date.month:02}"
 
             qtw_item = QtWidgets.QTableWidgetItem(item_text)
             qtw_item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)

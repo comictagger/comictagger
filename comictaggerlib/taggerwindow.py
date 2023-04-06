@@ -794,9 +794,11 @@ class TaggerWindow(QtWidgets.QMainWindow):
         assign_text(self.leVolumeCount, md.volume_count)
         assign_text(self.leTitle, md.title)
         assign_text(self.lePublisher, md.publisher)
-        assign_text(self.lePubMonth, md.month)
-        assign_text(self.lePubYear, md.year)
-        assign_text(self.lePubDay, md.day)
+
+        assign_text(self.lePubMonth, md.cover_date.month)
+        assign_text(self.lePubYear, md.cover_date.year)
+        assign_text(self.lePubDay, md.cover_date.day)
+
         assign_text(self.leGenre, ",".join(md.genres))
         assign_text(self.leImprint, md.imprint)
         assign_text(self.teComments, md.description)
@@ -908,9 +910,9 @@ class TaggerWindow(QtWidgets.QMainWindow):
         md.issue_count = utils.xlate_int(self.leIssueCount.text())
         md.volume = utils.xlate_int(self.leVolumeNum.text())
         md.volume_count = utils.xlate_int(self.leVolumeCount.text())
-        md.month = utils.xlate_int(self.lePubMonth.text())
-        md.year = utils.xlate_int(self.lePubYear.text())
-        md.day = utils.xlate_int(self.lePubDay.text())
+        md.cover_date.month = utils.xlate_int(self.lePubMonth.text())
+        md.cover_date.year = utils.xlate_int(self.lePubYear.text())
+        md.cover_date.day = utils.xlate_int(self.lePubDay.text())
         md.alternate_count = utils.xlate_int(self.leAltIssueCount.text())
 
         md.series = utils.xlate(self.leSeries.text())
@@ -1723,7 +1725,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             return False, match_results
 
         if dlg.dont_use_year:
-            md.year = None
+            md.cover_date.year = None
         if md.issue is None or md.issue == "":
             if dlg.assume_issue_one:
                 md.issue = "1"

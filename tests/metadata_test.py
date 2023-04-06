@@ -17,7 +17,7 @@ def test_cbi(md_saved):
     string = CBI.string_from_metadata(comicapi.genericmetadata.md_test)
     md = CBI.metadata_from_string(string)
     md_test = md_saved.replace(
-        day=None,
+        cover_date=md_saved.cover_date.replace(day=None),
         page_count=None,
         maturity_rating=None,
         story_arcs=[],
@@ -44,7 +44,7 @@ def test_comet(md_saved):
     string = CBI.string_from_metadata(comicapi.genericmetadata.md_test)
     md = CBI.metadata_from_string(string)
     md_test = md_saved.replace(
-        day=None,
+        cover_date=md_saved.cover_date.replace(day=None),
         story_arcs=[],
         series_groups=[],
         scan_info=None,

@@ -145,8 +145,8 @@ def md():
 
 
 @pytest.fixture
-def md_saved():
-    yield comicapi.genericmetadata.md_test.replace(tag_origin=None, issue_id=None, series_id=None)
+def md_saved(md):
+    yield md.replace(tag_origin=None, issue_id=None, series_id=None)
 
 
 # manually seeds publishers

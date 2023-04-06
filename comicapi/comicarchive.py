@@ -563,7 +563,8 @@ class ComicArchive:
             metadata.title = utils.xlate(p.filename_info["title"])
             metadata.volume = utils.xlate_int(p.filename_info["volume"])
             metadata.volume_count = utils.xlate_int(p.filename_info["volume_count"])
-            metadata.year = utils.xlate_int(p.filename_info["year"])
+
+            metadata.cover_date.year = utils.xlate_int(p.filename_info["year"])
 
             metadata.scan_info = utils.xlate(p.filename_info["remainder"])
             metadata.format = "FCBD" if p.filename_info["fcbd"] else None
@@ -580,7 +581,7 @@ class ComicArchive:
             if fnp.volume:
                 metadata.volume = utils.xlate_int(fnp.volume)
             if fnp.year:
-                metadata.year = utils.xlate_int(fnp.year)
+                metadata.cover_date.year = utils.xlate_int(fnp.year)
             if fnp.issue_count:
                 metadata.issue_count = utils.xlate_int(fnp.issue_count)
             if fnp.remainder:

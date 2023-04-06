@@ -21,7 +21,7 @@ from typing import Any, cast
 from xml.etree.ElementTree import ElementTree
 
 from comicapi import utils
-from comicapi.genericmetadata import GenericMetadata, ImageMetadata
+from comicapi.genericmetadata import Date, GenericMetadata, ImageMetadata
 
 logger = logging.getLogger(__name__)
 
@@ -99,9 +99,10 @@ class ComicInfoXml:
         assign("AlternateCount", md.alternate_count)
         assign("Summary", md.description)
         assign("Notes", md.notes)
-        assign("Year", md.year)
-        assign("Month", md.month)
-        assign("Day", md.day)
+
+        assign("Year", md.cover_date.year)
+        assign("Month", md.cover_date.month)
+        assign("Day", md.cover_date.day)
 
         # need to specially process the credits, since they are structured
         # differently than CIX
@@ -203,9 +204,9 @@ class ComicInfoXml:
         md.alternate_count = utils.xlate_int(get("AlternateCount"))
         md.description = utils.xlate(get("Summary"))
         md.notes = utils.xlate(get("Notes"))
-        md.year = utils.xlate_int(get("Year"))
-        md.month = utils.xlate_int(get("Month"))
-        md.day = utils.xlate_int(get("Day"))
+
+        md.cover_date = Date(utils.xlate_int(get("Year")), utils.xlate_int(get("Month")), utils.xlate_int(get("Day")))
+
         md.publisher = utils.xlate(get("Publisher"))
         md.imprint = utils.xlate(get("Imprint"))
         md.genres = utils.split(get("Genre"), ",")

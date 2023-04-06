@@ -15,7 +15,6 @@
 # limitations under the License.
 from __future__ import annotations
 
-import calendar
 import logging
 import os
 import pathlib
@@ -221,12 +220,8 @@ class FileRenamer:
         for role in ["writer", "penciller", "inker", "colorist", "letterer", "cover artist", "editor"]:
             md_dict[role] = md.get_primary_credit(role)
 
-        if (isinstance(md.month, int) or isinstance(md.month, str) and md.month.isdigit()) and 0 < int(md.month) < 13:
-            md_dict["month_name"] = calendar.month_name[int(md.month)]
-            md_dict["month_abbr"] = calendar.month_abbr[int(md.month)]
-        else:
-            md_dict["month_name"] = ""
-            md_dict["month_abbr"] = ""
+        date = getattr(md, "cover_date")
+        md_dict.update(vars(date))
 
         new_basename = ""
         for component in pathlib.PureWindowsPath(template).parts:
