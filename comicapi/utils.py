@@ -14,7 +14,6 @@
 # limitations under the License.
 from __future__ import annotations
 
-import glob
 import json
 import logging
 import os
@@ -65,9 +64,11 @@ def get_recursive_filelist(pathlist: list[str]) -> list[str]:
     filelist: list[str] = []
     for p in pathlist:
         if os.path.isdir(p):
-            filelist.extend(x for x in glob.glob(f"{p}{os.sep}/**", recursive=True) if not os.path.isdir(x))
-        elif str(p) not in filelist:
-            filelist.append(str(p))
+            for root, _, files in os.walk(p):
+                for f in files:
+                    filelist.append(os.path.join(root, f))
+        else:
+            filelist.append(p)
 
     return filelist
 
