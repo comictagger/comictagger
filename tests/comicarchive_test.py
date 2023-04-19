@@ -12,7 +12,7 @@ from testing.filenames import datadir
 
 
 @pytest.mark.xfail(not comicapi.archivers.rar.rar_support, reason="rar support")
-def test_getPageNameList():
+def test_get_page_name_list():
     c = comicapi.comicarchive.ComicArchive(datadir / "fake_cbr.cbr")
     assert c.seems_to_be_a_comic_archive()
     pageNameList = c.get_page_name_list()

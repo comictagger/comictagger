@@ -5,7 +5,6 @@ natsort>=8.1.0
 pathvalidate
 pillow>=9.1.0, <10
 pycountry
-#pyicu; sys_platform == 'linux' or sys_platform == 'darwin'
 rapidfuzz>=2.12.0
 requests==2.*
 settngs==0.6.2
