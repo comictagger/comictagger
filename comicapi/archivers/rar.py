@@ -12,7 +12,7 @@ import time
 from comicapi.archivers import Archiver
 
 try:
-    from unrar.cffi import rarfile
+    import rarfile
 
     rar_support = True
 except ImportError:
@@ -22,7 +22,7 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 if not rar_support:
-    logger.error("unrar-cffi unavailable")
+    logger.error("rar unavailable")
 
 
 class RarArchiver(Archiver):
@@ -43,7 +43,7 @@ class RarArchiver(Archiver):
 
     def get_comment(self) -> str:
         rarc = self.get_rar_obj()
-        return rarc.comment.decode("utf-8") if rarc else ""
+        return (rarc.comment if rarc else "") or ""
 
     def set_comment(self, comment: str) -> bool:
         if rar_support and self.exe:
