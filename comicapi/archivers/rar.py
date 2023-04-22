@@ -12,7 +12,7 @@ import time
 from comicapi.archivers import Archiver
 
 try:
-    from unrar.cffi import rarfile
+    import rarfile
 
     rar_support = True
 except ImportError:
@@ -22,7 +22,7 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 if not rar_support:
-    logger.error("unrar-cffi unavailable")
+    logger.error("rar unavailable")
 
 
 class RarArchiver(Archiver):
@@ -43,7 +43,7 @@ class RarArchiver(Archiver):
 
     def get_comment(self) -> str:
         rarc = self.get_rar_obj()
-        return rarc.comment.decode("utf-8") if rarc else ""
+        return (rarc.comment if rarc else "") or ""
 
     def set_comment(self, comment: str) -> bool:
         if rar_support and self.exe:
@@ -64,18 +64,26 @@ class RarArchiver(Archiver):
                         f"-z{tmp_file}",
                         str(self.path),
                     ]
-                    subprocess.run(
+                    result = subprocess.run(
                         proc_args,
                         startupinfo=self.startupinfo,
-                        stdout=subprocess.DEVNULL,
                         stdin=subprocess.DEVNULL,
-                        stderr=subprocess.DEVNULL,
-                        check=True,
+                        capture_output=True,
+                        encoding="utf-8",
+                        cwd=tmp_dir,
                     )
+                if result.returncode != 0:
+                    logger.error(
+                        "Error writing comment to rar archive [exitcode: %d]: %s :: %s",
+                        result.returncode,
+                        self.path,
+                        result.stderr,
+                    )
+                    return False
 
                 if platform.system() == "Darwin":
                     time.sleep(1)
-            except (subprocess.CalledProcessError, OSError) as e:
+            except OSError as e:
                 logger.exception("Error writing comment to rar archive [%s]: %s", e, self.path)
                 return False
             else:
@@ -134,9 +142,10 @@ class RarArchiver(Archiver):
             result = subprocess.run(
                 [self.exe, "d", "-c-", self.path, archive_file],
                 startupinfo=self.startupinfo,
-                stdout=subprocess.DEVNULL,
                 stdin=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
+                capture_output=True,
+                encoding="utf-8",
+                cwd=self.path.absolute().parent,
             )
 
             if platform.system() == "Darwin":
@@ -164,15 +173,19 @@ class RarArchiver(Archiver):
                 [self.exe, "a", f"-si{archive_name}", f"-ap{archive_parent}", "-c-", "-ep", self.path],
                 input=data,
                 startupinfo=self.startupinfo,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
+                capture_output=True,
+                cwd=self.path.absolute().parent,
             )
 
             if platform.system() == "Darwin":
                 time.sleep(1)
             if result.returncode != 0:
                 logger.error(
-                    "Error writing rar archive [exitcode: %d]: %s :: %s", result.returncode, self.path, archive_file
+                    "Error writing rar archive [exitcode: %d]: %s :: %s :: %s",
+                    result.returncode,
+                    self.path,
+                    archive_file,
+                    result.stderr,
                 )
                 return False
             else:
@@ -219,12 +232,17 @@ class RarArchiver(Archiver):
                     [self.exe, "a", "-r", "-c-", str(rar_path.absolute()), "."],
                     cwd=rar_cwd.absolute(),
                     startupinfo=self.startupinfo,
-                    stdout=subprocess.DEVNULL,
                     stdin=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL,
+                    capture_output=True,
+                    encoding="utf-8",
                 )
                 if result.returncode != 0:
-                    logger.error("Error while copying to rar archive [exitcode: %d]: %s", result.returncode, self.path)
+                    logger.error(
+                        "Error while copying to rar archive [exitcode: %d]: %s: %s",
+                        result.returncode,
+                        self.path,
+                        result.stderr,
+                    )
                     return False
 
                 self.path.unlink(missing_ok=True)
