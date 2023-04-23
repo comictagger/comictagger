@@ -41,7 +41,7 @@ Please open a [GitHub Pull Request](https://github.com/comictagger/comictagger/p
 
 Currently only python 3.9 is supported however 3.10 will probably work if you try it
 
-Those on linux should install `Pillow` from the system package manager if possible and if the GUI and/or the CBR/RAR comicbooks are going to be used `pyqt5` and `unrar-cffi` should be installed from the system package manager
+Those on linux should install `Pillow` from the system package manager if possible and if the GUI `pyqt5` should be installed from the system package manager
 
 Those on macOS will need to ensure that you are using python3 in x86 mode either by installing an x86 only version of python or using the universal installer and using `python3-intel64` instead of `python3`
 
@@ -50,10 +50,10 @@ Those on macOS will need to ensure that you are using python3 in x86 mode either
 git clone https://github.com/comictagger/comictagger.git
 ```
 
-2. It is preferred to use a virtual env for running from source, adding the `--system-site-packages` allows packages already installed via the system package manager to be used:
+2. It is preferred to use a virtual env for running from source:
 
 ```
-python3 -m venv --system-site-packages venv
+python3 -m venv venv
 ```
 
 3. Activate the virtual env:
@@ -65,73 +65,34 @@ or if on windows PowerShell
 . venv/bin/activate.ps1
 ```
 
-4. install dependencies:
+4. Install tox:
 ```bash
-pip install -r requirements_dev.txt -r requirements.txt
-# if installing optional dependencies
-pip install -r requirements-GUI.txt -r requirements-CBR.txt
+pip install tox
 ```
 
-5. install ComicTagger
+5. If you are on an M1 Mac you will need to export two environment variables for tests to pass.
 ```
-pip install .
+export tox_python=python3.9-intel64
+export tox_env=m1env
 ```
 
-6. (optionally) run pytest to ensure that their are no failures (xfailed means expected failure)
+6. install ComicTagger
 ```
-$ pytest
-============================= test session starts ==============================
-platform darwin -- Python 3.9.12, pytest-7.1.1, pluggy-1.0.0
-rootdir: /Users/timmy/build/source/comictagger
-collected 61 items
-
-tests/test_FilenameParser.py ..x......x.xxx.xx....xxxxxx.xx.x..xxxxxxx   [ 67%]
-tests/test_comicarchive.py x...                                          [ 73%]
-tests/test_rename.py ..xxx.xx..XXX.XX                                    [100%]
-
-================== 27 passed, 29 xfailed, 5 xpassed in 2.68s ===================
+tox run -e venv
 ```
 
 7. Make your changes
-8. run code tools and correct any issues
+8. Build to ensure that your changes work: this will produce a binary build in the dist folder
 ```bash
-black .
-isort .
-flake8 .
-pytest
+tox run -m build
 ```
 
-black: formats all of the code consistently so there are no surprises<br>
+The build runs these formatters and linters automatically
+
+setup-cfg-fmt: Formats the setup.cfg file
+autoflake: Removes unused imports
 isort: sorts imports so that you can always find where an import is located<br>
+black: formats all of the code consistently so there are no surprises<br>
 flake8: checks for code quality and style (warns for unused imports and similar issues)<br>
+mypy: checks the types of variables and functions to catch errors
 pytest: runs tests for ComicTagger functionality
-
-
-if on mac or linux most of this can be accomplished by running
-```
-make install
-# or make PYTHON=python3-intel64 install
-. venv/bin/activate
-make CI
-```
-There is also `make check` which will run all of the code tools in a read-only capacity
-```
-$ make check
-venv/bin/black --check .
-All done! ✨ 🍰 ✨
-52 files would be left unchanged.
-venv/bin/isort --check .
-Skipped 6 files
-venv/bin/flake8 .
-venv/bin/pytest
-============================= test session starts ==============================
-platform darwin -- Python 3.9.12, pytest-7.1.1, pluggy-1.0.0
-rootdir: /Users/timmy/build/source/comictagger
-collected 61 items
-
-tests/test_FilenameParser.py ..x......x.xxx.xx....xxxxxx.xx.x..xxxxxxx   [ 67%]
-tests/test_comicarchive.py x...                                          [ 73%]
-tests/test_rename.py ..xxx.xx..XXX.XX                                    [100%]
-
-================== 27 passed, 29 xfailed, 5 xpassed in 2.68s ===================
-```

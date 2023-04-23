@@ -20,6 +20,7 @@ import logging
 import os
 import pathlib
 import string
+from collections.abc import Mapping, Sequence
 from typing import Any, cast
 
 from pathvalidate import Platform, normalize_platform, sanitize_filename
@@ -94,8 +95,8 @@ class MetadataFormatter(string.Formatter):
     def _vformat(
         self,
         format_string: str,
-        args: list[Any],
-        kwargs: dict[str, Any],
+        args: Sequence[Any],
+        kwargs: Mapping[str, Any],
         used_args: set[Any],
         recursion_depth: int,
         auto_arg_index: int = 0,
