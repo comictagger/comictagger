@@ -9,7 +9,7 @@ block_cipher = None
 
 
 a = Analysis(
-    ["comictagger.py"],
+    ["comictaggerlib/__main__.py"],
     pathex=[],
     binaries=[],
     datas=[],

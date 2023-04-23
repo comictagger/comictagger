@@ -22,8 +22,6 @@ import shutil
 import sys
 from typing import cast
 
-import natsort
-
 from comicapi import filenamelexer, filenameparser, utils
 from comicapi.archivers import Archiver, UnknownArchiver, ZipArchiver
 from comicapi.comet import CoMet
@@ -269,7 +267,7 @@ class ComicArchive:
 
             # seems like some archive creators are on Windows, and don't know about case-sensitivity!
             if sort_list:
-                files = cast(list[str], natsort.os_sorted(files))
+                files = cast(list[str], utils.os_sorted(files))
 
             # make a sub-list of image files
             self.page_list = []
