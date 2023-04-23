@@ -35,7 +35,7 @@ For details, screen-shots, and more, visit [the Wiki](https://github.com/comicta
 
 ### Binaries
 
-Windows and macOS binaries are provided in the [Releases Page](https://github.com/comictagger/comictagger/releases).
+Windows, Linux and MacOS binaries are provided in the [Releases Page](https://github.com/comictagger/comictagger/releases).
 
 Just unzip the archive in any folder and run, no additional installation steps are required.
 
@@ -47,7 +47,14 @@ A pip package is provided, you can install it with:
  $ pip3 install comictagger[GUI]
 ```
 
-There are two optional dependencies GUI and CBR. You can install the optional dependencies by specifying one or more of `GUI`,`CBR` or `all` in braces e.g. `comictagger[CBR,GUI]`
+There are optional dependencies. You can install the optional dependencies by specifying one or more of them in braces e.g. `comictagger[CBR,GUI]`
+
+Optional dependencies:
+1. `ICU`: Ensures that comic pages are supported correctly. This should always be installed. *Currently only exists in the latest alpha release *
+1. `CBR`: Provides support for CBR/RAR files.
+1. `GUI`: Installs the GUI.
+1. `7Z`: Provides support for CB7/7Z files.
+1. `all`: Installs all of the above optional dependencies.
 
 ### Chocolatey installation (Windows only)
 
@@ -59,8 +66,7 @@ choco install comictagger
 
  1. Ensure you have python 3.9 installed
  2. Clone this repository `git clone https://github.com/comictagger/comictagger.git`
- 3. `pip3 install -r requirements_dev.txt`
- 7. `pip3 install .` or `pip3 install .[GUI]`
+ 7. `pip3 install .[ICU]` or `pip3 install .[GUI,ICU]`
 
 
 ## Contributors

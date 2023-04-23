@@ -1,8 +1,8 @@
 name: CI
 
 env:
-  PIP: pip
-  PYTHON: python
+  PKG_CONFIG_PATH: /usr/local/opt/icu4c/lib/pkgconfig
+  LC_COLLATE: en_US.UTF-8
 on:
   pull_request:
   push:
@@ -23,24 +23,18 @@ jobs:
         os: [ubuntu-latest]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python-version }}
 
-      - uses: syphar/restore-virtualenv@v1.2
-        id: cache-virtualenv
-
-      - uses: syphar/restore-pip-download-cache@v1
-        if: steps.cache-virtualenv.outputs.cache-hit != 'true'
-
       - name: Install build dependencies
         run: |
-          python -m pip install --upgrade --upgrade-strategy eager -r requirements_dev.txt
+          python -m pip install flake8
 
       - uses: reviewdog/action-setup@v1
         with:
@@ -57,72 +51,45 @@ jobs:
         os: [ubuntu-latest, macos-10.15, windows-latest]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python-version }}
 
-      - uses: syphar/restore-virtualenv@v1.2
-        id: cache-virtualenv
-
-      - uses: syphar/restore-pip-download-cache@v1
-        if: steps.cache-virtualenv.outputs.cache-hit != 'true'
-
-      - name: Install build dependencies
+      - name: Install tox
         run: |
-          python -m pip install --upgrade --upgrade-strategy eager -r requirements_dev.txt
+          python -m pip install --upgrade --upgrade-strategy eager tox
 
-      - name: Install Windows build dependencies
-        run: |
-          choco install -y zip
-        if: runner.os == 'Windows'
       - name: Install macos dependencies
         run: |
           brew install icu4c pkg-config
-          export PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig";
-          export PATH="/usr/local/opt/icu4c/bin:/usr/local/opt/icu4c/sbin:$PATH"
-          python -m pip install --no-binary=pyicu pyicu
+          # export PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig";
+          # export PATH="/usr/local/opt/icu4c/bin:/usr/local/opt/icu4c/sbin:$PATH"
         if: runner.os == 'macOS'
+
       - name: Install linux dependencies
         run: |
           sudo apt-get install pkg-config libicu-dev libqt5gui5 libfuse2
-          export PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig";
-          export PATH="/usr/local/opt/icu4c/bin:/usr/local/opt/icu4c/sbin:$PATH"
-          python -m pip install --no-binary=pyicu pyicu
+          # export PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig";
+          # export PATH="/usr/local/opt/icu4c/bin:/usr/local/opt/icu4c/sbin:$PATH"
         if: runner.os == 'Linux'
 
       - name: Build and install PyPi packages
         run: |
-          make clean pydist
-          python -m pip install "dist/$(python setup.py --fullname)-py3-none-any.whl[all]"
-
-      - name: build
-        run: |
-          make dist
-
-      - name: build appimage
-        run: |
-          make appimage
-        if: runner.os == 'Linux'
+          python -m tox r -m build
 
       - name: Archive production artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: "${{ format('ComicTagger-{0}', runner.os) }}"
           path: |
             dist/*.zip
-
-      - name: Archive production artifacts - appimage
-        uses: actions/upload-artifact@v2
-        with:
-          name: "${{ format('ComicTagger-{0}', runner.os) }}"
-          path: |
             dist/*.AppImage
 
       - name: PyTest
         run: |
-          python -m pytest
+          python -m tox r
