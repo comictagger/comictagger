@@ -36,7 +36,7 @@ install_requires = read("requirements.txt").splitlines()
 extras_require = {}
 extra_req_files = glob.glob("requirements-*.txt")
 for extra_req_file in extra_req_files:
-    name = os.path.splitext(extra_req_file)[0].replace("requirements-", "", 1)
+    name = os.path.splitext(extra_req_file)[0].removeprefix("requirements-")
     extras_require[name] = read(extra_req_file).splitlines()
 
 # If there are any extras, add a catch-all case that includes everything.

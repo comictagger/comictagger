@@ -18,22 +18,46 @@ import json
 import logging
 import os
 import pathlib
+import platform
 import unicodedata
 from collections import defaultdict
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from shutil import which  # noqa: F401
 from typing import Any
 
+import natsort
 import pycountry
 import rapidfuzz.fuzz
 
 import comicapi.data
 
+try:
+    import icu
+
+    del icu
+    icu_available = True
+except ImportError:
+    icu_available = False
+
 logger = logging.getLogger(__name__)
 
 
-class UtilsVars:
-    already_fixed_encoding = False
+def _custom_key(tup):
+    lst = []
+    for x in natsort.os_sort_keygen()(tup):
+        ret = x
+        if len(x) > 1 and isinstance(x[1], int) and isinstance(x[0], str) and x[0] == "":
+            ret = ("a", *x[1:])
+
+        lst.append(ret)
+    return tuple(lst)
+
+
+def os_sorted(lst: Iterable) -> Iterable:
+    key = _custom_key
+    if icu_available or platform.system() == "Windows":
+        key = natsort.os_sort_keygen()
+    return sorted(lst, key=key)
 
 
 def combine_notes(existing_notes: str | None, new_notes: str | None, split: str) -> str:
