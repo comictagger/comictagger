@@ -7,46 +7,6 @@ import pytest
 import comicapi.utils
 
 
-def test_os_sorted():
-    page_name_list = [
-        "cover.jpg",
-        "Page1.jpeg",
-        "!cover.jpg",
-        "page4.webp",
-        "test/!cover.tar.gz",
-        "!cover.tar.gz",
-        "00.jpg",
-        "ignored.txt",
-        "page0.jpg",
-        "test/00.tar.gz",
-        ".ignored.jpg",
-        "Page3.gif",
-        "!cover.tar.gz",
-        "Page2.png",
-        "page10.jpg",
-        "!cover",
-    ]
-
-    assert comicapi.utils.os_sorted(page_name_list) == [
-        "!cover",
-        "!cover.jpg",
-        "!cover.tar.gz",
-        "!cover.tar.gz",  # Depending on locale punctuation or numbers might come first (Linux, MacOS)
-        ".ignored.jpg",
-        "00.jpg",
-        "cover.jpg",
-        "ignored.txt",
-        "page0.jpg",
-        "Page1.jpeg",
-        "Page2.png",
-        "Page3.gif",
-        "page4.webp",
-        "page10.jpg",
-        "test/!cover.tar.gz",
-        "test/00.tar.gz",
-    ]
-
-
 def test_recursive_list_with_file(tmp_path) -> None:
     foo_png = tmp_path / "foo.png"
     foo_png.write_text("not a png")

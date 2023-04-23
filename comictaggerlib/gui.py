@@ -9,19 +9,13 @@ import types
 
 import settngs
 
-from comicapi.utils import save_locale, set_locale
 from comictaggerlib.graphics import graphics_path
 from comictalker.comictalker import ComicTalker
 
 logger = logging.getLogger("comictagger")
-
 try:
-    loc = save_locale()
-    from PyQt5 import QtCore, QtGui, QtWidgets
-
     qt_available = True
-
-    set_locale(loc)
+    from PyQt5 import QtCore, QtGui, QtWidgets
 
     def show_exception_box(log_msg: str) -> None:
         """Checks if a QApplication instance is available and shows a messagebox with the exception message.

@@ -15,69 +15,25 @@
 from __future__ import annotations
 
 import json
-import locale
 import logging
 import os
 import pathlib
 import unicodedata
 from collections import defaultdict
-from collections.abc import Iterable, Mapping
+from collections.abc import Mapping
 from shutil import which  # noqa: F401
 from typing import Any
 
-import natsort
 import pycountry
 import rapidfuzz.fuzz
 
 import comicapi.data
 
-try:
-    import icu
-
-    del icu
-    icu_available = True
-except ImportError:
-    icu_available = False
-
 logger = logging.getLogger(__name__)
 
 
-def _custom_key(tup):
-    lst = []
-    for x in natsort.os_sort_keygen()(tup):
-        ret = x
-        if len(x) > 1 and isinstance(x[1], int) and isinstance(x[0], str) and x[0] == "":
-            ret = (str(x[1]), *x[1:])
-
-        lst.append(ret)
-    return tuple(lst)
-
-
-def os_sorted(lst: Iterable) -> Iterable:
-    if icu_available:
-        raise Exception("fuck off")
-        return natsort.os_sorted(lst)
-    return sorted(lst, key=_custom_key)
-
-
-def save_locale() -> dict[int, tuple[str | None, str | None]]:
-    locales: dict[int, tuple[str | None, str | None]] = {
-        locale.LC_ALL: (None, None),
-        locale.LC_COLLATE: (None, None),
-        locale.LC_CTYPE: (None, None),
-        locale.LC_MESSAGES: (None, None),
-        locale.LC_MONETARY: (None, None),
-        locale.LC_NUMERIC: (None, None),
-        locale.LC_TIME: (None, None),
-    }
-    for x in locales:
-        locales[x] = locale.getlocale(x)
-    return locales
-
-
-def set_locale(locales: dict[int, tuple[str | None, str | None]]) -> None:
-    for x, value in locales.items():
-        locale.setlocale(x, value)
+class UtilsVars:
+    already_fixed_encoding = False
 
 
 def combine_notes(existing_notes: str | None, new_notes: str | None, split: str) -> str:

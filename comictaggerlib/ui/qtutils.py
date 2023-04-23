@@ -6,16 +6,12 @@ import io
 import logging
 import traceback
 
-from comicapi.utils import save_locale, set_locale
 from comictaggerlib.graphics import graphics_path
 
 logger = logging.getLogger(__name__)
 
 try:
-    loc = save_locale()
     from PyQt5 import QtGui, QtWidgets
-
-    set_locale(loc)
 
     qt_available = True
 except ImportError:

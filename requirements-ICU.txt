@@ -1,1 +1,0 @@
-pyicu; sys_platform == 'linux' or sys_platform == 'darwin'

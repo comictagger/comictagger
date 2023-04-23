@@ -25,14 +25,10 @@ import tempfile
 
 import requests
 
-from comicapi.utils import save_locale, set_locale
 from comictaggerlib import ctversion
 
 try:
-    loc = save_locale()
     from PyQt5 import QtCore, QtNetwork
-
-    set_locale(loc)
 
     qt_available = True
 except ImportError:

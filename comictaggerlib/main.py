@@ -25,7 +25,6 @@ import settngs
 
 import comicapi
 import comictalker
-from comicapi.utils import save_locale, set_locale
 from comictaggerlib import cli, ctsettings
 from comictaggerlib.ctversion import version
 from comictaggerlib.log import setup_logging
@@ -37,12 +36,8 @@ else:
 
 logger = logging.getLogger("comictagger")
 
-
 try:
-    loc = save_locale()
     from comictaggerlib import gui
-
-    set_locale(loc)
 
     qt_available = gui.qt_available
 except Exception:
