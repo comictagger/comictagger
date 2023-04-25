@@ -108,7 +108,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         series_name: str,
         issue_number: str,
         year: int | None,
-        issue_count: int,
+        issue_count: int | None,
         cover_index_list: list[int],
         comic_archive: ComicArchive | None,
         config: ct_ns,
@@ -308,7 +308,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
             if found_match is not None:
                 self.iddialog.accept()
 
-                self.series_id = utils.xlate(found_match["series_id"])
+                self.series_id = utils.xlate(found_match["series_id"]) or ""
                 self.issue_number = found_match["issue_number"]
                 self.select_by_id()
                 self.show_issues()
