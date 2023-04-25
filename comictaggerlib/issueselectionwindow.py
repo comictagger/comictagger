@@ -106,7 +106,7 @@ class IssueSelectionWindow(QtWidgets.QDialog):
 
         # now that the list has been sorted, find the initial record, and
         # select it
-        if self.initial_id is None:
+        if not self.initial_id:
             self.twList.selectRow(0)
         else:
             for r in range(0, self.twList.rowCount()):

@@ -326,6 +326,8 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
             self.issue_number = selector.issue_number
             self.issue_id = selector.issue_id
             self.accept()
+        else:
+            self.imageWidget.update_content()
 
     def select_by_id(self) -> None:
         for r in range(0, self.twList.rowCount()):
