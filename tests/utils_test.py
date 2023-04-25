@@ -77,32 +77,46 @@ def test_recursive_list_with_file(tmp_path) -> None:
 
 
 xlate_values = [
-    ({"data": "", "is_int": False, "is_float": False}, None),
-    ({"data": None, "is_int": False, "is_float": False}, None),
-    ({"data": None, "is_int": True, "is_float": False}, None),
-    ({"data": " ", "is_int": True, "is_float": False}, None),
-    ({"data": "", "is_int": True, "is_float": False}, None),
-    ({"data": "9..", "is_int": True, "is_float": False}, None),
-    ({"data": "9", "is_int": False, "is_float": False}, "9"),
-    ({"data": 9, "is_int": False, "is_float": False}, "9"),
-    ({"data": 9, "is_int": True, "is_float": False}, 9),
-    ({"data": "9", "is_int": True, "is_float": False}, 9),
-    ({"data": 9.3, "is_int": True, "is_float": False}, 9),
-    ({"data": "9.3", "is_int": True, "is_float": False}, 9),
-    ({"data": "9.", "is_int": True, "is_float": False}, 9),
-    ({"data": " 9 . 3 l", "is_int": True, "is_float": False}, 9),
-    ({"data": 9, "is_int": False, "is_float": True}, 9.0),
-    ({"data": "9", "is_int": False, "is_float": True}, 9.0),
-    ({"data": 9.3, "is_int": False, "is_float": True}, 9.3),
-    ({"data": "9.3", "is_int": False, "is_float": True}, 9.3),
-    ({"data": "9.", "is_int": False, "is_float": True}, 9.0),
-    ({"data": " 9 . 3 l", "is_int": False, "is_float": True}, 9.3),
+    ("", None),
+    (None, None),
+    ("9", "9"),
+    (9, "9"),
+]
+xlate_int_values = [
+    (None, None),
+    (" ", None),
+    ("", None),
+    ("9..", None),
+    (9, 9),
+    ("9", 9),
+    (9.3, 9),
+    ("9.3", 9),
+    ("9.", 9),
+    (" 9 . 3 l", 9),
+]
+xlate_float_values = [
+    (9, 9.0),
+    ("9", 9.0),
+    (9.3, 9.3),
+    ("9.3", 9.3),
+    ("9.", 9.0),
+    (" 9 . 3 l", 9.3),
 ]
 
 
 @pytest.mark.parametrize("value, result", xlate_values)
 def test_xlate(value, result):
-    assert comicapi.utils.xlate(**value) == result
+    assert comicapi.utils.xlate(value) == result
+
+
+@pytest.mark.parametrize("value, result", xlate_float_values)
+def test_xlate_float(value, result):
+    assert comicapi.utils.xlate_float(value) == result
+
+
+@pytest.mark.parametrize("value, result", xlate_int_values)
+def test_xlate_int(value, result):
+    assert comicapi.utils.xlate_int(value) == result
 
 
 language_values = [

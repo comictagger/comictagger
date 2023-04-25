@@ -68,17 +68,17 @@ def combine_notes(existing_notes: str | None, new_notes: str | None, split: str)
         return (untouched_notes + "\n" + (new_notes or "")).strip()
 
 
-def parse_date_str(date_str: str) -> tuple[int | None, int | None, int | None]:
+def parse_date_str(date_str: str | None) -> tuple[int | None, int | None, int | None]:
     day = None
     month = None
     year = None
     if date_str:
         parts = date_str.split("-")
-        year = xlate(parts[0], True)
+        year = xlate_int(parts[0])
         if len(parts) > 1:
-            month = xlate(parts[1], True)
+            month = xlate_int(parts[1])
             if len(parts) > 2:
-                day = xlate(parts[2], True)
+                day = xlate_int(parts[2])
     return day, month, year
 
 
@@ -107,23 +107,32 @@ def add_to_path(dirname: str) -> None:
             os.environ["PATH"] = os.pathsep.join(paths)
 
 
-def xlate(data: Any, is_int: bool = False, is_float: bool = False) -> Any:
+def xlate_int(data: Any) -> int | None:
+    data = xlate_float(data)
+    if data is None:
+        return None
+    return int(data)
+
+
+def xlate_float(data: Any) -> float | None:
     if data is None or data == "":
         return None
-    if is_int or is_float:
-        i: str | int | float
-        if isinstance(data, (int, float)):
-            i = data
-        else:
-            i = str(data).translate(defaultdict(lambda: None, zip((ord(c) for c in "1234567890."), "1234567890.")))
-        if i == "":
-            return None
-        try:
-            if is_float:
-                return float(i)
-            return int(float(i))
-        except ValueError:
-            return None
+    i: str | int | float
+    if isinstance(data, (int, float)):
+        i = data
+    else:
+        i = str(data).translate(defaultdict(lambda: None, zip((ord(c) for c in "1234567890."), "1234567890.")))
+    if i == "":
+        return None
+    try:
+        return float(i)
+    except ValueError:
+        return None
+
+
+def xlate(data: Any) -> str | None:
+    if data is None or data == "":
+        return None
 
     return str(data)
 

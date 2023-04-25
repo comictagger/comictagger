@@ -56,7 +56,7 @@ def map_comic_issue_to_metadata(
     if issue_results.cover_date:
         metadata.day, metadata.month, metadata.year = utils.parse_date_str(issue_results.cover_date)
     elif issue_results.series.start_year:
-        metadata.year = utils.xlate(issue_results.series.start_year, True)
+        metadata.year = utils.xlate_int(issue_results.series.start_year)
 
     metadata.comments = cleanup_html(issue_results.description, remove_html_tables)
     if use_year_volume:
@@ -91,11 +91,11 @@ def parse_date_str(date_str: str) -> tuple[int | None, int | None, int | None]:
     year = None
     if date_str:
         parts = date_str.split("-")
-        year = utils.xlate(parts[0], True)
+        year = utils.xlate_int(parts[0])
         if len(parts) > 1:
-            month = utils.xlate(parts[1], True)
+            month = utils.xlate_int(parts[1])
             if len(parts) > 2:
-                day = utils.xlate(parts[2], True)
+                day = utils.xlate_int(parts[2])
     return day, month, year
 
 

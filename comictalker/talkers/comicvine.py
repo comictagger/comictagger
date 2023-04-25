@@ -393,7 +393,7 @@ class ComicVineTalker(ComicTalker):
             series_filter += str(vid) + "|"
         flt = f"volume:{series_filter},issue_number:{issue_number}"  # CV uses volume to mean series
 
-        int_year = utils.xlate(year, True)
+        int_year = utils.xlate_int(year)
         if int_year is not None:
             flt += f",cover_date:{int_year}-1-1|{int_year + 1}-1-1"
 
@@ -501,7 +501,7 @@ class ComicVineTalker(ComicTalker):
             else:
                 image_url = record["image"].get("super_url", "")
 
-            start_year = utils.xlate(record.get("start_year", ""), True)
+            start_year = utils.xlate_int(record.get("start_year", ""))
 
             aliases = record.get("aliases") or ""
 

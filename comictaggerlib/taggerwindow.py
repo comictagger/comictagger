@@ -898,13 +898,13 @@ class TaggerWindow(QtWidgets.QMainWindow):
         md.is_empty = False
         md.alternate_number = IssueString(self.leAltIssueNum.text()).as_string()
         md.issue = IssueString(self.leIssueNum.text()).as_string()
-        md.issue_count = utils.xlate(self.leIssueCount.text(), True)
-        md.volume = utils.xlate(self.leVolumeNum.text(), True)
-        md.volume_count = utils.xlate(self.leVolumeCount.text(), True)
-        md.month = utils.xlate(self.lePubMonth.text(), True)
-        md.year = utils.xlate(self.lePubYear.text(), True)
-        md.day = utils.xlate(self.lePubDay.text(), True)
-        md.alternate_count = utils.xlate(self.leAltIssueCount.text(), True)
+        md.issue_count = utils.xlate_int(self.leIssueCount.text())
+        md.volume = utils.xlate_int(self.leVolumeNum.text())
+        md.volume_count = utils.xlate_int(self.leVolumeCount.text())
+        md.month = utils.xlate_int(self.lePubMonth.text())
+        md.year = utils.xlate_int(self.lePubYear.text())
+        md.day = utils.xlate_int(self.lePubDay.text())
+        md.alternate_count = utils.xlate_int(self.leAltIssueCount.text())
 
         md.series = self.leSeries.text()
         md.title = self.leTitle.text()
@@ -915,7 +915,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         md.notes = self.teNotes.toPlainText()
         md.maturity_rating = self.cbMaturityRating.currentText()
 
-        md.critical_rating = utils.xlate(self.dsbCriticalRating.cleanText(), is_float=True)
+        md.critical_rating = utils.xlate_float(self.dsbCriticalRating.cleanText())
         if md.critical_rating == 0.0:
             md.critical_rating = None
 
@@ -1027,9 +1027,9 @@ class TaggerWindow(QtWidgets.QMainWindow):
             QtWidgets.QMessageBox.information(self, "Online Search", "Need to enter a series name to search.")
             return
 
-        year = utils.xlate(self.lePubYear.text(), True)
+        year = utils.xlate_int(self.lePubYear.text())
 
-        issue_count = utils.xlate(self.leIssueCount.text(), True)
+        issue_count = utils.xlate_int(self.leIssueCount.text())
 
         cover_index_list = self.metadata.get_cover_page_index_list()
         selector = SeriesSelectionWindow(
