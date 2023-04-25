@@ -40,15 +40,15 @@ logger = logging.getLogger(__name__)
 
 
 class CLI:
-    def __init__(self, config: settngs.Namespace, talkers: dict[str, ComicTalker]):
+    def __init__(self, config: settngs.Namespace, talkers: dict[str, ComicTalker]) -> None:
         self.config = config
         self.talkers = talkers
         self.batch_mode = False
 
     def current_talker(self) -> ComicTalker:
-        if self.config[0].talker_source in self.talkers:
-            return self.talkers[self.config[0].talker_source]
-        logger.error("Could not find the '%s' talker", self.config[0].talker_source)
+        if self.config.talker_source in self.talkers:
+            return self.talkers[self.config.talker_source]
+        logger.error("Could not find the '%s' talker", self.config.talker_source)
         raise SystemExit(2)
 
     def actual_issue_data_fetch(self, issue_id: str) -> GenericMetadata:
