@@ -3,7 +3,7 @@ from __future__ import annotations
 import argparse
 import logging
 from functools import partial
-from typing import NamedTuple
+from typing import Any, NamedTuple
 
 import settngs
 from PyQt5 import QtCore, QtWidgets
@@ -24,9 +24,9 @@ def generate_api_widgets(
     config: settngs.Config[settngs.Namespace],
     layout: QtWidgets.QGridLayout,
     talkers: dict[str, ComicTalker],
-):
+) -> None:
     # *args enforces keyword arguments and allows position arguments to be ignored
-    def call_check_api(*args, le_url: QtWidgets.QLineEdit, le_key: QtWidgets.QLineEdit, talker_id: str):
+    def call_check_api(*args: Any, le_url: QtWidgets.QLineEdit, le_key: QtWidgets.QLineEdit, talker_id: str) -> None:
         url = ""
         key = ""
         if le_key is not None:
