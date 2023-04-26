@@ -40,7 +40,7 @@ jobs:
 
       - name: Install linux dependencies
         run: |
-          sudo apt-get install pkg-config libicu-dev libqt5gui5
+          sudo apt-get install pkg-config libicu-dev libqt5gui5 libfuse2
           # export PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig";
           # export PATH="/usr/local/opt/icu4c/bin:/usr/local/opt/icu4c/sbin:$PATH"
         if: runner.os == 'Linux'
