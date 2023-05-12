@@ -44,8 +44,8 @@ def map_comic_issue_to_metadata(
 
     metadata.series = utils.xlate(issue_results.series.name)
     metadata.issue = IssueString(issue_results.issue_number).as_string()
-    metadata.volume = utils.xlate(issue_results.series.volume, True)
-    metadata.volume_count = utils.xlate(issue_results.series.count_of_volumes, True)
+    metadata.volume = utils.xlate_int(issue_results.series.volume)
+    metadata.volume_count = utils.xlate_int(issue_results.series.count_of_volumes)
 
     if issue_results.name:
         metadata.title = utils.xlate(issue_results.name)
@@ -93,7 +93,7 @@ def map_comic_issue_to_metadata(
         else:
             metadata.manga = "Unknown"
     if issue_results.rating:
-        metadata.critical_rating = utils.xlate(issue_results.rating, is_float=True)
+        metadata.critical_rating = utils.xlate_float(issue_results.rating)
 
     return metadata
 
