@@ -5,7 +5,7 @@ tagging schemes and databases, such as ComicVine or GCD.  This makes conversion
 possible, however lossy it might be
 
 """
-# Copyright 2012-2014 Anthony Beville
+# Copyright 2012-2014 ComicTagger Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -122,7 +122,7 @@ class GenericMetadata:
     pages: list[ImageMetadata] = dataclasses.field(default_factory=list)
 
     # Some CoMet-only items
-    price: str | None = None
+    price: float | None = None
     is_version_of: str | None = None
     rights: str | None = None
     identifier: str | None = None

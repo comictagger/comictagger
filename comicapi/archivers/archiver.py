@@ -25,7 +25,7 @@ class Archiver(Protocol):
     """
     enabled: bool = True
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.path = pathlib.Path()
 
     def get_comment(self) -> str:

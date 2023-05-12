@@ -1,6 +1,6 @@
 """A class to manage fetching and caching of images by URL"""
 #
-# Copyright 2012-2014 Anthony Beville
+# Copyright 2012-2014 ComicTagger Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@ class ImageFetcherException(Exception):
     ...
 
 
-def fetch_complete(image_data: bytes | QtCore.QByteArray) -> None:
+def fetch_complete(url: str, image_data: bytes | QtCore.QByteArray) -> None:
     ...
 
 
@@ -79,22 +79,22 @@ class ImageFetcher:
         # first look in the DB
         image_data = self.get_image_from_cache(url)
         # Async for retrieving covers seems to work well
-        if blocking:  # if blocking or not qt_available:
+        if blocking or not qt_available:
             if not image_data:
                 try:
                     image_data = requests.get(url, headers={"user-agent": "comictagger/" + ctversion.version}).content
+                    # save the image to the cache
+                    self.add_image_to_cache(self.fetched_url, image_data)
                 except Exception as e:
                     logger.exception("Fetching url failed: %s")
                     raise ImageFetcherException("Network Error!") from e
-
-            # save the image to the cache
-            self.add_image_to_cache(self.fetched_url, image_data)
+            ImageFetcher.image_fetch_complete(url, image_data)
             return image_data
 
         if qt_available:
             # if we found it, just emit the signal asap
             if image_data:
-                ImageFetcher.image_fetch_complete(QtCore.QByteArray(image_data))
+                ImageFetcher.image_fetch_complete(url, QtCore.QByteArray(image_data))
                 return b""
 
             # didn't find it.  look online
@@ -110,9 +110,9 @@ class ImageFetcher:
         image_data = reply.readAll()
 
         # save the image to the cache
-        self.add_image_to_cache(self.fetched_url, image_data)
+        self.add_image_to_cache(reply.request().url().toString(), image_data)
 
-        ImageFetcher.image_fetch_complete(image_data)
+        ImageFetcher.image_fetch_complete(reply.request().url().toString(), image_data)
 
     def create_image_db(self) -> None:
         # this will wipe out any existing version

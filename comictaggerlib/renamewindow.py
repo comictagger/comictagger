@@ -1,6 +1,6 @@
 """A PyQT4 dialog to confirm rename"""
 #
-# Copyright 2012-2014 Anthony Beville
+# Copyright 2012-2014 ComicTagger Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ class RenameWindow(QtWidgets.QDialog):
         comic_archive_list: list[ComicArchive],
         data_style: int,
         config: settngs.Config[settngs.Namespace],
-        talker: ComicTalker,
+        talkers: dict[str, ComicTalker],
     ) -> None:
         super().__init__(parent)
 
@@ -55,7 +55,7 @@ class RenameWindow(QtWidgets.QDialog):
         )
 
         self.config = config
-        self.talker = talker
+        self.talkers = talkers
         self.comic_archive_list = comic_archive_list
         self.data_style = data_style
         self.rename_list: list[str] = []
@@ -73,7 +73,7 @@ class RenameWindow(QtWidgets.QDialog):
         self.renamer.replacements = self.config[0].rename_replacements
 
         new_ext = ca.path.suffix  # default
-        if self.config[0].filename_rename_set_extension_based_on_archive:
+        if self.config[0].rename_set_extension_based_on_archive:
             new_ext = ca.extension()
 
         if md is None:
@@ -160,7 +160,7 @@ class RenameWindow(QtWidgets.QDialog):
         self.twList.setSortingEnabled(True)
 
     def modify_settings(self) -> None:
-        settingswin = SettingsWindow(self, self.config, self.talker)
+        settingswin = SettingsWindow(self, self.config, self.talkers)
         settingswin.setModal(True)
         settingswin.show_rename_tab()
         settingswin.exec()

@@ -1,6 +1,6 @@
 """A PyQT4 dialog to select specific series/volume from list"""
 #
-# Copyright 2012-2014 Anthony Beville
+# Copyright 2012-2014 ComicTagger Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -103,7 +103,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         series_name: str,
         issue_number: str,
         year: int | None,
-        issue_count: int,
+        issue_count: int | None,
         cover_index_list: list[int],
         comic_archive: ComicArchive | None,
         config: settngs.Namespace,
@@ -151,7 +151,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         self.progdialog: QtWidgets.QProgressDialog | None = None
         self.search_thread: SearchThread | None = None
 
-        self.use_filter = self.config.talker_always_use_publisher_filter
+        self.use_filter = self.config.identifier_always_use_publisher_filter
 
         # Load to retrieve settings
         self.talker = talker
@@ -303,7 +303,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
             if found_match is not None:
                 self.iddialog.accept()
 
-                self.series_id = utils.xlate(found_match["series_id"])
+                self.series_id = utils.xlate(found_match["series_id"]) or ""
                 self.issue_number = found_match["issue_number"]
                 self.select_by_id()
                 self.show_issues()
@@ -326,6 +326,8 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
             self.issue_number = selector.issue_number
             self.issue_id = selector.issue_id
             self.accept()
+        else:
+            self.imageWidget.update_content()
 
     def select_by_id(self) -> None:
         for r in range(0, self.twList.rowCount()):
@@ -336,7 +338,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
 
     def perform_query(self, refresh: bool = False) -> None:
         self.search_thread = SearchThread(
-            self.talker, self.series_name, refresh, self.literal, self.config.talker_series_match_search_thresh
+            self.talker, self.series_name, refresh, self.literal, self.config.identifier_series_match_search_thresh
         )
         self.search_thread.searchComplete.connect(self.search_complete)
         self.search_thread.progressUpdate.connect(self.search_progress_update)
@@ -403,7 +405,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         # compare as str in case extra chars ie. '1976?'
         # - missing (none) values being converted to 'None' - consistent with prior behaviour in v1.2.3
         # sort by start_year if set
-        if self.config.talker_sort_series_by_year:
+        if self.config.identifier_sort_series_by_year:
             try:
                 self.ct_search_results = sorted(
                     self.ct_search_results,
@@ -421,7 +423,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
                 logger.exception("bad data error sorting results by count_of_issues")
 
         # move sanitized matches to the front
-        if self.config.talker_exact_series_matches_first:
+        if self.config.identifier_exact_series_matches_first:
             try:
                 sanitized = utils.sanitize_title(self.series_name, False).casefold()
                 sanitized_no_articles = utils.sanitize_title(self.series_name, True).casefold()

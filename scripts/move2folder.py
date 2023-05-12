@@ -1,9 +1,7 @@
 #!/usr/bin/python
 """Moves comic files based on metadata organizing in a tree by Publisher/Series (Volume)"""
 
-# This script is based on make_links.py by Anthony Beville
-
-# Copyright 2015 Fabio Cancedda, Anthony Beville
+# Copyright 2015 ComicTagger Authors
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.

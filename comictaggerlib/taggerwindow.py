@@ -1,6 +1,6 @@
 """The main window of the ComicTagger app"""
 #
-# Copyright 2012-2014 Anthony Beville
+# Copyright 2012-2014 ComicTagger Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -898,13 +898,13 @@ class TaggerWindow(QtWidgets.QMainWindow):
         md.is_empty = False
         md.alternate_number = IssueString(self.leAltIssueNum.text()).as_string()
         md.issue = IssueString(self.leIssueNum.text()).as_string()
-        md.issue_count = utils.xlate(self.leIssueCount.text(), True)
-        md.volume = utils.xlate(self.leVolumeNum.text(), True)
-        md.volume_count = utils.xlate(self.leVolumeCount.text(), True)
-        md.month = utils.xlate(self.lePubMonth.text(), True)
-        md.year = utils.xlate(self.lePubYear.text(), True)
-        md.day = utils.xlate(self.lePubDay.text(), True)
-        md.alternate_count = utils.xlate(self.leAltIssueCount.text(), True)
+        md.issue_count = utils.xlate_int(self.leIssueCount.text())
+        md.volume = utils.xlate_int(self.leVolumeNum.text())
+        md.volume_count = utils.xlate_int(self.leVolumeCount.text())
+        md.month = utils.xlate_int(self.lePubMonth.text())
+        md.year = utils.xlate_int(self.lePubYear.text())
+        md.day = utils.xlate_int(self.lePubDay.text())
+        md.alternate_count = utils.xlate_int(self.leAltIssueCount.text())
 
         md.series = self.leSeries.text()
         md.title = self.leTitle.text()
@@ -915,7 +915,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         md.notes = self.teNotes.toPlainText()
         md.maturity_rating = self.cbMaturityRating.currentText()
 
-        md.critical_rating = utils.xlate(self.dsbCriticalRating.cleanText(), is_float=True)
+        md.critical_rating = utils.xlate_float(self.dsbCriticalRating.cleanText())
         if md.critical_rating == 0.0:
             md.critical_rating = None
 
@@ -1027,9 +1027,9 @@ class TaggerWindow(QtWidgets.QMainWindow):
             QtWidgets.QMessageBox.information(self, "Online Search", "Need to enter a series name to search.")
             return
 
-        year = utils.xlate(self.lePubYear.text(), True)
+        year = utils.xlate_int(self.lePubYear.text())
 
-        issue_count = utils.xlate(self.leIssueCount.text(), True)
+        issue_count = utils.xlate_int(self.leIssueCount.text())
 
         cover_index_list = self.metadata.get_cover_page_index_list()
         selector = SeriesSelectionWindow(
@@ -1071,7 +1071,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                     if self.config[0].cbl_apply_transform_on_import:
                         new_metadata = CBLTransformer(new_metadata, self.config[0]).apply()
 
-                    if self.config[0].talker_clear_form_before_populating:
+                    if self.config[0].identifier_clear_form_before_populating:
                         self.clear_form()
 
                     notes = (
@@ -1354,7 +1354,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 QtWidgets.QMessageBox.warning(self, self.tr("Web Link"), self.tr("Web Link is invalid."))
 
     def show_settings(self) -> None:
-        settingswin = SettingsWindow(self, self.config, self.current_talker())
+        settingswin = SettingsWindow(self, self.config, self.talkers)
         settingswin.setModal(True)
         settingswin.exec()
         settingswin.result()
@@ -1785,7 +1785,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                     )
                     md.overlay(ct_md.replace(notes=utils.combine_notes(md.notes, notes, "Tagged with ComicTagger")))
 
-                if self.config[0].talker_auto_imprint:
+                if self.config[0].identifier_auto_imprint:
                     md.fix_publisher()
 
                 if not ca.write_metadata(md, self.save_data_style):
@@ -2047,7 +2047,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         if self.dirty_flag_verification(
             "File Rename", "If you rename files now, unsaved data in the form will be lost.  Are you sure?"
         ):
-            dlg = RenameWindow(self, ca_list, self.load_data_style, self.config, self.current_talker())
+            dlg = RenameWindow(self, ca_list, self.load_data_style, self.config, self.talkers)
             dlg.setModal(True)
             if dlg.exec() and self.comic_archive is not None:
                 self.fileSelectionList.update_selected_rows()

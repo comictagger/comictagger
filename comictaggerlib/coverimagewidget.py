@@ -4,7 +4,7 @@ Display cover images from either a local archive, or from Comic Vine.
 TODO: This should be re-factored using subclasses!
 """
 #
-# Copyright 2012-2014 Anthony Beville
+# Copyright 2012-2014 ComicTagger Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -60,7 +60,7 @@ class CoverImageWidget(QtWidgets.QWidget):
     URLMode = 1
     DataMode = 3
 
-    image_fetch_complete = QtCore.pyqtSignal(QtCore.QByteArray)
+    image_fetch_complete = QtCore.pyqtSignal(str, QtCore.QByteArray)
 
     def __init__(
         self,
@@ -201,7 +201,7 @@ class CoverImageWidget(QtWidgets.QWidget):
         elif self.mode in [CoverImageWidget.AltCoverMode, CoverImageWidget.URLMode]:
             self.load_url()
         elif self.mode == CoverImageWidget.DataMode:
-            self.cover_remote_fetch_complete(self.imageData)
+            self.cover_remote_fetch_complete("", self.imageData)
         else:
             self.load_page()
 
@@ -238,7 +238,9 @@ class CoverImageWidget(QtWidgets.QWidget):
         self.cover_fetcher.fetch(self.url_list[self.imageIndex])
 
     # called when the image is done loading from internet
-    def cover_remote_fetch_complete(self, image_data: bytes) -> None:
+    def cover_remote_fetch_complete(self, url: str, image_data: bytes) -> None:
+        if url and url not in self.url_list:
+            return
         img = get_qimage_from_data(image_data)
         self.current_pixmap = QtGui.QPixmap.fromImage(img)
         self.set_display_pixmap()

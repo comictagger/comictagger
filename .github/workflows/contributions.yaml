@@ -1,0 +1,43 @@
+name: Contributions
+on:
+  push:
+    branches:
+      - 'develop'
+    tags-ignore:
+      - '**'
+
+jobs:
+  contrib-readme-job:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    env:
+      CI_COMMIT_AUTHOR: github-actions[bot]
+      CI_COMMIT_EMAIL: <41898282+github-actions[bot]@users.noreply.github.com>
+      CI_COMMIT_MESSAGE: Update AUTHORS
+    name: A job to automate contrib in readme
+    steps:
+      - name: Contribute List
+        uses: akhilmhdh/contributors-readme-action@v2.3.6
+        with:
+          use_username: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Update AUTHORS
+        run: |
+          git config --global log.mailmap true
+          git log --reverse '--format=%aN <%aE>' | cat -n | sort -uk2 | sort -n | cut -f2- >AUTHORS
+
+      - name: Commit and push AUTHORS
+        run: |
+          if ! git diff --exit-code; then
+            git pull
+            git config --global user.name "${{ env.CI_COMMIT_AUTHOR }}"
+            git config --global user.email "${{ env.CI_COMMIT_EMAIL }}"
+            git commit -a -m "${{ env.CI_COMMIT_MESSAGE }}"
+            git push
+          fi

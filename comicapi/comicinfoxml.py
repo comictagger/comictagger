@@ -1,5 +1,5 @@
 """A class to encapsulate ComicRack's ComicInfo.xml data"""
-# Copyright 2012-2014 Anthony Beville
+# Copyright 2012-2014 ComicTagger Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -190,16 +190,16 @@ class ComicInfoXml:
         md.series = utils.xlate(get("Series"))
         md.title = utils.xlate(get("Title"))
         md.issue = IssueString(utils.xlate(get("Number"))).as_string()
-        md.issue_count = utils.xlate(get("Count"), True)
-        md.volume = utils.xlate(get("Volume"), True)
+        md.issue_count = utils.xlate_int(get("Count"))
+        md.volume = utils.xlate_int(get("Volume"))
         md.alternate_series = utils.xlate(get("AlternateSeries"))
         md.alternate_number = IssueString(utils.xlate(get("AlternateNumber"))).as_string()
-        md.alternate_count = utils.xlate(get("AlternateCount"), True)
+        md.alternate_count = utils.xlate_int(get("AlternateCount"))
         md.comments = utils.xlate(get("Summary"))
         md.notes = utils.xlate(get("Notes"))
-        md.year = utils.xlate(get("Year"), True)
-        md.month = utils.xlate(get("Month"), True)
-        md.day = utils.xlate(get("Day"), True)
+        md.year = utils.xlate_int(get("Year"))
+        md.month = utils.xlate_int(get("Month"))
+        md.day = utils.xlate_int(get("Day"))
         md.publisher = utils.xlate(get("Publisher"))
         md.imprint = utils.xlate(get("Imprint"))
         md.genre = utils.xlate(get("Genre"))
@@ -210,12 +210,12 @@ class ComicInfoXml:
         md.characters = utils.xlate(get("Characters"))
         md.teams = utils.xlate(get("Teams"))
         md.locations = utils.xlate(get("Locations"))
-        md.page_count = utils.xlate(get("PageCount"), True)
+        md.page_count = utils.xlate_int(get("PageCount"))
         md.scan_info = utils.xlate(get("ScanInformation"))
         md.story_arc = utils.xlate(get("StoryArc"))
         md.series_group = utils.xlate(get("SeriesGroup"))
         md.maturity_rating = utils.xlate(get("AgeRating"))
-        md.critical_rating = utils.xlate(get("CommunityRating"), is_float=True)
+        md.critical_rating = utils.xlate_float(get("CommunityRating"))
 
         tmp = utils.xlate(get("BlackAndWhite"))
         if tmp is not None and tmp.casefold() in ["yes", "true", "1"]:

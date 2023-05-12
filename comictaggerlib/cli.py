@@ -1,7 +1,7 @@
 #!/usr/bin/python
 """ComicTagger CLI functions"""
 #
-# Copyright 2013 Anthony Beville
+# Copyright 2013 ComicTagger Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -40,15 +40,15 @@ logger = logging.getLogger(__name__)
 
 
 class CLI:
-    def __init__(self, config: settngs.Namespace, talkers: dict[str, ComicTalker]):
+    def __init__(self, config: settngs.Namespace, talkers: dict[str, ComicTalker]) -> None:
         self.config = config
         self.talkers = talkers
         self.batch_mode = False
 
     def current_talker(self) -> ComicTalker:
-        if self.config[0].talker_source in self.talkers:
-            return self.talkers[self.config[0].talker_source]
-        logger.error("Could not find the '%s' talker", self.config[0].talker_source)
+        if self.config.talker_source in self.talkers:
+            return self.talkers[self.config.talker_source]
+        logger.error("Could not find the '%s' talker", self.config.talker_source)
         raise SystemExit(2)
 
     def actual_issue_data_fetch(self, issue_id: str) -> GenericMetadata:
@@ -114,7 +114,7 @@ class CLI:
                 ca = match_set.ca
                 md = self.create_local_metadata(ca)
                 ct_md = self.actual_issue_data_fetch(match_set.matches[int(i) - 1]["issue_id"])
-                if self.config.talker_clear_metadata_on_import:
+                if self.config.identifier_clear_metadata_on_import:
                     md = ct_md
                 else:
                     notes = (
@@ -123,7 +123,7 @@ class CLI:
                     )
                     md.overlay(ct_md.replace(notes=utils.combine_notes(md.notes, notes, "Tagged with ComicTagger")))
 
-                if self.config.talker_auto_imprint:
+                if self.config.identifier_auto_imprint:
                     md.fix_publisher()
 
                 self.actual_metadata_save(ca, md)
@@ -427,7 +427,7 @@ class CLI:
                     match_results.fetch_data_failures.append(str(ca.path.absolute()))
                     return
 
-            if self.config.talker_clear_metadata_on_import:
+            if self.config.identifier_clear_metadata_on_import:
                 md = ct_md
             else:
                 notes = (
@@ -436,7 +436,7 @@ class CLI:
                 )
                 md.overlay(ct_md.replace(notes=utils.combine_notes(md.notes, notes, "Tagged with ComicTagger")))
 
-            if self.config.talker_auto_imprint:
+            if self.config.identifier_auto_imprint:
                 md.fix_publisher()
 
         # ok, done building our metadata. time to save
@@ -458,18 +458,18 @@ class CLI:
             return
 
         new_ext = ""  # default
-        if self.config.filename_rename_set_extension_based_on_archive:
+        if self.config.rename_set_extension_based_on_archive:
             new_ext = ca.extension()
 
         renamer = FileRenamer(
             md,
-            platform="universal" if self.config.filename_rename_strict else "auto",
+            platform="universal" if self.config.rename_strict else "auto",
             replacements=self.config.rename_replacements,
         )
-        renamer.set_template(self.config.filename_rename_template)
-        renamer.set_issue_zero_padding(self.config.filename_rename_issue_number_padding)
-        renamer.set_smart_cleanup(self.config.filename_rename_use_smart_string_cleanup)
-        renamer.move = self.config.filename_rename_move_to_dir
+        renamer.set_template(self.config.rename_template)
+        renamer.set_issue_zero_padding(self.config.rename_issue_number_padding)
+        renamer.set_smart_cleanup(self.config.rename_use_smart_string_cleanup)
+        renamer.move = self.config.rename_move_to_dir
 
         try:
             new_name = renamer.determine_name(ext=new_ext)
@@ -481,17 +481,13 @@ class CLI:
                 "Please consult the template help in the settings "
                 "and the documentation on the format at "
                 "https://docs.python.org/3/library/string.html#format-string-syntax",
-                self.config.filename_rename_template,
+                self.config.rename_template,
             )
             return
         except Exception:
-            logger.exception(
-                "Formatter failure: %s metadata: %s", self.config.filename_rename_template, renamer.metadata
-            )
+            logger.exception("Formatter failure: %s metadata: %s", self.config.rename_template, renamer.metadata)
 
-        folder = get_rename_dir(
-            ca, self.config.filename_rename_dir if self.config.filename_rename_move_to_dir else None
-        )
+        folder = get_rename_dir(ca, self.config.rename_dir if self.config.rename_move_to_dir else None)
 
         full_path = folder / new_name
 

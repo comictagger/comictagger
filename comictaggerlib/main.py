@@ -1,6 +1,6 @@
 """A python app to (automatically) tag comic archives"""
 #
-# Copyright 2012-2014 Anthony Beville
+# Copyright 2012-2014 ComicTagger Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,8 +17,12 @@ from __future__ import annotations
 
 import argparse
 import json
+import locale
+import logging
 import logging.handlers
+import os
 import signal
+import subprocess
 import sys
 
 import settngs
@@ -48,6 +52,49 @@ except Exception:
 logger.setLevel(logging.DEBUG)
 
 
+def _lang_code_mac() -> str:
+    """
+    stolen from https://github.com/mu-editor/mu
+    Returns the user's language preference as defined in the Language & Region
+    preference pane in macOS's System Preferences.
+    """
+
+    # Uses the shell command `defaults read -g AppleLocale` that prints out a
+    # language code to standard output. Assumptions about the command:
+    # - It exists and is in the shell's PATH.
+    # - It accepts those arguments.
+    # - It returns a usable language code.
+    #
+    # Reference documentation:
+    # - The man page for the `defaults` command on macOS.
+    # - The macOS underlying API:
+    #   https://developer.apple.com/documentation/foundation/nsuserdefaults.
+
+    lang_detect_command = "defaults read -g AppleLocale"
+
+    status, output = subprocess.getstatusoutput(lang_detect_command)
+    if status == 0:
+        # Command was successful.
+        lang_code = output
+    else:
+        logging.warning("Language detection command failed: %r", output)
+        lang_code = ""
+
+    return lang_code
+
+
+def configure_locale() -> None:
+    if sys.platform == "darwin" and "LANG" not in os.environ:
+        code = _lang_code_mac()
+        if code != "":
+            os.environ["LANG"] = f"{code}.utf-8"
+
+    locale.setlocale(locale.LC_ALL, "")
+    sys.stdout.reconfigure(encoding=sys.getdefaultencoding())  # type: ignore[attr-defined]
+    sys.stderr.reconfigure(encoding=sys.getdefaultencoding())  # type: ignore[attr-defined]
+    sys.stdin.reconfigure(encoding=sys.getdefaultencoding())  # type: ignore[attr-defined]
+
+
 def update_publishers(config: settngs.Config[settngs.Namespace]) -> None:
     json_file = config[0].runtime_config.user_config_dir / "publishers.json"
     if json_file.exists():
@@ -66,6 +113,7 @@ class App:
         self.config_load_success = False
 
     def run(self) -> None:
+        configure_locale()
         conf = self.initialize()
         self.initialize_dirs(conf.config)
         self.load_plugins(conf)
@@ -119,6 +167,15 @@ class App:
         # config already loaded
         error = None
 
+        talkers = ctsettings.talkers
+        del ctsettings.talkers
+
+        if len(talkers) < 1:
+            error = error = (
+                f"Failed to load any talkers, please re-install and check the log located in '{self.config[0].runtime_config.user_log_dir}' for more details",
+                True,
+            )
+
         signal.signal(signal.SIGINT, signal.SIG_DFL)
 
         logger.debug("Installed Packages")
@@ -134,7 +191,10 @@ class App:
 
         # manage the CV API key
         # None comparison is used so that the empty string can unset the value
-        if self.config[0].talker_comicvine_cv_api_key is not None or self.config[0].talker_comicvine_cv_url is not None:
+        if not error and (
+            self.config[0].talker_comicvine_comicvine_key is not None
+            or self.config[0].talker_comicvine_comicvine_url is not None
+        ):
             settings_path = self.config[0].runtime_config.user_config_dir / "settings.json"
             if self.config_load_success:
                 self.manager.save_file(self.config[0], settings_path)
@@ -149,9 +209,6 @@ class App:
                 f"Failed to load settings, check the log located in '{self.config[0].runtime_config.user_log_dir}' for more details",
                 True,
             )
-
-        talkers = ctsettings.talkers
-        del ctsettings.talkers
 
         if self.config[0].runtime_no_gui:
             if error and error[1]:

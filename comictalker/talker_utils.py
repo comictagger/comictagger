@@ -1,4 +1,4 @@
-# Copyright 2012-2014 Anthony Beville
+# Copyright 2012-2014 ComicTagger Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,7 +14,9 @@
 from __future__ import annotations
 
 import logging
+import posixpath
 import re
+from urllib.parse import urlsplit
 
 from bs4 import BeautifulSoup
 
@@ -24,6 +26,13 @@ from comicapi.issuestring import IssueString
 from comictalker.resulttypes import ComicIssue
 
 logger = logging.getLogger(__name__)
+
+
+def fix_url(url: str) -> str:
+    tmp_url = urlsplit(url)
+    # joinurl only works properly if there is a trailing slash
+    tmp_url = tmp_url._replace(path=posixpath.normpath(tmp_url.path) + "/")
+    return tmp_url.geturl()
 
 
 def map_comic_issue_to_metadata(
@@ -49,7 +58,7 @@ def map_comic_issue_to_metadata(
     if issue_results.cover_date:
         metadata.day, metadata.month, metadata.year = utils.parse_date_str(issue_results.cover_date)
     elif issue_results.series.start_year:
-        metadata.year = utils.xlate(issue_results.series.start_year, True)
+        metadata.year = utils.xlate_int(issue_results.series.start_year)
 
     metadata.comments = cleanup_html(issue_results.description, remove_html_tables)
     if use_year_volume:
@@ -95,11 +104,11 @@ def parse_date_str(date_str: str) -> tuple[int | None, int | None, int | None]:
     year = None
     if date_str:
         parts = date_str.split("-")
-        year = utils.xlate(parts[0], True)
+        year = utils.xlate_int(parts[0])
         if len(parts) > 1:
-            month = utils.xlate(parts[1], True)
+            month = utils.xlate_int(parts[1])
             if len(parts) > 2:
-                day = utils.xlate(parts[2], True)
+                day = utils.xlate_int(parts[2])
     return day, month, year
 
 

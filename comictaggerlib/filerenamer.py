@@ -1,6 +1,6 @@
 """Functions for renaming files based on metadata"""
 #
-# Copyright 2012-2014 Anthony Beville
+# Copyright 2012-2014 ComicTagger Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import logging
 import os
 import pathlib
 import string
+from collections.abc import Mapping, Sequence
 from typing import Any, cast
 
 from pathvalidate import Platform, normalize_platform, sanitize_filename
@@ -94,8 +95,8 @@ class MetadataFormatter(string.Formatter):
     def _vformat(
         self,
         format_string: str,
-        args: list[Any],
-        kwargs: dict[str, Any],
+        args: Sequence[Any],
+        kwargs: Mapping[str, Any],
         used_args: set[Any],
         recursion_depth: int,
         auto_arg_index: int = 0,

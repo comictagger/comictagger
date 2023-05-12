@@ -35,7 +35,7 @@ For details, screen-shots, and more, visit [the Wiki](https://github.com/comicta
 
 ### Binaries
 
-Windows and macOS binaries are provided in the [Releases Page](https://github.com/comictagger/comictagger/releases).
+Windows, Linux and MacOS binaries are provided in the [Releases Page](https://github.com/comictagger/comictagger/releases).
 
 Just unzip the archive in any folder and run, no additional installation steps are required.
 
@@ -47,7 +47,14 @@ A pip package is provided, you can install it with:
  $ pip3 install comictagger[GUI]
 ```
 
-There are two optional dependencies GUI and CBR. You can install the optional dependencies by specifying one or more of `GUI`,`CBR` or `all` in braces e.g. `comictagger[CBR,GUI]`
+There are optional dependencies. You can install the optional dependencies by specifying one or more of them in braces e.g. `comictagger[CBR,GUI]`
+
+Optional dependencies:
+1. `ICU`: Ensures that comic pages are supported correctly. This should always be installed. *Currently only exists in the latest alpha release *
+1. `CBR`: Provides support for CBR/RAR files.
+1. `GUI`: Installs the GUI.
+1. `7Z`: Provides support for CB7/7Z files.
+1. `all`: Installs all of the above optional dependencies.
 
 ### Chocolatey installation (Windows only)
 
@@ -59,5 +66,113 @@ choco install comictagger
 
  1. Ensure you have python 3.9 installed
  2. Clone this repository `git clone https://github.com/comictagger/comictagger.git`
- 3. `pip3 install -r requirements_dev.txt`
- 7. `pip3 install .` or `pip3 install .[GUI]`
+ 7. `pip3 install .[ICU]` or `pip3 install .[GUI,ICU]`
+
+
+## Contributors
+
+<!-- readme: beville,davide-romanini,collaborators,contributors -start -->
+<table>
+<tr>
+    <td align="center">
+        <a href="https://github.com/beville">
+            <img src="https://avatars.githubusercontent.com/u/7294848?v=4" width="100;" alt="beville"/>
+            <br />
+            <sub><b>beville</b></sub>
+        </a>
+    </td>
+    <td align="center">
+        <a href="https://github.com/davide-romanini">
+            <img src="https://avatars.githubusercontent.com/u/731199?v=4" width="100;" alt="davide-romanini"/>
+            <br />
+            <sub><b>davide-romanini</b></sub>
+        </a>
+    </td>
+    <td align="center">
+        <a href="https://github.com/fcanc">
+            <img src="https://avatars.githubusercontent.com/u/4999486?v=4" width="100;" alt="fcanc"/>
+            <br />
+            <sub><b>fcanc</b></sub>
+        </a>
+    </td>
+    <td align="center">
+        <a href="https://github.com/lordwelch">
+            <img src="https://avatars.githubusercontent.com/u/7547075?v=4" width="100;" alt="lordwelch"/>
+            <br />
+            <sub><b>lordwelch</b></sub>
+        </a>
+    </td>
+    <td align="center">
+        <a href="https://github.com/mizaki">
+            <img src="https://avatars.githubusercontent.com/u/1141189?v=4" width="100;" alt="mizaki"/>
+            <br />
+            <sub><b>mizaki</b></sub>
+        </a>
+    </td>
+    <td align="center">
+        <a href="https://github.com/MichaelFitzurka">
+            <img src="https://avatars.githubusercontent.com/u/27830765?v=4" width="100;" alt="MichaelFitzurka"/>
+            <br />
+            <sub><b>MichaelFitzurka</b></sub>
+        </a>
+    </td></tr>
+<tr>
+    <td align="center">
+        <a href="https://github.com/abuchanan920">
+            <img src="https://avatars.githubusercontent.com/u/368793?v=4" width="100;" alt="abuchanan920"/>
+            <br />
+            <sub><b>abuchanan920</b></sub>
+        </a>
+    </td>
+    <td align="center">
+        <a href="https://github.com/AlbanSeurat">
+            <img src="https://avatars.githubusercontent.com/u/500180?v=4" width="100;" alt="AlbanSeurat"/>
+            <br />
+            <sub><b>AlbanSeurat</b></sub>
+        </a>
+    </td>
+    <td align="center">
+        <a href="https://github.com/rhaussmann">
+            <img src="https://avatars.githubusercontent.com/u/7084007?v=4" width="100;" alt="rhaussmann"/>
+            <br />
+            <sub><b>rhaussmann</b></sub>
+        </a>
+    </td>
+    <td align="center">
+        <a href="https://github.com/jpcranford">
+            <img src="https://avatars.githubusercontent.com/u/21347202?v=4" width="100;" alt="jpcranford"/>
+            <br />
+            <sub><b>jpcranford</b></sub>
+        </a>
+    </td>
+    <td align="center">
+        <a href="https://github.com/PawlakMarek">
+            <img src="https://avatars.githubusercontent.com/u/26022173?v=4" width="100;" alt="PawlakMarek"/>
+            <br />
+            <sub><b>PawlakMarek</b></sub>
+        </a>
+    </td>
+    <td align="center">
+        <a href="https://github.com/Xav83">
+            <img src="https://avatars.githubusercontent.com/u/6787157?v=4" width="100;" alt="Xav83"/>
+            <br />
+            <sub><b>Xav83</b></sub>
+        </a>
+    </td></tr>
+<tr>
+    <td align="center">
+        <a href="https://github.com/thFrgttn">
+            <img src="https://avatars.githubusercontent.com/u/39759781?v=4" width="100;" alt="thFrgttn"/>
+            <br />
+            <sub><b>thFrgttn</b></sub>
+        </a>
+    </td>
+    <td align="center">
+        <a href="https://github.com/tlc">
+            <img src="https://avatars.githubusercontent.com/u/19436?v=4" width="100;" alt="tlc"/>
+            <br />
+            <sub><b>tlc</b></sub>
+        </a>
+    </td></tr>
+</table>
+<!-- readme: beville,davide-romanini,collaborators,contributors -end -->

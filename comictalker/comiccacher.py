@@ -1,6 +1,6 @@
 """A python class to manage caching of data from Comic Vine"""
 #
-# Copyright 2012-2014 Anthony Beville
+# Copyright 2012-2014 ComicTagger Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -411,7 +411,12 @@ class ComicCacher:
                 )
 
                 # now process the results
-
+                credits = []
+                try:
+                    for credit in json.loads(row[13]):
+                        credits.append(Credit(**credit))
+                except Exception:
+                    logger.exception("credits failed")
                 record = ComicIssue(
                     id=row[1],
                     name=row[2],
@@ -425,7 +430,7 @@ class ComicCacher:
                     alt_image_urls=row[10].strip().splitlines(),
                     characters=row[11].strip().splitlines(),
                     locations=row[12].strip().splitlines(),
-                    credits=json.loads(row[13]),
+                    credits=credits,
                     teams=row[14].strip().splitlines(),
                     story_arcs=row[15].strip().splitlines(),
                     genres=row[16].strip().splitlines(),

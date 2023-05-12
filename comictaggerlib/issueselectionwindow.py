@@ -1,6 +1,6 @@
 """A PyQT4 dialog to select specific issue from list"""
 #
-# Copyright 2012-2014 Anthony Beville
+# Copyright 2012-2014 ComicTagger Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -106,7 +106,7 @@ class IssueSelectionWindow(QtWidgets.QDialog):
 
         # now that the list has been sorted, find the initial record, and
         # select it
-        if self.initial_id is None:
+        if not self.initial_id:
             self.twList.selectRow(0)
         else:
             for r in range(0, self.twList.rowCount()):

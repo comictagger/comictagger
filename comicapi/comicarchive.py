@@ -1,5 +1,5 @@
 """A class to represent a single comic, be it file or folder of images"""
-# Copyright 2012-2014 Anthony Beville
+# Copyright 2012-2014 ComicTagger Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import shutil
 import sys
 from typing import cast
 
-import natsort
 import wordninja
 
 from comicapi import filenamelexer, filenameparser, utils
@@ -280,7 +279,7 @@ class ComicArchive:
 
             # seems like some archive creators are on Windows, and don't know about case-sensitivity!
             if sort_list:
-                files = cast(list[str], natsort.os_sorted(files))
+                files = cast(list[str], utils.os_sorted(files))
 
             # make a sub-list of image files
             self.page_list = []
@@ -562,13 +561,13 @@ class ComicArchive:
             )
             metadata.alternate_number = utils.xlate(p.filename_info["alternate"])
             metadata.issue = utils.xlate(p.filename_info["issue"])
-            metadata.issue_count = utils.xlate(p.filename_info["issue_count"])
+            metadata.issue_count = utils.xlate_int(p.filename_info["issue_count"])
             metadata.publisher = utils.xlate(p.filename_info["publisher"])
             metadata.series = utils.xlate(p.filename_info["series"])
             metadata.title = utils.xlate(p.filename_info["title"])
-            metadata.volume = utils.xlate(p.filename_info["volume"])
-            metadata.volume_count = utils.xlate(p.filename_info["volume_count"])
-            metadata.year = utils.xlate(p.filename_info["year"])
+            metadata.volume = utils.xlate_int(p.filename_info["volume"])
+            metadata.volume_count = utils.xlate_int(p.filename_info["volume_count"])
+            metadata.year = utils.xlate_int(p.filename_info["year"])
 
             metadata.scan_info = utils.xlate(p.filename_info["remainder"])
             metadata.format = "FCBD" if p.filename_info["fcbd"] else None
@@ -583,11 +582,11 @@ class ComicArchive:
             if fnp.series:
                 metadata.series = fnp.series
             if fnp.volume:
-                metadata.volume = utils.xlate(fnp.volume, True)
+                metadata.volume = utils.xlate_int(fnp.volume)
             if fnp.year:
-                metadata.year = utils.xlate(fnp.year, True)
+                metadata.year = utils.xlate_int(fnp.year)
             if fnp.issue_count:
-                metadata.issue_count = utils.xlate(fnp.issue_count, True)
+                metadata.issue_count = utils.xlate_int(fnp.issue_count)
             if fnp.remainder:
                 metadata.scan_info = fnp.remainder
 

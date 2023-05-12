@@ -1,6 +1,6 @@
 """CLI settings for ComicTagger"""
 #
-# Copyright 2012-2014 Anthony Beville
+# Copyright 2012-2014 ComicTagger Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -236,7 +236,7 @@ def register_commands(parser: settngs.Manager) -> None:
 
 def register_commandline_settings(parser: settngs.Manager) -> None:
     parser.add_group("commands", register_commands, True)
-    parser.add_group("runtime", register_settings)
+    parser.add_persistent_group("runtime", register_settings)
 
 
 def validate_commandline_settings(

@@ -1,4 +1,4 @@
-# Copyright 2012-2014 Anthony Beville
+# Copyright 2012-2014 ComicTagger Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import settngs
 
 from comicapi.genericmetadata import GenericMetadata
 from comictalker.resulttypes import ComicIssue, ComicSeries
+from comictalker.talker_utils import fix_url
 
 logger = logging.getLogger(__name__)
 
@@ -107,18 +108,21 @@ class ComicTalker:
 
     name: str = "Example"
     id: str = "example"
-    logo_url: str = "https://example.com/logo.png"
-    website: str = "https://example.com/"
+    website: str = "https://example.com"
+    logo_url: str = f"{website}/logo.png"
     attribution: str = f"Metadata provided by <a href='{website}'>{name}</a>"
 
     def __init__(self, version: str, cache_folder: pathlib.Path) -> None:
         self.cache_folder = cache_folder
         self.version = version
-        self.api_key: str = ""
-        self.api_url: str = ""
+        self.api_key = self.default_api_key = ""
+        self.api_url = self.default_api_url = ""
 
     def register_settings(self, parser: settngs.Manager) -> None:
-        """Allows registering settings using the settngs package with an argparse like interface"""
+        """
+        Allows registering settings using the settngs package with an argparse like interface.
+        The order that settings are declared is the order they will be displayed.
+        """
         return None
 
     def parse_settings(self, settings: dict[str, Any]) -> dict[str, Any]:
@@ -126,12 +130,29 @@ class ComicTalker:
         settings is a dictionary of settings defined in register_settings.
         It is only guaranteed that the settings defined in register_settings will be present.
         """
+        if settings[f"{self.id}_key"]:
+            self.api_key = settings[f"{self.id}_key"]
+        if settings[f"{self.id}_url"]:
+            self.api_url = fix_url(settings[f"{self.id}_url"])
+
+        settings[f"{self.id}_url"] = self.api_url
+
+        if self.api_key == "":
+            self.api_key = self.default_api_key
+        if self.api_url == "":
+            self.api_url = self.default_api_url
         return settings
 
-    def check_api_key(self, key: str, url: str) -> bool:
+    def check_api_key(self, url: str, key: str) -> tuple[str, bool]:
         """
-        This function should return true if the given api key and url are valid.
-        If the Talker does not use an api key it should validate that the url works.
+        This function should return (msg, True) if the given API key and URL are valid,
+        where msg is a message to display to the user.
+
+        This function should return (msg, False) if the given API key or URL are not valid,
+        where msg is a message to display to the user.
+
+        If the Talker does not use an API key it should validate that the URL works.
+        If the Talker does not use an API key or URL it should check that the source is available.
         """
         raise NotImplementedError
 
@@ -146,10 +167,14 @@ class ComicTalker:
         """
         This function should return a list of series that match the given series name
         according to the source the Talker uses.
+
         Sanitizing the series name is the responsibility of the talker.
+
         If `literal` == True then it is requested that no filtering or
         transformation/sanitizing of the title or results be performed by the talker.
+
         A sensible amount of results should be returned.
+
         For example the `ComicVineTalker` stops requesting new pages after the results
         become too different from the `series_name`  by use of the `titles_match` function
         provided by the `comicapi.utils` module, and only allows a maximum of 5 pages
@@ -183,7 +208,9 @@ class ComicTalker:
         """
         This function should return a single issue for each series id in
         the `series_id_list` and it should match the issue_number.
+
         Preferably it should also only return issues published in the given `year`.
+
         If there is no year given (`year` == None) or the Talker does not have issue publication info
         return the results unfiltered.
         """

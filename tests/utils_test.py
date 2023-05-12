@@ -7,6 +7,46 @@ import pytest
 import comicapi.utils
 
 
+def test_os_sorted():
+    page_name_list = [
+        "cover.jpg",
+        "Page1.jpeg",
+        "!cover.jpg",
+        "page4.webp",
+        "test/!cover.tar.gz",
+        "!cover.tar.gz",
+        "00.jpg",
+        "ignored.txt",
+        "page0.jpg",
+        "test/00.tar.gz",
+        ".ignored.jpg",
+        "Page3.gif",
+        "!cover.tar.gz",
+        "Page2.png",
+        "page10.jpg",
+        "!cover",
+    ]
+
+    assert comicapi.utils.os_sorted(page_name_list) == [
+        "!cover",
+        "!cover.jpg",
+        "!cover.tar.gz",
+        "!cover.tar.gz",  # Depending on locale punctuation or numbers might come first (Linux, MacOS)
+        ".ignored.jpg",
+        "00.jpg",
+        "cover.jpg",
+        "ignored.txt",
+        "page0.jpg",
+        "Page1.jpeg",
+        "Page2.png",
+        "Page3.gif",
+        "page4.webp",
+        "page10.jpg",
+        "test/!cover.tar.gz",
+        "test/00.tar.gz",
+    ]
+
+
 def test_recursive_list_with_file(tmp_path) -> None:
     foo_png = tmp_path / "foo.png"
     foo_png.write_text("not a png")
@@ -27,39 +67,56 @@ def test_recursive_list_with_file(tmp_path) -> None:
     temp_txt2 = tmp_path / "info2.txt"
     temp_txt2.write_text("this is here")
 
+    glob_in_name = tmp_path / "[e-b]"
+    glob_in_name.mkdir()
+
     expected_result = {str(foo_png), str(temp_cbr), str(temp_file), str(temp_txt), str(temp_txt2)}
-    result = set(comicapi.utils.get_recursive_filelist([str(temp_txt2), tmp_path]))
+    result = set(comicapi.utils.get_recursive_filelist([str(temp_txt2), tmp_path, str(glob_in_name)]))
 
     assert result == expected_result
 
 
 xlate_values = [
-    ({"data": "", "is_int": False, "is_float": False}, None),
-    ({"data": None, "is_int": False, "is_float": False}, None),
-    ({"data": None, "is_int": True, "is_float": False}, None),
-    ({"data": " ", "is_int": True, "is_float": False}, None),
-    ({"data": "", "is_int": True, "is_float": False}, None),
-    ({"data": "9..", "is_int": True, "is_float": False}, None),
-    ({"data": "9", "is_int": False, "is_float": False}, "9"),
-    ({"data": 9, "is_int": False, "is_float": False}, "9"),
-    ({"data": 9, "is_int": True, "is_float": False}, 9),
-    ({"data": "9", "is_int": True, "is_float": False}, 9),
-    ({"data": 9.3, "is_int": True, "is_float": False}, 9),
-    ({"data": "9.3", "is_int": True, "is_float": False}, 9),
-    ({"data": "9.", "is_int": True, "is_float": False}, 9),
-    ({"data": " 9 . 3 l", "is_int": True, "is_float": False}, 9),
-    ({"data": 9, "is_int": False, "is_float": True}, 9.0),
-    ({"data": "9", "is_int": False, "is_float": True}, 9.0),
-    ({"data": 9.3, "is_int": False, "is_float": True}, 9.3),
-    ({"data": "9.3", "is_int": False, "is_float": True}, 9.3),
-    ({"data": "9.", "is_int": False, "is_float": True}, 9.0),
-    ({"data": " 9 . 3 l", "is_int": False, "is_float": True}, 9.3),
+    ("", None),
+    (None, None),
+    ("9", "9"),
+    (9, "9"),
+]
+xlate_int_values = [
+    (None, None),
+    (" ", None),
+    ("", None),
+    ("9..", None),
+    (9, 9),
+    ("9", 9),
+    (9.3, 9),
+    ("9.3", 9),
+    ("9.", 9),
+    (" 9 . 3 l", 9),
+]
+xlate_float_values = [
+    (9, 9.0),
+    ("9", 9.0),
+    (9.3, 9.3),
+    ("9.3", 9.3),
+    ("9.", 9.0),
+    (" 9 . 3 l", 9.3),
 ]
 
 
 @pytest.mark.parametrize("value, result", xlate_values)
 def test_xlate(value, result):
-    assert comicapi.utils.xlate(**value) == result
+    assert comicapi.utils.xlate(value) == result
+
+
+@pytest.mark.parametrize("value, result", xlate_float_values)
+def test_xlate_float(value, result):
+    assert comicapi.utils.xlate_float(value) == result
+
+
+@pytest.mark.parametrize("value, result", xlate_int_values)
+def test_xlate_int(value, result):
+    assert comicapi.utils.xlate_int(value) == result
 
 
 language_values = [
