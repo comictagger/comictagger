@@ -328,44 +328,38 @@ class ComicCacher:
             # fetch
             results: list[ComicIssue] = []
 
-            cur.execute(
-                (
-                    "SELECT source_name,id,name,issue_number,site_detail_url,cover_date,image_url,thumb_url,description,aliases,alt_image_urls,characters,locations,credits,teams,story_arcs,genres,tags,rating,manga,complete"
-                    " FROM Issues WHERE series_id=? AND source_name=?"
-                ),
-                [series_id, source_name],
-            )
+            cur.execute("SELECT * FROM Issues WHERE series_id=? AND source_name=?", [series_id, source_name])
             rows = cur.fetchall()
 
             # now process the results
             for row in rows:
                 credits = []
                 try:
-                    for credit in json.loads(row[13]):
+                    for credit in json.loads(row[15]):
                         credits.append(Credit(**credit))
                 except Exception:
                     logger.exception("credits failed")
                 record = ComicIssue(
-                    id=row[1],
+                    id=row[0],
                     name=row[2],
                     issue_number=row[3],
-                    site_detail_url=row[4],
-                    cover_date=row[5],
-                    image_url=row[6],
+                    site_detail_url=row[7],
+                    cover_date=row[6],
+                    image_url=row[4],
                     description=row[8],
                     series=series,
-                    aliases=row[9].strip().splitlines(),
-                    alt_image_urls=row[10].strip().splitlines(),
-                    characters=row[11].strip().splitlines(),
-                    locations=row[12].strip().splitlines(),
+                    aliases=row[11].strip().splitlines(),
+                    alt_image_urls=row[12].strip().splitlines(),
+                    characters=row[13].strip().splitlines(),
+                    locations=row[14].strip().splitlines(),
                     credits=credits,
-                    teams=row[14].strip().splitlines(),
-                    story_arcs=row[15].strip().splitlines(),
-                    genres=row[16].strip().splitlines(),
-                    tags=row[17].strip().splitlines(),
-                    rating=row[18],
-                    manga=row[19],
-                    complete=bool(row[20]),
+                    teams=row[16].strip().splitlines(),
+                    story_arcs=row[17].strip().splitlines(),
+                    genres=row[18].strip().splitlines(),
+                    tags=row[19].strip().splitlines(),
+                    rating=row[20],
+                    manga=row[21],
+                    complete=bool(row[22]),
                 )
 
                 results.append(record)
@@ -383,21 +377,15 @@ class ComicCacher:
             a_week_ago = datetime.datetime.today() - datetime.timedelta(days=7)
             cur.execute("DELETE FROM Issues WHERE timestamp  < ?", [str(a_week_ago)])
 
-            cur.execute(
-                (
-                    "SELECT source_name,id,name,issue_number,site_detail_url,cover_date,image_url,description,aliases,series_id,alt_image_urls,characters,locations,credits,teams,story_arcs,genres,tags,rating,manga,complete"
-                    " FROM Issues WHERE id=? AND source_name=?"
-                ),
-                [issue_id, source_name],
-            )
+            cur.execute("SELECT * FROM Issues WHERE id=? AND source_name=?", [issue_id, source_name])
             row = cur.fetchone()
 
             record = None
 
             if row:
                 # get_series_info should only fail if someone is doing something weird
-                series = self.get_series_info(row[10], source_name, False) or ComicSeries(
-                    id=row[10],
+                series = self.get_series_info(row[1], source_name, False) or ComicSeries(
+                    id=row[1],
                     name="",
                     description="",
                     genres=[],
@@ -413,31 +401,31 @@ class ComicCacher:
                 # now process the results
                 credits = []
                 try:
-                    for credit in json.loads(row[13]):
+                    for credit in json.loads(row[15]):
                         credits.append(Credit(**credit))
                 except Exception:
                     logger.exception("credits failed")
                 record = ComicIssue(
-                    id=row[1],
+                    id=row[0],
                     name=row[2],
                     issue_number=row[3],
-                    site_detail_url=row[4],
-                    cover_date=row[5],
-                    image_url=row[6],
-                    description=row[7],
+                    site_detail_url=row[7],
+                    cover_date=row[6],
+                    image_url=row[4],
+                    description=row[8],
                     series=series,
-                    aliases=row[8].strip().splitlines(),
-                    alt_image_urls=row[10].strip().splitlines(),
-                    characters=row[11].strip().splitlines(),
-                    locations=row[12].strip().splitlines(),
+                    aliases=row[11].strip().splitlines(),
+                    alt_image_urls=row[12].strip().splitlines(),
+                    characters=row[13].strip().splitlines(),
+                    locations=row[14].strip().splitlines(),
                     credits=credits,
-                    teams=row[14].strip().splitlines(),
-                    story_arcs=row[15].strip().splitlines(),
-                    genres=row[16].strip().splitlines(),
-                    tags=row[17].strip().splitlines(),
-                    rating=row[18],
-                    manga=row[19],
-                    complete=bool(row[20]),
+                    teams=row[16].strip().splitlines(),
+                    story_arcs=row[17].strip().splitlines(),
+                    genres=row[18].strip().splitlines(),
+                    tags=row[19].strip().splitlines(),
+                    rating=row[20],
+                    manga=row[21],
+                    complete=bool(row[22]),
                 )
 
             return record
