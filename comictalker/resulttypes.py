@@ -14,6 +14,8 @@ class Credit:
 class ComicSeries:
     aliases: list[str]
     count_of_issues: int | None
+    count_of_volumes: int | None
+    volume: str | None
     description: str
     id: str
     image_url: str

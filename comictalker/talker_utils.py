@@ -35,6 +35,8 @@ def map_comic_issue_to_metadata(
 
     metadata.series = utils.xlate(issue_results.series.name)
     metadata.issue = IssueString(issue_results.issue_number).as_string()
+    metadata.volume = utils.xlate(issue_results.series.volume, True)
+    metadata.volume_count = utils.xlate(issue_results.series.count_of_volumes, True)
 
     if issue_results.name:
         metadata.title = utils.xlate(issue_results.name)

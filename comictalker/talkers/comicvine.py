@@ -501,6 +501,8 @@ class ComicVineTalker(ComicTalker):
                 ComicSeries(
                     aliases=aliases.splitlines(),
                     count_of_issues=record.get("count_of_issues", 0),
+                    count_of_volumes=None,
+                    volume=None,
                     description=record.get("description", ""),
                     id=str(record["id"]),
                     image_url=image_url,
