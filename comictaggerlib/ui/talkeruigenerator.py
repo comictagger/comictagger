@@ -40,6 +40,14 @@ def generate_api_widgets(
         else:
             QtWidgets.QMessageBox.warning(None, "API Test Failed", check_text)
 
+    def show_key(le_key: QtWidgets.QLineEdit) -> None:
+        current_state = le_key.echoMode()
+
+        if current_state == 0:
+            le_key.setEchoMode(QtWidgets.QLineEdit.EchoMode.PasswordEchoOnEdit)
+        else:
+            le_key.setEchoMode(QtWidgets.QLineEdit.EchoMode.Normal)
+
     # get the actual config objects in case they have overwritten the default
     talker_key = config[1][f"talker_{talker_id}"][1][f"{talker_id}_key"]
     talker_url = config[1][f"talker_{talker_id}"][1][f"{talker_id}_url"]
@@ -50,8 +58,9 @@ def generate_api_widgets(
     # only file settings are saved
     if talker_key.file:
         # record the current row so we know where to add the button
-        btn_test_row = layout.rowCount()
+        btn_show_key = layout.rowCount()
         le_key = generate_textbox(talker_key, layout)
+        le_key.setEchoMode(QtWidgets.QLineEdit.EchoMode.PasswordEchoOnEdit)
         # To enable setting and getting
         sources["tabs"][talker_id].widgets[f"talker_{talker_id}_{talker_id}_key"] = le_key
 
@@ -63,6 +72,12 @@ def generate_api_widgets(
         le_url = generate_textbox(talker_url, layout)
         # To enable setting and getting
         sources["tabs"][talker_id].widgets[f"talker_{talker_id}_{talker_id}_url"] = le_url
+
+    # The key button row was recorded so we add the show/hide button
+    if btn_show_key is not None:
+        btn_show = QtWidgets.QPushButton("Show/Hide")
+        layout.addWidget(btn_show, btn_show_key, 2)
+        btn_show.clicked.connect(partial(show_key, le_key=le_key))
 
     # The button row was recorded so we add it
     if btn_test_row is not None:
