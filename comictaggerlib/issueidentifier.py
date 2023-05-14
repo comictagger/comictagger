@@ -397,7 +397,7 @@ class IssueIdentifier:
             self.log_msg("Not enough info for a search!")
             return []
 
-        self.log_msg("Going to search for:")
+        self.log_msg(f"Using {self.talker.name} to search for:")
         self.log_msg("\tSeries: " + keys["series"])
         self.log_msg("\tIssue:  " + keys["issue_number"])
         if keys["issue_count"] is not None:

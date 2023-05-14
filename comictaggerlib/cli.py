@@ -82,6 +82,8 @@ class CLI:
                 logger.info("dry-run option was set, so nothing was written, but here is the final set of tags:")
                 print("dry-run option was set, so nothing was written, but here is the final set of tags:")
                 print(f"{md}")
+
+        print(f"Metadata provided by {self.current_talker().name} {self.current_talker().website}")
         return True
 
     def display_match_set_for_choice(self, label: str, match_set: MultipleMatch) -> None:
