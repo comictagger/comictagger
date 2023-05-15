@@ -82,8 +82,6 @@ class CLI:
                 logger.info("dry-run option was set, so nothing was written, but here is the final set of tags:")
                 print("dry-run option was set, so nothing was written, but here is the final set of tags:")
                 print(f"{md}")
-
-        print(f"Metadata provided by {self.current_talker().name} {self.current_talker().website}")
         return True
 
     def display_match_set_for_choice(self, label: str, match_set: MultipleMatch) -> None:
@@ -185,6 +183,8 @@ class CLI:
             sys.stdout.flush()
 
         self.post_process_matches(match_results)
+
+        print(f"\nFiles tagged with metadata provided by {self.current_talker().name} {self.current_talker().website}")
 
     def create_local_metadata(self, ca: ComicArchive) -> GenericMetadata:
         md = GenericMetadata()
