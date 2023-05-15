@@ -6,8 +6,9 @@ from functools import partial
 from typing import Any, NamedTuple
 
 import settngs
-from PyQt5 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtGui, QtWidgets
 
+from comictaggerlib.graphics import graphics_path
 from comictalker.comictalker import ComicTalker
 
 logger = logging.getLogger(__name__)
@@ -40,13 +41,18 @@ def generate_api_widgets(
         else:
             QtWidgets.QMessageBox.warning(None, "API Test Failed", check_text)
 
-    def show_key(le_key: QtWidgets.QLineEdit) -> None:
+    visibleIcon = QtGui.QIcon(str(graphics_path / "eye.svg"))
+    hiddenIcon = QtGui.QIcon(str(graphics_path / "hidden.svg"))
+
+    def show_key(le_key: QtWidgets.QLineEdit, le_action: QtWidgets.QAction) -> None:
         current_state = le_key.echoMode()
 
         if current_state == 0:
             le_key.setEchoMode(QtWidgets.QLineEdit.EchoMode.PasswordEchoOnEdit)
+            le_action.setIcon(visibleIcon)
         else:
             le_key.setEchoMode(QtWidgets.QLineEdit.EchoMode.Normal)
+            le_action.setIcon(hiddenIcon)
 
     # get the actual config objects in case they have overwritten the default
     talker_key = config[1][f"talker_{talker_id}"][1][f"{talker_id}_key"]
@@ -58,9 +64,16 @@ def generate_api_widgets(
     # only file settings are saved
     if talker_key.file:
         # record the current row so we know where to add the button
-        btn_show_key = layout.rowCount()
+        btn_test_row = layout.rowCount()
         le_key = generate_textbox(talker_key, layout)
+
+        # Generate show/hide icon for key/password within the text box
         le_key.setEchoMode(QtWidgets.QLineEdit.EchoMode.PasswordEchoOnEdit)
+
+        le_key_toggle = le_key.addAction(visibleIcon, QtWidgets.QLineEdit.TrailingPosition)
+        le_key_toggle.setToolTip("Show/Hide")
+        le_key_toggle.triggered.connect(partial(show_key, le_key=le_key, le_action=le_key_toggle))
+
         # To enable setting and getting
         sources["tabs"][talker_id].widgets[f"talker_{talker_id}_{talker_id}_key"] = le_key
 
@@ -72,12 +85,6 @@ def generate_api_widgets(
         le_url = generate_textbox(talker_url, layout)
         # To enable setting and getting
         sources["tabs"][talker_id].widgets[f"talker_{talker_id}_{talker_id}_url"] = le_url
-
-    # The key button row was recorded so we add the show/hide button
-    if btn_show_key is not None:
-        btn_show = QtWidgets.QPushButton("Show/Hide")
-        layout.addWidget(btn_show, btn_show_key, 2)
-        btn_show.clicked.connect(partial(show_key, le_key=le_key))
 
     # The button row was recorded so we add it
     if btn_test_row is not None:
