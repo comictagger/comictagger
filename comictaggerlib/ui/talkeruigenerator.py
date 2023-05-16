@@ -19,6 +19,42 @@ class TalkerTab(NamedTuple):
     widgets: dict[str, QtWidgets.QWidget]
 
 
+class PasswordEdit(QtWidgets.QLineEdit):
+    """
+    Password LineEdit with icons to show/hide password entries.
+    Taken from https://github.com/pythonguis/python-qtwidgets/tree/master/qtwidgets
+    Based on this example https://kushaldas.in/posts/creating-password-input-widget-in-pyqt.html by Kushal Das.
+    """
+
+    def __init__(self, show_visibility=True, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.visibleIcon = QtGui.QIcon(str(graphics_path / "eye.svg"))
+        self.hiddenIcon = QtGui.QIcon(str(graphics_path / "hidden.svg"))
+
+        self.setEchoMode(QtWidgets.QLineEdit.Password)
+
+        if show_visibility:
+            # Add the password hide/shown toggle at the end of the edit box.
+            self.togglepasswordAction = self.addAction(self.visibleIcon, QtWidgets.QLineEdit.TrailingPosition)
+            self.togglepasswordAction.setToolTip("Show password")
+            self.togglepasswordAction.triggered.connect(self.on_toggle_password_Action)
+
+        self.password_shown = False
+
+    def on_toggle_password_Action(self):
+        if not self.password_shown:
+            self.setEchoMode(QtWidgets.QLineEdit.Normal)
+            self.password_shown = True
+            self.togglepasswordAction.setIcon(self.hiddenIcon)
+            self.togglepasswordAction.setToolTip("Hide password")
+        else:
+            self.setEchoMode(QtWidgets.QLineEdit.Password)
+            self.password_shown = False
+            self.togglepasswordAction.setIcon(self.visibleIcon)
+            self.togglepasswordAction.setToolTip("Show password")
+
+
 def generate_api_widgets(
     talker_id: str,
     sources: dict[str, QtWidgets.QWidget],
@@ -121,39 +157,6 @@ def generate_textbox(option: settngs.Setting, layout: QtWidgets.QGridLayout) -> 
 
 
 def generate_password_textbox(option: settngs.Setting, layout: QtWidgets.QGridLayout) -> QtWidgets.QLineEdit:
-    class PasswordEdit(QtWidgets.QLineEdit):
-        """
-        Password LineEdit with icons to show/hide password entries.
-        Taken from https://github.com/pythonguis/python-qtwidgets/tree/master/qtwidgets
-        Based on this example https://kushaldas.in/posts/creating-password-input-widget-in-pyqt.html by Kushal Das.
-        """
-
-        def __init__(self, show_visibility=True, *args, **kwargs):
-            super().__init__(*args, **kwargs)
-
-            self.visibleIcon = QtGui.QIcon(str(graphics_path / "eye.svg"))
-            self.hiddenIcon = QtGui.QIcon(str(graphics_path / "hidden.svg"))
-
-            self.setEchoMode(QtWidgets.QLineEdit.Password)
-
-            if show_visibility:
-                # Add the password hide/shown toggle at the end of the edit box.
-                self.togglepasswordAction = self.addAction(self.visibleIcon, QtWidgets.QLineEdit.TrailingPosition)
-                self.togglepasswordAction.setToolTip("Show/Hide")
-                self.togglepasswordAction.triggered.connect(self.on_toggle_password_Action)
-
-            self.password_shown = False
-
-        def on_toggle_password_Action(self):
-            if not self.password_shown:
-                self.setEchoMode(QtWidgets.QLineEdit.Normal)
-                self.password_shown = True
-                self.togglepasswordAction.setIcon(self.hiddenIcon)
-            else:
-                self.setEchoMode(QtWidgets.QLineEdit.Password)
-                self.password_shown = False
-                self.togglepasswordAction.setIcon(self.visibleIcon)
-
     row = layout.rowCount()
     lbl = QtWidgets.QLabel(option.display_name)
     lbl.setToolTip(option.help)
