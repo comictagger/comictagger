@@ -6,8 +6,9 @@ from functools import partial
 from typing import Any, NamedTuple
 
 import settngs
-from PyQt5 import QtCore, QtWidgets
+from PyQt5 import QtCore, QtGui, QtWidgets
 
+from comictaggerlib.graphics import graphics_path
 from comictalker.comictalker import ComicTalker
 
 logger = logging.getLogger(__name__)
@@ -16,6 +17,42 @@ logger = logging.getLogger(__name__)
 class TalkerTab(NamedTuple):
     tab: QtWidgets.QWidget
     widgets: dict[str, QtWidgets.QWidget]
+
+
+class PasswordEdit(QtWidgets.QLineEdit):
+    """
+    Password LineEdit with icons to show/hide password entries.
+    Taken from https://github.com/pythonguis/python-qtwidgets/tree/master/qtwidgets
+    Based on this example https://kushaldas.in/posts/creating-password-input-widget-in-pyqt.html by Kushal Das.
+    """
+
+    def __init__(self, show_visibility=True, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.visibleIcon = QtGui.QIcon(str(graphics_path / "eye.svg"))
+        self.hiddenIcon = QtGui.QIcon(str(graphics_path / "hidden.svg"))
+
+        self.setEchoMode(QtWidgets.QLineEdit.Password)
+
+        if show_visibility:
+            # Add the password hide/shown toggle at the end of the edit box.
+            self.togglepasswordAction = self.addAction(self.visibleIcon, QtWidgets.QLineEdit.TrailingPosition)
+            self.togglepasswordAction.setToolTip("Show password")
+            self.togglepasswordAction.triggered.connect(self.on_toggle_password_Action)
+
+        self.password_shown = False
+
+    def on_toggle_password_Action(self):
+        if not self.password_shown:
+            self.setEchoMode(QtWidgets.QLineEdit.Normal)
+            self.password_shown = True
+            self.togglepasswordAction.setIcon(self.hiddenIcon)
+            self.togglepasswordAction.setToolTip("Hide password")
+        else:
+            self.setEchoMode(QtWidgets.QLineEdit.Password)
+            self.password_shown = False
+            self.togglepasswordAction.setIcon(self.visibleIcon)
+            self.togglepasswordAction.setToolTip("Show password")
 
 
 def generate_api_widgets(
@@ -51,7 +88,8 @@ def generate_api_widgets(
     if talker_key.file:
         # record the current row so we know where to add the button
         btn_test_row = layout.rowCount()
-        le_key = generate_textbox(talker_key, layout)
+        le_key = generate_password_textbox(talker_key, layout)
+
         # To enable setting and getting
         sources["tabs"][talker_id].widgets[f"talker_{talker_id}_{talker_id}_key"] = le_key
 
@@ -112,6 +150,18 @@ def generate_textbox(option: settngs.Setting, layout: QtWidgets.QGridLayout) -> 
     lbl.setToolTip(option.help)
     layout.addWidget(lbl, row, 0)
     widget = QtWidgets.QLineEdit()
+    widget.setToolTip(option.help)
+    layout.addWidget(widget, row, 1)
+
+    return widget
+
+
+def generate_password_textbox(option: settngs.Setting, layout: QtWidgets.QGridLayout) -> QtWidgets.QLineEdit:
+    row = layout.rowCount()
+    lbl = QtWidgets.QLabel(option.display_name)
+    lbl.setToolTip(option.help)
+    layout.addWidget(lbl, row, 0)
+    widget = PasswordEdit()
     widget.setToolTip(option.help)
     layout.addWidget(widget, row, 1)
 
