@@ -130,9 +130,9 @@ class ComicTalker:
         settings is a dictionary of settings defined in register_settings.
         It is only guaranteed that the settings defined in register_settings will be present.
         """
-        if settings[f"{self.id}_key"]:
+        if settings.get(f"{self.id}_key"):
             self.api_key = settings[f"{self.id}_key"]
-        if settings[f"{self.id}_url"]:
+        if settings.get(f"{self.id}_url"):
             self.api_url = fix_url(settings[f"{self.id}_url"])
 
         settings[f"{self.id}_url"] = self.api_url
