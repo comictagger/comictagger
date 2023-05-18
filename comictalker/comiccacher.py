@@ -122,8 +122,11 @@ class ComicCacher:
                 + "story_arcs TEXT,"  # Newline separated
                 + "genres TEXT,"  # Newline separated
                 + "tags TEXT,"  # Newline separated
-                + "rating FLOAT,"
-                + "manga TEXT,"  # Yes/Yes (Right to Left)/No
+                + "critical_rating FLOAT,"
+                + "manga TEXT,"  # Yes/YesAndRightToLeft/No
+                + "maturity_rating TEXT,"
+                + "language TEXT,"  # 2-letter iso code
+                + "country TEXT,"  # 2-letter iso code
                 + "complete BOOL,"  # Is the data complete? Includes characters, locations, credits.
                 + "PRIMARY KEY (id, source_name))"
             )
@@ -255,8 +258,11 @@ class ComicCacher:
                     "story_arcs": "\n".join(issue.story_arcs),
                     "genres": "\n".join(issue.genres),
                     "tags": "\n".join(issue.tags),
-                    "rating": issue.rating,
+                    "critical_rating": issue.critical_rating,
                     "manga": issue.manga,
+                    "maturity_rating": issue.maturity_rating,
+                    "language": issue.language,
+                    "country": issue.country,
                     "credits": json.dumps([dataclasses.asdict(x) for x in issue.credits]),
                     "complete": issue.complete,
                 }
@@ -357,9 +363,12 @@ class ComicCacher:
                     story_arcs=row[17].strip().splitlines(),
                     genres=row[18].strip().splitlines(),
                     tags=row[19].strip().splitlines(),
-                    rating=row[20],
+                    critical_rating=row[20],
                     manga=row[21],
-                    complete=bool(row[22]),
+                    maturity_rating=row[22],
+                    language=row[23],
+                    country=row[24],
+                    complete=bool(row[25]),
                 )
 
                 results.append(record)
@@ -423,9 +432,12 @@ class ComicCacher:
                     story_arcs=row[17].strip().splitlines(),
                     genres=row[18].strip().splitlines(),
                     tags=row[19].strip().splitlines(),
-                    rating=row[20],
+                    critical_rating=row[20],
                     manga=row[21],
-                    complete=bool(row[22]),
+                    maturity_rating=row[22],
+                    language=row[23],
+                    country=row[24],
+                    complete=bool(row[25]),
                 )
 
             return record

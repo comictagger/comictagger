@@ -36,11 +36,14 @@ class ComicIssue:
     id: str
     image_url: str
     issue_number: str
-    rating: float
+    critical_rating: float
+    maturity_rating: str
     manga: str
     genres: list[str]
     tags: list[str]
     name: str
+    language: str  # 2-letter iso code
+    country: str  # 2-letter iso code
     site_detail_url: str
     series: ComicSeries
     alt_image_urls: list[str]

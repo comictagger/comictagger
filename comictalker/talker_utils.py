@@ -96,8 +96,16 @@ def map_comic_issue_to_metadata(
             metadata.manga = issue_results.manga
         else:
             metadata.manga = "Unknown"
-    if issue_results.rating:
-        metadata.critical_rating = utils.xlate_float(issue_results.rating)
+    if issue_results.critical_rating:
+        metadata.critical_rating = utils.xlate_float(issue_results.critical_rating)
+
+    if issue_results.language:
+        # 2-letter code # TODO Run check against pycountry?
+        metadata.language = issue_results.language
+
+    if issue_results.country:
+        # 2-letter code # TODO Run check against pycountry?
+        metadata.language = issue_results.country
 
     return metadata
 
