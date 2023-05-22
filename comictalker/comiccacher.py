@@ -95,6 +95,7 @@ class ComicCacher:
                 + "aliases TEXT,"  # Newline separated
                 + "description TEXT,"
                 + "genres TEXT,"  # Newline separated. For filtering etc.
+                + "format TEXT,"
                 + "timestamp DATE DEFAULT (datetime('now','localtime')), "
                 + "source_name TEXT NOT NULL,"
                 + "PRIMARY KEY (id, source_name))"
@@ -163,6 +164,7 @@ class ComicCacher:
                     "image_url": record.image_url,
                     "description": record.description,
                     "genres": "\n".join(record.genres),
+                    "format": record.format,
                     "timestamp": datetime.datetime.now(),
                     "aliases": "\n".join(record.aliases),
                 }
@@ -197,6 +199,7 @@ class ComicCacher:
                     aliases=record[12].strip().splitlines(),
                     description=record[13],
                     genres=record[14].strip().splitlines(),
+                    format=record[15],
                 )
 
                 results.append(result)
@@ -223,6 +226,7 @@ class ComicCacher:
                 "image_url": series_record.image_url,
                 "description": series_record.description,
                 "genres": "\n".join(series_record.genres),
+                "format": series_record.format,
                 "timestamp": timestamp,
                 "aliases": "\n".join(series_record.aliases),
             }
@@ -302,6 +306,7 @@ class ComicCacher:
                 aliases=row[8].strip().splitlines(),
                 description=row[9],
                 genres=row[10].strip().splitlines(),
+                format=row[11],
             )
 
         return result
@@ -320,6 +325,7 @@ class ComicCacher:
             count_of_issues=None,
             count_of_volumes=None,
             volume=None,
+            format=None,
         )
         con = lite.connect(self.db_file)
         with con:
@@ -405,6 +411,7 @@ class ComicCacher:
                     count_of_issues=None,
                     count_of_volumes=None,
                     volume=None,
+                    format=None,
                 )
 
                 # now process the results

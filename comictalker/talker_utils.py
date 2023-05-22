@@ -45,8 +45,12 @@ def map_comic_issue_to_metadata(
     metadata.series = utils.xlate(issue_results.series.name)
     metadata.issue = IssueString(issue_results.issue_number).as_string()
 
-    # Rely on comic talker to valid this number
+    # Rely on comic talker to validate this number
     metadata.issue_count = utils.xlate_int(issue_results.series.volume)
+
+    # TODO Generate list in utils (same as language and countries) and check against that in separate PR
+    if issue_results.series.format:
+        metadata.format = issue_results.series.format
 
     metadata.volume = utils.xlate_int(issue_results.series.volume)
     metadata.volume_count = utils.xlate_int(issue_results.series.count_of_volumes)

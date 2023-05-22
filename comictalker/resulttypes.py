@@ -23,6 +23,7 @@ class ComicSeries:
     publisher: str
     start_year: int | None
     genres: list[str]
+    format: str | None
 
     def copy(self) -> ComicSeries:
         return copy.deepcopy(self)

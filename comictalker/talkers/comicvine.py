@@ -518,6 +518,7 @@ class ComicVineTalker(ComicTalker):
                     publisher=pub_name,
                     start_year=start_year,
                     genres=[],
+                    format=None,
                 )
             )
 

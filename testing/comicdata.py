@@ -17,6 +17,7 @@ search_results = [
         start_year=0,
         aliases=[],
         genres=[],
+        format=None,
     ),
     comictalker.resulttypes.ComicSeries(
         count_of_issues=1,
@@ -30,6 +31,7 @@ search_results = [
         start_year=0,
         aliases=[],
         genres=[],
+        format=None,
     ),
 ]
 
