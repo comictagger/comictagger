@@ -93,35 +93,21 @@ def map_comic_issue_to_metadata(
         metadata.story_arc = ", ".join(issue_results.story_arcs)
     if issue_results.genres:
         metadata.genre = ", ".join(issue_results.genres)
+
     if issue_results.tags:
         metadata.tags = set(issue_results.tags)
+
     if issue_results.manga:
-        if issue_results.manga in ["Yes", "yes", "No", "no", "YesAndRightToLeft", "yesandrighttoleft"]:
-            metadata.manga = issue_results.manga
-        else:
-            metadata.manga = "Unknown"
+        metadata.manga = issue_results.manga
+
     if issue_results.critical_rating:
         metadata.critical_rating = utils.xlate_float(issue_results.critical_rating)
 
-    # 2-letter country code
     if issue_results.language:
-        if utils.get_language_from_iso(issue_results.language):
-            metadata.language = issue_results.language
-        else:
-            code = utils.get_language_iso(issue_results.language)
-            if code:
-                metadata.language = code
+        metadata.language = issue_results.language
 
-    # ISO country name
     if issue_results.country:
-        # Only CBI supports country currently in CT and is a string name
-        # TODO Use https://codeberg.org/plotski/countryguess as pycountry seems stale?
-        # Return current entry if conversion fails
         metadata.country = issue_results.country
-        if not utils.get_country_iso(issue_results.country):
-            code = utils.get_country_iso_name(issue_results.country)
-            if code:
-                metadata.country = code
 
     return metadata
 

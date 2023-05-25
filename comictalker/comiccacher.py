@@ -126,8 +126,8 @@ class ComicCacher:
                 + "critical_rating FLOAT,"
                 + "manga TEXT,"  # Yes/YesAndRightToLeft/No
                 + "maturity_rating TEXT,"
-                + "language TEXT,"  # 2-letter iso code
-                + "country TEXT,"  # 2-letter iso code
+                + "language TEXT,"
+                + "country TEXT,"
                 + "complete BOOL,"  # Is the data complete? Includes characters, locations, credits.
                 + "PRIMARY KEY (id, source_name))"
             )

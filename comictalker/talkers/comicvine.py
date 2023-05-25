@@ -564,9 +564,6 @@ class ComicVineTalker(ComicTalker):
 
             series = self._fetch_series_data(record["volume"]["id"])
 
-            # Make below an option?
-            # TODO Infer country by publisher (and language)? Check series desc for "Translated into English"?
-
             formatted_results.append(
                 ComicIssue(
                     aliases=record["aliases"].split("\n") if record["aliases"] else [],

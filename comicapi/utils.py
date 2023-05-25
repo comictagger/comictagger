@@ -239,7 +239,7 @@ def get_language_from_iso(iso: str | None) -> str | None:
 def get_language_iso(string: str | None) -> str | None:
     if string is None:
         return None
-    # Why return this if ISO failed?
+    # Return current string if all else fails
     lang = string.casefold()
 
     try:
