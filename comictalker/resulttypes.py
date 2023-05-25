@@ -43,8 +43,8 @@ class ComicIssue:
     genres: list[str]
     tags: list[str]
     name: str
-    language: str  # 2-letter iso code
-    country: str  # 2-letter iso code
+    language: str
+    country: str
     site_detail_url: str
     series: ComicSeries
     alt_image_urls: list[str]
