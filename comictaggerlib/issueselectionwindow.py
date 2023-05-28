@@ -186,9 +186,18 @@ class IssueSelectionWindow(QtWidgets.QDialog):
 
         self.issue_id = self.twList.item(curr.row(), 0).data(QtCore.Qt.ItemDataRole.UserRole)
 
-        # list selection was changed, update the the issue cover
-        for record in self.issue_list:
+        # list selection was changed, update the issue cover
+        for i, record in enumerate(self.issue_list):
             if record.id == self.issue_id:
+                if not record.complete:
+                    try:
+                        updated_issue = self.talker.fetch_additional_issue_info_on_click(record.id)
+                        if updated_issue:
+                            self.issue_list[i] = updated_issue
+                            record = updated_issue
+                    except NotImplementedError:
+                        pass
+
                 self.issue_number = record.issue_number
                 self.coverWidget.set_issue_details(self.issue_id, [record.image_url, *record.alt_image_urls])
                 if record.description is None:

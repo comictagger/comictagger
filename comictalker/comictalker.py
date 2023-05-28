@@ -215,3 +215,19 @@ class ComicTalker:
         return the results unfiltered.
         """
         raise NotImplementedError
+
+    def fetch_additional_series_info_on_click(self, series_id: str) -> ComicSeries | None:
+        """
+        Expected to return all information to satisfy the GUI for series information.
+
+        This function is to fill in any blanks left from search_for_series due to API limitations.
+        """
+        raise NotImplementedError
+
+    def fetch_additional_issue_info_on_click(self, series_id: str) -> ComicIssue | None:
+        """
+        Expected to return all information to satisfy the GUI for issue information.
+
+        This function is to fill in any blanks left from fetch_issues_by_series due to API limitations.
+        """
+        raise NotImplementedError
