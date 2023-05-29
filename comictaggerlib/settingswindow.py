@@ -322,6 +322,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.cbxUseFilter.setChecked(self.config[0].identifier_always_use_publisher_filter)
         self.cbxSortByYear.setChecked(self.config[0].identifier_sort_series_by_year)
         self.cbxExactMatches.setChecked(self.config[0].identifier_exact_series_matches_first)
+        self.cbxPresumeIssueOne.setChecked(self.config[0].identifier_presume_issue_one)
 
         self.cbxAssumeLoneCreditIsPrimary.setChecked(self.config[0].cbl_assume_lone_credit_is_primary)
         self.cbxCopyCharactersToTags.setChecked(self.config[0].cbl_copy_characters_to_tags)
@@ -436,6 +437,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.config[0].identifier_always_use_publisher_filter = self.cbxUseFilter.isChecked()
         self.config[0].identifier_sort_series_by_year = self.cbxSortByYear.isChecked()
         self.config[0].identifier_exact_series_matches_first = self.cbxExactMatches.isChecked()
+        self.config[0].identifier_presume_issue_one = self.cbxPresumeIssueOne.isChecked()
 
         self.config[0].cbl_assume_lone_credit_is_primary = self.cbxAssumeLoneCreditIsPrimary.isChecked()
         self.config[0].cbl_copy_characters_to_tags = self.cbxCopyCharactersToTags.isChecked()

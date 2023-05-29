@@ -1014,10 +1014,13 @@ class TaggerWindow(QtWidgets.QMainWindow):
     def query_online(self, autoselect: bool = False, literal: bool = False) -> None:
         issue_number = str(self.leIssueNum.text()).strip()
 
-        # Only need this check is the source has issue level data.
         if autoselect and issue_number == "":
             QtWidgets.QMessageBox.information(
-                self, "Automatic Identify Search", "Can't auto-identify without an issue number (yet!)"
+                self,
+                "Automatic Identify Search",
+                "Can't auto-identify without an issue number. Select 'Presume issue "
+                "1 if no issue provided' in the 'Searching' settings to "
+                "automatically apply the issue number as 1.",
             )
             return
 
@@ -2070,6 +2073,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.comic_archive = comic_archive
         try:
             self.metadata = self.comic_archive.read_metadata(self.load_data_style)
+            if not self.metadata.issue and self.config[0].identifier_presume_issue_one:
+                self.metadata.issue = "1"
         except Exception as e:
             logger.error("Failed to load metadata for %s: %s", self.comic_archive.path, e)
             self.exception(f"Failed to load metadata for {self.comic_archive.path}:\n\n{e}")

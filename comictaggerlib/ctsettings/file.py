@@ -83,6 +83,12 @@ def identifier(parser: settngs.Manager) -> None:
         action=argparse.BooleanOptionalAction,
         help="Clears all existing metadata when applying metadata from comic source",
     )
+    parser.add_setting(
+        "--presume-issue-one",
+        default=False,
+        action=argparse.BooleanOptionalAction,
+        help="Presume issue 1 if no issue number is found",
+    )
 
 
 def dialog(parser: settngs.Manager) -> None:

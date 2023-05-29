@@ -28,7 +28,7 @@
         </sizepolicy>
        </property>
        <property name="currentIndex">
-        <number>3</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="tGeneral">
         <attribute name="title">
@@ -136,14 +136,7 @@
          <string>Searching</string>
         </attribute>
         <layout class="QGridLayout" name="gridLayout_3">
-         <item row="3" column="0">
-          <widget class="Line" name="line_5">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-          </widget>
-         </item>
-         <item row="6" column="0">
+         <item row="7" column="0">
           <layout class="QFormLayout" name="formLayout_2">
            <property name="fieldGrowthPolicy">
             <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
@@ -242,20 +235,34 @@
            </item>
           </layout>
          </item>
+         <item row="0" column="0">
+          <widget class="QCheckBox" name="cbxSortByYear">
+           <property name="text">
+            <string>Initially sort Series search results by Starting Year instead of No. Issues</string>
+           </property>
+          </widget>
+         </item>
          <item row="4" column="0">
+          <widget class="Line" name="line_5">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="0">
+          <widget class="Line" name="line_2">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="0">
           <widget class="QLabel" name="label_5">
            <property name="text">
             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;These settings are for the automatic issue identifier which searches online for matches. &lt;/p&gt;&lt;p&gt;Hover the mouse over an entry field for more info.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="wordWrap">
             <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="0">
-          <widget class="Line" name="line_2">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
            </property>
           </widget>
          </item>
@@ -266,17 +273,20 @@
            </property>
           </widget>
          </item>
-         <item row="0" column="0">
-          <widget class="QCheckBox" name="cbxSortByYear">
-           <property name="text">
-            <string>Initially sort Series search results by Starting Year instead of No. Issues</string>
-           </property>
-          </widget>
-         </item>
          <item row="2" column="0">
           <widget class="QCheckBox" name="cbxClearFormBeforePopulating">
            <property name="text">
             <string>Clear Form Before Importing Comic Vine data</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QCheckBox" name="cbxPresumeIssueOne">
+           <property name="toolTip">
+            <string>If no issue number is found Comic Tagger will add '1' as the issue number when the archive is loaded</string>
+           </property>
+           <property name="text">
+            <string>Presume issue 1 if no issue provided</string>
            </property>
           </widget>
          </item>
