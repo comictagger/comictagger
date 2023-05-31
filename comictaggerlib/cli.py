@@ -430,13 +430,13 @@ class CLI:
                     return
 
             if self.config.identifier_clear_metadata_on_import:
-                md = ct_md
-            else:
-                notes = (
-                    f"Tagged with ComicTagger {ctversion.version} using info from Comic Vine on"
-                    f" {datetime.now():%Y-%m-%d %H:%M:%S}.  [Issue ID {ct_md.issue_id}]"
-                )
-                md.overlay(ct_md.replace(notes=utils.combine_notes(md.notes, notes, "Tagged with ComicTagger")))
+                md = GenericMetadata()
+
+            notes = (
+                f"Tagged with ComicTagger {ctversion.version} using info from Comic Vine on"
+                f" {datetime.now():%Y-%m-%d %H:%M:%S}.  [Issue ID {ct_md.issue_id}]"
+            )
+            md.overlay(ct_md.replace(notes=utils.combine_notes(md.notes, notes, "Tagged with ComicTagger")))
 
             if self.config.identifier_auto_imprint:
                 md.fix_publisher()
