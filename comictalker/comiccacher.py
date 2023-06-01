@@ -1,4 +1,4 @@
-"""A python class to manage caching of data from comic sources"""
+"""A python class to manage caching of metadata from comic sources"""
 #
 # Copyright 2012-2014 ComicTagger Authors
 #

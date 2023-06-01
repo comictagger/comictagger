@@ -1,6 +1,6 @@
 """A PyQt5 widget to display cover images
 
-Display cover images from either a local archive, or from comic source.
+Display cover images from either a local archive, or from comic source metadata.
 TODO: This should be re-factored using subclasses!
 """
 #
