@@ -1,4 +1,4 @@
-"""A python class to manage caching of data from Comic Vine"""
+"""A python class to manage caching of data from comic sources"""
 #
 # Copyright 2012-2014 ComicTagger Authors
 #

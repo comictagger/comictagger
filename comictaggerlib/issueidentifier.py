@@ -296,7 +296,7 @@ class IssueIdentifier:
                 primary_img_url, blocking=True
             )
         except ImageFetcherException as e:
-            self.log_msg("Network issue while fetching cover image from Comic Vine. Aborting...")
+            self.log_msg(f"Network issue while fetching cover image from {self.talker.name}. Aborting...")
             raise IssueIdentifierNetworkError from e
 
         if self.cancel:
@@ -318,7 +318,7 @@ class IssueIdentifier:
                         alt_url, blocking=True
                     )
                 except ImageFetcherException as e:
-                    self.log_msg("Network issue while fetching alt. cover image from Comic Vine. Aborting...")
+                    self.log_msg(f"Network issue while fetching alt. cover image from {self.talker.name}. Aborting...")
                     raise IssueIdentifierNetworkError from e
 
                 if self.cancel:
