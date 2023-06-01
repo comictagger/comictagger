@@ -1780,7 +1780,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                     md = ct_md
                 else:
                     notes = (
-                        f"Tagged with ComicTagger {ctversion.version} using info from Comic Vine on"
+                        f"Tagged with ComicTagger {ctversion.version} using info from {self.current_talker().name} on"
                         f" {datetime.now():%Y-%m-%d %H:%M:%S}.  [Issue ID {ct_md.issue_id}]"
                     )
                     md.overlay(ct_md.replace(notes=utils.combine_notes(md.notes, notes, "Tagged with ComicTagger")))

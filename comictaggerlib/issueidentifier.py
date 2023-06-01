@@ -295,7 +295,7 @@ class IssueIdentifier:
                 primary_img_url, blocking=True
             )
         except ImageFetcherException as e:
-            self.log_msg("Network issue while fetching cover image from Comic Vine. Aborting...")
+            self.log_msg(f"Network issue while fetching cover image from {self.talker.name}. Aborting...")
             raise IssueIdentifierNetworkError from e
 
         if self.cancel:
@@ -317,7 +317,7 @@ class IssueIdentifier:
                         alt_url, blocking=True
                     )
                 except ImageFetcherException as e:
-                    self.log_msg("Network issue while fetching alt. cover image from Comic Vine. Aborting...")
+                    self.log_msg(f"Network issue while fetching alt. cover image from {self.talker.name}. Aborting...")
                     raise IssueIdentifierNetworkError from e
 
                 if self.cancel:
@@ -396,7 +396,7 @@ class IssueIdentifier:
             self.log_msg("Not enough info for a search!")
             return []
 
-        self.log_msg("Going to search for:")
+        self.log_msg(f"Using {self.talker.name} to search for:")
         self.log_msg("\tSeries: " + keys["series"])
         self.log_msg("\tIssue:  " + keys["issue_number"])
         if keys["issue_count"] is not None:
