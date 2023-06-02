@@ -253,35 +253,6 @@ def get_country_from_iso(iso: str | None) -> str | None:
     return countries[iso]
 
 
-def get_country_iso(string: str | None) -> str | None:
-    if string is None:
-        return None
-
-    try:
-        country = pycountry.countries.lookup(string)
-        if country:
-            # Assume first entry is correct
-            return country[0].alpha_2
-    except LookupError:
-        pass
-    return None
-
-
-def get_country_iso_name(string: str | None) -> str | None:
-    """Return country's ISO name from "other" name"""
-    if string is None:
-        return None
-
-    try:
-        country = pycountry.countries.search_fuzzy(string)
-        if country:
-            # Assume first entry is correct
-            return country[0].name
-    except LookupError:
-        pass
-    return None
-
-
 def get_publisher(publisher: str) -> tuple[str, str]:
     imprint = ""
 
