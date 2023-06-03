@@ -48,6 +48,15 @@ def map_comic_issue_to_metadata(
     metadata.series = utils.xlate(issue_results.series.name)
     metadata.issue = IssueString(issue_results.issue_number).as_string()
 
+    # Rely on comic talker to validate this number
+    metadata.issue_count = utils.xlate_int(issue_results.series.count_of_issues)
+
+    if issue_results.series.format:
+        metadata.format = issue_results.series.format
+
+    metadata.volume = utils.xlate_int(issue_results.series.volume)
+    metadata.volume_count = utils.xlate_int(issue_results.series.count_of_volumes)
+
     if issue_results.name:
         metadata.title = utils.xlate(issue_results.name)
     if issue_results.image_url:
@@ -84,6 +93,26 @@ def map_comic_issue_to_metadata(
         metadata.locations = ", ".join(issue_results.locations)
     if issue_results.story_arcs:
         metadata.story_arc = ", ".join(issue_results.story_arcs)
+    if issue_results.genres:
+        metadata.genre = ", ".join(issue_results.genres)
+
+    if issue_results.tags:
+        metadata.tags = set(issue_results.tags)
+
+    if issue_results.manga:
+        metadata.manga = issue_results.manga
+
+    if issue_results.critical_rating:
+        metadata.critical_rating = utils.xlate_float(issue_results.critical_rating)
+
+    if issue_results.maturity_rating:
+        metadata.maturity_rating = issue_results.maturity_rating
+
+    if issue_results.language:
+        metadata.language = issue_results.language
+
+    if issue_results.country:
+        metadata.country = issue_results.country
 
     return metadata
 

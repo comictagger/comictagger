@@ -267,6 +267,10 @@ def get_language_iso(string: str | None) -> str | None:
     return lang
 
 
+def get_country_from_iso(iso: str | None) -> str | None:
+    return countries()[iso]
+
+
 def get_publisher(publisher: str) -> tuple[str, str]:
     imprint = ""
 
