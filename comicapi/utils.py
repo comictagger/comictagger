@@ -239,6 +239,7 @@ def get_language_from_iso(iso: str | None) -> str | None:
 def get_language_iso(string: str | None) -> str | None:
     if string is None:
         return None
+    # Return current string if all else fails
     lang = string.casefold()
 
     try:
@@ -246,6 +247,10 @@ def get_language_iso(string: str | None) -> str | None:
     except LookupError:
         pass
     return lang
+
+
+def get_country_from_iso(iso: str | None) -> str | None:
+    return countries[iso]
 
 
 def get_publisher(publisher: str) -> tuple[str, str]:
