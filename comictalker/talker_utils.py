@@ -46,7 +46,7 @@ def map_comic_issue_to_metadata(
     metadata.issue = IssueString(issue_results.issue_number).as_string()
 
     # Rely on comic talker to validate this number
-    metadata.issue_count = utils.xlate_int(issue_results.series.volume)
+    metadata.issue_count = utils.xlate_int(issue_results.series.count_of_issues)
 
     if issue_results.series.format:
         metadata.format = issue_results.series.format
@@ -101,6 +101,9 @@ def map_comic_issue_to_metadata(
 
     if issue_results.critical_rating:
         metadata.critical_rating = utils.xlate_float(issue_results.critical_rating)
+
+    if issue_results.maturity_rating:
+        metadata.maturity_rating = issue_results.maturity_rating
 
     if issue_results.language:
         metadata.language = issue_results.language
