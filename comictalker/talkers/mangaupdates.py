@@ -225,10 +225,11 @@ class MangaUpdatesTalker(ComicTalker):
         self.use_series_start_as_volume: bool = False
         self.use_search_title: bool = False
         self.dup_title: bool = False
+        self.dup_vol_count: bool = False
         self.use_original_publisher: bool = False
         self.filter_nsfw: bool = False
-        self.filter_dojin: bool = False
-        self.use_ongoing: bool = False
+        self.add_nsfw_rating: bool = False
+        self.filter_dojin: bool = True
 
     def register_settings(self, parser: settngs.Manager) -> None:
         parser.add_setting(
@@ -251,6 +252,12 @@ class MangaUpdatesTalker(ComicTalker):
             display_name="Duplicate series name to title",
         )
         parser.add_setting(
+            "--mu-dup-vol-count",
+            default=False,
+            action=argparse.BooleanOptionalAction,
+            display_name="Duplicate volume count to issue count",
+        )
+        parser.add_setting(
             "--mu-use-original-publisher",
             default=False,
             action=argparse.BooleanOptionalAction,
@@ -262,20 +269,21 @@ class MangaUpdatesTalker(ComicTalker):
             default=False,
             action=argparse.BooleanOptionalAction,
             display_name="Filter out NSFW results",
-            help="Filter out NSFW from the search results",
+            help="Filter out NSFW from the search results (Genre: Adult and Hentai)",
+        )
+        parser.add_setting(
+            "--mu-add-nsfw-rating",
+            default=False,
+            action=argparse.BooleanOptionalAction,
+            display_name="Add 'Adult' maturity rating if 'Adult' or 'Hentai' genre",
+            help="Add a maturity rating of 'Adult' if the genre is 'Adult' or 'Hentai'",
         )
         parser.add_setting(
             "--mu-filter-dojin",
-            default=False,
+            default=True,
             action=argparse.BooleanOptionalAction,
             display_name="Filter out dojin results",
-            help="Filter out dojin from the search results",
-        )
-        parser.add_setting(
-            "--mu-use-ongoing",
-            default=False,
-            action=argparse.BooleanOptionalAction,
-            display_name="Use the ongoing count for total volumes",
+            help="Filter out dojin from the search results (Genre: Doujinshi)",
         )
         parser.add_setting(
             f"--{self.id}-url",
@@ -291,8 +299,10 @@ class MangaUpdatesTalker(ComicTalker):
         self.use_series_start_as_volume = settings["mu_use_series_start_as_volume"]
         self.use_search_title = settings["mu_use_search_title"]
         self.dup_title = settings["mu_dup_title"]
+        self.dup_vol_count = settings["mu_dup_vol_count"]
         self.use_original_publisher = settings["mu_use_original_publisher"]
         self.filter_nsfw = settings["mu_filter_nsfw"]
+        self.add_nsfw_rating = settings["mu_add_nsfw_rating"]
         self.filter_dojin = settings["mu_filter_dojin"]
         self.use_ongoing = settings["mu_use_ongoing"]
 
@@ -375,20 +385,15 @@ class MangaUpdatesTalker(ComicTalker):
         return formatted_results
 
     def _format_series(self, record: MUResult) -> ComicSeries:
-        if record["record"]["image"]["url"]["original"] is None:
-            image_url = ""
-        else:
-            image_url = record["record"]["image"]["url"]["original"]
+        image_url = record["record"]["image"]["url"].get("original", "")
 
-        if record["record"]["year"] is None:
-            start_year = 0
-        else:
+        start_year: int | None = None
+        if record["record"]["year"]:
             start_year = utils.xlate_int(record["record"]["year"])
 
-        if self.use_search_title:
+        title = record["record"].get("title", "")
+        if self.use_search_title and record["hit_title"]:
             title = record["hit_title"]
-        else:
-            title = record["record"]["title"]
 
         genre_list = []
         for genre in record["record"]["genres"]:
@@ -403,7 +408,10 @@ class MangaUpdatesTalker(ComicTalker):
             name=title,
             publisher="",  # Publisher not returned from search
             start_year=start_year,
-            # genres=genre_list,
+            count_of_volumes=None,
+            volume=None,
+            genres=genre_list,
+            format=None,
         )
 
     def _format_issue(self, issue: MUIssue, volume: ComicSeries, complete: bool = True) -> ComicIssue:
@@ -416,19 +424,27 @@ class MangaUpdatesTalker(ComicTalker):
             aliases_list.append(alias["title"])
 
         publisher_list = []
+        pub_id: int = 0
         for pub in issue["publishers"]:
             if self.use_original_publisher and pub["type"] == "Original":
                 publisher_list.append(pub["publisher_name"])
+                # Could be multiple?
+                pub_id = pub["publisher_id"]
             elif not self.use_original_publisher and pub["type"] == "English":
                 publisher_list.append(pub["publisher_name"])
         publisher = ", ".join(publisher_list)
+
+        lang = "en"
+        if self.use_original_publisher and pub_id:
+            pub_info = self._fetch_publisher(pub_id)
+            lang = utils.get_language_iso(pub_info["type"]) or ""
 
         persons_list = []
         for person in issue["authors"]:
             persons_list.append(Credit(name=person["name"], role=person["type"]))
 
-        # Use search title can desync between series search and fetching the issue so do this:
-        title = issue["title"]
+        title = issue.get("title", "")
+        # Use search title can desync between series search and fetching the issue so check:
         if self.use_search_title and len(volume.aliases) == 1:
             title = volume.aliases[0]
 
@@ -436,32 +452,36 @@ class MangaUpdatesTalker(ComicTalker):
         if self.dup_title:
             issue_title = volume.name
 
-        start_year = utils.xlate_int(issue["year"])
+        start_year = utils.xlate_int(issue.get("year", "0"))
 
-        # TODO Add once supported via PR #433
-        '''manga = ""
+        manga = ""
         if issue["type"] == "Manga":
-            manga = "Yes"'''
+            manga = "Yes"
 
         genre_list = []
         for genre in issue["genres"]:
             genre_list.append(genre["genre"])
 
+        mature_rating = ""
+        if self.add_nsfw_rating:
+            if any(genre in ["Adult", "Hentai"] for genre in genre_list):
+                mature_rating = "Adult"
+
         tag_list = []
         for cat in issue["categories"]:
             tag_list.append(cat["category"])
 
-        count_of_issue: int | None = None  # TODO parse from status but also publisher notes depending on lang?
-        # TODO Option to use ongoing number?
-        if self.use_ongoing:
-            ...
+        count_of_volumes: int | None = None  # TODO parse from publisher notes depending on lang?
         reg = re.compile(r"((\d+).*volume.).*(complete)(.*)", re.IGNORECASE)
         reg_match = reg.search(issue["status"])
         if reg_match is not None:
-            count_of_issue = utils.xlate_int(reg_match.group(2))
+            count_of_volumes = utils.xlate_int(reg_match.group(2))
 
         volume.name = title
-        volume.count_of_issues = count_of_issue
+
+        if self.dup_vol_count:
+            volume.count_of_issues = count_of_volumes
+        volume.count_of_volumes = count_of_volumes
         volume.start_year = start_year
         volume.publisher = publisher
         volume.image_url = image_url
@@ -483,25 +503,33 @@ class MangaUpdatesTalker(ComicTalker):
             site_detail_url=issue.get("url", ""),
             series=volume,
             credits=persons_list,
-            complete=complete,
-        )
-        # TODO Once supported via PR #433
-        """rating=issue["bayesian_rating"] / 2,
+            country="",
+            language=lang,
+            critical_rating=issue["bayesian_rating"] / 2,
+            maturity_rating=mature_rating,
             manga=manga,
             genres=genre_list,
-            tags=tag_list,"""
+            tags=tag_list,
+            complete=complete,
+        )
 
         return formatted_results
 
     def _filter_nsfw(self, search_results: list[ComicSeries]) -> list[ComicSeries]:
-        search_results = [x for x in search_results if x != "Adult" or x != "Hentai"]
+        filtered_list = []
+        for i, series in enumerate(search_results):
+            if not any(genre in ["Adult", "Hentai"] for genre in series.genres):
+                filtered_list.append(series)
 
-        return search_results
+        return filtered_list
 
     def _filter_dojin(self, search_results: list[ComicSeries]) -> list[ComicSeries]:
-        search_results = [x for x in search_results if x != "Doujinshi"]
+        filtered_list = []
+        for i, series in enumerate(search_results):
+            if "Doujinshi" not in series.genres:
+                filtered_list.append(series)
 
-        return search_results
+        return filtered_list
 
     def search_for_series(
         self,
@@ -521,12 +549,12 @@ class MangaUpdatesTalker(ComicTalker):
         if not refresh_cache and not literal:
             cached_search_results = cvc.get_search_results(self.id, series_name)
 
-            # Check if filter options have been changed, ignore cache if so.
             if len(cached_search_results) > 0:
+                # Apply any filters
                 if self.filter_nsfw:
-                    self._filter_nsfw(cached_search_results)
+                    cached_search_results = self._filter_nsfw(cached_search_results)
                 if self.filter_dojin:
-                    self._filter_dojin(cached_search_results)
+                    cached_search_results = self._filter_dojin(cached_search_results)
 
                 return cached_search_results
 
@@ -593,9 +621,9 @@ class MangaUpdatesTalker(ComicTalker):
 
         # Filter any tags AFTER adding to cache
         if self.filter_nsfw:
-            self._filter_nsfw(formatted_search_results)
+            formatted_search_results = self._filter_nsfw(formatted_search_results)
         if self.filter_dojin:
-            self._filter_dojin(formatted_search_results)
+            formatted_search_results = self._filter_dojin(formatted_search_results)
 
         return formatted_search_results
 
@@ -631,6 +659,11 @@ class MangaUpdatesTalker(ComicTalker):
             bool(self.use_series_start_as_volume),
         )
 
+    def _fetch_publisher(self, pub_id: int) -> MUPublisher:
+        mu_response = self._get_mu_content(urljoin(self.api_url, f"publishers/{pub_id}"), {})
+
+        return mu_response  # type: ignore
+
     def _fetch_series_data(self, series_id: int) -> ComicIssue:
         # The full series data is stored as a ComicIssue as that is how it will be used
         # before we search online, look in our cache, since we might already have this info
@@ -642,18 +675,26 @@ class MangaUpdatesTalker(ComicTalker):
         if volume is None:
             volume = ComicSeries(
                 aliases=[],
-                count_of_issues=0,
+                count_of_issues=None,
+                count_of_volumes=None,
+                volume=None,
                 description="",
                 id=str(series_id),
                 image_url="",
                 name="",
                 publisher="",
                 start_year=0,
+                format="",
+                genres=[],
             )
 
         # It's possible a new search with new options has wiped the series publisher so refresh if it's empty
         if cached_issues_result:
             cached_issues_result.series = volume
+            if self.dup_title:
+                cached_issues_result.name = cached_issues_result.series.name
+            if self.dup_vol_count:
+                cached_issues_result.series.count_of_issues = cached_issues_result.series.count_of_volumes
             return cached_issues_result
 
         issue_url = urljoin(self.api_url, f"series/{series_id}")
