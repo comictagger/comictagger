@@ -1017,7 +1017,10 @@ class TaggerWindow(QtWidgets.QMainWindow):
         # Only need this check is the source has issue level data.
         if autoselect and issue_number == "":
             QtWidgets.QMessageBox.information(
-                self, "Automatic Identify Search", "Can't auto-identify without an issue number (yet!)"
+                self,
+                "Automatic Identify Search",
+                "Can't auto-identify without an issue number. The auto-tag function has the 'If no issue number, "
+                'assume "1"\' option if desired.',
             )
             return
 
