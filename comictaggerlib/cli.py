@@ -23,13 +23,12 @@ import sys
 from datetime import datetime
 from pprint import pprint
 
-import settngs
-
 from comicapi import utils
 from comicapi.comicarchive import ComicArchive, MetaDataStyle
 from comicapi.genericmetadata import GenericMetadata
 from comictaggerlib import ctversion
 from comictaggerlib.cbltransformer import CBLTransformer
+from comictaggerlib.ctsettings import ct_ns
 from comictaggerlib.filerenamer import FileRenamer, get_rename_dir
 from comictaggerlib.graphics import graphics_path
 from comictaggerlib.issueidentifier import IssueIdentifier
@@ -40,7 +39,7 @@ logger = logging.getLogger(__name__)
 
 
 class CLI:
-    def __init__(self, config: settngs.Namespace, talkers: dict[str, ComicTalker]) -> None:
+    def __init__(self, config: ct_ns, talkers: dict[str, ComicTalker]) -> None:
         self.config = config
         self.talkers = talkers
         self.batch_mode = False
@@ -171,14 +170,14 @@ class CLI:
                 self.display_match_set_for_choice(label, match_set)
 
     def run(self) -> None:
-        if len(self.config.runtime_file_list) < 1:
+        if len(self.config.runtime_files) < 1:
             logger.error("You must specify at least one filename.  Use the -h option for more info")
             return
 
         match_results = OnlineMatchResults()
-        self.batch_mode = len(self.config.runtime_file_list) > 1
+        self.batch_mode = len(self.config.runtime_files) > 1
 
-        for f in self.config.runtime_file_list:
+        for f in self.config.runtime_files:
             self.process_file_cli(f, match_results)
             sys.stdout.flush()
 
@@ -318,7 +317,7 @@ class CLI:
                         md = GenericMetadata()
                         logger.error("Failed to load metadata for %s: %s", ca.path, e)
 
-                    if self.config.apply_transform_on_bulk_operation_ndetadata_style == MetaDataStyle.CBI:
+                    if self.config.cbl_apply_transform_on_bulk_operation == MetaDataStyle.CBI:
                         md = CBLTransformer(md, self.config).apply()
 
                     if not ca.write_metadata(md, metadata_style):
@@ -342,7 +341,7 @@ class CLI:
 
         md = self.create_local_metadata(ca)
         if md.issue is None or md.issue == "":
-            if self.config.runtime_assume_issue_one:
+            if self.config.autotag_assume_1_if_no_issue_num:
                 md.issue = "1"
 
         # now, search online
@@ -488,6 +487,7 @@ class CLI:
             return
         except Exception:
             logger.exception("Formatter failure: %s metadata: %s", self.config.rename_template, renamer.metadata)
+            return
 
         folder = get_rename_dir(ca, self.config.rename_dir if self.config.rename_move_to_dir else None)
 

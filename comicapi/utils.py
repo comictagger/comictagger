@@ -261,7 +261,7 @@ def get_publisher(publisher: str) -> tuple[str, str]:
         if ok:
             break
 
-    return (imprint, publisher)
+    return imprint, publisher
 
 
 def update_publishers(new_publishers: Mapping[str, Mapping[str, str]]) -> None:
@@ -290,11 +290,11 @@ class ImprintDict(dict):  # type: ignore
     def __getitem__(self, k: str) -> tuple[str, str, bool]:
         item = super().__getitem__(k.casefold())
         if k.casefold() == self.publisher.casefold():
-            return ("", self.publisher, True)
+            return "", self.publisher, True
         if item is None:
-            return ("", k, False)
+            return "", k, False
         else:
-            return (item, self.publisher, True)
+            return item, self.publisher, True
 
     def copy(self) -> ImprintDict:
         return ImprintDict(self.publisher, super().copy())

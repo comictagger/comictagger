@@ -8,6 +8,7 @@ from typing import Any, NamedTuple
 import settngs
 from PyQt5 import QtCore, QtGui, QtWidgets
 
+from comictaggerlib.ctsettings import ct_ns
 from comictaggerlib.graphics import graphics_path
 from comictalker.comictalker import ComicTalker
 
@@ -26,7 +27,7 @@ class PasswordEdit(QtWidgets.QLineEdit):
     Based on this example https://kushaldas.in/posts/creating-password-input-widget-in-pyqt.html by Kushal Das.
     """
 
-    def __init__(self, show_visibility=True, *args, **kwargs):
+    def __init__(self, show_visibility: bool = True, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
 
         self.visibleIcon = QtGui.QIcon(str(graphics_path / "eye.svg"))
@@ -42,7 +43,7 @@ class PasswordEdit(QtWidgets.QLineEdit):
 
         self.password_shown = False
 
-    def on_toggle_password_Action(self):
+    def on_toggle_password_Action(self) -> None:
         if not self.password_shown:
             self.setEchoMode(QtWidgets.QLineEdit.Normal)
             self.password_shown = True
@@ -58,7 +59,7 @@ class PasswordEdit(QtWidgets.QLineEdit):
 def generate_api_widgets(
     talker_id: str,
     sources: dict[str, QtWidgets.QWidget],
-    config: settngs.Config[settngs.Namespace],
+    config: settngs.Config[ct_ns],
     layout: QtWidgets.QGridLayout,
     talkers: dict[str, ComicTalker],
 ) -> None:
@@ -168,7 +169,7 @@ def generate_password_textbox(option: settngs.Setting, layout: QtWidgets.QGridLa
     return widget
 
 
-def settings_to_talker_form(sources: dict[str, QtWidgets.QWidget], config: settngs.Config[settngs.Namespace]) -> None:
+def settings_to_talker_form(sources: dict[str, QtWidgets.QWidget], config: settngs.Config[ct_ns]) -> None:
     # Set the active talker via id in sources combo box
     sources["cbx_select_talker"].setCurrentIndex(sources["cbx_select_talker"].findData(config[0].talker_source))
 
@@ -187,7 +188,7 @@ def settings_to_talker_form(sources: dict[str, QtWidgets.QWidget], config: settn
                 logger.debug("Failed to set value of %s", name)
 
 
-def form_settings_to_config(sources: dict[str, QtWidgets.QWidget], config: settngs.Config[settngs.Namespace]) -> None:
+def form_settings_to_config(sources: dict[str, QtWidgets.QWidget], config: settngs.Config[ct_ns]) -> None:
     # Source combo box value
     config[0].talker_source = sources["cbx_select_talker"].currentData()
 
@@ -206,7 +207,7 @@ def form_settings_to_config(sources: dict[str, QtWidgets.QWidget], config: settn
 
 def generate_source_option_tabs(
     comic_talker_tab: QtWidgets.QWidget,
-    config: settngs.Config[settngs.Namespace],
+    config: settngs.Config[ct_ns],
     talkers: dict[str, ComicTalker],
 ) -> dict[str, QtWidgets.QWidget]:
     """

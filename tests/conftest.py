@@ -9,7 +9,6 @@ from typing import Any
 
 import pytest
 import requests
-import settngs
 from PIL import Image
 
 import comicapi.comicarchive
@@ -128,7 +127,7 @@ def mock_version(monkeypatch):
     monkeypatch.setattr(comictaggerlib.ctversion, "__version__", version)
     monkeypatch.setattr(comictaggerlib.ctversion, "version_tuple", version_tuple)
     monkeypatch.setattr(comictaggerlib.ctversion, "__version_tuple__", version_tuple)
-    yield (version, version_tuple)
+    yield version, version_tuple
 
 
 @pytest.fixture
@@ -154,23 +153,19 @@ def seed_all_publishers(monkeypatch):
 
 
 @pytest.fixture
-def config(settings_manager, tmp_path):
-    comictaggerlib.ctsettings.register_commandline_settings(settings_manager)
-    comictaggerlib.ctsettings.register_file_settings(settings_manager)
-    defaults = settings_manager.get_namespace(settings_manager.defaults())
-    defaults[0].runtime_config = comictaggerlib.ctsettings.ComicTaggerPaths(tmp_path / "config")
+def config(tmp_path):
+    from comictaggerlib.main import App
+
+    app = App()
+    app.register_settings()
+
+    defaults = app.parse_settings(comictaggerlib.ctsettings.ComicTaggerPaths(tmp_path / "config"), "")
     defaults[0].runtime_config.user_data_dir.mkdir(parents=True, exist_ok=True)
     defaults[0].runtime_config.user_config_dir.mkdir(parents=True, exist_ok=True)
     defaults[0].runtime_config.user_cache_dir.mkdir(parents=True, exist_ok=True)
     defaults[0].runtime_config.user_state_dir.mkdir(parents=True, exist_ok=True)
     defaults[0].runtime_config.user_log_dir.mkdir(parents=True, exist_ok=True)
     yield defaults
-
-
-@pytest.fixture
-def settings_manager():
-    manager = settngs.Manager()
-    yield manager
 
 
 @pytest.fixture

@@ -17,11 +17,11 @@ from __future__ import annotations
 
 import logging
 
-import settngs
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
 from comicapi.issuestring import IssueString
 from comictaggerlib.coverimagewidget import CoverImageWidget
+from comictaggerlib.ctsettings import ct_ns
 from comictaggerlib.ui import ui_path
 from comictaggerlib.ui.qtutils import reduce_widget_font_size
 from comictalker.comictalker import ComicTalker, TalkerError
@@ -42,7 +42,7 @@ class IssueSelectionWindow(QtWidgets.QDialog):
     def __init__(
         self,
         parent: QtWidgets.QWidget,
-        config: settngs.Namespace,
+        config: ct_ns,
         talker: ComicTalker,
         series_id: str,
         issue_number: str,
