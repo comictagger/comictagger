@@ -1019,8 +1019,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             QtWidgets.QMessageBox.information(
                 self,
                 "Automatic Identify Search",
-                "Can't auto-identify without an issue number. The auto-tag function has the 'If no issue number, "
-                'assume "1"\' option if desired.',
+                "Can't auto-identify without an issue number. The auto-tag function has the 'If no issue number, assume \"1\"' option if desired.",
             )
             return
 
