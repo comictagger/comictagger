@@ -20,6 +20,7 @@ class ComicSeries:
     name: str
     publisher: str
     start_year: int | None
+    complete: bool  # Is this a complete ComicSeries? or is there more data to fetch
 
     def copy(self) -> ComicSeries:
         return copy.deepcopy(self)

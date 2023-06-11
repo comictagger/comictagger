@@ -92,6 +92,7 @@ class ComicCacher:
                 + "image_url TEXT,"
                 + "aliases TEXT,"  # Newline separated
                 + "description TEXT,"
+                + "complete BOOL,"  # Is the series complete. No more data available from the source for series
                 + "timestamp DATE DEFAULT (datetime('now','localtime')), "
                 + "source_name TEXT NOT NULL,"
                 + "PRIMARY KEY (id, source_name))"
@@ -150,6 +151,7 @@ class ComicCacher:
                     "start_year": record.start_year,
                     "image_url": record.image_url,
                     "description": record.description,
+                    "complete": record.complete,
                     "timestamp": datetime.datetime.now(),
                     "aliases": "\n".join(record.aliases),
                 }
@@ -181,6 +183,7 @@ class ComicCacher:
                     image_url=record[9],
                     aliases=record[10].strip().splitlines(),
                     description=record[11],
+                    complete=bool(record[12]),
                 )
 
                 results.append(result)
@@ -204,6 +207,7 @@ class ComicCacher:
                 "start_year": series_record.start_year,
                 "image_url": series_record.image_url,
                 "description": series_record.description,
+                "complete": series_record.complete,
                 "timestamp": timestamp,
                 "aliases": "\n".join(series_record.aliases),
             }
@@ -273,6 +277,7 @@ class ComicCacher:
                 image_url=row[5],
                 aliases=row[6].strip().splitlines(),
                 description=row[7],
+                complete=bool(row[8]),
             )
 
         return result
@@ -288,6 +293,7 @@ class ComicCacher:
             start_year=None,
             aliases=[],
             count_of_issues=None,
+            complete=False,
         )
         con = lite.connect(self.db_file)
         with con:
@@ -375,6 +381,7 @@ class ComicCacher:
                     start_year=None,
                     aliases=[],
                     count_of_issues=None,
+                    complete=False,
                 )
 
                 # now process the results

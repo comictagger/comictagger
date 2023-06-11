@@ -176,6 +176,7 @@ comic_issue_result = ComicIssue(
         image_url=cv_volume_result["results"]["image"]["super_url"],
         publisher=cv_volume_result["results"]["publisher"]["name"],
         start_year=int(cv_volume_result["results"]["start_year"]),
+        complete=True,
     ),
     characters=[],
     alt_image_urls=[],

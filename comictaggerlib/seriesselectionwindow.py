@@ -530,13 +530,14 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         # list selection was changed, update the info on the series
         for i, record in enumerate(self.ct_search_results):
             if record.id == self.series_id:
-                try:
-                    updated_series = self.talker.fetch_additional_series_info_on_click(record.id)
-                    if updated_series:
-                        self.ct_search_results[i] = updated_series
-                        record = updated_series
-                except NotImplementedError:
-                    pass
+                if not record.complete:
+                    try:
+                        updated_series = self.talker.fetch_additional_series_info_on_click(record.id)
+                        if updated_series:
+                            self.ct_search_results[i] = updated_series
+                            record = updated_series
+                    except NotImplementedError:
+                        pass
 
                 if record.description is None:
                     self.teDetails.setText("")
