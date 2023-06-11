@@ -509,12 +509,16 @@ class ComicVineTalker(ComicTalker):
                 ComicSeries(
                     aliases=aliases.splitlines(),
                     count_of_issues=record.get("count_of_issues", 0),
+                    count_of_volumes=None,
+                    volume=None,
                     description=record.get("description", ""),
                     id=str(record["id"]),
                     image_url=image_url,
                     name=record["name"],
                     publisher=pub_name,
                     start_year=start_year,
+                    genres=[],
+                    format=None,
                     complete=True,
                 )
             )
@@ -577,6 +581,13 @@ class ComicVineTalker(ComicTalker):
                     locations=location_list,
                     teams=teams_list,
                     story_arcs=story_list,
+                    critical_rating=0,
+                    maturity_rating="",
+                    manga="",
+                    language="",
+                    country="",
+                    genres=[],
+                    tags=[],
                     credits=persons_list,
                     complete=complete,
                 )

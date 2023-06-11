@@ -1,8 +1,8 @@
-"""A python class to manage caching of data from Comic Vine"""
+"""A python class to manage caching of metadata from comic sources"""
 #
 # Copyright 2012-2014 ComicTagger Authors
 #
-# Licensed under the Apache License, Version 2.0 (the "License;
+# Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
@@ -88,10 +88,14 @@ class ComicCacher:
                 + "name TEXT,"
                 + "publisher TEXT,"
                 + "count_of_issues INT,"
+                + "count_of_volumes INT,"
+                + "volume TEXT,"
                 + "start_year INT,"
                 + "image_url TEXT,"
                 + "aliases TEXT,"  # Newline separated
                 + "description TEXT,"
+                + "genres TEXT,"  # Newline separated. For filtering etc.
+                + "format TEXT,"
                 + "complete BOOL,"  # Is the series complete. No more data available from the source for series
                 + "timestamp DATE DEFAULT (datetime('now','localtime')), "
                 + "source_name TEXT NOT NULL,"
@@ -118,6 +122,13 @@ class ComicCacher:
                 + "credits TEXT,"  # JSON: "{"name": "Bob Shakespeare", "role": "Writer"}"
                 + "teams TEXT,"  # Newline separated
                 + "story_arcs TEXT,"  # Newline separated
+                + "genres TEXT,"  # Newline separated
+                + "tags TEXT,"  # Newline separated
+                + "critical_rating FLOAT,"
+                + "manga TEXT,"  # Yes/YesAndRightToLeft/No
+                + "maturity_rating TEXT,"
+                + "language TEXT,"
+                + "country TEXT,"
                 + "complete BOOL,"  # Is the data complete? Includes characters, locations, credits.
                 + "PRIMARY KEY (id, source_name))"
             )
@@ -148,9 +159,13 @@ class ComicCacher:
                     "name": record.name,
                     "publisher": record.publisher,
                     "count_of_issues": record.count_of_issues,
+                    "count_of_volumes": record.count_of_volumes,
+                    "volume": record.volume,
                     "start_year": record.start_year,
                     "image_url": record.image_url,
                     "description": record.description,
+                    "genres": "\n".join(record.genres),
+                    "format": record.format,
                     "complete": record.complete,
                     "timestamp": datetime.datetime.now(),
                     "aliases": "\n".join(record.aliases),
@@ -179,11 +194,15 @@ class ComicCacher:
                     name=record[5],
                     publisher=record[6],
                     count_of_issues=record[7],
-                    start_year=record[8],
-                    image_url=record[9],
-                    aliases=record[10].strip().splitlines(),
-                    description=record[11],
-                    complete=bool(record[12]),
+                    count_of_volumes=record[8],
+                    volume=record[9],
+                    start_year=record[10],
+                    image_url=record[11],
+                    aliases=record[12].strip().splitlines(),
+                    description=record[13],
+                    genres=record[14].strip().splitlines(),
+                    format=record[15],
+                    complete=bool(record[16]),
                 )
 
                 results.append(result)
@@ -204,9 +223,13 @@ class ComicCacher:
                 "name": series_record.name,
                 "publisher": series_record.publisher,
                 "count_of_issues": series_record.count_of_issues,
+                "count_of_volumes": series_record.count_of_volumes,
+                "volume": series_record.volume,
                 "start_year": series_record.start_year,
                 "image_url": series_record.image_url,
                 "description": series_record.description,
+                "genres": "\n".join(series_record.genres),
+                "format": series_record.format,
                 "complete": series_record.complete,
                 "timestamp": timestamp,
                 "aliases": "\n".join(series_record.aliases),
@@ -241,6 +264,13 @@ class ComicCacher:
                     "locations": "\n".join(issue.locations),
                     "teams": "\n".join(issue.teams),
                     "story_arcs": "\n".join(issue.story_arcs),
+                    "genres": "\n".join(issue.genres),
+                    "tags": "\n".join(issue.tags),
+                    "critical_rating": issue.critical_rating,
+                    "manga": issue.manga,
+                    "maturity_rating": issue.maturity_rating,
+                    "language": issue.language,
+                    "country": issue.country,
                     "credits": json.dumps([dataclasses.asdict(x) for x in issue.credits]),
                     "complete": issue.complete,
                 }
@@ -273,11 +303,15 @@ class ComicCacher:
                 name=row[1],
                 publisher=row[2],
                 count_of_issues=row[3],
-                start_year=row[4],
-                image_url=row[5],
-                aliases=row[6].strip().splitlines(),
-                description=row[7],
-                complete=bool(row[8]),
+                count_of_volumes=row[4],
+                volume=row[5],
+                start_year=row[6],
+                image_url=row[7],
+                aliases=row[8].strip().splitlines(),
+                description=row[9],
+                genres=row[10].strip().splitlines(),
+                format=row[11],
+                complete=bool(row[12]),
             )
 
         return result
@@ -288,11 +322,15 @@ class ComicCacher:
             id=series_id,
             name="",
             description="",
+            genres=[],
             image_url="",
             publisher="",
             start_year=None,
             aliases=[],
             count_of_issues=None,
+            count_of_volumes=None,
+            volume=None,
+            format=None,
             complete=False,
         )
         con = lite.connect(self.db_file)
@@ -308,40 +346,41 @@ class ComicCacher:
             # fetch
             results: list[ComicIssue] = []
 
-            cur.execute(
-                (
-                    "SELECT source_name,id,name,issue_number,site_detail_url,cover_date,image_url,thumb_url,description,aliases,alt_image_urls,characters,locations,credits,teams,story_arcs,complete"
-                    " FROM Issues WHERE series_id=? AND source_name=?"
-                ),
-                [series_id, source_name],
-            )
+            cur.execute("SELECT * FROM Issues WHERE series_id=? AND source_name=?", [series_id, source_name])
             rows = cur.fetchall()
 
             # now process the results
             for row in rows:
                 credits = []
                 try:
-                    for credit in json.loads(row[13]):
+                    for credit in json.loads(row[15]):
                         credits.append(Credit(**credit))
                 except Exception:
                     logger.exception("credits failed")
                 record = ComicIssue(
-                    id=row[1],
+                    id=row[0],
                     name=row[2],
                     issue_number=row[3],
-                    site_detail_url=row[4],
-                    cover_date=row[5],
-                    image_url=row[6],
+                    site_detail_url=row[7],
+                    cover_date=row[6],
+                    image_url=row[4],
                     description=row[8],
                     series=series,
-                    aliases=row[9].strip().splitlines(),
-                    alt_image_urls=row[10].strip().splitlines(),
-                    characters=row[11].strip().splitlines(),
-                    locations=row[12].strip().splitlines(),
+                    aliases=row[11].strip().splitlines(),
+                    alt_image_urls=row[12].strip().splitlines(),
+                    characters=row[13].strip().splitlines(),
+                    locations=row[14].strip().splitlines(),
                     credits=credits,
-                    teams=row[14].strip().splitlines(),
-                    story_arcs=row[15].strip().splitlines(),
-                    complete=bool(row[16]),
+                    teams=row[16].strip().splitlines(),
+                    story_arcs=row[17].strip().splitlines(),
+                    genres=row[18].strip().splitlines(),
+                    tags=row[19].strip().splitlines(),
+                    critical_rating=row[20],
+                    manga=row[21],
+                    maturity_rating=row[22],
+                    language=row[23],
+                    country=row[24],
+                    complete=bool(row[25]),
                 )
 
                 results.append(record)
@@ -359,55 +398,60 @@ class ComicCacher:
             a_week_ago = datetime.datetime.today() - datetime.timedelta(days=7)
             cur.execute("DELETE FROM Issues WHERE timestamp  < ?", [str(a_week_ago)])
 
-            cur.execute(
-                (
-                    "SELECT source_name,id,name,issue_number,site_detail_url,cover_date,image_url,description,aliases,series_id,alt_image_urls,characters,locations,credits,teams,story_arcs,complete"
-                    " FROM Issues WHERE id=? AND source_name=?"
-                ),
-                [issue_id, source_name],
-            )
+            cur.execute("SELECT * FROM Issues WHERE id=? AND source_name=?", [issue_id, source_name])
             row = cur.fetchone()
 
             record = None
 
             if row:
                 # get_series_info should only fail if someone is doing something weird
-                series = self.get_series_info(row[10], source_name, False) or ComicSeries(
-                    id=row[10],
+                series = self.get_series_info(row[1], source_name, False) or ComicSeries(
+                    id=row[1],
                     name="",
                     description="",
+                    genres=[],
                     image_url="",
                     publisher="",
                     start_year=None,
                     aliases=[],
                     count_of_issues=None,
+                    count_of_volumes=None,
+                    volume=None,
+                    format=None,
                     complete=False,
                 )
 
                 # now process the results
                 credits = []
                 try:
-                    for credit in json.loads(row[13]):
+                    for credit in json.loads(row[15]):
                         credits.append(Credit(**credit))
                 except Exception:
                     logger.exception("credits failed")
                 record = ComicIssue(
-                    id=row[1],
+                    id=row[0],
                     name=row[2],
                     issue_number=row[3],
-                    site_detail_url=row[4],
-                    cover_date=row[5],
-                    image_url=row[6],
-                    description=row[7],
+                    site_detail_url=row[7],
+                    cover_date=row[6],
+                    image_url=row[4],
+                    description=row[8],
                     series=series,
-                    aliases=row[8].strip().splitlines(),
-                    alt_image_urls=row[10].strip().splitlines(),
-                    characters=row[11].strip().splitlines(),
-                    locations=row[12].strip().splitlines(),
+                    aliases=row[11].strip().splitlines(),
+                    alt_image_urls=row[12].strip().splitlines(),
+                    characters=row[13].strip().splitlines(),
+                    locations=row[14].strip().splitlines(),
                     credits=credits,
-                    teams=row[14].strip().splitlines(),
-                    story_arcs=row[15].strip().splitlines(),
-                    complete=bool(row[16]),
+                    teams=row[16].strip().splitlines(),
+                    story_arcs=row[17].strip().splitlines(),
+                    genres=row[18].strip().splitlines(),
+                    tags=row[19].strip().splitlines(),
+                    critical_rating=row[20],
+                    manga=row[21],
+                    maturity_rating=row[22],
+                    language=row[23],
+                    country=row[24],
+                    complete=bool(row[25]),
                 )
 
             return record

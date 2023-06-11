@@ -20,13 +20,13 @@ import logging
 import sys
 from typing import Any, Callable
 
-import settngs
 from typing_extensions import NotRequired, TypedDict
 
 from comicapi import utils
 from comicapi.comicarchive import ComicArchive
 from comicapi.genericmetadata import GenericMetadata
 from comicapi.issuestring import IssueString
+from comictaggerlib.ctsettings import ct_ns
 from comictaggerlib.imagefetcher import ImageFetcher, ImageFetcherException
 from comictaggerlib.imagehasher import ImageHasher
 from comictaggerlib.resulttypes import IssueResult
@@ -72,7 +72,7 @@ class IssueIdentifier:
     result_one_good_match = 4
     result_multiple_good_matches = 5
 
-    def __init__(self, comic_archive: ComicArchive, config: settngs.Namespace, talker: ComicTalker) -> None:
+    def __init__(self, comic_archive: ComicArchive, config: ct_ns, talker: ComicTalker) -> None:
         self.config = config
         self.talker = talker
         self.comic_archive: ComicArchive = comic_archive
@@ -296,7 +296,7 @@ class IssueIdentifier:
                 primary_img_url, blocking=True
             )
         except ImageFetcherException as e:
-            self.log_msg("Network issue while fetching cover image from Comic Vine. Aborting...")
+            self.log_msg(f"Network issue while fetching cover image from {self.talker.name}. Aborting...")
             raise IssueIdentifierNetworkError from e
 
         if self.cancel:
@@ -318,7 +318,7 @@ class IssueIdentifier:
                         alt_url, blocking=True
                     )
                 except ImageFetcherException as e:
-                    self.log_msg("Network issue while fetching alt. cover image from Comic Vine. Aborting...")
+                    self.log_msg(f"Network issue while fetching alt. cover image from {self.talker.name}. Aborting...")
                     raise IssueIdentifierNetworkError from e
 
                 if self.cancel:

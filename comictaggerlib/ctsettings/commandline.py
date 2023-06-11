@@ -25,14 +25,20 @@ import settngs
 from comicapi import utils
 from comicapi.genericmetadata import GenericMetadata
 from comictaggerlib import ctversion
-from comictaggerlib.ctsettings.types import ComicTaggerPaths, metadata_type, parse_metadata_from_string
+from comictaggerlib.ctsettings.settngs_namespace import settngs_namespace as ct_ns
+from comictaggerlib.ctsettings.types import (
+    ComicTaggerPaths,
+    metadata_type,
+    metadata_type_single,
+    parse_metadata_from_string,
+)
 
 logger = logging.getLogger(__name__)
 
 
 def initial_commandline_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(add_help=False)
-    # Ensure this stays up to date with register_settings
+    # Ensure this stays up to date with register_runtime
     parser.add_argument(
         "--config",
         help="Config directory defaults to ~/.ComicTagger\non Linux/Mac and %%APPDATA%% on Windows\n",
@@ -43,7 +49,7 @@ def initial_commandline_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def register_settings(parser: settngs.Manager) -> None:
+def register_runtime(parser: settngs.Manager) -> None:
     parser.add_setting(
         "--config",
         help="Config directory defaults to ~/.Config/ComicTagger\non Linux, ~/Library/Application Support/ComicTagger on Mac and %%APPDATA%%\\ComicTagger on Windows\n",
@@ -83,7 +89,7 @@ def register_settings(parser: settngs.Manager) -> None:
     parser.add_setting(
         "--id",
         dest="issue_id",
-        type=int,
+        type=str,
         help="""Use the issue ID when searching online.\nOverrides all other metadata.\n\n""",
         file=False,
     )
@@ -177,6 +183,7 @@ def register_settings(parser: settngs.Manager) -> None:
         help="""Apply metadata to already tagged archives (relevant for -s or -c).""",
         file=False,
     )
+    parser.add_setting("--no-gui", action="store_true", help="Do not open the GUI, force the commandline", file=False)
     parser.add_setting("files", nargs="*", file=False)
 
 
@@ -200,7 +207,7 @@ def register_commands(parser: settngs.Manager) -> None:
     parser.add_setting(
         "-c",
         "--copy",
-        type=metadata_type,
+        type=metadata_type_single,
         metavar="{CR,CBL,COMET}",
         help="Copy the specified source tag block to\ndestination style specified via -t\n(potentially lossy operation).\n\n",
         file=False,
@@ -236,12 +243,10 @@ def register_commands(parser: settngs.Manager) -> None:
 
 def register_commandline_settings(parser: settngs.Manager) -> None:
     parser.add_group("commands", register_commands, True)
-    parser.add_persistent_group("runtime", register_settings)
+    parser.add_persistent_group("runtime", register_runtime)
 
 
-def validate_commandline_settings(
-    config: settngs.Config[settngs.Namespace], parser: settngs.Manager
-) -> settngs.Config[settngs.Namespace]:
+def validate_commandline_settings(config: settngs.Config[ct_ns], parser: settngs.Manager) -> settngs.Config[ct_ns]:
     if config[0].commands_version:
         parser.exit(
             status=1,
@@ -258,6 +263,7 @@ def validate_commandline_settings(
             config[0].commands_rename,
             config[0].commands_export_to_zip,
             config[0].commands_only_set_cv_key,
+            config[0].runtime_no_gui,
         ]
     )
 
@@ -282,14 +288,9 @@ def validate_commandline_settings(
     if config[0].commands_copy:
         if not config[0].runtime_type:
             parser.exit(message="Please specify the type to copy to with -t\n", status=1)
-        if len(config[0].commands_copy) > 1:
-            parser.exit(message="Please specify only one type to copy to with -c\n", status=1)
-        config[0].commands_copy = config[0].commands_copy[0]
 
     if config[0].runtime_recursive:
-        config[0].runtime_file_list = utils.get_recursive_filelist(config[0].runtime_files)
-    else:
-        config[0].runtime_file_list = config[0].runtime_files
+        config[0].runtime_files = utils.get_recursive_filelist(config[0].runtime_files)
 
     # take a crack at finding rar exe if it's not in the path
     if not utils.which("rar"):

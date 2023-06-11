@@ -276,7 +276,7 @@
          <item row="2" column="0">
           <widget class="QCheckBox" name="cbxClearFormBeforePopulating">
            <property name="text">
-            <string>Clear Form Before Importing Comic Vine data</string>
+            <string>Clear form before importing comic metadata</string>
            </property>
           </widget>
          </item>

@@ -19,7 +19,6 @@ import itertools
 import logging
 from collections import deque
 
-import settngs
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 from PyQt5.QtCore import pyqtSignal
 
@@ -27,6 +26,7 @@ from comicapi import utils
 from comicapi.comicarchive import ComicArchive
 from comicapi.genericmetadata import GenericMetadata
 from comictaggerlib.coverimagewidget import CoverImageWidget
+from comictaggerlib.ctsettings import ct_ns
 from comictaggerlib.issueidentifier import IssueIdentifier
 from comictaggerlib.issueselectionwindow import IssueSelectionWindow
 from comictaggerlib.matchselectionwindow import MatchSelectionWindow
@@ -106,7 +106,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         issue_count: int | None,
         cover_index_list: list[int],
         comic_archive: ComicArchive | None,
-        config: settngs.Namespace,
+        config: ct_ns,
         talker: ComicTalker,
         autoselect: bool = False,
         literal: bool = False,
