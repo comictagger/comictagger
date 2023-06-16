@@ -115,6 +115,8 @@ def xlate_int(data: Any) -> int | None:
 
 
 def xlate_float(data: Any) -> float | None:
+    if isinstance(data, str):
+        data = data.strip()
     if data is None or data == "":
         return None
     i: str | int | float
@@ -131,7 +133,7 @@ def xlate_float(data: Any) -> float | None:
 
 
 def xlate(data: Any) -> str | None:
-    if data is None or data == "":
+    if data is None or isinstance(data, str) and data.strip() == "":
         return None
 
     return str(data)
