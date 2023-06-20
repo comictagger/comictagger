@@ -26,6 +26,7 @@ from urllib.parse import urljoin
 
 import requests
 import settngs
+from pyrate_limiter import Limiter, RequestRate
 from typing_extensions import Required, TypedDict
 
 import comictalker.talker_utils as talker_utils
@@ -151,6 +152,10 @@ class CVResult(TypedDict, Generic[T]):
 
 
 CV_STATUS_RATELIMIT = 107
+
+# https://comicvine.gamespot.com/forums/api-developers-2334/api-rate-limiting-1746419/
+# "Space out your requests so AT LEAST one second passes between each and you can make requests all day."
+limiter = Limiter(RequestRate(1, 2))
 
 
 class ComicVineTalker(ComicTalker):
@@ -428,27 +433,29 @@ class ComicVineTalker(ComicTalker):
 
         return formatted_filtered_issues_result
 
+    @limiter.ratelimit("cv", delay=True)
     def _get_cv_content(self, url: str, params: dict[str, Any]) -> CVResult:
         """
-        Get the content from the CV server.  If we're in "wait mode" and status code is a rate limit error
-        sleep for a bit and retry.
+        Get the content from the CV server.  We should never hit a rate limit but will cover it anyway.
         """
-        total_time_waited = 0
-        limit_wait_time = 1
         counter = 0
-        wait_times = [1, 2, 3, 4]
         while True:
             cv_response: CVResult = self._get_url_content(url, params)
-            if self.wait_on_ratelimit and cv_response["status_code"] == CV_STATUS_RATELIMIT:
-                logger.info(f"Rate limit encountered.  Waiting for {limit_wait_time} minutes\n")
-                time.sleep(limit_wait_time * 60)
-                total_time_waited += limit_wait_time
-                limit_wait_time = wait_times[counter]
+
+            if cv_response["status_code"] == CV_STATUS_RATELIMIT:
+                logger.info("Rate limit encountered. Waiting for 10 seconds\n")
+                time.sleep(10)
                 if counter < 3:
                     counter += 1
-                # don't wait much more than 20 minutes
-                if total_time_waited < self.wait_on_ratelimit_time:
                     continue
+                # Tried 3 times, inform user to check CV website.
+                logger.error("Rate limit error. Exceeded 3 retires.")
+                raise TalkerNetworkError(
+                    self.name,
+                    3,
+                    "Rate Limit Error: Check your current API usage limit at https://comicvine.gamespot.com/api/",
+                )
+
             if cv_response["status_code"] != 1:
                 logger.debug(
                     f"{self.name} query failed with error #{cv_response['status_code']}:  [{cv_response['error']}]."
