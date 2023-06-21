@@ -207,14 +207,6 @@ def autotag(parser: settngs.Manager) -> None:
         help="When searching ignore leading numbers in the filename",
     )
     parser.add_setting("remove_archive_after_successful_match", default=False, cmdline=False)
-    parser.add_setting(
-        "-w",
-        "--wait-on-rate-limit",
-        dest="wait_and_retry_on_rate_limit",
-        action=argparse.BooleanOptionalAction,
-        default=True,
-        help="When encountering a Comic Vine rate limit\nerror, wait and retry query.\n\n",
-    )
 
 
 def validate_file_settings(config: settngs.Config[ct_ns]) -> settngs.Config[ct_ns]:
