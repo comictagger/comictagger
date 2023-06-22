@@ -151,19 +151,16 @@ class CVResult(TypedDict, Generic[T]):
     version: str
 
 
-CV_STATUS_RATELIMIT = 107
-
-# https://comicvine.gamespot.com/forums/api-developers-2334/api-rate-limiting-1746419/
-# "Space out your requests so AT LEAST one second passes between each and you can make requests all day."
-limiter = Limiter(RequestRate(1, 2))
-
-
 class ComicVineTalker(ComicTalker):
     name: str = "Comic Vine"
     id: str = "comicvine"
     website: str = "https://comicvine.gamespot.com"
     logo_url: str = f"{website}/a/bundles/comicvinesite/images/logo.png"
     attribution: str = f"Metadata provided by <a href='{website}'>{name}</a>"
+
+    # https://comicvine.gamespot.com/forums/api-developers-2334/api-rate-limiting-1746419/
+    # "Space out your requests so AT LEAST one second passes between each and you can make requests all day."
+    limiter = Limiter(RequestRate(10, 10))
 
     def __init__(self, version: str, cache_folder: pathlib.Path):
         super().__init__(version, cache_folder)
@@ -172,10 +169,6 @@ class ComicVineTalker(ComicTalker):
         self.default_api_key = self.api_key = "27431e6787042105bd3e47e169a624521f89f3a4"
         self.remove_html_tables: bool = False
         self.use_series_start_as_volume: bool = False
-        self.wait_on_ratelimit: bool = False
-
-        # NOTE: This was hardcoded before which is why it isn't in settings
-        self.wait_on_ratelimit_time: int = 20
 
     def register_settings(self, parser: settngs.Manager) -> None:
         parser.add_setting(
@@ -184,13 +177,6 @@ class ComicVineTalker(ComicTalker):
             action=argparse.BooleanOptionalAction,
             display_name="Use series start as volume",
             help="Use the series start year as the volume number",
-        )
-        parser.add_setting(
-            "--cv-wait-on-ratelimit",
-            default=False,
-            action=argparse.BooleanOptionalAction,
-            display_name="Wait on ratelimit",
-            help="Wait when the rate limit is hit",
         )
         parser.add_setting(
             "--cv-remove-html-tables",
@@ -217,8 +203,12 @@ class ComicVineTalker(ComicTalker):
         settings = super().parse_settings(settings)
 
         self.use_series_start_as_volume = settings["cv_use_series_start_as_volume"]
-        self.wait_on_ratelimit = settings["cv_wait_on_ratelimit"]
         self.remove_html_tables = settings["cv_remove_html_tables"]
+
+        # Set a different limit if using the default API key
+        if self.api_key == self.default_api_key:
+            ComicVineTalker.limiter = Limiter(RequestRate(1, 2))
+
         return settings
 
     def check_api_key(self, url: str, key: str) -> tuple[str, bool]:
@@ -436,41 +426,24 @@ class ComicVineTalker(ComicTalker):
     @limiter.ratelimit("cv", delay=True)
     def _get_cv_content(self, url: str, params: dict[str, Any]) -> CVResult:
         """
-        Get the content from the CV server.  We should never hit a rate limit but will cover it anyway.
+        Get the content from the CV server.
         """
-        counter = 0
-        while True:
-            cv_response: CVResult = self._get_url_content(url, params)
 
-            if cv_response["status_code"] == CV_STATUS_RATELIMIT:
-                logger.info("Rate limit encountered. Waiting for 10 seconds\n")
-                time.sleep(10)
-                if counter < 3:
-                    counter += 1
-                    continue
-                # Tried 3 times, inform user to check CV website.
-                logger.error("Rate limit error. Exceeded 3 retires.")
-                raise TalkerNetworkError(
-                    self.name,
-                    3,
-                    "Rate Limit Error: Check your current API usage limit at https://comicvine.gamespot.com/api/",
-                )
+        cv_response: CVResult = self._get_url_content(url, params)
 
-            if cv_response["status_code"] != 1:
-                logger.debug(
-                    f"{self.name} query failed with error #{cv_response['status_code']}:  [{cv_response['error']}]."
-                )
-                raise TalkerNetworkError(self.name, 0, f"{cv_response['status_code']}: {cv_response['error']}")
+        if cv_response["status_code"] != 1:
+            logger.debug(
+                f"{self.name} query failed with error #{cv_response['status_code']}:  [{cv_response['error']}]."
+            )
+            raise TalkerNetworkError(self.name, 0, f"{cv_response['status_code']}: {cv_response['error']}")
 
-            # it's all good
-            break
         return cv_response
 
     def _get_url_content(self, url: str, params: dict[str, Any]) -> Any:
-        # connect to server:
         # if there is a 500 error, try a few more times before giving up
-        # any other error, just bail
-        for tries in range(3):
+        limit_counter = 0
+        tries = 0
+        while tries < 4:
             try:
                 resp = requests.get(url, params=params, headers={"user-agent": "comictagger/" + self.version})
                 if resp.status_code == 200:
@@ -479,6 +452,19 @@ class ComicVineTalker(ComicTalker):
                     logger.debug(f"Try #{tries + 1}: ")
                     time.sleep(1)
                     logger.debug(str(resp.status_code))
+                    tries += 1
+                if resp.status_code == 429:
+                    logger.info("Rate limit encountered. Waiting for 10 seconds\n")
+                    time.sleep(10)
+                    limit_counter += 1
+                    if limit_counter > 3:
+                        # Tried 3 times, inform user to check CV website.
+                        logger.error("Rate limit error. Exceeded 3 retires.")
+                        raise TalkerNetworkError(
+                            self.name,
+                            3,
+                            "Rate Limit Error: Check your current API usage limit at https://comicvine.gamespot.com/api/",
+                        )
                 else:
                     break
 
