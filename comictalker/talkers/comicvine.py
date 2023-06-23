@@ -151,6 +151,12 @@ class CVResult(TypedDict, Generic[T]):
     version: str
 
 
+# https://comicvine.gamespot.com/forums/api-developers-2334/api-rate-limiting-1746419/
+# "Space out your requests so AT LEAST one second passes between each and you can make requests all day."
+custom_limiter = Limiter(RequestRate(10, 10))
+default_limiter = Limiter(RequestRate(1, 5))
+
+
 class ComicVineTalker(ComicTalker):
     name: str = "Comic Vine"
     id: str = "comicvine"
@@ -158,12 +164,9 @@ class ComicVineTalker(ComicTalker):
     logo_url: str = f"{website}/a/bundles/comicvinesite/images/logo.png"
     attribution: str = f"Metadata provided by <a href='{website}'>{name}</a>"
 
-    # https://comicvine.gamespot.com/forums/api-developers-2334/api-rate-limiting-1746419/
-    # "Space out your requests so AT LEAST one second passes between each and you can make requests all day."
-    limiter = Limiter(RequestRate(10, 10))
-
     def __init__(self, version: str, cache_folder: pathlib.Path):
         super().__init__(version, cache_folder)
+        self.limiter = default_limiter
         # Default settings
         self.default_api_url = self.api_url = f"{self.website}/api/"
         self.default_api_key = self.api_key = "27431e6787042105bd3e47e169a624521f89f3a4"
@@ -207,7 +210,9 @@ class ComicVineTalker(ComicTalker):
 
         # Set a different limit if using the default API key
         if self.api_key == self.default_api_key:
-            ComicVineTalker.limiter = Limiter(RequestRate(1, 2))
+            self.limiter = default_limiter
+        else:
+            self.limiter = custom_limiter
 
         return settings
 
@@ -423,21 +428,20 @@ class ComicVineTalker(ComicTalker):
 
         return formatted_filtered_issues_result
 
-    @limiter.ratelimit("cv", delay=True)
     def _get_cv_content(self, url: str, params: dict[str, Any]) -> CVResult:
         """
         Get the content from the CV server.
         """
+        with self.limiter.ratelimit("cv", delay=True):
+            cv_response: CVResult = self._get_url_content(url, params)
 
-        cv_response: CVResult = self._get_url_content(url, params)
+            if cv_response["status_code"] != 1:
+                logger.debug(
+                    f"{self.name} query failed with error #{cv_response['status_code']}:  [{cv_response['error']}]."
+                )
+                raise TalkerNetworkError(self.name, 0, f"{cv_response['status_code']}: {cv_response['error']}")
 
-        if cv_response["status_code"] != 1:
-            logger.debug(
-                f"{self.name} query failed with error #{cv_response['status_code']}:  [{cv_response['error']}]."
-            )
-            raise TalkerNetworkError(self.name, 0, f"{cv_response['status_code']}: {cv_response['error']}")
-
-        return cv_response
+            return cv_response
 
     def _get_url_content(self, url: str, params: dict[str, Any]) -> Any:
         # if there is a 500 error, try a few more times before giving up
@@ -454,12 +458,12 @@ class ComicVineTalker(ComicTalker):
                     logger.debug(str(resp.status_code))
                     tries += 1
                 if resp.status_code == 429:
-                    logger.info("Rate limit encountered. Waiting for 10 seconds\n")
+                    logger.info(f"{self.name} rate limit encountered. Waiting for 10 seconds\n")
                     time.sleep(10)
                     limit_counter += 1
                     if limit_counter > 3:
                         # Tried 3 times, inform user to check CV website.
-                        logger.error("Rate limit error. Exceeded 3 retires.")
+                        logger.error(f"{self.name} rate limit error. Exceeded 3 retires.")
                         raise TalkerNetworkError(
                             self.name,
                             3,
