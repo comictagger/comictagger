@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import argparse
 import logging
 from functools import partial
 from typing import Any, NamedTuple
@@ -253,22 +252,17 @@ def generate_source_option_tabs(
             if option.dest in (f"{talker_id}_url", f"{talker_id}_key"):
                 continue
             current_widget = None
-            if option.action is not None and (
-                option.action is argparse.BooleanOptionalAction
-                or option.type is bool
-                or option.action == "store_true"
-                or option.action == "store_false"
-            ):
+            if option._guess_type() is bool:
                 current_widget = generate_checkbox(option, layout_grid)
                 sources["tabs"][tab_name].widgets[option.internal_name] = current_widget
-            elif option.type is int:
+            elif option._guess_type() is int:
                 current_widget = generate_spinbox(option, layout_grid)
                 sources["tabs"][tab_name].widgets[option.internal_name] = current_widget
-            elif option.type is float:
+            elif option._guess_type() is float:
                 current_widget = generate_doublespinbox(option, layout_grid)
                 sources["tabs"][tab_name].widgets[option.internal_name] = current_widget
-            # option.type of None should be string
-            elif (option.type is None and option.action is None) or option.type is str:
+
+            elif option._guess_type() is str:
                 current_widget = generate_textbox(option, layout_grid)
                 sources["tabs"][tab_name].widgets[option.internal_name] = current_widget
             else:
