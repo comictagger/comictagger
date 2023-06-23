@@ -43,14 +43,6 @@ else:
 
 logger = logging.getLogger("comictagger")
 
-try:
-    from comictaggerlib import gui
-
-    qt_available = gui.qt_available
-except Exception:
-    logger.exception("Qt unavailable")
-    qt_available = False
-
 
 logger.setLevel(logging.DEBUG)
 
@@ -190,10 +182,6 @@ class App:
         comicapi.utils.load_publishers()
         update_publishers(self.config)
 
-        if not qt_available and not self.config[0].runtime_no_gui:
-            self.config[0].runtime_no_gui = True
-            logger.warning("PyQt5 is not available. ComicTagger is limited to command-line mode.")
-
         # manage the CV API key
         # None comparison is used so that the empty string can unset the value
         if not error and (
@@ -215,16 +203,23 @@ class App:
                 True,
             )
 
-        if self.config[0].runtime_no_gui:
-            if error and error[1]:
-                print(f"A fatal error occurred please check the log for more information: {error[0]}")  # noqa: T201
-                raise SystemExit(1)
+        if not self.config[0].runtime_no_gui:
             try:
-                cli.CLI(self.config[0], talkers).run()
-            except Exception:
-                logger.exception("CLI mode failed")
-        else:
-            gui.open_tagger_window(talkers, self.config, error)
+                from comictaggerlib import gui
+
+                return gui.open_tagger_window(talkers, self.config, error)
+            except ImportError:
+                self.config[0].runtime_no_gui = True
+                logger.warning("PyQt5 is not available. ComicTagger is limited to command-line mode.")
+
+        # GUI mode is not available or CLI mode was requested
+        if error and error[1]:
+            print(f"A fatal error occurred please check the log for more information: {error[0]}")  # noqa: T201
+            raise SystemExit(1)
+        try:
+            cli.CLI(self.config[0], talkers).run()
+        except Exception:
+            logger.exception("CLI mode failed")
 
 
 def main() -> None:

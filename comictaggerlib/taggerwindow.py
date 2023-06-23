@@ -1398,13 +1398,13 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
         # Add the entries to the country combobox
         self.cbCountry.addItem("", "")
-        for f in natsort.humansorted(utils.countries.items(), operator.itemgetter(1)):
+        for f in natsort.humansorted(utils.countries().items(), operator.itemgetter(1)):
             self.cbCountry.addItem(f[1], f[0])
 
         # Add the entries to the language combobox
         self.cbLanguage.addItem("", "")
 
-        for f in natsort.humansorted(utils.languages.items(), operator.itemgetter(1)):
+        for f in natsort.humansorted(utils.languages().items(), operator.itemgetter(1)):
             self.cbLanguage.addItem(f[1], f[0])
 
         # Add the entries to the manga combobox

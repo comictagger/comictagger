@@ -18,8 +18,6 @@ import posixpath
 import re
 from urllib.parse import urlsplit
 
-from bs4 import BeautifulSoup
-
 from comicapi import utils
 from comicapi.genericmetadata import GenericMetadata
 from comicapi.issuestring import IssueString
@@ -132,6 +130,8 @@ def cleanup_html(string: str, remove_html_tables: bool = False) -> str:
     """Cleans HTML code from any text. Will remove any HTML tables with remove_html_tables"""
     if string is None:
         return ""
+    from bs4 import BeautifulSoup
+
     # find any tables
     soup = BeautifulSoup(string, "html.parser")
     tables = soup.findAll("table")

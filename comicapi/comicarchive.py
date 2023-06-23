@@ -22,8 +22,6 @@ import shutil
 import sys
 from typing import cast
 
-import wordninja
-
 from comicapi import filenamelexer, filenameparser, utils
 from comicapi.archivers import Archiver, UnknownArchiver, ZipArchiver
 from comicapi.comet import CoMet
@@ -31,28 +29,17 @@ from comicapi.comicbookinfo import ComicBookInfo
 from comicapi.comicinfoxml import ComicInfoXml
 from comicapi.genericmetadata import GenericMetadata, PageType
 
-if sys.version_info < (3, 10):
-    from importlib_metadata import entry_points
-else:
-    from importlib.metadata import entry_points
-
-try:
-    from PIL import Image
-
-    pil_available = True
-except ImportError:
-    pil_available = False
-
 logger = logging.getLogger(__name__)
-
-if not pil_available:
-    logger.error("PIL unavalable")
 
 archivers: list[type[Archiver]] = []
 
 
 def load_archive_plugins() -> None:
     if not archivers:
+        if sys.version_info < (3, 10):
+            from importlib_metadata import entry_points
+        else:
+            from importlib.metadata import entry_points
         builtin: list[type[Archiver]] = []
         for arch in entry_points(group="comicapi.archiver"):
             try:
@@ -77,6 +64,7 @@ class MetaDataStyle:
 
 class ComicArchive:
     logo_data = b""
+    pil_available = True
 
     def __init__(self, path: pathlib.Path | str, default_image_path: pathlib.Path | str | None = None) -> None:
         self.cbi_md: GenericMetadata | None = None
@@ -517,7 +505,13 @@ class ComicArchive:
         if calc_page_sizes:
             for index, p in enumerate(md.pages):
                 idx = int(p["Image"])
-                if pil_available:
+                if self.pil_available:
+                    try:
+                        from PIL import Image
+
+                        self.pil_available = True
+                    except ImportError:
+                        self.pil_available = False
                     if "ImageSize" not in p or "ImageHeight" not in p or "ImageWidth" not in p:
                         data = self.get_page(idx)
                         if data:
@@ -552,6 +546,8 @@ class ComicArchive:
 
         filename = self.path.name
         if split_words:
+            import wordninja
+
             filename = " ".join(wordninja.split(self.path.stem)) + self.path.suffix
 
         if complicated_parser:
