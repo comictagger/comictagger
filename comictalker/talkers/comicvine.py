@@ -510,7 +510,6 @@ class ComicVineTalker(ComicTalker):
                     aliases=aliases.splitlines(),
                     count_of_issues=record.get("count_of_issues", 0),
                     count_of_volumes=None,
-                    volume=None,
                     description=record.get("description", ""),
                     id=str(record["id"]),
                     image_url=image_url,
@@ -527,7 +526,7 @@ class ComicVineTalker(ComicTalker):
     def _format_issue_results(self, issue_results: list[CVIssue], complete: bool = False) -> list[ComicIssue]:
         formatted_results = []
         for record in issue_results:
-            # Extract image super and thumb to name only
+            # Extract image super
             if record.get("image") is None:
                 image_url = ""
             else:
@@ -572,6 +571,7 @@ class ComicVineTalker(ComicTalker):
                     id=str(record["id"]),
                     image_url=image_url,
                     issue_number=record["issue_number"],
+                    volume=None,
                     name=record["name"],
                     site_detail_url=record.get("site_detail_url", ""),
                     series=series,  # CV uses volume to mean series
