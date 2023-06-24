@@ -194,16 +194,16 @@ class ComicVineTalker(ComicTalker):
             display_name="Remove HTML tables",
             help="Removes html tables instead of converting them to text",
         )
-        # The empty string being the default allows this setting to be unset, allowing the default to change
+
+        # The default needs to be unset or None.
+        # This allows this setting to be unset with the empty string, allowing the default to change
         parser.add_setting(
             f"--{self.id}-key",
-            default="",
             display_name="API Key",
             help=f"Use the given Comic Vine API Key. (default: {self.default_api_key})",
         )
         parser.add_setting(
             f"--{self.id}-url",
-            default="",
             display_name="API URL",
             help=f"Use the given Comic Vine URL. (default: {self.default_api_url})",
         )

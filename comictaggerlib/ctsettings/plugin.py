@@ -29,15 +29,15 @@ def register_talker_settings(manager: settngs.Manager) -> None:
     for talker_id, talker in comictaggerlib.ctsettings.talkers.items():
 
         def api_options(manager: settngs.Manager) -> None:
+            # The default needs to be unset or None.
+            # This allows this setting to be unset with the empty string, allowing the default to change
             manager.add_setting(
                 f"--{talker_id}-key",
-                default="",
                 display_name="API Key",
                 help=f"API Key for {talker.name} (default: {talker.default_api_key})",
             )
             manager.add_setting(
                 f"--{talker_id}-url",
-                default="",
                 display_name="URL",
                 help=f"URL for {talker.name} (default: {talker.default_api_url})",
             )

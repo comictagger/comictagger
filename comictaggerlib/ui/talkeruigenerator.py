@@ -99,6 +99,9 @@ def generate_api_widgets(
         # We overwrite so that the default will be next to the url text box
         btn_test_row = layout.rowCount()
         le_url = generate_textbox(talker_url, layout)
+        value, _ = settngs.get_option(config[0], talker_url)
+        if not value:
+            le_url.setText(talkers[talker_id].default_api_url)
         # To enable setting and getting
         sources["tabs"][talker_id].widgets[f"talker_{talker_id}_{talker_id}_url"] = le_url
 
@@ -177,7 +180,7 @@ def settings_to_talker_form(sources: dict[str, QtWidgets.QWidget], config: settn
             value = getattr(config[0], name)
             value_type = type(value)
             try:
-                if value_type is str:
+                if value_type is str and value:
                     widget.setText(value)
                 if value_type is int or value_type is float:
                     widget.setValue(value)
