@@ -27,9 +27,14 @@ logger = logging.getLogger(__name__)
 
 
 def fix_url(url: str) -> str:
+    if not url:
+        return ""
     tmp_url = urlsplit(url)
+    new_path = posixpath.normpath(tmp_url.path)
+    if new_path in (".", "/"):
+        new_path = ""
     # joinurl only works properly if there is a trailing slash
-    tmp_url = tmp_url._replace(path=posixpath.normpath(tmp_url.path) + "/")
+    tmp_url = tmp_url._replace(path=new_path + "/")
     return tmp_url.geturl()
 
 
