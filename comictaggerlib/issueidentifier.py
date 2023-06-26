@@ -53,7 +53,7 @@ class SearchKeys(TypedDict):
 class Score(TypedDict):
     score: NotRequired[int]
     url: str
-    hash: int
+    hash: int | str
 
 
 class IssueIdentifierNetworkError(Exception):
@@ -132,11 +132,9 @@ class IssueIdentifier:
     def set_output_function(self, func: Callable[[str], None]) -> None:
         self.output_function = func
 
-    def calculate_hash(self, image_data: bytes) -> int:
-        if self.image_hasher == 3:
-            return -1  # ImageHasher(data=image_data).dct_average_hash()
+    def calculate_hash(self, image_data: bytes) -> int | str:
         if self.image_hasher == 2:
-            return -1  # ImageHasher(data=image_data).average_hash2()
+            return ImageHasher(data=image_data).p_hash()
 
         return ImageHasher(data=image_data).average_hash()
 
@@ -280,7 +278,7 @@ class IssueIdentifier:
         issue_id: str,
         primary_img_url: str,
         alt_urls: list[str],
-        local_cover_hash_list: list[int],
+        local_cover_hash_list: list[int | str],
         use_remote_alternates: bool = False,
         use_log: bool = True,
     ) -> Score:

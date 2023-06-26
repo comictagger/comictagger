@@ -17,8 +17,9 @@ from __future__ import annotations
 
 import io
 import logging
+import math
 from functools import reduce
-from typing import TypeVar
+from statistics import median
 
 try:
     from PIL import Image
@@ -71,118 +72,100 @@ class ImageHasher:
 
         return result
 
-    def average_hash2(self) -> None:
+    def p_hash(self) -> str:
         """
-        # Got this one from somewhere on the net.  Not a clue how the 'convolve2d' works!
-
-        from numpy import array
-        from scipy.signal import convolve2d
-
-        im = self.image.resize((self.width, self.height), Image.ANTIALIAS).convert('L')
-
-        in_data = array((im.getdata())).reshape(self.width, self.height)
-        filt = array([[0,1,0],[1,-4,1],[0,1,0]])
-        filt_data = convolve2d(in_data,filt,mode='same',boundary='symm').flatten()
-
-        result = reduce(lambda x, (y, z): x | (z << y),
-                         enumerate(map(lambda i: 0 if i < 0 else 1, filt_data)),
-                         0)
-        return result
+        Output a hex string
+        Pure python version of Perceptual Hash computation of https://github.com/JohannesBuchner/imagehash/tree/master
+        Implementation follows http://www.hackerfactor.com/blog/index.php?/archives/432-Looks-Like-It.html
         """
 
-    def dct_average_hash(self) -> None:
-        """
-        # Algorithm source: http://syntaxcandy.blogspot.com/2012/08/perceptual-hash.html
+        def generate_dct2(block, axis=0):
+            def dct1(block):
+                """Perform 1D Discrete Cosine Transform (DCT) on a given block."""
+                N = len(block)
+                dct_block = [0.0] * N
 
-        1. Reduce size. Like Average Hash, pHash starts with a small image.
-        However, the image is larger than 8x8; 32x32 is a     good size. This
-        is really done to simplify the DCT computation and not because it
-        is needed to reduce the high frequencies.
+                for k in range(N):
+                    sum_val = 0.0
+                    for n in range(N):
+                        cos_val = math.cos(math.pi * k * (2 * n + 1) / (2 * N))
+                        sum_val += block[n] * cos_val
+                    dct_block[k] = sum_val
 
-        2. Reduce color. The image is reduced to a grayscale just to further
-        simplify the number of computations.
+                return dct_block
 
-        3. Compute the DCT. The DCT separates the image into a collection of
-        frequencies and scalars. While JPEG uses     an 8x8 DCT, this algorithm
-        uses a 32x32 DCT.
+            """Perform 2D Discrete Cosine Transform (DCT) on a given block along the specified axis."""
+            rows = len(block)
+            cols = len(block[0])
+            dct_block = [[0.0] * cols for _ in range(rows)]
 
-        4. Reduce the DCT. This is the magic step. While the DCT is 32x32,
-        just keep the top-left 8x8. Those represent the lowest frequencies in
-        the picture.
+            if axis == 0:
+                # Apply 1D DCT on each row
+                for i in range(rows):
+                    dct_block[i] = dct1(block[i])
+            elif axis == 1:
+                # Apply 1D DCT on each column
+                for j in range(cols):
+                    column = [block[i][j] for i in range(rows)]
+                    dct_column = dct1(column)
+                    for i in range(rows):
+                        dct_block[i][j] = dct_column[i]
+            else:
+                raise ValueError("Invalid axis value. Must be either 0 or 1.")
 
-        5. Compute the average value. Like the Average Hash, compute the mean DCT
-        value (using only the 8x8 DCT low-frequency values and excluding the first
-        term since the DC coefficient can be significantly different     from the other
-        values and will throw off the average). Thanks to David Starkweather for the
-        added information about pHash. He wrote: "the dct hash is based on the low 2D
-        DCT coefficients starting at the second from lowest, leaving out the first DC
-        term. This excludes completely flat image information (i.e. solid colors) from
-        being included in the hash description."
+            return dct_block
 
-        6. Further reduce the DCT. This is the magic step. Set the 64 hash bits to 0 or
-        1 depending on whether     each of the 64 DCT values is above or below the average
-        value. The result doesn't tell us the actual low frequencies; it just tells us
-        the very-rough relative scale of the frequencies to the mean. The result will not
-        vary as long as the overall structure of the image remains the same; this can
-        survive gamma and color histogram adjustments without a problem.
+        def convert_image_to_ndarray(image):
+            width, height = image.size
 
-        7. Construct the hash. Set the 64 bits into a 64-bit integer. The order does not
-        matter, just as long as you are consistent.
+            pixels2 = []
+            for y in range(height):
+                row = []
+                for x in range(width):
+                    pixel = image.getpixel((x, y))
+                    row.append(pixel)
+                pixels2.append(row)
 
+            return pixels2
 
-        import numpy
-        import scipy.fftpack
-        numpy.set_printoptions(threshold=10000, linewidth=200, precision=2, suppress=True)
+        highfreq_factor = 4
+        img_size = 8 * highfreq_factor
 
-        # Step 1,2
-        im = self.image.resize((32, 32), Image.ANTIALIAS).convert("L")
-        in_data = numpy.asarray(im)
+        try:
+            image = self.image.convert("L").resize((img_size, img_size), Image.Resampling.LANCZOS)
+        except Exception:
+            logger.exception("p_hash error converting to greyscale and resizing")
+            return ""
 
-        # Step 3
-        dct = scipy.fftpack.dct(in_data.astype(float))
-
-        # Step 4
-        # Just skip the top and left rows when slicing, as suggested somewhere else...
-        lofreq_dct = dct[1:9, 1:9].flatten()
-
-        # Step 5
-        avg = (lofreq_dct.sum()) / (lofreq_dct.size)
-        median = numpy.median(lofreq_dct)
-
-        thresh = avg
-
-        # Step 6
-        def compare_value_to_thresh(i):
-            return (1 if i > thresh else 0)
-
-        bitlist = map(compare_value_to_thresh, lofreq_dct)
-
-        #Step 7
-        def set_bit(x, (idx, val)):
-            return (x | (val << idx))
-
-        result = reduce(set_bit, enumerate(bitlist), long(0))
-
+        pixels = convert_image_to_ndarray(image)
+        dct = generate_dct2(generate_dct2(pixels, axis=0), axis=1)
+        dctlowfreq = [row[:8] for row in dct[:8]]
+        med = median([item for sublist in dctlowfreq for item in sublist])
+        # Convert to a bit string
+        diff = "".join(str(int(item > med)) for row in dctlowfreq for item in row)
+        # Convert to hex
+        width = int(math.ceil(len(diff) / 4))
+        result = "{:0>{width}x}".format(int(diff, 2), width=width)
 
         return result
-        """
 
     # accepts 2 hashes (longs or hex strings) and returns the hamming distance
 
-    T = TypeVar("T", int, str)
-
     @staticmethod
-    def hamming_distance(h1: T, h2: T) -> int:
-        if isinstance(h1, int) or isinstance(h2, int):
+    def hamming_distance(h1: int | str, h2: int | str) -> int:
+        if isinstance(h1, int) and isinstance(h2, int):
             n1 = h1
             n2 = h2
-        else:
+        elif isinstance(h1, str) and isinstance(h2, str):
             # convert hex strings to ints
             n1 = int(h1, 16)
             n2 = int(h2, 16)
+        else:
+            # Mixed hashes or some other problem so return a high number. Should return None instead?
+            return 999
 
         # xor the two numbers
-        n = n1 ^ n2
+        n: int = n1 ^ n2
 
         # count up the 1's in the binary string
         return sum(b == "1" for b in bin(n)[2:])
