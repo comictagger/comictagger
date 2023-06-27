@@ -10,7 +10,7 @@ class IssueResult(TypedDict):
     distance: int
     issue_number: str
     cv_issue_count: int | None
-    url_image_hash: int | str
+    url_image_hash: int
     issue_title: str
     issue_id: str
     series_id: str

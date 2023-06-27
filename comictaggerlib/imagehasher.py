@@ -20,6 +20,7 @@ import logging
 import math
 from functools import reduce
 from statistics import median
+from typing import TypeVar
 
 try:
     from PIL import Image
@@ -72,9 +73,27 @@ class ImageHasher:
 
         return result
 
-    def p_hash(self) -> str:
+    def average_hash2(self) -> None:
         """
-        Output a hex string
+        # Got this one from somewhere on the net.  Not a clue how the 'convolve2d' works!
+
+        from numpy import array
+        from scipy.signal import convolve2d
+
+        im = self.image.resize((self.width, self.height), Image.ANTIALIAS).convert('L')
+
+        in_data = array((im.getdata())).reshape(self.width, self.height)
+        filt = array([[0,1,0],[1,-4,1],[0,1,0]])
+        filt_data = convolve2d(in_data,filt,mode='same',boundary='symm').flatten()
+
+        result = reduce(lambda x, (y, z): x | (z << y),
+                         enumerate(map(lambda i: 0 if i < 0 else 1, filt_data)),
+                         0)
+        return result
+        """
+
+    def p_hash(self) -> int:
+        """
         Pure python version of Perceptual Hash computation of https://github.com/JohannesBuchner/imagehash/tree/master
         Implementation follows http://www.hackerfactor.com/blog/index.php?/archives/432-Looks-Like-It.html
         """
@@ -135,7 +154,7 @@ class ImageHasher:
             image = self.image.convert("L").resize((img_size, img_size), Image.Resampling.LANCZOS)
         except Exception:
             logger.exception("p_hash error converting to greyscale and resizing")
-            return ""
+            return 0
 
         pixels = convert_image_to_ndarray(image)
         dct = generate_dct2(generate_dct2(pixels, axis=0), axis=1)
@@ -143,29 +162,27 @@ class ImageHasher:
         med = median([item for sublist in dctlowfreq for item in sublist])
         # Convert to a bit string
         diff = "".join(str(int(item > med)) for row in dctlowfreq for item in row)
-        # Convert to hex
-        width = int(math.ceil(len(diff) / 4))
-        result = "{:0>{width}x}".format(int(diff, 2), width=width)
+
+        result = int(diff, 2)
 
         return result
 
     # accepts 2 hashes (longs or hex strings) and returns the hamming distance
 
+    T = TypeVar("T", int, str)
+
     @staticmethod
-    def hamming_distance(h1: int | str, h2: int | str) -> int:
-        if isinstance(h1, int) and isinstance(h2, int):
+    def hamming_distance(h1: T, h2: T) -> int:
+        if isinstance(h1, int) or isinstance(h2, int):
             n1 = h1
             n2 = h2
-        elif isinstance(h1, str) and isinstance(h2, str):
+        else:
             # convert hex strings to ints
             n1 = int(h1, 16)
             n2 = int(h2, 16)
-        else:
-            # Mixed hashes or some other problem so return a high number. Should return None instead?
-            return 999
 
         # xor the two numbers
-        n: int = n1 ^ n2
+        n = n1 ^ n2
 
         # count up the 1's in the binary string
         return sum(b == "1" for b in bin(n)[2:])
