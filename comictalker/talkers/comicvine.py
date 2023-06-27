@@ -457,7 +457,7 @@ class ComicVineTalker(ComicTalker):
                     time.sleep(1)
                     logger.debug(str(resp.status_code))
                     tries += 1
-                if resp.status_code == 429:
+                if resp.status_code == requests.status_codes.codes.TOO_MANY_REQUESTS:
                     logger.info(f"{self.name} rate limit encountered. Waiting for 10 seconds\n")
                     time.sleep(10)
                     limit_counter += 1
