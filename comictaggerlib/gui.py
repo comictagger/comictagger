@@ -63,6 +63,14 @@ try:
     qt_exception_hook = UncaughtHook()
     from comictaggerlib.taggerwindow import TaggerWindow
 
+    try:
+        # needed here to initialize QWebEngine
+        from PyQt5.QtWebEngineWidgets import QWebEngineView  # noqa: F401
+
+        qt_webengine_available = True
+    except ImportError:
+        qt_webengine_available = False
+
     class Application(QtWidgets.QApplication):
         openFileRequest = QtCore.pyqtSignal(QtCore.QUrl, name="openfileRequest")
 

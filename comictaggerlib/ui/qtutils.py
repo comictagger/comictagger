@@ -5,6 +5,10 @@ from __future__ import annotations
 import io
 import logging
 import traceback
+import webbrowser
+
+from PyQt5.QtCore import QUrl
+from PyQt5.QtWidgets import QWidget
 
 from comictaggerlib.graphics import graphics_path
 
@@ -12,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 try:
     from PyQt5 import QtGui, QtWidgets
+    from PyQt5.QtCore import Qt
 
     qt_available = True
 except ImportError:
@@ -24,6 +29,68 @@ if qt_available:
         pil_available = True
     except ImportError:
         pil_available = False
+
+    try:
+        from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineView
+
+        class WebPage(QWebEnginePage):
+            def acceptNavigationRequest(
+                self, url: QUrl, n_type: QWebEnginePage.NavigationType, isMainFrame: bool
+            ) -> bool:
+                if n_type in (
+                    QWebEnginePage.NavigationType.NavigationTypeOther,
+                    QWebEnginePage.NavigationType.NavigationTypeTyped,
+                ):
+                    return True
+                if n_type in (QWebEnginePage.NavigationType.NavigationTypeLinkClicked,) and url.scheme() in (
+                    "http",
+                    "https",
+                ):
+                    webbrowser.open(url.toString())
+                return False
+
+        def new_web_view(parent: QWidget) -> QWebEngineView:
+            webengine = QWebEngineView(parent)
+            webengine.setPage(WebPage(parent))
+            webengine.setContextMenuPolicy(Qt.ContextMenuPolicy.NoContextMenu)
+            settings = webengine.settings()
+            settings.setAttribute(settings.WebAttribute.AutoLoadImages, True)
+            settings.setAttribute(settings.WebAttribute.JavascriptEnabled, False)
+            settings.setAttribute(settings.WebAttribute.JavascriptCanOpenWindows, False)
+            settings.setAttribute(settings.WebAttribute.JavascriptCanAccessClipboard, False)
+            settings.setAttribute(settings.WebAttribute.LinksIncludedInFocusChain, False)
+            settings.setAttribute(settings.WebAttribute.LocalStorageEnabled, False)
+            settings.setAttribute(settings.WebAttribute.LocalContentCanAccessRemoteUrls, False)
+            settings.setAttribute(settings.WebAttribute.XSSAuditingEnabled, False)
+            settings.setAttribute(settings.WebAttribute.SpatialNavigationEnabled, True)
+            settings.setAttribute(settings.WebAttribute.LocalContentCanAccessFileUrls, False)
+            settings.setAttribute(settings.WebAttribute.HyperlinkAuditingEnabled, False)
+            settings.setAttribute(settings.WebAttribute.ScrollAnimatorEnabled, False)
+            settings.setAttribute(settings.WebAttribute.ErrorPageEnabled, False)
+            settings.setAttribute(settings.WebAttribute.PluginsEnabled, False)
+            settings.setAttribute(settings.WebAttribute.FullScreenSupportEnabled, False)
+            settings.setAttribute(settings.WebAttribute.ScreenCaptureEnabled, False)
+            settings.setAttribute(settings.WebAttribute.WebGLEnabled, False)
+            settings.setAttribute(settings.WebAttribute.Accelerated2dCanvasEnabled, False)
+            settings.setAttribute(settings.WebAttribute.AutoLoadIconsForPage, False)
+            settings.setAttribute(settings.WebAttribute.TouchIconsEnabled, False)
+            settings.setAttribute(settings.WebAttribute.FocusOnNavigationEnabled, False)
+            settings.setAttribute(settings.WebAttribute.PrintElementBackgrounds, False)
+            settings.setAttribute(settings.WebAttribute.AllowRunningInsecureContent, False)
+            settings.setAttribute(settings.WebAttribute.AllowGeolocationOnInsecureOrigins, False)
+            settings.setAttribute(settings.WebAttribute.AllowWindowActivationFromJavaScript, False)
+            settings.setAttribute(settings.WebAttribute.ShowScrollBars, True)
+            settings.setAttribute(settings.WebAttribute.PlaybackRequiresUserGesture, True)
+            settings.setAttribute(settings.WebAttribute.JavascriptCanPaste, False)
+            settings.setAttribute(settings.WebAttribute.WebRTCPublicInterfacesOnly, False)
+            settings.setAttribute(settings.WebAttribute.DnsPrefetchEnabled, False)
+            settings.setAttribute(settings.WebAttribute.PdfViewerEnabled, False)
+            return webengine
+
+    except ImportError:
+
+        def new_web_view(parent: QWidget) -> QWebEngineView:
+            ...
 
     def reduce_widget_font_size(widget: QtWidgets.QWidget, delta: int = 2) -> None:
         f = widget.font()
