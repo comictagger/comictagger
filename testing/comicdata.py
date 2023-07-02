@@ -8,7 +8,6 @@ search_results = [
     comictalker.resulttypes.ComicSeries(
         count_of_issues=1,
         count_of_volumes=1,
-        volume="1",
         description="this is a description",
         id="1",
         image_url="https://test.org/image/1",
@@ -22,7 +21,6 @@ search_results = [
     comictalker.resulttypes.ComicSeries(
         count_of_issues=1,
         count_of_volumes=1,
-        volume="1",
         description="this is a description",
         id="2",
         image_url="https://test.org/image/2",

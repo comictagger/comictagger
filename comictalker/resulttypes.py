@@ -15,7 +15,6 @@ class ComicSeries:
     aliases: list[str]
     count_of_issues: int | None
     count_of_volumes: int | None
-    volume: str | None
     description: str
     id: str
     image_url: str
@@ -37,6 +36,7 @@ class ComicIssue:
     id: str
     image_url: str
     issue_number: str
+    volume: str | None
     critical_rating: float
     maturity_rating: str
     manga: str
