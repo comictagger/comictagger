@@ -111,6 +111,13 @@
      <item>
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
+        <widget class="QLineEdit" name="leFilter">
+         <property name="placeholderText">
+          <string>Filter</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QSplitter" name="splitter">
          <property name="orientation">
           <enum>Qt::Vertical</enum>

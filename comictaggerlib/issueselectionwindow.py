@@ -115,6 +115,17 @@ class IssueSelectionWindow(QtWidgets.QDialog):
                     self.twList.selectRow(r)
                     break
 
+        self.leFilter.textChanged.connect(self.filter)
+
+    def filter(self, text: str) -> None:
+        rows = set(range(self.twList.rowCount()))
+        for r in rows:
+            self.twList.showRow(r)
+        if text.strip():
+            shown_rows = {x.row() for x in self.twList.findItems(text, QtCore.Qt.MatchFlag.MatchContains)}
+            for r in rows - shown_rows:
+                self.twList.hideRow(r)
+
     def perform_query(self) -> None:
         QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
 
