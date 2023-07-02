@@ -187,6 +187,17 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         self.update_buttons()
         self.twList.selectRow(0)
 
+        self.leFilter.textChanged.connect(self.filter)
+
+    def filter(self, text: str) -> None:
+        rows = set(range(self.twList.rowCount()))
+        for r in rows:
+            self.twList.showRow(r)
+        if text.strip():
+            shown_rows = {x.row() for x in self.twList.findItems(text, QtCore.Qt.MatchFlag.MatchContains)}
+            for r in rows - shown_rows:
+                self.twList.hideRow(r)
+
     def update_buttons(self) -> None:
         enabled = bool(self.ct_search_results)
 
