@@ -257,6 +257,10 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 Also, be aware that writing tags to comic archives will change their file hashes,
                 which has implications with respect to other software packages.  It's best to
                 use ComicTagger on local copies of your comics.<br><br>
+                COMIC VINE NOTE: Using the default API key will serverly limit search and tagging
+                times. A personal API key will allow for a <b>5 times increase</b> in online search speed. See the
+                <a href='https://github.com/comictagger/comictagger/wiki/UserGuide#comic-vine'>Wiki page</a>
+                for more information.<br><br>
                 Have fun!
                 """,
             )
