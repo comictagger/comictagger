@@ -89,7 +89,6 @@ class ComicCacher:
                 + "publisher TEXT,"
                 + "count_of_issues INT,"
                 + "count_of_volumes INT,"
-                + "volume TEXT,"
                 + "start_year INT,"
                 + "image_url TEXT,"
                 + "aliases TEXT,"  # Newline separated
@@ -128,6 +127,7 @@ class ComicCacher:
                 + "maturity_rating TEXT,"
                 + "language TEXT,"
                 + "country TEXT,"
+                + "volume TEXT,"
                 + "complete BOOL,"  # Is the data complete? Includes characters, locations, credits.
                 + "PRIMARY KEY (id, source_name))"
             )
@@ -159,7 +159,6 @@ class ComicCacher:
                     "publisher": record.publisher,
                     "count_of_issues": record.count_of_issues,
                     "count_of_volumes": record.count_of_volumes,
-                    "volume": record.volume,
                     "start_year": record.start_year,
                     "image_url": record.image_url,
                     "description": record.description,
@@ -193,13 +192,12 @@ class ComicCacher:
                     publisher=record[6],
                     count_of_issues=record[7],
                     count_of_volumes=record[8],
-                    volume=record[9],
-                    start_year=record[10],
-                    image_url=record[11],
-                    aliases=record[12].strip().splitlines(),
-                    description=record[13],
-                    genres=record[14].strip().splitlines(),
-                    format=record[15],
+                    start_year=record[9],
+                    image_url=record[10],
+                    aliases=record[11].strip().splitlines(),
+                    description=record[12],
+                    genres=record[13].strip().splitlines(),
+                    format=record[14],
                 )
 
                 results.append(result)
@@ -221,7 +219,6 @@ class ComicCacher:
                 "publisher": series_record.publisher,
                 "count_of_issues": series_record.count_of_issues,
                 "count_of_volumes": series_record.count_of_volumes,
-                "volume": series_record.volume,
                 "start_year": series_record.start_year,
                 "image_url": series_record.image_url,
                 "description": series_record.description,
@@ -249,6 +246,7 @@ class ComicCacher:
                     "source_name": source_name,
                     "name": issue.name,
                     "issue_number": issue.issue_number,
+                    "volume": issue.volume,
                     "site_detail_url": issue.site_detail_url,
                     "cover_date": issue.cover_date,
                     "image_url": issue.image_url,
@@ -300,13 +298,12 @@ class ComicCacher:
                 publisher=row[2],
                 count_of_issues=row[3],
                 count_of_volumes=row[4],
-                volume=row[5],
-                start_year=row[6],
-                image_url=row[7],
-                aliases=row[8].strip().splitlines(),
-                description=row[9],
-                genres=row[10].strip().splitlines(),
-                format=row[11],
+                start_year=row[5],
+                image_url=row[6],
+                aliases=row[7].strip().splitlines(),
+                description=row[8],
+                genres=row[9].strip().splitlines(),
+                format=row[10],
             )
 
         return result
@@ -324,7 +321,6 @@ class ComicCacher:
             aliases=[],
             count_of_issues=None,
             count_of_volumes=None,
-            volume=None,
             format=None,
         )
         con = lite.connect(self.db_file)
@@ -355,6 +351,7 @@ class ComicCacher:
                     id=row[0],
                     name=row[2],
                     issue_number=row[3],
+                    volume=row[25],
                     site_detail_url=row[7],
                     cover_date=row[6],
                     image_url=row[4],
@@ -374,7 +371,7 @@ class ComicCacher:
                     maturity_rating=row[22],
                     language=row[23],
                     country=row[24],
-                    complete=bool(row[25]),
+                    complete=bool(row[26]),
                 )
 
                 results.append(record)
@@ -410,7 +407,6 @@ class ComicCacher:
                     aliases=[],
                     count_of_issues=None,
                     count_of_volumes=None,
-                    volume=None,
                     format=None,
                 )
 
@@ -425,6 +421,7 @@ class ComicCacher:
                     id=row[0],
                     name=row[2],
                     issue_number=row[3],
+                    volume=row[25],
                     site_detail_url=row[7],
                     cover_date=row[6],
                     image_url=row[4],
@@ -444,7 +441,7 @@ class ComicCacher:
                     maturity_rating=row[22],
                     language=row[23],
                     country=row[24],
-                    complete=bool(row[25]),
+                    complete=bool(row[26]),
                 )
 
             return record

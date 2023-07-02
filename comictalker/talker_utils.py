@@ -54,7 +54,7 @@ def map_comic_issue_to_metadata(
     if issue_results.series.format:
         metadata.format = issue_results.series.format
 
-    metadata.volume = utils.xlate_int(issue_results.series.volume)
+    metadata.volume = utils.xlate_int(issue_results.volume)
     metadata.volume_count = utils.xlate_int(issue_results.series.count_of_volumes)
 
     if issue_results.name:
