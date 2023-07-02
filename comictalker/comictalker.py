@@ -130,17 +130,17 @@ class ComicTalker:
         settings is a dictionary of settings defined in register_settings.
         It is only guaranteed that the settings defined in register_settings will be present.
         """
-        if settings.get(f"{self.id}_key"):
+        if settings.get(f"{self.id}_key") is not None:
             self.api_key = settings[f"{self.id}_key"]
-        if settings.get(f"{self.id}_url"):
+        if settings.get(f"{self.id}_url") is not None:
             self.api_url = fix_url(settings[f"{self.id}_url"])
 
-        settings[f"{self.id}_url"] = self.api_url
-
-        if self.api_key == "":
+        if self.api_key in ("", self.default_api_key):
             self.api_key = self.default_api_key
-        if self.api_url == "":
+            settings[f"{self.id}_key"] = None
+        if self.api_url in ("", self.default_api_url):
             self.api_url = self.default_api_url
+            settings[f"{self.id}_url"] = None
         return settings
 
     def check_api_key(self, url: str, key: str) -> tuple[str, bool]:

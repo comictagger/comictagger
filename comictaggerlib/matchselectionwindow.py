@@ -18,11 +18,11 @@ from __future__ import annotations
 import logging
 import os
 
-import settngs
 from PyQt5 import QtCore, QtWidgets, uic
 
 from comicapi.comicarchive import ComicArchive
 from comictaggerlib.coverimagewidget import CoverImageWidget
+from comictaggerlib.ctsettings import ct_ns
 from comictaggerlib.resulttypes import IssueResult
 from comictaggerlib.ui import ui_path
 from comictaggerlib.ui.qtutils import reduce_widget_font_size
@@ -37,7 +37,7 @@ class MatchSelectionWindow(QtWidgets.QDialog):
         parent: QtWidgets.QWidget,
         matches: list[IssueResult],
         comic_archive: ComicArchive,
-        config: settngs.Namespace,
+        config: ct_ns,
         talker: ComicTalker,
     ) -> None:
         super().__init__(parent)

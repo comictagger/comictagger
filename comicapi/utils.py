@@ -25,10 +25,6 @@ from collections.abc import Iterable, Mapping
 from shutil import which  # noqa: F401
 from typing import Any
 
-import natsort
-import pycountry
-import rapidfuzz.fuzz
-
 import comicapi.data
 
 try:
@@ -43,6 +39,8 @@ logger = logging.getLogger(__name__)
 
 
 def _custom_key(tup):
+    import natsort
+
     lst = []
     for x in natsort.os_sort_keygen()(tup):
         ret = x
@@ -54,6 +52,8 @@ def _custom_key(tup):
 
 
 def os_sorted(lst: Iterable) -> Iterable:
+    import natsort
+
     key = _custom_key
     if icu_available or platform.system() == "Windows":
         key = natsort.os_sort_keygen()
@@ -115,6 +115,8 @@ def xlate_int(data: Any) -> int | None:
 
 
 def xlate_float(data: Any) -> float | None:
+    if isinstance(data, str):
+        data = data.strip()
     if data is None or data == "":
         return None
     i: str | int | float
@@ -131,7 +133,7 @@ def xlate_float(data: Any) -> float | None:
 
 
 def xlate(data: Any) -> str | None:
-    if data is None or data == "":
+    if data is None or isinstance(data, str) and data.strip() == "":
         return None
 
     return str(data)
@@ -196,6 +198,8 @@ def sanitize_title(text: str, basic: bool = False) -> str:
 
 
 def titles_match(search_title: str, record_title: str, threshold: int = 90) -> bool:
+    import rapidfuzz.fuzz
+
     sanitized_search = sanitize_title(search_title)
     sanitized_record = sanitize_title(record_title)
     ratio = int(rapidfuzz.fuzz.ratio(sanitized_search, sanitized_record))
@@ -219,26 +223,40 @@ def unique_file(file_name: pathlib.Path) -> pathlib.Path:
         counter += 1
 
 
-languages: dict[str | None, str | None] = defaultdict(lambda: None)
+_languages: dict[str | None, str | None] = defaultdict(lambda: None)
 
-countries: dict[str | None, str | None] = defaultdict(lambda: None)
+_countries: dict[str | None, str | None] = defaultdict(lambda: None)
 
-for c in pycountry.countries:
-    if "alpha_2" in c._fields:
-        countries[c.alpha_2] = c.name
 
-for lng in pycountry.languages:
-    if "alpha_2" in lng._fields:
-        languages[lng.alpha_2] = lng.name
+def countries() -> dict[str | None, str | None]:
+    if not _countries:
+        import pycountry
+
+        for c in pycountry.countries:
+            if "alpha_2" in c._fields:
+                _countries[c.alpha_2] = c.name
+    return _countries
+
+
+def languages() -> dict[str | None, str | None]:
+    if not _languages:
+        import pycountry
+
+        for lng in pycountry.languages:
+            if "alpha_2" in lng._fields:
+                _languages[lng.alpha_2] = lng.name
+    return _languages
 
 
 def get_language_from_iso(iso: str | None) -> str | None:
-    return languages[iso]
+    return languages()[iso]
 
 
 def get_language_iso(string: str | None) -> str | None:
     if string is None:
         return None
+    import pycountry
+
     # Return current string if all else fails
     lang = string.casefold()
 
@@ -250,7 +268,7 @@ def get_language_iso(string: str | None) -> str | None:
 
 
 def get_country_from_iso(iso: str | None) -> str | None:
-    return countries[iso]
+    return countries()[iso]
 
 
 def get_publisher(publisher: str) -> tuple[str, str]:
@@ -261,7 +279,7 @@ def get_publisher(publisher: str) -> tuple[str, str]:
         if ok:
             break
 
-    return (imprint, publisher)
+    return imprint, publisher
 
 
 def update_publishers(new_publishers: Mapping[str, Mapping[str, str]]) -> None:
@@ -290,11 +308,11 @@ class ImprintDict(dict):  # type: ignore
     def __getitem__(self, k: str) -> tuple[str, str, bool]:
         item = super().__getitem__(k.casefold())
         if k.casefold() == self.publisher.casefold():
-            return ("", self.publisher, True)
+            return "", self.publisher, True
         if item is None:
-            return ("", k, False)
+            return "", k, False
         else:
-            return (item, self.publisher, True)
+            return item, self.publisher, True
 
     def copy(self) -> ImprintDict:
         return ImprintDict(self.publisher, super().copy())

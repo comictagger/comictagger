@@ -9,6 +9,7 @@ import types
 
 import settngs
 
+from comictaggerlib.ctsettings import ct_ns
 from comictaggerlib.graphics import graphics_path
 from comictalker.comictalker import ComicTalker
 
@@ -62,6 +63,14 @@ try:
     qt_exception_hook = UncaughtHook()
     from comictaggerlib.taggerwindow import TaggerWindow
 
+    try:
+        # needed here to initialize QWebEngine
+        from PyQt5.QtWebEngineWidgets import QWebEngineView  # noqa: F401
+
+        qt_webengine_available = True
+    except ImportError:
+        qt_webengine_available = False
+
     class Application(QtWidgets.QApplication):
         openFileRequest = QtCore.pyqtSignal(QtCore.QUrl, name="openfileRequest")
 
@@ -83,7 +92,7 @@ except ImportError:
 
 
 def open_tagger_window(
-    talkers: dict[str, ComicTalker], config: settngs.Config[settngs.Namespace], error: tuple[str, bool] | None
+    talkers: dict[str, ComicTalker], config: settngs.Config[ct_ns], error: tuple[str, bool] | None
 ) -> None:
     os.environ["QtWidgets.QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
     args = []

@@ -5,7 +5,7 @@ import uuid
 
 import settngs
 
-from comictaggerlib.ctsettings.types import AppendAction
+from comictaggerlib.ctsettings.settngs_namespace import settngs_namespace as ct_ns
 from comictaggerlib.defaults import DEFAULT_REPLACEMENTS, Replacement, Replacements
 
 
@@ -43,8 +43,9 @@ def identifier(parser: settngs.Manager) -> None:
     parser.add_setting(
         "--publisher-filter",
         default=["Panini Comics", "Abril", "Planeta DeAgostini", "Editorial Televisa", "Dino Comics"],
-        action=AppendAction,
-        help="When enabled filters the listed publishers from all search results",
+        action="extend",
+        nargs="+",
+        help="When enabled, filters the listed publishers from all search results. Ending a publisher with a '-' removes a publisher from this list",
     )
     parser.add_setting("--series-match-search-thresh", default=90, type=int)
     parser.add_setting(
@@ -206,18 +207,24 @@ def autotag(parser: settngs.Manager) -> None:
         help="When searching ignore leading numbers in the filename",
     )
     parser.add_setting("remove_archive_after_successful_match", default=False, cmdline=False)
-    parser.add_setting(
-        "-w",
-        "--wait-on-rate-limit",
-        dest="wait_and_retry_on_rate_limit",
-        action=argparse.BooleanOptionalAction,
-        default=True,
-        help="When encountering a Comic Vine rate limit\nerror, wait and retry query.\n\n",
-    )
 
 
-def validate_file_settings(config: settngs.Config[settngs.Namespace]) -> settngs.Config[settngs.Namespace]:
-    config[0].identifier_publisher_filter = [x.strip() for x in config[0].identifier_publisher_filter if x.strip()]
+def validate_file_settings(config: settngs.Config[ct_ns]) -> settngs.Config[ct_ns]:
+    new_filter = []
+    remove = []
+    for x in config[0].identifier_publisher_filter:
+        x = x.strip()
+        if x:  # ignore empty arguments
+            if x[-1] == "-":  # this publisher needs to be removed. We remove after all publishers have been enumerated
+                remove.append(x.strip("-"))
+            else:
+                if x not in new_filter:
+                    new_filter.append(x)
+    for x in remove:  # remove publishers
+        if x in new_filter:
+            new_filter.remove(x)
+    config[0].identifier_publisher_filter = new_filter
+
     config[0].rename_replacements = Replacements(
         [Replacement(x[0], x[1], x[2]) for x in config[0].rename_replacements[0]],
         [Replacement(x[0], x[1], x[2]) for x in config[0].rename_replacements[1]],

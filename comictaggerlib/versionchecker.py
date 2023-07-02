@@ -40,9 +40,9 @@ class VersionChecker:
                 headers={"user-agent": "comictagger/" + ctversion.version},
             ).json()
         except Exception:
-            return ("", "")
+            return "", ""
 
         new_version = release["tag_name"]
         if new_version is None or new_version == "":
-            return ("", "")
-        return (new_version.strip(), release["name"])
+            return "", ""
+        return new_version.strip(), release["name"]

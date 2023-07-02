@@ -17,16 +17,16 @@ from __future__ import annotations
 
 import logging
 
-import settngs
 from PyQt5 import QtCore, QtWidgets, uic
 
+from comictaggerlib.ctsettings import ct_ns
 from comictaggerlib.ui import ui_path
 
 logger = logging.getLogger(__name__)
 
 
 class AutoTagStartWindow(QtWidgets.QDialog):
-    def __init__(self, parent: QtWidgets.QWidget, config: settngs.Namespace, msg: str) -> None:
+    def __init__(self, parent: QtWidgets.QWidget, config: ct_ns, msg: str) -> None:
         super().__init__(parent)
 
         uic.loadUi(ui_path / "autotagstartwindow.ui", self)
@@ -48,7 +48,6 @@ class AutoTagStartWindow(QtWidgets.QDialog):
         self.cbxAssumeIssueOne.setChecked(self.config.autotag_assume_1_if_no_issue_num)
         self.cbxIgnoreLeadingDigitsInFilename.setChecked(self.config.autotag_ignore_leading_numbers_in_filename)
         self.cbxRemoveAfterSuccess.setChecked(self.config.autotag_remove_archive_after_successful_match)
-        self.cbxWaitForRateLimit.setChecked(self.config.autotag_wait_and_retry_on_rate_limit)
         self.cbxAutoImprint.setChecked(self.config.identifier_auto_imprint)
 
         nlmt_tip = """<html>The <b>Name Match Ratio Threshold: Auto-Identify</b> is for eliminating automatic
@@ -73,7 +72,6 @@ class AutoTagStartWindow(QtWidgets.QDialog):
         self.assume_issue_one = False
         self.ignore_leading_digits_in_filename = False
         self.remove_after_success = False
-        self.wait_and_retry_on_rate_limit = False
         self.search_string = ""
         self.name_length_match_tolerance = self.config.identifier_series_match_search_thresh
         self.split_words = self.cbxSplitWords.isChecked()
@@ -91,7 +89,6 @@ class AutoTagStartWindow(QtWidgets.QDialog):
         self.ignore_leading_digits_in_filename = self.cbxIgnoreLeadingDigitsInFilename.isChecked()
         self.remove_after_success = self.cbxRemoveAfterSuccess.isChecked()
         self.name_length_match_tolerance = self.sbNameMatchSearchThresh.value()
-        self.wait_and_retry_on_rate_limit = self.cbxWaitForRateLimit.isChecked()
         self.split_words = self.cbxSplitWords.isChecked()
 
         # persist some settings
@@ -100,7 +97,6 @@ class AutoTagStartWindow(QtWidgets.QDialog):
         self.config.autotag_assume_1_if_no_issue_num = self.assume_issue_one
         self.config.autotag_ignore_leading_numbers_in_filename = self.ignore_leading_digits_in_filename
         self.config.autotag_remove_archive_after_successful_match = self.remove_after_success
-        self.config.autotag_wait_and_retry_on_rate_limit = self.wait_and_retry_on_rate_limit
 
         if self.cbxSpecifySearchString.isChecked():
             self.search_string = self.leSearchString.text()

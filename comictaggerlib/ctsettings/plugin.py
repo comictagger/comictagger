@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import logging
 import os
+from typing import cast
 
 import settngs
 
 import comicapi.comicarchive
 import comictaggerlib.ctsettings
+from comictaggerlib.ctsettings.settngs_namespace import settngs_namespace as ct_ns
 
 logger = logging.getLogger("comictagger")
 
@@ -27,15 +29,15 @@ def register_talker_settings(manager: settngs.Manager) -> None:
     for talker_id, talker in comictaggerlib.ctsettings.talkers.items():
 
         def api_options(manager: settngs.Manager) -> None:
+            # The default needs to be unset or None.
+            # This allows this setting to be unset with the empty string, allowing the default to change
             manager.add_setting(
                 f"--{talker_id}-key",
-                default="",
                 display_name="API Key",
                 help=f"API Key for {talker.name} (default: {talker.default_api_key})",
             )
             manager.add_setting(
                 f"--{talker_id}-url",
-                default="",
                 display_name="URL",
                 help=f"URL for {talker.name} (default: {talker.default_api_url})",
             )
@@ -47,10 +49,10 @@ def register_talker_settings(manager: settngs.Manager) -> None:
             logger.exception("Failed to register settings for %s", talker_id)
 
 
-def validate_archive_settings(config: settngs.Config[settngs.Namespace]) -> settngs.Config[settngs.Namespace]:
+def validate_archive_settings(config: settngs.Config[ct_ns]) -> settngs.Config[ct_ns]:
     if "archiver" not in config[1]:
         return config
-    cfg = settngs.normalize_config(config, file=True, cmdline=True, defaults=False)
+    cfg = settngs.normalize_config(config, file=True, cmdline=True, default=False)
     for archiver in comicapi.comicarchive.archivers:
         exe_name = settngs.sanitize_name(archiver.exe)
         if exe_name in cfg[0]["archiver"] and cfg[0]["archiver"][exe_name]:
@@ -62,7 +64,7 @@ def validate_archive_settings(config: settngs.Config[settngs.Namespace]) -> sett
     return config
 
 
-def validate_talker_settings(config: settngs.Config[settngs.Namespace]) -> settngs.Config[settngs.Namespace]:
+def validate_talker_settings(config: settngs.Config[ct_ns]) -> settngs.Config[ct_ns]:
     # Apply talker settings from config file
     cfg = settngs.normalize_config(config, True, True)
     for talker_id, talker in list(comictaggerlib.ctsettings.talkers.items()):
@@ -73,10 +75,10 @@ def validate_talker_settings(config: settngs.Config[settngs.Namespace]) -> settn
             del comictaggerlib.ctsettings.talkers[talker_id]
             logger.exception("Failed to initialize talker settings: %s", e)
 
-    return settngs.get_namespace(cfg)
+    return cast(settngs.Config[ct_ns], settngs.get_namespace(cfg, file=True, cmdline=True))
 
 
-def validate_plugin_settings(config: settngs.Config[settngs.Namespace]) -> settngs.Config[settngs.Namespace]:
+def validate_plugin_settings(config: settngs.Config[ct_ns]) -> settngs.Config[ct_ns]:
     config = validate_archive_settings(config)
     config = validate_talker_settings(config)
     return config

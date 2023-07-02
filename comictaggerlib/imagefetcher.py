@@ -22,17 +22,14 @@ import pathlib
 import shutil
 import sqlite3 as lite
 import tempfile
+from typing import TYPE_CHECKING
 
 import requests
 
 from comictaggerlib import ctversion
 
-try:
+if TYPE_CHECKING:
     from PyQt5 import QtCore, QtNetwork
-
-    qt_available = True
-except ImportError:
-    qt_available = False
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +44,7 @@ def fetch_complete(url: str, image_data: bytes | QtCore.QByteArray) -> None:
 
 class ImageFetcher:
     image_fetch_complete = fetch_complete
+    qt_available = True
 
     def __init__(self, cache_folder: pathlib.Path) -> None:
         self.db_file = cache_folder / "image_url_cache.db"
@@ -55,10 +53,17 @@ class ImageFetcher:
         self.user_data = None
         self.fetched_url = ""
 
+        if self.qt_available:
+            try:
+                from PyQt5 import QtNetwork
+
+                self.qt_available = True
+            except ImportError:
+                self.qt_available = False
         if not os.path.exists(self.db_file):
             self.create_image_db()
 
-        if qt_available:
+        if self.qt_available:
             self.nam = QtNetwork.QNetworkAccessManager()
 
     def clear_cache(self) -> None:
@@ -79,7 +84,7 @@ class ImageFetcher:
         # first look in the DB
         image_data = self.get_image_from_cache(url)
         # Async for retrieving covers seems to work well
-        if blocking or not qt_available:
+        if blocking or not self.qt_available:
             if not image_data:
                 try:
                     image_data = requests.get(url, headers={"user-agent": "comictagger/" + ctversion.version}).content
@@ -91,7 +96,9 @@ class ImageFetcher:
             ImageFetcher.image_fetch_complete(url, image_data)
             return image_data
 
-        if qt_available:
+        if self.qt_available:
+            from PyQt5 import QtCore, QtNetwork
+
             # if we found it, just emit the signal asap
             if image_data:
                 ImageFetcher.image_fetch_complete(url, QtCore.QByteArray(image_data))

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import argparse
 import logging
 from functools import partial
 from typing import Any, NamedTuple
@@ -8,6 +7,7 @@ from typing import Any, NamedTuple
 import settngs
 from PyQt5 import QtCore, QtGui, QtWidgets
 
+from comictaggerlib.ctsettings import ct_ns
 from comictaggerlib.graphics import graphics_path
 from comictalker.comictalker import ComicTalker
 
@@ -26,7 +26,7 @@ class PasswordEdit(QtWidgets.QLineEdit):
     Based on this example https://kushaldas.in/posts/creating-password-input-widget-in-pyqt.html by Kushal Das.
     """
 
-    def __init__(self, show_visibility=True, *args, **kwargs):
+    def __init__(self, show_visibility: bool = True, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
 
         self.visibleIcon = QtGui.QIcon(str(graphics_path / "eye.svg"))
@@ -42,7 +42,7 @@ class PasswordEdit(QtWidgets.QLineEdit):
 
         self.password_shown = False
 
-    def on_toggle_password_Action(self):
+    def on_toggle_password_Action(self) -> None:
         if not self.password_shown:
             self.setEchoMode(QtWidgets.QLineEdit.Normal)
             self.password_shown = True
@@ -58,7 +58,7 @@ class PasswordEdit(QtWidgets.QLineEdit):
 def generate_api_widgets(
     talker_id: str,
     sources: dict[str, QtWidgets.QWidget],
-    config: settngs.Config[settngs.Namespace],
+    config: settngs.Config[ct_ns],
     layout: QtWidgets.QGridLayout,
     talkers: dict[str, ComicTalker],
 ) -> None:
@@ -99,6 +99,9 @@ def generate_api_widgets(
         # We overwrite so that the default will be next to the url text box
         btn_test_row = layout.rowCount()
         le_url = generate_textbox(talker_url, layout)
+        value, _ = settngs.get_option(config[0], talker_url)
+        if not value:
+            le_url.setText(talkers[talker_id].default_api_url)
         # To enable setting and getting
         sources["tabs"][talker_id].widgets[f"talker_{talker_id}_{talker_id}_url"] = le_url
 
@@ -168,7 +171,7 @@ def generate_password_textbox(option: settngs.Setting, layout: QtWidgets.QGridLa
     return widget
 
 
-def settings_to_talker_form(sources: dict[str, QtWidgets.QWidget], config: settngs.Config[settngs.Namespace]) -> None:
+def settings_to_talker_form(sources: dict[str, QtWidgets.QWidget], config: settngs.Config[ct_ns]) -> None:
     # Set the active talker via id in sources combo box
     sources["cbx_select_talker"].setCurrentIndex(sources["cbx_select_talker"].findData(config[0].talker_source))
 
@@ -177,7 +180,7 @@ def settings_to_talker_form(sources: dict[str, QtWidgets.QWidget], config: settn
             value = getattr(config[0], name)
             value_type = type(value)
             try:
-                if value_type is str:
+                if value_type is str and value:
                     widget.setText(value)
                 if value_type is int or value_type is float:
                     widget.setValue(value)
@@ -187,7 +190,7 @@ def settings_to_talker_form(sources: dict[str, QtWidgets.QWidget], config: settn
                 logger.debug("Failed to set value of %s", name)
 
 
-def form_settings_to_config(sources: dict[str, QtWidgets.QWidget], config: settngs.Config[settngs.Namespace]) -> None:
+def form_settings_to_config(sources: dict[str, QtWidgets.QWidget], config: settngs.Config[ct_ns]) -> None:
     # Source combo box value
     config[0].talker_source = sources["cbx_select_talker"].currentData()
 
@@ -206,7 +209,7 @@ def form_settings_to_config(sources: dict[str, QtWidgets.QWidget], config: settn
 
 def generate_source_option_tabs(
     comic_talker_tab: QtWidgets.QWidget,
-    config: settngs.Config[settngs.Namespace],
+    config: settngs.Config[ct_ns],
     talkers: dict[str, ComicTalker],
 ) -> dict[str, QtWidgets.QWidget]:
     """
@@ -252,22 +255,17 @@ def generate_source_option_tabs(
             if option.dest in (f"{talker_id}_url", f"{talker_id}_key"):
                 continue
             current_widget = None
-            if option.action is not None and (
-                option.action is argparse.BooleanOptionalAction
-                or option.type is bool
-                or option.action == "store_true"
-                or option.action == "store_false"
-            ):
+            if option._guess_type() is bool:
                 current_widget = generate_checkbox(option, layout_grid)
                 sources["tabs"][tab_name].widgets[option.internal_name] = current_widget
-            elif option.type is int:
+            elif option._guess_type() is int:
                 current_widget = generate_spinbox(option, layout_grid)
                 sources["tabs"][tab_name].widgets[option.internal_name] = current_widget
-            elif option.type is float:
+            elif option._guess_type() is float:
                 current_widget = generate_doublespinbox(option, layout_grid)
                 sources["tabs"][tab_name].widgets[option.internal_name] = current_widget
-            # option.type of None should be string
-            elif (option.type is None and option.action is None) or option.type is str:
+
+            elif option._guess_type() is str:
                 current_widget = generate_textbox(option, layout_grid)
                 sources["tabs"][tab_name].widgets[option.internal_name] = current_widget
             else:

@@ -23,6 +23,7 @@ from PyQt5 import QtCore, QtWidgets, uic
 from comicapi import utils
 from comicapi.comicarchive import ComicArchive, MetaDataStyle
 from comicapi.genericmetadata import GenericMetadata
+from comictaggerlib.ctsettings import ct_ns
 from comictaggerlib.filerenamer import FileRenamer, get_rename_dir
 from comictaggerlib.settingswindow import SettingsWindow
 from comictaggerlib.ui import ui_path
@@ -38,7 +39,7 @@ class RenameWindow(QtWidgets.QDialog):
         parent: QtWidgets.QWidget,
         comic_archive_list: list[ComicArchive],
         data_style: int,
-        config: settngs.Config[settngs.Namespace],
+        config: settngs.Config[ct_ns],
         talkers: dict[str, ComicTalker],
     ) -> None:
         super().__init__(parent)
@@ -124,6 +125,7 @@ class RenameWindow(QtWidgets.QDialog):
                     "<a href='https://github.com/comictagger/comictagger'>"
                     "https://github.com/comictagger/comictagger</a>",
                 )
+                return
 
             row = self.twList.rowCount()
             self.twList.insertRow(row)

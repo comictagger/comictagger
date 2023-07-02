@@ -5,6 +5,7 @@ import os
 import pytest
 
 import comicapi.utils
+import comictalker.talker_utils
 
 
 def test_os_sorted():
@@ -200,3 +201,20 @@ titles_2 = [
 @pytest.mark.parametrize("value, result", titles_2)
 def test_sanitize_title(value, result):
     assert comicapi.utils.sanitize_title(value) == result.casefold()
+
+
+urls = [
+    ("", ""),
+    ("http://test.test", "http://test.test/"),
+    ("http://test.test/", "http://test.test/"),
+    ("http://test.test/..", "http://test.test/"),
+    ("http://test.test/../hello", "http://test.test/hello/"),
+    ("http://test.test/../hello/", "http://test.test/hello/"),
+    ("http://test.test/../hello/..", "http://test.test/"),
+    ("http://test.test/../hello/../", "http://test.test/"),
+]
+
+
+@pytest.mark.parametrize("value, result", urls)
+def test_fix_url(value, result):
+    assert comictalker.talker_utils.fix_url(value) == result

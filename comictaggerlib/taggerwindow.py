@@ -48,6 +48,7 @@ from comictaggerlib.autotagstartwindow import AutoTagStartWindow
 from comictaggerlib.cbltransformer import CBLTransformer
 from comictaggerlib.coverimagewidget import CoverImageWidget
 from comictaggerlib.crediteditorwindow import CreditEditorWindow
+from comictaggerlib.ctsettings import ct_ns
 from comictaggerlib.exportwindow import ExportConflictOpts, ExportWindow
 from comictaggerlib.fileselectionlist import FileInfo, FileSelectionList
 from comictaggerlib.graphics import graphics_path
@@ -79,7 +80,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
     def __init__(
         self,
         file_list: list[str],
-        config: settngs.Config[settngs.Namespace],
+        config: settngs.Config[ct_ns],
         talkers: dict[str, ComicTalker],
         parent: QtWidgets.QWidget | None = None,
     ) -> None:
@@ -256,6 +257,10 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 Also, be aware that writing tags to comic archives will change their file hashes,
                 which has implications with respect to other software packages.  It's best to
                 use ComicTagger on local copies of your comics.<br><br>
+                COMIC VINE NOTE: Using the default API key will serverly limit search and tagging
+                times. A personal API key will allow for a <b>5 times increase</b> in online search speed. See the
+                <a href='https://github.com/comictagger/comictagger/wiki/UserGuide#comic-vine'>Wiki page</a>
+                for more information.<br><br>
                 Have fun!
                 """,
             )
@@ -896,8 +901,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
         # copy the data from the form into the metadata
         md = GenericMetadata()
         md.is_empty = False
-        md.alternate_number = IssueString(self.leAltIssueNum.text()).as_string()
-        md.issue = IssueString(self.leIssueNum.text()).as_string()
+        md.alternate_number = utils.xlate(IssueString(self.leAltIssueNum.text()).as_string())
+        md.issue = utils.xlate(IssueString(self.leIssueNum.text()).as_string())
         md.issue_count = utils.xlate_int(self.leIssueCount.text())
         md.volume = utils.xlate_int(self.leVolumeNum.text())
         md.volume_count = utils.xlate_int(self.leVolumeCount.text())
@@ -906,30 +911,30 @@ class TaggerWindow(QtWidgets.QMainWindow):
         md.day = utils.xlate_int(self.lePubDay.text())
         md.alternate_count = utils.xlate_int(self.leAltIssueCount.text())
 
-        md.series = self.leSeries.text()
-        md.title = self.leTitle.text()
-        md.publisher = self.lePublisher.text()
-        md.genre = self.leGenre.text()
-        md.imprint = self.leImprint.text()
-        md.comments = self.teComments.toPlainText()
-        md.notes = self.teNotes.toPlainText()
+        md.series = utils.xlate(self.leSeries.text())
+        md.title = utils.xlate(self.leTitle.text())
+        md.publisher = utils.xlate(self.lePublisher.text())
+        md.genre = utils.xlate(self.leGenre.text())
+        md.imprint = utils.xlate(self.leImprint.text())
+        md.comments = utils.xlate(self.teComments.toPlainText())
+        md.notes = utils.xlate(self.teNotes.toPlainText())
         md.maturity_rating = self.cbMaturityRating.currentText()
 
         md.critical_rating = utils.xlate_float(self.dsbCriticalRating.cleanText())
         if md.critical_rating == 0.0:
             md.critical_rating = None
 
-        md.story_arc = self.leStoryArc.text()
-        md.scan_info = self.leScanInfo.text()
-        md.series_group = self.leSeriesGroup.text()
-        md.alternate_series = self.leAltSeries.text()
-        md.web_link = self.leWebLink.text()
-        md.characters = self.teCharacters.toPlainText()
-        md.teams = self.teTeams.toPlainText()
-        md.locations = self.teLocations.toPlainText()
+        md.story_arc = utils.xlate(self.leStoryArc.text())
+        md.scan_info = utils.xlate(self.leScanInfo.text())
+        md.series_group = utils.xlate(self.leSeriesGroup.text())
+        md.alternate_series = utils.xlate(self.leAltSeries.text())
+        md.web_link = utils.xlate(self.leWebLink.text())
+        md.characters = utils.xlate(self.teCharacters.toPlainText())
+        md.teams = utils.xlate(self.teTeams.toPlainText())
+        md.locations = utils.xlate(self.teLocations.toPlainText())
 
-        md.format = self.cbFormat.currentText()
-        md.country = self.cbCountry.currentText()
+        md.format = utils.xlate(self.cbFormat.currentText())
+        md.country = utils.xlate(self.cbCountry.currentText())
 
         md.language = utils.xlate(self.cbLanguage.itemData(self.cbLanguage.currentIndex()))
 
@@ -1017,7 +1022,9 @@ class TaggerWindow(QtWidgets.QMainWindow):
         # Only need this check is the source has issue level data.
         if autoselect and issue_number == "":
             QtWidgets.QMessageBox.information(
-                self, "Automatic Identify Search", "Can't auto-identify without an issue number (yet!)"
+                self,
+                "Automatic Identify Search",
+                "Can't auto-identify without an issue number. The auto-tag function has the 'If no issue number, assume \"1\"' option if desired.",
             )
             return
 
@@ -1395,13 +1402,13 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
         # Add the entries to the country combobox
         self.cbCountry.addItem("", "")
-        for f in natsort.humansorted(utils.countries.items(), operator.itemgetter(1)):
+        for f in natsort.humansorted(utils.countries().items(), operator.itemgetter(1)):
             self.cbCountry.addItem(f[1], f[0])
 
         # Add the entries to the language combobox
         self.cbLanguage.addItem("", "")
 
-        for f in natsort.humansorted(utils.languages.items(), operator.itemgetter(1)):
+        for f in natsort.humansorted(utils.languages().items(), operator.itemgetter(1)):
             self.cbLanguage.addItem(f[1], f[0])
 
         # Add the entries to the manga combobox

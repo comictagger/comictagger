@@ -10,16 +10,16 @@ repos:
     -   id: name-tests-test
     -   id: requirements-txt-fixer
 -   repo: https://github.com/asottile/setup-cfg-fmt
-    rev: v2.2.0
+    rev: v2.4.0
     hooks:
     -   id: setup-cfg-fmt
 -   repo: https://github.com/PyCQA/autoflake
-    rev: v2.1.1
+    rev: v2.2.0
     hooks:
     -   id: autoflake
         args: [-i, --remove-all-unused-imports, --ignore-init-module-imports]
 -   repo: https://github.com/asottile/pyupgrade
-    rev: v3.3.2
+    rev: v3.8.0
     hooks:
     -   id: pyupgrade
         args: [--py39-plus]
@@ -38,9 +38,9 @@ repos:
     -   id: flake8
         additional_dependencies: [flake8-encodings, flake8-warnings, flake8-builtins, flake8-length, flake8-print]
 -   repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.2.0
+    rev: v1.4.1
     hooks:
     -   id: mypy
-        additional_dependencies: [types-setuptools, types-requests]
+        additional_dependencies: [types-setuptools, types-requests, settngs>=0.7.1]
 ci:
     skip: [mypy]

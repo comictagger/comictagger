@@ -17,13 +17,13 @@ from __future__ import annotations
 
 import logging
 
-import settngs
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
 from comicapi.issuestring import IssueString
 from comictaggerlib.coverimagewidget import CoverImageWidget
+from comictaggerlib.ctsettings import ct_ns
 from comictaggerlib.ui import ui_path
-from comictaggerlib.ui.qtutils import reduce_widget_font_size
+from comictaggerlib.ui.qtutils import new_web_view, reduce_widget_font_size
 from comictalker.comictalker import ComicTalker, TalkerError
 from comictalker.resulttypes import ComicIssue
 
@@ -42,7 +42,7 @@ class IssueSelectionWindow(QtWidgets.QDialog):
     def __init__(
         self,
         parent: QtWidgets.QWidget,
-        config: settngs.Namespace,
+        config: ct_ns,
         talker: ComicTalker,
         series_id: str,
         issue_number: str,
@@ -57,6 +57,19 @@ class IssueSelectionWindow(QtWidgets.QDialog):
         gridlayout = QtWidgets.QGridLayout(self.coverImageContainer)
         gridlayout.addWidget(self.coverWidget)
         gridlayout.setContentsMargins(0, 0, 0, 0)
+
+        self.teDescription: QtWidgets.QWidget
+        webengine = new_web_view(self)
+        if webengine:
+            self.teDescription.hide()
+            self.teDescription.deleteLater()
+            # I don't know how to replace teDescription, this is the result of teDescription.height() once rendered
+            webengine.resize(webengine.width(), 141)
+            self.splitter.addWidget(webengine)
+            self.teDescription = webengine
+            logger.info("successfully loaded QWebEngineView")
+        else:
+            logger.info("failed to open QWebEngineView")
 
         reduce_widget_font_size(self.twList)
         reduce_widget_font_size(self.teDescription, 1)
@@ -114,6 +127,17 @@ class IssueSelectionWindow(QtWidgets.QDialog):
                 if issue_id == self.initial_id:
                     self.twList.selectRow(r)
                     break
+
+        self.leFilter.textChanged.connect(self.filter)
+
+    def filter(self, text: str) -> None:
+        rows = set(range(self.twList.rowCount()))
+        for r in rows:
+            self.twList.showRow(r)
+        if text.strip():
+            shown_rows = {x.row() for x in self.twList.findItems(text, QtCore.Qt.MatchFlag.MatchContains)}
+            for r in rows - shown_rows:
+                self.twList.hideRow(r)
 
     def perform_query(self) -> None:
         QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
@@ -178,6 +202,13 @@ class IssueSelectionWindow(QtWidgets.QDialog):
     def cell_double_clicked(self, r: int, c: int) -> None:
         self.accept()
 
+    def set_description(self, widget: QtWidgets.QWidget, text: str) -> None:
+        if isinstance(widget, QtWidgets.QTextEdit):
+            widget.setText(text.replace("</figure>", "</div>").replace("<figure", "<div"))
+        else:
+            html = text
+            widget.setHtml(html, QtCore.QUrl(self.talker.website))
+
     def current_item_changed(self, curr: QtCore.QModelIndex | None, prev: QtCore.QModelIndex | None) -> None:
         if curr is None:
             return
@@ -192,8 +223,8 @@ class IssueSelectionWindow(QtWidgets.QDialog):
                 self.issue_number = record.issue_number
                 self.coverWidget.set_issue_details(self.issue_id, [record.image_url, *record.alt_image_urls])
                 if record.description is None:
-                    self.teDescription.setText("")
+                    self.set_description(self.teDescription, "")
                 else:
-                    self.teDescription.setText(record.description)
+                    self.set_description(self.teDescription, record.description)
 
                 break

@@ -24,12 +24,15 @@ import os
 import signal
 import subprocess
 import sys
+from typing import cast
 
 import settngs
 
-import comicapi
+import comicapi.comicarchive
+import comicapi.utils
 import comictalker
 from comictaggerlib import cli, ctsettings
+from comictaggerlib.ctsettings import ct_ns
 from comictaggerlib.ctversion import version
 from comictaggerlib.log import setup_logging
 
@@ -39,14 +42,6 @@ else:
     import importlib.metadata as importlib_metadata
 
 logger = logging.getLogger("comictagger")
-
-try:
-    from comictaggerlib import gui
-
-    qt_available = gui.qt_available
-except Exception:
-    logger.exception("Qt unavailable")
-    qt_available = False
 
 
 logger.setLevel(logging.DEBUG)
@@ -95,7 +90,7 @@ def configure_locale() -> None:
     sys.stdin.reconfigure(encoding=sys.getdefaultencoding())  # type: ignore[attr-defined]
 
 
-def update_publishers(config: settngs.Config[settngs.Namespace]) -> None:
+def update_publishers(config: settngs.Config[ct_ns]) -> None:
     json_file = config[0].runtime_config.user_config_dir / "publishers.json"
     if json_file.exists():
         try:
@@ -108,7 +103,7 @@ class App:
     """docstring for App"""
 
     def __init__(self) -> None:
-        self.config: settngs.Config[settngs.Namespace]
+        self.config: settngs.Config[ct_ns]
         self.initial_arg_parser = ctsettings.initial_commandline_parser()
         self.config_load_success = False
 
@@ -141,9 +136,11 @@ class App:
         ctsettings.register_file_settings(self.manager)
         ctsettings.register_plugin_settings(self.manager)
 
-    def parse_settings(self, config_paths: ctsettings.ComicTaggerPaths) -> settngs.Config[settngs.Namespace]:
-        cfg, self.config_load_success = self.manager.parse_config(config_paths.user_config_dir / "settings.json")
-        config = self.manager.get_namespace(cfg)
+    def parse_settings(self, config_paths: ctsettings.ComicTaggerPaths, *args: str) -> settngs.Config[ct_ns]:
+        cfg, self.config_load_success = self.manager.parse_config(
+            config_paths.user_config_dir / "settings.json", list(args) or None
+        )
+        config = cast(settngs.Config[ct_ns], self.manager.get_namespace(cfg, file=True, cmdline=True))
 
         config = ctsettings.validate_commandline_settings(config, self.manager)
         config = ctsettings.validate_file_settings(config)
@@ -185,15 +182,11 @@ class App:
         comicapi.utils.load_publishers()
         update_publishers(self.config)
 
-        if not qt_available and not self.config[0].runtime_no_gui:
-            self.config[0].runtime_no_gui = True
-            logger.warning("PyQt5 is not available. ComicTagger is limited to command-line mode.")
-
         # manage the CV API key
         # None comparison is used so that the empty string can unset the value
         if not error and (
-            self.config[0].talker_comicvine_comicvine_key is not None
-            or self.config[0].talker_comicvine_comicvine_url is not None
+            self.config[0].talker_comicvine_comicvine_key is not None  # type: ignore[attr-defined]
+            or self.config[0].talker_comicvine_comicvine_url is not None  # type: ignore[attr-defined]
         ):
             settings_path = self.config[0].runtime_config.user_config_dir / "settings.json"
             if self.config_load_success:
@@ -210,16 +203,23 @@ class App:
                 True,
             )
 
-        if self.config[0].runtime_no_gui:
-            if error and error[1]:
-                print(f"A fatal error occurred please check the log for more information: {error[0]}")  # noqa: T201
-                raise SystemExit(1)
+        if not self.config[0].runtime_no_gui:
             try:
-                cli.CLI(self.config[0], talkers).run()
-            except Exception:
-                logger.exception("CLI mode failed")
-        else:
-            gui.open_tagger_window(talkers, self.config, error)
+                from comictaggerlib import gui
+
+                return gui.open_tagger_window(talkers, self.config, error)
+            except ImportError:
+                self.config[0].runtime_no_gui = True
+                logger.warning("PyQt5 is not available. ComicTagger is limited to command-line mode.")
+
+        # GUI mode is not available or CLI mode was requested
+        if error and error[1]:
+            print(f"A fatal error occurred please check the log for more information: {error[0]}")  # noqa: T201
+            raise SystemExit(1)
+        try:
+            cli.CLI(self.config[0], talkers).run()
+        except Exception:
+            logger.exception("CLI mode failed")
 
 
 def main() -> None:

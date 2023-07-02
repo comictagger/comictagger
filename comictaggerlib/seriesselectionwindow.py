@@ -19,20 +19,20 @@ import itertools
 import logging
 from collections import deque
 
-import settngs
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
-from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtCore import QUrl, pyqtSignal
 
 from comicapi import utils
 from comicapi.comicarchive import ComicArchive
 from comicapi.genericmetadata import GenericMetadata
 from comictaggerlib.coverimagewidget import CoverImageWidget
+from comictaggerlib.ctsettings import ct_ns
 from comictaggerlib.issueidentifier import IssueIdentifier
 from comictaggerlib.issueselectionwindow import IssueSelectionWindow
 from comictaggerlib.matchselectionwindow import MatchSelectionWindow
 from comictaggerlib.progresswindow import IDProgressWindow
 from comictaggerlib.ui import ui_path
-from comictaggerlib.ui.qtutils import reduce_widget_font_size
+from comictaggerlib.ui.qtutils import new_web_view, reduce_widget_font_size
 from comictalker.comictalker import ComicTalker, TalkerError
 from comictalker.resulttypes import ComicSeries
 
@@ -106,7 +106,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         issue_count: int | None,
         cover_index_list: list[int],
         comic_archive: ComicArchive | None,
-        config: settngs.Namespace,
+        config: ct_ns,
         talker: ComicTalker,
         autoselect: bool = False,
         literal: bool = False,
@@ -121,6 +121,16 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         gridlayout = QtWidgets.QGridLayout(self.imageContainer)
         gridlayout.addWidget(self.imageWidget)
         gridlayout.setContentsMargins(0, 0, 0, 0)
+
+        self.teDetails: QtWidgets.QWidget
+        webengine = new_web_view(self)
+        if webengine:
+            self.teDetails.hide()
+            self.teDetails.deleteLater()
+            # I don't know how to replace teDetails, this is the result of teDetails.height() once rendered
+            webengine.resize(webengine.width(), 141)
+            self.splitter.addWidget(webengine)
+            self.teDetails = webengine
 
         reduce_widget_font_size(self.teDetails, 1)
         reduce_widget_font_size(self.twList)
@@ -186,6 +196,17 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
 
         self.update_buttons()
         self.twList.selectRow(0)
+
+        self.leFilter.textChanged.connect(self.filter)
+
+    def filter(self, text: str) -> None:
+        rows = set(range(self.twList.rowCount()))
+        for r in rows:
+            self.twList.showRow(r)
+        if text.strip():
+            shown_rows = {x.row() for x in self.twList.findItems(text, QtCore.Qt.MatchFlag.MatchContains)}
+            for r in rows - shown_rows:
+                self.twList.hideRow(r)
 
     def update_buttons(self) -> None:
         enabled = bool(self.ct_search_results)
@@ -464,18 +485,21 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
             item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
             self.twList.setItem(row, 0, item)
 
-            item_text = str(record.start_year)
-            item = QtWidgets.QTableWidgetItem(item_text)
-            item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
-            item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
-            self.twList.setItem(row, 1, item)
+            if record.start_year is not None:
+                item_text = f"{record.start_year:04}"
+                item = QtWidgets.QTableWidgetItem(item_text)
+                item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
+                item.setData(QtCore.Qt.ItemDataRole.DisplayRole, record.start_year)
+                item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
+                self.twList.setItem(row, 1, item)
 
-            item_text = str(record.count_of_issues)
-            item = QtWidgets.QTableWidgetItem(item_text)
-            item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
-            item.setData(QtCore.Qt.ItemDataRole.DisplayRole, record.count_of_issues)
-            item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
-            self.twList.setItem(row, 2, item)
+            if record.count_of_issues is not None:
+                item_text = f"{record.count_of_issues:04}"
+                item = QtWidgets.QTableWidgetItem(item_text)
+                item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
+                item.setData(QtCore.Qt.ItemDataRole.DisplayRole, record.count_of_issues)
+                item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
+                self.twList.setItem(row, 2, item)
 
             if record.publisher is not None:
                 item_text = record.publisher
@@ -519,6 +543,13 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
     def cell_double_clicked(self, r: int, c: int) -> None:
         self.show_issues()
 
+    def set_description(self, widget: QtWidgets.QWidget, text: str) -> None:
+        if isinstance(widget, QtWidgets.QTextEdit):
+            widget.setText(text.replace("</figure>", "</div>").replace("<figure", "<div"))
+        else:
+            html = text
+            widget.setHtml(html, QUrl(self.talker.website))
+
     def current_item_changed(self, curr: QtCore.QModelIndex | None, prev: QtCore.QModelIndex | None) -> None:
         if curr is None:
             return
@@ -531,8 +562,8 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         for record in self.ct_search_results:
             if record.id == self.series_id:
                 if record.description is None:
-                    self.teDetails.setText("")
+                    self.set_description(self.teDetails, "")
                 else:
-                    self.teDetails.setText(record.description)
+                    self.set_description(self.teDetails, record.description)
                 self.imageWidget.set_url(record.image_url)
                 break

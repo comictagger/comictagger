@@ -18,8 +18,6 @@ import posixpath
 import re
 from urllib.parse import urlsplit
 
-from bs4 import BeautifulSoup
-
 from comicapi import utils
 from comicapi.genericmetadata import GenericMetadata
 from comicapi.issuestring import IssueString
@@ -29,9 +27,14 @@ logger = logging.getLogger(__name__)
 
 
 def fix_url(url: str) -> str:
+    if not url:
+        return ""
     tmp_url = urlsplit(url)
+    new_path = posixpath.normpath(tmp_url.path)
+    if new_path in (".", "/"):
+        new_path = ""
     # joinurl only works properly if there is a trailing slash
-    tmp_url = tmp_url._replace(path=posixpath.normpath(tmp_url.path) + "/")
+    tmp_url = tmp_url._replace(path=new_path + "/")
     return tmp_url.geturl()
 
 
@@ -43,15 +46,15 @@ def map_comic_issue_to_metadata(
     metadata.is_empty = False
 
     metadata.series = utils.xlate(issue_results.series.name)
-    metadata.issue = IssueString(issue_results.issue_number).as_string()
+    metadata.issue = utils.xlate(IssueString(issue_results.issue_number).as_string())
 
     # Rely on comic talker to validate this number
-    metadata.issue_count = utils.xlate_int(issue_results.series.volume)
+    metadata.issue_count = utils.xlate_int(issue_results.series.count_of_issues)
 
     if issue_results.series.format:
         metadata.format = issue_results.series.format
 
-    metadata.volume = utils.xlate_int(issue_results.series.volume)
+    metadata.volume = utils.xlate_int(issue_results.volume)
     metadata.volume_count = utils.xlate_int(issue_results.series.count_of_volumes)
 
     if issue_results.name:
@@ -102,6 +105,9 @@ def map_comic_issue_to_metadata(
     if issue_results.critical_rating:
         metadata.critical_rating = utils.xlate_float(issue_results.critical_rating)
 
+    if issue_results.maturity_rating:
+        metadata.maturity_rating = issue_results.maturity_rating
+
     if issue_results.language:
         metadata.language = issue_results.language
 
@@ -129,6 +135,8 @@ def cleanup_html(string: str, remove_html_tables: bool = False) -> str:
     """Cleans HTML code from any text. Will remove any HTML tables with remove_html_tables"""
     if string is None:
         return ""
+    from bs4 import BeautifulSoup
+
     # find any tables
     soup = BeautifulSoup(string, "html.parser")
     tables = soup.findAll("table")
