@@ -102,4 +102,3 @@ class settngs_namespace(settngs.TypedNS):
     autotag_assume_1_if_no_issue_num: bool
     autotag_ignore_leading_numbers_in_filename: bool
     autotag_remove_archive_after_successful_match: bool
-    autotag_wait_and_retry_on_rate_limit: bool
