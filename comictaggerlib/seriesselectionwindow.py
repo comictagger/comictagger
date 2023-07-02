@@ -464,18 +464,21 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
             item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
             self.twList.setItem(row, 0, item)
 
-            item_text = str(record.start_year)
-            item = QtWidgets.QTableWidgetItem(item_text)
-            item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
-            item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
-            self.twList.setItem(row, 1, item)
+            if record.start_year is not None:
+                item_text = f"{record.start_year:04}"
+                item = QtWidgets.QTableWidgetItem(item_text)
+                item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
+                item.setData(QtCore.Qt.ItemDataRole.DisplayRole, record.start_year)
+                item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
+                self.twList.setItem(row, 1, item)
 
-            item_text = str(record.count_of_issues)
-            item = QtWidgets.QTableWidgetItem(item_text)
-            item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
-            item.setData(QtCore.Qt.ItemDataRole.DisplayRole, record.count_of_issues)
-            item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
-            self.twList.setItem(row, 2, item)
+            if record.count_of_issues is not None:
+                item_text = f"{record.count_of_issues:04}"
+                item = QtWidgets.QTableWidgetItem(item_text)
+                item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
+                item.setData(QtCore.Qt.ItemDataRole.DisplayRole, record.count_of_issues)
+                item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
+                self.twList.setItem(row, 2, item)
 
             if record.publisher is not None:
                 item_text = record.publisher
