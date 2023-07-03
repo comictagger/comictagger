@@ -224,8 +224,6 @@ class MangaUpdatesTalker(ComicTalker):
         self.default_api_url = self.api_url = "https://api.mangaupdates.com/v1/"
         self.use_series_start_as_volume: bool = False
         self.use_search_title: bool = False
-        self.dup_title: bool = False
-        self.dup_vol_count: bool = False
         self.use_original_publisher: bool = False
         self.filter_nsfw: bool = False
         self.add_nsfw_rating: bool = False
@@ -244,18 +242,6 @@ class MangaUpdatesTalker(ComicTalker):
             action=argparse.BooleanOptionalAction,
             display_name="Use search title",
             help="Use search title result instead of the English title",
-        )
-        parser.add_setting(
-            "--mu-dup-title",
-            default=False,
-            action=argparse.BooleanOptionalAction,
-            display_name="Duplicate series name to title",
-        )
-        parser.add_setting(
-            "--mu-dup-vol-count",
-            default=False,
-            action=argparse.BooleanOptionalAction,
-            display_name="Duplicate volume count to issue count",
         )
         parser.add_setting(
             "--mu-use-original-publisher",
@@ -298,13 +284,10 @@ class MangaUpdatesTalker(ComicTalker):
 
         self.use_series_start_as_volume = settings["mu_use_series_start_as_volume"]
         self.use_search_title = settings["mu_use_search_title"]
-        self.dup_title = settings["mu_dup_title"]
-        self.dup_vol_count = settings["mu_dup_vol_count"]
         self.use_original_publisher = settings["mu_use_original_publisher"]
         self.filter_nsfw = settings["mu_filter_nsfw"]
         self.add_nsfw_rating = settings["mu_add_nsfw_rating"]
         self.filter_dojin = settings["mu_filter_dojin"]
-        self.use_ongoing = settings["mu_use_ongoing"]
 
         return settings
 
@@ -321,7 +304,7 @@ class MangaUpdatesTalker(ComicTalker):
             if mu_response["status"] == "success":
                 return "The URL is valid", True
             else:
-                return "The API key is INVALID!", False
+                return "The URL is INVALID!", False
         except Exception:
             return "Failed to connect to the URL!", False
 
@@ -343,6 +326,7 @@ class MangaUpdatesTalker(ComicTalker):
         # connect to server:
         # if there is a 500 error, try a few more times before giving up
         # any other error, just bail
+        limit_counter = 0
         for tries in range(3):
             try:
                 if not params:
@@ -355,6 +339,18 @@ class MangaUpdatesTalker(ComicTalker):
                     logger.debug(f"Try #{tries + 1}: ")
                     time.sleep(1)
                     logger.debug(str(resp.status_code))
+                if resp.status_code == requests.status_codes.codes.TOO_MANY_REQUESTS:
+                    logger.info(f"{self.name} rate limit encountered. Waiting for 10 seconds\n")
+                    time.sleep(10)
+                    limit_counter += 1
+                    if limit_counter > 3:
+                        # Tried 3 times, inform user.
+                        logger.error(f"{self.name} rate limit error. Exceeded 3 retires.")
+                        raise TalkerNetworkError(
+                            self.name,
+                            3,
+                            "Rate limit error. Exceeded 3 retries.",
+                        )
                 if resp.status_code == 400:
                     logger.debug(f"Validation or service error: {resp.json()}")
                     raise TalkerNetworkError(self.name, 2, f"Validation or service error: {resp.json()}")
@@ -401,7 +397,7 @@ class MangaUpdatesTalker(ComicTalker):
 
         return ComicSeries(
             aliases=[record["hit_title"]],  # Not returned from search, used to store hit_title
-            count_of_issues=0,  # Not returned from search
+            count_of_issues=None,  # Not returned from search
             description=record["record"].get("description", ""),
             id=str(record["record"]["series_id"]),
             image_url=image_url,
@@ -409,7 +405,6 @@ class MangaUpdatesTalker(ComicTalker):
             publisher="",  # Publisher not returned from search
             start_year=start_year,
             count_of_volumes=None,
-            volume=None,
             genres=genre_list,
             format=None,
         )
@@ -443,19 +438,12 @@ class MangaUpdatesTalker(ComicTalker):
         for person in issue["authors"]:
             persons_list.append(Credit(name=person["name"], role=person["type"]))
 
-        title = issue.get("title", "")
-        # Use search title can desync between series search and fetching the issue so check:
-        if self.use_search_title and len(volume.aliases) == 1:
-            title = volume.aliases[0]
-
-        issue_title = ""
-        if self.dup_title:
-            issue_title = volume.name
-
         start_year = utils.xlate_int(issue.get("year", "0"))
 
         manga = ""
-        if issue["type"] == "Manga":
+        # Types: Artbook, Doujinshi, Drama CD, Filipino, Indonesian, Manga, Manhwa, Manhua, Novel, OEL, Thai,
+        # Vietnamese, Malaysian, Nordic, French, Spanish
+        if issue["type"] == "Manga" or issue["type"] == "Doujinshi":
             manga = "Yes"
 
         genre_list = []
@@ -477,10 +465,9 @@ class MangaUpdatesTalker(ComicTalker):
         if reg_match is not None:
             count_of_volumes = utils.xlate_int(reg_match.group(2))
 
-        volume.name = title
-
-        if self.dup_vol_count:
-            volume.count_of_issues = count_of_volumes
+        # Marked as complete so latest_chapter can be confirmed as number of chapters
+        if issue["completed"]:
+            volume.count_of_issues = issue["latest_chapter"]
         volume.count_of_volumes = count_of_volumes
         volume.start_year = start_year
         volume.publisher = publisher
@@ -491,6 +478,7 @@ class MangaUpdatesTalker(ComicTalker):
             aliases=aliases_list,
             cover_date="",
             issue_number="",
+            volume=None,
             alt_image_urls=[],
             characters=[],
             locations=[],
@@ -499,7 +487,7 @@ class MangaUpdatesTalker(ComicTalker):
             description=issue.get("description", ""),
             id=str(issue["series_id"]),
             image_url=image_url,
-            name=issue_title,
+            name="",
             site_detail_url=issue.get("url", ""),
             series=volume,
             credits=persons_list,
@@ -677,7 +665,6 @@ class MangaUpdatesTalker(ComicTalker):
                 aliases=[],
                 count_of_issues=None,
                 count_of_volumes=None,
-                volume=None,
                 description="",
                 id=str(series_id),
                 image_url="",
@@ -690,11 +677,10 @@ class MangaUpdatesTalker(ComicTalker):
 
         # It's possible a new search with new options has wiped the series publisher so refresh if it's empty
         if cached_issues_result:
+            # Filter out maturity rating if set
+            if not self.add_nsfw_rating:
+                cached_issues_result.maturity_rating = ""
             cached_issues_result.series = volume
-            if self.dup_title:
-                cached_issues_result.name = cached_issues_result.series.name
-            if self.dup_vol_count:
-                cached_issues_result.series.count_of_issues = cached_issues_result.series.count_of_volumes
             return cached_issues_result
 
         issue_url = urljoin(self.api_url, f"series/{series_id}")
