@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>dialogExport</class>
- <widget class="QDialog" name="dialogExport">
+ <class>ExportWindow</class>
+ <widget class="QDialog" name="ExportWindow">
   <property name="windowModality">
    <enum>Qt::NonModal</enum>
   </property>
@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>533</width>
-    <height>231</height>
+    <height>241</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -127,7 +127,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>dialogExport</receiver>
+   <receiver>ExportWindow</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -143,7 +143,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>dialogExport</receiver>
+   <receiver>ExportWindow</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

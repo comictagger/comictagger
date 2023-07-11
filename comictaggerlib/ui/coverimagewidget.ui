@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>coverImageWidget</class>
- <widget class="QWidget" name="coverImageWidget">
+ <class>CoverImageWidget</class>
+ <widget class="QWidget" name="CoverImageWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string notr="true">Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <property name="leftMargin">
@@ -119,8 +119,20 @@
       <property name="toolTip">
        <string>Double-click to expand</string>
       </property>
+      <property name="statusTip">
+       <string notr="true"/>
+      </property>
+      <property name="whatsThis">
+       <string notr="true"/>
+      </property>
+      <property name="accessibleName">
+       <string notr="true"/>
+      </property>
+      <property name="accessibleDescription">
+       <string notr="true"/>
+      </property>
       <property name="text">
-       <string>TextLabel</string>
+       <string notr="true">TextLabel</string>
       </property>
      </widget>
     </widget>

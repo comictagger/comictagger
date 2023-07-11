@@ -25,7 +25,7 @@ class QTextEditLogger(QtCore.QObject, logging.Handler):
 class ApplicationLogWindow(QtWidgets.QDialog):
     def __init__(self, log_handler: QTextEditLogger, parent: QtCore.QObject | None = None) -> None:
         super().__init__(parent)
-        uic.loadUi(ui_path / "logwindow.ui", self)
+        uic.loadUi(ui_path / "applicationlogwindow.ui", self)
 
         self.log_handler = log_handler
         self.log_handler.qlog.connect(self.textEdit.append)
@@ -34,7 +34,7 @@ class ApplicationLogWindow(QtWidgets.QDialog):
         f.setStyleHint(QtGui.QFont.Monospace)
         self.setFont(f)
         self._button = QtWidgets.QPushButton(self)
-        self._button.setText("Test Me")
+        self._button.setText(self.tr("Test Me"))
 
         layout = self.layout()
         layout.addWidget(self._button)
@@ -44,7 +44,7 @@ class ApplicationLogWindow(QtWidgets.QDialog):
         self.textEdit.setTabStopDistance(self.textEdit.tabStopDistance() * 2)
 
     def test(self) -> None:
-        logger.debug("damn, a bug")
-        logger.info("something to remember")
-        logger.warning("that's not right")
-        logger.error("foobar")
+        logger.debug(self.tr("damn, a bug"))
+        logger.info(self.tr("something to remember"))
+        logger.warning(self.tr("that's not right"))
+        logger.error(self.tr("foobar"))

@@ -51,7 +51,7 @@ class PageListEditor(QtWidgets.QWidget):
     listOrderChanged = QtCore.pyqtSignal()
     modified = QtCore.pyqtSignal()
 
-    pageTypeNames = {
+    pageTypeNames = {  # TODO Trans?
         PageType.FrontCover: "Front Cover",
         PageType.InnerCover: "Inner Cover",
         PageType.Advertisement: "Advertisement",

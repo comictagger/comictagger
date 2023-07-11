@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>dialogIssueSelect</class>
- <widget class="QDialog" name="dialogIssueSelect">
+ <class>AutoTagProgressWindow</class>
+ <widget class="QDialog" name="AutoTagProgressWindow">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -20,44 +20,6 @@
    <string>Issue Identification Progress</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="1">
-    <widget class="QWidget" name="archiveCoverContainer" native="true">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="minimumSize">
-      <size>
-       <width>110</width>
-       <height>165</height>
-      </size>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>110</width>
-       <height>165</height>
-      </size>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="4">
-    <widget class="QWidget" name="testCoverContainer" native="true">
-     <property name="minimumSize">
-      <size>
-       <width>110</width>
-       <height>165</height>
-      </size>
-     </property>
-     <property name="maximumSize">
-      <size>
-       <width>110</width>
-       <height>165</height>
-      </size>
-     </property>
-    </widget>
-   </item>
    <item row="0" column="2">
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
@@ -104,6 +66,44 @@
      </item>
     </layout>
    </item>
+   <item row="0" column="4">
+    <widget class="QWidget" name="testCoverContainer" native="true">
+     <property name="minimumSize">
+      <size>
+       <width>110</width>
+       <height>165</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>110</width>
+       <height>165</height>
+      </size>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="QWidget" name="archiveCoverContainer" native="true">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="minimumSize">
+      <size>
+       <width>110</width>
+       <height>165</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>110</width>
+       <height>165</height>
+      </size>
+     </property>
+    </widget>
+   </item>
   </layout>
  </widget>
  <resources/>
@@ -111,7 +111,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>dialogIssueSelect</receiver>
+   <receiver>AutoTagProgressWindow</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -127,7 +127,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>dialogIssueSelect</receiver>
+   <receiver>AutoTagProgressWindow</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

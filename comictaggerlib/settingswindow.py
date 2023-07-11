@@ -39,34 +39,35 @@ from comictalker.comictalker import ComicTalker
 
 logger = logging.getLogger(__name__)
 
-windowsRarHelp = """
-                <html><head/><body><p>To write to CBR/RAR archives,
-                you will need to have the tools from
-                <span style=" text-decoration: underline; color:#0000ff;">
-                <a href="http://www.win-rar.com/download.html">WINRar</a></span>
-                installed. (ComicTagger only uses the command-line rar tool.)
-                </p></body></html>
-                """
+# fmt: off
+windowsRarHelp = QtCore.QT_TRANSLATE_NOOP(
+    "SettingsWindow",
+    """<html><head/><body><p>To write to CBR/RAR archives,
+    you will need to have the tools from
+    <span style=" text-decoration: underline; color:#0000ff;">
+    <a href="http://www.win-rar.com/download.html">WINRar</a></span>
+    installed. (ComicTagger only uses the command-line rar tool.)
+    </p></body></html>""")
 
-linuxRarHelp = """
-                <html><head/><body><p>To write to CBR/RAR archives,
-                you will need to have the shareware rar tool from RARLab installed.
-                Your package manager should have rar (e.g. "apt-get install rar"). If not, download it
-                <span style=" text-decoration: underline; color:#0000ff;">
-                <a href="https://www.rarlab.com/download.htm">here</a></span>,
-                and install in your path. </p></body></html>
-                """
+linuxRarHelp = QtCore.QT_TRANSLATE_NOOP(
+    "SettingsWindow",
+    """<html><head/><body><p>To write to CBR/RAR archives,
+    you will need to have the shareware rar tool from RARLab installed.
+    Your package manager should have rar (e.g. "apt-get install rar").
+    If not, download it <span style=" text-decoration: underline; color:#0000ff;">
+    <a href="https://www.rarlab.com/download.htm">here</a></span>, and install in your path. </p></body></html>""")
 
-macRarHelp = """
-                <html><head/><body><p>To write to CBR/RAR archives,
-                you will need the rar tool.  The easiest way to get this is
-                to install <span style=" text-decoration: underline; color:#0000ff;">
-                <a href="https://brew.sh/">homebrew</a></span>.
-                </p>Once homebrew is installed, run: <b>brew install caskroom/cask/rar</b></body></html>
-                """
+macRarHelp = QtCore.QT_TRANSLATE_NOOP(
+    "SettingsWindow",
+    """<html><head/><body><p>To write to CBR/RAR archives,
+you will need the rar tool.  The easiest way to get this is
+to install <span style=" text-decoration: underline; color:#0000ff;">
+<a href="https://brew.sh/">homebrew</a></span>.
+</p>Once homebrew is installed, run: <b>brew install caskroom/cask/rar</b></body></html>""")
 
-
-template_tooltip = """
+template_tooltip = QtCore.QT_TRANSLATE_NOOP(
+    "SettingsWindow",
+    """
 The template for the new filename. Uses python format strings https://docs.python.org/3/library/string.html#format-string-syntax
 Accepts the following variables:
 {is_empty}         (boolean)
@@ -129,7 +130,8 @@ Spider-Geddon 1 (2018)
 
 {series} #{issue} - {title}
 Spider-Geddon #1 - New Players; Check In
-"""
+""")
+# fmt: on
 
 
 class SettingsWindow(QtWidgets.QDialog):
@@ -148,44 +150,55 @@ class SettingsWindow(QtWidgets.QDialog):
         self.talkers = talkers
         self.name = "Settings"
 
+        self.dbxLanguage.addItem("English (US)", "en_US")
+        # For testing
+        self.dbxLanguage.addItem("English (GB)", "en_GB")
+        # To demo builtin change
+        self.dbxLanguage.addItem("Japanese", "ja")
+        # TODO function to check i18n for .gm files?
+
         if platform.system() == "Windows":
-            self.lblRarHelp.setText(windowsRarHelp)
+            self.lblRarHelp.setText(self.tr(windowsRarHelp))
 
         elif platform.system() == "Linux":
-            self.lblRarHelp.setText(linuxRarHelp)
+            self.lblRarHelp.setText(self.tr(linuxRarHelp))
 
         elif platform.system() == "Darwin":
             self.leRarExePath.setReadOnly(False)
 
-            self.lblRarHelp.setText(macRarHelp)
+            self.lblRarHelp.setText(self.tr(macRarHelp))
             self.name = "Preferences"
 
         self.setWindowTitle("ComicTagger " + self.name)
-        self.lblDefaultSettings.setText("Revert to default " + self.name.casefold())
-        self.btnResetSettings.setText("Default " + self.name)
+        self.lblDefaultSettings.setText(self.tr("Revert to default") + " " + self.name.casefold())
+        self.btnResetSettings.setText(self.tr("Default") + " " + self.name)
 
-        nmit_tip = """<html>The <b>Name Match Ratio Threshold: Auto-Identify</b> is for eliminating automatic
-                search matches that are too long compared to your series name search. The lower
-                it is, the more likely to have a good match, but each search will take longer and
-                use more bandwidth. Too high, and only the very closest matches will be explored.</html>"""
-        nmst_tip = """<html>The <b>Name Match Ratio Threshold: Search</b> is for reducing the total
-                number of results that are returned from a search. The lower it is, the more pages will
-                be returned (max 5 pages or 500 results)</html>"""
+        nmit_tip = self.tr(
+            """Name Match Ratio Threshold: Auto-Identify is for eliminating automatic
+search matches that are too long compared to your series name search. The lower
+it is, the more likely to have a good match, but each search will take longer and
+use more bandwidth. Too high, and only the very closest matches will be explored."""
+        )
+        nmst_tip = self.tr(
+            """The Name Match Ratio Threshold: Search is for reducing the total
+number of results that are returned from a search. The lower it is, the more pages will
+be returned (max 5 pages or 500 results)"""
+        )
 
         self.sbNameMatchIdentifyThresh.setToolTip(nmit_tip)
         self.sbNameMatchSearchThresh.setToolTip(nmst_tip)
 
-        pbl_tip = """<html>
-            The <b>Publisher Filter</b> is for eliminating automatic matches to certain publishers
-            that you know are incorrect. Useful for avoiding international re-prints with same
-            covers or series names. Enter publisher names separated by commas.
-            </html>"""
+        pbl_tip = self.tr(
+            """The Publisher Filter is for eliminating automatic matches to certain publishers
+that you know are incorrect. Useful for avoiding international re-prints with same
+covers or series names. Enter publisher names separated by commas."""
+        )
         self.tePublisherFilter.setToolTip(pbl_tip)
 
         validator = QtGui.QIntValidator(1, 4, self)
         self.leIssueNumPadding.setValidator(validator)
 
-        self.leRenameTemplate.setToolTip(f"<pre>{html.escape(template_tooltip)}</pre>")
+        self.leRenameTemplate.setToolTip(f"<pre>{html.escape(self.tr(template_tooltip))}</pre>")
         self.rename_error: Exception | None = None
 
         self.sources: dict = comictaggerlib.ui.talkeruigenerator.generate_source_option_tabs(
@@ -312,6 +325,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.tePublisherFilter.setPlainText("\n".join(self.config[0].identifier_publisher_filter))
 
         self.cbxCheckForNewVersion.setChecked(self.config[0].general_check_for_new_version)
+        self.dbxLanguage.setCurrentIndex(self.dbxLanguage.findData(self.config[0].general_language))
 
         self.cbxComplicatedParser.setChecked(self.config[0].filename_complicated_parser)
         self.cbxRemoveC2C.setChecked(self.config[0].filename_remove_c2c)
@@ -386,13 +400,15 @@ class SettingsWindow(QtWidgets.QDialog):
                 logger.exception("Invalid format string: %s", self.config[0].rename_template)
                 QtWidgets.QMessageBox.critical(
                     self,
-                    "Invalid format string!",
-                    "Your rename template is invalid!"
-                    f"<br/><br/>{self.rename_error}<br/><br/>"
-                    "Please consult the template help in the "
-                    "settings and the documentation on the format at "
-                    "<a href='https://docs.python.org/3/library/string.html#format-string-syntax'>"
-                    "https://docs.python.org/3/library/string.html#format-string-syntax</a>",
+                    self.tr("Invalid format string!"),
+                    self.tr(
+                        "Your rename template is invalid!"
+                        f"<br/><br/>{self.rename_error}<br/><br/>"
+                        "Please consult the template help in the "
+                        "settings and the documentation on the format at "
+                        "<a href='https://docs.python.org/3/library/string.html#format-string-syntax'>"
+                        "https://docs.python.org/3/library/string.html#format-string-syntax</a>"
+                    ),
                 )
                 return
             else:
@@ -401,12 +417,14 @@ class SettingsWindow(QtWidgets.QDialog):
                 )
                 QtWidgets.QMessageBox.critical(
                     self,
-                    "The formatter had an issue!",
-                    "The formatter has experienced an unexpected error!"
-                    f"<br/><br/>{type(self.rename_error).__name__}: {self.rename_error}<br/><br/>"
-                    "Please open an issue at "
-                    "<a href='https://github.com/comictagger/comictagger'>"
-                    "https://github.com/comictagger/comictagger</a>",
+                    self.tr("The formatter had an issue!"),
+                    self.tr(
+                        "The formatter has experienced an unexpected error!"
+                        f"<br/><br/>{type(self.rename_error).__name__}: {self.rename_error}<br/><br/>"
+                        "Please open an issue at "
+                        "<a href='https://github.com/comictagger/comictagger'>"
+                        "https://github.com/comictagger/comictagger</a>"
+                    ),
                 )
 
         # Copy values from form to settings and save
@@ -421,6 +439,9 @@ class SettingsWindow(QtWidgets.QDialog):
             self.leIssueNumPadding.setText("0")
 
         self.config[0].general_check_for_new_version = self.cbxCheckForNewVersion.isChecked()
+        if self.config[0].general_language != self.dbxLanguage.currentData():
+            self.lang_change(self.dbxLanguage.currentData())
+            self.config[0].general_language = self.dbxLanguage.currentData()
 
         self.config[0].identifier_series_match_identify_thresh = self.sbNameMatchIdentifyThresh.value()
         self.config[0].identifier_series_match_search_thresh = self.sbNameMatchSearchThresh.value()
@@ -472,18 +493,41 @@ class SettingsWindow(QtWidgets.QDialog):
         self.config = ctsettings.plugin.validate_talker_settings(self.config)
         del ctsettings.talkers
 
+    def lang_change(self, lang: str) -> None:
+        msg = QtCore.QT_TRANSLATE_NOOP("SettingsWindow", "Please restart ComicTagger to activate the new language")
+        QtCore.QLocale.setDefault(QtCore.QLocale(lang))
+
+        # Load the new language into a new translator to display the restart message
+        translator_new = QtCore.QTranslator()
+        try:
+            translator_new.load(QtCore.QLocale().name(), "i18n")
+        except Exception:
+            logger.info(f"Failed to load language file {lang}.qm")
+
+        if not translator_new.isEmpty():
+            QtWidgets.QMessageBox.information(
+                self,
+                self.name,
+                translator_new.translate("SettingsWindow", "Please restart ComicTagger to activate the new language"),
+            )
+        else:
+            # This should only ever be en_US
+            QtWidgets.QMessageBox.information(self, self.name, msg)
+
     def select_rar(self) -> None:
         self.select_file(self.leRarExePath, "RAR")
 
     def clear_cache(self) -> None:
         ImageFetcher(self.config[0].runtime_config.user_cache_dir).clear_cache()
         ComicCacher(self.config[0].runtime_config.user_cache_dir, version).clear_cache()
-        QtWidgets.QMessageBox.information(self, self.name, "Cache has been cleared.")
+        QtWidgets.QMessageBox.information(self, self.name, self.tr("Cache has been cleared."))
 
     def reset_settings(self) -> None:
         self.config = cast(settngs.Config[ct_ns], settngs.get_namespace(settngs.defaults(self.config[1])))
         self.settings_to_form()
-        QtWidgets.QMessageBox.information(self, self.name, self.name + " have been returned to default values.")
+        QtWidgets.QMessageBox.information(
+            self, self.name, self.name + self.tr(" have been returned to default values.")
+        )
 
     def select_file(self, control: QtWidgets.QLineEdit, name: str) -> None:
         dialog = QtWidgets.QFileDialog(self)
@@ -500,9 +544,9 @@ class SettingsWindow(QtWidgets.QDialog):
 
         dialog.setDirectory(os.path.dirname(str(control.text())))
         if name == "RAR":
-            dialog.setWindowTitle(f"Find {name} program")
+            dialog.setWindowTitle(self.tr(f"Find {name} program"))
         else:
-            dialog.setWindowTitle(f"Find {name} library")
+            dialog.setWindowTitle(self.tr(f"Find {name} library"))
 
         if dialog.exec():
             file_list = dialog.selectedFiles()

@@ -228,11 +228,13 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
 
     def auto_select(self) -> None:
         if self.comic_archive is None:
-            QtWidgets.QMessageBox.information(self, "Auto-Select", "You need to load a comic first!")
+            QtWidgets.QMessageBox.information(self, self.tr("Auto-Select"), self.tr("You need to load a comic first!"))
             return
 
         if self.issue_number is None or self.issue_number == "":
-            QtWidgets.QMessageBox.information(self, "Auto-Select", "Can't auto-select without an issue number (yet!)")
+            QtWidgets.QMessageBox.information(
+                self, self.tr("Auto-Select"), self.tr("Can't auto-select without an issue number (yet!)")
+            )
             return
 
         self.iddialog = IDProgressWindow(self)
@@ -285,29 +287,33 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
             found_match = None
             choices = False
             if result == self.ii.result_no_matches:
-                QtWidgets.QMessageBox.information(self, "Auto-Select Result", " No matches found :-(")
+                QtWidgets.QMessageBox.information(self, self.tr("Auto-Select Result"), self.tr("No matches found!"))
             elif result == self.ii.result_found_match_but_bad_cover_score:
                 QtWidgets.QMessageBox.information(
                     self,
-                    "Auto-Select Result",
-                    " Found a match, but cover doesn't seem the same.  Verify before committing!",
+                    self.tr("Auto-Select Result"),
+                    self.tr("Found a match, but cover doesn't seem the same.  Verify before committing!"),
                 )
                 found_match = matches[0]
             elif result == self.ii.result_found_match_but_not_first_page:
                 QtWidgets.QMessageBox.information(
-                    self, "Auto-Select Result", " Found a match, but not with the first page of the archive."
+                    self,
+                    self.tr("Auto-Select Result"),
+                    self.tr("Found a match, but not with the first page of the archive."),
                 )
                 found_match = matches[0]
             elif result == self.ii.result_multiple_matches_with_bad_image_scores:
                 QtWidgets.QMessageBox.information(
-                    self, "Auto-Select Result", " Found some possibilities, but no confidence. Proceed manually."
+                    self,
+                    self.tr("Auto-Select Result"),
+                    self.tr("Found some possibilities, but no confidence. Proceed manually."),
                 )
                 choices = True
             elif result == self.ii.result_one_good_match:
                 found_match = matches[0]
             elif result == self.ii.result_multiple_good_matches:
                 QtWidgets.QMessageBox.information(
-                    self, "Auto-Select Result", " Found multiple likely matches.  Please select."
+                    self, self.tr("Auto-Select Result"), self.tr("Found multiple likely matches.  Please select.")
                 )
                 choices = True
 
@@ -339,7 +345,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
                 title += " - "
                 break
 
-        selector.setWindowTitle(title + "Select Issue")
+        selector.setWindowTitle(title + self.tr("Select Issue"))
         selector.setModal(True)
         selector.exec()
         if selector.result():
@@ -365,8 +371,8 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         self.search_thread.progressUpdate.connect(self.search_progress_update)
         self.search_thread.start()
 
-        self.progdialog = QtWidgets.QProgressDialog("Searching Online", "Cancel", 0, 100, self)
-        self.progdialog.setWindowTitle("Online Search")
+        self.progdialog = QtWidgets.QProgressDialog(self.tr("Searching Online"), self.tr("Cancel"), 0, 100, self)
+        self.progdialog.setWindowTitle(self.tr("Online Search"))
         self.progdialog.canceled.connect(self.search_canceled)
         self.progdialog.setModal(True)
         self.progdialog.setMinimumDuration(300)
@@ -528,7 +534,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         self.perform_query()
         if not self.ct_search_results:
             QtCore.QCoreApplication.processEvents()
-            QtWidgets.QMessageBox.information(self, "Search Result", "No matches found!")
+            QtWidgets.QMessageBox.information(self, self.tr("Search Result"), self.tr("No matches found!"))
             QtCore.QTimer.singleShot(200, self.close_me)
 
         elif self.immediate_autoselect:

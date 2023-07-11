@@ -50,18 +50,20 @@ class AutoTagStartWindow(QtWidgets.QDialog):
         self.cbxRemoveAfterSuccess.setChecked(self.config.autotag_remove_archive_after_successful_match)
         self.cbxAutoImprint.setChecked(self.config.identifier_auto_imprint)
 
-        nlmt_tip = """<html>The <b>Name Match Ratio Threshold: Auto-Identify</b> is for eliminating automatic
-                search matches that are too long compared to your series name search. The lower
-                it is, the more likely to have a good match, but each search will take longer and
-                use more bandwidth. Too high, and only the very closest matches will be explored.</html>"""
+        nlmt_tip = self.tr(
+            """The Name Match Ratio Threshold: Auto-Identify is for eliminating automatic
+search matches that are too long compared to your series name search. The lower
+it is, the more likely to have a good match, but each search will take longer and
+use more bandwidth. Too high, and only the very closest matches will be explored."""
+        )
 
         self.sbNameMatchSearchThresh.setToolTip(nlmt_tip)
 
-        ss_tip = """<html>
-            The <b>series search string</b> specifies the search string to be used for all selected archives.
-            Use this when trying to match archives with hard-to-parse or incorrect filenames.  All archives selected
-            should be from the same series.
-            </html>"""
+        ss_tip = self.tr(
+            """The series search string specifies the search string to be used for all selected archives.
+Use this when trying to match archives with hard-to-parse or incorrect filenames.  All archives selected
+should be from the same series."""
+        )
         self.leSearchString.setToolTip(ss_tip)
         self.cbxSpecifySearchString.setToolTip(ss_tip)
 

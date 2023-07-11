@@ -248,21 +248,25 @@ class TaggerWindow(QtWidgets.QMainWindow):
         if self.config[0].dialog_show_disclaimer:
             checked = OptionalMessageDialog.msg(
                 self,
-                "Welcome!",
+                self.tr("Welcome!"),
+                self.tr(
+                    """
+Thanks for trying ComicTagger!<br><br>
+Be aware that this is beta-level software, and consider it experimental.
+You should use it very carefully when modifying your data files.  As the
+license says, it's "AS IS!"<br><br>
+Also, be aware that writing tags to comic archives will change their file hashes,
+which has implications with respect to other software packages.  It's best to
+use ComicTagger on local copies of your comics.<br><br>
+COMIC VINE NOTE: Using the default API key will serverly limit search and tagging
+times. A personal API key will allow for a <b>5 times increase</b> in online search speed. See the
+<a href='https://github.com/comictagger/comictagger/wiki/UserGuide#comic-vine'>Wiki page</a>
+for more information.<br><br>
+TRANSLATIONS WANTED: If you can help in translating ComicTagger, please visit
+<a href='https://tbd'>TBD</a><br><br>
+Have fun!
                 """
-                Thanks for trying ComicTagger!<br><br>
-                Be aware that this is beta-level software, and consider it experimental.
-                You should use it very carefully when modifying your data files.  As the
-                license says, it's "AS IS!"<br><br>
-                Also, be aware that writing tags to comic archives will change their file hashes,
-                which has implications with respect to other software packages.  It's best to
-                use ComicTagger on local copies of your comics.<br><br>
-                COMIC VINE NOTE: Using the default API key will serverly limit search and tagging
-                times. A personal API key will allow for a <b>5 times increase</b> in online search speed. See the
-                <a href='https://github.com/comictagger/comictagger/wiki/UserGuide#comic-vine'>Wiki page</a>
-                for more information.<br><br>
-                Have fun!
-                """,
+                ),
             )
             self.config[0].dialog_show_disclaimer = not checked
 
@@ -322,78 +326,78 @@ class TaggerWindow(QtWidgets.QMainWindow):
             ro_str = ""
 
             if self.dirty_flag:
-                mod_str = " [modified]"
+                mod_str = self.tr(" [modified]")
 
             if not self.comic_archive.is_writable():
-                ro_str = " [read only]"
+                ro_str = self.tr(" [read only]")
 
             self.setWindowTitle(f"{self.appName} - {self.comic_archive.path}{mod_str}{ro_str}")
 
     def config_menus(self) -> None:
         # File Menu
         self.actionExit.setShortcut("Ctrl+Q")
-        self.actionExit.setStatusTip("Exit application")
+        self.actionExit.setStatusTip(self.tr("Exit application"))
         self.actionExit.triggered.connect(self.close)
 
         self.actionLoad.setShortcut("Ctrl+O")
-        self.actionLoad.setStatusTip("Load comic archive")
+        self.actionLoad.setStatusTip(self.tr("Load comic archive"))
         self.actionLoad.triggered.connect(self.select_file)
 
         self.actionLoadFolder.setShortcut("Ctrl+Shift+O")
-        self.actionLoadFolder.setStatusTip("Load folder with comic archives")
+        self.actionLoadFolder.setStatusTip(self.tr("Load folder with comic archives"))
         self.actionLoadFolder.triggered.connect(self.select_folder)
 
         self.actionWrite_Tags.setShortcut("Ctrl+S")
-        self.actionWrite_Tags.setStatusTip("Save tags to comic archive")
+        self.actionWrite_Tags.setStatusTip(self.tr("Save tags to comic archive"))
         self.actionWrite_Tags.triggered.connect(self.commit_metadata)
 
         self.actionAutoTag.setShortcut("Ctrl+T")
-        self.actionAutoTag.setStatusTip("Auto-tag multiple archives")
+        self.actionAutoTag.setStatusTip(self.tr("Auto-tag multiple archives"))
         self.actionAutoTag.triggered.connect(self.auto_tag)
 
         self.actionCopyTags.setShortcut("Ctrl+C")
-        self.actionCopyTags.setStatusTip("Copy one tag style to another")
+        self.actionCopyTags.setStatusTip(self.tr("Copy one tag style to another"))
         self.actionCopyTags.triggered.connect(self.copy_tags)
 
         self.actionRemoveAuto.setShortcut("Ctrl+D")
-        self.actionRemoveAuto.setStatusTip("Remove currently selected modify tag style from the archive")
+        self.actionRemoveAuto.setStatusTip(self.tr("Remove currently selected modify tag style from the archive"))
         self.actionRemoveAuto.triggered.connect(self.remove_auto)
 
-        self.actionRemoveCBLTags.setStatusTip("Remove ComicBookLover tags from comic archive")
+        self.actionRemoveCBLTags.setStatusTip(self.tr("Remove ComicBookLover tags from comic archive"))
         self.actionRemoveCBLTags.triggered.connect(self.remove_cbl_tags)
 
-        self.actionRemoveCRTags.setStatusTip("Remove ComicRack tags from comic archive")
+        self.actionRemoveCRTags.setStatusTip(self.tr("Remove ComicRack tags from comic archive"))
         self.actionRemoveCRTags.triggered.connect(self.remove_cr_tags)
 
-        self.actionViewRawCRTags.setStatusTip("View raw ComicRack tag block from file")
+        self.actionViewRawCRTags.setStatusTip(self.tr("View raw ComicRack tag block from file"))
         self.actionViewRawCRTags.triggered.connect(self.view_raw_cr_tags)
 
-        self.actionViewRawCBLTags.setStatusTip("View raw ComicBookLover tag block from file")
+        self.actionViewRawCBLTags.setStatusTip(self.tr("View raw ComicBookLover tag block from file"))
         self.actionViewRawCBLTags.triggered.connect(self.view_raw_cbl_tags)
 
         self.actionRepackage.setShortcut("Ctrl+E")
-        self.actionRepackage.setStatusTip("Re-create archive as CBZ")
+        self.actionRepackage.setStatusTip(self.tr("Re-create archive as CBZ", "CBZ is the file format/extension"))
         self.actionRepackage.triggered.connect(self.repackage_archive)
 
         self.actionRename.setShortcut("Ctrl+N")
-        self.actionRename.setStatusTip("Rename archive based on tags")
+        self.actionRename.setStatusTip(self.tr("Rename archive based on tags"))
         self.actionRename.triggered.connect(self.rename_archive)
 
         self.actionSettings.setShortcut("Ctrl+Shift+S")
-        self.actionSettings.setStatusTip("Configure ComicTagger")
+        self.actionSettings.setStatusTip(self.tr("Configure ComicTagger"))
         self.actionSettings.triggered.connect(self.show_settings)
 
         # Tag Menu
         self.actionParse_Filename.setShortcut("Ctrl+F")
-        self.actionParse_Filename.setStatusTip("Try to extract tags from filename")
+        self.actionParse_Filename.setStatusTip(self.tr("Try to extract tags from filename"))
         self.actionParse_Filename.triggered.connect(self.use_filename)
 
         self.actionParse_Filename_split_words.setShortcut("Ctrl+Shift+F")
-        self.actionParse_Filename_split_words.setStatusTip("Try to extract tags from filename and split words")
+        self.actionParse_Filename_split_words.setStatusTip(self.tr("Try to extract tags from filename and split words"))
         self.actionParse_Filename_split_words.triggered.connect(self.use_filename_split)
 
         self.actionSearchOnline.setShortcut("Ctrl+W")
-        self.actionSearchOnline.setStatusTip("Search online for tags")
+        self.actionSearchOnline.setStatusTip(self.tr("Search online for tags"))
         self.actionSearchOnline.triggered.connect(self.query_online)
 
         self.actionAutoImprint.triggered.connect(self.auto_imprint)
@@ -404,29 +408,31 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.actionLiteralSearch.triggered.connect(self.literal_search)
 
         self.actionApplyCBLTransform.setShortcut("Ctrl+L")
-        self.actionApplyCBLTransform.setStatusTip("Modify tags specifically for CBL format")
+        self.actionApplyCBLTransform.setStatusTip(
+            self.tr("Modify tags specifically for CBL format", "CBL = ComicBookLover. Consider leaving untranslated")
+        )
         self.actionApplyCBLTransform.triggered.connect(self.apply_cbl_transform)
 
         self.actionReCalcPageDims.setShortcut("Ctrl+R")
         self.actionReCalcPageDims.setStatusTip(
-            "Trigger re-calculating image size, height and width for all pages on the next save"
+            self.tr("Trigger re-calculating image size, height and width for all pages on the next save")
         )
         self.actionReCalcPageDims.triggered.connect(self.recalc_page_dimensions)
 
         self.actionClearEntryForm.setShortcut("Ctrl+Shift+C")
-        self.actionClearEntryForm.setStatusTip("Clear all the data on the screen")
+        self.actionClearEntryForm.setStatusTip(self.tr("Clear all the data on the screen"))
         self.actionClearEntryForm.triggered.connect(self.clear_form)
 
         # Window Menu
         self.actionPageBrowser.setShortcut("Ctrl+P")
-        self.actionPageBrowser.setStatusTip("Show the page browser")
+        self.actionPageBrowser.setStatusTip(self.tr("Show the page browser"))
         self.actionPageBrowser.triggered.connect(self.show_page_browser)
         self.actionLogWindow.setShortcut("Ctrl+Shift+L")
-        self.actionLogWindow.setStatusTip("Show the log window")
+        self.actionLogWindow.setStatusTip(self.tr("Show the log window"))
         self.actionLogWindow.triggered.connect(self.log_window.show)
 
         # Help Menu
-        self.actionAbout.setStatusTip("Show the " + self.appName + " info")
+        self.actionAbout.setStatusTip(self.tr(f"Show the {self.appName} info"))
         self.actionAbout.triggered.connect(self.about_app)
         self.actionWiki.triggered.connect(self.show_wiki)
         self.actionReportBug.triggered.connect(self.report_bug)
@@ -475,8 +481,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
             return
 
         if not self.dirty_flag_verification(
-            "Export as Zip Archive",
-            "If you export archives as Zip now, unsaved data in the form may be lost.  Are you sure?",
+            self.tr("Export as Zip Archive"),
+            self.tr("If you export archives as Zip now, unsaved data in the form may be lost.  Are you sure?"),
         ):
             return
 
@@ -484,11 +490,13 @@ class TaggerWindow(QtWidgets.QMainWindow):
             EW = ExportWindow(
                 self,
                 (
-                    f"You have selected {non_zip_count} archive(s) to export  to Zip format. "
-                    """ New archives will be created in the same folder as the original.
+                    self.tr(
+                        f"You have selected {non_zip_count} archive(s) to export to Zip format. "
+                        """ New archives will be created in the same folder as the original.
 
-   Please choose config below, and select OK.
-   """
+Please choose config below, and select OK.
+"""
+                    )
                 ),
             )
             EW.adjustSize()
@@ -496,8 +504,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
             if not EW.exec():
                 return
 
-            prog_dialog = QtWidgets.QProgressDialog("", "Cancel", 0, non_zip_count, self)
-            prog_dialog.setWindowTitle("Exporting as ZIP")
+            prog_dialog = QtWidgets.QProgressDialog("", self.tr("Cancel"), 0, non_zip_count, self)
+            prog_dialog.setWindowTitle(self.tr("Exporting as ZIP"))
             prog_dialog.setWindowModality(QtCore.Qt.WindowModality.ApplicationModal)
             prog_dialog.setMinimumDuration(300)
             center_window_on_parent(prog_dialog)
@@ -551,15 +559,15 @@ class TaggerWindow(QtWidgets.QMainWindow):
             self.fileSelectionList.add_path_list(new_archives_to_add)
             self.fileSelectionList.remove_archive_list(archives_to_remove)
 
-            summary = f"Successfully created {success_count} Zip archive(s)."
+            summary = self.tr(f"Successfully created {success_count} Zip archive(s).")
             if len(skipped_list) > 0:
-                summary += (
+                summary += self.tr(
                     f"\n\nThe following {len(skipped_list)} archive(s) were skipped due to file name conflicts:\n"
                 )
                 for f in skipped_list:
                     summary += f"\t{f}\n"
             if len(failed_list) > 0:
-                summary += (
+                summary += self.tr(
                     f"\n\nThe following {len(failed_list)} archive(s) failed to export due to read/write errors:\n"
                 )
                 for f in failed_list:
@@ -568,7 +576,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             logger.info(summary)
             dlg = LogWindow(self)
             dlg.set_text(summary)
-            dlg.setWindowTitle("Archive Export to Zip Summary")
+            dlg.setWindowTitle(self.tr("Archive Export to Zip Summary"))
             dlg.exec()
 
     def about_app(self) -> None:
@@ -578,7 +586,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         license_name = "Apache License 2.0"
 
         msg_box = QtWidgets.QMessageBox()
-        msg_box.setWindowTitle("About " + self.appName)
+        msg_box.setWindowTitle(self.tr("About") + " " + self.appName)
         msg_box.setTextFormat(QtCore.Qt.TextFormat.RichText)
         msg_box.setIconPixmap(QtGui.QPixmap(str(graphics_path / "about.png")))
         msg_box.setText(
@@ -589,7 +597,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
             + "&copy;2014-2022 ComicTagger Devs<br><br>"
             + f"<a href='{website}'>{website}</a><br><br>"
             + f"<a href='mailto:{email}'>{email}</a><br><br>"
-            + f"License: <a href='{license_link}'>{license_name}</a>"
+            + self.tr("License:")
+            + f" <a href='{license_link}'>{license_name}</a>"
         )
 
         msg_box.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Ok)
@@ -700,18 +709,18 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
         self.lblFilename.setText(filename)
 
-        self.lblArchiveType.setText(ca.archiver.name() + " archive")
+        self.lblArchiveType.setText(ca.archiver.name() + " " + self.tr("archive"))
 
-        page_count = f" ({ca.get_number_of_pages()} pages)"
+        page_count = self.tr(f" ({ca.get_number_of_pages()} pages)")
         self.lblPageCount.setText(page_count)
 
         tag_info = ""
         if ca.has_cix():
-            tag_info = "• ComicRack tags"
+            tag_info = self.tr("• ComicRack tags")
         if ca.has_cbi():
             if tag_info != "":
                 tag_info += "\n"
-            tag_info += "• ComicBookLover tags"
+            tag_info += self.tr("• ComicBookLover tags")
 
         self.lblTagList.setText(tag_info)
 
@@ -998,8 +1007,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
             dialog.setDirectory(self.config[0].internal_last_opened_folder)
 
         if not folder_mode:
-            archive_filter = "Comic archive files (*.cbz *.zip *.cbr *.rar *.cb7 *.7z)"
-            filters = [archive_filter, "Any files (*)"]
+            archive_filter = self.tr("Comic archive files (*.cbz *.zip *.cbr *.rar *.cb7 *.7z)")
+            filters = [archive_filter, self.tr("Any files (*)")]
             dialog.setNameFilters(filters)
 
         if dialog.exec():
@@ -1008,7 +1017,9 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
     def auto_identify_search(self) -> None:
         if self.comic_archive is None:
-            QtWidgets.QMessageBox.warning(self, "Automatic Identify Search", "You need to load a comic first!")
+            QtWidgets.QMessageBox.warning(
+                self, self.tr("Automatic Identify Search"), self.tr("You need to load a comic first!")
+            )
             return
 
         self.query_online(autoselect=True)
@@ -1023,15 +1034,19 @@ class TaggerWindow(QtWidgets.QMainWindow):
         if autoselect and issue_number == "":
             QtWidgets.QMessageBox.information(
                 self,
-                "Automatic Identify Search",
-                "Can't auto-identify without an issue number. The auto-tag function has the 'If no issue number, assume \"1\"' option if desired.",
+                self.tr("Automatic Identify Search"),
+                self.tr(
+                    "Can't auto-identify without an issue number. The auto-tag function has the 'If no issue number, assume \"1\"' option if desired."
+                ),
             )
             return
 
         if str(self.leSeries.text()).strip() != "":
             series_name = str(self.leSeries.text()).strip()
         else:
-            QtWidgets.QMessageBox.information(self, "Online Search", "Need to enter a series name to search.")
+            QtWidgets.QMessageBox.information(
+                self, self.tr("Online Search"), self.tr("Need to enter a series name to search.")
+            )
             return
 
         year = utils.xlate_int(self.lePubYear.text())
@@ -1053,7 +1068,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             literal,
         )
 
-        selector.setWindowTitle(f"Search: '{series_name}' - Select Series")
+        selector.setWindowTitle(self.tr(f"Search: '{series_name}' - Select Series"))
 
         selector.setModal(True)
         selector.exec()
@@ -1071,7 +1086,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 )
             except TalkerError as e:
                 QtWidgets.QApplication.restoreOverrideCursor()
-                QtWidgets.QMessageBox.critical(self, f"{e.source} {e.code_name} Error", f"{e}")
+                QtWidgets.QMessageBox.critical(self, f"{e.source} {e.code_name} Error", f"{e}")  # TODO trans?
             else:
                 QtWidgets.QApplication.restoreOverrideCursor()
                 if new_metadata is not None:
@@ -1081,28 +1096,34 @@ class TaggerWindow(QtWidgets.QMainWindow):
                     if self.config[0].identifier_clear_form_before_populating:
                         self.clear_form()
 
-                    notes = (
+                    notes = (  # TODO trans parts?
                         f"Tagged with ComicTagger {ctversion.version} using info from {self.current_talker().name} on"
                         f" {datetime.now():%Y-%m-%d %H:%M:%S}.  [Issue ID {new_metadata.issue_id}]"
                     )
                     self.metadata.overlay(
                         new_metadata.replace(
-                            notes=utils.combine_notes(self.metadata.notes, notes, "Tagged with ComicTagger")
+                            notes=utils.combine_notes(
+                                self.metadata.notes, notes, "Tagged with ComicTagger"
+                            )  # TODO Trans?
                         )
                     )
                     # Now push the new combined data into the edit controls
                     self.metadata_to_form()
                 else:
                     QtWidgets.QMessageBox.critical(
-                        self, "Search", f"Could not find an issue {selector.issue_number} for that series"
+                        self,
+                        self.tr("Search"),
+                        self.tr(f"Could not find an issue {selector.issue_number} for that series"),
                     )
 
     def commit_metadata(self) -> None:
         if self.metadata is not None and self.comic_archive is not None:
             reply = QtWidgets.QMessageBox.question(
                 self,
-                "Save Tags",
-                f"Are you sure you wish to save {MetaDataStyle.name[self.save_data_style]} tags to this archive?",
+                self.tr("Save Tags"),
+                self.tr(
+                    f"Are you sure you wish to save {MetaDataStyle.name[self.save_data_style]} tags to this archive?"
+                ),
                 QtWidgets.QMessageBox.StandardButton.Yes,
                 QtWidgets.QMessageBox.StandardButton.No,
             )
@@ -1116,7 +1137,9 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 QtWidgets.QApplication.restoreOverrideCursor()
 
                 if not success:
-                    QtWidgets.QMessageBox.warning(self, "Save failed", "The tag save operation seemed to fail!")
+                    QtWidgets.QMessageBox.warning(
+                        self, self.tr("Save failed"), self.tr("The tag save operation seemed to fail!")
+                    )
                 else:
                     self.clear_dirty_flag()
                     self.update_info_box()
@@ -1126,11 +1149,14 @@ class TaggerWindow(QtWidgets.QMainWindow):
             self.metadata = self.comic_archive.read_metadata(self.load_data_style)
             self.actual_load_current_archive()
         else:
-            QtWidgets.QMessageBox.information(self, "Whoops!", "No data to commit!")
+            QtWidgets.QMessageBox.information(
+                self, self.tr("Whoops!", "Soft word for a mistake"), self.tr("No data to commit!")
+            )
 
     def set_load_data_style(self, s: int) -> None:
         if self.dirty_flag_verification(
-            "Change Tag Read Style", "If you change read tag style now, data in the form will be lost.  Are you sure?"
+            self.tr("Change Tag Read Style"),
+            self.tr("If you change read tag style now, data in the form will be lost.  Are you sure?"),
         ):
             self.load_data_style = self.cbLoadDataStyle.itemData(s)
             self.config[0].internal_load_data_style = self.load_data_style
@@ -1280,7 +1306,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 self.twCredits.item(r, 0).setText("")
 
         # Now set our new primary
-        self.twCredits.item(row, 0).setText("Yes")
+        self.twCredits.item(row, 0).setText("Yes")  # TODO trans? Would need to use userData or similar if so?
 
     def modify_credits(self, edit: bool) -> None:
         if edit:
@@ -1314,12 +1340,14 @@ class TaggerWindow(QtWidgets.QMainWindow):
             if self.is_dupe_credit(new_role, new_name):
                 # delete the dupe credit from list
                 qmsg = QtWidgets.QMessageBox()
-                qmsg.setText("Duplicate Credit!")
+                qmsg.setText(self.tr("Duplicate Credit!"))
                 qmsg.setInformativeText(
-                    "This will create a duplicate credit entry. Would you like to merge the entries, or create a duplicate?"
+                    self.tr(
+                        "This will create a duplicate credit entry. Would you like to merge the entries, or create a duplicate?"
+                    )
                 )
-                qmsg.addButton("Merge", QtWidgets.QMessageBox.ButtonRole.AcceptRole)
-                qmsg.addButton("Duplicate", QtWidgets.QMessageBox.ButtonRole.NoRole)
+                qmsg.addButton(self.tr("Merge"), QtWidgets.QMessageBox.ButtonRole.AcceptRole)
+                qmsg.addButton(self.tr("Duplicate"), QtWidgets.QMessageBox.ButtonRole.NoRole)
 
                 if qmsg.exec() == 0:
                     # merge
@@ -1392,6 +1420,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
     def populate_combo_boxes(self) -> None:
         # Add the entries to the tag style combobox
+        # TODO Trans?
         self.cbLoadDataStyle.addItem("ComicBookLover", MetaDataStyle.CBI)
         self.cbLoadDataStyle.addItem("ComicRack", MetaDataStyle.CIX)
         self.adjust_load_style_combo()
@@ -1412,12 +1441,14 @@ class TaggerWindow(QtWidgets.QMainWindow):
             self.cbLanguage.addItem(f[1], f[0])
 
         # Add the entries to the manga combobox
+        # TODO Trans?
         self.cbManga.addItem("", "")
         self.cbManga.addItem("Yes", "Yes")
         self.cbManga.addItem("Yes (Right to Left)", "YesAndRightToLeft")
         self.cbManga.addItem("No", "No")
 
         # Add the entries to the maturity combobox
+        # TODO Trans?
         self.cbMaturityRating.addItem("", "")
         self.cbMaturityRating.addItem("Everyone", "")
         self.cbMaturityRating.addItem("G", "")
@@ -1435,6 +1466,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.cbMaturityRating.addItem("Rating Pending", "")
 
         # Add entries to the format combobox
+        # TODO Trans?
         self.cbFormat.addItem("")
         self.cbFormat.addItem(".1")
         self.cbFormat.addItem("-1")
@@ -1509,12 +1541,13 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
         if has_md_count == 0:
             QtWidgets.QMessageBox.information(
-                self, "Remove Tags", f"No archives with {MetaDataStyle.name[style]} tags selected!"
+                self, self.tr("Remove Tags"), self.tr(f"No archives with {MetaDataStyle.name[style]} tags selected!")
             )
             return
 
         if has_md_count != 0 and not self.dirty_flag_verification(
-            "Remove Tags", "If you remove tags now, unsaved data in the form will be lost.  Are you sure?"
+            self.tr("Remove Tags"),
+            self.tr("If you remove tags now, unsaved data in the form will be lost.  Are you sure?"),
         ):
             return
 
@@ -1528,8 +1561,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
             )
 
             if reply == QtWidgets.QMessageBox.StandardButton.Yes:
-                progdialog = QtWidgets.QProgressDialog("", "Cancel", 0, has_md_count, self)
-                progdialog.setWindowTitle("Removing Tags")
+                progdialog = QtWidgets.QProgressDialog("", self.tr("Cancel"), 0, has_md_count, self)
+                progdialog.setWindowTitle(self.tr("Removing Tags"))
                 progdialog.setWindowModality(QtCore.Qt.WindowModality.ApplicationModal)
                 progdialog.setMinimumDuration(300)
                 center_window_on_parent(progdialog)
@@ -1563,15 +1596,17 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 self.update_info_box()
                 self.update_menus()
 
-                summary = f"Successfully removed tags in {success_count} archive(s)."
+                summary = self.tr(f"Successfully removed tags in {success_count} archive(s).")
                 if len(failed_list) > 0:
-                    summary += f"\n\nThe remove operation failed in the following {len(failed_list)} archive(s):\n"
+                    summary += self.tr(
+                        f"\n\nThe remove operation failed in the following {len(failed_list)} archive(s):\n"
+                    )
                     for f in failed_list:
                         summary += f"\t{f}\n"
 
                 dlg = LogWindow(self)
                 dlg.set_text(summary)
-                dlg.setWindowTitle("Tag Remove Summary")
+                dlg.setWindowTitle(self.tr("Tag Remove Summary"))
                 dlg.exec()
 
     def copy_tags(self) -> None:
@@ -1584,7 +1619,9 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
         if src_style == dest_style:
             QtWidgets.QMessageBox.information(
-                self, "Copy Tags", "Can't copy tag style onto itself.  Read style and modify style must be different."
+                self,
+                self.tr("Copy Tags"),
+                self.tr("Can't copy tag style onto itself.  Read style and modify style must be different."),
             )
             return
 
@@ -1593,26 +1630,30 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 has_src_count += 1
 
         if has_src_count == 0:
-            QtWidgets.QMessageBox.information(self, "Copy Tags", f"No archives with {src_style} tags selected!")
+            QtWidgets.QMessageBox.information(
+                self, self.tr("Copy Tags"), self.tr(f"No archives with {src_style} tags selected!")
+            )
             return
 
         if has_src_count != 0 and not self.dirty_flag_verification(
-            "Copy Tags", "If you copy tags now, unsaved data in the form may be lost.  Are you sure?"
+            self.tr("Copy Tags"), self.tr("If you copy tags now, unsaved data in the form may be lost.  Are you sure?")
         ):
             return
 
         if has_src_count != 0:
             reply = QtWidgets.QMessageBox.question(
                 self,
-                "Copy Tags",
-                f"Are you sure you wish to copy the {MetaDataStyle.name[src_style]} tags to {MetaDataStyle.name[dest_style]} tags in {has_src_count} archive(s)?",
+                self.tr("Copy Tags"),
+                self.tr(
+                    f"Are you sure you wish to copy the {MetaDataStyle.name[src_style]} tags to {MetaDataStyle.name[dest_style]} tags in {has_src_count} archive(s)?"
+                ),
                 QtWidgets.QMessageBox.StandardButton.Yes,
                 QtWidgets.QMessageBox.StandardButton.No,
             )
 
             if reply == QtWidgets.QMessageBox.StandardButton.Yes:
-                prog_dialog = QtWidgets.QProgressDialog("", "Cancel", 0, has_src_count, self)
-                prog_dialog.setWindowTitle("Copying Tags")
+                prog_dialog = QtWidgets.QProgressDialog("", self.tr("Cancel"), 0, has_src_count, self)
+                prog_dialog.setWindowTitle(self.tr("Copying Tags"))
                 prog_dialog.setWindowModality(QtCore.Qt.WindowModality.ApplicationModal)
                 prog_dialog.setMinimumDuration(300)
                 center_window_on_parent(prog_dialog)
@@ -1651,15 +1692,17 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 self.update_info_box()
                 self.update_menus()
 
-                summary = f"Successfully copied tags in {success_count} archive(s)."
+                summary = self.tr(f"Successfully copied tags in {success_count} archive(s).")
                 if len(failed_list) > 0:
-                    summary += f"\n\nThe copy operation failed in the following {len(failed_list)} archive(s):\n"
+                    summary += self.tr(
+                        f"\n\nThe copy operation failed in the following {len(failed_list)} archive(s):\n"
+                    )
                     for f in failed_list:
                         summary += f"\t{f}\n"
 
                 dlg = LogWindow(self)
                 dlg.set_text(summary)
-                dlg.setWindowTitle("Tag Copy Summary")
+                dlg.setWindowTitle(self.tr("Tag Copy Summary"))
                 dlg.exec()
 
     def actual_issue_data_fetch(self, match: IssueResult) -> GenericMetadata:
@@ -1761,7 +1804,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
         if choices:
             if low_confidence:
-                self.auto_tag_log("Online search: Multiple low-confidence matches.  Save aborted\n")
+                self.auto_tag_log("Online search: Multiple low-confidence matches.  Save aborted\n")  # TODO trans, CLI?
                 match_results.low_confidence_matches.append(MultipleMatch(ca, matches))
             else:
                 self.auto_tag_log("Online search: Multiple matches.  Save aborted\n")
@@ -1786,7 +1829,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 if dlg.cbxRemoveMetadata.isChecked():
                     md = ct_md
                 else:
-                    notes = (
+                    notes = (  # TODO trans parts?
                         f"Tagged with ComicTagger {ctversion.version} using info from {self.current_talker().name} on"
                         f" {datetime.now():%Y-%m-%d %H:%M:%S}.  [Issue ID {ct_md.issue_id}]"
                     )
@@ -1797,11 +1840,11 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
                 if not ca.write_metadata(md, self.save_data_style):
                     match_results.write_failures.append(str(ca.path.absolute()))
-                    self.auto_tag_log("Save failed ;-(\n")
+                    self.auto_tag_log("Save failed ;-(\n")  # TODO trans?
                 else:
                     match_results.good_matches.append(str(ca.path.absolute()))
                     success = True
-                    self.auto_tag_log("Save complete!\n")
+                    self.auto_tag_log("Save complete!\n")  # TODO trans?
                 ca.load_cache([MetaDataStyle.CBI, MetaDataStyle.CIX])
 
         return success, match_results
@@ -1811,11 +1854,11 @@ class TaggerWindow(QtWidgets.QMainWindow):
         style = self.save_data_style
 
         if len(ca_list) == 0:
-            QtWidgets.QMessageBox.information(self, "Auto-Tag", "No archives selected!")
+            QtWidgets.QMessageBox.information(self, self.tr("Auto-Tag"), self.tr("No archives selected!"))
             return
 
         if not self.dirty_flag_verification(
-            "Auto-Tag", "If you auto-tag now, unsaved data in the form will be lost.  Are you sure?"
+            self.tr("Auto-Tag"), self.tr("If you auto-tag now, unsaved data in the form will be lost.  Are you sure?")
         ):
             return
 
@@ -1823,8 +1866,10 @@ class TaggerWindow(QtWidgets.QMainWindow):
             self,
             self.config[0],
             (
-                f"You have selected {len(ca_list)} archive(s) to automatically identify and write {MetaDataStyle.name[style]} tags to."
-                "\n\nPlease choose config below, and select OK to Auto-Tag."
+                self.tr(
+                    f"You have selected {len(ca_list)} archive(s) to automatically identify and write {MetaDataStyle.name[style]} tags to."
+                    "\n\nPlease choose config below, and select OK to Auto-Tag."
+                )
             ),
         )
 
@@ -1837,10 +1882,10 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.atprogdialog.setModal(True)
         self.atprogdialog.show()
         self.atprogdialog.progressBar.setMaximum(len(ca_list))
-        self.atprogdialog.setWindowTitle("Auto-Tagging")
+        self.atprogdialog.setWindowTitle(self.tr("Auto-Tagging"))
 
         self.auto_tag_log("==========================================================================\n")
-        self.auto_tag_log(f"Auto-Tagging Started for {len(ca_list)} items\n")
+        self.auto_tag_log(self.tr(f"Auto-Tagging Started for {len(ca_list)} items\n"))
 
         prog_idx = 0
 
@@ -1848,7 +1893,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         archives_to_remove = []
         for ca in ca_list:
             self.auto_tag_log("==========================================================================\n")
-            self.auto_tag_log(f"Auto-Tagging {prog_idx + 1} of {len(ca_list)}\n")
+            self.auto_tag_log(self.tr(f"Auto-Tagging {prog_idx + 1} of {len(ca_list)}\n"))
             self.auto_tag_log(f"{ca.path}\n")
             try:
                 cover_idx = ca.read_metadata(style).get_cover_page_index_list()[0]
@@ -1886,32 +1931,36 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.atprogdialog = None
 
         summary = ""
-        summary += f"Successfully tagged archives: {len(match_results.good_matches)}\n"
+        summary += self.tr(f"Successfully tagged archives: {len(match_results.good_matches)}\n")
 
         if len(match_results.multiple_matches) > 0:
-            summary += f"Archives with multiple matches: {len(match_results.multiple_matches)}\n"
+            summary += self.tr(f"Archives with multiple matches: {len(match_results.multiple_matches)}\n")
         if len(match_results.low_confidence_matches) > 0:
-            summary += (
+            summary += self.tr(
                 f"Archives with one or more low-confidence matches: {len(match_results.low_confidence_matches)}\n"
             )
         if len(match_results.no_matches) > 0:
-            summary += f"Archives with no matches: {len(match_results.no_matches)}\n"
+            summary += self.tr(f"Archives with no matches: {len(match_results.no_matches)}\n")
         if len(match_results.fetch_data_failures) > 0:
-            summary += f"Archives that failed due to data fetch errors: {len(match_results.fetch_data_failures)}\n"
+            summary += self.tr(
+                f"Archives that failed due to data fetch errors: {len(match_results.fetch_data_failures)}\n"
+            )
         if len(match_results.write_failures) > 0:
-            summary += f"Archives that failed due to file writing errors: {len(match_results.write_failures)}\n"
+            summary += self.tr(
+                f"Archives that failed due to file writing errors: {len(match_results.write_failures)}\n"
+            )
 
         self.auto_tag_log(summary)
 
         sum_selectable = len(match_results.multiple_matches) + len(match_results.low_confidence_matches)
         if sum_selectable > 0:
-            summary += (
+            summary += self.tr(
                 "\n\nDo you want to manually select the ones with multiple matches and/or low-confidence matches now?"
             )
 
             reply = QtWidgets.QMessageBox.question(
                 self,
-                "Auto-Tag Summary",
+                self.tr("Auto-Tag Summary"),
                 summary,
                 QtWidgets.QMessageBox.StandardButton.Yes,
                 QtWidgets.QMessageBox.StandardButton.No,
@@ -1935,7 +1984,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                     self.load_archive(new_ca)
 
         else:
-            QtWidgets.QMessageBox.information(self, self.tr("Auto-Tag Summary"), self.tr(summary))
+            QtWidgets.QMessageBox.information(self, self.tr("Auto-Tag Summary"), summary)
         logger.info(summary)
 
     def exception(self, message: str) -> None:
@@ -1967,7 +2016,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
     def closeEvent(self, event: QtGui.QCloseEvent) -> None:
         if self.dirty_flag_verification(
-            f"Exit {self.appName}", "If you quit now, data in the form will be lost.  Are you sure?"
+            self.tr(f"Exit {self.appName}"), self.tr("If you exit now, data in the form will be lost.  Are you sure?")
         ):
             appsize = self.size()
             self.config[0].internal_window_width = appsize.width()
@@ -2000,7 +2049,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         if self.comic_archive is not None and self.comic_archive.has_cix():
             dlg = LogWindow(self)
             dlg.set_text(self.comic_archive.read_raw_cix())
-            dlg.setWindowTitle("Raw ComicRack Tag View")
+            dlg.setWindowTitle(self.tr("Raw ComicRack Tag View"))
             dlg.exec()
 
     def view_raw_cbl_tags(self) -> None:
@@ -2008,7 +2057,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             dlg = LogWindow(self)
             text = pprint.pformat(json.loads(self.comic_archive.read_raw_cbi()), indent=4)
             dlg.set_text(text)
-            dlg.setWindowTitle("Raw ComicBookLover Tag View")
+            dlg.setWindowTitle(self.tr("Raw ComicBookLover Tag View"))
             dlg.exec()
 
     def show_wiki(self) -> None:
@@ -2048,11 +2097,12 @@ class TaggerWindow(QtWidgets.QMainWindow):
         ca_list = self.fileSelectionList.get_selected_archive_list()
 
         if len(ca_list) == 0:
-            QtWidgets.QMessageBox.information(self, "Rename", "No archives selected!")
+            QtWidgets.QMessageBox.information(self, self.tr("Rename"), self.tr("No archives selected!"))
             return
 
         if self.dirty_flag_verification(
-            "File Rename", "If you rename files now, unsaved data in the form will be lost.  Are you sure?"
+            self.tr("File Rename"),
+            self.tr("If you rename files now, unsaved data in the form will be lost. Are you sure?"),
         ):
             dlg = RenameWindow(self, ca_list, self.load_data_style, self.config, self.talkers)
             dlg.setModal(True)
@@ -2111,11 +2161,13 @@ class TaggerWindow(QtWidgets.QMainWindow):
             website = "https://github.com/comictagger/comictagger"
             checked = OptionalMessageDialog.msg(
                 self,
-                "New version available!",
-                f"New version ({new_version[1]}) available!<br>(You are currently running {self.version})<br><br>"
-                f"Visit <a href='{website}/releases/latest'>{website}/releases/latest</a> for more info.<br><br>",
+                self.tr("New version available!"),
+                self.tr(
+                    f"New version ({new_version[1]}) available!<br>(You are currently running {self.version})<br><br>"
+                    f"Visit <a href='{website}/releases/latest'>{website}/releases/latest</a> for more info.<br><br>"
+                ),
                 False,
-                "Don't tell me about this version again",
+                self.tr("Don't tell me about this version again"),
             )
             if checked:
                 self.config[0].dialog_dont_notify_about_this_version = new_version[0]

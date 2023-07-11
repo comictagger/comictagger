@@ -100,6 +100,26 @@ def open_tagger_window(
         args.extend(["-platform", "windows:darkmode=2"])
     args.extend(sys.argv)
     app = Application(args)
+
+    if config[0].general_language != "":
+        QtCore.QLocale.setDefault(QtCore.QLocale(config[0].general_language))
+
+    translator = QtCore.QTranslator()
+    try:
+        translator.load(QtCore.QLocale().name(), "i18n")
+    except Exception:
+        logger.info(f"Failed to load language file {QtCore.QLocale().name()}.qm")
+
+    # Builtin translations for Qt widgets
+    qt_translator = QtCore.QTranslator()
+    qt_translator.load(
+        "qtbase_" + QtCore.QLocale().name(), QtCore.QLibraryInfo.location(QtCore.QLibraryInfo.TranslationsPath)
+    )
+
+    # Translators are checked in load order and halts at first hit
+    app.installTranslator(translator)
+    app.installTranslator(qt_translator)
+
     if error is not None:
         show_exception_box(error[0])
         if error[1]:

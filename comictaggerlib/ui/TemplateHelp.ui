@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Dialog</class>
- <widget class="QDialog" name="Dialog">
+ <class>TemplateHelp</class>
+ <widget class="QDialog" name="TemplateHelp">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Template Help</string>
+   <string comment="All tag names (items within {}) should be left untranslated">Template Help</string>
   </property>
   <property name="sizeGripEnabled">
    <bool>true</bool>
@@ -32,100 +32,278 @@
       <bool>true</bool>
      </property>
      <property name="html">
-      <string>&lt;html&gt;
-     &lt;head&gt;
-     &lt;style&gt;
-table {
-  font-family: arial, sans-serif;
-  border-collapse: collapse;
-  width: 100%;
-}
-
-td, th {
-  border: 1px solid #dddddd;
-  text-align: left;
-  padding: 8px;
-}
-
-tr:nth-child(even) {
-  background-color: #dddddd;
-}
-&lt;/style&gt;
-     &lt;/head&gt;
-     &lt;body&gt;
-          &lt;h1 style="text-align: center"&gt;Template help&lt;/h1&gt;
-          &lt;p&gt;The template uses Python format strings, in the simplest use it replaces the field (e.g. {issue}) with the value for that particular comic (e.g. 1) for advanced formatting please reference the
-
-               &lt;a href="https://docs.python.org/3/library/string.html#format-string-syntax"&gt;Python 3 documentation&lt;/a&gt;&lt;/p&gt;
-          Accepts the following variables:
-&lt;table&gt;
-     &lt;tr&gt;
-          &lt;th&gt;Tag name&lt;/th&gt;
-          &lt;th&gt;Type&lt;/th&gt;
-     &lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{is_empty}&lt;/td&gt;&lt;td&gt;boolean&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{tag_origin}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{series}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{issue}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{title}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{publisher}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{month}&lt;/td&gt;&lt;td&gt;integer&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{year}&lt;/td&gt;&lt;td&gt;integer&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{day}&lt;/td&gt;&lt;td&gt;integer&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{issue_count}&lt;/td&gt;&lt;td&gt;integer&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{volume}&lt;/td&gt;&lt;td&gt;integer&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{genre}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{language}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{comments}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{volume_count}&lt;/td&gt;&lt;td&gt;integer&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{critical_rating}&lt;/td&gt;&lt;td&gt;float&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{country}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{alternate_series}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{alternate_number}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{alternate_count}&lt;/td&gt;&lt;td&gt;integer&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{imprint}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{notes}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{web_link}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{format}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{manga}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{black_and_white}&lt;/td&gt;&lt;td&gt;boolean&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{page_count}&lt;/td&gt;&lt;td&gt;integer&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{maturity_rating}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{story_arc}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{series_group}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{scan_info}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{characters}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{teams}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{locations}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{credits}&lt;/td&gt;&lt;td&gt;list of dict({&apos;role&apos;: string, &apos;person&apos;: string, &apos;primary&apos;: boolean})&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{writer}&lt;/td&gt;&lt;td&gt;(string)&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{penciller}&lt;/td&gt;&lt;td&gt;(string)&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{inker}&lt;/td&gt;&lt;td&gt;(string)&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{colorist}&lt;/td&gt;&lt;td&gt;(string)&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{letterer}&lt;/td&gt;&lt;td&gt;(string)&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{cover artist}&lt;/td&gt;&lt;td&gt;(string)&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{editor}&lt;/td&gt;&lt;td&gt;(string)&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{tags}&lt;/td&gt;&lt;td&gt;list of str&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{pages}&lt;/td&gt;&lt;td&gt;list of dict({&apos;Image&apos;: string(int), &apos;Type&apos;: string, &apos;Bookmark&apos;: string, &apos;DoublePage&apos;: boolean})&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{price}&lt;/td&gt;&lt;td&gt;float&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{is_version_of}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{rights}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{identifier}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{last_mark}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
-     &lt;tr&gt;&lt;td&gt;{cover_image}&lt;/td&gt;&lt;td&gt;string&lt;/td&gt;&lt;/tr&gt;
-&lt;/table&gt;
-&lt;pre&gt;
-Examples:
-
-{series} {issue} ({year})
-Spider-Geddon 1 (2018)
-
-{series} #{issue} - {title}
-Spider-Geddon #1 - New Players; Check In
-
-&lt;/pre&gt;
-     &lt;/body&gt;
-&lt;/html&gt;</string></property>
+      <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Noto Sans'; font-size:10pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;h1 align=&quot;center&quot; style=&quot; margin-top:18px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:xx-large; font-weight:600;&quot;&gt;Template help &lt;/span&gt;&lt;/h1&gt;
+&lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;The template uses Python format strings, in the simplest use it replaces the field (e.g. {issue}) with the value for that particular comic (e.g. 1) for advanced formatting please reference the &lt;a href=&quot;https://docs.python.org/3/library/string.html#format-string-syntax&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#5d88ca;&quot;&gt;Python 3 documentation&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Accepts the following variables: &lt;/p&gt;
+&lt;table border=&quot;0&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; border-collapse:collapse;&quot; cellspacing=&quot;2&quot; cellpadding=&quot;0&quot;&gt;
+&lt;tr&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif'; font-weight:600;&quot;&gt;Tag name&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif'; font-weight:600;&quot;&gt;Type&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;{is_empty}&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;boolean&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;{tag_origin}&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;string&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;{series}&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;string&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;{issue}&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;string&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;{title}&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;string&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;{publisher}&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;string&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;{month}&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;integer&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;{year}&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;integer&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;{day}&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;integer&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;{issue_count}&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;integer&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;{volume}&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;integer&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;{genre}&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;string&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;{language}&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;string&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;{comments}&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;string&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;{volume_count}&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;integer&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;{critical_rating}&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;float&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;{country}&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;string&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;{alternate_series}&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;string&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;{alternate_number}&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;string&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;{alternate_count}&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;integer&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;{imprint}&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;string&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;{notes}&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;string&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;{web_link}&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;string&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;{format}&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;string&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;{manga}&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;string&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;{black_and_white}&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;boolean&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;{page_count}&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;integer&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;{maturity_rating}&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;string&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;{story_arc}&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;string&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;{series_group}&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;string&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;{scan_info}&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;string&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;{characters}&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;string&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;{teams}&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;string&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;{locations}&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;string&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;{credits}&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;list of dict({'role': string, 'person': string, 'primary': boolean})&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;{writer}&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;(string)&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;{penciller}&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;(string)&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;{inker}&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;(string)&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;{colorist}&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;(string)&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;{letterer}&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;(string)&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;{cover artist}&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;(string)&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;{editor}&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;(string)&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;{tags}&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;list of str&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;{pages}&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;list of dict({'Image': string(int), 'Type': string, 'Bookmark': string, 'DoublePage': boolean})&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;{price}&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;float&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;{is_version_of}&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;string&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;{rights}&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;string&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;{identifier}&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;string&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;{last_mark}&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;string&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;{cover_image}&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;
+&lt;td style=&quot; padding-left:8; padding-right:8; padding-top:8; padding-bottom:8; border-top:1px; border-right:1px; border-bottom:1px; border-left:1px; border-top-color:#dddddd; border-right-color:#dddddd; border-bottom-color:#dddddd; border-left-color:#dddddd; border-top-style:solid; border-right-style:solid; border-bottom-style:solid; border-left-style:solid;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'arial','sans-serif';&quot;&gt;string&lt;/span&gt;&lt;/p&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;p style=&quot; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Noto Sans Mono';&quot;&gt;Examples:&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Noto Sans Mono';&quot;&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Noto Sans Mono';&quot;&gt;{series} {issue} ({year})&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Noto Sans Mono';&quot;&gt;Spider-Geddon 1 (2018)&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-family:'Noto Sans Mono';&quot;&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Noto Sans Mono';&quot;&gt;{series} #{issue} - {title}&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Noto Sans Mono';&quot;&gt;Spider-Geddon #1 - New Players; Check In&lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Noto Sans Mono';&quot;&gt; &lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
      <property name="textInteractionFlags">
       <set>Qt::TextBrowserInteraction</set>
      </property>

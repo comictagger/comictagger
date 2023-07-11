@@ -37,11 +37,12 @@ class CreditEditorWindow(QtWidgets.QDialog):
         self.mode = mode
 
         if self.mode == self.ModeEdit:
-            self.setWindowTitle("Edit Credit")
+            self.setWindowTitle(self.tr("Edit Credit"))
         else:
             self.setWindowTitle("New Credit")
 
         # Add the entries to the role combobox
+        # TODO trans? Will need to change to userData: .addItem(self.tr("Writer"), "writer") etc.
         self.cbRole.addItem("")
         self.cbRole.addItem("Writer")
         self.cbRole.addItem("Artist")
@@ -91,6 +92,10 @@ class CreditEditorWindow(QtWidgets.QDialog):
 
     def accept(self) -> None:
         if self.cbRole.currentText() == "" or self.leName.text() == "":
-            QtWidgets.QMessageBox.warning(self, "Whoops", "You need to enter both role and name for a credit.")
+            QtWidgets.QMessageBox.warning(
+                self,
+                self.tr("Whoops", "Soft word to mean a mistake was made"),
+                self.tr("You need to enter both role and name for a credit."),
+            )
         else:
             QtWidgets.QDialog.accept(self)

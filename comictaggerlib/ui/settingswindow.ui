@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>dialogCreditEditor</class>
- <widget class="QDialog" name="dialogCreditEditor">
+ <class>SettingsWindow</class>
+ <widget class="QDialog" name="SettingsWindow">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -28,7 +28,7 @@
         </sizepolicy>
        </property>
        <property name="currentIndex">
-        <number>3</number>
+        <number>5</number>
        </property>
        <widget class="QWidget" name="tGeneral">
         <attribute name="title">
@@ -41,20 +41,23 @@
             <string/>
            </property>
            <layout class="QGridLayout" name="gridLayout_4">
-            <item row="1" column="0">
-             <widget class="QPushButton" name="btnResetSettings">
+            <item row="6" column="2">
+             <widget class="QLabel" name="lblClearCache">
               <property name="sizePolicy">
-               <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+               <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
               <property name="text">
-               <string>Default Settings</string>
+               <string>If you need to free up the disk space, or the responses seems out of date, clear the online cache.</string>
+              </property>
+              <property name="wordWrap">
+               <bool>true</bool>
               </property>
              </widget>
             </item>
-            <item row="1" column="1">
+            <item row="5" column="2">
              <widget class="QLabel" name="lblDefaultSettings">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -70,7 +73,20 @@
               </property>
              </widget>
             </item>
-            <item row="2" column="0">
+            <item row="5" column="0">
+             <widget class="QPushButton" name="btnResetSettings">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>Default Settings</string>
+              </property>
+             </widget>
+            </item>
+            <item row="6" column="0">
              <widget class="QPushButton" name="btnClearCache">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
@@ -83,28 +99,22 @@
               </property>
              </widget>
             </item>
-            <item row="2" column="1">
-             <widget class="QLabel" name="label_2">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text">
-               <string>If you need to free up the disk space, or the responses seems out of date, clear the online cache.</string>
-              </property>
-              <property name="wordWrap">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="0" colspan="2">
+            <item row="4" column="0" colspan="3">
              <widget class="QCheckBox" name="cbxCheckForNewVersion">
               <property name="text">
                <string>Check for new version on startup</string>
               </property>
              </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="lblLanguage">
+              <property name="text">
+               <string>Language</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="2">
+             <widget class="QComboBox" name="dbxLanguage"/>
             </item>
            </layout>
           </widget>
@@ -178,7 +188,8 @@
            <item row="2" column="1">
             <widget class="QCheckBox" name="cbxUseFilter">
              <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Applies the &lt;span style=&quot; font-weight:600;&quot;&gt;Publisher Filter&lt;/span&gt; on all searches.&lt;br/&gt;The search window has a dynamic toggle to show the unfiltered results.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>Applies the Publisher Filter on all searches.
+The search window has a dynamic toggle to show the unfiltered results.</string>
              </property>
              <property name="text">
               <string/>
@@ -245,7 +256,8 @@
          <item row="4" column="0">
           <widget class="QLabel" name="label_5">
            <property name="text">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;These settings are for the automatic issue identifier which searches online for matches. &lt;/p&gt;&lt;p&gt;Hover the mouse over an entry field for more info.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>These settings are for the automatic issue identifier which searches online for matches.
+Hover the mouse over an entry field for more info.</string>
            </property>
            <property name="wordWrap">
             <bool>true</bool>
@@ -344,20 +356,20 @@
        </widget>
        <widget class="QWidget" name="tCBL">
         <attribute name="title">
-         <string>CBL</string>
+         <string comment="CBL = Comic Book Lover. Consider leaving untranslated">CBL</string>
         </attribute>
         <layout class="QGridLayout" name="gridLayout_6">
          <item row="0" column="0">
           <widget class="QCheckBox" name="cbxApplyCBLTransformOnCVIMport">
            <property name="text">
-            <string>Apply CBL Transforms on ComicVine Import</string>
+            <string comment="CBL = Comic Book Lover. Consider leaving untranslated">Apply CBL Transforms on ComicVine Import</string>
            </property>
           </widget>
          </item>
          <item row="1" column="0">
           <widget class="QCheckBox" name="cbxApplyCBLTransformOnBatchOperation">
            <property name="text">
-            <string>Apply CBL Transforms on Batch Copy Operations to CBL Tags</string>
+            <string comment="CBL = Comic Book Lover. Consider leaving untranslated">Apply CBL Transforms on Batch Copy Operations to CBL Tags</string>
            </property>
           </widget>
          </item>
@@ -370,7 +382,7 @@
             </sizepolicy>
            </property>
            <property name="title">
-            <string>CBL Transforms</string>
+            <string comment="CBL = Comic Book Lover. Consider leaving untranslated">CBL Transforms</string>
            </property>
            <widget class="QWidget" name="layoutWidget">
             <property name="geometry">
@@ -529,14 +541,14 @@
               </size>
              </property>
              <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;Issue # Zero Padding&lt;/span&gt; dictates if the issue number should be padded on left with zeros.  A value of 2, for example, means that the number will always be at least two digits.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>Issue # Zero Padding dictates if the issue number should be padded on left with zeros.  A value of 2, for example, means that the number will always be at least two digits.</string>
              </property>
             </widget>
            </item>
            <item row="4" column="0" colspan="2">
             <widget class="QCheckBox" name="cbxSmartCleanup">
              <property name="toolTip">
-              <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;&amp;quot;Smart Text Cleanup&amp;quot; &lt;/span&gt;will attempt to clean up the new filename if there are missing fields from the template.  For example, removing empty braces, repeated spaces and dashes, and more.  Experimental feature.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              <string>Smart Text Cleanup will attempt to clean up the new filename if there are missing fields from the template.  For example, removing empty braces, repeated spaces and dashes, and more.  Experimental feature.</string>
              </property>
              <property name="text">
               <string>Use Smart Text Cleanup (Experimental)</string>
@@ -573,7 +585,8 @@
            <item row="8" column="0">
             <widget class="QCheckBox" name="cbxRenameStrict">
              <property name="toolTip">
-              <string>If checked will ensure reserved characters and filenames are removed for all Operating Systems.&lt;br/&gt;By default only removes restricted characters and filenames for the current Operating System.</string>
+              <string>If checked will ensure reserved characters and filenames are removed for all Operating Systems.
+By default only removes restricted characters and filenames for the current Operating System.</string>
              </property>
              <property name="text">
               <string>Strict renaming</string>
@@ -807,7 +820,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>dialogCreditEditor</receiver>
+   <receiver>SettingsWindow</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -823,7 +836,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>dialogCreditEditor</receiver>
+   <receiver>SettingsWindow</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>dialogIssueSelect</class>
- <widget class="QDialog" name="dialogIssueSelect">
+ <class>IssueSelectionWindow</class>
+ <widget class="QDialog" name="IssueSelectionWindow">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
     <width>872</width>
-    <height>673</height>
+    <height>685</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -191,7 +191,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>dialogIssueSelect</receiver>
+   <receiver>IssueSelectionWindow</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -207,7 +207,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>dialogIssueSelect</receiver>
+   <receiver>IssueSelectionWindow</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

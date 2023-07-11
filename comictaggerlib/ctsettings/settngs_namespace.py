@@ -42,6 +42,7 @@ class settngs_namespace(settngs.TypedNS):
     runtime_files: list[str]
 
     general_check_for_new_version: bool
+    general_language: str
 
     internal_install_id: str
     internal_save_data_style: int

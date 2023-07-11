@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>dialogExport</class>
- <widget class="QDialog" name="dialogExport">
+ <class>AutoTagStartWindow</class>
+ <widget class="QDialog" name="AutoTagStartWindow">
   <property name="windowModality">
    <enum>Qt::NonModal</enum>
   </property>
@@ -235,7 +235,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>dialogExport</receiver>
+   <receiver>AutoTagStartWindow</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -251,7 +251,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>dialogExport</receiver>
+   <receiver>AutoTagStartWindow</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

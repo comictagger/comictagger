@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>dialogCreditEditor</class>
- <widget class="QDialog" name="dialogCreditEditor">
+ <class>CreditEditorWindow</class>
+ <widget class="QDialog" name="CreditEditorWindow">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -38,7 +38,7 @@
      <x>30</x>
      <y>30</y>
      <width>341</width>
-     <height>91</height>
+     <height>106</height>
     </rect>
    </property>
    <layout class="QFormLayout" name="formLayout">
@@ -81,7 +81,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>dialogCreditEditor</receiver>
+   <receiver>CreditEditorWindow</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -97,7 +97,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>dialogCreditEditor</receiver>
+   <receiver>CreditEditorWindow</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

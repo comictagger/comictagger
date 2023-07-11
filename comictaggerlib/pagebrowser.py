@@ -111,4 +111,4 @@ class PageBrowserWindow(QtWidgets.QDialog):
             archive_page_index = self.current_page_num
 
         self.pageWidget.set_page(archive_page_index)
-        self.setWindowTitle(f"Page Browser - Page {self.current_page_num + 1} (of {self.page_count}) ")
+        self.setWindowTitle(self.tr(f"Page Browser - Page {self.current_page_num + 1} (of {self.page_count}) "))

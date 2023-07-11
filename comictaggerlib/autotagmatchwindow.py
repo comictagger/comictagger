@@ -74,9 +74,9 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
             )
         )
 
-        self.skipButton = QtWidgets.QPushButton("Skip to Next")
+        self.skipButton = QtWidgets.QPushButton(self.tr("Skip to Next"))
         self.buttonBox.addButton(self.skipButton, QtWidgets.QDialogButtonBox.ButtonRole.ActionRole)
-        self.buttonBox.button(QtWidgets.QDialogButtonBox.StandardButton.Ok).setText("Accept and Write Tags")
+        self.buttonBox.button(QtWidgets.QDialogButtonBox.StandardButton.Ok).setText(self.tr("Accept and Write Tags"))
 
         self.match_set_list = match_set_list
         self._style = style
@@ -95,7 +95,7 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
 
         if self.current_match_set_idx + 1 == len(self.match_set_list):
             self.buttonBox.button(QtWidgets.QDialogButtonBox.StandardButton.Cancel).setDisabled(True)
-            self.skipButton.setText("Skip")
+            self.skipButton.setText(self.tr("Skip"))
 
         self.set_cover_image()
         self.populate_table()
@@ -104,7 +104,7 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
 
         path = self.current_match_set.ca.path
         self.setWindowTitle(
-            "Select correct match or skip ({} of {}): {}".format(
+            self.tr("Select correct match or skip ({} of {}): {}").format(
                 self.current_match_set_idx + 1,
                 len(self.match_set_list),
                 os.path.split(path)[1],
@@ -218,8 +218,8 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
     def reject(self) -> None:
         reply = QtWidgets.QMessageBox.question(
             self,
-            "Cancel Matching",
-            "Are you sure you wish to cancel the matching process?",
+            self.tr("Cancel Matching"),
+            self.tr("Are you sure you wish to cancel the matching process?"),
             QtWidgets.QMessageBox.StandardButton.Yes,
             QtWidgets.QMessageBox.StandardButton.No,
         )
@@ -245,7 +245,7 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
         # now get the particular issue data
         ct_md = self.fetch_func(match)
         if ct_md is None:
-            QtWidgets.QMessageBox.critical(self, "Network Issue", "Could not retrieve issue details!")
+            QtWidgets.QMessageBox.critical(self, self.tr("Network Issue"), self.tr("Could not retrieve issue details!"))
             return
 
         QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
@@ -256,4 +256,6 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
         QtWidgets.QApplication.restoreOverrideCursor()
 
         if not success:
-            QtWidgets.QMessageBox.warning(self, "Write Error", "Saving the tags to the archive seemed to fail!")
+            QtWidgets.QMessageBox.warning(
+                self, self.tr("Write Error"), self.tr("Saving the tags to the archive seemed to fail!")
+            )

@@ -82,7 +82,7 @@ class MatchSelectionWindow(QtWidgets.QDialog):
         self.twList.selectRow(0)
 
         path = self.comic_archive.path
-        self.setWindowTitle(f"Select correct match: {os.path.split(path)[1]}")
+        self.setWindowTitle(self.tr(f"Select correct match: {os.path.split(path)[1]}"))
 
     def populate_table(self) -> None:
         self.twList.setRowCount(0)

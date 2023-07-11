@@ -45,7 +45,7 @@ class RenameWindow(QtWidgets.QDialog):
         super().__init__(parent)
 
         uic.loadUi(ui_path / "renamewindow.ui", self)
-        self.label.setText(f"Preview (based on {MetaDataStyle.name[data_style]} tags):")
+        self.label.setText(self.tr(f"Preview (based on {MetaDataStyle.name[data_style]} tags):"))
 
         self.setWindowFlags(
             QtCore.Qt.WindowType(
@@ -103,13 +103,15 @@ class RenameWindow(QtWidgets.QDialog):
                 logger.exception("Invalid format string: %s", self.config[0].rename_template)
                 QtWidgets.QMessageBox.critical(
                     self,
-                    "Invalid format string!",
-                    "Your rename template is invalid!"
-                    f"<br/><br/>{e}<br/><br/>"
-                    "Please consult the template help in the "
-                    "settings and the documentation on the format at "
-                    "<a href='https://docs.python.org/3/library/string.html#format-string-syntax'>"
-                    "https://docs.python.org/3/library/string.html#format-string-syntax</a>",
+                    self.tr("Invalid format string!"),
+                    self.tr(  # TODO needs <html> wrapping?
+                        "Your rename template is invalid!"
+                        f"<br/><br/>{e}<br/><br/>"
+                        "Please consult the template help in the "
+                        "settings and the documentation on the format at "
+                        "<a href='https://docs.python.org/3/library/string.html#format-string-syntax'>"
+                        "https://docs.python.org/3/library/string.html#format-string-syntax</a>"
+                    ),
                 )
                 return
             except Exception as e:
@@ -118,12 +120,14 @@ class RenameWindow(QtWidgets.QDialog):
                 )
                 QtWidgets.QMessageBox.critical(
                     self,
-                    "The formatter had an issue!",
-                    "The formatter has experienced an unexpected error!"
-                    f"<br/><br/>{type(e).__name__}: {e}<br/><br/>"
-                    "Please open an issue at "
-                    "<a href='https://github.com/comictagger/comictagger'>"
-                    "https://github.com/comictagger/comictagger</a>",
+                    self.tr("The formatter had an issue!"),
+                    self.tr(  # TODO needs <html> wrapping?
+                        "The formatter has experienced an unexpected error!"
+                        f"<br/><br/>{type(e).__name__}: {e}<br/><br/>"
+                        "Please open an issue at "
+                        "<a href='https://github.com/comictagger/comictagger'>"
+                        "https://github.com/comictagger/comictagger</a>"
+                    ),
                 )
                 return
 
@@ -170,8 +174,8 @@ class RenameWindow(QtWidgets.QDialog):
             self.do_preview()
 
     def accept(self) -> None:
-        prog_dialog = QtWidgets.QProgressDialog("", "Cancel", 0, len(self.rename_list), self)
-        prog_dialog.setWindowTitle("Renaming Archives")
+        prog_dialog = QtWidgets.QProgressDialog("", self.tr("Cancel"), 0, len(self.rename_list), self)
+        prog_dialog.setWindowTitle(self.tr("Renaming Archives"))
         prog_dialog.setWindowModality(QtCore.Qt.WindowModality.WindowModal)
         prog_dialog.setMinimumDuration(100)
         center_window_on_parent(prog_dialog)
@@ -207,8 +211,8 @@ class RenameWindow(QtWidgets.QDialog):
             logger.exception("Failed to rename comic archive: %s", comic[0].path)
             QtWidgets.QMessageBox.critical(
                 self,
-                "There was an issue when renaming!",
-                f"Renaming failed!<br/><br/>{type(e).__name__}: {e}<br/><br/>",
+                self.tr("There was an issue when renaming!"),
+                self.tr(f"Renaming failed!<br/><br/>{type(e).__name__}: {e}<br/><br/>"),
             )
 
         prog_dialog.hide()

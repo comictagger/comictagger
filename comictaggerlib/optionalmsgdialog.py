@@ -61,9 +61,9 @@ class OptionalMessageDialog(QtWidgets.QDialog):
 
         if not check_text:
             if style == StyleQuestion:
-                check_text = "Remember this answer"
+                check_text = self.tr("Remember this answer")
             else:
-                check_text = "Don't show this message again"
+                check_text = self.tr("Don't show this message again")
 
         self.theCheckBox = QtWidgets.QCheckBox(check_text)
 

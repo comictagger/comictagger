@@ -74,8 +74,8 @@ class FileSelectionList(QtWidgets.QWidget):
         self.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.ActionsContextMenu)
         self.dirty_flag = False
 
-        select_all_action = QtWidgets.QAction("Select All", self)
-        remove_action = QtWidgets.QAction("Remove Selected Items", self)
+        select_all_action = QtWidgets.QAction(self.tr("Select All"), self)
+        remove_action = QtWidgets.QAction(self.tr("Remove Selected Items"), self)
         self.separator = QtWidgets.QAction("", self)
         self.separator.setSeparator(True)
 
@@ -154,7 +154,8 @@ class FileSelectionList(QtWidgets.QWidget):
 
         if self.twList.currentRow() in row_list:
             if not self.dirty_flag_verification(
-                "Remove Archive", "If you close this archive, data in the form will be lost.  Are you sure?"
+                self.tr("Remove Archive"),
+                self.tr("If you close this archive, data in the form will be lost.  Are you sure?"),
             ):
                 return
 
@@ -184,8 +185,8 @@ class FileSelectionList(QtWidgets.QWidget):
         # we now have a list of files to add
 
         # Prog dialog on Linux flakes out for small range, so scale up
-        progdialog = QtWidgets.QProgressDialog("", "Cancel", 0, len(filelist), parent=self)
-        progdialog.setWindowTitle("Adding Files")
+        progdialog = QtWidgets.QProgressDialog("", self.tr("Cancel"), 0, len(filelist), parent=self)
+        progdialog.setWindowTitle(self.tr("Adding Files"))
         progdialog.setWindowModality(QtCore.Qt.WindowModality.ApplicationModal)
         progdialog.setMinimumDuration(300)
         center_window_on_parent(progdialog)
@@ -217,10 +218,12 @@ class FileSelectionList(QtWidgets.QWidget):
         else:
             if len(pathlist) == 1 and os.path.isfile(pathlist[0]):
                 QtWidgets.QMessageBox.information(
-                    self, "File Open", "Selected file doesn't seem to be a comic archive."
+                    self, self.tr("File Open"), self.tr("Selected file doesn't seem to be a comic archive.")
                 )
             else:
-                QtWidgets.QMessageBox.information(self, "File/Folder Open", "No readable comic archives were found.")
+                QtWidgets.QMessageBox.information(
+                    self, self.tr("File/Folder Open"), self.tr("No readable comic archives were found.")
+                )
 
         if rar_added_ro:
             self.rar_ro_message()
@@ -251,10 +254,12 @@ class FileSelectionList(QtWidgets.QWidget):
 
             OptionalMessageDialog.msg_no_checkbox(
                 self,
-                "RAR Files are Read-Only",
-                "It looks like you have opened a RAR/CBR archive,\n"
-                "however ComicTagger cannot currently write to them without the rar program and are marked read only!\n\n"
-                f"{rar_help}",
+                self.tr("RAR Files are Read-Only"),
+                self.tr(
+                    "It looks like you have opened a RAR/CBR archive,\n"
+                    "however ComicTagger cannot currently write to them without the rar program and are marked read only!"
+                    f"\n\n{rar_help}"
+                ),
             )
             self.rar_ro_shown = True
 
@@ -403,7 +408,8 @@ class FileSelectionList(QtWidgets.QWidget):
             # don't allow change if modified
             if prev is not None and new_idx != old_idx:
                 if not self.dirty_flag_verification(
-                    "Change Archive", "If you change archives now, data in the form will be lost.  Are you sure?"
+                    self.tr("Change Archive"),
+                    self.tr("If you change archives now, data in the form will be lost.  Are you sure?"),
                 ):
                     self.twList.currentItemChanged.disconnect(self.current_item_changed_cb)
                     self.twList.setCurrentItem(prev)

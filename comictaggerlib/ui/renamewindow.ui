@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>dialogRename</class>
- <widget class="QDialog" name="dialogRename">
+ <class>RenameWindow</class>
+ <widget class="QDialog" name="RenameWindow">
   <property name="windowModality">
    <enum>Qt::NonModal</enum>
   </property>
@@ -83,7 +83,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>dialogRename</receiver>
+   <receiver>RenameWindow</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -99,7 +99,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>dialogRename</receiver>
+   <receiver>RenameWindow</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

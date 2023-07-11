@@ -37,7 +37,7 @@ class PasswordEdit(QtWidgets.QLineEdit):
         if show_visibility:
             # Add the password hide/shown toggle at the end of the edit box.
             self.togglepasswordAction = self.addAction(self.visibleIcon, QtWidgets.QLineEdit.TrailingPosition)
-            self.togglepasswordAction.setToolTip("Show password")
+            self.togglepasswordAction.setToolTip(QtCore.QCoreApplication.translate("SettingsWindow", "Show password"))
             self.togglepasswordAction.triggered.connect(self.on_toggle_password_Action)
 
         self.password_shown = False
@@ -47,12 +47,12 @@ class PasswordEdit(QtWidgets.QLineEdit):
             self.setEchoMode(QtWidgets.QLineEdit.Normal)
             self.password_shown = True
             self.togglepasswordAction.setIcon(self.hiddenIcon)
-            self.togglepasswordAction.setToolTip("Hide password")
+            self.togglepasswordAction.setToolTip(QtCore.QCoreApplication.translate("SettingsWindow", "Hide password"))
         else:
             self.setEchoMode(QtWidgets.QLineEdit.Password)
             self.password_shown = False
             self.togglepasswordAction.setIcon(self.visibleIcon)
-            self.togglepasswordAction.setToolTip("Show password")
+            self.togglepasswordAction.setToolTip(QtCore.QCoreApplication.translate("SettingsWindow", "Show password"))
 
 
 def generate_api_widgets(
@@ -73,9 +73,13 @@ def generate_api_widgets(
 
         check_text, check_bool = talkers[talker_id].check_api_key(url, key)
         if check_bool:
-            QtWidgets.QMessageBox.information(None, "API Test Success", check_text)
+            QtWidgets.QMessageBox.information(
+                None, QtCore.QCoreApplication.translate("SettingsWindow", "API Test Success"), check_text
+            )
         else:
-            QtWidgets.QMessageBox.warning(None, "API Test Failed", check_text)
+            QtWidgets.QMessageBox.warning(
+                None, QtCore.QCoreApplication.translate("SettingsWindow", "API Test Failed"), check_text
+            )
 
     # get the actual config objects in case they have overwritten the default
     talker_key = config[1][f"talker_{talker_id}"][1][f"{talker_id}_key"]
@@ -107,7 +111,7 @@ def generate_api_widgets(
 
     # The button row was recorded so we add it
     if btn_test_row is not None:
-        btn = QtWidgets.QPushButton("Test API")
+        btn = QtWidgets.QPushButton(QtCore.QCoreApplication.translate("SettingsWindow", "Test API"))
         layout.addWidget(btn, btn_test_row, 2)
         # partial is used as connect will pass in event information
         btn.clicked.connect(partial(call_check_api, le_url=le_url, le_key=le_key, talker_id=talker_id))
@@ -223,7 +227,7 @@ def generate_source_option_tabs(
     comic_talker_tab_layout = comic_talker_tab.layout()
 
     talker_layout = QtWidgets.QGridLayout()
-    lbl_select_talker = QtWidgets.QLabel("Metadata Source:")
+    lbl_select_talker = QtWidgets.QLabel(QtCore.QCoreApplication.translate("SettingsWindow", "Metadata Source:"))
     cbx_select_talker = QtWidgets.QComboBox()
     line = QtWidgets.QFrame()
     line.setFrameShape(QtWidgets.QFrame.HLine)

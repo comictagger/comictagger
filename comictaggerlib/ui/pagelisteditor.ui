@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>pageListEditor</class>
- <widget class="QWidget" name="pageListEditor">
+ <class>PageListEditor</class>
+ <widget class="QWidget" name="PageListEditor">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string notr="true">Form</string>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout">
    <item>
@@ -59,7 +59,7 @@
         </size>
        </property>
        <property name="text">
-        <string>^</string>
+        <string notr="true">^</string>
        </property>
       </widget>
      </item>
@@ -78,7 +78,7 @@
         </size>
        </property>
        <property name="text">
-        <string>v</string>
+        <string notr="true">v</string>
        </property>
       </widget>
      </item>

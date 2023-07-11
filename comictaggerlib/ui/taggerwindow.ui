@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MainWindow</class>
- <widget class="QMainWindow" name="MainWindow">
+ <class>TaggerWindow</class>
+ <widget class="QMainWindow" name="TaggerWindow">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -490,7 +490,7 @@
                       <item row="7" column="0">
                        <widget class="QLabel" name="label_22">
                         <property name="text">
-                         <string>Alt.Issue</string>
+                         <string>Alt. Issue</string>
                         </property>
                        </widget>
                       </item>
@@ -814,9 +814,6 @@
                     <column>
                      <property name="text">
                       <string>Primary</string>
-                     </property>
-                     <property name="textAlignment">
-                      <set>AlignCenter</set>
                      </property>
                     </column>
                     <column>
@@ -1229,7 +1226,7 @@
   </widget>
   <widget class="QToolBar" name="toolBar">
    <property name="windowTitle">
-    <string>toolBar</string>
+    <string notr="true">toolBar</string>
    </property>
    <property name="movable">
     <bool>false</bool>
