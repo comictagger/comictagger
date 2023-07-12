@@ -1064,36 +1064,6 @@ however ComicTagger cannot currently write to them without the rar program and a
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../ui/talkeruigenerator.py" line="230"/>
-        <source>Metadata Source:</source>
-        <translation>Info Source</translation>
-    </message>
-    <message>
-        <location filename="../ui/talkeruigenerator.py" line="55"/>
-        <source>Show password</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ui/talkeruigenerator.py" line="50"/>
-        <source>Hide password</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ui/talkeruigenerator.py" line="76"/>
-        <source>API Test Success</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ui/talkeruigenerator.py" line="80"/>
-        <source>API Test Failed</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../ui/talkeruigenerator.py" line="114"/>
-        <source>Test API</source>
-        <translation type="unfinished">Test</translation>
-    </message>
-    <message>
         <location filename="../ui/settingswindow.ui" line="359"/>
         <source>CBL</source>
         <comment>CBL = Comic Book Lover. Consider leaving untranslated</comment>
@@ -1267,6 +1237,96 @@ Spider-Geddon 1 (2018)
 Spider-Geddon #1 - New Players; Check In
 </source>
         <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>SettingsWindowTalker</name>
+    <message>
+        <location filename="../ui/talkeruigenerator.py" line="59"/>
+        <source>Show password</source>
+        <translation>Show pass</translation>
+    </message>
+    <message>
+        <location filename="../ui/talkeruigenerator.py" line="52"/>
+        <source>Hide password</source>
+        <translation>hide pass</translation>
+    </message>
+    <message>
+        <location filename="../ui/talkeruigenerator.py" line="82"/>
+        <source>API Test Success</source>
+        <translation>API works!</translation>
+    </message>
+    <message>
+        <location filename="../ui/talkeruigenerator.py" line="88"/>
+        <source>API Test Failed</source>
+        <translation>API fail lol</translation>
+    </message>
+    <message>
+        <location filename="../ui/talkeruigenerator.py" line="124"/>
+        <source>Test API</source>
+        <translation>Test apeei</translation>
+    </message>
+    <message>
+        <location filename="../ui/talkeruigenerator.py" line="240"/>
+        <source>Metadata Source:</source>
+        <translation>Info Source</translation>
+    </message>
+    <message>
+        <location filename="../../comictalker/talkers/comicvine.py" line="177"/>
+        <source>Use series start as volume</source>
+        <comment>Check box label</comment>
+        <translation>Use ser start as vol</translation>
+    </message>
+    <message>
+        <location filename="../../comictalker/talkers/comicvine.py" line="177"/>
+        <source>Use the series start year as the volume number</source>
+        <comment>Tool tip</comment>
+        <translation>Series as start help</translation>
+    </message>
+    <message>
+        <location filename="../../comictalker/talkers/comicvine.py" line="188"/>
+        <source>Remove HTML tables</source>
+        <comment>Check box label</comment>
+        <translation>Ditch HTML tables</translation>
+    </message>
+    <message>
+        <location filename="../../comictalker/talkers/comicvine.py" line="188"/>
+        <source>Removes html tables instead of converting them to text</source>
+        <comment>Tool tip</comment>
+        <translation>Remove HTML help</translation>
+    </message>
+    <message>
+        <location filename="../../comictalker/talkers/comicvine.py" line="200"/>
+        <source>API Key</source>
+        <comment>Text box label</comment>
+        <translation>API keh</translation>
+    </message>
+    <message>
+        <location filename="../../comictalker/talkers/comicvine.py" line="209"/>
+        <source>API URL</source>
+        <comment>Text box label</comment>
+        <translation>API urel</translation>
+    </message>
+    <message>
+        <location filename="../../comictalker/talkers/comicvine.py" line="209"/>
+        <source>Use the given Comic Vine URL. (default: {self.default_api_url})</source>
+        <comment>Tool tip</comment>
+        <translation>CV urel (default: {self.default_api_url})</translation>
+    </message>
+    <message>
+        <location filename="../../comictalker/talkers/comicvine.py" line="246"/>
+        <source>The API key is valid</source>
+        <translation>APeeEye valid</translation>
+    </message>
+    <message>
+        <location filename="../../comictalker/talkers/comicvine.py" line="248"/>
+        <source>The API key is INVALID!</source>
+        <translation>ApeeI in-valid</translation>
+    </message>
+    <message>
+        <location filename="../../comictalker/talkers/comicvine.py" line="250"/>
+        <source>Failed to connect to the URL!</source>
+        <translation>Bad urel bro!</translation>
     </message>
 </context>
 <context>

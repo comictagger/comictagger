@@ -118,6 +118,9 @@ class ComicTalker:
         self.api_key = self.default_api_key = ""
         self.api_url = self.default_api_url = ""
 
+    def QT_TRANSLATE_NOOP(self, ident: str = "", text: str = "", disam: str = "") -> str:
+        return text
+
     def register_settings(self, parser: settngs.Manager) -> None:
         """
         Allows registering settings using the settngs package with an argparse like interface.

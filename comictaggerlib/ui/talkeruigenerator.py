@@ -37,7 +37,9 @@ class PasswordEdit(QtWidgets.QLineEdit):
         if show_visibility:
             # Add the password hide/shown toggle at the end of the edit box.
             self.togglepasswordAction = self.addAction(self.visibleIcon, QtWidgets.QLineEdit.TrailingPosition)
-            self.togglepasswordAction.setToolTip(QtCore.QCoreApplication.translate("SettingsWindow", "Show password"))
+            self.togglepasswordAction.setToolTip(
+                QtCore.QCoreApplication.translate("SettingsWindowTalker", "Show password")
+            )
             self.togglepasswordAction.triggered.connect(self.on_toggle_password_Action)
 
         self.password_shown = False
@@ -47,12 +49,16 @@ class PasswordEdit(QtWidgets.QLineEdit):
             self.setEchoMode(QtWidgets.QLineEdit.Normal)
             self.password_shown = True
             self.togglepasswordAction.setIcon(self.hiddenIcon)
-            self.togglepasswordAction.setToolTip(QtCore.QCoreApplication.translate("SettingsWindow", "Hide password"))
+            self.togglepasswordAction.setToolTip(
+                QtCore.QCoreApplication.translate("SettingsWindowTalker", "Hide password")
+            )
         else:
             self.setEchoMode(QtWidgets.QLineEdit.Password)
             self.password_shown = False
             self.togglepasswordAction.setIcon(self.visibleIcon)
-            self.togglepasswordAction.setToolTip(QtCore.QCoreApplication.translate("SettingsWindow", "Show password"))
+            self.togglepasswordAction.setToolTip(
+                QtCore.QCoreApplication.translate("SettingsWindowTalker", "Show password")
+            )
 
 
 def generate_api_widgets(
@@ -74,11 +80,15 @@ def generate_api_widgets(
         check_text, check_bool = talkers[talker_id].check_api_key(url, key)
         if check_bool:
             QtWidgets.QMessageBox.information(
-                None, QtCore.QCoreApplication.translate("SettingsWindow", "API Test Success"), check_text
+                None,
+                QtCore.QCoreApplication.translate("SettingsWindowTalker", "API Test Success"),
+                QtCore.QCoreApplication.translate("SettingsWindowTalker", check_text),
             )
         else:
             QtWidgets.QMessageBox.warning(
-                None, QtCore.QCoreApplication.translate("SettingsWindow", "API Test Failed"), check_text
+                None,
+                QtCore.QCoreApplication.translate("SettingsWindowTalker", "API Test Failed"),
+                QtCore.QCoreApplication.translate("SettingsWindowTalker", check_text),
             )
 
     # get the actual config objects in case they have overwritten the default
@@ -111,15 +121,15 @@ def generate_api_widgets(
 
     # The button row was recorded so we add it
     if btn_test_row is not None:
-        btn = QtWidgets.QPushButton(QtCore.QCoreApplication.translate("SettingsWindow", "Test API"))
+        btn = QtWidgets.QPushButton(QtCore.QCoreApplication.translate("SettingsWindowTalker", "Test API"))
         layout.addWidget(btn, btn_test_row, 2)
         # partial is used as connect will pass in event information
         btn.clicked.connect(partial(call_check_api, le_url=le_url, le_key=le_key, talker_id=talker_id))
 
 
 def generate_checkbox(option: settngs.Setting, layout: QtWidgets.QGridLayout) -> QtWidgets.QCheckBox:
-    widget = QtWidgets.QCheckBox(option.display_name)
-    widget.setToolTip(option.help)
+    widget = QtWidgets.QCheckBox(QtCore.QCoreApplication.translate("SettingsWindowTalker", option.display_name))
+    widget.setToolTip(QtCore.QCoreApplication.translate("SettingsWindowTalker", option.help))
     layout.addWidget(widget, layout.rowCount(), 0, 1, -1)
 
     return widget
@@ -127,12 +137,12 @@ def generate_checkbox(option: settngs.Setting, layout: QtWidgets.QGridLayout) ->
 
 def generate_spinbox(option: settngs.Setting, layout: QtWidgets.QGridLayout) -> QtWidgets.QSpinBox:
     row = layout.rowCount()
-    lbl = QtWidgets.QLabel(option.display_name)
-    lbl.setToolTip(option.help)
+    lbl = QtWidgets.QLabel(QtCore.QCoreApplication.translate("SettingsWindowTalker", option.display_name))
+    lbl.setToolTip(QtCore.QCoreApplication.translate("SettingsWindowTalker", option.help))
     layout.addWidget(lbl, row, 0)
     widget = QtWidgets.QSpinBox()
     widget.setRange(0, 9999)
-    widget.setToolTip(option.help)
+    widget.setToolTip(QtCore.QCoreApplication.translate("SettingsWindowTalker", option.help))
     layout.addWidget(widget, row, 1, alignment=QtCore.Qt.AlignLeft)
 
     return widget
@@ -140,12 +150,12 @@ def generate_spinbox(option: settngs.Setting, layout: QtWidgets.QGridLayout) -> 
 
 def generate_doublespinbox(option: settngs.Setting, layout: QtWidgets.QGridLayout) -> QtWidgets.QDoubleSpinBox:
     row = layout.rowCount()
-    lbl = QtWidgets.QLabel(option.display_name)
-    lbl.setToolTip(option.help)
+    lbl = QtWidgets.QLabel(QtCore.QCoreApplication.translate("SettingsWindowTalker", option.display_name))
+    lbl.setToolTip(QtCore.QCoreApplication.translate("SettingsWindowTalker", option.help))
     layout.addWidget(lbl, row, 0)
     widget = QtWidgets.QDoubleSpinBox()
     widget.setRange(0, 9999.99)
-    widget.setToolTip(option.help)
+    widget.setToolTip(QtCore.QCoreApplication.translate("SettingsWindowTalker", option.help))
     layout.addWidget(widget, row, 1, alignment=QtCore.Qt.AlignLeft)
 
     return widget
@@ -153,11 +163,11 @@ def generate_doublespinbox(option: settngs.Setting, layout: QtWidgets.QGridLayou
 
 def generate_textbox(option: settngs.Setting, layout: QtWidgets.QGridLayout) -> QtWidgets.QLineEdit:
     row = layout.rowCount()
-    lbl = QtWidgets.QLabel(option.display_name)
-    lbl.setToolTip(option.help)
+    lbl = QtWidgets.QLabel(QtCore.QCoreApplication.translate("SettingsWindowTalker", option.display_name))
+    lbl.setToolTip(QtCore.QCoreApplication.translate("SettingsWindowTalker", option.help))
     layout.addWidget(lbl, row, 0)
     widget = QtWidgets.QLineEdit()
-    widget.setToolTip(option.help)
+    widget.setToolTip(QtCore.QCoreApplication.translate("SettingsWindowTalker", option.help))
     layout.addWidget(widget, row, 1)
 
     return widget
@@ -165,11 +175,11 @@ def generate_textbox(option: settngs.Setting, layout: QtWidgets.QGridLayout) -> 
 
 def generate_password_textbox(option: settngs.Setting, layout: QtWidgets.QGridLayout) -> QtWidgets.QLineEdit:
     row = layout.rowCount()
-    lbl = QtWidgets.QLabel(option.display_name)
-    lbl.setToolTip(option.help)
+    lbl = QtWidgets.QLabel(QtCore.QCoreApplication.translate("SettingsWindowTalker", option.display_name))
+    lbl.setToolTip(QtCore.QCoreApplication.translate("SettingsWindowTalker", option.help))
     layout.addWidget(lbl, row, 0)
     widget = PasswordEdit()
-    widget.setToolTip(option.help)
+    widget.setToolTip(QtCore.QCoreApplication.translate("SettingsWindowTalker", option.help))
     layout.addWidget(widget, row, 1)
 
     return widget
@@ -227,7 +237,7 @@ def generate_source_option_tabs(
     comic_talker_tab_layout = comic_talker_tab.layout()
 
     talker_layout = QtWidgets.QGridLayout()
-    lbl_select_talker = QtWidgets.QLabel(QtCore.QCoreApplication.translate("SettingsWindow", "Metadata Source:"))
+    lbl_select_talker = QtWidgets.QLabel(QtCore.QCoreApplication.translate("SettingsWindowTalker", "Metadata Source:"))
     cbx_select_talker = QtWidgets.QComboBox()
     line = QtWidgets.QFrame()
     line.setFrameShape(QtWidgets.QFrame.HLine)

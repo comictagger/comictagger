@@ -178,28 +178,40 @@ class ComicVineTalker(ComicTalker):
             "--cv-use-series-start-as-volume",
             default=False,
             action=argparse.BooleanOptionalAction,
-            display_name="Use series start as volume",
-            help="Use the series start year as the volume number",
+            display_name=self.QT_TRANSLATE_NOOP(
+                "SettingsWindowTalker", "Use series start as volume", "Check box label"
+            ),
+            help=self.QT_TRANSLATE_NOOP(
+                "SettingsWindowTalker", "Use the series start year as the volume number", "Tool tip"
+            ),
         )
         parser.add_setting(
             "--cv-remove-html-tables",
             default=False,
             action=argparse.BooleanOptionalAction,
-            display_name="Remove HTML tables",
-            help="Removes html tables instead of converting them to text",
+            display_name=self.QT_TRANSLATE_NOOP("SettingsWindowTalker", "Remove HTML tables", "Check box label"),
+            help=self.QT_TRANSLATE_NOOP(
+                "SettingsWindowTalker", "Removes html tables instead of converting them to text", "Tool tip"
+            ),
         )
 
         # The default needs to be unset or None.
         # This allows this setting to be unset with the empty string, allowing the default to change
         parser.add_setting(
             f"--{self.id}-key",
-            display_name="API Key",
-            help=f"Use the given Comic Vine API Key. (default: {self.default_api_key})",
+            display_name=self.QT_TRANSLATE_NOOP("SettingsWindowTalker", "API Key", "Text box label"),
+            help=self.QT_TRANSLATE_NOOP(
+                "SettingsWindowTalker",
+                f"Use the given Comic Vine API Key. (default: {self.default_api_key})",
+                "Tool tip",
+            ),
         )
         parser.add_setting(
             f"--{self.id}-url",
-            display_name="API URL",
-            help=f"Use the given Comic Vine URL. (default: {self.default_api_url})",
+            display_name=self.QT_TRANSLATE_NOOP("SettingsWindowTalker", "API URL", "Text box label"),
+            help=self.QT_TRANSLATE_NOOP(
+                "SettingsWindowTalker", f"Use the given Comic Vine URL. (default: {self.default_api_url})", "Tool tip"
+            ),
         )
 
     def parse_settings(self, settings: dict[str, Any]) -> dict[str, Any]:
@@ -231,11 +243,11 @@ class ComicVineTalker(ComicTalker):
 
             # Bogus request, but if the key is wrong, you get error 100: "Invalid API Key"
             if cv_response["status_code"] != 100:
-                return "The API key is valid", True
+                return self.QT_TRANSLATE_NOOP("SettingsWindowTalker", "The API key is valid"), True
             else:
-                return "The API key is INVALID!", False
+                return self.QT_TRANSLATE_NOOP("SettingsWindowTalker", "The API key is INVALID!"), False
         except Exception:
-            return "Failed to connect to the URL!", False
+            return self.QT_TRANSLATE_NOOP("SettingsWindowTalker", "Failed to connect to the URL!"), False
 
     def search_for_series(
         self,
