@@ -36,6 +36,8 @@ class ComicIssue:
     id: str
     image_url: str
     issue_number: str
+    ahash: int | None
+    phash: int | None
     volume: str | None
     critical_rating: float
     maturity_rating: str

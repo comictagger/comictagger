@@ -128,6 +128,8 @@ class ComicCacher:
                 + "language TEXT,"
                 + "country TEXT,"
                 + "volume TEXT,"
+                + "ahash TEXT,"  # Hashes are longer than 8 bytes so need to be stored as TEXT
+                + "phash TEXT,"
                 + "complete BOOL,"  # Is the data complete? Includes characters, locations, credits.
                 + "PRIMARY KEY (id, source_name))"
             )
@@ -250,6 +252,8 @@ class ComicCacher:
                     "site_detail_url": issue.site_detail_url,
                     "cover_date": issue.cover_date,
                     "image_url": issue.image_url,
+                    "ahash": str(issue.ahash or ""),
+                    "phash": str(issue.phash or ""),
                     "description": issue.description,
                     "timestamp": timestamp,
                     "aliases": "\n".join(issue.aliases),
@@ -371,7 +375,9 @@ class ComicCacher:
                     maturity_rating=row[22],
                     language=row[23],
                     country=row[24],
-                    complete=bool(row[26]),
+                    ahash=int(row[26]) if row[26] else None,
+                    phash=int(row[27]) if row[27] else None,
+                    complete=bool(row[28]),
                 )
 
                 results.append(record)
@@ -441,7 +447,9 @@ class ComicCacher:
                     maturity_rating=row[22],
                     language=row[23],
                     country=row[24],
-                    complete=bool(row[26]),
+                    ahash=int(row[26]) if row[26] else None,
+                    phash=int(row[27]) if row[27] else None,
+                    complete=bool(row[28]),
                 )
 
             return record

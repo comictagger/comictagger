@@ -567,6 +567,8 @@ class ComicVineTalker(ComicTalker):
                     description=record.get("description", ""),
                     id=str(record["id"]),
                     image_url=image_url,
+                    ahash=None,
+                    phash=None,
                     issue_number=record["issue_number"],
                     volume=None,
                     name=record["name"],

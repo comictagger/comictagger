@@ -278,6 +278,7 @@ class IssueIdentifier:
     def get_issue_cover_match_score(
         self,
         issue_id: str,
+        img_hash: int | None,
         primary_img_url: str,
         alt_urls: list[str],
         local_cover_hash_list: list[int],
@@ -287,56 +288,65 @@ class IssueIdentifier:
         # local_cover_hash_list is a list of pre-calculated hashes.
         # use_remote_alternates - indicates to use alternate covers from CV
 
-        # If there is no URL return 0
-        if not primary_img_url:
-            return Score(score=0, url="", hash=0)
+        # If there is a hash from the talker, do not hash any remotes images, inc. alts
+        if not img_hash:
+            # If there is no URL return 0
+            if not primary_img_url:
+                return Score(score=0, url="", hash=0)
 
-        try:
-            url_image_data = ImageFetcher(self.config.runtime_config.user_cache_dir).fetch(
-                primary_img_url, blocking=True
-            )
-        except ImageFetcherException as e:
-            self.log_msg(f"Network issue while fetching cover image from {self.talker.name}. Aborting...")
-            raise IssueIdentifierNetworkError from e
+            try:
+                url_image_data = ImageFetcher(self.config.runtime_config.user_cache_dir).fetch(
+                    primary_img_url, blocking=True
+                )
+            except ImageFetcherException as e:
+                self.log_msg(f"Network issue while fetching cover image from {self.talker.name}. Aborting...")
+                raise IssueIdentifierNetworkError from e
 
-        if self.cancel:
-            raise IssueIdentifierCancelled
+            if self.cancel:
+                raise IssueIdentifierCancelled
 
-        # alert the GUI, if needed
-        if self.cover_url_callback is not None:
-            self.cover_url_callback(url_image_data)
+            # alert the GUI, if needed
+            if self.cover_url_callback is not None:
+                self.cover_url_callback(url_image_data)
 
-        remote_cover_list = [Score(url=primary_img_url, hash=self.calculate_hash(url_image_data))]
+            remote_cover_list = [Score(url=primary_img_url, hash=self.calculate_hash(url_image_data))]
 
-        if self.cancel:
-            raise IssueIdentifierCancelled
+            if self.cancel:
+                raise IssueIdentifierCancelled
 
-        if use_remote_alternates:
-            for alt_url in alt_urls:
-                try:
-                    alt_url_image_data = ImageFetcher(self.config.runtime_config.user_cache_dir).fetch(
-                        alt_url, blocking=True
-                    )
-                except ImageFetcherException as e:
-                    self.log_msg(f"Network issue while fetching alt. cover image from {self.talker.name}. Aborting...")
-                    raise IssueIdentifierNetworkError from e
+            if use_remote_alternates:
+                for alt_url in alt_urls:
+                    try:
+                        alt_url_image_data = ImageFetcher(self.config.runtime_config.user_cache_dir).fetch(
+                            alt_url, blocking=True
+                        )
+                    except ImageFetcherException as e:
+                        self.log_msg(
+                            f"Network issue while fetching alt. cover image from {self.talker.name}. Aborting..."
+                        )
+                        raise IssueIdentifierNetworkError from e
 
-                if self.cancel:
-                    raise IssueIdentifierCancelled
+                    if self.cancel:
+                        raise IssueIdentifierCancelled
 
-                # alert the GUI, if needed
-                if self.cover_url_callback is not None:
-                    self.cover_url_callback(alt_url_image_data)
+                    # alert the GUI, if needed
+                    if self.cover_url_callback is not None:
+                        self.cover_url_callback(alt_url_image_data)
 
-                remote_cover_list.append(Score(url=alt_url, hash=self.calculate_hash(alt_url_image_data)))
+                    remote_cover_list.append(Score(url=alt_url, hash=self.calculate_hash(alt_url_image_data)))
 
-                if self.cancel:
-                    raise IssueIdentifierCancelled
+                    if self.cancel:
+                        raise IssueIdentifierCancelled
 
-        if use_log and use_remote_alternates:
-            self.log_msg(f"[{len(remote_cover_list) - 1} alt. covers]", False)
+            if use_log and use_remote_alternates:
+                self.log_msg(f"[{len(remote_cover_list) - 1} alt. covers]", False)
+
         if use_log:
             self.log_msg("[ ", False)
+
+        if img_hash:
+            self.log_msg(f"Using talker image hash: {img_hash}")
+            remote_cover_list = [Score(url=primary_img_url, hash=img_hash)]
 
         score_list = []
         done = False
@@ -374,19 +384,6 @@ class IssueIdentifier:
         if not ca.seems_to_be_a_comic_archive():
             self.log_msg(f"Sorry, but {ca.path} is not a comic archive!")
             return self.match_list
-
-        cover_image_data = ca.get_page(self.cover_page_index)
-        cover_hash = self.calculate_hash(cover_image_data)
-
-        # check the aspect ratio
-        # if it's wider than it is high, it's probably a two page spread
-        # if so, crop it and calculate a second hash
-        narrow_cover_hash = None
-        aspect_ratio = self.get_aspect_ratio(cover_image_data)
-        if aspect_ratio < 1.0:
-            right_side_image_data = self.crop_cover(cover_image_data)
-            if right_side_image_data is not None:
-                narrow_cover_hash = self.calculate_hash(right_side_image_data)
 
         keys = self.get_search_keys()
         # normalize the issue number, None will return as ""
@@ -484,6 +481,26 @@ class IssueIdentifier:
 
         # now we have a shortlist of series with the desired issue number
         # Do first round of cover matching
+
+        # Change from ahash type if phash is present
+        if shortlist[0][1].phash is not None:
+            self.set_hasher_algorithm(3)
+
+        cover_image_data = ca.get_page(self.cover_page_index)
+        cover_hash = self.calculate_hash(cover_image_data)
+
+        # check the aspect ratio
+        # if it's wider than it is high, it's probably a two page spread
+        # if so, crop it and calculate a second hash
+        narrow_cover_hash = None
+        aspect_ratio = self.get_aspect_ratio(cover_image_data)
+        if aspect_ratio < 1.0:
+            right_side_image_data = self.crop_cover(cover_image_data)
+            if right_side_image_data is not None:
+                narrow_cover_hash = self.calculate_hash(right_side_image_data)
+
+        cropped_border = self.crop_border(cover_image_data, self.config.identifier_border_crop_percent)
+
         counter = len(shortlist)
         for series, issue in shortlist:
             if self.callback is not None:
@@ -503,17 +520,23 @@ class IssueIdentifier:
             if narrow_cover_hash is not None:
                 hash_list.append(narrow_cover_hash)
 
-            cropped_border = self.crop_border(cover_image_data, self.config.identifier_border_crop_percent)
             if cropped_border is not None:
                 hash_list.append(self.calculate_hash(cropped_border))
                 logger.info("Adding cropped cover to the hashlist")
+
+            img_hash: int | None = None
+            if issue.ahash is not None or issue.phash is not None:
+                if self.image_hasher == 3:
+                    img_hash = issue.phash
+                else:
+                    img_hash = issue.ahash
 
             try:
                 image_url = issue.image_url
                 alt_urls = issue.alt_image_urls
 
                 score_item = self.get_issue_cover_match_score(
-                    issue.id, image_url, alt_urls, hash_list, use_remote_alternates=False
+                    issue.id, img_hash, image_url, alt_urls, hash_list, use_remote_alternates=False
                 )
             except Exception:
                 logger.exception("Scoring series failed")
@@ -596,6 +619,7 @@ class IssueIdentifier:
                 try:
                     score_item = self.get_issue_cover_match_score(
                         m["issue_id"],
+                        m["url_image_hash"],
                         m["image_url"],
                         m["alt_image_urls"],
                         hash_list,

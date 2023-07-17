@@ -42,6 +42,7 @@ def test_get_issue_cover_match_score(cbz, config, comicvine_api):
                 cbz.read_metadata(comicapi.comicarchive.MetaDataStyle.CIX).issue
             ).as_float()
         ),
+        None,
         "https://comicvine.gamespot.com/a/uploads/scale_large/0/574/585444-109004_20080707014047_large.jpg",
         "https://comicvine.gamespot.com/cory-doctorows-futuristic-tales-of-the-here-and-no/4000-140529/",
         [ii.calculate_hash(cbz.get_page(0))],
