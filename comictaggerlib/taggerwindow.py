@@ -343,6 +343,10 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.actionLoadFolder.setStatusTip("Load folder with comic archives")
         self.actionLoadFolder.triggered.connect(self.select_folder)
 
+        self.actionOpenFolderAsComic.setShortcut("Ctrl+Shift+Alt+O")
+        self.actionOpenFolderAsComic.setStatusTip("Load folder as a comic archives")
+        self.actionOpenFolderAsComic.triggered.connect(self.select_folder_archive)
+
         self.actionWrite_Tags.setShortcut("Ctrl+S")
         self.actionWrite_Tags.setStatusTip("Save tags to comic archive")
         self.actionWrite_Tags.triggered.connect(self.commit_metadata)
@@ -438,6 +442,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         # ToolBar
         self.actionLoad.setIcon(QtGui.QIcon(str(graphics_path / "open.png")))
         self.actionLoadFolder.setIcon(QtGui.QIcon(str(graphics_path / "longbox.png")))
+        self.actionOpenFolderAsComic.setIcon(QtGui.QIcon(str(graphics_path / "open.png")))
         self.actionWrite_Tags.setIcon(QtGui.QIcon(str(graphics_path / "save.png")))
         self.actionParse_Filename.setIcon(QtGui.QIcon(str(graphics_path / "parse.png")))
         self.actionParse_Filename_split_words.setIcon(QtGui.QIcon(str(graphics_path / "parse.png")))
@@ -987,24 +992,32 @@ class TaggerWindow(QtWidgets.QMainWindow):
     def select_folder(self) -> None:
         self.select_file(folder_mode=True)
 
+    def select_folder_archive(self) -> None:
+        dialog = self.file_dialog(folder_mode=True)
+        if dialog.exec():
+            file_list = dialog.selectedFiles()
+            if file_list:
+                self.fileSelectionList.add_path_item(file_list[0])
+
     def select_file(self, folder_mode: bool = False) -> None:
+        dialog = self.file_dialog(folder_mode=folder_mode)
+        if dialog.exec():
+            file_list = dialog.selectedFiles()
+            self.fileSelectionList.add_path_list(file_list)
+
+    def file_dialog(self, folder_mode: bool = False) -> QtWidgets.QFileDialog:
         dialog = QtWidgets.QFileDialog(self)
         if folder_mode:
             dialog.setFileMode(QtWidgets.QFileDialog.FileMode.Directory)
         else:
+            archive_filter = "Comic archive files (*.cbz *.zip *.cbr *.rar *.cb7 *.7z)"
+            filters = [archive_filter, "Any files (*)"]
+            dialog.setNameFilters(filters)
             dialog.setFileMode(QtWidgets.QFileDialog.FileMode.ExistingFiles)
 
         if self.config[0].internal_last_opened_folder is not None:
             dialog.setDirectory(self.config[0].internal_last_opened_folder)
-
-        if not folder_mode:
-            archive_filter = "Comic archive files (*.cbz *.zip *.cbr *.rar *.cb7 *.7z)"
-            filters = [archive_filter, "Any files (*)"]
-            dialog.setNameFilters(filters)
-
-        if dialog.exec():
-            file_list = dialog.selectedFiles()
-            self.fileSelectionList.add_path_list(file_list)
+        return dialog
 
     def auto_identify_search(self) -> None:
         if self.comic_archive is None:

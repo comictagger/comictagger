@@ -19,7 +19,7 @@ class FolderArchiver(Archiver):
 
     def get_comment(self) -> str:
         try:
-            return self.read_file(self.comment_file_name).decode("utf-8")
+            return (self.path / self.comment_file_name).read_text()
         except OSError:
             return ""
 
@@ -28,10 +28,12 @@ class FolderArchiver(Archiver):
             return self.write_file(self.comment_file_name, comment.encode("utf-8"))
         return True
 
+    def supports_comment(self) -> bool:
+        return True
+
     def read_file(self, archive_file: str) -> bytes:
         try:
-            with open(self.path / archive_file, mode="rb") as f:
-                data = f.read()
+            data = (self.path / archive_file).read_bytes()
         except OSError as e:
             logger.error("Error reading folder archive [%s]: %s :: %s", e, self.path, archive_file)
             raise
@@ -88,6 +90,9 @@ class FolderArchiver(Archiver):
             return False
         else:
             return True
+
+    def is_writable(self) -> bool:
+        return True
 
     def name(self) -> str:
         return "Folder"
