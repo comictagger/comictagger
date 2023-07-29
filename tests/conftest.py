@@ -9,6 +9,7 @@ from typing import Any
 
 import pytest
 import requests
+import settngs
 from PIL import Image
 
 import comicapi.comicarchive
@@ -115,6 +116,11 @@ def comicvine_api(monkeypatch, cbz, comic_cache, mock_version, config) -> comict
         version=mock_version[0],
         cache_folder=config[0].runtime_config.user_cache_dir,
     )
+    manager = settngs.Manager()
+    manager.add_persistent_group("comicvine", cv.register_settings)
+    cfg, _ = manager.defaults()
+    cfg["comicvine"]["comicvine_key"] = "testing"
+    cv.parse_settings(cfg["comicvine"])
     return cv
 
 
