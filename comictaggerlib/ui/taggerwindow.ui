@@ -1156,7 +1156,7 @@
      <x>0</x>
      <y>0</y>
      <width>1096</width>
-     <height>30</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuComicTagger">
@@ -1180,6 +1180,7 @@
     </widget>
     <addaction name="actionLoad"/>
     <addaction name="actionLoadFolder"/>
+    <addaction name="actionOpenFolderAsComic"/>
     <addaction name="actionWrite_Tags"/>
     <addaction name="actionAutoTag"/>
     <addaction name="actionCopyTags"/>
@@ -1442,6 +1443,11 @@
    </property>
    <property name="toolTip">
     <string>perform a literal search on the series and return the first 50 results</string>
+   </property>
+  </action>
+  <action name="actionOpenFolderAsComic">
+   <property name="text">
+    <string>Open Folder as Comic</string>
    </property>
   </action>
  </widget>

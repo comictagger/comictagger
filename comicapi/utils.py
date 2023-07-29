@@ -91,7 +91,7 @@ def get_recursive_filelist(pathlist: list[str]) -> list[str]:
             for root, _, files in os.walk(p):
                 for f in files:
                     filelist.append(os.path.join(root, f))
-        else:
+        elif os.path.exists(p):
             filelist.append(p)
 
     return filelist
