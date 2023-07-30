@@ -277,7 +277,6 @@ class IssueIdentifier:
 
     def get_issue_cover_match_score(
         self,
-        issue_id: str,
         primary_img_url: str,
         alt_urls: list[str],
         local_cover_hash_list: list[int],
@@ -513,7 +512,7 @@ class IssueIdentifier:
                 alt_urls = issue.alt_image_urls
 
                 score_item = self.get_issue_cover_match_score(
-                    issue.id, image_url, alt_urls, hash_list, use_remote_alternates=False
+                    image_url, alt_urls, hash_list, use_remote_alternates=False
                 )
             except Exception:
                 logger.exception("Scoring series failed")
@@ -595,7 +594,6 @@ class IssueIdentifier:
                 self.log_msg(f"Examining alternate covers for ID: {m['series_id']} {m['series']} ...", newline=False)
                 try:
                     score_item = self.get_issue_cover_match_score(
-                        m["issue_id"],
                         m["image_url"],
                         m["alt_image_urls"],
                         hash_list,
