@@ -64,7 +64,7 @@ class CoMet:
         assign("series", md.series)
         assign("issue", md.issue)  # must be int??
         assign("volume", md.volume)
-        assign("description", md.comments)
+        assign("description", md.description)
         assign("publisher", md.publisher)
         assign("pages", md.page_count)
         assign("format", md.format)
@@ -75,10 +75,10 @@ class CoMet:
         assign("rights", md.rights)
         assign("identifier", md.identifier)
         assign("lastMark", md.last_mark)
-        assign("genre", md.genre)  # TODO repeatable
+        assign("genre", ",".join(md.genres))  # TODO repeatable
 
         if md.characters is not None:
-            char_list = [c.strip() for c in md.characters.split(",")]
+            char_list = [c.strip() for c in md.characters]
             for c in char_list:
                 assign("character", c)
 
@@ -142,7 +142,7 @@ class CoMet:
         md.title = utils.xlate(get("title"))
         md.issue = utils.xlate(get("issue"))
         md.volume = utils.xlate_int(get("volume"))
-        md.comments = utils.xlate(get("description"))
+        md.description = utils.xlate(get("description"))
         md.publisher = utils.xlate(get("publisher"))
         md.language = utils.xlate(get("language"))
         md.format = utils.xlate(get("format"))
@@ -153,7 +153,6 @@ class CoMet:
         md.rights = utils.xlate(get("rights"))
         md.identifier = utils.xlate(get("identifier"))
         md.last_mark = utils.xlate(get("lastMark"))
-        md.genre = utils.xlate(get("genre"))  # TODO - repeatable field
 
         _, md.month, md.year = utils.parse_date_str(utils.xlate(get("date")))
 
@@ -163,12 +162,15 @@ class CoMet:
         if reading_direction is not None and reading_direction == "rtl":
             md.manga = "YesAndRightToLeft"
 
+        # loop for genre tags
+        for n in root:
+            if n.tag == "genre":
+                md.genres.append((n.text or "").strip())
+
         # loop for character tags
-        char_list = []
         for n in root:
             if n.tag == "character":
-                char_list.append((n.text or "").strip())
-        md.characters = ", ".join(char_list)
+                md.characters.append((n.text or "").strip())
 
         # Now extract the credit info
         for n in root:

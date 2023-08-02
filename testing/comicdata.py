@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 import comicapi.genericmetadata
-import comictalker.resulttypes
 from comicapi import utils
 
 search_results = [
-    comictalker.resulttypes.ComicSeries(
+    comicapi.genericmetadata.ComicSeries(
         count_of_issues=1,
         count_of_volumes=1,
         description="this is a description",
@@ -18,7 +17,7 @@ search_results = [
         genres=[],
         format=None,
     ),
-    comictalker.resulttypes.ComicSeries(
+    comicapi.genericmetadata.ComicSeries(
         count_of_issues=1,
         count_of_volumes=1,
         description="this is a description",

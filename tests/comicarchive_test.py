@@ -36,9 +36,9 @@ def test_page_type_read(cbz):
     assert isinstance(md.pages[0]["Type"], str)
 
 
-def test_metadata_read(cbz):
+def test_metadata_read(cbz, md_saved):
     md = cbz.read_cix()
-    assert md == comicapi.genericmetadata.md_test
+    assert md == md_saved
 
 
 def test_save_cix(tmp_comic):
@@ -60,7 +60,7 @@ def test_save_cbi(tmp_comic):
 
 
 @pytest.mark.xfail(not (comicapi.archivers.rar.rar_support and shutil.which("rar")), reason="rar support")
-def test_save_cix_rar(tmp_path):
+def test_save_cix_rar(tmp_path, md_saved):
     cbr_path = datadir / "fake_cbr.cbr"
     shutil.copy(cbr_path, tmp_path)
 
@@ -69,11 +69,11 @@ def test_save_cix_rar(tmp_path):
     assert tmp_comic.write_cix(comicapi.genericmetadata.md_test)
 
     md = tmp_comic.read_cix()
-    assert md.replace(pages=[]) == comicapi.genericmetadata.md_test.replace(pages=[])
+    assert md.replace(pages=[], page_count=0) == md_saved.replace(pages=[], page_count=0)
 
 
 @pytest.mark.xfail(not (comicapi.archivers.rar.rar_support and shutil.which("rar")), reason="rar support")
-def test_save_cbi_rar(tmp_path):
+def test_save_cbi_rar(tmp_path, md_saved):
     cbr_path = datadir / "fake_cbr.cbr"
     shutil.copy(cbr_path, tmp_path)
 
@@ -82,7 +82,7 @@ def test_save_cbi_rar(tmp_path):
     assert tmp_comic.write_cbi(comicapi.genericmetadata.md_test)
 
     md = tmp_comic.read_cbi()
-    assert md.replace(pages=[]) == comicapi.genericmetadata.md_test.replace(
+    assert md.replace(pages=[]) == md_saved.replace(
         pages=[],
         day=None,
         alternate_series=None,
@@ -95,12 +95,12 @@ def test_save_cbi_rar(tmp_path):
         manga=None,
         page_count=None,
         maturity_rating=None,
-        story_arc=None,
-        series_group=None,
+        story_arcs=[],
+        series_groups=[],
         scan_info=None,
-        characters=None,
-        teams=None,
-        locations=None,
+        characters=[],
+        teams=[],
+        locations=[],
     )
 
 
@@ -136,7 +136,7 @@ for x in entry_points(group="comicapi.archiver"):
 
 
 @pytest.mark.parametrize("archiver", archivers)
-def test_copy_from_archive(archiver, tmp_path, cbz):
+def test_copy_from_archive(archiver, tmp_path, cbz, md_saved):
     comic_path = tmp_path / cbz.path.with_suffix("").name
 
     archive = archiver.open(comic_path)
@@ -149,7 +149,7 @@ def test_copy_from_archive(archiver, tmp_path, cbz):
     assert set(cbz.archiver.get_filename_list()) == set(comic_archive.archiver.get_filename_list())
 
     md = comic_archive.read_cix()
-    assert md == comicapi.genericmetadata.md_test
+    assert md == md_saved
 
 
 def test_rename(tmp_comic, tmp_path):

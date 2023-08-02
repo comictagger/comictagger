@@ -5,27 +5,27 @@ import comicapi.comicinfoxml
 import comicapi.genericmetadata
 
 
-def test_cix():
+def test_cix(md_saved):
     CIX = comicapi.comicinfoxml.ComicInfoXml()
     string = CIX.string_from_metadata(comicapi.genericmetadata.md_test)
     md = CIX.metadata_from_string(string)
-    assert md == comicapi.genericmetadata.md_test
+    assert md == md_saved
 
 
-def test_cbi():
+def test_cbi(md_saved):
     CBI = comicapi.comicbookinfo.ComicBookInfo()
     string = CBI.string_from_metadata(comicapi.genericmetadata.md_test)
     md = CBI.metadata_from_string(string)
-    md_test = comicapi.genericmetadata.md_test.replace(
+    md_test = md_saved.replace(
         day=None,
         page_count=None,
         maturity_rating=None,
-        story_arc=None,
-        series_group=None,
+        story_arcs=[],
+        series_groups=[],
         scan_info=None,
-        characters=None,
-        teams=None,
-        locations=None,
+        characters=[],
+        teams=[],
+        locations=[],
         pages=[],
         alternate_series=None,
         alternate_number=None,
@@ -39,17 +39,17 @@ def test_cbi():
     assert md == md_test
 
 
-def test_comet():
+def test_comet(md_saved):
     CBI = comicapi.comet.CoMet()
     string = CBI.string_from_metadata(comicapi.genericmetadata.md_test)
     md = CBI.metadata_from_string(string)
-    md_test = comicapi.genericmetadata.md_test.replace(
+    md_test = md_saved.replace(
         day=None,
-        story_arc=None,
-        series_group=None,
+        story_arcs=[],
+        series_groups=[],
         scan_info=None,
-        teams=None,
-        locations=None,
+        teams=[],
+        locations=[],
         pages=[],
         alternate_series=None,
         alternate_number=None,

@@ -67,6 +67,8 @@ class MetadataFormatter(string.Formatter):
             return str(value).swapcase()
         if conversion == "t":
             return str(value).title()
+        if conversion == "j":
+            return ", ".join(list(value))
         return cast(str, super().convert_field(value, conversion))
 
     def handle_replacements(self, string: str, replacements: list[Replacement]) -> str:

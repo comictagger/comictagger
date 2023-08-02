@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import logging
 
-from comicapi.genericmetadata import CreditMetadata, GenericMetadata
+from comicapi.genericmetadata import Credit, GenericMetadata
 from comictaggerlib.ctsettings import ct_ns
 
 logger = logging.getLogger(__name__)
@@ -29,21 +29,10 @@ class CBLTransformer:
         self.config = config
 
     def apply(self) -> GenericMetadata:
-        # helper funcs
-        def append_to_tags_if_unique(item: str) -> None:
-            if item.casefold() not in (tag.casefold() for tag in self.metadata.tags):
-                self.metadata.tags.add(item)
-
-        def add_string_list_to_tags(str_list: str | None) -> None:
-            if str_list:
-                items = [s.strip() for s in str_list.split(",")]
-                for item in items:
-                    append_to_tags_if_unique(item)
-
         if self.config.cbl_assume_lone_credit_is_primary:
             # helper
-            def set_lone_primary(role_list: list[str]) -> tuple[CreditMetadata | None, int]:
-                lone_credit: CreditMetadata | None = None
+            def set_lone_primary(role_list: list[str]) -> tuple[Credit | None, int]:
+                lone_credit: Credit | None = None
                 count = 0
                 for c in self.metadata.credits:
                     if c["role"].casefold() in role_list:
@@ -67,33 +56,33 @@ class CBLTransformer:
                     self.metadata.add_credit(c["person"], "Artist", True)
 
         if self.config.cbl_copy_characters_to_tags:
-            add_string_list_to_tags(self.metadata.characters)
+            self.metadata.tags.update(x for x in self.metadata.characters)
 
         if self.config.cbl_copy_teams_to_tags:
-            add_string_list_to_tags(self.metadata.teams)
+            self.metadata.tags.update(x for x in self.metadata.teams)
 
         if self.config.cbl_copy_locations_to_tags:
-            add_string_list_to_tags(self.metadata.locations)
+            self.metadata.tags.update(x for x in self.metadata.locations)
 
         if self.config.cbl_copy_storyarcs_to_tags:
-            add_string_list_to_tags(self.metadata.story_arc)
+            self.metadata.tags.update(x for x in self.metadata.story_arcs)
 
         if self.config.cbl_copy_notes_to_comments:
             if self.metadata.notes is not None:
-                if self.metadata.comments is None:
-                    self.metadata.comments = ""
+                if self.metadata.description is None:
+                    self.metadata.description = ""
                 else:
-                    self.metadata.comments += "\n\n"
-                if self.metadata.notes not in self.metadata.comments:
-                    self.metadata.comments += self.metadata.notes
+                    self.metadata.description += "\n\n"
+                if self.metadata.notes not in self.metadata.description:
+                    self.metadata.description += self.metadata.notes
 
         if self.config.cbl_copy_weblink_to_comments:
             if self.metadata.web_link is not None:
-                if self.metadata.comments is None:
-                    self.metadata.comments = ""
+                if self.metadata.description is None:
+                    self.metadata.description = ""
                 else:
-                    self.metadata.comments += "\n\n"
-                if self.metadata.web_link not in self.metadata.comments:
-                    self.metadata.comments += self.metadata.web_link
+                    self.metadata.description += "\n\n"
+                if self.metadata.web_link not in self.metadata.description:
+                    self.metadata.description += self.metadata.web_link
 
         return self.metadata

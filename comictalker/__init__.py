@@ -10,15 +10,12 @@ else:
     from importlib.metadata import entry_points
 
 from comictalker.comictalker import ComicTalker, TalkerError
-from comictalker.resulttypes import ComicIssue, ComicSeries
 
 logger = logging.getLogger(__name__)
 
 __all__ = [
     "ComicTalker",
     "TalkerError",
-    "ComicIssue",
-    "ComicSeries",
 ]
 
 

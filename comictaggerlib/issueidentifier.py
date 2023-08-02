@@ -471,8 +471,8 @@ class IssueIdentifier:
         # now re-associate the issues and series
         # is this really needed?
         for issue in issue_list:
-            if issue.series.id in series_by_id:
-                shortlist.append((series_by_id[issue.series.id], issue))
+            if issue.series_id in series_by_id:
+                shortlist.append((series_by_id[issue.series_id], issue))
 
         if keys["year"] is None:
             self.log_msg(f"Found {len(shortlist)} series that have an issue #{keys['issue_number']}")
@@ -494,9 +494,6 @@ class IssueIdentifier:
                 newline=False,
             )
 
-            # parse out the cover date
-            _, month, year = utils.parse_date_str(issue.cover_date)
-
             # Now check the cover match against the primary image
             hash_list = [cover_hash]
             if narrow_cover_hash is not None:
@@ -508,8 +505,8 @@ class IssueIdentifier:
                 logger.info("Adding cropped cover to the hashlist")
 
             try:
-                image_url = issue.image_url
-                alt_urls = issue.alt_image_urls
+                image_url = issue.cover_image or ""
+                alt_urls = issue.alternate_images
 
                 score_item = self.get_issue_cover_match_score(
                     image_url, alt_urls, hash_list, use_remote_alternates=False
@@ -525,15 +522,15 @@ class IssueIdentifier:
                 "issue_number": keys["issue_number"],
                 "cv_issue_count": series.count_of_issues,
                 "url_image_hash": score_item["hash"],
-                "issue_title": issue.name,
-                "issue_id": issue.id,
+                "issue_title": issue.title or "",
+                "issue_id": issue.issue_id or "",
                 "series_id": series.id,
-                "month": month,
-                "year": year,
+                "month": issue.month,
+                "year": issue.year,
                 "publisher": None,
                 "image_url": image_url,
                 "alt_image_urls": alt_urls,
-                "description": issue.description,
+                "description": issue.description or "",
             }
             if series.publisher is not None:
                 match["publisher"] = series.publisher
