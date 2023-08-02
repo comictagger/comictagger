@@ -100,7 +100,7 @@ def get_recursive_filelist(pathlist: list[str]) -> list[str]:
 def add_to_path(dirname: str) -> None:
     if dirname:
         dirname = os.path.abspath(dirname)
-        paths = [os.path.normpath(x) for x in os.environ["PATH"].split(os.pathsep)]
+        paths = [os.path.normpath(x) for x in split(os.environ["PATH"], os.pathsep)]
 
         if dirname not in paths:
             paths.insert(0, dirname)
@@ -136,7 +136,14 @@ def xlate(data: Any) -> str | None:
     if data is None or isinstance(data, str) and data.strip() == "":
         return None
 
-    return str(data)
+    return str(data).strip()
+
+
+def split(s: str | None, c: str) -> list[str]:
+    s = xlate(s)
+    if s:
+        return [x.strip() for x in s.strip().split(c) if x.strip()]
+    return []
 
 
 def remove_articles(text: str) -> str:

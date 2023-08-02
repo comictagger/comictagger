@@ -29,13 +29,12 @@ import settngs
 from pyrate_limiter import Limiter, RequestRate
 from typing_extensions import Required, TypedDict
 
-import comictalker.talker_utils as talker_utils
 from comicapi import utils
-from comicapi.genericmetadata import GenericMetadata
+from comicapi.genericmetadata import ComicSeries, GenericMetadata, TagOrigin
 from comicapi.issuestring import IssueString
+from comictalker import talker_utils
 from comictalker.comiccacher import ComicCacher
 from comictalker.comictalker import ComicTalker, TalkerDataError, TalkerNetworkError
-from comictalker.resulttypes import ComicIssue, ComicSeries, Credit
 
 logger = logging.getLogger(__name__)
 
@@ -60,27 +59,27 @@ class CVImage(TypedDict, total=False):
 
 class CVAltImage(TypedDict):
     original_url: str
-    id: int
+    id: Required[int]
     caption: str
     image_tags: str
 
 
 class CVPublisher(TypedDict, total=False):
     api_detail_url: str
-    id: int
+    id: Required[int]
     name: Required[str]
 
 
 class CVCredit(TypedDict):
     api_detail_url: str
-    id: int
+    id: Required[int]
     name: str
     site_detail_url: str
 
 
 class CVPersonCredit(TypedDict):
     api_detail_url: str
-    id: int
+    id: Required[int]
     name: str
     site_detail_url: str
     role: str
@@ -92,7 +91,7 @@ class CVSeries(TypedDict):
     aliases: str
     count_of_issues: int
     description: str
-    id: int
+    id: Required[int]
     image: CVImage
     name: str
     publisher: CVPublisher
@@ -122,7 +121,7 @@ class CVIssue(TypedDict, total=False):
     first_appearance_storyarcs: None
     first_appearance_teams: None
     has_staff_review: bool
-    id: int
+    id: Required[int]
     image: CVImage
     issue_number: str
     location_credits: list[CVCredit]
@@ -134,7 +133,7 @@ class CVIssue(TypedDict, total=False):
     story_arc_credits: list[CVCredit]
     team_credits: list[CVCredit]
     team_disbanded_in: None
-    volume: CVSeries  # CV uses volume to mean series
+    volume: Required[CVSeries]  # CV uses volume to mean series
 
 
 T = TypeVar("T", CVIssue, CVSeries, list[CVSeries], list[CVIssue])
@@ -160,6 +159,7 @@ default_limiter = Limiter(RequestRate(1, 5))
 class ComicVineTalker(ComicTalker):
     name: str = "Comic Vine"
     id: str = "comicvine"
+    origin: TagOrigin = TagOrigin(id, name)
     website: str = "https://comicvine.gamespot.com"
     logo_url: str = f"{website}/a/bundles/comicvinesite/images/logo.png"
     attribution: str = f"Metadata provided by <a href='{website}'>{name}</a>"
@@ -170,7 +170,6 @@ class ComicVineTalker(ComicTalker):
         # Default settings
         self.default_api_url = self.api_url = f"{self.website}/api/"
         self.default_api_key = self.api_key = "27431e6787042105bd3e47e169a624521f89f3a4"
-        self.remove_html_tables: bool = False
         self.use_series_start_as_volume: bool = False
 
     def register_settings(self, parser: settngs.Manager) -> None:
@@ -180,13 +179,6 @@ class ComicVineTalker(ComicTalker):
             action=argparse.BooleanOptionalAction,
             display_name="Use series start as volume",
             help="Use the series start year as the volume number",
-        )
-        parser.add_setting(
-            "--cv-remove-html-tables",
-            default=False,
-            action=argparse.BooleanOptionalAction,
-            display_name="Remove HTML tables",
-            help="Removes html tables instead of converting them to text",
         )
 
         # The default needs to be unset or None.
@@ -206,7 +198,6 @@ class ComicVineTalker(ComicTalker):
         settings = super().parse_settings(settings)
 
         self.use_series_start_as_volume = settings["cv_use_series_start_as_volume"]
-        self.remove_html_tables = settings["cv_remove_html_tables"]
 
         # Set a different limit if using the default API key
         if self.api_key == self.default_api_key:
@@ -253,7 +244,7 @@ class ComicVineTalker(ComicTalker):
         # For literal searches always retrieve from online
         cvc = ComicCacher(self.cache_folder, self.version)
         if not refresh_cache and not literal:
-            cached_search_results = cvc.get_search_results(self.id, series_name)
+            cached_search_results = cvc.get_search_results(self.origin, series_name)
 
             if len(cached_search_results) > 0:
                 return cached_search_results
@@ -321,12 +312,12 @@ class ComicVineTalker(ComicTalker):
             if callback is not None:
                 callback(current_result_count, total_result_count)
 
-        # Format result to ComicIssue
+        # Format result to GenericMetadata
         formatted_search_results = self._format_search_results(search_results)
 
         # Cache these search results, even if it's literal we cache the results
         # The most it will cause is extra processing time
-        cvc.add_search_results(self.id, series_name, formatted_search_results)
+        cvc.add_search_results(self.origin, series_name, formatted_search_results)
 
         return formatted_search_results
 
@@ -341,53 +332,15 @@ class ComicVineTalker(ComicTalker):
 
         return comic_data
 
-    def fetch_issues_by_series(self, series_id: str) -> list[ComicIssue]:
-        # before we search online, look in our cache, since we might already have this info
-        cvc = ComicCacher(self.cache_folder, self.version)
-        cached_series_issues_result = cvc.get_series_issues_info(series_id, self.id)
+    def fetch_series(self, series_id: str) -> ComicSeries:
+        return self._fetch_series_data(int(series_id))
 
-        series_data = self._fetch_series_data(int(series_id))
-
-        if len(cached_series_issues_result) == series_data.count_of_issues:
-            return cached_series_issues_result
-
-        params = {  # CV uses volume to mean series
-            "api_key": self.api_key,
-            "filter": f"volume:{series_id}",
-            "format": "json",
-            "field_list": "id,volume,issue_number,name,image,cover_date,site_detail_url,description,aliases,associated_images",
-            "offset": 0,
-        }
-        cv_response: CVResult[list[CVIssue]] = self._get_cv_content(urljoin(self.api_url, "issues/"), params)
-
-        current_result_count = cv_response["number_of_page_results"]
-        total_result_count = cv_response["number_of_total_results"]
-
-        series_issues_result = cv_response["results"]
-        page = 1
-        offset = 0
-
-        # see if we need to keep asking for more pages...
-        while current_result_count < total_result_count:
-            page += 1
-            offset += cv_response["number_of_page_results"]
-
-            params["offset"] = offset
-            cv_response = self._get_cv_content(urljoin(self.api_url, "issues/"), params)
-
-            series_issues_result.extend(cv_response["results"])
-            current_result_count += cv_response["number_of_page_results"]
-
-        # Format to expected output
-        formatted_series_issues_result = self._format_issue_results(series_issues_result)
-
-        cvc.add_series_issues_info(self.id, formatted_series_issues_result)
-
-        return formatted_series_issues_result
+    def fetch_issues_in_series(self, series_id: str) -> list[GenericMetadata]:
+        return [x[0] for x in self._fetch_issues_in_series(series_id)]
 
     def fetch_issues_by_series_issue_num_and_year(
         self, series_id_list: list[str], issue_number: str, year: str | int | None
-    ) -> list[ComicIssue]:
+    ) -> list[GenericMetadata]:
         series_filter = ""
         for vid in series_id_list:
             series_filter += str(vid) + "|"
@@ -424,7 +377,10 @@ class ComicVineTalker(ComicTalker):
             filtered_issues_result.extend(cv_response["results"])
             current_result_count += cv_response["number_of_page_results"]
 
-        formatted_filtered_issues_result = self._format_issue_results(filtered_issues_result)
+        formatted_filtered_issues_result = [
+            self.map_comic_issue_to_metadata(x, self._fetch_series_data(x["volume"]["id"]))
+            for x in filtered_issues_result
+        ]
 
         return formatted_filtered_issues_result
 
@@ -446,17 +402,17 @@ class ComicVineTalker(ComicTalker):
     def _get_url_content(self, url: str, params: dict[str, Any]) -> Any:
         # if there is a 500 error, try a few more times before giving up
         limit_counter = 0
-        tries = 0
-        while tries < 4:
+
+        for tries in range(1, 5):
             try:
                 resp = requests.get(url, params=params, headers={"user-agent": "comictagger/" + self.version})
                 if resp.status_code == 200:
                     return resp.json()
                 if resp.status_code == 500:
-                    logger.debug(f"Try #{tries + 1}: ")
+                    logger.debug(f"Try #{tries}: ")
                     time.sleep(1)
                     logger.debug(str(resp.status_code))
-                    tries += 1
+
                 if resp.status_code == requests.status_codes.codes.TOO_MANY_REQUESTS:
                     logger.info(f"{self.name} rate limit encountered. Waiting for 10 seconds\n")
                     time.sleep(10)
@@ -504,7 +460,7 @@ class ComicVineTalker(ComicTalker):
 
             formatted_results.append(
                 ComicSeries(
-                    aliases=aliases.splitlines(),
+                    aliases=utils.split(aliases, "\n"),
                     count_of_issues=record.get("count_of_issues", 0),
                     count_of_volumes=None,
                     description=record.get("description", ""),
@@ -520,81 +476,55 @@ class ComicVineTalker(ComicTalker):
 
         return formatted_results
 
-    def _format_issue_results(self, issue_results: list[CVIssue], complete: bool = False) -> list[ComicIssue]:
-        formatted_results = []
-        for record in issue_results:
-            # Extract image super
-            if record.get("image") is None:
-                image_url = ""
-            else:
-                image_url = record["image"].get("super_url", "")
+    def _fetch_issues_in_series(self, series_id: str) -> list[tuple[GenericMetadata, bool]]:
+        # before we search online, look in our cache, since we might already have this info
+        cvc = ComicCacher(self.cache_folder, self.version)
+        cached_series_issues_result = cvc.get_series_issues_info(series_id, self.origin)
 
-            alt_images_list = []
-            for alt in record["associated_images"]:
-                alt_images_list.append(alt["original_url"])
+        series = self._fetch_series_data(int(series_id))
 
-            character_list = []
-            if record.get("character_credits"):
-                for char in record["character_credits"]:
-                    character_list.append(char["name"])
+        if len(cached_series_issues_result) == series.count_of_issues:
+            # Remove internal "complete" bool
+            return cached_series_issues_result
 
-            location_list = []
-            if record.get("location_credits"):
-                for loc in record["location_credits"]:
-                    location_list.append(loc["name"])
+        params = {  # CV uses volume to mean series
+            "api_key": self.api_key,
+            "filter": f"volume:{series_id}",
+            "format": "json",
+            "offset": 0,
+        }
+        cv_response: CVResult[list[CVIssue]] = self._get_cv_content(urljoin(self.api_url, "issues/"), params)
 
-            teams_list = []
-            if record.get("team_credits"):
-                for loc in record["team_credits"]:
-                    teams_list.append(loc["name"])
+        current_result_count = cv_response["number_of_page_results"]
+        total_result_count = cv_response["number_of_total_results"]
 
-            story_list = []
-            if record.get("story_arc_credits"):
-                for loc in record["story_arc_credits"]:
-                    story_list.append(loc["name"])
+        series_issues_result = cv_response["results"]
+        page = 1
+        offset = 0
 
-            persons_list = []
-            if record.get("person_credits"):
-                for person in record["person_credits"]:
-                    persons_list.append(Credit(name=person["name"], role=person["role"]))
+        # see if we need to keep asking for more pages...
+        while current_result_count < total_result_count:
+            page += 1
+            offset += cv_response["number_of_page_results"]
 
-            series = self._fetch_series_data(record["volume"]["id"])
+            params["offset"] = offset
+            cv_response = self._get_cv_content(urljoin(self.api_url, "issues/"), params)
 
-            formatted_results.append(
-                ComicIssue(
-                    aliases=record["aliases"].split("\n") if record["aliases"] else [],
-                    cover_date=record.get("cover_date", ""),
-                    description=record.get("description", ""),
-                    id=str(record["id"]),
-                    image_url=image_url,
-                    issue_number=record["issue_number"],
-                    volume=None,
-                    name=record["name"],
-                    site_detail_url=record.get("site_detail_url", ""),
-                    series=series,  # CV uses volume to mean series
-                    alt_image_urls=alt_images_list,
-                    characters=character_list,
-                    locations=location_list,
-                    teams=teams_list,
-                    story_arcs=story_list,
-                    critical_rating=0,
-                    maturity_rating="",
-                    manga="",
-                    language="",
-                    country="",
-                    genres=[],
-                    tags=[],
-                    credits=persons_list,
-                    complete=complete,
-                )
-            )
+            series_issues_result.extend(cv_response["results"])
+            current_result_count += cv_response["number_of_page_results"]
+        # Format to expected output
+        formatted_series_issues_result = [
+            self.map_comic_issue_to_metadata(x, self._fetch_series_data(x["volume"]["id"]))
+            for x in series_issues_result
+        ]
 
-        return formatted_results
+        cvc.add_series_issues_info(self.origin, formatted_series_issues_result, False)
+        return [(x, False) for x in formatted_series_issues_result]
 
     def _fetch_series_data(self, series_id: int) -> ComicSeries:
         # before we search online, look in our cache, since we might already have this info
         cvc = ComicCacher(self.cache_folder, self.version)
-        cached_series_result = cvc.get_series_info(str(series_id), self.id)
+        cached_series_result = cvc.get_series_info(str(series_id), self.origin)
 
         if cached_series_result is not None:
             return cached_series_result
@@ -611,47 +541,37 @@ class ComicVineTalker(ComicTalker):
         formatted_series_results = self._format_search_results([series_results])
 
         if series_results:
-            cvc.add_series_info(self.id, formatted_series_results[0])
+            cvc.add_series_info(self.origin, formatted_series_results[0])
 
         return formatted_series_results[0]
 
     def _fetch_issue_data(self, series_id: int, issue_number: str) -> GenericMetadata:
-        issues_list_results = self.fetch_issues_by_series(str(series_id))
+        issues_list_results = self._fetch_issues_in_series(str(series_id))
 
         # Loop through issue list to find the required issue info
-        f_record = None
+        f_record = (GenericMetadata(), False)
         for record in issues_list_results:
             if not IssueString(issue_number).as_string():
                 issue_number = "1"
-            if (
-                IssueString(record.issue_number).as_string().casefold()
-                == IssueString(issue_number).as_string().casefold()
-            ):
+            if IssueString(record[0].issue).as_string().casefold() == IssueString(issue_number).as_string().casefold():
                 f_record = record
                 break
 
-        if f_record and f_record.complete:
+        if not f_record[0].is_empty and f_record[1]:
             # Cache had full record
-            return talker_utils.map_comic_issue_to_metadata(
-                f_record, self.name, self.remove_html_tables, self.use_series_start_as_volume
-            )
+            return f_record[0]
 
-        if f_record is not None:
-            return self._fetch_issue_data_by_issue_id(f_record.id)
+        if f_record[0].issue_id is not None:
+            return self._fetch_issue_data_by_issue_id(f_record[0].issue_id)
         return GenericMetadata()
 
     def _fetch_issue_data_by_issue_id(self, issue_id: str) -> GenericMetadata:
         # before we search online, look in our cache, since we might already have this info
         cvc = ComicCacher(self.cache_folder, self.version)
-        cached_issues_result = cvc.get_issue_info(int(issue_id), self.id)
+        cached_issues_result = cvc.get_issue_info(int(issue_id), self.origin)
 
-        if cached_issues_result and cached_issues_result.complete:
-            return talker_utils.map_comic_issue_to_metadata(
-                cached_issues_result,
-                self.name,
-                self.remove_html_tables,
-                self.use_series_start_as_volume,
-            )
+        if cached_issues_result and cached_issues_result[1]:
+            return cached_issues_result[0]
 
         issue_url = urljoin(self.api_url, f"issue/{CVTypeID.Issue}-{issue_id}")
         params = {"api_key": self.api_key, "format": "json"}
@@ -660,17 +580,68 @@ class ComicVineTalker(ComicTalker):
         issue_results = cv_response["results"]
 
         # Format to expected output
-        cv_issues = self._format_issue_results([issue_results], True)
-
-        # Due to issue not returning publisher, fetch the series.
-        cv_issues[0].series = self._fetch_series_data(int(cv_issues[0].series.id))
-
-        cvc.add_series_issues_info(self.id, cv_issues)
-
-        # Now, map the ComicIssue data to generic metadata
-        return talker_utils.map_comic_issue_to_metadata(
-            cv_issues[0],
-            self.name,
-            self.remove_html_tables,
-            self.use_series_start_as_volume,
+        cv_issues = self.map_comic_issue_to_metadata(
+            issue_results, self._fetch_series_data(int(issue_results["volume"]["id"]))
         )
+
+        cvc.add_series_issues_info(self.origin, [cv_issues], True)
+
+        # Now, map the GenericMetadata data to generic metadata
+        return cv_issues
+
+    def map_comic_issue_to_metadata(self, issue: CVIssue, series: ComicSeries) -> GenericMetadata:
+        md = GenericMetadata(
+            tag_origin=self.origin,
+            issue_id=utils.xlate(issue.get("id")),
+            series_id=series.id,
+            title_aliases=utils.split(issue.get("aliases"), "\n"),
+            publisher=utils.xlate(series.publisher),
+            description=issue.get("description"),
+            issue=utils.xlate(IssueString(issue.get("issue_number")).as_string()),
+            issue_count=utils.xlate_int(series.count_of_issues),
+            format=utils.xlate(series.format),
+            volume_count=utils.xlate_int(series.count_of_volumes),
+            title=utils.xlate(issue.get("name")),
+            web_link=utils.xlate(issue.get("site_detail_url")),
+            series=utils.xlate(series.name),
+            series_aliases=series.aliases,
+        )
+        if issue.get("image") is None:
+            md.cover_image = ""
+        else:
+            md.cover_image = issue.get("image", {}).get("super_url", "")
+
+        md.alternate_images = []
+        for alt in issue.get("associated_images", []):
+            md.alternate_images.append(alt["original_url"])
+
+        md.characters = []
+        for character in issue.get("character_credits", []):
+            md.characters.append(character["name"])
+
+        md.locations = []
+        for location in issue.get("location_credits", []):
+            md.locations.append(location["name"])
+
+        md.teams = []
+        for team in issue.get("team_credits", []):
+            md.teams.append(team["name"])
+
+        md.story_arcs = []
+        for arc in issue.get("story_arc_credits", []):
+            md.story_arcs.append(arc["name"])
+
+        for person in issue.get("person_credits", []):
+            md.add_credit(person["name"], person["role"].title().strip(), False)
+
+        md.volume = utils.xlate_int(issue.get("volume"))
+        if self.use_series_start_as_volume:
+            md.volume = series.start_year
+
+        series = self._fetch_series_data(issue["volume"]["id"])
+        if issue.get("cover_date"):
+            md.day, md.month, md.year = utils.parse_date_str(issue.get("cover_date"))
+        elif series.start_year:
+            md.year = utils.xlate_int(series.start_year)
+
+        return md

@@ -19,8 +19,7 @@ from typing import Any, Callable
 
 import settngs
 
-from comicapi.genericmetadata import GenericMetadata
-from comictalker.resulttypes import ComicIssue, ComicSeries
+from comicapi.genericmetadata import ComicSeries, GenericMetadata, TagOrigin
 from comictalker.talker_utils import fix_url
 
 logger = logging.getLogger(__name__)
@@ -108,6 +107,7 @@ class ComicTalker:
 
     name: str = "Example"
     id: str = "example"
+    origin: TagOrigin = TagOrigin(id, name)
     website: str = "https://example.com"
     logo_url: str = f"{website}/logo.png"
     attribution: str = f"Metadata provided by <a href='{website}'>{name}</a>"
@@ -153,6 +153,8 @@ class ComicTalker:
 
         If the Talker does not use an API key it should validate that the URL works.
         If the Talker does not use an API key or URL it should check that the source is available.
+
+        Caching MUST NOT be implemented on this function.
         """
         raise NotImplementedError
 
@@ -175,6 +177,8 @@ class ComicTalker:
 
         A sensible amount of results should be returned.
 
+        Caching SHOULD be implemented on this function.
+
         For example the `ComicVineTalker` stops requesting new pages after the results
         become too different from the `series_name`  by use of the `titles_match` function
         provided by the `comicapi.utils` module, and only allows a maximum of 5 pages
@@ -187,6 +191,9 @@ class ComicTalker:
         """
         This function should return an instance of GenericMetadata for a single issue.
         It is guaranteed that either `issue_id` or (`series_id` and `issue_number` is set).
+
+        Caching MUST be implemented on this function.
+
         Below is an example of how this function might be implemented:
 
         if issue_number and series_id:
@@ -198,13 +205,20 @@ class ComicTalker:
         """
         raise NotImplementedError
 
-    def fetch_issues_by_series(self, series_id: str) -> list[ComicIssue]:
+    def fetch_series(self, series_id: str) -> ComicSeries:
+        """
+        This function should return an instance of ComicSeries from the given series ID.
+        Caching MUST be implemented on this function.
+        """
+        raise NotImplementedError
+
+    def fetch_issues_in_series(self, series_id: str) -> list[GenericMetadata]:
         """Expected to return a list of issues with a given series ID"""
         raise NotImplementedError
 
     def fetch_issues_by_series_issue_num_and_year(
         self, series_id_list: list[str], issue_number: str, year: int | None
-    ) -> list[ComicIssue]:
+    ) -> list[GenericMetadata]:
         """
         This function should return a single issue for each series id in
         the `series_id_list` and it should match the issue_number.
@@ -213,5 +227,7 @@ class ComicTalker:
 
         If there is no year given (`year` == None) or the Talker does not have issue publication info
         return the results unfiltered.
+
+        Caching SHOULD be implemented on this function.
         """
         raise NotImplementedError

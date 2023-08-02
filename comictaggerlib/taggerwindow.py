@@ -25,7 +25,6 @@ import pprint
 import re
 import sys
 import webbrowser
-from collections.abc import Iterable
 from datetime import datetime
 from typing import Any, Callable
 from urllib.parse import urlparse
@@ -65,6 +64,7 @@ from comictaggerlib.ui import ui_path
 from comictaggerlib.ui.qtutils import center_window_on_parent, reduce_widget_font_size
 from comictaggerlib.versionchecker import VersionChecker
 from comictalker.comictalker import ComicTalker, TalkerError
+from comictalker.talker_utils import cleanup_html
 
 logger = logging.getLogger(__name__)
 
@@ -468,9 +468,12 @@ class TaggerWindow(QtWidgets.QMainWindow):
     def repackage_archive(self) -> None:
         ca_list = self.fileSelectionList.get_selected_archive_list()
         non_zip_count = 0
+        zip_list = []
         for ca in ca_list:
             if not ca.is_zip():
                 non_zip_count += 1
+            else:
+                zip_list.append(ca)
 
         if non_zip_count == 0:
             QtWidgets.QMessageBox.information(
@@ -507,7 +510,6 @@ class TaggerWindow(QtWidgets.QMainWindow):
             prog_dialog.setMinimumDuration(300)
             center_window_on_parent(prog_dialog)
             QtCore.QCoreApplication.processEvents()
-            prog_idx = 0
 
             new_archives_to_add = []
             archives_to_remove = []
@@ -515,41 +517,39 @@ class TaggerWindow(QtWidgets.QMainWindow):
             failed_list = []
             success_count = 0
 
-            for ca in ca_list:
-                if not ca.is_zip():
-                    QtCore.QCoreApplication.processEvents()
-                    if prog_dialog.wasCanceled():
-                        break
-                    prog_idx += 1
-                    prog_dialog.setValue(prog_idx)
-                    prog_dialog.setLabelText(str(ca.path))
-                    center_window_on_parent(prog_dialog)
-                    QtCore.QCoreApplication.processEvents()
+            for prog_idx, ca in enumerate(zip_list, 1):
+                QtCore.QCoreApplication.processEvents()
+                if prog_dialog.wasCanceled():
+                    break
+                prog_dialog.setValue(prog_idx)
+                prog_dialog.setLabelText(str(ca.path))
+                center_window_on_parent(prog_dialog)
+                QtCore.QCoreApplication.processEvents()
 
-                    export_name = ca.path.with_suffix(".cbz")
-                    export = True
+                export_name = ca.path.with_suffix(".cbz")
+                export = True
 
-                    if export_name.exists():
-                        if EW.fileConflictBehavior == ExportConflictOpts.dontCreate:
-                            export = False
-                            skipped_list.append(ca.path)
-                        elif EW.fileConflictBehavior == ExportConflictOpts.createUnique:
-                            export_name = utils.unique_file(export_name)
+                if export_name.exists():
+                    if EW.fileConflictBehavior == ExportConflictOpts.dontCreate:
+                        export = False
+                        skipped_list.append(ca.path)
+                    elif EW.fileConflictBehavior == ExportConflictOpts.createUnique:
+                        export_name = utils.unique_file(export_name)
 
-                    if export:
-                        if ca.export_as_zip(export_name):
-                            success_count += 1
-                            if EW.addToList:
-                                new_archives_to_add.append(str(export_name))
-                            if EW.deleteOriginal:
-                                archives_to_remove.append(ca)
-                                ca.path.unlink(missing_ok=True)
+                if export:
+                    if ca.export_as_zip(export_name):
+                        success_count += 1
+                        if EW.addToList:
+                            new_archives_to_add.append(str(export_name))
+                        if EW.deleteOriginal:
+                            archives_to_remove.append(ca)
+                            ca.path.unlink(missing_ok=True)
 
-                        else:
-                            # last export failed, so remove the zip, if it exists
-                            failed_list.append(ca.path)
-                            if export_name.exists():
-                                export_name.unlink(missing_ok=True)
+                    else:
+                        # last export failed, so remove the zip, if it exists
+                        failed_list.append(ca.path)
+                        if export_name.exists():
+                            export_name.unlink(missing_ok=True)
 
             prog_dialog.hide()
             QtCore.QCoreApplication.processEvents()
@@ -797,20 +797,20 @@ class TaggerWindow(QtWidgets.QMainWindow):
         assign_text(self.lePubMonth, md.month)
         assign_text(self.lePubYear, md.year)
         assign_text(self.lePubDay, md.day)
-        assign_text(self.leGenre, md.genre)
+        assign_text(self.leGenre, ",".join(md.genres))
         assign_text(self.leImprint, md.imprint)
-        assign_text(self.teComments, md.comments)
+        assign_text(self.teComments, md.description)
         assign_text(self.teNotes, md.notes)
-        assign_text(self.leStoryArc, md.story_arc)
+        assign_text(self.leStoryArc, ",".join(md.story_arcs))
         assign_text(self.leScanInfo, md.scan_info)
-        assign_text(self.leSeriesGroup, md.series_group)
+        assign_text(self.leSeriesGroup, ",".join(md.series_groups))
         assign_text(self.leAltSeries, md.alternate_series)
         assign_text(self.leAltIssueNum, md.alternate_number)
         assign_text(self.leAltIssueCount, md.alternate_count)
         assign_text(self.leWebLink, md.web_link)
-        assign_text(self.teCharacters, md.characters)
-        assign_text(self.teTeams, md.teams)
-        assign_text(self.teLocations, md.locations)
+        assign_text(self.teCharacters, "\n".join(md.characters))
+        assign_text(self.teTeams, "\n".join(md.teams))
+        assign_text(self.teLocations, "\n".join(md.locations))
 
         self.dsbCriticalRating.setValue(md.critical_rating or 0.0)
 
@@ -860,8 +860,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         if md.credits is not None and len(md.credits) != 0:
             self.twCredits.setSortingEnabled(False)
 
-            row = 0
-            for credit in md.credits:
+            for row, credit in enumerate(md.credits):
                 # if the role-person pair already exists, just skip adding it to the list
                 if self.is_dupe_credit(credit["role"].title(), credit["person"]):
                     continue
@@ -869,8 +868,6 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 self.add_new_credit_entry(
                     row, credit["role"].title(), credit["person"], (credit["primary"] if "primary" in credit else False)
                 )
-
-                row += 1
 
         self.twCredits.setSortingEnabled(True)
         self.update_credit_colors()
@@ -919,9 +916,9 @@ class TaggerWindow(QtWidgets.QMainWindow):
         md.series = utils.xlate(self.leSeries.text())
         md.title = utils.xlate(self.leTitle.text())
         md.publisher = utils.xlate(self.lePublisher.text())
-        md.genre = utils.xlate(self.leGenre.text())
+        md.genres = utils.split(self.leGenre.text(), ",")
         md.imprint = utils.xlate(self.leImprint.text())
-        md.comments = utils.xlate(self.teComments.toPlainText())
+        md.description = utils.xlate(self.teComments.toPlainText())
         md.notes = utils.xlate(self.teNotes.toPlainText())
         md.maturity_rating = self.cbMaturityRating.currentText()
 
@@ -929,14 +926,14 @@ class TaggerWindow(QtWidgets.QMainWindow):
         if md.critical_rating == 0.0:
             md.critical_rating = None
 
-        md.story_arc = utils.xlate(self.leStoryArc.text())
+        md.story_arcs = utils.split(self.leStoryArc.text(), ",")
         md.scan_info = utils.xlate(self.leScanInfo.text())
-        md.series_group = utils.xlate(self.leSeriesGroup.text())
-        md.alternate_series = utils.xlate(self.leAltSeries.text())
+        md.series_groups = utils.split(self.leSeriesGroup.text(), ",")
+        md.alternate_series = self.leAltSeries.text()
         md.web_link = utils.xlate(self.leWebLink.text())
-        md.characters = utils.xlate(self.teCharacters.toPlainText())
-        md.teams = utils.xlate(self.teTeams.toPlainText())
-        md.locations = utils.xlate(self.teLocations.toPlainText())
+        md.characters = utils.split(self.teCharacters.toPlainText(), "\n")
+        md.teams = utils.split(self.teTeams.toPlainText(), "\n")
+        md.locations = utils.split(self.teLocations.toPlainText(), "\n")
 
         md.format = utils.xlate(self.cbFormat.currentText())
         md.country = utils.xlate(self.cbCountry.currentText())
@@ -946,13 +943,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         md.manga = utils.xlate(self.cbManga.itemData(self.cbManga.currentIndex()))
 
         # Make a list from the comma delimited tags string
-        tmp = self.teTags.toPlainText()
-        if tmp is not None:
-
-            def strip_list(i: Iterable[str]) -> set[str]:
-                return {x.strip() for x in i}
-
-            md.tags = strip_list(tmp.split(","))
+        md.tags = set(utils.split(self.teTags.toPlainText(), ","))
 
         md.black_and_white = self.cbBW.isChecked()
 
@@ -997,7 +988,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         if dialog.exec():
             file_list = dialog.selectedFiles()
             if file_list:
-                self.fileSelectionList.add_path_item(file_list[0])
+                self.fileSelectionList.twList.selectRow(self.fileSelectionList.add_path_item(file_list[0]))
 
     def select_file(self, folder_mode: bool = False) -> None:
         dialog = self.file_dialog(folder_mode=folder_mode)
@@ -1100,7 +1091,10 @@ class TaggerWindow(QtWidgets.QMainWindow):
                     )
                     self.metadata.overlay(
                         new_metadata.replace(
-                            notes=utils.combine_notes(self.metadata.notes, notes, "Tagged with ComicTagger")
+                            notes=utils.combine_notes(self.metadata.notes, notes, "Tagged with ComicTagger"),
+                            description=cleanup_html(
+                                new_metadata.description, self.config[0].talker_remove_html_tables
+                            ),
                         )
                     )
                     # Now push the new combined data into the edit controls
@@ -1548,27 +1542,23 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 center_window_on_parent(progdialog)
                 QtCore.QCoreApplication.processEvents()
 
-                prog_idx = 0
-
                 failed_list = []
                 success_count = 0
-                for ca in ca_list:
+                for prog_idx, ca in enumerate(ca_list, 1):
+                    QtCore.QCoreApplication.processEvents()
+                    if progdialog.wasCanceled():
+                        break
+                    progdialog.setValue(prog_idx)
+                    progdialog.setLabelText(str(ca.path))
+                    center_window_on_parent(progdialog)
+                    QtCore.QCoreApplication.processEvents()
                     if ca.has_metadata(style):
-                        QtCore.QCoreApplication.processEvents()
-                        if progdialog.wasCanceled():
-                            break
-                        prog_idx += 1
-                        progdialog.setValue(prog_idx)
-                        progdialog.setLabelText(str(ca.path))
-                        center_window_on_parent(progdialog)
-                        QtCore.QCoreApplication.processEvents()
-
-                    if ca.has_metadata(style) and ca.is_writable():
-                        if not ca.remove_metadata(style):
-                            failed_list.append(ca.path)
-                        else:
-                            success_count += 1
-                        ca.load_cache([MetaDataStyle.CBI, MetaDataStyle.CIX])
+                        if ca.is_writable():
+                            if not ca.remove_metadata(style):
+                                failed_list.append(ca.path)
+                            else:
+                                success_count += 1
+                            ca.load_cache([MetaDataStyle.CBI, MetaDataStyle.CIX])
 
                 progdialog.hide()
                 QtCore.QCoreApplication.processEvents()
@@ -1630,20 +1620,18 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 prog_dialog.setMinimumDuration(300)
                 center_window_on_parent(prog_dialog)
                 QtCore.QCoreApplication.processEvents()
-                prog_idx = 0
 
                 failed_list = []
                 success_count = 0
-                for ca in ca_list:
-                    if ca.has_metadata(src_style):
-                        QtCore.QCoreApplication.processEvents()
-                        if prog_dialog.wasCanceled():
-                            break
-                        prog_idx += 1
-                        prog_dialog.setValue(prog_idx)
-                        prog_dialog.setLabelText(str(ca.path))
-                        center_window_on_parent(prog_dialog)
-                        QtCore.QCoreApplication.processEvents()
+                for prog_idx, ca in enumerate(ca_list, 1):
+                    QtCore.QCoreApplication.processEvents()
+                    if prog_dialog.wasCanceled():
+                        break
+
+                    prog_dialog.setValue(prog_idx)
+                    prog_dialog.setLabelText(str(ca.path))
+                    center_window_on_parent(prog_dialog)
+                    QtCore.QCoreApplication.processEvents()
 
                     if ca.has_metadata(src_style) and ca.is_writable():
                         md = ca.read_metadata(src_style)
@@ -1855,13 +1843,11 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.auto_tag_log("==========================================================================\n")
         self.auto_tag_log(f"Auto-Tagging Started for {len(ca_list)} items\n")
 
-        prog_idx = 0
-
         match_results = OnlineMatchResults()
         archives_to_remove = []
-        for ca in ca_list:
+        for prog_idx, ca in enumerate(ca_list):
             self.auto_tag_log("==========================================================================\n")
-            self.auto_tag_log(f"Auto-Tagging {prog_idx + 1} of {len(ca_list)}\n")
+            self.auto_tag_log(f"Auto-Tagging {prog_idx} of {len(ca_list)}\n")
             self.auto_tag_log(f"{ca.path}\n")
             try:
                 cover_idx = ca.read_metadata(style).get_cover_page_index_list()[0]
@@ -1876,7 +1862,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             if self.atprogdialog.isdone:
                 break
             self.atprogdialog.progressBar.setValue(prog_idx)
-            prog_idx += 1
+
             self.atprogdialog.label.setText(str(ca.path))
             center_window_on_parent(self.atprogdialog)
             QtCore.QCoreApplication.processEvents()

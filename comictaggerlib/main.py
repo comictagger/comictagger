@@ -141,6 +141,7 @@ class App:
             config_paths.user_config_dir / "settings.json", list(args) or None
         )
         config = cast(settngs.Config[ct_ns], self.manager.get_namespace(cfg, file=True, cmdline=True))
+        config[0].runtime_config = config_paths
 
         config = ctsettings.validate_commandline_settings(config, self.manager)
         config = ctsettings.validate_file_settings(config)

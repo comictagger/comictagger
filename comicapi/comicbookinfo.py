@@ -88,8 +88,8 @@ class ComicBookInfo:
         metadata.month = utils.xlate_int(cbi["publicationMonth"])
         metadata.year = utils.xlate_int(cbi["publicationYear"])
         metadata.issue_count = utils.xlate_int(cbi["numberOfIssues"])
-        metadata.comments = utils.xlate(cbi["comments"])
-        metadata.genre = utils.xlate(cbi["genre"])
+        metadata.description = utils.xlate(cbi["comments"])
+        metadata.genres = utils.split(cbi["genre"], ",")
         metadata.volume = utils.xlate_int(cbi["volume"])
         metadata.volume_count = utils.xlate_int(cbi["numberOfVolumes"])
         metadata.language = utils.xlate(cbi["language"])
@@ -104,11 +104,7 @@ class ComicBookInfo:
             )
             for x in cbi["credits"]
         ]
-        metadata.tags = set(cbi["tags"]) if cbi["tags"] is not None else set()
-
-        # make sure credits and tags are at least empty lists and not None
-        if metadata.credits is None:
-            metadata.credits = []
+        metadata.tags.update(cbi["tags"] if cbi["tags"] is not None else set())
 
         # need the language string to be ISO
         if metadata.language:
@@ -155,8 +151,8 @@ class ComicBookInfo:
         assign("publicationMonth", utils.xlate_int(metadata.month))
         assign("publicationYear", utils.xlate_int(metadata.year))
         assign("numberOfIssues", utils.xlate_int(metadata.issue_count))
-        assign("comments", utils.xlate(metadata.comments))
-        assign("genre", utils.xlate(metadata.genre))
+        assign("comments", utils.xlate(metadata.description))
+        assign("genre", utils.xlate(",".join(metadata.genres)))
         assign("volume", utils.xlate_int(metadata.volume))
         assign("numberOfVolumes", utils.xlate_int(metadata.volume_count))
         assign("language", utils.xlate(utils.get_language_from_iso(metadata.language)))

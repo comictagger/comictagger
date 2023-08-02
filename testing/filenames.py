@@ -872,7 +872,7 @@ rnames = [
         does_not_raise(),
     ),
     (
-        "{series} #{issue} - {locations} ({year})",
+        "{series} #{issue} - {locations!j} ({year})",
         False,
         "universal",
         "Cory Doctorow's Futuristic Tales of the Here and Now #001 - lonely cottage (2007).cbz",

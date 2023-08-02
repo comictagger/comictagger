@@ -424,9 +424,7 @@ class SettingsWindow(QtWidgets.QDialog):
 
         self.config[0].identifier_series_match_identify_thresh = self.sbNameMatchIdentifyThresh.value()
         self.config[0].identifier_series_match_search_thresh = self.sbNameMatchSearchThresh.value()
-        self.config[0].identifier_publisher_filter = [
-            x.strip() for x in str(self.tePublisherFilter.toPlainText()).splitlines() if x.strip()
-        ]
+        self.config[0].identifier_publisher_filter = utils.split(self.tePublisherFilter.toPlainText(), "\n")
 
         self.config[0].filename_complicated_parser = self.cbxComplicatedParser.isChecked()
         self.config[0].filename_remove_c2c = self.cbxRemoveC2C.isChecked()

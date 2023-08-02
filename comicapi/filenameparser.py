@@ -253,9 +253,9 @@ class FileNameParser:
         remainder = ""
 
         if "--" in filename:
-            remainder = filename.split("--", 1)[1]
+            remainder = "--".join(filename.split("--", 1)[1:])
         elif "__" in filename:
-            remainder = filename.split("__", 1)[1]
+            remainder = "__".join(filename.split("__", 1)[1:])
         elif issue_end != 0:
             remainder = filename[issue_end:]
 

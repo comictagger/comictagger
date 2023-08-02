@@ -4,8 +4,6 @@ from typing import Any
 
 import comicapi.genericmetadata
 from comicapi import utils
-from comictalker.resulttypes import ComicIssue, ComicSeries
-from comictalker.talker_utils import cleanup_html
 
 
 def filter_field_list(cv_result, kwargs):
@@ -158,62 +156,56 @@ cv_not_found = {
     "status_code": 101,
     "results": [],
 }
-comic_issue_result = ComicIssue(
-    aliases=cv_issue_result["results"]["aliases"] or [],
-    cover_date=cv_issue_result["results"]["cover_date"],
-    description=cv_issue_result["results"]["description"],
-    id=str(cv_issue_result["results"]["id"]),
-    image_url=cv_issue_result["results"]["image"]["super_url"],
-    issue_number=cv_issue_result["results"]["issue_number"],
-    volume=None,
-    name=cv_issue_result["results"]["name"],
-    site_detail_url=cv_issue_result["results"]["site_detail_url"],
-    series=ComicSeries(
-        id=str(cv_issue_result["results"]["volume"]["id"]),
-        name=cv_issue_result["results"]["volume"]["name"],
-        aliases=[],
-        count_of_issues=cv_volume_result["results"]["count_of_issues"],
-        count_of_volumes=None,
-        description=cv_volume_result["results"]["description"],
-        image_url=cv_volume_result["results"]["image"]["super_url"],
-        publisher=cv_volume_result["results"]["publisher"]["name"],
-        start_year=int(cv_volume_result["results"]["start_year"]),
-        genres=[],
-        format=None,
-    ),
-    characters=[],
-    alt_image_urls=[],
-    complete=False,
-    credits=[],
-    locations=[],
-    story_arcs=[],
-    critical_rating=0,
-    maturity_rating="",
-    manga="",
-    language="",
-    country="",
+comic_series_result = comicapi.genericmetadata.ComicSeries(
+    id=str(cv_issue_result["results"]["volume"]["id"]),
+    name=cv_issue_result["results"]["volume"]["name"],
+    aliases=[],
+    count_of_issues=cv_volume_result["results"]["count_of_issues"],
+    count_of_volumes=None,
+    description=cv_volume_result["results"]["description"],
+    image_url=cv_volume_result["results"]["image"]["super_url"],
+    publisher=cv_volume_result["results"]["publisher"]["name"],
+    start_year=int(cv_volume_result["results"]["start_year"]),
     genres=[],
-    tags=[],
-    teams=[],
+    format=None,
 )
 date = utils.parse_date_str(cv_issue_result["results"]["cover_date"])
+comic_issue_result = comicapi.genericmetadata.GenericMetadata(
+    tag_origin=comicapi.genericmetadata.TagOrigin("comicvine", "Comic Vine"),
+    title_aliases=cv_issue_result["results"]["aliases"] or [],
+    month=date[1],
+    year=date[2],
+    day=date[0],
+    description=cv_issue_result["results"]["description"],
+    publisher=cv_volume_result["results"]["publisher"]["name"],
+    issue_count=cv_volume_result["results"]["count_of_issues"],
+    issue_id=str(cv_issue_result["results"]["id"]),
+    series=cv_issue_result["results"]["volume"]["name"],
+    series_id=str(cv_issue_result["results"]["volume"]["id"]),
+    cover_image=cv_issue_result["results"]["image"]["super_url"],
+    issue=cv_issue_result["results"]["issue_number"],
+    volume=None,
+    title=cv_issue_result["results"]["name"],
+    web_link=cv_issue_result["results"]["site_detail_url"],
+)
 
 cv_md = comicapi.genericmetadata.GenericMetadata(
     is_empty=False,
-    tag_origin="Comic Vine",
+    tag_origin=comicapi.genericmetadata.TagOrigin("comicvine", "Comic Vine"),
     issue_id=str(cv_issue_result["results"]["id"]),
     series=cv_issue_result["results"]["volume"]["name"],
+    series_id=str(cv_issue_result["results"]["volume"]["id"]),
     issue=cv_issue_result["results"]["issue_number"],
     title=cv_issue_result["results"]["name"],
     publisher=cv_volume_result["results"]["publisher"]["name"],
     month=date[1],
     year=date[2],
     day=date[0],
-    issue_count=6,
+    issue_count=cv_volume_result["results"]["count_of_issues"],
     volume=None,
-    genre=None,
+    genres=[],
     language=None,
-    comments=cleanup_html(cv_issue_result["results"]["description"], False),
+    description=cv_issue_result["results"]["description"],
     volume_count=None,
     critical_rating=None,
     country=None,
@@ -228,14 +220,14 @@ cv_md = comicapi.genericmetadata.GenericMetadata(
     black_and_white=None,
     page_count=None,
     maturity_rating=None,
-    story_arc=None,
-    series_group=None,
+    story_arcs=[],
+    series_groups=[],
     scan_info=None,
-    characters=None,
-    teams=None,
-    locations=None,
+    characters=[],
+    teams=[],
+    locations=[],
     credits=[
-        comicapi.genericmetadata.CreditMetadata(person=x["name"], role=x["role"].title(), primary=False)
+        comicapi.genericmetadata.Credit(person=x["name"], role=x["role"].title(), primary=False)
         for x in cv_issue_result["results"]["person_credits"]
     ],
     tags=set(),

@@ -178,11 +178,11 @@ class RenameWindow(QtWidgets.QDialog):
         QtCore.QCoreApplication.processEvents()
 
         try:
-            for idx, comic in enumerate(zip(self.comic_archive_list, self.rename_list)):
+            for idx, comic in enumerate(zip(self.comic_archive_list, self.rename_list), 1):
                 QtCore.QCoreApplication.processEvents()
                 if prog_dialog.wasCanceled():
                     break
-                idx += 1
+
                 prog_dialog.setValue(idx)
                 prog_dialog.setLabelText(comic[1])
                 center_window_on_parent(prog_dialog)

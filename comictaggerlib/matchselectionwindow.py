@@ -89,8 +89,7 @@ class MatchSelectionWindow(QtWidgets.QDialog):
 
         self.twList.setSortingEnabled(False)
 
-        row = 0
-        for match in self.matches:
+        for row, match in enumerate(self.matches):
             self.twList.insertRow(row)
 
             item_text = match["series"]
@@ -129,8 +128,6 @@ class MatchSelectionWindow(QtWidgets.QDialog):
             item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
             item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
             self.twList.setItem(row, 3, item)
-
-            row += 1
 
         self.twList.resizeColumnsToContents()
         self.twList.setSortingEnabled(True)
