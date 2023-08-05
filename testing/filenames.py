@@ -88,6 +88,38 @@ names = [
         (False, False),
     ),
     (
+        "action comics 1024.cbz",
+        "issue number is current year (digits == 4)",
+        {
+            "issue": "1024",
+            "series": "action comics",
+            "title": "",
+            "publisher": "",
+            "volume": "",
+            "year": "",
+            "remainder": "",
+            "issue_count": "",
+            "alternate": "",
+        },
+        (False, False),
+    ),
+    (
+        "Action Comics 1001 (2018).cbz",
+        "issue number is current year (digits == 4)",
+        {
+            "issue": "1001",
+            "series": "Action Comics",
+            "title": "",
+            "publisher": "",
+            "volume": "",
+            "year": "2018",
+            "remainder": "",
+            "issue_count": "",
+            "alternate": "",
+        },
+        (False, False),
+    ),
+    (
         "january jones #2.cbz",
         "month in series",
         {
