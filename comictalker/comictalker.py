@@ -19,7 +19,7 @@ from typing import Any, Callable
 
 import settngs
 
-from comicapi.genericmetadata import ComicSeries, GenericMetadata, TagOrigin
+from comicapi.genericmetadata import ComicSeries, GenericMetadata
 from comictalker.talker_utils import fix_url
 
 logger = logging.getLogger(__name__)
@@ -107,7 +107,6 @@ class ComicTalker:
 
     name: str = "Example"
     id: str = "example"
-    origin: TagOrigin = TagOrigin(id, name)
     website: str = "https://example.com"
     logo_url: str = f"{website}/logo.png"
     attribution: str = f"Metadata provided by <a href='{website}'>{name}</a>"

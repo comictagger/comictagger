@@ -4,7 +4,7 @@ import comicapi.genericmetadata
 from comicapi import utils
 
 search_results = [
-    comicapi.genericmetadata.ComicSeries(
+    dict(
         count_of_issues=1,
         count_of_volumes=1,
         description="this is a description",
@@ -17,7 +17,7 @@ search_results = [
         genres=[],
         format=None,
     ),
-    comicapi.genericmetadata.ComicSeries(
+    dict(
         count_of_issues=1,
         count_of_volumes=1,
         description="this is a description",
