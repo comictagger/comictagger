@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1096</width>
-    <height>621</height>
+    <height>643</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -52,34 +52,39 @@
         <item>
          <layout class="QVBoxLayout" name="verticalLayout">
           <item>
-           <layout class="QFormLayout" name="formLayout">
-            <property name="fieldGrowthPolicy">
-             <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+           <widget class="QTableWidget" name="tblMetadata">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
             </property>
-            <property name="formAlignment">
-             <set>Qt::AlignHCenter|Qt::AlignTop</set>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>22</height>
+             </size>
             </property>
-            <item row="0" column="0">
-             <widget class="QLabel" name="label">
-              <property name="text">
-               <string>Read Style</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="1">
-             <widget class="QComboBox" name="cbLoadDataStyle"/>
-            </item>
-            <item row="1" column="0">
-             <widget class="QLabel" name="saveStyleLabel">
-              <property name="text">
-               <string>Modify Style</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="1">
-             <widget class="QComboBox" name="cbSaveDataStyle"/>
-            </item>
-           </layout>
+            <property name="maximumSize">
+             <size>
+              <width>256</width>
+              <height>1024</height>
+             </size>
+            </property>
+            <attribute name="verticalHeaderVisible">
+             <bool>true</bool>
+            </attribute>
+            <column>
+             <property name="text">
+              <string>Read</string>
+             </property>
+            </column>
+            <column>
+             <property name="text">
+              <string>Write</string>
+             </property>
+            </column>
+           </widget>
           </item>
           <item>
            <widget class="QFrame" name="frameInfoBox">
@@ -814,9 +819,6 @@
                     <column>
                      <property name="text">
                       <string>Primary</string>
-                     </property>
-                     <property name="textAlignment">
-                      <set>AlignCenter</set>
                      </property>
                     </column>
                     <column>

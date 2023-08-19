@@ -38,7 +38,7 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
         self,
         parent: QtWidgets.QWidget,
         match_set_list: list[MultipleMatch],
-        style: int,
+        styles: list[int],
         fetch_func: Callable[[IssueResult], GenericMetadata],
         config: ct_ns,
         talker: ComicTalker,
@@ -79,7 +79,7 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
         self.buttonBox.button(QtWidgets.QDialogButtonBox.StandardButton.Ok).setText("Accept and Write Tags")
 
         self.match_set_list = match_set_list
-        self._style = style
+        self._styles = styles
         self.fetch_func = fetch_func
 
         self.current_match_set_idx = 0
@@ -233,7 +233,8 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
         match = self.current_match()
         ca = self.current_match_set.ca
 
-        md = ca.read_metadata(self._style)
+        # TODO Why read the save style on a save?
+        md = ca.read_metadata(self._styles[0])
         if md.is_empty:
             md = ca.metadata_from_filename(
                 self.config.filename_complicated_parser,
@@ -250,10 +251,10 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
 
         QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
         md.overlay(ct_md)
-        success = ca.write_metadata(md, self._style)
+        for style in self._styles:
+            success = ca.write_metadata(md, style)
+            QtWidgets.QApplication.restoreOverrideCursor()
+            if not success:
+                QtWidgets.QMessageBox.warning(self, "Write Error", "Saving the tags to the archive seemed to fail!")
+
         ca.load_cache([MetaDataStyle.CBI, MetaDataStyle.CIX])
-
-        QtWidgets.QApplication.restoreOverrideCursor()
-
-        if not success:
-            QtWidgets.QMessageBox.warning(self, "Write Error", "Saving the tags to the archive seemed to fail!")

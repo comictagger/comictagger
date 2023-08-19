@@ -355,7 +355,7 @@ class PageListEditor(QtWidgets.QWidget):
             self.first_front_page = self.get_first_front_cover()
             self.firstFrontCoverChanged.emit(self.first_front_page)
 
-    def set_metadata_style(self, data_style: int) -> None:
+    def set_metadata_style(self, data_styles: list[int]) -> None:
         # depending on the current data style, certain fields are disabled
 
         inactive_color = QtGui.QColor(255, 170, 150)
@@ -364,7 +364,7 @@ class PageListEditor(QtWidgets.QWidget):
         inactive_palette3 = self.cbPageType.palette()
         inactive_palette3.setColor(QtGui.QPalette.ColorRole.Base, inactive_color)
 
-        if data_style == MetaDataStyle.CIX:
+        if MetaDataStyle.CIX in data_styles:
             self.btnUp.setEnabled(True)
             self.btnDown.setEnabled(True)
             self.cbPageType.setEnabled(True)
@@ -375,7 +375,7 @@ class PageListEditor(QtWidgets.QWidget):
             self.leBookmark.setPalette(active_palette)
             self.listWidget.setPalette(active_palette)
 
-        elif data_style == MetaDataStyle.CBI:
+        elif len(data_styles) == 1 and data_styles[0] == MetaDataStyle.CBI:
             self.btnUp.setEnabled(False)
             self.btnDown.setEnabled(False)
             self.cbPageType.setEnabled(False)
@@ -386,7 +386,7 @@ class PageListEditor(QtWidgets.QWidget):
             self.leBookmark.setPalette(inactive_palette3)
             self.listWidget.setPalette(inactive_palette3)
 
-        elif data_style == MetaDataStyle.COMET:
+        elif data_styles[0] == MetaDataStyle.COMET:
             pass
 
         # make sure combo is disabled when no list

@@ -158,11 +158,49 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
         if config[0].runtime_type and isinstance(config[0].runtime_type[0], int):
             # respect the command line option tag type
-            config[0].internal_save_data_style = config[0].runtime_type[0]
-            config[0].internal_load_data_style = config[0].runtime_type[0]
+            config[0].metadata_write_types = config[0].runtime_type
+            config[0].metadata_read_type = config[0].runtime_type[0]
 
-        self.save_data_style = config[0].internal_save_data_style
-        self.load_data_style = config[0].internal_load_data_style
+        self.save_data_styles = config[0].metadata_write_types
+        self.load_data_style = config[0].metadata_read_type
+
+        # Add metadata styles
+        for i, md_type in enumerate(MetaDataStyle.name):
+            cur_row: int = self.tblMetadata.rowCount()
+            self.tblMetadata.insertRow(cur_row)
+            label_widget = QtWidgets.QTableWidgetItem(md_type)
+            self.tblMetadata.setVerticalHeaderItem(cur_row, label_widget)
+
+            read_widget = QtWidgets.QTableWidgetItem()
+            read_widget.setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled | QtCore.Qt.ItemFlag.ItemIsUserCheckable)
+            if i == self.load_data_style:
+                read_widget.setCheckState(QtCore.Qt.Checked)
+            else:
+                read_widget.setCheckState(QtCore.Qt.Unchecked)
+            read_widget.setData(QtCore.Qt.ItemDataRole.UserRole, i)
+            self.tblMetadata.setItem(cur_row, 0, read_widget)
+
+            write_widget = QtWidgets.QTableWidgetItem()
+            write_widget.setFlags(QtCore.Qt.ItemFlag.ItemIsEnabled | QtCore.Qt.ItemFlag.ItemIsUserCheckable)
+            if i in self.save_data_styles:
+                write_widget.setCheckState(QtCore.Qt.Checked)
+            else:
+                write_widget.setCheckState(QtCore.Qt.Unchecked)
+            write_widget.setData(QtCore.Qt.ItemDataRole.UserRole, i)
+            self.tblMetadata.setItem(cur_row, 1, write_widget)
+
+        # Resize columns with name taking the most space and read/write minimum
+        self.tblMetadata.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
+        self.tblMetadata.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
+
+        self.tblMetadata.resizeRowsToContents()
+        # Set row height as sizeHint() isn't any help
+        hoz_row_height = self.tblMetadata.horizontalHeader().height()
+        row_count = self.tblMetadata.rowCount() + 1
+        hoz_height = (hoz_row_height * row_count) + 2
+        self.tblMetadata.setFixedHeight(hoz_height)
+
+        self.tblMetadata.itemClicked.connect(self.metadata_box_clicked)
 
         self.setAcceptDrops(True)
         self.config_menus()
@@ -210,8 +248,6 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.cbMaturityRating.lineEdit().setAcceptDrops(False)
 
         # hook up the callbacks
-        self.cbLoadDataStyle.currentIndexChanged.connect(self.set_load_data_style)
-        self.cbSaveDataStyle.currentIndexChanged.connect(self.set_save_data_style)
         self.btnEditCredit.clicked.connect(self.edit_credit)
         self.btnAddCredit.clicked.connect(self.add_credit)
         self.btnRemoveCredit.clicked.connect(self.remove_credit)
@@ -1102,7 +1138,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             reply = QtWidgets.QMessageBox.question(
                 self,
                 "Save Tags",
-                f"Are you sure you wish to save {MetaDataStyle.name[self.save_data_style]} tags to this archive?",
+                f"Are you sure you wish to save {', '.join([MetaDataStyle.name[style] for style in self.save_data_styles])} tags to this archive?",
                 QtWidgets.QMessageBox.StandardButton.Yes,
                 QtWidgets.QMessageBox.StandardButton.No,
             )
@@ -1111,12 +1147,23 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
                 self.form_to_metadata()
 
-                success = self.comic_archive.write_metadata(self.metadata, self.save_data_style)
+                fail_list = []
+                # Save each style
+                for metadata_style in self.save_data_styles:
+                    success = self.comic_archive.write_metadata(self.metadata, metadata_style)
+                    if not success:
+                        fail_list.append(metadata_style)
+
+                # success = self.comic_archive.write_metadata(self.metadata, self.save_data_styles)
                 self.comic_archive.load_cache([MetaDataStyle.CBI, MetaDataStyle.CIX])
                 QtWidgets.QApplication.restoreOverrideCursor()
 
-                if not success:
-                    QtWidgets.QMessageBox.warning(self, "Save failed", "The tag save operation seemed to fail!")
+                if fail_list:
+                    QtWidgets.QMessageBox.warning(
+                        self,
+                        "Save failed",
+                        f"The tag save operation seemed to fail for:{', '.join([MetaDataStyle.name[style] for style in fail_list])}",
+                    )
                 else:
                     self.clear_dirty_flag()
                     self.update_info_box()
@@ -1127,26 +1174,6 @@ class TaggerWindow(QtWidgets.QMainWindow):
             self.actual_load_current_archive()
         else:
             QtWidgets.QMessageBox.information(self, "Whoops!", "No data to commit!")
-
-    def set_load_data_style(self, s: int) -> None:
-        if self.dirty_flag_verification(
-            "Change Tag Read Style", "If you change read tag style now, data in the form will be lost.  Are you sure?"
-        ):
-            self.load_data_style = self.cbLoadDataStyle.itemData(s)
-            self.config[0].internal_load_data_style = self.load_data_style
-            self.update_menus()
-            if self.comic_archive is not None:
-                self.load_archive(self.comic_archive)
-        else:
-            self.cbLoadDataStyle.currentIndexChanged.disconnect(self.set_load_data_style)
-            self.adjust_load_style_combo()
-            self.cbLoadDataStyle.currentIndexChanged.connect(self.set_load_data_style)
-
-    def set_save_data_style(self, s: int) -> None:
-        self.save_data_style = self.cbSaveDataStyle.itemData(s)
-        self.config[0].internal_save_data_style = self.save_data_style
-        self.update_style_tweaks()
-        self.update_menus()
 
     def update_credit_colors(self) -> None:
         # !!!ATB qt5 porting TODO
@@ -1159,21 +1186,24 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
         cix_credits = ComicInfoXml().get_parseable_credits()
 
-        if self.save_data_style == MetaDataStyle.CIX:
-            # loop over credit table, mark selected rows
-            for r in range(self.twCredits.rowCount()):
-                if str(self.twCredits.item(r, 1).text()).casefold() not in cix_credits:
-                    self.twCredits.item(r, 1).setBackground(inactive_brush)
-                else:
-                    self.twCredits.item(r, 1).setBackground(active_brush)
-                # turn off entire primary column
-                self.twCredits.item(r, 0).setBackground(inactive_brush)
+        # TODO CoMeT?
+        # Presume if there is more than one save style, all fields are valid
+        if len(self.save_data_styles) == 1:
+            if self.save_data_styles[0] == MetaDataStyle.CIX:
+                # loop over credit table, mark selected rows
+                for r in range(self.twCredits.rowCount()):
+                    if str(self.twCredits.item(r, 1).text()).casefold() not in cix_credits:
+                        self.twCredits.item(r, 1).setBackground(inactive_brush)
+                    else:
+                        self.twCredits.item(r, 1).setBackground(active_brush)
+                    # turn off entire primary column
+                    self.twCredits.item(r, 0).setBackground(inactive_brush)
 
-        if self.save_data_style == MetaDataStyle.CBI:
-            # loop over credit table, make all active color
-            for r in range(self.twCredits.rowCount()):
-                self.twCredits.item(r, 0).setBackground(active_brush)
-                self.twCredits.item(r, 1).setBackground(active_brush)
+            if self.save_data_styles[0] == MetaDataStyle.CBI:
+                # loop over credit table, make all active color
+                for r in range(self.twCredits.rowCount()):
+                    self.twCredits.item(r, 0).setBackground(active_brush)
+                    self.twCredits.item(r, 1).setBackground(active_brush)
 
     def update_style_tweaks(self) -> None:
         # depending on the current data style, certain fields are disabled
@@ -1238,20 +1268,23 @@ class TaggerWindow(QtWidgets.QMainWindow):
             self.cbFormat,
         ]
 
-        if self.save_data_style == MetaDataStyle.CIX:
+        # TODO Work out some decent logic for this
+        if MetaDataStyle.CIX in self.save_data_styles:
             for item in cix_only:
                 enable_widget(item, True)
-            for item in cbi_only:
-                enable_widget(item, False)
+            if len(self.save_data_styles) == 1:
+                for item in cbi_only:
+                    enable_widget(item, False)
 
-        if self.save_data_style == MetaDataStyle.CBI:
+        if MetaDataStyle.CBI in self.save_data_styles:
             for item in cbi_only:
                 enable_widget(item, True)
-            for item in cix_only:
-                enable_widget(item, False)
+            if len(self.save_data_styles) == 1:
+                for item in cix_only:
+                    enable_widget(item, False)
 
         self.update_credit_colors()
-        self.page_list_editor.set_metadata_style(self.save_data_style)
+        self.page_list_editor.set_metadata_style(self.save_data_styles)
 
     def cell_double_clicked(self, r: int, c: int) -> None:
         self.edit_credit()
@@ -1375,31 +1408,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             size = self.frameGeometry()
             self.move(int((screen.width() - size.width()) / 2), int((screen.height() - size.height()) / 2))
 
-    def adjust_load_style_combo(self) -> None:
-        # select the current style
-        if self.load_data_style == MetaDataStyle.CBI:
-            self.cbLoadDataStyle.setCurrentIndex(0)
-        elif self.load_data_style == MetaDataStyle.CIX:
-            self.cbLoadDataStyle.setCurrentIndex(1)
-
-    def adjust_save_style_combo(self) -> None:
-        # select the current style
-        if self.save_data_style == MetaDataStyle.CBI:
-            self.cbSaveDataStyle.setCurrentIndex(0)
-        elif self.save_data_style == MetaDataStyle.CIX:
-            self.cbSaveDataStyle.setCurrentIndex(1)
-        self.update_style_tweaks()
-
     def populate_combo_boxes(self) -> None:
-        # Add the entries to the tag style combobox
-        self.cbLoadDataStyle.addItem("ComicBookLover", MetaDataStyle.CBI)
-        self.cbLoadDataStyle.addItem("ComicRack", MetaDataStyle.CIX)
-        self.adjust_load_style_combo()
-
-        self.cbSaveDataStyle.addItem("ComicBookLover", MetaDataStyle.CBI)
-        self.cbSaveDataStyle.addItem("ComicRack", MetaDataStyle.CIX)
-        self.adjust_save_style_combo()
-
         # Add the entries to the country combobox
         self.cbCountry.addItem("", "")
         for f in natsort.humansorted(utils.countries().items(), operator.itemgetter(1)):
@@ -1491,7 +1500,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.cbFormat.addItem("Year One")
 
     def remove_auto(self) -> None:
-        self.remove_tags(self.save_data_style)
+        for style in self.save_data_styles:
+            self.remove_tags(style)
 
     def remove_cbl_tags(self) -> None:
         self.remove_tags(MetaDataStyle.CBI)
@@ -1580,9 +1590,13 @@ class TaggerWindow(QtWidgets.QMainWindow):
         has_src_count = 0
 
         src_style = self.load_data_style
-        dest_style = self.save_data_style
+        dest_style = list(self.save_data_styles)
 
-        if src_style == dest_style:
+        # Remove the read style from the write style
+        if src_style in dest_style:
+            dest_style.remove(src_style)
+
+        if not dest_style:
             QtWidgets.QMessageBox.information(
                 self, "Copy Tags", "Can't copy tag style onto itself.  Read style and modify style must be different."
             )
@@ -1593,7 +1607,9 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 has_src_count += 1
 
         if has_src_count == 0:
-            QtWidgets.QMessageBox.information(self, "Copy Tags", f"No archives with {src_style} tags selected!")
+            QtWidgets.QMessageBox.information(
+                self, "Copy Tags", f"No archives with {MetaDataStyle.name[src_style]} tags selected!"
+            )
             return
 
         if has_src_count != 0 and not self.dirty_flag_verification(
@@ -1605,7 +1621,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             reply = QtWidgets.QMessageBox.question(
                 self,
                 "Copy Tags",
-                f"Are you sure you wish to copy the {MetaDataStyle.name[src_style]} tags to {MetaDataStyle.name[dest_style]} tags in {has_src_count} archive(s)?",
+                f"Are you sure you wish to copy the {MetaDataStyle.name[src_style]} tags to {', '.join([MetaDataStyle.name[style] for style in dest_style])} tags in {has_src_count} archive(s)?",
                 QtWidgets.QMessageBox.StandardButton.Yes,
                 QtWidgets.QMessageBox.StandardButton.No,
             )
@@ -1622,28 +1638,35 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 failed_list = []
                 success_count = 0
                 for ca in ca_list:
-                    if ca.has_metadata(src_style):
-                        QtCore.QCoreApplication.processEvents()
-                        if prog_dialog.wasCanceled():
-                            break
-                        prog_idx += 1
-                        prog_dialog.setValue(prog_idx)
-                        prog_dialog.setLabelText(str(ca.path))
-                        center_window_on_parent(prog_dialog)
-                        QtCore.QCoreApplication.processEvents()
+                    ca_saved = False
+                    for write_style in dest_style:
+                        if ca.has_metadata(write_style):
+                            QtCore.QCoreApplication.processEvents()
+                            if prog_dialog.wasCanceled():
+                                break
+                            prog_idx += 1
+                            prog_dialog.setValue(prog_idx)
+                            prog_dialog.setLabelText(str(ca.path))
+                            center_window_on_parent(prog_dialog)
+                            QtCore.QCoreApplication.processEvents()
 
-                    if ca.has_metadata(src_style) and ca.is_writable():
-                        md = ca.read_metadata(src_style)
+                        if ca.has_metadata(src_style) and ca.is_writable():
+                            md = ca.read_metadata(src_style)
 
-                        if dest_style == MetaDataStyle.CBI and self.config[0].cbl_apply_transform_on_bulk_operation:
-                            md = CBLTransformer(md, self.config[0]).apply()
+                            if (
+                                write_style == MetaDataStyle.CBI
+                                and self.config[0].cbl_apply_transform_on_bulk_operation
+                            ):
+                                md = CBLTransformer(md, self.config[0]).apply()
 
-                        if not ca.write_metadata(md, dest_style):
-                            failed_list.append(ca.path)
-                        else:
-                            success_count += 1
+                            if not ca.write_metadata(md, write_style):
+                                failed_list.append(ca.path)
+                            else:
+                                if not ca_saved:
+                                    success_count += 1
+                                    ca_saved = True
 
-                        ca.load_cache([MetaDataStyle.CBI, MetaDataStyle.CIX])
+                            ca.load_cache([MetaDataStyle.CBI, MetaDataStyle.CIX])
 
                 prog_dialog.hide()
                 QtCore.QCoreApplication.processEvents()
@@ -1697,7 +1720,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
         # read in metadata, and parse file name if not there
         try:
-            md = ca.read_metadata(self.save_data_style)
+            # Was this save style by mistake?
+            md = ca.read_metadata(self.load_data_style)
         except Exception as e:
             md = GenericMetadata()
             logger.error("Failed to load metadata for %s: %s", ca.path, e)
@@ -1795,20 +1819,23 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 if self.config[0].identifier_auto_imprint:
                     md.fix_publisher()
 
-                if not ca.write_metadata(md, self.save_data_style):
-                    match_results.write_failures.append(str(ca.path.absolute()))
-                    self.auto_tag_log("Save failed ;-(\n")
-                else:
-                    match_results.good_matches.append(str(ca.path.absolute()))
-                    success = True
-                    self.auto_tag_log("Save complete!\n")
+                # Save each style
+                for metadata_style in self.save_data_styles:
+                    if not ca.write_metadata(md, metadata_style):
+                        match_results.write_failures.append(str(ca.path.absolute()))
+                        self.auto_tag_log(f"{MetaDataStyle.name[metadata_style]} save failed ;-(\n")
+                    else:
+                        match_results.good_matches.append(str(ca.path.absolute()))
+                        success = True
+                        self.auto_tag_log(f"{MetaDataStyle.name[metadata_style]} save complete!\n")
+
                 ca.load_cache([MetaDataStyle.CBI, MetaDataStyle.CIX])
 
         return success, match_results
 
     def auto_tag(self) -> None:
         ca_list = self.fileSelectionList.get_selected_archive_list()
-        style = self.save_data_style
+        styles = self.save_data_styles
 
         if len(ca_list) == 0:
             QtWidgets.QMessageBox.information(self, "Auto-Tag", "No archives selected!")
@@ -1823,7 +1850,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             self,
             self.config[0],
             (
-                f"You have selected {len(ca_list)} archive(s) to automatically identify and write {MetaDataStyle.name[style]} tags to."
+                f"You have selected {len(ca_list)} archive(s) to automatically identify and write {', '.join([MetaDataStyle.name[style] for style in styles])} tags to."
                 "\n\nPlease choose config below, and select OK to Auto-Tag."
             ),
         )
@@ -1851,7 +1878,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             self.auto_tag_log(f"Auto-Tagging {prog_idx + 1} of {len(ca_list)}\n")
             self.auto_tag_log(f"{ca.path}\n")
             try:
-                cover_idx = ca.read_metadata(style).get_cover_page_index_list()[0]
+                cover_idx = ca.read_metadata(self.load_data_style).get_cover_page_index_list()[0]
             except Exception as e:
                 cover_idx = 0
                 logger.error("Failed to load metadata for %s: %s", ca.path, e)
@@ -1922,7 +1949,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 matchdlg = AutoTagMatchWindow(
                     self,
                     match_results.multiple_matches,
-                    style,
+                    styles,
                     self.actual_issue_data_fetch,
                     self.config[0],
                     self.current_talker(),
@@ -2062,6 +2089,70 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
     def file_list_selection_changed(self, fi: FileInfo) -> None:
         self.load_archive(fi.ca)
+
+    def metadata_box_clicked(self, item: QtWidgets.QTableWidgetItem):
+        read_col = 0
+        write_col = 1
+
+        # There must be at least one read and save style
+        if (
+            item.column() == write_col
+            and len(self.save_data_styles) == 1
+            and item.data(QtCore.Qt.ItemDataRole.UserRole) == self.save_data_styles[0]
+        ) or (item.column() == read_col and item.data(QtCore.Qt.ItemDataRole.UserRole) == self.load_data_style):
+            # Re-check the checkbox in case checkbox was clicked directly
+            item.setCheckState(QtCore.Qt.Checked)
+            # Too obnoxious to put up an information window?
+            return
+
+        # May have only clicked in the cell, not on the checkbox so check/uncheck it
+        # Because we can't tell between if the item cell or the check itself has been clicked, check current saved value
+        if (
+            item.data(QtCore.Qt.ItemDataRole.UserRole) in self.save_data_styles
+            and item.checkState() == QtCore.Qt.Checked
+        ):
+            item.setCheckState(QtCore.Qt.Unchecked)
+        elif (
+            item.data(QtCore.Qt.ItemDataRole.UserRole) not in self.save_data_styles
+            and item.checkState() == QtCore.Qt.Unchecked
+        ):
+            item.setCheckState(QtCore.Qt.Checked)
+
+        if self.dirty_flag_verification(
+            "Change Tag Read Style", "If you change read tag style now, data in the form will be lost.  Are you sure?"
+        ):
+            # Only allow one read style, uncheck others
+            if item.column() == read_col:
+                # To cover cell clicked
+                item.setCheckState(QtCore.Qt.Checked)
+                for tbl_row in range(self.tblMetadata.rowCount()):
+                    if item.row() != tbl_row:
+                        self.tblMetadata.item(tbl_row, read_col).setCheckState(QtCore.Qt.Unchecked)
+
+            # Get new settings
+            write_types = []
+            for tbl_row in range(self.tblMetadata.rowCount()):
+                for tbl_col in range(self.tblMetadata.columnCount()):
+                    tbl_item = self.tblMetadata.item(tbl_row, tbl_col)
+                    if tbl_item.checkState() == QtCore.Qt.Checked:
+                        if tbl_col == write_col:
+                            write_types.append(tbl_item.data(QtCore.Qt.ItemDataRole.UserRole))
+                        if tbl_col == read_col:
+                            read_type = tbl_item.data(QtCore.Qt.ItemDataRole.UserRole)
+
+            # Save new settings
+            self.config[0].metadata_write_types = write_types
+            self.config[0].metadata_read_type = read_type
+
+            self.load_data_style = read_type
+            self.save_data_styles = write_types
+
+            settngs.save_file(self.config, self.config[0].runtime_config.user_config_dir / "settings.json")
+
+            self.update_menus()
+            if self.comic_archive is not None:
+                self.load_archive(self.comic_archive)
+            self.update_style_tweaks()
 
     def load_archive(self, comic_archive: ComicArchive) -> None:
         self.comic_archive = None

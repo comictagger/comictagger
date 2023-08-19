@@ -6,6 +6,7 @@ import uuid
 import settngs
 
 from comictaggerlib.ctsettings.settngs_namespace import settngs_namespace as ct_ns
+from comictaggerlib.ctsettings.types import metadata_type, metadata_type_single
 from comictaggerlib.defaults import DEFAULT_REPLACEMENTS, Replacement, Replacements
 
 
@@ -17,8 +18,6 @@ def general(parser: settngs.Manager) -> None:
 def internal(parser: settngs.Manager) -> None:
     # automatic settings
     parser.add_setting("install_id", default=uuid.uuid4().hex, cmdline=False)
-    parser.add_setting("save_data_style", default=0, cmdline=False)
-    parser.add_setting("load_data_style", default=0, cmdline=False)
     parser.add_setting("last_opened_folder", default="", cmdline=False)
     parser.add_setting("window_width", default=0, cmdline=False)
     parser.add_setting("window_height", default=0, cmdline=False)
@@ -28,6 +27,23 @@ def internal(parser: settngs.Manager) -> None:
     parser.add_setting("list_width", default=-1, cmdline=False)
     parser.add_setting("sort_column", default=-1, cmdline=False)
     parser.add_setting("sort_direction", default=0, cmdline=False)
+
+
+def metadata(parser: settngs.Manager) -> None:
+    parser.add_setting(
+        "--write-types",
+        metavar="{CR,CBL,COMET}",
+        default=[],
+        type=metadata_type,
+        help="""Specify TYPE as either CR, CBL or COMET\n(as either ComicRack, ComicBookLover,\nor CoMet style tags, respectively).\nUse commas for multiple types.""",
+    )
+    parser.add_setting(
+        "--read-type",
+        metavar="{CR,CBL,COMET}",
+        default=[],
+        type=metadata_type_single,
+        help="""Specify TYPE as either CR, CBL or COMET\n(as either ComicRack, ComicBookLover,\nor CoMet style tags, respectively).\nOnly one type allowed.""",
+    )
 
 
 def identifier(parser: settngs.Manager) -> None:
@@ -235,6 +251,7 @@ def validate_file_settings(config: settngs.Config[ct_ns]) -> settngs.Config[ct_n
 def register_file_settings(parser: settngs.Manager) -> None:
     parser.add_group("general", general, False)
     parser.add_group("internal", internal, False)
+    parser.add_group("metadata", metadata, False)
     parser.add_group("identifier", identifier, False)
     parser.add_group("dialog", dialog, False)
     parser.add_group("filename", filename, False)

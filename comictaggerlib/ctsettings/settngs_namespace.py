@@ -44,8 +44,6 @@ class settngs_namespace(settngs.TypedNS):
     general_check_for_new_version: bool
 
     internal_install_id: str
-    internal_save_data_style: int
-    internal_load_data_style: int
     internal_last_opened_folder: str
     internal_window_width: int
     internal_window_height: int
@@ -55,6 +53,9 @@ class settngs_namespace(settngs.TypedNS):
     internal_list_width: int
     internal_sort_column: int
     internal_sort_direction: int
+
+    metadata_write_types: list[int]
+    metadata_read_type: int
 
     identifier_series_match_identify_thresh: int
     identifier_border_crop_percent: int
