@@ -9,7 +9,9 @@ from typing import Any
 
 import pytest
 import requests
+import settngs
 from PIL import Image
+from pyrate_limiter import Limiter, RequestRate
 
 import comicapi.comicarchive
 import comicapi.genericmetadata
@@ -110,11 +112,18 @@ def comicvine_api(monkeypatch, cbz, comic_cache, mock_version, config) -> comict
 
     # apply the monkeypatch for requests.get to mock_get
     monkeypatch.setattr(requests, "get", m_get)
+    monkeypatch.setattr(comictalker.talkers.comicvine, "custom_limiter", Limiter(RequestRate(100, 1)))
+    monkeypatch.setattr(comictalker.talkers.comicvine, "default_limiter", Limiter(RequestRate(100, 1)))
 
     cv = comictalker.talkers.comicvine.ComicVineTalker(
         version=mock_version[0],
         cache_folder=config[0].runtime_config.user_cache_dir,
     )
+    manager = settngs.Manager()
+    manager.add_persistent_group("comicvine", cv.register_settings)
+    cfg, _ = manager.defaults()
+    cfg["comicvine"]["comicvine_key"] = "testing"
+    cv.parse_settings(cfg["comicvine"])
     return cv
 
 
@@ -133,6 +142,11 @@ def mock_version(monkeypatch):
 @pytest.fixture
 def md():
     yield comicapi.genericmetadata.md_test.copy()
+
+
+@pytest.fixture
+def md_saved():
+    yield comicapi.genericmetadata.md_test.replace(tag_origin=None, issue_id=None, series_id=None)
 
 
 # manually seeds publishers

@@ -15,18 +15,27 @@
 # limitations under the License.
 from __future__ import annotations
 
-import dataclasses
 import datetime
-import json
 import logging
 import os
 import pathlib
-import sqlite3 as lite
+import sqlite3
 from typing import Any
 
-from comictalker.resulttypes import ComicIssue, ComicSeries, Credit
+from typing_extensions import NamedTuple
 
 logger = logging.getLogger(__name__)
+
+
+class Series(NamedTuple):
+    id: str
+    data: bytes
+
+
+class Issue(NamedTuple):
+    id: str
+    series_id: str
+    data: bytes
 
 
 class ComicCacher:
@@ -68,385 +77,197 @@ class ComicCacher:
         # this will wipe out any existing version
         open(self.db_file, "wb").close()
 
-        con = lite.connect(self.db_file)
+        con = sqlite3.connect(self.db_file)
+        con.row_factory = sqlite3.Row
 
         # create tables
         with con:
             cur = con.cursor()
-            # source_name,name,id,start_year,publisher,image,description,count_of_issues
             cur.execute(
-                "CREATE TABLE SeriesSearchCache("
-                + "search_term TEXT,"
-                + "id TEXT NOT NULL,"
-                + "timestamp DATE DEFAULT (datetime('now','localtime')),"
-                + "source_name TEXT NOT NULL)"
+                """CREATE TABLE SeriesSearchCache(
+                timestamp DATE DEFAULT (datetime('now','localtime')),
+                id          TEXT NOT NULL,
+                source      TEXT NOT NULL,
+                search_term TEXT,
+                PRIMARY KEY (id, source, search_term))"""
+            )
+            cur.execute("CREATE TABLE Source(id TEXT NOT NULL, name TEXT NOT NULL, PRIMARY KEY (id))")
+
+            cur.execute(
+                """CREATE TABLE Series(
+                timestamp DATE DEFAULT (datetime('now','localtime')),
+                id       TEXT NOT NULL,
+                source   TEXT NOT NULL,
+                data     BLOB,
+                complete BOOL,
+                PRIMARY KEY (id, source))"""
             )
 
             cur.execute(
-                "CREATE TABLE Series("
-                + "id TEXT NOT NULL,"
-                + "name TEXT,"
-                + "publisher TEXT,"
-                + "count_of_issues INT,"
-                + "count_of_volumes INT,"
-                + "start_year INT,"
-                + "image_url TEXT,"
-                + "aliases TEXT,"  # Newline separated
-                + "description TEXT,"
-                + "genres TEXT,"  # Newline separated. For filtering etc.
-                + "format TEXT,"
-                + "timestamp DATE DEFAULT (datetime('now','localtime')), "
-                + "source_name TEXT NOT NULL,"
-                + "PRIMARY KEY (id, source_name))"
+                """CREATE TABLE Issues(
+                timestamp DATE DEFAULT (datetime('now','localtime')),
+                id        TEXT NOT NULL,
+                source    TEXT NOT NULL,
+                series_id TEXT,
+                data      BLOB,
+                complete  BOOL,
+                PRIMARY KEY (id, source))"""
             )
 
-            cur.execute(
-                "CREATE TABLE Issues("
-                + "id TEXT NOT NULL,"
-                + "series_id TEXT,"
-                + "name TEXT,"
-                + "issue_number TEXT,"
-                + "image_url TEXT,"
-                + "thumb_url TEXT,"
-                + "cover_date TEXT,"
-                + "site_detail_url TEXT,"
-                + "description TEXT,"
-                + "timestamp DATE DEFAULT (datetime('now','localtime')), "
-                + "source_name TEXT NOT NULL,"
-                + "aliases TEXT,"  # Newline separated
-                + "alt_image_urls TEXT,"  # Newline separated URLs
-                + "characters TEXT,"  # Newline separated
-                + "locations TEXT,"  # Newline separated
-                + "credits TEXT,"  # JSON: "{"name": "Bob Shakespeare", "role": "Writer"}"
-                + "teams TEXT,"  # Newline separated
-                + "story_arcs TEXT,"  # Newline separated
-                + "genres TEXT,"  # Newline separated
-                + "tags TEXT,"  # Newline separated
-                + "critical_rating FLOAT,"
-                + "manga TEXT,"  # Yes/YesAndRightToLeft/No
-                + "maturity_rating TEXT,"
-                + "language TEXT,"
-                + "country TEXT,"
-                + "volume TEXT,"
-                + "complete BOOL,"  # Is the data complete? Includes characters, locations, credits.
-                + "PRIMARY KEY (id, source_name))"
-            )
+    def expire_stale_records(self, cur: sqlite3.Cursor, table: str) -> None:
+        # purge stale series info
+        a_week_ago = datetime.datetime.today() - datetime.timedelta(days=7)
+        cur.execute("DELETE FROM Series WHERE timestamp  < ?", [str(a_week_ago)])
 
-    def add_search_results(self, source_name: str, search_term: str, ct_search_results: list[ComicSeries]) -> None:
-        con = lite.connect(self.db_file)
-
-        with con:
+    def add_search_results(self, source: str, search_term: str, series_list: list[Series], complete: bool) -> None:
+        with sqlite3.connect(self.db_file) as con:
+            con.row_factory = sqlite3.Row
             con.text_factory = str
             cur = con.cursor()
 
             # remove all previous entries with this search term
             cur.execute(
-                "DELETE FROM SeriesSearchCache WHERE search_term = ? AND source_name = ?",
-                [search_term.casefold(), source_name],
+                "DELETE FROM SeriesSearchCache WHERE search_term = ? AND source = ?",
+                [search_term.casefold(), source],
             )
 
             # now add in new results
-            for record in ct_search_results:
+            for series in series_list:
                 cur.execute(
-                    "INSERT INTO SeriesSearchCache " + "(source_name, search_term, id) " + "VALUES(?, ?, ?)",
-                    (source_name, search_term.casefold(), record.id),
+                    "INSERT INTO SeriesSearchCache (source, search_term, id) VALUES(?, ?, ?)",
+                    (source, search_term.casefold(), series.id),
                 )
-
                 data = {
-                    "id": record.id,
-                    "source_name": source_name,
-                    "name": record.name,
-                    "publisher": record.publisher,
-                    "count_of_issues": record.count_of_issues,
-                    "count_of_volumes": record.count_of_volumes,
-                    "start_year": record.start_year,
-                    "image_url": record.image_url,
-                    "description": record.description,
-                    "genres": "\n".join(record.genres),
-                    "format": record.format,
-                    "timestamp": datetime.datetime.now(),
-                    "aliases": "\n".join(record.aliases),
+                    "id": series.id,
+                    "source": source,
+                    "data": series.data,
+                    "complete": complete,
                 }
                 self.upsert(cur, "series", data)
 
-    def get_search_results(self, source_name: str, search_term: str) -> list[ComicSeries]:
-        results = []
-        con = lite.connect(self.db_file)
-        with con:
-            con.text_factory = str
+    def add_series_info(self, source: str, series: Series, complete: bool) -> None:
+        with sqlite3.connect(self.db_file) as con:
+            con.row_factory = sqlite3.Row
             cur = con.cursor()
-
-            cur.execute(
-                "SELECT * FROM SeriesSearchCache INNER JOIN Series on"
-                " SeriesSearchCache.id=Series.id AND SeriesSearchCache.source_name=Series.source_name"
-                " WHERE search_term=? AND SeriesSearchCache.source_name=?",
-                [search_term.casefold(), source_name],
-            )
-
-            rows = cur.fetchall()
-            # now process the results
-            for record in rows:
-                result = ComicSeries(
-                    id=record[4],
-                    name=record[5],
-                    publisher=record[6],
-                    count_of_issues=record[7],
-                    count_of_volumes=record[8],
-                    start_year=record[9],
-                    image_url=record[10],
-                    aliases=record[11].strip().splitlines(),
-                    description=record[12],
-                    genres=record[13].strip().splitlines(),
-                    format=record[14],
-                )
-
-                results.append(result)
-
-        return results
-
-    def add_series_info(self, source_name: str, series_record: ComicSeries) -> None:
-        con = lite.connect(self.db_file)
-
-        with con:
-            cur = con.cursor()
-
-            timestamp = datetime.datetime.now()
 
             data = {
-                "id": series_record.id,
-                "source_name": source_name,
-                "name": series_record.name,
-                "publisher": series_record.publisher,
-                "count_of_issues": series_record.count_of_issues,
-                "count_of_volumes": series_record.count_of_volumes,
-                "start_year": series_record.start_year,
-                "image_url": series_record.image_url,
-                "description": series_record.description,
-                "genres": "\n".join(series_record.genres),
-                "format": series_record.format,
-                "timestamp": timestamp,
-                "aliases": "\n".join(series_record.aliases),
+                "id": series.id,
+                "source": source,
+                "data": series.data,
+                "complete": complete,
             }
             self.upsert(cur, "series", data)
 
-    def add_series_issues_info(self, source_name: str, series_issues: list[ComicIssue]) -> None:
-        con = lite.connect(self.db_file)
-
-        with con:
+    def add_issues_info(self, source: str, issues: list[Issue], complete: bool) -> None:
+        with sqlite3.connect(self.db_file) as con:
+            con.row_factory = sqlite3.Row
             cur = con.cursor()
 
-            timestamp = datetime.datetime.now()
-
-            # add in issues
-
-            for issue in series_issues:
+            for issue in issues:
                 data = {
                     "id": issue.id,
-                    "series_id": issue.series.id,
-                    "source_name": source_name,
-                    "name": issue.name,
-                    "issue_number": issue.issue_number,
-                    "volume": issue.volume,
-                    "site_detail_url": issue.site_detail_url,
-                    "cover_date": issue.cover_date,
-                    "image_url": issue.image_url,
-                    "description": issue.description,
-                    "timestamp": timestamp,
-                    "aliases": "\n".join(issue.aliases),
-                    "alt_image_urls": "\n".join(issue.alt_image_urls),
-                    "characters": "\n".join(issue.characters),
-                    "locations": "\n".join(issue.locations),
-                    "teams": "\n".join(issue.teams),
-                    "story_arcs": "\n".join(issue.story_arcs),
-                    "genres": "\n".join(issue.genres),
-                    "tags": "\n".join(issue.tags),
-                    "critical_rating": issue.critical_rating,
-                    "manga": issue.manga,
-                    "maturity_rating": issue.maturity_rating,
-                    "language": issue.language,
-                    "country": issue.country,
-                    "credits": json.dumps([dataclasses.asdict(x) for x in issue.credits]),
-                    "complete": issue.complete,
+                    "series_id": issue.series_id,
+                    "data": issue.data,
+                    "source": source,
+                    "complete": complete,
                 }
                 self.upsert(cur, "issues", data)
 
-    def get_series_info(self, series_id: str, source_name: str, purge: bool = True) -> ComicSeries | None:
-        result: ComicSeries | None = None
+    def get_search_results(self, source: str, search_term: str, expire_stale: bool = True) -> list[tuple[Series, bool]]:
+        results = []
+        with sqlite3.connect(self.db_file) as con:
+            con.row_factory = sqlite3.Row
+            con.text_factory = str
+            cur = con.cursor()
 
-        con = lite.connect(self.db_file)
-        with con:
+            if expire_stale:
+                self.expire_stale_records(cur, "SeriesSearchCache")
+                self.expire_stale_records(cur, "Series")
+
+            cur.execute(
+                """SELECT * FROM SeriesSearchCache INNER JOIN Series on
+                 SeriesSearchCache.id=Series.id AND SeriesSearchCache.source=Series.source
+                 WHERE search_term=? AND SeriesSearchCache.source=?""",
+                [search_term.casefold(), source],
+            )
+
+            rows = cur.fetchall()
+
+            for record in rows:
+                result = Series(id=record["id"], data=record["data"])
+
+                results.append((result, record["complete"]))
+
+        return results
+
+    def get_series_info(self, series_id: str, source: str, expire_stale: bool = True) -> tuple[Series, bool] | None:
+        result: Series | None = None
+
+        with sqlite3.connect(self.db_file) as con:
+            con.row_factory = sqlite3.Row
             cur = con.cursor()
             con.text_factory = str
 
-            if purge:
-                # purge stale series info
-                a_week_ago = datetime.datetime.today() - datetime.timedelta(days=7)
-                cur.execute("DELETE FROM Series WHERE timestamp  < ?", [str(a_week_ago)])
+            if expire_stale:
+                self.expire_stale_records(cur, "Series")
 
             # fetch
-            cur.execute("SELECT * FROM Series" " WHERE id=? AND source_name=?", [series_id, source_name])
+            cur.execute("SELECT * FROM Series WHERE id=? AND source=?", [series_id, source])
 
             row = cur.fetchone()
 
             if row is None:
-                return result
+                return None
 
-            # since ID is primary key, there is only one row
-            result = ComicSeries(
-                id=row[0],
-                name=row[1],
-                publisher=row[2],
-                count_of_issues=row[3],
-                count_of_volumes=row[4],
-                start_year=row[5],
-                image_url=row[6],
-                aliases=row[7].strip().splitlines(),
-                description=row[8],
-                genres=row[9].strip().splitlines(),
-                format=row[10],
-            )
+            result = Series(id=row["id"], data=row["data"])
 
-        return result
+            return (result, row["complete"])
 
-    def get_series_issues_info(self, series_id: str, source_name: str) -> list[ComicIssue]:
-        # get_series_info should only fail if someone is doing something weird
-        series = self.get_series_info(series_id, source_name, False) or ComicSeries(
-            id=series_id,
-            name="",
-            description="",
-            genres=[],
-            image_url="",
-            publisher="",
-            start_year=None,
-            aliases=[],
-            count_of_issues=None,
-            count_of_volumes=None,
-            format=None,
-        )
-        con = lite.connect(self.db_file)
-        with con:
+    def get_series_issues_info(
+        self, series_id: str, source: str, expire_stale: bool = True
+    ) -> list[tuple[Issue, bool]]:
+        with sqlite3.connect(self.db_file) as con:
+            con.row_factory = sqlite3.Row
             cur = con.cursor()
             con.text_factory = str
 
-            # purge stale issue info - probably issue data won't change
-            # much....
-            a_week_ago = datetime.datetime.today() - datetime.timedelta(days=7)
-            cur.execute("DELETE FROM Issues WHERE timestamp  < ?", [str(a_week_ago)])
+            if expire_stale:
+                self.expire_stale_records(cur, "Issues")
 
             # fetch
-            results: list[ComicIssue] = []
+            results: list[tuple[Issue, bool]] = []
 
-            cur.execute("SELECT * FROM Issues WHERE series_id=? AND source_name=?", [series_id, source_name])
+            cur.execute("SELECT * FROM Issues WHERE series_id=? AND source=?", [series_id, source])
             rows = cur.fetchall()
 
             # now process the results
             for row in rows:
-                credits = []
-                try:
-                    for credit in json.loads(row[15]):
-                        credits.append(Credit(**credit))
-                except Exception:
-                    logger.exception("credits failed")
-                record = ComicIssue(
-                    id=row[0],
-                    name=row[2],
-                    issue_number=row[3],
-                    volume=row[25],
-                    site_detail_url=row[7],
-                    cover_date=row[6],
-                    image_url=row[4],
-                    description=row[8],
-                    series=series,
-                    aliases=row[11].strip().splitlines(),
-                    alt_image_urls=row[12].strip().splitlines(),
-                    characters=row[13].strip().splitlines(),
-                    locations=row[14].strip().splitlines(),
-                    credits=credits,
-                    teams=row[16].strip().splitlines(),
-                    story_arcs=row[17].strip().splitlines(),
-                    genres=row[18].strip().splitlines(),
-                    tags=row[19].strip().splitlines(),
-                    critical_rating=row[20],
-                    manga=row[21],
-                    maturity_rating=row[22],
-                    language=row[23],
-                    country=row[24],
-                    complete=bool(row[26]),
-                )
+                record = (Issue(id=row["id"], series_id=row["series_id"], data=row["data"]), row["complete"])
 
                 results.append(record)
 
         return results
 
-    def get_issue_info(self, issue_id: int, source_name: str) -> ComicIssue | None:
-        con = lite.connect(self.db_file)
-        with con:
+    def get_issue_info(self, issue_id: int, source: str, expire_stale: bool = True) -> tuple[Issue, bool] | None:
+        with sqlite3.connect(self.db_file) as con:
+            con.row_factory = sqlite3.Row
             cur = con.cursor()
             con.text_factory = str
 
-            # purge stale issue info - probably issue data won't change
-            # much....
-            a_week_ago = datetime.datetime.today() - datetime.timedelta(days=7)
-            cur.execute("DELETE FROM Issues WHERE timestamp  < ?", [str(a_week_ago)])
+            if expire_stale:
+                self.expire_stale_records(cur, "Issues")
 
-            cur.execute("SELECT * FROM Issues WHERE id=? AND source_name=?", [issue_id, source_name])
+            cur.execute("SELECT * FROM Issues WHERE id=? AND source=?", [issue_id, source])
             row = cur.fetchone()
 
             record = None
 
             if row:
-                # get_series_info should only fail if someone is doing something weird
-                series = self.get_series_info(row[1], source_name, False) or ComicSeries(
-                    id=row[1],
-                    name="",
-                    description="",
-                    genres=[],
-                    image_url="",
-                    publisher="",
-                    start_year=None,
-                    aliases=[],
-                    count_of_issues=None,
-                    count_of_volumes=None,
-                    format=None,
-                )
-
-                # now process the results
-                credits = []
-                try:
-                    for credit in json.loads(row[15]):
-                        credits.append(Credit(**credit))
-                except Exception:
-                    logger.exception("credits failed")
-                record = ComicIssue(
-                    id=row[0],
-                    name=row[2],
-                    issue_number=row[3],
-                    volume=row[25],
-                    site_detail_url=row[7],
-                    cover_date=row[6],
-                    image_url=row[4],
-                    description=row[8],
-                    series=series,
-                    aliases=row[11].strip().splitlines(),
-                    alt_image_urls=row[12].strip().splitlines(),
-                    characters=row[13].strip().splitlines(),
-                    locations=row[14].strip().splitlines(),
-                    credits=credits,
-                    teams=row[16].strip().splitlines(),
-                    story_arcs=row[17].strip().splitlines(),
-                    genres=row[18].strip().splitlines(),
-                    tags=row[19].strip().splitlines(),
-                    critical_rating=row[20],
-                    manga=row[21],
-                    maturity_rating=row[22],
-                    language=row[23],
-                    country=row[24],
-                    complete=bool(row[26]),
-                )
+                record = (Issue(id=row["id"], series_id=row["series_id"], data=row["data"]), row["complete"])
 
             return record
 
-    def upsert(self, cur: lite.Cursor, tablename: str, data: dict[str, Any]) -> None:
+    def upsert(self, cur: sqlite3.Cursor, tablename: str, data: dict[str, Any]) -> None:
         """This does an insert if the given PK doesn't exist, and an
         update it if does
 

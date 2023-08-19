@@ -88,6 +88,38 @@ names = [
         (False, False),
     ),
     (
+        "action comics 1024.cbz",
+        "issue number is current year (digits == 4)",
+        {
+            "issue": "1024",
+            "series": "action comics",
+            "title": "",
+            "publisher": "",
+            "volume": "",
+            "year": "",
+            "remainder": "",
+            "issue_count": "",
+            "alternate": "",
+        },
+        (False, False),
+    ),
+    (
+        "Action Comics 1001 (2018).cbz",
+        "issue number is current year (digits == 4)",
+        {
+            "issue": "1001",
+            "series": "Action Comics",
+            "title": "",
+            "publisher": "",
+            "volume": "",
+            "year": "2018",
+            "remainder": "",
+            "issue_count": "",
+            "alternate": "",
+        },
+        (False, False),
+    ),
+    (
         "january jones #2.cbz",
         "month in series",
         {
@@ -872,7 +904,7 @@ rnames = [
         does_not_raise(),
     ),
     (
-        "{series} #{issue} - {locations} ({year})",
+        "{series} #{issue} - {locations!j} ({year})",
         False,
         "universal",
         "Cory Doctorow's Futuristic Tales of the Here and Now #001 - lonely cottage (2007).cbz",

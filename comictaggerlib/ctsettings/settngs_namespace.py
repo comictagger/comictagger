@@ -78,6 +78,7 @@ class settngs_namespace(settngs.TypedNS):
     filename_remove_publisher: bool
 
     talker_source: str
+    talker_remove_html_tables: bool
 
     cbl_assume_lone_credit_is_primary: bool
     cbl_copy_characters_to_tags: bool

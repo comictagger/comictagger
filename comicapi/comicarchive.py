@@ -134,7 +134,7 @@ class ComicArchive:
         return True
 
     def is_writable_for_style(self, data_style: int) -> bool:
-        return not (data_style == MetaDataStyle.CBI and not self.archiver.supports_comment)
+        return not (data_style == MetaDataStyle.CBI and not self.archiver.supports_comment())
 
     def is_zip(self) -> bool:
         return self.archiver.name() == "ZIP"

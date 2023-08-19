@@ -34,6 +34,7 @@ from comictaggerlib.graphics import graphics_path
 from comictaggerlib.issueidentifier import IssueIdentifier
 from comictaggerlib.resulttypes import MultipleMatch, OnlineMatchResults
 from comictalker.comictalker import ComicTalker, TalkerError
+from comictalker.talker_utils import cleanup_html
 
 logger = logging.getLogger(__name__)
 
@@ -89,8 +90,7 @@ class CLI:
         # sort match list by year
         match_set.matches.sort(key=lambda k: k["year"] or 0)
 
-        for counter, m in enumerate(match_set.matches):
-            counter += 1
+        for counter, m in enumerate(match_set.matches, 1):
             print(
                 "    {}. {} #{} [{}] ({}/{}) - {}".format(
                     counter,
@@ -435,7 +435,12 @@ class CLI:
                 f"Tagged with ComicTagger {ctversion.version} using info from {self.current_talker().name} on"
                 f" {datetime.now():%Y-%m-%d %H:%M:%S}.  [Issue ID {ct_md.issue_id}]"
             )
-            md.overlay(ct_md.replace(notes=utils.combine_notes(md.notes, notes, "Tagged with ComicTagger")))
+            md.overlay(
+                ct_md.replace(
+                    notes=utils.combine_notes(md.notes, notes, "Tagged with ComicTagger"),
+                    description=cleanup_html(ct_md.description, self.config.talker_remove_html_tables),
+                )
+            )
 
             if self.config.identifier_auto_imprint:
                 md.fix_publisher()

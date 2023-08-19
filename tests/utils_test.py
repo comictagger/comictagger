@@ -218,3 +218,18 @@ urls = [
 @pytest.mark.parametrize("value, result", urls)
 def test_fix_url(value, result):
     assert comictalker.talker_utils.fix_url(value) == result
+
+
+split = [
+    (("1,2,,3", ","), ["1", "2", "3"]),
+    (("1 ,2,,3", ","), ["1", "2", "3"]),
+    (("1 ,2,,3 ", ","), ["1", "2", "3"]),
+    (("\n1 \n2\n\n3 ", ","), ["1 \n2\n\n3"]),
+    (("\n1 \n2\n\n3 ", "\n"), ["1", "2", "3"]),
+    ((None, ","), []),
+]
+
+
+@pytest.mark.parametrize("value, result", split)
+def test_split(value, result):
+    assert comicapi.utils.split(*value) == result

@@ -19,12 +19,13 @@ import itertools
 import logging
 from collections import deque
 
+import natsort
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 from PyQt5.QtCore import QUrl, pyqtSignal
 
 from comicapi import utils
 from comicapi.comicarchive import ComicArchive
-from comicapi.genericmetadata import GenericMetadata
+from comicapi.genericmetadata import ComicSeries, GenericMetadata
 from comictaggerlib.coverimagewidget import CoverImageWidget
 from comictaggerlib.ctsettings import ct_ns
 from comictaggerlib.issueidentifier import IssueIdentifier
@@ -34,7 +35,6 @@ from comictaggerlib.progresswindow import IDProgressWindow
 from comictaggerlib.ui import ui_path
 from comictaggerlib.ui.qtutils import new_web_view, reduce_widget_font_size
 from comictalker.comictalker import ComicTalker, TalkerError
-from comictalker.resulttypes import ComicSeries
 
 logger = logging.getLogger(__name__)
 
@@ -153,7 +153,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         self.comic_archive = comic_archive
         self.immediate_autoselect = autoselect
         self.cover_index_list = cover_index_list
-        self.ct_search_results: list[ComicSeries] = []
+        self.series_list: list[ComicSeries] = []
         self.literal = literal
         self.ii: IssueIdentifier | None = None
         self.iddialog: IDProgressWindow | None = None
@@ -209,7 +209,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
                 self.twList.hideRow(r)
 
     def update_buttons(self) -> None:
-        enabled = bool(self.ct_search_results)
+        enabled = bool(self.series_list)
 
         self.btnRequery.setEnabled(enabled)
 
@@ -332,11 +332,9 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
     def show_issues(self) -> None:
         selector = IssueSelectionWindow(self, self.config, self.talker, self.series_id, self.issue_number)
         title = ""
-        for record in self.ct_search_results:
-            if record.id == self.series_id:
-                title = record.name
-                title += " (" + str(record.start_year) + ")"
-                title += " - "
+        for series in self.series_list:
+            if series.id == self.series_id:
+                title = f"{series.name} ({series.start_year:04}) - "
                 break
 
         selector.setWindowTitle(title + "Select Issue")
@@ -351,9 +349,8 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
             self.imageWidget.update_content()
 
     def select_by_id(self) -> None:
-        for r in range(0, self.twList.rowCount()):
-            series_id = self.twList.item(r, 0).data(QtCore.Qt.ItemDataRole.UserRole)
-            if series_id == self.series_id:
+        for r, series in enumerate(self.series_list):
+            if series.id == self.series_id:
                 self.twList.selectRow(r)
                 break
 
@@ -407,16 +404,16 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
             )
             return
 
-        self.ct_search_results = self.search_thread.ct_search_results if self.search_thread is not None else []
+        self.series_list = self.search_thread.ct_search_results if self.search_thread is not None else []
         # filter the publishers if enabled set
         if self.use_filter:
             try:
                 publisher_filter = {s.strip().casefold() for s in self.config.identifier_publisher_filter}
                 # use '' as publisher name if None
-                self.ct_search_results = list(
+                self.series_list = list(
                     filter(
                         lambda d: ("" if d.publisher is None else str(d.publisher).casefold()) not in publisher_filter,
-                        self.ct_search_results,
+                        self.series_list,
                     )
                 )
             except Exception:
@@ -428,8 +425,8 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         # sort by start_year if set
         if self.config.identifier_sort_series_by_year:
             try:
-                self.ct_search_results = sorted(
-                    self.ct_search_results,
+                self.series_list = natsort.natsorted(
+                    self.series_list,
                     key=lambda i: (str(i.start_year), str(i.count_of_issues)),
                     reverse=True,
                 )
@@ -437,8 +434,8 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
                 logger.exception("bad data error sorting results by start_year,count_of_issues")
         else:
             try:
-                self.ct_search_results = sorted(
-                    self.ct_search_results, key=lambda i: str(i.count_of_issues), reverse=True
+                self.series_list = natsort.natsorted(
+                    self.series_list, key=lambda i: str(i.count_of_issues), reverse=True
                 )
             except Exception:
                 logger.exception("bad data error sorting results by count_of_issues")
@@ -461,10 +458,10 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
                         return 1
                     return 2
 
-                for comic in self.ct_search_results:
+                for comic in self.series_list:
                     deques[categorize(comic)].append(comic)
                 logger.info("Length: %d, %d, %d", len(deques[0]), len(deques[1]), len(deques[2]))
-                self.ct_search_results = list(itertools.chain.from_iterable(deques))
+                self.series_list = list(itertools.chain.from_iterable(deques))
             except Exception:
                 logger.exception("bad data error filtering exact/near matches")
 
@@ -474,41 +471,38 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
 
         self.twList.setRowCount(0)
 
-        row = 0
-        for record in self.ct_search_results:
+        for row, series in enumerate(self.series_list):
             self.twList.insertRow(row)
 
-            item_text = record.name
+            item_text = series.name
             item = QtWidgets.QTableWidgetItem(item_text)
             item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
-            item.setData(QtCore.Qt.ItemDataRole.UserRole, record.id)
+            item.setData(QtCore.Qt.ItemDataRole.UserRole, series.id)
             item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
             self.twList.setItem(row, 0, item)
 
-            if record.start_year is not None:
-                item_text = f"{record.start_year:04}"
+            if series.start_year is not None:
+                item_text = f"{series.start_year:04}"
                 item = QtWidgets.QTableWidgetItem(item_text)
                 item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
-                item.setData(QtCore.Qt.ItemDataRole.DisplayRole, record.start_year)
+                item.setData(QtCore.Qt.ItemDataRole.DisplayRole, series.start_year)
                 item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
                 self.twList.setItem(row, 1, item)
 
-            if record.count_of_issues is not None:
-                item_text = f"{record.count_of_issues:04}"
+            if series.count_of_issues is not None:
+                item_text = f"{series.count_of_issues:04}"
                 item = QtWidgets.QTableWidgetItem(item_text)
                 item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
-                item.setData(QtCore.Qt.ItemDataRole.DisplayRole, record.count_of_issues)
+                item.setData(QtCore.Qt.ItemDataRole.DisplayRole, series.count_of_issues)
                 item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
                 self.twList.setItem(row, 2, item)
 
-            if record.publisher is not None:
-                item_text = record.publisher
+            if series.publisher is not None:
+                item_text = series.publisher
                 item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
                 item = QtWidgets.QTableWidgetItem(item_text)
                 item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
                 self.twList.setItem(row, 3, item)
-
-            row += 1
 
         self.twList.setSortingEnabled(True)
         self.twList.selectRow(0)
@@ -526,7 +520,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
 
     def showEvent(self, event: QtGui.QShowEvent) -> None:
         self.perform_query()
-        if not self.ct_search_results:
+        if not self.series_list:
             QtCore.QCoreApplication.processEvents()
             QtWidgets.QMessageBox.information(self, "Search Result", "No matches found!")
             QtCore.QTimer.singleShot(200, self.close_me)
@@ -559,11 +553,20 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         self.series_id = self.twList.item(curr.row(), 0).data(QtCore.Qt.ItemDataRole.UserRole)
 
         # list selection was changed, update the info on the series
-        for record in self.ct_search_results:
-            if record.id == self.series_id:
-                if record.description is None:
-                    self.set_description(self.teDetails, "")
-                else:
-                    self.set_description(self.teDetails, record.description)
-                self.imageWidget.set_url(record.image_url)
-                break
+        series = self.series_list[curr.row()]
+        if not all(
+            (
+                series.name,
+                series.start_year,
+                series.count_of_issues,
+                series.publisher,
+                series.description,
+                series.image_url,
+            )
+        ):
+            series = self.talker.fetch_series(self.series_id)
+        if series.description is None:
+            self.set_description(self.teDetails, "")
+        else:
+            self.set_description(self.teDetails, series.description)
+        self.imageWidget.set_url(series.image_url)

@@ -25,6 +25,8 @@ import dataclasses
 import logging
 from typing import Any, TypedDict
 
+from typing_extensions import NamedTuple
+
 from comicapi import utils
 
 logger = logging.getLogger(__name__)
@@ -60,10 +62,33 @@ class ImageMetadata(TypedDict, total=False):
     ImageWidth: str
 
 
-class CreditMetadata(TypedDict):
+class Credit(TypedDict):
     person: str
     role: str
     primary: bool
+
+
+@dataclasses.dataclass
+class ComicSeries:
+    id: str
+    name: str
+    aliases: list[str]
+    count_of_issues: int | None
+    count_of_volumes: int | None
+    description: str
+    image_url: str
+    publisher: str
+    start_year: int | None
+    genres: list[str]
+    format: str | None
+
+    def copy(self) -> ComicSeries:
+        return copy.deepcopy(self)
+
+
+class TagOrigin(NamedTuple):
+    id: str
+    name: str
 
 
 @dataclasses.dataclass
@@ -77,21 +102,24 @@ class GenericMetadata:
     editor_synonyms = ["editor"]
 
     is_empty: bool = True
-    tag_origin: str | None = None
+    tag_origin: TagOrigin | None = None
     issue_id: str | None = None
+    series_id: str | None = None
 
     series: str | None = None
+    series_aliases: list[str] = dataclasses.field(default_factory=list)
     issue: str | None = None
     title: str | None = None
+    title_aliases: list[str] = dataclasses.field(default_factory=list)
     publisher: str | None = None
     month: int | None = None
     year: int | None = None
     day: int | None = None
     issue_count: int | None = None
     volume: int | None = None
-    genre: str | None = None
+    genres: list[str] = dataclasses.field(default_factory=list)
     language: str | None = None  # 2 letter iso code
-    comments: str | None = None  # use same way as Summary in CIX
+    description: str | None = None  # use same way as Summary in CIX
 
     volume_count: int | None = None
     critical_rating: float | None = None  # rating in CBL; CommunityRating in CIX
@@ -109,15 +137,16 @@ class GenericMetadata:
     page_count: int | None = None
     maturity_rating: str | None = None
 
-    story_arc: str | None = None
-    series_group: str | None = None
+    story_arcs: list[str] = dataclasses.field(default_factory=list)
+    series_groups: list[str] = dataclasses.field(default_factory=list)
     scan_info: str | None = None
 
-    characters: str | None = None
-    teams: str | None = None
-    locations: str | None = None
+    characters: list[str] = dataclasses.field(default_factory=list)
+    teams: list[str] = dataclasses.field(default_factory=list)
+    locations: list[str] = dataclasses.field(default_factory=list)
 
-    credits: list[CreditMetadata] = dataclasses.field(default_factory=list)
+    alternate_images: list[str] = dataclasses.field(default_factory=list)
+    credits: list[Credit] = dataclasses.field(default_factory=list)
     tags: set[str] = dataclasses.field(default_factory=set)
     pages: list[ImageMetadata] = dataclasses.field(default_factory=list)
 
@@ -127,7 +156,7 @@ class GenericMetadata:
     rights: str | None = None
     identifier: str | None = None
     last_mark: str | None = None
-    cover_image: str | None = None
+    cover_image: str | None = None  # url to cover image
 
     def __post_init__(self) -> None:
         for key, value in self.__dict__.items():
@@ -154,6 +183,8 @@ class GenericMetadata:
             if new is not None:
                 if isinstance(new, str) and len(new) == 0:
                     setattr(self, cur, None)
+                elif isinstance(new, list) and len(new) == 0:
+                    pass
                 else:
                     setattr(self, cur, new)
 
@@ -161,7 +192,9 @@ class GenericMetadata:
             self.is_empty = False
 
         assign("series", new_md.series)
+        assign("series_id", new_md.series_id)
         assign("issue", new_md.issue)
+        assign("issue_id", new_md.issue_id)
         assign("issue_count", new_md.issue_count)
         assign("title", new_md.title)
         assign("publisher", new_md.publisher)
@@ -170,7 +203,6 @@ class GenericMetadata:
         assign("year", new_md.year)
         assign("volume", new_md.volume)
         assign("volume_count", new_md.volume_count)
-        assign("genre", new_md.genre)
         assign("language", new_md.language)
         assign("country", new_md.country)
         assign("critical_rating", new_md.critical_rating)
@@ -183,13 +215,8 @@ class GenericMetadata:
         assign("manga", new_md.manga)
         assign("black_and_white", new_md.black_and_white)
         assign("maturity_rating", new_md.maturity_rating)
-        assign("story_arc", new_md.story_arc)
-        assign("series_group", new_md.series_group)
         assign("scan_info", new_md.scan_info)
-        assign("characters", new_md.characters)
-        assign("teams", new_md.teams)
-        assign("locations", new_md.locations)
-        assign("comments", new_md.comments)
+        assign("description", new_md.description)
         assign("notes", new_md.notes)
 
         assign("price", new_md.price)
@@ -206,13 +233,18 @@ class GenericMetadata:
 
         # For now, go the easy route, where any overlay
         # value wipes out the whole list
-        if len(new_md.tags) > 0:
-            assign("tags", new_md.tags)
+        assign("series_aliases", new_md.series_aliases)
+        assign("title_aliases", new_md.title_aliases)
+        assign("genres", new_md.genres)
+        assign("story_arcs", new_md.story_arcs)
+        assign("series_groups", new_md.series_groups)
+        assign("characters", new_md.characters)
+        assign("teams", new_md.teams)
+        assign("locations", new_md.locations)
+        assign("tags", new_md.tags)
+        assign("pages", new_md.pages)
 
-        if len(new_md.pages) > 0:
-            assign("pages", new_md.pages)
-
-    def overlay_credits(self, new_credits: list[CreditMetadata]) -> None:
+    def overlay_credits(self, new_credits: list[Credit]) -> None:
         for c in new_credits:
             primary = bool("primary" in c and c["primary"])
 
@@ -253,7 +285,7 @@ class GenericMetadata:
         return coverlist
 
     def add_credit(self, person: str, role: str, primary: bool = False) -> None:
-        credit = CreditMetadata(person=person, role=role, primary=primary)
+        credit = Credit(person=person, role=role, primary=primary)
 
         # look to see if it's not already there...
         found = False
@@ -373,9 +405,11 @@ class GenericMetadata:
 
 md_test: GenericMetadata = GenericMetadata(
     is_empty=False,
-    tag_origin=None,
+    tag_origin=TagOrigin("comicvine", "Comic Vine"),
     series="Cory Doctorow's Futuristic Tales of the Here and Now",
+    series_id="23437",
     issue="1",
+    issue_id="140529",
     title="Anda's Game",
     publisher="IDW Publishing",
     month=10,
@@ -383,9 +417,9 @@ md_test: GenericMetadata = GenericMetadata(
     day=1,
     issue_count=6,
     volume=1,
-    genre="Sci-Fi",
+    genres=["Sci-Fi"],
     language="en",
-    comments=(
+    description=(
         "For 12-year-old Anda, getting paid real money to kill the characters of players who were cheating"
         " in her favorite online computer game was a win-win situation. Until she found out who was paying her,"
         " and what those characters meant to the livelihood of children around the world."
@@ -404,19 +438,19 @@ md_test: GenericMetadata = GenericMetadata(
     black_and_white=None,
     page_count=24,
     maturity_rating="Everyone 10+",
-    story_arc="Here and Now",
-    series_group="Futuristic Tales",
+    story_arcs=["Here and Now"],
+    series_groups=["Futuristic Tales"],
     scan_info="(CC BY-NC-SA 3.0)",
-    characters="Anda",
-    teams="Fahrenheit",
-    locations="lonely  cottage ",
+    characters=["Anda"],
+    teams=["Fahrenheit"],
+    locations=utils.split("lonely  cottage ", ","),
     credits=[
-        CreditMetadata(primary=False, person="Dara Naraghi", role="Writer"),
-        CreditMetadata(primary=False, person="Esteve Polls", role="Penciller"),
-        CreditMetadata(primary=False, person="Esteve Polls", role="Inker"),
-        CreditMetadata(primary=False, person="Neil Uyetake", role="Letterer"),
-        CreditMetadata(primary=False, person="Sam Kieth", role="Cover"),
-        CreditMetadata(primary=False, person="Ted Adams", role="Editor"),
+        Credit(primary=False, person="Dara Naraghi", role="Writer"),
+        Credit(primary=False, person="Esteve Polls", role="Penciller"),
+        Credit(primary=False, person="Esteve Polls", role="Inker"),
+        Credit(primary=False, person="Neil Uyetake", role="Letterer"),
+        Credit(primary=False, person="Sam Kieth", role="Cover"),
+        Credit(primary=False, person="Ted Adams", role="Editor"),
     ],
     tags=set(),
     pages=[

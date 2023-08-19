@@ -69,12 +69,19 @@ class ComicInfoXml:
         # helper func
 
         def assign(cix_entry: str, md_entry: Any) -> None:
-            if md_entry is not None and md_entry:
+            if md_entry:
+                text = ""
+                if isinstance(md_entry, str):
+                    text = md_entry
+                elif isinstance(md_entry, list):
+                    text = ",".join(md_entry)
+                else:
+                    text = str(md_entry)
                 et_entry = root.find(cix_entry)
                 if et_entry is not None:
-                    et_entry.text = str(md_entry)
+                    et_entry.text = text
                 else:
-                    ET.SubElement(root, cix_entry).text = str(md_entry)
+                    ET.SubElement(root, cix_entry).text = text
             else:
                 et_entry = root.find(cix_entry)
                 if et_entry is not None:
@@ -87,10 +94,10 @@ class ComicInfoXml:
         assign("Volume", md.volume)
         assign("AlternateSeries", md.alternate_series)
         assign("AlternateNumber", md.alternate_number)
-        assign("StoryArc", md.story_arc)
-        assign("SeriesGroup", md.series_group)
+        assign("StoryArc", md.story_arcs)
+        assign("SeriesGroup", md.series_groups)
         assign("AlternateCount", md.alternate_count)
-        assign("Summary", md.comments)
+        assign("Summary", md.description)
         assign("Notes", md.notes)
         assign("Year", md.year)
         assign("Month", md.month)
@@ -141,7 +148,7 @@ class ComicInfoXml:
 
         assign("Publisher", md.publisher)
         assign("Imprint", md.imprint)
-        assign("Genre", md.genre)
+        assign("Genre", md.genres)
         assign("Web", md.web_link)
         assign("PageCount", md.page_count)
         assign("LanguageISO", md.language)
@@ -194,25 +201,25 @@ class ComicInfoXml:
         md.alternate_series = utils.xlate(get("AlternateSeries"))
         md.alternate_number = utils.xlate(get("AlternateNumber"))
         md.alternate_count = utils.xlate_int(get("AlternateCount"))
-        md.comments = utils.xlate(get("Summary"))
+        md.description = utils.xlate(get("Summary"))
         md.notes = utils.xlate(get("Notes"))
         md.year = utils.xlate_int(get("Year"))
         md.month = utils.xlate_int(get("Month"))
         md.day = utils.xlate_int(get("Day"))
         md.publisher = utils.xlate(get("Publisher"))
         md.imprint = utils.xlate(get("Imprint"))
-        md.genre = utils.xlate(get("Genre"))
+        md.genres = utils.split(get("Genre"), ",")
         md.web_link = utils.xlate(get("Web"))
         md.language = utils.xlate(get("LanguageISO"))
         md.format = utils.xlate(get("Format"))
         md.manga = utils.xlate(get("Manga"))
-        md.characters = utils.xlate(get("Characters"))
-        md.teams = utils.xlate(get("Teams"))
-        md.locations = utils.xlate(get("Locations"))
+        md.characters = utils.split(get("Characters"), ",")
+        md.teams = utils.split(get("Teams"), ",")
+        md.locations = utils.split(get("Locations"), ",")
         md.page_count = utils.xlate_int(get("PageCount"))
         md.scan_info = utils.xlate(get("ScanInformation"))
-        md.story_arc = utils.xlate(get("StoryArc"))
-        md.series_group = utils.xlate(get("SeriesGroup"))
+        md.story_arcs = utils.split(get("StoryArc"), ",")
+        md.series_groups = utils.split(get("SeriesGroup"), ",")
         md.maturity_rating = utils.xlate(get("AgeRating"))
         md.critical_rating = utils.xlate_float(get("CommunityRating"))
 
@@ -232,12 +239,12 @@ class ComicInfoXml:
                 ]
             ):
                 if n.text is not None:
-                    for name in n.text.split(","):
+                    for name in utils.split(n.text, ","):
                         md.add_credit(name.strip(), n.tag)
 
             if n.tag == "CoverArtist":
                 if n.text is not None:
-                    for name in n.text.split(","):
+                    for name in utils.split(n.text, ","):
                         md.add_credit(name.strip(), "Cover")
 
         # parse page data now

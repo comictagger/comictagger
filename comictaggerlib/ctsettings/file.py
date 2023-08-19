@@ -140,6 +140,13 @@ def filename(parser: settngs.Manager) -> None:
 def talker(parser: settngs.Manager) -> None:
     # General settings for talkers
     parser.add_setting("--source", default="comicvine", help="Use a specified source by source ID")
+    parser.add_setting(
+        "--remove-html-tables",
+        default=False,
+        action=argparse.BooleanOptionalAction,
+        display_name="Remove HTML tables",
+        help="Removes html tables instead of converting them to text",
+    )
 
 
 def cbl(parser: settngs.Manager) -> None:

@@ -5,6 +5,7 @@ import pathlib
 
 from appdirs import AppDirs
 
+from comicapi import utils
 from comicapi.comicarchive import MetaDataStyle
 from comicapi.genericmetadata import GenericMetadata
 
@@ -67,7 +68,7 @@ def metadata_type_single(types: str) -> int:
 def metadata_type(types: str) -> list[int]:
     result = []
     types = types.casefold()
-    for typ in types.split(","):
+    for typ in utils.split(types, ","):
         typ = typ.strip()
         if typ not in MetaDataStyle.short_name:
             choices = ", ".join(MetaDataStyle.short_name)
@@ -93,7 +94,7 @@ def parse_metadata_from_string(mdstr: str) -> GenericMetadata:
 
     # First, replace escaped commas with with a unique token (to be changed back later)
     mdstr = mdstr.replace(escaped_comma, replacement_token)
-    tmp_list = mdstr.split(",")
+    tmp_list = utils.split(mdstr, ",")
     md_list = []
     for item in tmp_list:
         item = item.replace(replacement_token, ",")
@@ -104,11 +105,11 @@ def parse_metadata_from_string(mdstr: str) -> GenericMetadata:
     for item in md_list:
         # Make sure to fix any escaped equal signs
         i = item.replace(escaped_equals, replacement_token)
-        key, value = i.split("=")
+        key, value = utils.split(i, "=")
         value = value.replace(replacement_token, "=").strip()
         key = key.strip()
         if key.casefold() == "credit":
-            cred_attribs = value.split(":")
+            cred_attribs = utils.split(value, ":")
             role = cred_attribs[0]
             person = cred_attribs[1] if len(cred_attribs) > 1 else ""
             primary = len(cred_attribs) > 2
