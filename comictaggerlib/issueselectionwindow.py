@@ -87,7 +87,7 @@ class IssueSelectionWindow(QtWidgets.QDialog):
         self.config = config
         self.talker = talker
         self.url_fetch_thread = None
-        self.issue_list: list[GenericMetadata] = []
+        self.issue_list: dict[str, GenericMetadata] = {}
 
         # Display talker logo and set url
         self.lblIssuesSourceName.setText(talker.attribution)
@@ -143,7 +143,9 @@ class IssueSelectionWindow(QtWidgets.QDialog):
         QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
 
         try:
-            self.issue_list = self.talker.fetch_issues_in_series(self.series_id)
+            self.issue_list = {
+                x.issue_id: x for x in self.talker.fetch_issues_in_series(self.series_id) if x.issue_id is not None
+            }
         except TalkerError as e:
             QtWidgets.QApplication.restoreOverrideCursor()
             QtWidgets.QMessageBox.critical(self, f"{e.source} {e.code_name} Error", f"{e}")
@@ -153,7 +155,7 @@ class IssueSelectionWindow(QtWidgets.QDialog):
 
         self.twList.setSortingEnabled(False)
 
-        for row, issue in enumerate(self.issue_list):
+        for row, issue in enumerate(self.issue_list.values()):
             self.twList.insertRow(row)
 
             item_text = issue.issue or ""
@@ -208,8 +210,8 @@ class IssueSelectionWindow(QtWidgets.QDialog):
         self.issue_id = self.twList.item(curr.row(), 0).data(QtCore.Qt.ItemDataRole.UserRole)
 
         # list selection was changed, update the the issue cover
-        issue = self.issue_list[curr.row()]
-        if not all((issue.issue, issue.year, issue.month, issue.cover_image)):  # issue.title, issue.description
+        issue = self.issue_list[self.issue_id]
+        if not (issue.issue and issue.year and issue.month and issue.cover_image):
             issue = self.talker.fetch_comic_data(issue_id=self.issue_id)
         self.issue_number = issue.issue or ""
         self.coverWidget.set_issue_details(self.issue_id, [issue.cover_image or "", *issue.alternate_images])
