@@ -199,18 +199,11 @@ class App:
             self.list_plugins(list(talkers.values()), comicapi.comicarchive.archivers)
             return
 
-        # manage the CV API key
-        # None comparison is used so that the empty string can unset the value
-        if not error and (
-            self.config[0].Source_comicvine_comicvine_key is not None
-            or self.config[0].Source_comicvine_comicvine_url is not None
-        ):
-            settings_path = self.config[0].Runtime_Options_config.user_config_dir / "settings.json"
+        if self.config[0].Commands_only_save_config:
             if self.config_load_success:
-                self.manager.save_file(self.config[0], settings_path)
-
-        if self.config[0].Commands_only_set_cv_key:
-            if self.config_load_success:
+                settings_path = self.config[0].Runtime_Options_config.user_config_dir / "settings.json"
+                if self.config_load_success:
+                    self.manager.save_file(self.config[0], settings_path)
                 print("Key set")  # noqa: T201
                 return
 
