@@ -16,12 +16,10 @@
 # limitations under the License.
 from __future__ import annotations
 
-import json
 import logging
 import os
 import sys
 from datetime import datetime
-from pprint import pprint
 
 from comicapi import utils
 from comicapi.comicarchive import ComicArchive, MetaDataStyle
@@ -183,7 +181,10 @@ class CLI:
 
         self.post_process_matches(match_results)
 
-        print(f"\nFiles tagged with metadata provided by {self.current_talker().name} {self.current_talker().website}")
+        if self.config.Runtime_Options_online:
+            print(
+                f"\nFiles tagged with metadata provided by {self.current_talker().name} {self.current_talker().website}"
+            )
 
     def create_local_metadata(self, ca: ComicArchive) -> GenericMetadata:
         md = GenericMetadata()
@@ -251,12 +252,16 @@ class CLI:
 
         print()
 
+        raw: str | bytes = ""
         if not self.config.Runtime_Options_type or MetaDataStyle.CIX in self.config.Runtime_Options_type:
             if ca.has_metadata(MetaDataStyle.CIX):
                 print("--------- ComicRack tags ---------")
                 try:
                     if self.config.Runtime_Options_raw:
-                        print(ca.read_raw_cix())
+                        raw = ca.read_raw_cix()
+                        if isinstance(raw, bytes):
+                            raw = raw.decode("utf-8")
+                        print(raw)
                     else:
                         print(ca.read_cix())
                 except Exception as e:
@@ -267,7 +272,10 @@ class CLI:
                 print("------- ComicBookLover tags -------")
                 try:
                     if self.config.Runtime_Options_raw:
-                        pprint(json.loads(ca.read_raw_cbi()))
+                        raw = ca.read_raw_cbi()
+                        if isinstance(raw, bytes):
+                            raw = raw.decode("utf-8")
+                        print(raw)
                     else:
                         print(ca.read_cbi())
                 except Exception as e:
@@ -278,7 +286,10 @@ class CLI:
                 print("----------- CoMet tags -----------")
                 try:
                     if self.config.Runtime_Options_raw:
-                        print(ca.read_raw_comet())
+                        raw = ca.read_raw_comet()
+                        if isinstance(raw, bytes):
+                            raw = raw.decode("utf-8")
+                        print(raw)
                     else:
                         print(ca.read_comet())
                 except Exception as e:
