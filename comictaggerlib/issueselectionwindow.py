@@ -168,11 +168,11 @@ class IssueSelectionWindow(QtWidgets.QDialog):
 
             item_text = ""
             if issue.year is not None:
-                item_text = f"{issue.year:04}"
+                item_text += f"-{issue.year:04}"
             if issue.month is not None:
-                item_text = f"{issue.month:02}"
+                item_text += f"-{issue.month:02}"
 
-            qtw_item = QtWidgets.QTableWidgetItem(item_text)
+            qtw_item = QtWidgets.QTableWidgetItem(item_text.strip("-"))
             qtw_item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
             qtw_item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
             self.twList.setItem(row, 1, qtw_item)
