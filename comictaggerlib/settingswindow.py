@@ -277,6 +277,8 @@ class SettingsWindow(QtWidgets.QDialog):
         )
 
     def _rename_test(self, template: str) -> None:
+        if not str(self.leIssueNumPadding.text()).isdigit():
+            self.leIssueNumPadding.setText("0")
         fr = FileRenamer(
             md_test,
             platform="universal" if self.cbxRenameStrict.isChecked() else "auto",
