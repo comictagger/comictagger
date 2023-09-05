@@ -60,7 +60,7 @@ def test_save_cbi(tmp_comic):
 
 
 @pytest.mark.xfail(not (comicapi.archivers.rar.rar_support and shutil.which("rar")), reason="rar support")
-def test_save_cix_rar(tmp_path):
+def test_save_cix_rar(tmp_path, md_saved):
     cbr_path = datadir / "fake_cbr.cbr"
     shutil.copy(cbr_path, tmp_path)
 
@@ -69,7 +69,7 @@ def test_save_cix_rar(tmp_path):
     assert tmp_comic.write_cix(comicapi.genericmetadata.md_test)
 
     md = tmp_comic.read_cix()
-    assert md.replace(pages=[]) == comicapi.genericmetadata.md_test.replace(pages=[])
+    assert md.replace(pages=[], page_count=0) == md_saved.replace(pages=[], page_count=0)
 
 
 @pytest.mark.xfail(not (comicapi.archivers.rar.rar_support and shutil.which("rar")), reason="rar support")
@@ -95,12 +95,12 @@ def test_save_cbi_rar(tmp_path, md_saved):
         manga=None,
         page_count=None,
         maturity_rating=None,
-        story_arc=None,
-        series_group=None,
+        story_arcs=[],
+        series_groups=[],
         scan_info=None,
-        characters=None,
-        teams=None,
-        locations=None,
+        characters=[],
+        teams=[],
+        locations=[],
     )
 
 
