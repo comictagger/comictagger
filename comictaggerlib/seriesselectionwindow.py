@@ -398,7 +398,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
     def search_complete(self) -> None:
         if self.progdialog is not None:
             self.progdialog.accept()
-            del self.progdialog
+            self.progdialog = None
         if self.search_thread is not None and self.search_thread.ct_error:
             # TODO Currently still opens the window
             QtWidgets.QMessageBox.critical(
