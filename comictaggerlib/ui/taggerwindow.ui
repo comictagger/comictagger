@@ -59,25 +59,35 @@
             <property name="formAlignment">
              <set>Qt::AlignHCenter|Qt::AlignTop</set>
             </property>
-            <item row="0" column="0">
+            <item row="1" column="0">
              <widget class="QLabel" name="label">
               <property name="text">
                <string>Read Style</string>
               </property>
              </widget>
             </item>
-            <item row="0" column="1">
+            <item row="1" column="1">
              <widget class="QComboBox" name="cbLoadDataStyle"/>
             </item>
-            <item row="1" column="0">
+            <item row="2" column="0">
              <widget class="QLabel" name="saveStyleLabel">
               <property name="text">
                <string>Modify Style</string>
               </property>
              </widget>
             </item>
-            <item row="1" column="1">
+            <item row="2" column="1">
              <widget class="QComboBox" name="cbSaveDataStyle"/>
+            </item>
+            <item row="0" column="0">
+             <widget class="QLabel" name="lbl_md_source">
+              <property name="text">
+               <string>Metadata Source</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QComboBox" name="cbx_sources"/>
             </item>
            </layout>
           </item>

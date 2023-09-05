@@ -212,6 +212,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         # hook up the callbacks
         self.cbLoadDataStyle.currentIndexChanged.connect(self.set_load_data_style)
         self.cbSaveDataStyle.currentIndexChanged.connect(self.set_save_data_style)
+        self.cbx_sources.currentIndexChanged.connect(self.set_source)
         self.btnEditCredit.clicked.connect(self.edit_credit)
         self.btnAddCredit.clicked.connect(self.add_credit)
         self.btnRemoveCredit.clicked.connect(self.remove_credit)
@@ -1155,6 +1156,9 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.update_style_tweaks()
         self.update_menus()
 
+    def set_source(self, s: int) -> None:
+        self.config[0].Sources_source = self.cbx_sources.itemData(s)
+
     def update_credit_colors(self) -> None:
         # !!!ATB qt5 porting TODO
         inactive_color = QtGui.QColor(255, 170, 150)
@@ -1372,6 +1376,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         settingswin.setModal(True)
         settingswin.exec()
         settingswin.result()
+        self.adjust_source_combo()
 
     def set_app_position(self) -> None:
         if self.config[0].internal_window_width != 0:
@@ -1381,6 +1386,9 @@ class TaggerWindow(QtWidgets.QMainWindow):
             screen = QtGui.QGuiApplication.primaryScreen().geometry()
             size = self.frameGeometry()
             self.move(int((screen.width() - size.width()) / 2), int((screen.height() - size.height()) / 2))
+
+    def adjust_source_combo(self) -> None:
+        self.cbx_sources.setCurrentIndex(self.cbx_sources.findData(self.config[0].Sources_source))
 
     def adjust_load_style_combo(self) -> None:
         # select the current style
@@ -1406,6 +1414,11 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.cbSaveDataStyle.addItem("ComicBookLover", MetaDataStyle.CBI)
         self.cbSaveDataStyle.addItem("ComicRack", MetaDataStyle.CIX)
         self.adjust_save_style_combo()
+
+        # Add talker entries
+        for t_id, talker in self.talkers.items():
+            self.cbx_sources.addItem(talker.name, t_id)
+        self.adjust_source_combo()
 
         # Add the entries to the country combobox
         self.cbCountry.addItem("", "")
