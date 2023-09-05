@@ -234,9 +234,9 @@ def register_commands(parser: settngs.Manager) -> None:
         file=False,
     )
     parser.add_setting(
-        "--only-set-cv-key",
+        "--only-save-config",
         action="store_true",
-        help="Only set the Comic Vine API key and quit.",
+        help="Only save the configuration (eg, Comic Vine API key) and quit.",
         file=False,
     )
     parser.add_setting(
@@ -268,7 +268,7 @@ def validate_commandline_settings(config: settngs.Config[ct_ns], parser: settngs
             config[0].Commands_copy,
             config[0].Commands_rename,
             config[0].Commands_export_to_zip,
-            config[0].Commands_only_set_cv_key,
+            config[0].Commands_only_save_config,
             config[0].Commands_list_plugins,
             config[0].Runtime_Options_no_gui,
         ]
@@ -284,7 +284,7 @@ def validate_commandline_settings(config: settngs.Config[ct_ns], parser: settngs
             config[0].Runtime_Options_files.extend(glob.glob(item))
 
     if (
-        not config[0].Commands_only_set_cv_key
+        not config[0].Commands_only_save_config
         and config[0].Runtime_Options_no_gui
         and not config[0].Runtime_Options_files
     ):

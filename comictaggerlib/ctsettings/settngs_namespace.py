@@ -15,7 +15,7 @@ class settngs_namespace(settngs.TypedNS):
     Commands_save: bool
     Commands_rename: bool
     Commands_export_to_zip: bool
-    Commands_only_set_cv_key: bool
+    Commands_only_save_config: bool
     Commands_list_plugins: bool
 
     Runtime_Options_config: comictaggerlib.ctsettings.types.ComicTaggerPaths
