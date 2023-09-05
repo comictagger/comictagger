@@ -251,7 +251,7 @@ def generate_source_option_tabs(
     comic_talker_tab_layout.addLayout(talker_layout)
 
     # Add source sub tabs to Comic Sources tab
-    for t_id, talker in talkers.items():
+    for t_id, talker in list(talkers.items()):
         # Add source to general tab dropdown list
         sources.cbx_sources.addItem(talker.name, t_id)
         tab = TalkerTab(tab=QtWidgets.QWidget(), widgets={})
@@ -260,12 +260,12 @@ def generate_source_option_tabs(
         url_option: settngs.Setting | None = None
         key_option: settngs.Setting | None = None
         for option in config.definitions[group_for_plugin(talker)].v.values():
-            if not option.file:
-                continue
-            elif option.dest == f"{t_id}_key":
+            if option.dest == f"{t_id}_key":
                 key_option = option
             elif option.dest == f"{t_id}_url":
                 url_option = option
+            elif not option.file:
+                continue
             elif option._guess_type() is bool:
                 current_widget = generate_checkbox(option, layout_grid)
                 tab.widgets[option.dest] = current_widget

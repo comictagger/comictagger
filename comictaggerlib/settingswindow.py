@@ -463,7 +463,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.config[0].File_Rename_replacements = self.get_replacements()
 
         # Read settings from talker tabs
-        comictaggerlib.ui.talkeruigenerator.form_settings_to_config(self.sources, self.config)
+        self.config = comictaggerlib.ui.talkeruigenerator.form_settings_to_config(self.sources, self.config)
 
         self.update_talkers_config()
 
