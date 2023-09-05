@@ -156,10 +156,10 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
         self.setWindowIcon(QtGui.QIcon(str(graphics_path / "app.png")))
 
-        if config[0].runtime_type and isinstance(config[0].runtime_type[0], int):
+        if config[0].Runtime_Options_type and isinstance(config[0].Runtime_Options_type[0], int):
             # respect the command line option tag type
-            config[0].internal_save_data_style = config[0].runtime_type[0]
-            config[0].internal_load_data_style = config[0].runtime_type[0]
+            config[0].internal_save_data_style = config[0].Runtime_Options_type[0]
+            config[0].internal_load_data_style = config[0].Runtime_Options_type[0]
 
         self.save_data_style = config[0].internal_save_data_style
         self.load_data_style = config[0].internal_load_data_style
@@ -245,7 +245,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         if len(file_list) != 0:
             self.fileSelectionList.add_path_list(file_list)
 
-        if self.config[0].dialog_show_disclaimer:
+        if self.config[0].Dialog_Flags_show_disclaimer:
             checked = OptionalMessageDialog.msg(
                 self,
                 "Welcome!",
@@ -264,15 +264,15 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 Have fun!
                 """,
             )
-            self.config[0].dialog_show_disclaimer = not checked
+            self.config[0].Dialog_Flags_show_disclaimer = not checked
 
-        if self.config[0].general_check_for_new_version:
+        if self.config[0].General_check_for_new_version:
             self.check_latest_version_online()
 
     def current_talker(self) -> ComicTalker:
-        if self.config[0].talker_source in self.talkers:
-            return self.talkers[self.config[0].talker_source]
-        logger.error("Could not find the '%s' talker", self.config[0].talker_source)
+        if self.config[0].Sources_source in self.talkers:
+            return self.talkers[self.config[0].Sources_source]
+        logger.error("Could not find the '%s' talker", self.config[0].Sources_source)
         raise SystemExit(2)
 
     def open_file_event(self, url: QtCore.QUrl) -> None:
@@ -285,7 +285,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
     def setup_logger(self) -> ApplicationLogWindow:
         try:
-            current_logs = (self.config[0].runtime_config.user_log_dir / "ComicTagger.log").read_text("utf-8")
+            current_logs = (self.config[0].Runtime_Options_config.user_log_dir / "ComicTagger.log").read_text("utf-8")
         except Exception:
             current_logs = ""
         root_logger = logging.getLogger()
@@ -618,10 +618,10 @@ class TaggerWindow(QtWidgets.QMainWindow):
     def actual_load_current_archive(self) -> None:
         if self.metadata.is_empty and self.comic_archive is not None:
             self.metadata = self.comic_archive.metadata_from_filename(
-                self.config[0].filename_complicated_parser,
-                self.config[0].filename_remove_c2c,
-                self.config[0].filename_remove_fcbd,
-                self.config[0].filename_remove_publisher,
+                self.config[0].Filename_Parsing_complicated_parser,
+                self.config[0].Filename_Parsing_remove_c2c,
+                self.config[0].Filename_Parsing_remove_fcbd,
+                self.config[0].Filename_Parsing_remove_publisher,
             )
         if len(self.metadata.pages) == 0 and self.comic_archive is not None:
             self.metadata.set_default_page_list(self.comic_archive.get_number_of_pages())
@@ -967,10 +967,10 @@ class TaggerWindow(QtWidgets.QMainWindow):
             # copy the form onto metadata object
             self.form_to_metadata()
             new_metadata = self.comic_archive.metadata_from_filename(
-                self.config[0].filename_complicated_parser,
-                self.config[0].filename_remove_c2c,
-                self.config[0].filename_remove_fcbd,
-                self.config[0].filename_remove_publisher,
+                self.config[0].Filename_Parsing_complicated_parser,
+                self.config[0].Filename_Parsing_remove_c2c,
+                self.config[0].Filename_Parsing_remove_fcbd,
+                self.config[0].Filename_Parsing_remove_publisher,
                 split_words,
             )
             if new_metadata is not None:
@@ -1079,10 +1079,10 @@ class TaggerWindow(QtWidgets.QMainWindow):
             else:
                 QtWidgets.QApplication.restoreOverrideCursor()
                 if new_metadata is not None:
-                    if self.config[0].cbl_apply_transform_on_import:
+                    if self.config[0].Comic_Book_Lover_apply_transform_on_import:
                         new_metadata = CBLTransformer(new_metadata, self.config[0]).apply()
 
-                    if self.config[0].identifier_clear_form_before_populating:
+                    if self.config[0].Issue_Identifier_clear_form_before_populating:
                         self.clear_form()
 
                     notes = (
@@ -1093,7 +1093,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                         new_metadata.replace(
                             notes=utils.combine_notes(self.metadata.notes, notes, "Tagged with ComicTagger"),
                             description=cleanup_html(
-                                new_metadata.description, self.config[0].talker_remove_html_tables
+                                new_metadata.description, self.config[0].Sources_remove_html_tables
                             ),
                         )
                     )
@@ -1636,7 +1636,10 @@ class TaggerWindow(QtWidgets.QMainWindow):
                     if ca.has_metadata(src_style) and ca.is_writable():
                         md = ca.read_metadata(src_style)
 
-                        if dest_style == MetaDataStyle.CBI and self.config[0].cbl_apply_transform_on_bulk_operation:
+                        if (
+                            dest_style == MetaDataStyle.CBI
+                            and self.config[0].Comic_Book_Lover_apply_transform_on_bulk_operation
+                        ):
                             md = CBLTransformer(md, self.config[0]).apply()
 
                         if not ca.write_metadata(md, dest_style):
@@ -1674,7 +1677,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             logger.exception("Save aborted.")
 
         if not ct_md.is_empty:
-            if self.config[0].cbl_apply_transform_on_import:
+            if self.config[0].Comic_Book_Lover_apply_transform_on_import:
                 ct_md = CBLTransformer(ct_md, self.config[0]).apply()
 
         QtWidgets.QApplication.restoreOverrideCursor()
@@ -1704,10 +1707,10 @@ class TaggerWindow(QtWidgets.QMainWindow):
             logger.error("Failed to load metadata for %s: %s", ca.path, e)
         if md.is_empty:
             md = ca.metadata_from_filename(
-                self.config[0].filename_complicated_parser,
-                self.config[0].filename_remove_c2c,
-                self.config[0].filename_remove_fcbd,
-                self.config[0].filename_remove_publisher,
+                self.config[0].Filename_Parsing_complicated_parser,
+                self.config[0].Filename_Parsing_remove_c2c,
+                self.config[0].Filename_Parsing_remove_fcbd,
+                self.config[0].Filename_Parsing_remove_publisher,
                 dlg.split_words,
             )
             if dlg.ignore_leading_digits_in_filename and md.series is not None:
@@ -1793,7 +1796,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                     )
                     md.overlay(ct_md.replace(notes=utils.combine_notes(md.notes, notes, "Tagged with ComicTagger")))
 
-                if self.config[0].identifier_auto_imprint:
+                if self.config[0].Issue_Identifier_auto_imprint:
                     md.fix_publisher()
 
                 if not ca.write_metadata(md, self.save_data_style):
@@ -1979,7 +1982,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 self.config[0].internal_sort_column,
                 self.config[0].internal_sort_direction,
             ) = self.fileSelectionList.get_sorting()
-            settngs.save_file(self.config, self.config[0].runtime_config.user_config_dir / "settings.json")
+            settngs.save_file(self.config, self.config[0].Runtime_Options_config.user_config_dir / "settings.json")
 
             event.accept()
         else:
@@ -2106,7 +2109,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.version_check_complete(version_checker.get_latest_version(self.config[0].internal_install_id))
 
     def version_check_complete(self, new_version: tuple[str, str]) -> None:
-        if new_version[0] not in (self.version, self.config[0].dialog_dont_notify_about_this_version):
+        if new_version[0] not in (self.version, self.config[0].Dialog_Flags_dont_notify_about_this_version):
             website = "https://github.com/comictagger/comictagger"
             checked = OptionalMessageDialog.msg(
                 self,
@@ -2117,7 +2120,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 "Don't tell me about this version again",
             )
             if checked:
-                self.config[0].dialog_dont_notify_about_this_version = new_version[0]
+                self.config[0].Dialog_Flags_dont_notify_about_this_version = new_version[0]
 
     def on_incoming_socket_connection(self) -> None:
         # Accept connection from other instance.

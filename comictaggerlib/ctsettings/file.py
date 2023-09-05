@@ -123,7 +123,11 @@ def filename(parser: settngs.Manager) -> None:
 
 def talker(parser: settngs.Manager) -> None:
     # General settings for talkers
-    parser.add_setting("--source", default="comicvine", help="Use a specified source by source ID")
+    parser.add_setting(
+        "--source",
+        default="comicvine",
+        help="Use a specified source by source ID (use --list-plugins to list all sources)",
+    )
     parser.add_setting(
         "--remove-html-tables",
         default=False,
@@ -219,7 +223,7 @@ def autotag(parser: settngs.Manager) -> None:
 def validate_file_settings(config: settngs.Config[ct_ns]) -> settngs.Config[ct_ns]:
     new_filter = []
     remove = []
-    for x in config[0].identifier_publisher_filter:
+    for x in config[0].Issue_Identifier_publisher_filter:
         x = x.strip()
         if x:  # ignore empty arguments
             if x[-1] == "-":  # this publisher needs to be removed. We remove after all publishers have been enumerated
@@ -230,22 +234,22 @@ def validate_file_settings(config: settngs.Config[ct_ns]) -> settngs.Config[ct_n
     for x in remove:  # remove publishers
         if x in new_filter:
             new_filter.remove(x)
-    config[0].identifier_publisher_filter = new_filter
+    config[0].Issue_Identifier_publisher_filter = new_filter
 
-    config[0].rename_replacements = Replacements(
-        [Replacement(x[0], x[1], x[2]) for x in config[0].rename_replacements[0]],
-        [Replacement(x[0], x[1], x[2]) for x in config[0].rename_replacements[1]],
+    config[0].File_Rename_replacements = Replacements(
+        [Replacement(x[0], x[1], x[2]) for x in config[0].File_Rename_replacements[0]],
+        [Replacement(x[0], x[1], x[2]) for x in config[0].File_Rename_replacements[1]],
     )
     return config
 
 
 def register_file_settings(parser: settngs.Manager) -> None:
-    parser.add_group("general", general, False)
     parser.add_group("internal", internal, False)
-    parser.add_group("identifier", identifier, False)
-    parser.add_group("dialog", dialog, False)
-    parser.add_group("filename", filename, False)
-    parser.add_group("talker", talker, False)
-    parser.add_group("cbl", cbl, False)
-    parser.add_group("rename", rename, False)
-    parser.add_group("autotag", autotag, False)
+    parser.add_group("Issue Identifier", identifier, False)
+    parser.add_group("Filename Parsing", filename, False)
+    parser.add_group("Sources", talker, False)
+    parser.add_group("Comic Book Lover", cbl, False)
+    parser.add_group("File Rename", rename, False)
+    parser.add_group("Auto-Tag", autotag, False)
+    parser.add_group("General", general, False)
+    parser.add_group("Dialog Flags", dialog, False)

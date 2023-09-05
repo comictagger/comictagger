@@ -8,40 +8,39 @@ import comictaggerlib.defaults
 
 
 class settngs_namespace(settngs.TypedNS):
-    commands_version: bool
-    commands_print: bool
-    commands_delete: bool
-    commands_copy: int
-    commands_save: bool
-    commands_rename: bool
-    commands_export_to_zip: bool
-    commands_only_set_cv_key: bool
+    Commands_version: bool
+    Commands_print: bool
+    Commands_delete: bool
+    Commands_copy: int
+    Commands_save: bool
+    Commands_rename: bool
+    Commands_export_to_zip: bool
+    Commands_only_set_cv_key: bool
+    Commands_list_plugins: bool
 
-    runtime_config: comictaggerlib.ctsettings.types.ComicTaggerPaths
-    runtime_verbose: int
-    runtime_abort_on_conflict: bool
-    runtime_delete_after_zip_export: bool
-    runtime_parse_filename: bool
-    runtime_issue_id: str
-    runtime_online: bool
-    runtime_metadata: comicapi.genericmetadata.GenericMetadata
-    runtime_interactive: bool
-    runtime_abort_on_low_confidence: bool
-    runtime_summary: bool
-    runtime_raw: bool
-    runtime_recursive: bool
-    runtime_script: str
-    runtime_split_words: bool
-    runtime_dryrun: bool
-    runtime_darkmode: bool
-    runtime_glob: bool
-    runtime_quiet: bool
-    runtime_type: list[int]
-    runtime_overwrite: bool
-    runtime_no_gui: bool
-    runtime_files: list[str]
-
-    general_check_for_new_version: bool
+    Runtime_Options_config: comictaggerlib.ctsettings.types.ComicTaggerPaths
+    Runtime_Options_verbose: int
+    Runtime_Options_abort_on_conflict: bool
+    Runtime_Options_delete_after_zip_export: bool
+    Runtime_Options_parse_filename: bool
+    Runtime_Options_issue_id: str
+    Runtime_Options_online: bool
+    Runtime_Options_metadata: comicapi.genericmetadata.GenericMetadata
+    Runtime_Options_interactive: bool
+    Runtime_Options_abort_on_low_confidence: bool
+    Runtime_Options_summary: bool
+    Runtime_Options_raw: bool
+    Runtime_Options_recursive: bool
+    Runtime_Options_script: str
+    Runtime_Options_split_words: bool
+    Runtime_Options_dryrun: bool
+    Runtime_Options_darkmode: bool
+    Runtime_Options_glob: bool
+    Runtime_Options_quiet: bool
+    Runtime_Options_type: list[int]
+    Runtime_Options_overwrite: bool
+    Runtime_Options_no_gui: bool
+    Runtime_Options_files: list[str]
 
     internal_install_id: str
     internal_save_data_style: int
@@ -56,50 +55,56 @@ class settngs_namespace(settngs.TypedNS):
     internal_sort_column: int
     internal_sort_direction: int
 
-    identifier_series_match_identify_thresh: int
-    identifier_border_crop_percent: int
-    identifier_publisher_filter: list[str]
-    identifier_series_match_search_thresh: int
-    identifier_clear_metadata_on_import: bool
-    identifier_auto_imprint: bool
-    identifier_sort_series_by_year: bool
-    identifier_exact_series_matches_first: bool
-    identifier_always_use_publisher_filter: bool
-    identifier_clear_form_before_populating: bool
+    Issue_Identifier_series_match_identify_thresh: int
+    Issue_Identifier_border_crop_percent: int
+    Issue_Identifier_publisher_filter: list[str]
+    Issue_Identifier_series_match_search_thresh: int
+    Issue_Identifier_clear_metadata_on_import: bool
+    Issue_Identifier_auto_imprint: bool
+    Issue_Identifier_sort_series_by_year: bool
+    Issue_Identifier_exact_series_matches_first: bool
+    Issue_Identifier_always_use_publisher_filter: bool
+    Issue_Identifier_clear_form_before_populating: bool
 
-    dialog_show_disclaimer: bool
-    dialog_dont_notify_about_this_version: str
-    dialog_ask_about_usage_stats: bool
+    Filename_Parsing_complicated_parser: bool
+    Filename_Parsing_remove_c2c: bool
+    Filename_Parsing_remove_fcbd: bool
+    Filename_Parsing_remove_publisher: bool
 
-    filename_complicated_parser: bool
-    filename_remove_c2c: bool
-    filename_remove_fcbd: bool
-    filename_remove_publisher: bool
+    Sources_source: str
+    Sources_remove_html_tables: bool
 
-    talker_source: str
-    talker_remove_html_tables: bool
+    Comic_Book_Lover_assume_lone_credit_is_primary: bool
+    Comic_Book_Lover_copy_characters_to_tags: bool
+    Comic_Book_Lover_copy_teams_to_tags: bool
+    Comic_Book_Lover_copy_locations_to_tags: bool
+    Comic_Book_Lover_copy_storyarcs_to_tags: bool
+    Comic_Book_Lover_copy_notes_to_comments: bool
+    Comic_Book_Lover_copy_weblink_to_comments: bool
+    Comic_Book_Lover_apply_transform_on_import: bool
+    Comic_Book_Lover_apply_transform_on_bulk_operation: bool
 
-    cbl_assume_lone_credit_is_primary: bool
-    cbl_copy_characters_to_tags: bool
-    cbl_copy_teams_to_tags: bool
-    cbl_copy_locations_to_tags: bool
-    cbl_copy_storyarcs_to_tags: bool
-    cbl_copy_notes_to_comments: bool
-    cbl_copy_weblink_to_comments: bool
-    cbl_apply_transform_on_import: bool
-    cbl_apply_transform_on_bulk_operation: bool
+    File_Rename_template: str
+    File_Rename_issue_number_padding: int
+    File_Rename_use_smart_string_cleanup: bool
+    File_Rename_set_extension_based_on_archive: bool
+    File_Rename_dir: str
+    File_Rename_move_to_dir: bool
+    File_Rename_strict: bool
+    File_Rename_replacements: comictaggerlib.defaults.Replacements
 
-    rename_template: str
-    rename_issue_number_padding: int
-    rename_use_smart_string_cleanup: bool
-    rename_set_extension_based_on_archive: bool
-    rename_dir: str
-    rename_move_to_dir: bool
-    rename_strict: bool
-    rename_replacements: comictaggerlib.defaults.Replacements
+    Auto_Tag_save_on_low_confidence: bool
+    Auto_Tag_dont_use_year_when_identifying: bool
+    Auto_Tag_assume_1_if_no_issue_num: bool
+    Auto_Tag_ignore_leading_numbers_in_filename: bool
+    Auto_Tag_remove_archive_after_successful_match: bool
 
-    autotag_save_on_low_confidence: bool
-    autotag_dont_use_year_when_identifying: bool
-    autotag_assume_1_if_no_issue_num: bool
-    autotag_ignore_leading_numbers_in_filename: bool
-    autotag_remove_archive_after_successful_match: bool
+    General_check_for_new_version: bool
+
+    Dialog_Flags_show_disclaimer: bool
+    Dialog_Flags_dont_notify_about_this_version: str
+    Dialog_Flags_ask_about_usage_stats: bool
+
+    Source_comicvine_comicvine_key: str
+    Source_comicvine_comicvine_url: str
+    Source_comicvine_cv_use_series_start_as_volume: bool

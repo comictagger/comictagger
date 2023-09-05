@@ -91,7 +91,7 @@ def configure_locale() -> None:
 
 
 def update_publishers(config: settngs.Config[ct_ns]) -> None:
-    json_file = config[0].runtime_config.user_config_dir / "publishers.json"
+    json_file = config[0].Runtime_Options_config.user_config_dir / "publishers.json"
     if json_file.exists():
         try:
             comicapi.utils.update_publishers(json.loads(json_file.read_text("utf-8")))
@@ -121,6 +121,18 @@ class App:
         comicapi.comicarchive.load_archive_plugins()
         ctsettings.talkers = comictalker.get_talkers(version, opts.config.user_cache_dir)
 
+    def list_plugins(
+        self, talkers: list[comictalker.ComicTalker], archivers: list[type[comicapi.comicarchive.Archiver]]
+    ) -> None:
+        print("Metadata Sources: (ID: Name URL)")  # noqa: T201
+        for talker in talkers:
+            print(f"{talker.id}: {talker.name} {talker.default_api_url}")  # noqa: T201
+
+        print("\nComic Archive: (Name: extension, exe)")  # noqa: T201
+        for archiver in archivers:
+            a = archiver()
+            print(f"{a.name()}: {a.extension()}, {a.exe}")  # noqa: T201
+
     def initialize(self) -> argparse.Namespace:
         conf, _ = self.initial_arg_parser.parse_known_args()
         assert conf is not None
@@ -141,7 +153,7 @@ class App:
             config_paths.user_config_dir / "settings.json", list(args) or None
         )
         config = cast(settngs.Config[ct_ns], self.manager.get_namespace(cfg, file=True, cmdline=True))
-        config[0].runtime_config = config_paths
+        config[0].Runtime_Options_config = config_paths
 
         config = ctsettings.validate_commandline_settings(config, self.manager)
         config = ctsettings.validate_file_settings(config)
@@ -170,7 +182,7 @@ class App:
 
         if len(talkers) < 1:
             error = error = (
-                f"Failed to load any talkers, please re-install and check the log located in '{self.config[0].runtime_config.user_log_dir}' for more details",
+                f"Failed to load any talkers, please re-install and check the log located in '{self.config[0].Runtime_Options_config.user_log_dir}' for more details",
                 True,
             )
 
@@ -183,34 +195,38 @@ class App:
         comicapi.utils.load_publishers()
         update_publishers(self.config)
 
+        if self.config[0].Commands_list_plugins:
+            self.list_plugins(list(talkers.values()), comicapi.comicarchive.archivers)
+            return
+
         # manage the CV API key
         # None comparison is used so that the empty string can unset the value
         if not error and (
-            self.config[0].talker_comicvine_comicvine_key is not None  # type: ignore[attr-defined]
-            or self.config[0].talker_comicvine_comicvine_url is not None  # type: ignore[attr-defined]
+            self.config[0].Source_comicvine_comicvine_key is not None
+            or self.config[0].Source_comicvine_comicvine_url is not None
         ):
-            settings_path = self.config[0].runtime_config.user_config_dir / "settings.json"
+            settings_path = self.config[0].Runtime_Options_config.user_config_dir / "settings.json"
             if self.config_load_success:
                 self.manager.save_file(self.config[0], settings_path)
 
-        if self.config[0].commands_only_set_cv_key:
+        if self.config[0].Commands_only_set_cv_key:
             if self.config_load_success:
                 print("Key set")  # noqa: T201
                 return
 
         if not self.config_load_success:
             error = (
-                f"Failed to load settings, check the log located in '{self.config[0].runtime_config.user_log_dir}' for more details",
+                f"Failed to load settings, check the log located in '{self.config[0].Runtime_Options_config.user_log_dir}' for more details",
                 True,
             )
 
-        if not self.config[0].runtime_no_gui:
+        if not self.config[0].Runtime_Options_no_gui:
             try:
                 from comictaggerlib import gui
 
                 return gui.open_tagger_window(talkers, self.config, error)
             except ImportError:
-                self.config[0].runtime_no_gui = True
+                self.config[0].Runtime_Options_no_gui = True
                 logger.warning("PyQt5 is not available. ComicTagger is limited to command-line mode.")
 
         # GUI mode is not available or CLI mode was requested

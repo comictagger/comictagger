@@ -6,7 +6,7 @@ from comictaggerlib.ctsettings.commandline import (
     validate_commandline_settings,
 )
 from comictaggerlib.ctsettings.file import register_file_settings, validate_file_settings
-from comictaggerlib.ctsettings.plugin import register_plugin_settings, validate_plugin_settings
+from comictaggerlib.ctsettings.plugin import group_for_plugin, register_plugin_settings, validate_plugin_settings
 from comictaggerlib.ctsettings.settngs_namespace import settngs_namespace as ct_ns
 from comictaggerlib.ctsettings.types import ComicTaggerPaths
 from comictalker import ComicTalker
@@ -23,4 +23,5 @@ __all__ = [
     "validate_plugin_settings",
     "ComicTaggerPaths",
     "ct_ns",
+    "group_for_plugin",
 ]

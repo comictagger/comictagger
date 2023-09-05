@@ -236,61 +236,72 @@ def register_commands(parser: settngs.Manager) -> None:
     parser.add_setting(
         "--only-set-cv-key",
         action="store_true",
-        help="Only set the Comic Vine API key and quit.\n\n",
+        help="Only set the Comic Vine API key and quit.",
+        file=False,
+    )
+    parser.add_setting(
+        "--list-plugins",
+        action="store_true",
+        help="List the available plugins.\n\n",
         file=False,
     )
 
 
 def register_commandline_settings(parser: settngs.Manager) -> None:
-    parser.add_group("commands", register_commands, True)
-    parser.add_persistent_group("runtime", register_runtime)
+    parser.add_group("Commands", register_commands, True)
+    parser.add_persistent_group("Runtime Options", register_runtime)
 
 
 def validate_commandline_settings(config: settngs.Config[ct_ns], parser: settngs.Manager) -> settngs.Config[ct_ns]:
-    if config[0].commands_version:
+    if config[0].Commands_version:
         parser.exit(
             status=1,
             message=f"ComicTagger {ctversion.version}:  Copyright (c) 2012-2022 ComicTagger Team\n"
             "Distributed under Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)\n",
         )
 
-    config[0].runtime_no_gui = any(
+    config[0].Runtime_Options_no_gui = any(
         [
-            config[0].commands_print,
-            config[0].commands_delete,
-            config[0].commands_save,
-            config[0].commands_copy,
-            config[0].commands_rename,
-            config[0].commands_export_to_zip,
-            config[0].commands_only_set_cv_key,
-            config[0].runtime_no_gui,
+            config[0].Commands_print,
+            config[0].Commands_delete,
+            config[0].Commands_save,
+            config[0].Commands_copy,
+            config[0].Commands_rename,
+            config[0].Commands_export_to_zip,
+            config[0].Commands_only_set_cv_key,
+            config[0].Commands_list_plugins,
+            config[0].Runtime_Options_no_gui,
         ]
     )
 
-    if platform.system() == "Windows" and config[0].runtime_glob:
+    if platform.system() == "Windows" and config[0].Runtime_Options_glob:
         # no globbing on windows shell, so do it for them
         import glob
 
-        globs = config[0].runtime_files
-        config[0].runtime_files = []
+        globs = config[0].Runtime_Options_files
+        config[0].Runtime_Options_files = []
         for item in globs:
-            config[0].runtime_files.extend(glob.glob(item))
+            config[0].Runtime_Options_files.extend(glob.glob(item))
 
-    if not config[0].commands_only_set_cv_key and config[0].runtime_no_gui and not config[0].runtime_files:
+    if (
+        not config[0].Commands_only_set_cv_key
+        and config[0].Runtime_Options_no_gui
+        and not config[0].Runtime_Options_files
+    ):
         parser.exit(message="Command requires at least one filename!\n", status=1)
 
-    if config[0].commands_delete and not config[0].runtime_type:
+    if config[0].Commands_delete and not config[0].Runtime_Options_type:
         parser.exit(message="Please specify the type to delete with -t\n", status=1)
 
-    if config[0].commands_save and not config[0].runtime_type:
+    if config[0].Commands_save and not config[0].Runtime_Options_type:
         parser.exit(message="Please specify the type to save with -t\n", status=1)
 
-    if config[0].commands_copy:
-        if not config[0].runtime_type:
+    if config[0].Commands_copy:
+        if not config[0].Runtime_Options_type:
             parser.exit(message="Please specify the type to copy to with -t\n", status=1)
 
-    if config[0].runtime_recursive:
-        config[0].runtime_files = utils.get_recursive_filelist(config[0].runtime_files)
+    if config[0].Runtime_Options_recursive:
+        config[0].Runtime_Options_files = utils.get_recursive_filelist(config[0].Runtime_Options_files)
 
     # take a crack at finding rar exe if it's not in the path
     if not utils.which("rar"):

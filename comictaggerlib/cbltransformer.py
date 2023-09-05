@@ -29,7 +29,7 @@ class CBLTransformer:
         self.config = config
 
     def apply(self) -> GenericMetadata:
-        if self.config.cbl_assume_lone_credit_is_primary:
+        if self.config.Comic_Book_Lover_assume_lone_credit_is_primary:
             # helper
             def set_lone_primary(role_list: list[str]) -> tuple[Credit | None, int]:
                 lone_credit: Credit | None = None
@@ -55,19 +55,19 @@ class CBLTransformer:
                     c["primary"] = False
                     self.metadata.add_credit(c["person"], "Artist", True)
 
-        if self.config.cbl_copy_characters_to_tags:
+        if self.config.Comic_Book_Lover_copy_characters_to_tags:
             self.metadata.tags.update(x for x in self.metadata.characters)
 
-        if self.config.cbl_copy_teams_to_tags:
+        if self.config.Comic_Book_Lover_copy_teams_to_tags:
             self.metadata.tags.update(x for x in self.metadata.teams)
 
-        if self.config.cbl_copy_locations_to_tags:
+        if self.config.Comic_Book_Lover_copy_locations_to_tags:
             self.metadata.tags.update(x for x in self.metadata.locations)
 
-        if self.config.cbl_copy_storyarcs_to_tags:
+        if self.config.Comic_Book_Lover_copy_storyarcs_to_tags:
             self.metadata.tags.update(x for x in self.metadata.story_arcs)
 
-        if self.config.cbl_copy_notes_to_comments:
+        if self.config.Comic_Book_Lover_copy_notes_to_comments:
             if self.metadata.notes is not None:
                 if self.metadata.description is None:
                     self.metadata.description = ""
@@ -76,7 +76,7 @@ class CBLTransformer:
                 if self.metadata.notes not in self.metadata.description:
                     self.metadata.description += self.metadata.notes
 
-        if self.config.cbl_copy_weblink_to_comments:
+        if self.config.Comic_Book_Lover_copy_weblink_to_comments:
             if self.metadata.web_link is not None:
                 if self.metadata.description is None:
                     self.metadata.description = ""

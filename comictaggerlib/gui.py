@@ -96,7 +96,7 @@ def open_tagger_window(
 ) -> None:
     os.environ["QtWidgets.QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
     args = []
-    if config[0].runtime_darkmode:
+    if config[0].Runtime_Options_darkmode:
         args.extend(["-platform", "windows:darkmode=2"])
     args.extend(sys.argv)
     app = Application(args)
@@ -106,7 +106,7 @@ def open_tagger_window(
             raise SystemExit(1)
 
     # needed to catch initial open file events (macOS)
-    app.openFileRequest.connect(lambda x: config[0].runtime_files.append(x.toLocalFile()))
+    app.openFileRequest.connect(lambda x: config[0].Runtime_Options_files.append(x.toLocalFile()))
 
     if platform.system() == "Darwin":
         # Set the MacOS dock icon
@@ -134,7 +134,7 @@ def open_tagger_window(
         QtWidgets.QApplication.processEvents()
 
     try:
-        tagger_window = TaggerWindow(config[0].runtime_files, config, talkers)
+        tagger_window = TaggerWindow(config[0].Runtime_Options_files, config, talkers)
         tagger_window.setWindowIcon(QtGui.QIcon(str(graphics_path / "app.png")))
         tagger_window.show()
 
