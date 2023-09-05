@@ -95,10 +95,9 @@ def open_tagger_window(
     talkers: dict[str, ComicTalker], config: settngs.Config[ct_ns], error: tuple[str, bool] | None
 ) -> None:
     os.environ["QtWidgets.QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
-    args = []
+    args = [sys.argv[0]]
     if config[0].Runtime_Options_darkmode:
         args.extend(["-platform", "windows:darkmode=2"])
-    args.extend(sys.argv)
     app = Application(args)
     if error is not None:
         show_exception_box(error[0])
