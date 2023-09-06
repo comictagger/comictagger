@@ -106,7 +106,7 @@ def generate_api_widgets(
         btn = QtWidgets.QPushButton("Test API")
         layout.addWidget(btn, btn_test_row, 2)
         # partial is used as connect will pass in event information
-        btn.clicked.connect(partial(call_check_api, tab=TalkerTab, talker=talker))
+        btn.clicked.connect(partial(call_check_api, tab=widgets, talker=talker))
 
 
 def generate_checkbox(option: settngs.Setting, layout: QtWidgets.QGridLayout) -> QtWidgets.QCheckBox:
