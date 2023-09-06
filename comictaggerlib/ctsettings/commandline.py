@@ -144,12 +144,6 @@ def register_runtime(parser: settngs.Manager) -> None:
         file=False,
     )
     parser.add_setting(
-        "-S",
-        "--script",
-        help="""Run an "add-on" python script that uses the\nComicTagger library for custom processing.\nScript arguments can follow the script name.\n\n""",
-        file=False,
-    )
-    parser.add_setting(
         "--split-words",
         action="store_true",
         help="""Splits words before parsing the filename.\ne.g. 'judgedredd' to 'judge dredd'\n\n""",
