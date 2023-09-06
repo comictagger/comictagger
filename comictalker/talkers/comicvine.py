@@ -206,8 +206,8 @@ class ComicVineTalker(ComicTalker):
 
         return settings
 
-    def check_api_key(self, url: str, key: str) -> tuple[str, bool]:
-        url = talker_utils.fix_url(url)
+    def check_status(self, settings: dict[str, Any]) -> tuple[str, bool]:
+        url = talker_utils.fix_url(settings[f"{self.id}_url"])
         if not url:
             url = self.default_api_url
         try:
@@ -216,7 +216,11 @@ class ComicVineTalker(ComicTalker):
             cv_response: CVResult = requests.get(
                 test_url,
                 headers={"user-agent": "comictagger/" + self.version},
-                params={"api_key": key or self.default_api_key, "format": "json", "field_list": "name"},
+                params={
+                    "api_key": settings[f"{self.id}_key"] or self.default_api_key,
+                    "format": "json",
+                    "field_list": "name",
+                },
             ).json()
 
             # Bogus request, but if the key is wrong, you get error 100: "Invalid API Key"
@@ -583,7 +587,7 @@ class ComicVineTalker(ComicTalker):
     def _fetch_issue_data_by_issue_id(self, issue_id: str) -> GenericMetadata:
         # before we search online, look in our cache, since we might already have this info
         cvc = ComicCacher(self.cache_folder, self.version)
-        cached_issue = cvc.get_issue_info(int(issue_id), self.id)
+        cached_issue = cvc.get_issue_info(issue_id, self.id)
 
         if cached_issue and cached_issue[1]:
             return self._map_comic_issue_to_metadata(

@@ -69,17 +69,8 @@ def generate_api_widgets(
     layout: QtWidgets.QGridLayout,
 ) -> None:
     # *args enforces keyword arguments and allows position arguments to be ignored
-    def call_check_api(
-        *args: Any, le_url: QtWidgets.QLineEdit, le_key: QtWidgets.QLineEdit, talker: ComicTalker
-    ) -> None:
-        url = ""
-        key = ""
-        if le_key is not None:
-            key = le_key.text().strip()
-        if le_url is not None:
-            url = le_url.text().strip()
-
-        check_text, check_bool = talker.check_api_key(url, key)
+    def call_check_api(*args: Any, tab: TalkerTab, talker: ComicTalker) -> None:
+        check_text, check_bool = talker.check_status(get_config_dict(tab))
         if check_bool:
             QtWidgets.QMessageBox.information(None, "API Test Success", check_text)
         else:
@@ -115,7 +106,7 @@ def generate_api_widgets(
         btn = QtWidgets.QPushButton("Test API")
         layout.addWidget(btn, btn_test_row, 2)
         # partial is used as connect will pass in event information
-        btn.clicked.connect(partial(call_check_api, le_url=le_url, le_key=le_key, talker=talker))
+        btn.clicked.connect(partial(call_check_api, tab=TalkerTab, talker=talker))
 
 
 def generate_checkbox(option: settngs.Setting, layout: QtWidgets.QGridLayout) -> QtWidgets.QCheckBox:
@@ -199,6 +190,22 @@ def settings_to_talker_form(sources: Sources, config: settngs.Config[ct_ns]) -> 
                 logger.debug("Failed to set value of %s for %s(%s)", dest, talker.name, talker.id)
 
 
+def get_config_dict(tab: TalkerTab) -> dict[str, Any]:
+    talker_options = {}
+    # dest is guaranteed to be unique within a talker and refer to the correct item in config.values['group name']
+    for dest, widget in tab.widgets.items():
+        widget_value = None
+        if isinstance(widget, (QtWidgets.QSpinBox, QtWidgets.QDoubleSpinBox)):
+            widget_value = widget.value()
+        elif isinstance(widget, QtWidgets.QLineEdit):
+            widget_value = widget.text().strip()
+        elif isinstance(widget, QtWidgets.QCheckBox):
+            widget_value = widget.isChecked()
+
+        talker_options[dest] = widget_value
+    return talker_options
+
+
 def form_settings_to_config(sources: Sources, config: settngs.Config) -> settngs.Config[ct_ns]:
     # Update the currently selected talker
     config.values.Sources_source = sources.cbx_sources.currentData()
@@ -207,17 +214,7 @@ def form_settings_to_config(sources: Sources, config: settngs.Config) -> settngs
     # Iterate over the tabs, the talker is included in the tab so no extra lookup is needed
     for talker, tab in sources.tabs:
         talker_options = cfg.values[group_for_plugin(talker)]
-        # dest is guaranteed to be unique within a talker and refer to the correct item in config.values['group name']
-        for dest, widget in tab.widgets.items():
-            widget_value = None
-            if isinstance(widget, (QtWidgets.QSpinBox, QtWidgets.QDoubleSpinBox)):
-                widget_value = widget.value()
-            elif isinstance(widget, QtWidgets.QLineEdit):
-                widget_value = widget.text().strip()
-            elif isinstance(widget, QtWidgets.QCheckBox):
-                widget_value = widget.isChecked()
-
-            talker_options[dest] = widget_value
+        talker_options.update(get_config_dict(tab))
     return cast(settngs.Config[ct_ns], settngs.get_namespace(cfg, True, True))
 
 

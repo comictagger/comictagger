@@ -248,7 +248,7 @@ class ComicCacher:
 
         return results
 
-    def get_issue_info(self, issue_id: int, source: str, expire_stale: bool = True) -> tuple[Issue, bool] | None:
+    def get_issue_info(self, issue_id: str, source: str, expire_stale: bool = True) -> tuple[Issue, bool] | None:
         with sqlite3.connect(self.db_file) as con:
             con.row_factory = sqlite3.Row
             cur = con.cursor()

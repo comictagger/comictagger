@@ -142,16 +142,20 @@ class ComicTalker:
             settings[f"{self.id}_url"] = None
         return settings
 
-    def check_api_key(self, url: str, key: str) -> tuple[str, bool]:
+    def check_status(self, settings: dict[str, Any]) -> tuple[str, bool]:
         """
-        This function should return (msg, True) if the given API key and URL are valid,
+        This function should return (msg, True) if the given settings are valid,
         where msg is a message to display to the user.
 
-        This function should return (msg, False) if the given API key or URL are not valid,
+        This function should return (msg, False) if the given settings are not valid,
         where msg is a message to display to the user.
 
-        If the Talker does not use an API key it should validate that the URL works.
-        If the Talker does not use an API key or URL it should check that the source is available.
+        This function MUST NOT keep any values from the given settings, this is a test function only.
+        If the Talker uses the network it should ensure that it can authenticate with the given settings.
+        If settings provides an invalid URL, API key or other piece of information used to authenticate it MUST fail.
+        The only time that defaults should be used is when the value is an empty string or None
+
+        If the Talker does not use the network it should validate that all local data has been configured correctly.
 
         Caching MUST NOT be implemented on this function.
         """
