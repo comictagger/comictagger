@@ -119,6 +119,18 @@ def filename(parser: settngs.Manager) -> None:
         action=argparse.BooleanOptionalAction,
         help="Attempts to remove publisher names from filenames, currently limited to Marvel and DC. Requires --complicated-parser",
     )
+    parser.add_setting(
+        "--protofolius-issue-number-scheme",
+        default=False,
+        action=argparse.BooleanOptionalAction,
+        help="Use an issue number scheme devised by protofolius for encoding format informatino as a letter in front of an issue number. Implies --allow-issue-start-with-letter.  Requires --complicated-parser",
+    )
+    parser.add_setting(
+        "--allow-issue-start-with-letter",
+        default=False,
+        action=argparse.BooleanOptionalAction,
+        help="Allows an issue number to start with a single letter (e.g. '#X01'). Requires --complicated-parser",
+    )
 
 
 def talker(parser: settngs.Manager) -> None:
@@ -220,7 +232,7 @@ def autotag(parser: settngs.Manager) -> None:
     parser.add_setting("remove_archive_after_successful_match", default=False, cmdline=False)
 
 
-def validate_file_settings(config: settngs.Config[ct_ns]) -> settngs.Config[ct_ns]:
+def parse_filter(config: settngs.Config[ct_ns]) -> settngs.Config[ct_ns]:
     new_filter = []
     remove = []
     for x in config[0].Issue_Identifier_publisher_filter:
@@ -235,6 +247,13 @@ def validate_file_settings(config: settngs.Config[ct_ns]) -> settngs.Config[ct_n
         if x in new_filter:
             new_filter.remove(x)
     config[0].Issue_Identifier_publisher_filter = new_filter
+    return config
+
+
+def validate_file_settings(config: settngs.Config[ct_ns]) -> settngs.Config[ct_ns]:
+    config = parse_filter(config)
+    if config[0].Filename_Parsing_protofolius_issue_number_scheme:
+        config[0].Filename_Parsing_allow_issue_start_with_letter = True
 
     config[0].File_Rename_replacements = Replacements(
         [Replacement(x[0], x[1], x[2]) for x in config[0].File_Rename_replacements[0]],

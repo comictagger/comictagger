@@ -24,6 +24,23 @@ cbz_path = datadir / "Cory Doctorow's Futuristic Tales of the Here and Now #001 
 
 names = [
     (
+        "batman #B01 title (DC).cbz",
+        "protofolius_issue_number_scheme",
+        {
+            "issue": "B1",
+            "series": "batman",
+            "title": "title",
+            "publisher": "DC",
+            "volume": "",
+            "year": "",
+            "remainder": "",
+            "issue_count": "",
+            "alternate": "",
+            "format": "biography/best of",
+        },
+        (False, True),
+    ),
+    (
         "batman #3 title (DC).cbz",
         "honorific and publisher in series",
         {
@@ -724,15 +741,33 @@ names = [
     ),
 ]
 
-fnames = []
+oldfnames = []
+newfnames = []
 for p in names:
-    pp = list(p)
-    pp[3] = p[3][0]
-    fnames.append(tuple(pp))
-    if "#" in p[0]:
-        pp[0] = p[0].replace("#", "")
-        pp[3] = p[3][1]
-        fnames.append(tuple(pp))
+    filename, reason, info, xfail = p
+    nxfail = xfail[0]
+    newfnames.append(pytest.param(filename, reason, info, nxfail))
+    oldfnames.append(
+        pytest.param(filename, reason, info, nxfail, marks=pytest.mark.xfail(condition=nxfail, reason="old parser"))
+    )
+    if "#" in filename:
+        filename = filename.replace("#", "")
+        nxfail = xfail[1]
+        if reason == "protofolius_issue_number_scheme":
+            newfnames.append(
+                pytest.param(
+                    filename,
+                    reason,
+                    info,
+                    nxfail,
+                    marks=pytest.mark.xfail(condition=nxfail, reason="protofolius_issue_number_scheme"),
+                )
+            )
+        else:
+            newfnames.append(pytest.param(filename, reason, info, nxfail))
+        oldfnames.append(
+            pytest.param(filename, reason, info, nxfail, marks=pytest.mark.xfail(condition=nxfail, reason="old parser"))
+        )
 
 rnames = [
     (

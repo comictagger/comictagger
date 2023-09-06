@@ -22,7 +22,7 @@ import shutil
 import sys
 from typing import cast
 
-from comicapi import filenamelexer, filenameparser, utils
+from comicapi import utils
 from comicapi.archivers import Archiver, UnknownArchiver, ZipArchiver
 from comicapi.comet import CoMet
 from comicapi.comicbookinfo import ComicBookInfo
@@ -541,53 +541,39 @@ class ComicArchive:
         remove_fcbd: bool = False,
         remove_publisher: bool = False,
         split_words: bool = False,
+        allow_issue_start_with_letter: bool = False,
+        protofolius_issue_number_scheme: bool = False,
     ) -> GenericMetadata:
         metadata = GenericMetadata()
 
-        filename = self.path.name
-        if split_words:
-            import wordninja
+        filename_info = utils.parse_filename(
+            self.path.name,
+            complicated_parser=complicated_parser,
+            remove_c2c=remove_c2c,
+            remove_fcbd=remove_fcbd,
+            remove_publisher=remove_publisher,
+            split_words=split_words,
+            allow_issue_start_with_letter=allow_issue_start_with_letter,
+            protofolius_issue_number_scheme=protofolius_issue_number_scheme,
+        )
+        metadata.alternate_number = utils.xlate(filename_info.get("alternate", None))
+        metadata.issue = utils.xlate(filename_info.get("issue", None))
+        metadata.issue_count = utils.xlate_int(filename_info.get("issue_count", None))
+        metadata.publisher = utils.xlate(filename_info.get("publisher", None))
+        metadata.series = utils.xlate(filename_info.get("series", None))
+        metadata.title = utils.xlate(filename_info.get("title", None))
+        metadata.volume = utils.xlate_int(filename_info.get("volume", None))
+        metadata.volume_count = utils.xlate_int(filename_info.get("volume_count", None))
+        metadata.year = utils.xlate_int(filename_info.get("year", None))
 
-            filename = " ".join(wordninja.split(self.path.stem)) + self.path.suffix
-
-        if complicated_parser:
-            lex = filenamelexer.Lex(filename)
-            p = filenameparser.Parse(
-                lex.items, remove_c2c=remove_c2c, remove_fcbd=remove_fcbd, remove_publisher=remove_publisher
-            )
-            metadata.alternate_number = utils.xlate(p.filename_info["alternate"])
-            metadata.issue = utils.xlate(p.filename_info["issue"])
-            metadata.issue_count = utils.xlate_int(p.filename_info["issue_count"])
-            metadata.publisher = utils.xlate(p.filename_info["publisher"])
-            metadata.series = utils.xlate(p.filename_info["series"])
-            metadata.title = utils.xlate(p.filename_info["title"])
-            metadata.volume = utils.xlate_int(p.filename_info["volume"])
-            metadata.volume_count = utils.xlate_int(p.filename_info["volume_count"])
-            metadata.year = utils.xlate_int(p.filename_info["year"])
-
-            metadata.scan_info = utils.xlate(p.filename_info["remainder"])
-            metadata.format = "FCBD" if p.filename_info["fcbd"] else None
-            if p.filename_info["annual"]:
-                metadata.format = "Annual"
-        else:
-            fnp = filenameparser.FileNameParser()
-            fnp.parse_filename(filename)
-
-            if fnp.issue:
-                metadata.issue = fnp.issue
-            if fnp.series:
-                metadata.series = fnp.series
-            if fnp.volume:
-                metadata.volume = utils.xlate_int(fnp.volume)
-            if fnp.year:
-                metadata.year = utils.xlate_int(fnp.year)
-            if fnp.issue_count:
-                metadata.issue_count = utils.xlate_int(fnp.issue_count)
-            if fnp.remainder:
-                metadata.scan_info = fnp.remainder
+        metadata.scan_info = utils.xlate(filename_info.get("remainder", None))
+        metadata.format = "FCBD" if filename_info.get("fcbd", None) else None
+        if filename_info.get("annual", None):
+            metadata.format = "Annual"
+        if filename_info.get("format", None):
+            metadata.format = filename_info["format"]
 
         metadata.is_empty = False
-
         return metadata
 
     def export_as_zip(self, zip_filename: pathlib.Path) -> bool:

@@ -324,6 +324,21 @@ class FilenameInfo(TypedDict, total=False):
     volume: str
     volume_count: str
     year: str
+    format: str
+
+
+protofolius_issue_number_scheme = {
+    "B": "biography/best of",
+    "C": "compact edition",
+    "E": "entrtainment/puzzle edition",
+    "F": "familiy book edition",
+    "J": "jubileum (anniversary) edition",
+    "P": "pocket edition",
+    "N": "newly brought out/restyled edition",
+    "O": "old editions (or oblong format)",
+    "S": "special edition",
+    "X": "X-rated edition",
+}
 
 
 eof = filenamelexer.Item(filenamelexer.ItemType.EOF, -1, "")
@@ -341,6 +356,7 @@ class Parser:
         remove_c2c: bool = False,
         remove_fcbd: bool = False,
         remove_publisher: bool = False,
+        protofolius_issue_number_scheme: bool = False,
     ) -> None:
         self.state: Callable[[Parser], Callable | None] | None = None  # type: ignore[type-arg]
         self.pos = -1
@@ -366,6 +382,7 @@ class Parser:
         self.remove_c2c = remove_c2c
         self.remove_fcbd = remove_fcbd
         self.remove_publisher = remove_publisher
+        self.protofolius_issue_number_scheme = protofolius_issue_number_scheme
 
         self.remove_from_remainder = []
         if remove_c2c:
@@ -923,6 +940,16 @@ def resolve_issue(p: Parser) -> None:
         if "volume" in p.filename_info:
             p.filename_info["issue"] = p.filename_info["volume"]
 
+    if (
+        "issue" in p.filename_info
+        and p.protofolius_issue_number_scheme
+        and len(p.filename_info["issue"]) > 1
+        and p.filename_info["issue"][0].isalpha()
+        and p.filename_info["issue"][0].upper() in protofolius_issue_number_scheme
+        and p.filename_info["issue"][1].isnumeric()
+    ):
+        p.filename_info["format"] = protofolius_issue_number_scheme[p.filename_info["issue"][0].upper()]
+
 
 def parse_finish(p: Parser) -> Callable[[Parser], Callable | None] | None:  # type: ignore[type-arg]
     resolve_year(p)
@@ -941,7 +968,7 @@ def parse_finish(p: Parser) -> Callable[[Parser], Callable | None] | None:  # ty
         p.filename_info["series"] = join_title(p.series_parts)
         p.used_items.extend(p.series_parts)
     else:
-        p.filename_info["series"] = p.filename_info["issue"]
+        p.filename_info["series"] = p.filename_info.get("issue", "")
 
     if "free comic book" in p.filename_info["series"].casefold():
         p.filename_info["fcbd"] = True
@@ -1137,6 +1164,7 @@ def Parse(
     remove_c2c: bool = False,
     remove_fcbd: bool = False,
     remove_publisher: bool = False,
+    protofolius_issue_number_scheme: bool = False,
 ) -> Parser:
     p = Parser(
         lexer_result=lexer_result,
@@ -1144,6 +1172,7 @@ def Parse(
         remove_c2c=remove_c2c,
         remove_fcbd=remove_fcbd,
         remove_publisher=remove_publisher,
+        protofolius_issue_number_scheme=protofolius_issue_number_scheme,
     )
     p.run()
     return p
