@@ -349,7 +349,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
             self.imageWidget.update_content()
 
     def select_by_id(self) -> None:
-        for r in range(self.twList.rows()):
+        for r in range(self.twList.rowCount()):
             if self.series_id == self.twList.item(r, 0).data(QtCore.Qt.ItemDataRole.UserRole):
                 self.twList.selectRow(r)
                 break
