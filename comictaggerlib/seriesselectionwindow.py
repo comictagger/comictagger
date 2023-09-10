@@ -558,7 +558,8 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         if prev is not None and prev.row() == curr.row():
             return
 
-        self.series_id = self.twList.item(curr.row(), 0).data(QtCore.Qt.ItemDataRole.UserRole)
+        row = curr.row()
+        self.series_id = self.twList.item(row, 0).data(QtCore.Qt.ItemDataRole.UserRole)
 
         # list selection was changed, update the info on the series
         series = self.series_list[self.series_id]
@@ -570,9 +571,44 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
             and series.description
             and series.image_url
         ):
-            series = self.talker.fetch_series(self.series_id)
+            QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
+            # Changing of usernames and passwords with using cache can cause talker errors to crash out
+            try:
+                series = self.talker.fetch_series(self.series_id)
+            except TalkerError:
+                pass
+        QtWidgets.QApplication.restoreOverrideCursor()
+
         if series.description is None:
             self.set_description(self.teDetails, "")
         else:
             self.set_description(self.teDetails, series.description)
         self.imageWidget.set_url(series.image_url)
+
+        # Update current record information
+        row = curr.row()
+        item_text = series.name
+        item = QtWidgets.QTableWidgetItem(item_text)
+        item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
+        item.setData(QtCore.Qt.ItemDataRole.UserRole, series.id)
+        self.twList.setItem(row, 0, item)
+
+        if series.start_year is not None:
+            item_text = f"{series.start_year:04}"
+            item = QtWidgets.QTableWidgetItem(item_text)
+            item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
+            item.setData(QtCore.Qt.ItemDataRole.DisplayRole, series.start_year)
+            self.twList.setItem(row, 1, item)
+
+        if series.count_of_issues is not None:
+            item_text = f"{series.count_of_issues:04}"
+            item = QtWidgets.QTableWidgetItem(item_text)
+            item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
+            item.setData(QtCore.Qt.ItemDataRole.DisplayRole, series.count_of_issues)
+            self.twList.setItem(row, 2, item)
+
+        if series.publisher is not None:
+            item_text = series.publisher
+            item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
+            item = QtWidgets.QTableWidgetItem(item_text)
+            self.twList.setItem(row, 3, item)
