@@ -334,7 +334,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         title = ""
         for series in self.series_list.values():
             if series.id == self.series_id:
-                title = f"{series.name} ({series.start_year:04}) - "
+                title = f"{series.name} ({series.start_year:04}) - " if series.start_year else f"{series.name} - "
                 break
 
         selector.setWindowTitle(title + "Select Issue")
