@@ -213,8 +213,14 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
 
         self.btnRequery.setEnabled(enabled)
 
-        self.btnIssues.setEnabled(enabled)
-        self.btnAutoSelect.setEnabled(enabled)
+        if self.talker.has_issue_level_data:
+            self.btnIssues.setEnabled(enabled)
+            self.btnAutoSelect.setEnabled(enabled)
+        else:
+            self.btnIssues.setEnabled(False)
+            self.btnIssues.setToolTip("Unsupported by " + self.talker.name)
+            self.btnAutoSelect.setEnabled(False)
+            self.btnAutoSelect.setToolTip("Unsupported by " + self.talker.name)
 
         self.buttonBox.button(QtWidgets.QDialogButtonBox.StandardButton.Ok).setEnabled(enabled)
 
@@ -543,7 +549,11 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         self.auto_select()
 
     def cell_double_clicked(self, r: int, c: int) -> None:
-        self.show_issues()
+        if self.talker.has_issue_level_data:
+            self.show_issues()
+        else:
+            # Pass back to have taggerwindow get full series data
+            self.accept()
 
     def set_description(self, widget: QtWidgets.QWidget, text: str) -> None:
         if isinstance(widget, QtWidgets.QTextEdit):
