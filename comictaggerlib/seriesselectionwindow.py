@@ -481,36 +481,10 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
 
         for row, series in enumerate(self.series_list.values()):
             self.twList.insertRow(row)
+            for i in range(4):
+                self.twList.setItem(row, i, QtWidgets.QTableWidgetItem())
 
-            item_text = series.name
-            item = QtWidgets.QTableWidgetItem(item_text)
-            item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
-            item.setData(QtCore.Qt.ItemDataRole.UserRole, series.id)
-            item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
-            self.twList.setItem(row, 0, item)
-
-            if series.start_year is not None:
-                item_text = f"{series.start_year:04}"
-                item = QtWidgets.QTableWidgetItem(item_text)
-                item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
-                item.setData(QtCore.Qt.ItemDataRole.DisplayRole, series.start_year)
-                item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
-                self.twList.setItem(row, 1, item)
-
-            if series.count_of_issues is not None:
-                item_text = f"{series.count_of_issues:04}"
-                item = QtWidgets.QTableWidgetItem(item_text)
-                item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
-                item.setData(QtCore.Qt.ItemDataRole.DisplayRole, series.count_of_issues)
-                item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
-                self.twList.setItem(row, 2, item)
-
-            if series.publisher is not None:
-                item_text = series.publisher
-                item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
-                item = QtWidgets.QTableWidgetItem(item_text)
-                item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
-                self.twList.setItem(row, 3, item)
+            self.update_row(row, series)
 
         self.twList.setSortingEnabled(True)
         self.twList.selectRow(0)
@@ -552,6 +526,34 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
             html = text
             widget.setHtml(html, QUrl(self.talker.website))
 
+    def update_row(self, row: int, series: ComicSeries) -> None:
+        item_text = series.name
+        item = self.twList.item(row, 0)
+        item.setText(item_text)
+        item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
+        item.setData(QtCore.Qt.ItemDataRole.UserRole, series.id)
+        item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
+
+        item_text = str(series.start_year)
+        item = self.twList.item(row, 1)
+        item.setText(item_text)
+        item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
+        item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
+
+        item_text = str(series.count_of_issues)
+        item = self.twList.item(row, 2)
+        item.setText(item_text)
+        item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
+        item.setData(QtCore.Qt.ItemDataRole.DisplayRole, series.count_of_issues)
+        item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
+
+        if series.publisher is not None:
+            item_text = series.publisher
+            item = self.twList.item(row, 3)
+            item.setText(item_text)
+            item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
+            item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
+
     def current_item_changed(self, curr: QtCore.QModelIndex | None, prev: QtCore.QModelIndex | None) -> None:
         if curr is None:
             return
@@ -586,29 +588,4 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         self.imageWidget.set_url(series.image_url)
 
         # Update current record information
-        row = curr.row()
-        item_text = series.name
-        item = QtWidgets.QTableWidgetItem(item_text)
-        item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
-        item.setData(QtCore.Qt.ItemDataRole.UserRole, series.id)
-        self.twList.setItem(row, 0, item)
-
-        if series.start_year is not None:
-            item_text = f"{series.start_year:04}"
-            item = QtWidgets.QTableWidgetItem(item_text)
-            item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
-            item.setData(QtCore.Qt.ItemDataRole.DisplayRole, series.start_year)
-            self.twList.setItem(row, 1, item)
-
-        if series.count_of_issues is not None:
-            item_text = f"{series.count_of_issues:04}"
-            item = QtWidgets.QTableWidgetItem(item_text)
-            item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
-            item.setData(QtCore.Qt.ItemDataRole.DisplayRole, series.count_of_issues)
-            self.twList.setItem(row, 2, item)
-
-        if series.publisher is not None:
-            item_text = series.publisher
-            item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
-            item = QtWidgets.QTableWidgetItem(item_text)
-            self.twList.setItem(row, 3, item)
+        self.update_row(row, series)
