@@ -105,7 +105,7 @@ def parse_metadata_from_string(mdstr: str) -> GenericMetadata:
     for item in md_list:
         # Make sure to fix any escaped equal signs
         i = item.replace(escaped_equals, replacement_token)
-        key, value = utils.split(i, "=")
+        key, _, value = i.partition("=")
         value = value.replace(replacement_token, "=").strip()
         key = key.strip()
         if key.casefold() == "credit":
