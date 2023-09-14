@@ -160,31 +160,10 @@ class IssueSelectionWindow(QtWidgets.QDialog):
 
         for row, issue in enumerate(self.issue_list.values()):
             self.twList.insertRow(row)
+            for i in range(3):
+                self.twList.setItem(row, i, QtWidgets.QTableWidgetItem())
 
-            item_text = issue.issue or ""
-            item = IssueNumberTableWidgetItem(item_text)
-            item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
-            item.setData(QtCore.Qt.ItemDataRole.UserRole, issue.issue_id)
-            item.setData(QtCore.Qt.ItemDataRole.DisplayRole, item_text)
-            item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
-            self.twList.setItem(row, 0, item)
-
-            item_text = ""
-            if issue.year is not None:
-                item_text += f"-{issue.year:04}"
-            if issue.month is not None:
-                item_text += f"-{issue.month:02}"
-
-            qtw_item = QtWidgets.QTableWidgetItem(item_text.strip("-"))
-            qtw_item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
-            qtw_item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
-            self.twList.setItem(row, 1, qtw_item)
-
-            item_text = issue.title or ""
-            qtw_item = QtWidgets.QTableWidgetItem(item_text)
-            qtw_item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
-            qtw_item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
-            self.twList.setItem(row, 2, qtw_item)
+            self.update_row(row, issue)
 
             if IssueString(issue.issue).as_string().casefold() == IssueString(self.issue_number).as_string().casefold():
                 self.initial_id = issue.issue_id or ""
@@ -204,21 +183,56 @@ class IssueSelectionWindow(QtWidgets.QDialog):
             html = text
             widget.setHtml(html, QtCore.QUrl(self.talker.website))
 
+    def update_row(self, row: int, issue: GenericMetadata) -> None:
+        item_text = issue.issue or ""
+        item = self.twList.item(row, 0)
+        item.setText(item_text)
+        item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
+        item.setData(QtCore.Qt.ItemDataRole.UserRole, issue.issue_id)
+        item.setData(QtCore.Qt.ItemDataRole.DisplayRole, item_text)
+
+        item_text = ""
+        if issue.year is not None:
+            item_text += f"-{issue.year:04}"
+        if issue.month is not None:
+            item_text += f"-{issue.month:02}"
+
+        qtw_item = self.twList.item(row, 1)
+        qtw_item.setText(item_text.strip("-"))
+        qtw_item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
+        qtw_item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
+
+        item_text = issue.title or ""
+        qtw_item = self.twList.item(row, 2)
+        qtw_item.setText(item_text)
+        qtw_item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
+        qtw_item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
+
     def current_item_changed(self, curr: QtCore.QModelIndex | None, prev: QtCore.QModelIndex | None) -> None:
         if curr is None:
             return
         if prev is not None and prev.row() == curr.row():
             return
 
-        self.issue_id = self.twList.item(curr.row(), 0).data(QtCore.Qt.ItemDataRole.UserRole)
+        row = curr.row()
+        self.issue_id = self.twList.item(row, 0).data(QtCore.Qt.ItemDataRole.UserRole)
 
-        # list selection was changed, update the the issue cover
+        # list selection was changed, update the issue cover
         issue = self.issue_list[self.issue_id]
-        if not (issue.issue and issue.year and issue.month and issue.cover_image):
-            issue = self.talker.fetch_comic_data(issue_id=self.issue_id)
+        if not (issue.issue and issue.year and issue.month and issue.cover_image and issue.title):
+            QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
+            try:
+                issue = self.talker.fetch_comic_data(issue_id=self.issue_id)
+            except TalkerError:
+                pass
+        QtWidgets.QApplication.restoreOverrideCursor()
+
         self.issue_number = issue.issue or ""
         self.coverWidget.set_issue_details(self.issue_id, [issue.cover_image or "", *issue.alternate_images])
         if issue.description is None:
             self.set_description(self.teDescription, "")
         else:
             self.set_description(self.teDescription, issue.description)
+
+        # Update current record information
+        self.update_row(row, issue)
