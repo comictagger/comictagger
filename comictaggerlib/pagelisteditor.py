@@ -123,7 +123,7 @@ class PageListEditor(QtWidgets.QWidget):
         self.addAction(action_item)
 
     def select_page_type_item(self, idx: int) -> None:
-        if self.cbPageType.isEnabled():
+        if self.cbPageType.isEnabled() and self.listWidget.rowCount() > 0:
             self.cbPageType.setCurrentIndex(idx)
             self.change_page_type(idx)
 
@@ -207,7 +207,7 @@ class PageListEditor(QtWidgets.QWidget):
 
     def change_page_type(self, i: int) -> None:
         new_type = self.cbPageType.itemData(i)
-        if self.get_current_page_type() != new_type:
+        if self.listWidget.count() > 0 and self.get_current_page_type() != new_type:
             self.set_current_page_type(new_type)
             self.emit_front_cover_change()
             self.modified.emit()
