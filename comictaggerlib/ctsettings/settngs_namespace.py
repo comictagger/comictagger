@@ -31,7 +31,6 @@ class settngs_namespace(settngs.TypedNS):
     Runtime_Options_summary: bool
     Runtime_Options_raw: bool
     Runtime_Options_recursive: bool
-    Runtime_Options_script: str
     Runtime_Options_split_words: bool
     Runtime_Options_dryrun: bool
     Runtime_Options_darkmode: bool
