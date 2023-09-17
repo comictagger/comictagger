@@ -174,7 +174,7 @@ def generate_combobox(option: settngs.Setting, layout: QtWidgets.QGridLayout) ->
     layout.addWidget(lbl, row, 0)
     widget = QtWidgets.QComboBox()
     for choice in option.choices:  # type: ignore
-        widget.addItem(str(choice).capitalize(), str(choice))
+        widget.addItem(str(choice))
     widget.setToolTip(option.help)
     layout.addWidget(widget, row, 1)
 
@@ -195,8 +195,7 @@ def settings_to_talker_form(sources: Sources, config: settngs.Config[ct_ns]) -> 
                 if isinstance(value, str) and value and isinstance(widget, QtWidgets.QLineEdit) and not default:
                     widget.setText(value)
                 if isinstance(value, str) and value and isinstance(widget, QtWidgets.QComboBox) and not default:
-                    idx = widget.findData(value)
-                    widget.setCurrentIndex(idx)
+                    widget.setCurrentIndex(widget.findText(value))
                 if isinstance(value, (float, int)) and isinstance(
                     widget, (QtWidgets.QSpinBox, QtWidgets.QDoubleSpinBox)
                 ):
@@ -217,7 +216,7 @@ def get_config_dict(tab: TalkerTab) -> dict[str, Any]:
         elif isinstance(widget, QtWidgets.QLineEdit):
             widget_value = widget.text().strip()
         elif isinstance(widget, QtWidgets.QComboBox):
-            widget_value = widget.currentData()
+            widget_value = widget.currentText()
         elif isinstance(widget, QtWidgets.QCheckBox):
             widget_value = widget.isChecked()
 
