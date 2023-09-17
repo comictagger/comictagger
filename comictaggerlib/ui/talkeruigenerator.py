@@ -205,6 +205,20 @@ def generate_talker_info(talker: ComicTalker, config: settngs.Config, layout: Qt
     layout.addWidget(line, row + 3, 0, 1, -1)
 
 
+def generate_combobox(option: settngs.Setting, layout: QtWidgets.QGridLayout) -> QtWidgets.QComboBox:
+    row = layout.rowCount()
+    lbl = QtWidgets.QLabel(option.display_name)
+    lbl.setToolTip(option.help)
+    layout.addWidget(lbl, row, 0)
+    widget = QtWidgets.QComboBox()
+    for choice in option.choices:  # type: ignore
+        widget.addItem(str(choice))
+    widget.setToolTip(option.help)
+    layout.addWidget(widget, row, 1)
+
+    return widget
+
+
 def settings_to_talker_form(sources: Sources, config: settngs.Config[ct_ns]) -> None:
     # Set the active talker via id in sources combo box
     sources[0].setCurrentIndex(sources[0].findData(config[0].Sources_source))
@@ -218,6 +232,8 @@ def settings_to_talker_form(sources: Sources, config: settngs.Config[ct_ns]) -> 
             try:
                 if isinstance(value, str) and value and isinstance(widget, QtWidgets.QLineEdit) and not default:
                     widget.setText(value)
+                if isinstance(value, str) and value and isinstance(widget, QtWidgets.QComboBox) and not default:
+                    widget.setCurrentIndex(widget.findText(value))
                 if isinstance(value, (float, int)) and isinstance(
                     widget, (QtWidgets.QSpinBox, QtWidgets.QDoubleSpinBox)
                 ):
@@ -237,6 +253,8 @@ def get_config_dict(tab: TalkerTab) -> dict[str, Any]:
             widget_value = widget.value()
         elif isinstance(widget, QtWidgets.QLineEdit):
             widget_value = widget.text().strip()
+        elif isinstance(widget, QtWidgets.QComboBox):
+            widget_value = widget.currentText()
         elif isinstance(widget, QtWidgets.QCheckBox):
             widget_value = widget.isChecked()
 
@@ -316,7 +334,10 @@ def generate_source_option_tabs(
                 tab.widgets[option.dest] = current_widget
 
             elif option._guess_type() is str:
-                current_widget = generate_textbox(option, layout_grid)
+                if option.choices is not None:
+                    current_widget = generate_combobox(option, layout_grid)
+                else:
+                    current_widget = generate_textbox(option, layout_grid)
                 tab.widgets[option.dest] = current_widget
             else:
                 logger.debug(f"Unsupported talker option found. Name: {option.internal_name} Type: {option.type}")
