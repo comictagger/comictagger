@@ -7,6 +7,7 @@ from typing import Any, NamedTuple, cast
 import settngs
 from PyQt5 import QtCore, QtGui, QtWidgets
 
+from comictaggerlib.coverimagewidget import CoverImageWidget
 from comictaggerlib.ctsettings import ct_ns, group_for_plugin
 from comictaggerlib.graphics import graphics_path
 from comictalker.comictalker import ComicTalker
@@ -167,6 +168,43 @@ def generate_password_textbox(option: settngs.Setting, layout: QtWidgets.QGridLa
     return widget
 
 
+def generate_talker_info(talker: ComicTalker, config: settngs.Config, layout: QtWidgets.QGridLayout) -> None:
+    row = layout.rowCount()
+
+    # Add a horizontal layout to break link from options below
+    talker_info_layout = QtWidgets.QHBoxLayout()
+
+    logo = CoverImageWidget(
+        talker_info_layout.parentWidget(),
+        CoverImageWidget.URLMode,
+        config.values.Runtime_Options_config.user_cache_dir,
+        talker,
+        False,
+    )
+    logo.showControls = False
+    logo.setFixedSize(100, 100)
+    logo.set_url(talker.logo_url)
+
+    grid_logo = QtWidgets.QGridLayout(talker_info_layout.parentWidget())
+    grid_logo.addWidget(logo)
+    grid_logo.setContentsMargins(0, 0, 0, 0)
+    talker_info_layout.addLayout(grid_logo, 2)
+
+    about = QtWidgets.QTextBrowser()
+    about.setOpenExternalLinks(True)
+    about.setMaximumHeight(100)
+    about.setText(talker.about)
+    talker_info_layout.addWidget(about, 2)
+
+    layout.addLayout(talker_info_layout, row, 0, 3, 0)
+
+    # Add horizontal divider
+    line = QtWidgets.QFrame()
+    line.setFrameShape(QtWidgets.QFrame.HLine)
+    line.setFrameShadow(QtWidgets.QFrame.Sunken)
+    layout.addWidget(line, row + 3, 0, 1, -1)
+
+
 def settings_to_talker_form(sources: Sources, config: settngs.Config[ct_ns]) -> None:
     # Set the active talker via id in sources combo box
     sources[0].setCurrentIndex(sources[0].findData(config[0].Sources_source))
@@ -256,6 +294,10 @@ def generate_source_option_tabs(
         layout_grid = QtWidgets.QGridLayout()
         url_option: settngs.Setting | None = None
         key_option: settngs.Setting | None = None
+
+        # Add logo and about text
+        generate_talker_info(talker, config, layout_grid)
+
         for option in config.definitions[group_for_plugin(talker)].v.values():
             if option.dest == f"{t_id}_key":
                 key_option = option
