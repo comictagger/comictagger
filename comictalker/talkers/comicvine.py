@@ -162,6 +162,14 @@ class ComicVineTalker(ComicTalker):
     website: str = "https://comicvine.gamespot.com"
     logo_url: str = f"{website}/a/bundles/comicvinesite/images/logo.png"
     attribution: str = f"Metadata provided by <a href='{website}'>{name}</a>"
+    about: str = (
+        f"<a href='{website}'>{name}</a> has the largest collection of comic book data available through "
+        f"its public facing API. "
+        f"<p>NOTE: Using the default API key will serverly limit access times. A personal API "
+        f"key will allow for a <b>5 times increase</b> in online search speed. See the "
+        "<a href='https://github.com/comictagger/comictagger/wiki/UserGuide#comic-vine'>Wiki page</a> for "
+        "more information.</p>"
+    )
 
     def __init__(self, version: str, cache_folder: pathlib.Path):
         super().__init__(version, cache_folder)
