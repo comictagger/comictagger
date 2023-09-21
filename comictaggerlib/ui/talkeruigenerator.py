@@ -336,6 +336,8 @@ def generate_source_option_tabs(
             elif option._guess_type() is str:
                 if option.choices is not None:
                     current_widget = generate_combobox(option, layout_grid)
+                elif option.dest.lower().endswith("password"):
+                    current_widget = generate_password_textbox(option, layout_grid)
                 else:
                     current_widget = generate_textbox(option, layout_grid)
                 tab.widgets[option.dest] = current_widget
