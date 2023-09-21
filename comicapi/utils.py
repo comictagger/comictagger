@@ -185,6 +185,10 @@ def remove_articles(text: str) -> str:
 
 
 def sanitize_title(text: str, basic: bool = False) -> str:
+    # Prevent error if text is None and do nothing if it's empty
+    if not text:
+        return ""
+
     # normalize unicode and convert to ascii. Does not work for everything eg ½ to 1⁄2 not 1/2
     text = unicodedata.normalize("NFKD", text).casefold()
     # comicvine keeps apostrophes a part of the word
