@@ -232,7 +232,7 @@ def settings_to_talker_form(sources: Sources, config: settngs.Config[ct_ns]) -> 
             try:
                 if isinstance(value, str) and value and isinstance(widget, QtWidgets.QLineEdit) and not default:
                     widget.setText(value)
-                if isinstance(value, str) and value and isinstance(widget, QtWidgets.QComboBox) and not default:
+                if isinstance(value, str) and value and isinstance(widget, QtWidgets.QComboBox):
                     widget.setCurrentIndex(widget.findText(value))
                 if isinstance(value, (float, int)) and isinstance(
                     widget, (QtWidgets.QSpinBox, QtWidgets.QDoubleSpinBox)
