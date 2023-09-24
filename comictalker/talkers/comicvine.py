@@ -480,8 +480,8 @@ class ComicVineTalker(ComicTalker):
         aliases = record.get("aliases") or ""
 
         return ComicSeries(
-            aliases=utils.split(aliases, "\n"),
-            count_of_issues=record.get("count_of_issues", 0),
+            aliases=set(utils.split(aliases, "\n")),
+            count_of_issues=record.get("count_of_issues"),
             count_of_volumes=None,
             description=record.get("description", ""),
             id=str(record["id"]),
@@ -630,7 +630,7 @@ class ComicVineTalker(ComicTalker):
             tag_origin=TagOrigin(self.id, self.name),
             issue_id=utils.xlate(issue.get("id")),
             series_id=series.id,
-            title_aliases=utils.split(issue.get("aliases"), "\n"),
+            title_aliases=set(utils.split(issue.get("aliases"), "\n")),
             publisher=utils.xlate(series.publisher),
             description=issue.get("description"),
             issue=utils.xlate(IssueString(issue.get("issue_number")).as_string()),
@@ -647,23 +647,18 @@ class ComicVineTalker(ComicTalker):
         else:
             md.cover_image = issue.get("image", {}).get("super_url", "")
 
-        md.alternate_images = []
         for alt in issue.get("associated_images", []):
             md.alternate_images.append(alt["original_url"])
 
-        md.characters = []
-        for character in issue.get("character_credits", []):
-            md.characters.append(character["name"])
+        for character in issue.get("character_credits", set()):
+            md.characters.add(character["name"])
 
-        md.locations = []
-        for location in issue.get("location_credits", []):
-            md.locations.append(location["name"])
+        for location in issue.get("location_credits", set()):
+            md.locations.add(location["name"])
 
-        md.teams = []
-        for team in issue.get("team_credits", []):
-            md.teams.append(team["name"])
+        for team in issue.get("team_credits", set()):
+            md.teams.add(team["name"])
 
-        md.story_arcs = []
         for arc in issue.get("story_arc_credits", []):
             md.story_arcs.append(arc["name"])
 

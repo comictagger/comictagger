@@ -72,7 +72,7 @@ class Credit(TypedDict):
 class ComicSeries:
     id: str
     name: str
-    aliases: list[str]
+    aliases: set[str]
     count_of_issues: int | None
     count_of_volumes: int | None
     description: str
@@ -107,17 +107,17 @@ class GenericMetadata:
     series_id: str | None = None
 
     series: str | None = None
-    series_aliases: list[str] = dataclasses.field(default_factory=list)
+    series_aliases: set[str] = dataclasses.field(default_factory=set)
     issue: str | None = None
     title: str | None = None
-    title_aliases: list[str] = dataclasses.field(default_factory=list)
+    title_aliases: set[str] = dataclasses.field(default_factory=set)
     publisher: str | None = None
     month: int | None = None
     year: int | None = None
     day: int | None = None
     issue_count: int | None = None
     volume: int | None = None
-    genres: list[str] = dataclasses.field(default_factory=list)
+    genres: set[str] = dataclasses.field(default_factory=set)
     language: str | None = None  # 2 letter iso code
     description: str | None = None  # use same way as Summary in CIX
 
@@ -141,9 +141,9 @@ class GenericMetadata:
     series_groups: list[str] = dataclasses.field(default_factory=list)
     scan_info: str | None = None
 
-    characters: list[str] = dataclasses.field(default_factory=list)
-    teams: list[str] = dataclasses.field(default_factory=list)
-    locations: list[str] = dataclasses.field(default_factory=list)
+    characters: set[str] = dataclasses.field(default_factory=set)
+    teams: set[str] = dataclasses.field(default_factory=set)
+    locations: set[str] = dataclasses.field(default_factory=set)
 
     alternate_images: list[str] = dataclasses.field(default_factory=list)
     credits: list[Credit] = dataclasses.field(default_factory=list)
@@ -183,7 +183,7 @@ class GenericMetadata:
             if new is not None:
                 if isinstance(new, str) and len(new) == 0:
                     setattr(self, cur, None)
-                elif isinstance(new, list) and len(new) == 0:
+                elif isinstance(new, (list, set)) and len(new) == 0:
                     pass
                 else:
                     setattr(self, cur, new)
@@ -332,7 +332,7 @@ class GenericMetadata:
         add_attr_string("day")
         add_attr_string("volume")
         add_attr_string("volume_count")
-        add_attr_string("genres")
+        add_string("genres", ", ".join(self.genres))
         add_attr_string("language")
         add_attr_string("country")
         add_attr_string("critical_rating")
@@ -356,9 +356,9 @@ class GenericMetadata:
         add_attr_string("story_arcs")
         add_attr_string("series_groups")
         add_attr_string("scan_info")
-        add_attr_string("characters")
-        add_attr_string("teams")
-        add_attr_string("locations")
+        add_string("characters", ", ".join(self.characters))
+        add_string("teams", ", ".join(self.teams))
+        add_string("locations", ", ".join(self.locations))
         add_attr_string("description")
         add_attr_string("notes")
 
@@ -417,7 +417,7 @@ md_test: GenericMetadata = GenericMetadata(
     day=1,
     issue_count=6,
     volume=1,
-    genres=["Sci-Fi"],
+    genres={"Sci-Fi"},
     language="en",
     description=(
         "For 12-year-old Anda, getting paid real money to kill the characters of players who were cheating"
@@ -441,9 +441,9 @@ md_test: GenericMetadata = GenericMetadata(
     story_arcs=["Here and Now"],
     series_groups=["Futuristic Tales"],
     scan_info="(CC BY-NC-SA 3.0)",
-    characters=["Anda"],
-    teams=["Fahrenheit"],
-    locations=utils.split("lonely  cottage ", ","),
+    characters={"Anda"},
+    teams={"Fahrenheit"},
+    locations=set(utils.split("lonely  cottage ", ",")),
     credits=[
         Credit(primary=False, person="Dara Naraghi", role="Writer"),
         Credit(primary=False, person="Esteve Polls", role="Penciller"),
