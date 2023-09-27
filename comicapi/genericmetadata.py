@@ -80,7 +80,6 @@ class ComicSeries:
     image_url: str
     publisher: str
     start_year: int | None
-    genres: list[str]
     format: str | None
 
     def copy(self) -> ComicSeries:

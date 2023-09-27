@@ -14,7 +14,6 @@ search_results = [
         publisher="test",
         start_year=0,
         aliases=[],
-        genres=[],
         format=None,
     ),
     dict(
@@ -27,7 +26,6 @@ search_results = [
         publisher="test",
         start_year=0,
         aliases=[],
-        genres=[],
         format=None,
     ),
 ]
