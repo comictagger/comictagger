@@ -166,7 +166,6 @@ comic_series_result = comicapi.genericmetadata.ComicSeries(
     image_url=cv_volume_result["results"]["image"]["super_url"],
     publisher=cv_volume_result["results"]["publisher"]["name"],
     start_year=int(cv_volume_result["results"]["start_year"]),
-    genres=[],
     format=None,
 )
 date = utils.parse_date_str(cv_issue_result["results"]["cover_date"])
@@ -203,7 +202,6 @@ cv_md = comicapi.genericmetadata.GenericMetadata(
     day=date[0],
     issue_count=cv_volume_result["results"]["count_of_issues"],
     volume=None,
-    genres=[],
     language=None,
     description=cv_issue_result["results"]["description"],
     volume_count=None,
