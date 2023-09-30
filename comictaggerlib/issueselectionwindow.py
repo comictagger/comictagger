@@ -161,7 +161,10 @@ class IssueSelectionWindow(QtWidgets.QDialog):
         for row, issue in enumerate(self.issue_list.values()):
             self.twList.insertRow(row)
             for i in range(3):
-                self.twList.setItem(row, i, QtWidgets.QTableWidgetItem())
+                if i == 0:
+                    self.twList.setItem(row, i, IssueNumberTableWidgetItem())
+                else:
+                    self.twList.setItem(row, i, QtWidgets.QTableWidgetItem())
 
             self.update_row(row, issue)
 
@@ -190,6 +193,7 @@ class IssueSelectionWindow(QtWidgets.QDialog):
         item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
         item.setData(QtCore.Qt.ItemDataRole.UserRole, issue.issue_id)
         item.setData(QtCore.Qt.ItemDataRole.DisplayRole, item_text)
+        item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
 
         item_text = ""
         if issue.year is not None:
