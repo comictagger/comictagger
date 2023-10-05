@@ -20,6 +20,7 @@ import os
 import pathlib
 import shutil
 import sys
+import traceback
 from typing import cast
 
 from comicapi import filenamelexer, filenameparser, utils
@@ -194,8 +195,11 @@ class ComicArchive:
         if filename:
             try:
                 image_data = self.archiver.read_file(filename) or b""
-            except Exception:
-                logger.error("Error reading in page %d. Substituting logo page.", index)
+            except Exception as e:
+                tb = traceback.extract_tb(e.__traceback__)
+                logger.error(
+                    "%s:%s: Error reading in page %d. Substituting logo page.", tb[1].filename, tb[1].lineno, index
+                )
                 image_data = ComicArchive.logo_data
 
         return image_data
@@ -325,7 +329,8 @@ class ComicArchive:
                 self.reset_cache()
                 return write_success
             except Exception as e:
-                logger.error("Error saving CBI! for %s: %s", self.path, e)
+                tb = traceback.extract_tb(e.__traceback__)
+                logger.error("%s:%s: Error saving CBI! for %s: %s", tb[1].filename, tb[1].lineno, self.path, e)
 
         return False
 
@@ -365,7 +370,8 @@ class ComicArchive:
         try:
             raw_cix = self.archiver.read_file(self.ci_xml_filename) or b""
         except Exception as e:
-            logger.error("Error reading in raw CIX! for %s: %s", self.path, e)
+            tb = traceback.extract_tb(e.__traceback__)
+            logger.error("%s:%s: Error reading in raw CIX! for %s: %s", tb[1].filename, tb[1].lineno, self.path, e)
             raw_cix = b""
         return raw_cix
 
@@ -382,7 +388,8 @@ class ComicArchive:
                 self.reset_cache()
                 return write_success
             except Exception as e:
-                logger.error("Error saving CIX! for %s: %s", self.path, e)
+                tb = traceback.extract_tb(e.__traceback__)
+                logger.error("%s:%s: Error saving CIX! for %s: %s", tb[1].filename, tb[1].lineno, self.path, e)
 
         return False
 
@@ -440,7 +447,10 @@ class ComicArchive:
                 if raw_bytes:
                     raw_comet = raw_bytes.decode("utf-8")
             except OSError as e:
-                logger.exception("Error reading in raw CoMet!: %s", e)
+                tb = traceback.extract_tb(e.__traceback__)
+                logger.error(
+                    "%s:%s: Error reading in raw CoMet! for %s: %s", tb[1].filename, tb[1].lineno, self.path, e
+                )
         return raw_comet
 
     def write_comet(self, metadata: GenericMetadata) -> bool:
@@ -490,7 +500,14 @@ class ComicArchive:
                         if d:
                             data = d.decode("utf-8")
                     except Exception as e:
-                        logger.warning("Error reading in Comet XML for validation! from %s: %s", self.path, e)
+                        tb = traceback.extract_tb(e.__traceback__)
+                        logger.warning(
+                            "%s:%s: Error reading in Comet XML for validation! from %s: %s",
+                            tb[1].filename,
+                            tb[1].lineno,
+                            self.path,
+                            e,
+                        )
                     if CoMet().validate_string(data):
                         # since we found it, save it!
                         self.comet_filename = n
