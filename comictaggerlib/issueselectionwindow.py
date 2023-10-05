@@ -160,11 +160,9 @@ class IssueSelectionWindow(QtWidgets.QDialog):
 
         for row, issue in enumerate(self.issue_list.values()):
             self.twList.insertRow(row)
-            for i in range(3):
-                if i == 0:
-                    self.twList.setItem(row, i, IssueNumberTableWidgetItem())
-                else:
-                    self.twList.setItem(row, i, QtWidgets.QTableWidgetItem())
+            self.twList.setItem(row, 0, IssueNumberTableWidgetItem())
+            self.twList.setItem(row, 1, QtWidgets.QTableWidgetItem())
+            self.twList.setItem(row, 2, QtWidgets.QTableWidgetItem())
 
             self.update_row(row, issue)
 
