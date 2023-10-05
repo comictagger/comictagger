@@ -98,9 +98,9 @@ def test_save_cbi_rar(tmp_path, md_saved):
         story_arcs=[],
         series_groups=[],
         scan_info=None,
-        characters=[],
-        teams=[],
-        locations=[],
+        characters=set(),
+        teams=set(),
+        locations=set(),
     )
 
 
