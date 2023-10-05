@@ -73,7 +73,7 @@ class ComicInfoXml:
                 text = ""
                 if isinstance(md_entry, str):
                     text = md_entry
-                elif isinstance(md_entry, list):
+                elif isinstance(md_entry, (list, set)):
                     text = ",".join(md_entry)
                 else:
                     text = str(md_entry)
@@ -208,14 +208,14 @@ class ComicInfoXml:
         md.day = utils.xlate_int(get("Day"))
         md.publisher = utils.xlate(get("Publisher"))
         md.imprint = utils.xlate(get("Imprint"))
-        md.genres = utils.split(get("Genre"), ",")
+        md.genres = set(utils.split(get("Genre"), ","))
         md.web_link = utils.xlate(get("Web"))
         md.language = utils.xlate(get("LanguageISO"))
         md.format = utils.xlate(get("Format"))
         md.manga = utils.xlate(get("Manga"))
-        md.characters = utils.split(get("Characters"), ",")
-        md.teams = utils.split(get("Teams"), ",")
-        md.locations = utils.split(get("Locations"), ",")
+        md.characters = set(utils.split(get("Characters"), ","))
+        md.teams = set(utils.split(get("Teams"), ","))
+        md.locations = set(utils.split(get("Locations"), ","))
         md.page_count = utils.xlate_int(get("PageCount"))
         md.scan_info = utils.xlate(get("ScanInformation"))
         md.story_arcs = utils.split(get("StoryArc"), ",")

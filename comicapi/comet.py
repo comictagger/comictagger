@@ -165,12 +165,12 @@ class CoMet:
         # loop for genre tags
         for n in root:
             if n.tag == "genre":
-                md.genres.append((n.text or "").strip())
+                md.genres.add((n.text or "").strip())
 
         # loop for character tags
         for n in root:
             if n.tag == "character":
-                md.characters.append((n.text or "").strip())
+                md.characters.add((n.text or "").strip())
 
         # Now extract the credit info
         for n in root:

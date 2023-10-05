@@ -89,7 +89,7 @@ class ComicBookInfo:
         metadata.year = utils.xlate_int(cbi["publicationYear"])
         metadata.issue_count = utils.xlate_int(cbi["numberOfIssues"])
         metadata.description = utils.xlate(cbi["comments"])
-        metadata.genres = utils.split(cbi["genre"], ",")
+        metadata.genres = set(utils.split(cbi["genre"], ","))
         metadata.volume = utils.xlate_int(cbi["volume"])
         metadata.volume_count = utils.xlate_int(cbi["numberOfVolumes"])
         metadata.language = utils.xlate(cbi["language"])
