@@ -24,6 +24,22 @@ cbz_path = datadir / "Cory Doctorow's Futuristic Tales of the Here and Now #001 
 
 names = [
     (
+        "Karl May #001 Old Shatterhand.cbr",
+        "Month in series",
+        {
+            "issue": "1",
+            "series": "Karl May",
+            "title": "Old Shatterhand",
+            "publisher": "",
+            "volume": "",
+            "year": "",
+            "remainder": "",
+            "issue_count": "",
+            "alternate": "",
+        },
+        (False, True),
+    ),
+    (
         "batman #3 title (DC).cbz",
         "honorific and publisher in series",
         {
