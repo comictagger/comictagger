@@ -624,6 +624,9 @@ def parse(p: Parser) -> Callable[[Parser], Callable | None] | None:  # type: ign
                 return parse_series
         # This is text that just happens to also be a month/day
         else:
+            # Add this to the series and get the next item, parse_series expects the next item to be the current item
+            p.series_parts.append(item)
+            p.get()
             if p.firstItem:
                 p.firstItem = False
             return parse_series
