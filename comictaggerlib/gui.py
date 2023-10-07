@@ -82,13 +82,14 @@ try:
                 return True
             return super().event(event)
 
-except ImportError:
+except ImportError as e:
 
     def show_exception_box(log_msg: str) -> None:
         ...
 
     logger.exception("Qt unavailable")
     qt_available = False
+    import_error = e
 
 
 def open_tagger_window(
