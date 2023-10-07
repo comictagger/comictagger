@@ -217,6 +217,8 @@ class App:
             try:
                 from comictaggerlib import gui
 
+                if not gui.qt_available:
+                    raise gui.import_error
                 return gui.open_tagger_window(talkers, self.config, error)
             except ImportError:
                 self.config[0].Runtime_Options_no_gui = True
