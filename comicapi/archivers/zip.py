@@ -9,6 +9,8 @@ import tempfile
 import zipfile
 from typing import cast
 
+import chardet
+
 from comicapi.archivers import Archiver
 
 logger = logging.getLogger(__name__)
@@ -23,7 +25,14 @@ class ZipArchiver(Archiver):
 
     def get_comment(self) -> str:
         with zipfile.ZipFile(self.path, "r") as zf:
-            comment = zf.comment.decode("utf-8")
+            encoding = chardet.detect(zf.comment, True)
+            if encoding["confidence"] > 60:
+                try:
+                    comment = zf.comment.decode(encoding["encoding"])
+                except UnicodeDecodeError:
+                    comment = zf.comment.decode("utf-8", errors="replace")
+            else:
+                comment = zf.comment.decode("utf-8", errors="replace")
         return comment
 
     def set_comment(self, comment: str) -> bool:
