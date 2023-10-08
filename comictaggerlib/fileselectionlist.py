@@ -186,7 +186,7 @@ class FileSelectionList(QtWidgets.QWidget):
         # Prog dialog on Linux flakes out for small range, so scale up
         progdialog = QtWidgets.QProgressDialog("", "Cancel", 0, len(filelist), parent=self)
         progdialog.setWindowTitle("Adding Files")
-        progdialog.setWindowModality(QtCore.Qt.WindowModality.ApplicationModal)
+        progdialog.setWindowModality(QtCore.Qt.WindowModality.WindowModal)
         progdialog.setMinimumDuration(300)
         center_window_on_parent(progdialog)
 
@@ -200,7 +200,6 @@ class FileSelectionList(QtWidgets.QWidget):
                 break
             progdialog.setValue(idx + 1)
             progdialog.setLabelText(f)
-            center_window_on_parent(progdialog)
             QtCore.QCoreApplication.processEvents()
             row = self.add_path_item(f)
             if row is not None:
