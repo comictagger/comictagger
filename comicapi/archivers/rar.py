@@ -70,6 +70,7 @@ class RarArchiver(Archiver):
                         stdin=subprocess.DEVNULL,
                         capture_output=True,
                         encoding="utf-8",
+                        cwd=tmp_dir,
                     )
                 if result.returncode != 0:
                     logger.error(
@@ -144,6 +145,7 @@ class RarArchiver(Archiver):
                 stdin=subprocess.DEVNULL,
                 capture_output=True,
                 encoding="utf-8",
+                cwd=self.path.absolute().parent,
             )
 
             if platform.system() == "Darwin":
@@ -172,6 +174,7 @@ class RarArchiver(Archiver):
                 input=data,
                 startupinfo=self.startupinfo,
                 capture_output=True,
+                cwd=self.path.absolute().parent,
             )
 
             if platform.system() == "Darwin":
