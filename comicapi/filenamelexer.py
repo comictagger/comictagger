@@ -81,6 +81,7 @@ class Item:
         self.typ: ItemType = typ
         self.pos: int = pos
         self.val: str = val
+        self.no_space = False
 
     def __repr__(self) -> str:
         return f"{self.val}: index: {self.pos}: {self.typ}"
@@ -144,23 +145,14 @@ class Lexer:
         self.backup()
 
     def scan_number(self) -> bool:
-        digits = "0123456789"
+        digits = "0123456789.,"
 
         self.accept_run(digits)
-        if self.accept("."):
-            if self.accept(digits):
-                self.accept_run(digits)
-            else:
-                self.backup()
-        if self.accept("s"):
-            if not self.accept("t"):
-                self.backup()
-        elif self.accept("nr"):
-            if not self.accept("d"):
-                self.backup()
-        elif self.accept("t"):
-            if not self.accept("h"):
-                self.backup()
+        if self.input[self.pos] == ".":
+            self.backup()
+        while self.get().isalpha():
+            ...
+        self.backup()
 
         return True
 
@@ -197,12 +189,8 @@ def lex_filename(lex: Lexer) -> Callable[[Lexer], Callable | None] | None:  # ty
             return lex_space
     elif r == ".":
         r = lex.peek()
-        if not r.isdigit():
-            lex.emit(ItemType.Dot)
-            return lex_filename
-
-        lex.backup()
-        return lex_number
+        lex.emit(ItemType.Dot)
+        return lex_filename
     elif r == "'":
         r = lex.peek()
         if r.isdigit():

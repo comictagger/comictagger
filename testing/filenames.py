@@ -24,6 +24,141 @@ cbz_path = datadir / "Cory Doctorow's Futuristic Tales of the Here and Now #001 
 
 names = [
     (
+        "Michel Vaillant #5 Nr. 13 aan de start",
+        "Shortened word followed by a number eg No. 13, Mr. 13",
+        {
+            "issue": "5",
+            "series": "Michel Vaillant",
+            "title": "Nr. 13 aan de start",
+            "volume": "",
+            "year": "",
+            "remainder": "",
+            "issue_count": "",
+            "alternate": "",
+        },
+        (False, True),
+    ),
+    (
+        "Michel Vaillant #8 De 8ste man",
+        "Non english ordinal",
+        {
+            "issue": "8",
+            "series": "Michel Vaillant",
+            "title": "De 8ste man",
+            "volume": "",
+            "year": "",
+            "remainder": "",
+            "issue_count": "",
+            "alternate": "",
+        },
+        (False, True),
+    ),
+    (
+        "Michel Vaillant #13 Mach 1 voor Steve Warson",
+        "number in title",
+        {
+            "issue": "13",
+            "series": "Michel Vaillant",
+            "title": "Mach 1 voor Steve Warson",
+            "volume": "",
+            "year": "",
+            "remainder": "",
+            "issue_count": "",
+            "alternate": "",
+        },
+        (False, True),
+    ),
+    (
+        "Michel Vaillant #19 5 Meisjes in de race",
+        "number starting title",
+        {
+            "issue": "19",
+            "series": "Michel Vaillant",
+            "title": "5 Meisjes in de race",
+            "volume": "",
+            "year": "",
+            "remainder": "",
+            "issue_count": "",
+            "alternate": "",
+        },
+        (False, True),
+    ),
+    (
+        "Michel Vaillant #34 Steve Warson gaat K.O.",
+        "acronym",
+        {
+            "issue": "34",
+            "series": "Michel Vaillant",
+            "title": "Steve Warson gaat K.O.",
+            "volume": "",
+            "year": "",
+            "remainder": "",
+            "issue_count": "",
+            "alternate": "",
+        },
+        (False, True),
+    ),
+    (
+        "Michel Vaillant #40 F.1 in oproer",
+        "acronym with numbers",
+        {
+            "issue": "40",
+            "series": "Michel Vaillant",
+            "title": "F.1 in oproer",
+            "volume": "",
+            "year": "",
+            "remainder": "",
+            "issue_count": "",
+            "alternate": "",
+        },
+        (False, True),
+    ),
+    (
+        "Michel Vaillant #42 300 kmu door Parijs",
+        "number starting title",
+        {
+            "issue": "42",
+            "series": "Michel Vaillant",
+            "title": "300 kmu door Parijs",
+            "volume": "",
+            "year": "",
+            "remainder": "",
+            "issue_count": "",
+            "alternate": "",
+        },
+        (False, True),
+    ),
+    (
+        "Michel Vaillant #52 F 3000",
+        "title ends with number",
+        {
+            "issue": "52",
+            "series": "Michel Vaillant",
+            "title": "F 3000",
+            "volume": "",
+            "year": "",
+            "remainder": "",
+            "issue_count": "",
+            "alternate": "",
+        },
+        (False, True),
+    ),
+    (
+        "Michel Vaillant #66 100.000.000 $ voor Steve Warson",
+        "number separator is . and dollarsign after number",
+        {
+            "issue": "66",
+            "series": "Michel Vaillant",
+            "title": "100.000.000 $ voor Steve Warson",
+            "volume": "",
+            "year": "",
+            "remainder": "",
+            "issue_count": "",
+            "alternate": "",
+        },
+        (False, True),
+    ),
+    (
         "batman #B01 title (DC).cbz",
         "protofolius_issue_number_scheme",
         {
@@ -42,7 +177,7 @@ names = [
     ),
     (
         "batman #3 title (DC).cbz",
-        "honorific and publisher in series",
+        "publisher in parenthesis",
         {
             "issue": "3",
             "series": "batman",
@@ -58,7 +193,7 @@ names = [
     ),
     (
         "batman #3 title DC.cbz",
-        "honorific and publisher in series",
+        "publisher in title",
         {
             "issue": "3",
             "series": "batman",
@@ -753,14 +888,14 @@ for p in names:
     if "#" in filename:
         filename = filename.replace("#", "")
         nxfail = xfail[1]
-        if reason == "protofolius_issue_number_scheme":
+        if reason in ("protofolius_issue_number_scheme", "number starting title"):
             newfnames.append(
                 pytest.param(
                     filename,
                     reason,
                     info,
                     nxfail,
-                    marks=pytest.mark.xfail(condition=nxfail, reason="protofolius_issue_number_scheme"),
+                    marks=pytest.mark.xfail(condition=nxfail, reason=reason),
                 )
             )
         else:
