@@ -1237,8 +1237,11 @@ def join_title(lst: list[filenamelexer.Item]) -> str:
         if lst[i + 1].typ in [filenamelexer.ItemType.Operator, filenamelexer.ItemType.Symbol]:
             # exept if followed by a dollarsign
             if not (
-                lst[i].typ in [filenamelexer.ItemType.Number, filenamelexer.ItemType.IssueNumber]
-                and lst[i + 1].val == "$"
+                (
+                    lst[i].typ in [filenamelexer.ItemType.Number, filenamelexer.ItemType.IssueNumber]
+                    and lst[i + 1].val == "$"
+                )
+                or lst[i + 1].val == "&"
             ):
                 continue
 

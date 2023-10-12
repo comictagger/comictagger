@@ -24,6 +24,21 @@ cbz_path = datadir / "Cory Doctorow's Futuristic Tales of the Here and Now #001 
 
 names = [
     (
+        "Drystan & Esyllt #3",
+        "Shortened word followed by a number eg No. 13, Mr. 13",
+        {
+            "issue": "3",
+            "series": "Drystan & Esyllt",
+            "title": "",
+            "volume": "",
+            "year": "",
+            "remainder": "",
+            "issue_count": "",
+            "alternate": "",
+        },
+        (False, False),
+    ),
+    (
         "Michel Vaillant #5 Nr. 13 aan de start",
         "Shortened word followed by a number eg No. 13, Mr. 13",
         {
