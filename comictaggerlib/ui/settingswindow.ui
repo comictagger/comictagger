@@ -318,6 +318,46 @@
               </property>
              </widget>
             </item>
+            <item>
+             <widget class="QCheckBox" name="cbxProtofoliusIssueNumberScheme">
+              <property name="text">
+               <string>Use protofolius's issue number scheme</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="cbxAllowIssueStartWithLetter">
+              <property name="text">
+               <string>Allow issue numbers to start with a letter</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QGroupBox" name="groupBox_3">
+           <layout class="QVBoxLayout" name="verticalLayout_8">
+            <item>
+             <widget class="QCheckBox" name="cbxSplitWords">
+              <property name="text">
+               <string>!Preview only! Attempts to split words before parsing the filename. e.g. 'judgedredd' to 'judge dredd'</string>
+              </property>
+             </widget>
+            </item>
+           <item>
+            <widget class="QLineEdit" name="leFilenameParserTest"/>
+           </item>
+           <item>
+            <widget class="QLabel" name="lblFilenameParserTest">
+             <property name="textFormat">
+              <enum>Qt::PlainText</enum>
+             </property>
+             <property name="textInteractionFlags">
+              <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
+             </property>
+            </widget>
+           </item>
            </layout>
           </widget>
          </item>

@@ -81,13 +81,14 @@ class Item:
         self.typ: ItemType = typ
         self.pos: int = pos
         self.val: str = val
+        self.no_space = False
 
     def __repr__(self) -> str:
         return f"{self.val}: index: {self.pos}: {self.typ}"
 
 
 class Lexer:
-    def __init__(self, string: str) -> None:
+    def __init__(self, string: str, allow_issue_start_with_letter: bool = False) -> None:
         self.input: str = string  # The string being scanned
         # The next lexing function to enter
         self.state: Callable[[Lexer], Callable | None] | None = None  # type: ignore[type-arg]
@@ -98,6 +99,7 @@ class Lexer:
         self.brace_depth: int = 0  # Nesting depth of { }
         self.sbrace_depth: int = 0  # Nesting depth of [ ]
         self.items: list[Item] = []
+        self.allow_issue_start_with_letter = allow_issue_start_with_letter
 
     # Next returns the next rune in the input.
     def get(self) -> str:
@@ -143,23 +145,14 @@ class Lexer:
         self.backup()
 
     def scan_number(self) -> bool:
-        digits = "0123456789"
+        digits = "0123456789.,"
 
         self.accept_run(digits)
-        if self.accept("."):
-            if self.accept(digits):
-                self.accept_run(digits)
-            else:
-                self.backup()
-        if self.accept("s"):
-            if not self.accept("t"):
-                self.backup()
-        elif self.accept("nr"):
-            if not self.accept("d"):
-                self.backup()
-        elif self.accept("t"):
-            if not self.accept("h"):
-                self.backup()
+        if self.input[self.pos] == ".":
+            self.backup()
+        while self.get().isalpha():
+            ...
+        self.backup()
 
         return True
 
@@ -196,23 +189,21 @@ def lex_filename(lex: Lexer) -> Callable[[Lexer], Callable | None] | None:  # ty
             return lex_space
     elif r == ".":
         r = lex.peek()
-        if r < "0" or "9" < r:
-            lex.emit(ItemType.Dot)
-            return lex_filename
-
-        lex.backup()
-        return lex_number
+        lex.emit(ItemType.Dot)
+        return lex_filename
     elif r == "'":
         r = lex.peek()
-        if r in "0123456789":
+        if r.isdigit():
             return lex_number
         lex.emit(ItemType.Text)  # TODO: Change to Text
     elif "0" <= r <= "9":
         lex.backup()
         return lex_number
     elif r == "#":
-        if "0" <= lex.peek() <= "9":
-            return lex_number
+        if lex.allow_issue_start_with_letter and is_alpha_numeric(lex.peek()):
+            return lex_issue_number
+        elif lex.peek().isdigit() or lex.peek() in "-+.":
+            return lex_issue_number
         lex.emit(ItemType.Symbol)
     elif is_operator(r):
         if r == "-" and lex.peek() == "-":
@@ -329,6 +320,28 @@ def lex_number(lex: Lexer) -> Callable[[Lexer], Callable | None] | None:  # type
     return lex_filename
 
 
+def lex_issue_number(lex: Lexer) -> Callable[[Lexer], Callable | None] | None:  # type: ignore[type-arg]
+    # Only called when lex.input[lex.start] == "#"
+    original_start = lex.pos
+    found_number = False
+    while True:
+        r = lex.get()
+        if is_alpha_numeric(r):
+            if r.isnumeric():
+                found_number = True
+        else:
+            lex.backup()
+            break
+
+    if not found_number:
+        lex.pos = original_start
+        lex.emit(ItemType.Symbol)
+    else:
+        lex.emit(ItemType.IssueNumber)
+
+    return lex_filename
+
+
 def is_space(character: str) -> bool:
     return character in "_ \t"
 
@@ -346,7 +359,7 @@ def is_symbol(character: str) -> bool:
     return unicodedata.category(character)[0] in "PS"
 
 
-def Lex(filename: str) -> Lexer:
-    lex = Lexer(string=os.path.basename(filename))
+def Lex(filename: str, allow_issue_start_with_letter: bool = False) -> Lexer:
+    lex = Lexer(os.path.basename(filename), allow_issue_start_with_letter)
     lex.run()
     return lex
