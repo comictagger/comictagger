@@ -30,10 +30,10 @@ class ItemType(Enum):
     InfoSpecifier = auto()  # Specifies type of info e.g. v1 for 'volume': 1
     ArchiveType = auto()
     Honorific = auto()
+    Publisher = auto()
     Keywords = auto()
     FCBD = auto()
     ComicType = auto()
-    Publisher = auto()
     C2C = auto()
 
 
@@ -189,6 +189,8 @@ def lex_filename(lex: Lexer) -> Callable[[Lexer], Callable | None] | None:  # ty
             return lex_space
     elif r == ".":
         r = lex.peek()
+        if r.isnumeric() and lex.pos > 0 and is_space(lex.input[lex.pos - 1]):
+            return lex_number
         lex.emit(ItemType.Dot)
         return lex_filename
     elif r == "'":
@@ -196,7 +198,7 @@ def lex_filename(lex: Lexer) -> Callable[[Lexer], Callable | None] | None:  # ty
         if r.isdigit():
             return lex_number
         lex.emit(ItemType.Text)  # TODO: Change to Text
-    elif "0" <= r <= "9":
+    elif r.isnumeric():
         lex.backup()
         return lex_number
     elif r == "#":
@@ -241,10 +243,25 @@ def lex_filename(lex: Lexer) -> Callable[[Lexer], Callable | None] | None:  # ty
         if lex.sbrace_depth < 0:
             return errorf(lex, "unexpected right brace " + r)
     elif is_symbol(r):
+        if unicodedata.category(r) == "Sc":
+            return lex_currency
         lex.emit(ItemType.Symbol)
     else:
         return errorf(lex, "unrecognized character in action: " + r)
 
+    return lex_filename
+
+
+def lex_currency(lex: Lexer) -> Callable:
+    orig = lex.pos
+    while is_space(lex.peek()):
+        lex.get()
+    if lex.peek().isnumeric():
+        return lex_number
+    else:
+        lex.pos = orig
+    # We don't have a number with this currency symbol. Don't treat it special
+    lex.emit(ItemType.Symbol)
     return lex_filename
 
 
@@ -315,7 +332,14 @@ def lex_number(lex: Lexer) -> Callable[[Lexer], Callable | None] | None:  # type
         # Assume that 80th is just text and not a number
         lex.emit(ItemType.Text)
     else:
-        lex.emit(ItemType.Number)
+        orig = lex.pos
+        while is_space(lex.peek()):
+            lex.get()
+        if "Sc" in [unicodedata.category(lex.input[lex.start]), unicodedata.category(lex.get())]:
+            lex.emit(ItemType.Text)
+        else:
+            lex.pos = orig
+            lex.emit(ItemType.Number)
 
     return lex_filename
 
