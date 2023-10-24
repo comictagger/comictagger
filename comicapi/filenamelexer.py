@@ -335,11 +335,14 @@ def lex_number(lex: Lexer) -> Callable[[Lexer], Callable | None] | None:  # type
         orig = lex.pos
         while is_space(lex.peek()):
             lex.get()
-        if "Sc" in [unicodedata.category(lex.input[lex.start]), unicodedata.category(lex.get())]:
+        if "Sc" == unicodedata.category(lex.get()):
             lex.emit(ItemType.Text)
         else:
             lex.pos = orig
-            lex.emit(ItemType.Number)
+            if "Sc" == unicodedata.category(lex.input[lex.start]):
+                lex.emit(ItemType.Text)
+            else:
+                lex.emit(ItemType.Number)
 
     return lex_filename
 

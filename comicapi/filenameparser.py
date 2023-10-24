@@ -20,6 +20,7 @@ This should probably be re-written, but, well, it mostly works!
 # http://code.google.com/p/pycomicmetathis/
 from __future__ import annotations
 
+import functools
 import logging
 import os
 import re
@@ -540,17 +541,15 @@ def parse(p: Parser) -> Callable[[Parser], Callable | None] | None:  # type: ign
                     p.peek_back().typ == filenamelexer.ItemType.Space
                     and p.peek_back(2).typ in (filenamelexer.ItemType.IssueNumber, filenamelexer.ItemType.Number)
                 ):
-                    return parse_series
+                    return functools.partial(parse_series, i=item)
                 if (
                     p.peek_back().typ == filenamelexer.ItemType.Operator
                     or p.peek().typ == filenamelexer.ItemType.Operator
                 ):
                     # Were not in something and the next or previous type is an operator, add it to the series
-                    p.series_parts.append(item)
                     p.used_items.append(item)
 
-                    p.get()
-                    return parse_series
+                    return functools.partial(parse_series, i=item)
 
     # Number with a leading hash e.g. #003
     elif item.typ == filenamelexer.ItemType.IssueNumber:
@@ -583,10 +582,10 @@ def parse(p: Parser) -> Callable[[Parser], Callable | None] | None:  # type: ign
         if p.firstItem:
             p.firstItem = False
             if p.in_something == 0:
-                return parse_series
+                return functools.partial(parse_series, i=item)
         p.publisher_removed.append(item)
         if p.in_something == 0:
-            return parse_series
+            return functools.partial(parse_series, i=item)
 
     # Attempts to identify the type e.g. annual
     elif item.typ == filenamelexer.ItemType.ComicType:
@@ -622,11 +621,10 @@ def parse(p: Parser) -> Callable[[Parser], Callable | None] | None:  # type: ign
 
         # If we don't have a reason to exclude it from the series go back to parsing the series immediately
         if series_append:
-            p.series_parts.append(item)
             p.used_items.append(item)
             if p.firstItem:
                 p.firstItem = False
-            return parse_series
+            return functools.partial(parse_series, i=item)
 
     # We found text, it's probably the title or series
     elif item.typ in [filenamelexer.ItemType.Text, filenamelexer.ItemType.Honorific]:
@@ -634,7 +632,7 @@ def parse(p: Parser) -> Callable[[Parser], Callable | None] | None:  # type: ign
         if p.firstItem:
             p.firstItem = False
         if p.in_something == 0:
-            return parse_series
+            return functools.partial(parse_series, i=None)  # TODO
 
     # Usually the word 'of' eg 1 (of 6)
     elif item.typ == filenamelexer.ItemType.InfoSpecifier:
@@ -662,15 +660,13 @@ def parse(p: Parser) -> Callable[[Parser], Callable | None] | None:  # type: ign
                 p.backup()
                 if p.firstItem:
                     p.firstItem = False
-                return parse_series
+                return functools.partial(parse_series, i=item)
         # This is text that just happens to also be a month/day
         else:
-            # Add this to the series and get the next item, parse_series expects the next item to be the current item
-            p.series_parts.append(item)
             p.get()
             if p.firstItem:
                 p.firstItem = False
-            return parse_series
+            return functools.partial(parse_series, i=item)
 
     # Specifically '__' or '--', no further title/series parsing is done to keep compatibility with wiki
     elif item.typ == filenamelexer.ItemType.Skip:
@@ -745,7 +741,7 @@ def parse_issue_number(p: Parser) -> Callable[[Parser], Callable | None] | None:
     return parse
 
 
-def parse_series(p: Parser) -> Callable[[Parser], Callable | None] | None:  # type: ignore[type-arg]
+def parse_series(p: Parser, i: filenamelexer.Item) -> Callable[[Parser], Callable | None] | None:  # type: ignore[type-arg]
     item = p.input[p.pos]
     current_part = 0
     prev_space = False
@@ -753,18 +749,23 @@ def parse_series(p: Parser) -> Callable[[Parser], Callable | None] | None:  # ty
     title_parts: list[filenamelexer.Item] = []
     series_parts: list[filenamelexer.Item] = []
     series: list[list[filenamelexer.Item]] = [[]]
+    issue_marked_or_passed = (
+        p.issue_number_marked and p.issue_number_passed or p.issue_number_at is not None and not p.issue_number_marked
+    )
 
     # We stop parsing the series when certain things come up if nothing was done with them continue where we left off
-    if p.peek_back().typ in [filenamelexer.ItemType.Number, filenamelexer.ItemType.Calendar]:
-        series_parts = p.series_parts
-        p.series_parts = []
+    if i:
+        if issue_marked_or_passed:
+            series[0].append(i)
+        else:
+            series_parts = p.series_parts
+            p.series_parts = []
+            series_parts.append(i)
 
     # Space and Dots are not useful at the beginning of a title/series
     if not p.skip and item.typ not in [filenamelexer.ItemType.Space, filenamelexer.ItemType.Dot]:
-        if item.typ == filenamelexer.ItemType.Text:
+        if item.typ in [filenamelexer.ItemType.Text, filenamelexer.ItemType.Honorific]:
             p.backup()
-        else:
-            series[0].append(item)
     # Skip is only true if we have come across '--' or '__'
     while not p.skip:
         item = p.get()
@@ -847,12 +848,7 @@ def parse_series(p: Parser) -> Callable[[Parser], Callable | None] | None:  # ty
                     break
 
                 # the issue number has been marked and passed, keep it as a part of the series
-                if (
-                    p.issue_number_marked
-                    and p.issue_number_passed
-                    or p.issue_number_at is not None
-                    and not p.issue_number_marked
-                ):
+                if issue_marked_or_passed:
                     # We already have an issue number, this should be a part of the series
                     series[current_part].append(item)
                 else:
@@ -864,12 +860,7 @@ def parse_series(p: Parser) -> Callable[[Parser], Callable | None] | None:  # ty
             # We have 1 number break here, it's possible it's the issue
             else:
                 # the issue number has been #marked or passed, keep it as a part of the series
-                if (
-                    p.issue_number_marked
-                    and p.issue_number_passed
-                    or p.issue_number_at is not None
-                    and not p.issue_number_marked
-                ):
+                if issue_marked_or_passed:
                     # We already have an issue number, this should be a part of the series
                     series[current_part].append(item)
                 else:
@@ -1153,7 +1144,7 @@ def parse_info_specifier(p: Parser) -> Callable[[Parser], Callable | None] | Non
                     p.pos = [ind for ind, x in enumerate(p.input) if x == i][0]
 
             if not p.in_something:
-                return parse_series
+                return functools.partial(parse_series, i=i)
     return parse
 
 
