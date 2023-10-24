@@ -4,6 +4,7 @@ import pytest
 
 import comicapi.filenamelexer
 import comicapi.filenameparser
+import comicapi.utils
 from testing.filenames import newfnames, oldfnames
 
 
@@ -20,31 +21,26 @@ def test_file_name_parser_new(filename, reason, expected, xfail):
     )
     fp = p.filename_info
 
-    for s in ["archive"]:
-        if s in fp:
-            del fp[s]
-    for s in ["alternate", "publisher", "volume_count"]:
-        if s not in expected:
-            expected[s] = ""
-    for s in ["fcbd", "c2c", "annual"]:
-        if s not in expected:
-            expected[s] = False
-
     assert fp == expected
 
 
 @pytest.mark.parametrize("filename, reason, expected, xfail", oldfnames)
 def test_file_name_parser(filename, reason, expected, xfail):
-    p = comicapi.filenameparser.FileNameParser()
-    p.parse_filename(filename)
-    fp = p.__dict__
+    fp = comicapi.utils.parse_filename(filename)
     # These are currently not tracked in this parser
-    for s in ["title", "alternate", "publisher", "fcbd", "c2c", "annual", "volume_count", "remainder", "format"]:
-        if s in expected:
-            del expected[s]
-
-    # The remainder is not considered compatible between parsers
-    if "remainder" in fp:
-        del fp["remainder"]
+    for s in [
+        "title",
+        "alternate",
+        "publisher",
+        "fcbd",
+        "c2c",
+        "annual",
+        "volume_count",
+        "remainder",
+        "format",
+        "archive",
+    ]:
+        del expected[s]
+        del fp[s]
 
     assert fp == expected

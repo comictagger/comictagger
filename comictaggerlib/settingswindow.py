@@ -361,6 +361,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.cbxRemoveC2C.setEnabled(complicated)
         self.cbxRemoveFCBD.setEnabled(complicated)
         self.cbxRemovePublisher.setEnabled(complicated)
+        self.filename_parser_test()
 
     def settings_to_form(self) -> None:
         self.disconnect_signals()

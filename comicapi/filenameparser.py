@@ -309,7 +309,7 @@ class FileNameParser:
             self.issue = issuestring.IssueString(self.issue).as_string()
 
 
-class FilenameInfo(TypedDict, total=False):
+class FilenameInfo(TypedDict):
     alternate: str
     annual: bool
     archive: str
@@ -364,7 +364,23 @@ class Parser:
         self.firstItem = True
         self.skip = False
         self.alt = False
-        self.filename_info: FilenameInfo = {"series": ""}
+        self.filename_info = FilenameInfo(
+            alternate="",
+            annual=False,
+            archive="",
+            c2c=False,
+            fcbd=False,
+            issue="",
+            issue_count="",
+            publisher="",
+            remainder="",
+            series="",
+            title="",
+            volume="",
+            volume_count="",
+            year="",
+            format="",
+        )
         self.issue_number_at = None
         self.issue_number_marked = False
         self.issue_number_passed = False
@@ -700,8 +716,8 @@ def parse(p: Parser) -> Callable[[Parser], Callable | None] | None:  # type: ign
 def parse_issue_number(p: Parser) -> Callable[[Parser], Callable | None] | None:  # type: ignore[type-arg]
     item = p.input[p.pos]
 
-    if "issue" in p.filename_info:
-        if "alternate" in p.filename_info:
+    if p.filename_info["issue"]:
+        if p.filename_info["alternate"]:
             p.filename_info["alternate"] += "," + item.val
         p.filename_info["alternate"] = item.val
     else:
@@ -908,7 +924,7 @@ def resolve_year(p: Parser) -> None:
         # Sort by likely_year boolean
         p.year_candidates.sort(key=itemgetter(0))
 
-        if "issue" not in p.filename_info:
+        if not p.filename_info["issue"]:
             year = p.year_candidates.pop(0)
             if year[1]:
                 p.filename_info["issue"] = year[2].val
@@ -930,7 +946,7 @@ def resolve_year(p: Parser) -> None:
         p.used_items.append(selected_year[2])
 
         # (2008) Title (2009) is many times used to denote the series year if we don't have a volume we use it
-        if "volume" not in p.filename_info and p.year_candidates and p.year_candidates[-1][0]:
+        if not p.filename_info["volume"] and p.year_candidates and p.year_candidates[-1][0]:
             year = p.year_candidates[-1]
             if year[2] not in p.series_parts and year[2] not in p.title_parts:
                 vol = p.year_candidates.pop()[2]
@@ -953,7 +969,7 @@ def resolve_year(p: Parser) -> None:
 
 def resolve_issue(p: Parser) -> None:
     # If we don't have an issue try to find it in the series
-    if "issue" not in p.filename_info and p.series_parts and p.series_parts[-1].typ == filenamelexer.ItemType.Number:
+    if not p.filename_info["issue"] and p.series_parts and p.series_parts[-1].typ == filenamelexer.ItemType.Number:
         issue_num = p.series_parts.pop()
 
         # If the number we just popped is a year put it back on it's probably part of the series e.g. Spider-Man 2099
@@ -975,23 +991,23 @@ def resolve_issue(p: Parser) -> None:
                 p.used_items.append(issue_num)
                 p.issue_number_at = issue_num.pos
 
-    if "issue" in p.filename_info:
+    if p.filename_info["issue"]:
         p.filename_info["issue"] = issuestring.IssueString(p.filename_info["issue"].lstrip("#")).as_string()
 
-    if "volume" in p.filename_info:
+    if p.filename_info["volume"]:
         p.filename_info["volume"] = p.filename_info["volume"].lstrip("#").lstrip("0")
 
-    if "issue" not in p.filename_info:
+    if not p.filename_info["issue"]:
         # We have an alternate move it to the issue
-        if "alternate" in p.filename_info:
+        if p.filename_info["alternate"]:
             p.filename_info["issue"] = p.filename_info["alternate"]
             p.filename_info["alternate"] = ""
 
-        if "volume" in p.filename_info:
+        if p.filename_info["volume"]:
             p.filename_info["issue"] = p.filename_info["volume"]
 
     if (
-        "issue" in p.filename_info
+        p.filename_info["issue"]
         and p.protofolius_issue_number_scheme
         and len(p.filename_info["issue"]) > 1
         and p.filename_info["issue"][0].isalpha()
@@ -1030,25 +1046,6 @@ def parse_finish(p: Parser) -> Callable[[Parser], Callable | None] | None:  # ty
 
     p.filename_info["remainder"] = get_remainder(p)
 
-    # Ensure keys always exist
-    for s in [
-        "alternate",
-        "issue",
-        "archive",
-        "series",
-        "title",
-        "volume",
-        "year",
-        "remainder",
-        "issue_count",
-        "volume_count",
-        "publisher",
-    ]:
-        if s not in p.filename_info:
-            p.filename_info[s] = ""  # type: ignore
-    for s in ["fcbd", "c2c", "annual"]:
-        if s not in p.filename_info:
-            p.filename_info[s] = False  # type: ignore
     return None
 
 

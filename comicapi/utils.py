@@ -71,6 +71,24 @@ def parse_filename(
     allow_issue_start_with_letter: bool = False,
     protofolius_issue_number_scheme: bool = False,
 ) -> filenameparser.FilenameInfo:
+    if not filename:
+        return filenameparser.FilenameInfo(
+            alternate="",
+            annual=False,
+            archive="",
+            c2c=False,
+            fcbd=False,
+            issue="",
+            issue_count="",
+            publisher="",
+            remainder="",
+            series="",
+            title="",
+            volume="",
+            volume_count="",
+            year="",
+            format="",
+        )
     if split_words:
         import wordninja
 
@@ -90,19 +108,23 @@ def parse_filename(
     else:
         fnp = filenameparser.FileNameParser()
         fnp.parse_filename(filename)
-        fni = filenameparser.FilenameInfo()
-        if fnp.issue:
-            fni["issue"] = fnp.issue
-        if fnp.series:
-            fni["series"] = fnp.series
-        if fnp.volume:
-            fni["volume"] = fnp.volume
-        if fnp.year:
-            fni["year"] = fnp.year
-        if fnp.issue_count:
-            fni["issue_count"] = fnp.issue_count
-        if fnp.remainder:
-            fni["remainder"] = fnp.remainder
+        fni = filenameparser.FilenameInfo(
+            alternate="",
+            annual=False,
+            archive="",
+            c2c=False,
+            fcbd=False,
+            issue=fnp.issue,
+            issue_count=fnp.issue_count,
+            publisher="",
+            remainder=fnp.remainder,
+            series=fnp.series,
+            title="",
+            volume=fnp.volume,
+            volume_count="",
+            year=fnp.year,
+            format="",
+        )
         return fni
 
 
