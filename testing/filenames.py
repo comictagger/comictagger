@@ -955,6 +955,21 @@ names: list[tuple[str, str, dict[str, str | bool], tuple[bool, bool]]] = [
         },
         (True, True),
     ),
+    (
+        "Cory Doctorow's Futuristic Tales of the Here and Now $1$2 3 #0.0.1 (2007).cbz",
+        "$",
+        {
+            "archive": "cbz",
+            "issue": "0.1",
+            "series": "Cory Doctorow's Futuristic Tales of the Here and Now $1 $2 3",
+            "title": "",
+            "volume": "",
+            "year": "2007",
+            "remainder": "",
+            "issue_count": "",
+        },
+        (True, True),
+    ),
 ]
 
 oldfnames = []

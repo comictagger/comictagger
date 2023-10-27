@@ -130,17 +130,25 @@ class Lexer:
         self.start = self.pos
 
     # Accept consumes the next rune if it's from the valid se:
-    def accept(self, valid: str) -> bool:
-        if self.get() in valid:
-            return True
+    def accept(self, valid: str | Callable[[str], bool]) -> bool:
+        if isinstance(valid, str):
+            if self.get() in valid:
+                return True
+        else:
+            if valid(self.get()):
+                return True
 
         self.backup()
         return False
 
     # AcceptRun consumes a run of runes from the valid set.
-    def accept_run(self, valid: str) -> None:
-        while self.get() in valid:
-            continue
+    def accept_run(self, valid: str | Callable[[str], bool]) -> None:
+        if isinstance(valid, str):
+            while self.get() in valid:
+                continue
+        else:
+            while valid(self.get()):
+                continue
 
         self.backup()
 
@@ -150,9 +158,7 @@ class Lexer:
         self.accept_run(digits)
         if self.input[self.pos] == ".":
             self.backup()
-        while self.get().isalpha():
-            ...
-        self.backup()
+        self.accept_run(str.isalpha)
 
         return True
 
@@ -197,7 +203,8 @@ def lex_filename(lex: Lexer) -> Callable[[Lexer], Callable | None] | None:  # ty
         r = lex.peek()
         if r.isdigit():
             return lex_number
-        lex.emit(ItemType.Text)  # TODO: Change to Text
+        lex.accept_run(is_symbol)
+        lex.emit(ItemType.Symbol)
     elif r.isnumeric():
         lex.backup()
         return lex_number
@@ -245,17 +252,17 @@ def lex_filename(lex: Lexer) -> Callable[[Lexer], Callable | None] | None:  # ty
     elif is_symbol(r):
         if unicodedata.category(r) == "Sc":
             return lex_currency
+        lex.accept_run(is_symbol)
         lex.emit(ItemType.Symbol)
     else:
-        return errorf(lex, "unrecognized character in action: " + r)
+        return errorf(lex, "unrecognized character in action: " + repr(r))
 
     return lex_filename
 
 
 def lex_currency(lex: Lexer) -> Callable:
     orig = lex.pos
-    while is_space(lex.peek()):
-        lex.get()
+    lex.accept_run(is_space)
     if lex.peek().isnumeric():
         return lex_number
     else:
@@ -274,8 +281,7 @@ def lex_operator(lex: Lexer) -> Callable:  # type: ignore[type-arg]
 # LexSpace scans a run of space characters.
 # One space has already been seen.
 def lex_space(lex: Lexer) -> Callable:  # type: ignore[type-arg]
-    while is_space(lex.peek()):
-        lex.get()
+    lex.accept_run(is_space)
 
     lex.emit(ItemType.Space)
     return lex_filename
@@ -332,17 +338,37 @@ def lex_number(lex: Lexer) -> Callable[[Lexer], Callable | None] | None:  # type
         # Assume that 80th is just text and not a number
         lex.emit(ItemType.Text)
     else:
-        orig = lex.pos
-        while is_space(lex.peek()):
-            lex.get()
-        if "Sc" == unicodedata.category(lex.get()):
+        # Used to check for a '$'
+        endNumber = lex.pos
+
+        # Consume any spaces
+        lex.accept_run(is_space)
+
+        # This number starts with a '$' emit it as Text instead of a Number
+        if "Sc" == unicodedata.category(lex.input[lex.start]):
+            lex.pos = endNumber
             lex.emit(ItemType.Text)
-        else:
-            lex.pos = orig
-            if "Sc" == unicodedata.category(lex.input[lex.start]):
-                lex.emit(ItemType.Text)
-            else:
+
+        # This number ends in a '$' if there is a number on the other side we assume it belongs to the following number
+        elif "Sc" == unicodedata.category(lex.get()):
+            # Store the end of the number '$'. We still need to check to see if there is a number coming up
+            endCurrency = lex.pos
+            # Consume any spaces
+            lex.accept_run(is_space)
+
+            # This is a number
+            if lex.peek().isnumeric():
+                # We go back to the original number before the '$' and emit a number
+                lex.pos = endNumber
                 lex.emit(ItemType.Number)
+            else:
+                # There was no following number, reset to the '$' and emit a number
+                lex.pos = endCurrency
+                lex.emit(ItemType.Text)
+        else:
+            # We go back to the original number there is no '$'
+            lex.pos = endNumber
+            lex.emit(ItemType.Number)
 
     return lex_filename
 
@@ -350,21 +376,13 @@ def lex_number(lex: Lexer) -> Callable[[Lexer], Callable | None] | None:  # type
 def lex_issue_number(lex: Lexer) -> Callable[[Lexer], Callable | None] | None:  # type: ignore[type-arg]
     # Only called when lex.input[lex.start] == "#"
     original_start = lex.pos
-    found_number = False
-    while True:
-        r = lex.get()
-        if is_alpha_numeric(r):
-            if r.isnumeric():
-                found_number = True
-        else:
-            lex.backup()
-            break
+    lex.accept_run(str.isalpha)
 
-    if not found_number:
+    if lex.peek().isnumeric():
+        return lex_number
+    else:
         lex.pos = original_start
         lex.emit(ItemType.Symbol)
-    else:
-        lex.emit(ItemType.IssueNumber)
 
     return lex_filename
 

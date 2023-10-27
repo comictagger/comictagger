@@ -544,19 +544,8 @@ def parse(p: Parser) -> Callable[[Parser], Callable | None] | None:  # type: ign
         # Ensures that IG-88 gets added back to the series/title
         else:
             if p.in_something == 0:
-                to_series = (
-                    filenamelexer.ItemType.IssueNumber,
-                    filenamelexer.ItemType.Number,
-                    filenamelexer.ItemType.Operator,
-                )
-                if (
-                    p.peek().typ in to_series
-                    or (p.peek().typ == filenamelexer.ItemType.Space and p.peek(2).typ in to_series)
-                    or p.peek_back().typ in to_series
-                    or (p.peek_back().typ == filenamelexer.ItemType.Space and p.peek_back(2).typ in to_series)
-                ):
-                    # Were not in something and the next or previous type is an operator or number, add it to the series
-                    return functools.partial(parse_series, i=item)
+                #  We're not in something add it to the series
+                return functools.partial(parse_series, i=item)
 
     # Number with a leading hash e.g. #003
     elif item.typ == filenamelexer.ItemType.IssueNumber:
@@ -1031,8 +1020,6 @@ def parse_finish(p: Parser) -> Callable[[Parser], Callable | None] | None:  # ty
     for part in p.series:
         p.used_items.extend(part)
     p.series_parts, p.title_parts = split_series(p.series)
-    p.filename_info["series"] = join_title(p.series_parts)
-    p.filename_info["title"] = join_title(p.title_parts)
 
     resolve_year(p)
     resolve_issue(p)
@@ -1048,7 +1035,6 @@ def parse_finish(p: Parser) -> Callable[[Parser], Callable | None] | None:  # ty
 
     if p.series_parts:
         p.filename_info["series"] = join_title(p.series_parts)
-        p.used_items.extend(p.series_parts)
     else:
         p.filename_info["series"] = p.filename_info.get("issue", "")
 
@@ -1056,7 +1042,6 @@ def parse_finish(p: Parser) -> Callable[[Parser], Callable | None] | None:  # ty
         p.filename_info["fcbd"] = True
 
     p.filename_info["title"] = join_title(p.title_parts)
-    p.used_items.extend(p.title_parts)
 
     p.irrelevant.extend([x for x in p.input if x.typ in p.remove_from_remainder])
 
@@ -1153,11 +1138,15 @@ def parse_info_specifier(p: Parser) -> Callable[[Parser], Callable | None] | Non
                         p.used_items.append(item)
                         p.used_items.append(number)
 
-                    # This is not for the issue number it is not in either the issue or the title,
-                    # assume it is the volume number and count
-                    elif p.issue_number_at != i.pos and i not in p.series_parts and i not in p.title_parts:
+                    # This is not for the issue number
+                    # assume it is the volume number and count, remove from series
+                    elif p.issue_number_at != i.pos:
                         p.filename_info["volume"] = i.val
                         p.filename_info["volume_count"] = str(int(t2do.convert(number.val)))
+                        for part in p.series:
+                            if i in part:
+                                part.remove(i)
+                                break
                         p.used_items.append(i)
                         p.used_items.append(item)
                         p.used_items.append(number)
