@@ -21,6 +21,7 @@ This should probably be re-written, but, well, it mostly works!
 from __future__ import annotations
 
 import functools
+import itertools
 import logging
 import os
 import re
@@ -390,6 +391,7 @@ class Parser:
         self.in_s_brace = 0  # In []
         self.in_paren = 0  # In ()
         self.year_candidates: list[tuple[bool, bool, filenamelexer.Item]] = []
+        self.series: list[list[filenamelexer.Item]] = []
         self.series_parts: list[filenamelexer.Item] = []
         self.title_parts: list[filenamelexer.Item] = []
         self.used_items: list[filenamelexer.Item] = []
@@ -425,11 +427,11 @@ class Parser:
         return self.input[self.pos]
 
     # Peek returns but does not consume the next Item in the input.
-    def peek(self) -> filenamelexer.Item:
-        if int(self.pos) >= len(self.input) - 1:
+    def peek(self, length: int = 1) -> filenamelexer.Item:
+        if int(self.pos) + length >= len(self.input):
             return eof
 
-        return self.input[self.pos + 1]
+        return self.input[self.pos + length]
 
     # Peek_back returns but does not step back the previous Item in the input.
     def peek_back(self, length: int = 1) -> filenamelexer.Item:
@@ -474,7 +476,7 @@ def parse(p: Parser) -> Callable[[Parser], Callable | None] | None:  # type: ign
                     if p.issue_number_at is None:
                         # Series has already been started/parsed,
                         # filters out leading alternate numbers leading alternate number
-                        if len(p.series_parts) > 0:
+                        if len(p.series) > 0:
                             return parse_issue_number
             else:
                 p.operator_rejected.append(item)
@@ -491,12 +493,9 @@ def parse(p: Parser) -> Callable[[Parser], Callable | None] | None:  # type: ign
 
         # Is either a full year '2001' or a short year "'89"
         if len(item.val.lstrip("0")) == 4 or item.val[0] == "'":
-            series = " ".join([x.val for x in p.series_parts])
-            if p.series_parts and series.casefold().endswith("free comic book day"):
+            series = " ".join([x.val for x in (p.series[-1] if p.series else [])])
+            if p.series and series.casefold().endswith("free comic book day"):
                 likely_issue_number = False
-            if p.in_something == 0:
-                # Append to series in case it is a part of the title, but only if were not inside parenthesis
-                p.series_parts.append(item)
 
             # Look for a full date as in 2022-04-22
             if p.peek().typ in [
@@ -534,21 +533,29 @@ def parse(p: Parser) -> Callable[[Parser], Callable | None] | None:  # type: ign
 
             likely_issue_number = likely_issue_number and item.val[0] != "'"
             p.year_candidates.append((likely_year, likely_issue_number, item))
+            if p.in_something == 0:
+                # Append to series in case it is a part of the title, but only if were not inside parenthesis
+                if not p.series:
+                    p.series.append([])
+                p.series[-1].append(item)
+
+                # We would use i=item but we want to force a split after year candidates
+                return functools.partial(parse_series, i=None)
         # Ensures that IG-88 gets added back to the series/title
         else:
             if p.in_something == 0:
-                if p.peek_back().typ in (filenamelexer.ItemType.IssueNumber, filenamelexer.ItemType.Number) or (
-                    p.peek_back().typ == filenamelexer.ItemType.Space
-                    and p.peek_back(2).typ in (filenamelexer.ItemType.IssueNumber, filenamelexer.ItemType.Number)
-                ):
-                    return functools.partial(parse_series, i=item)
+                to_series = (
+                    filenamelexer.ItemType.IssueNumber,
+                    filenamelexer.ItemType.Number,
+                    filenamelexer.ItemType.Operator,
+                )
                 if (
-                    p.peek_back().typ == filenamelexer.ItemType.Operator
-                    or p.peek().typ == filenamelexer.ItemType.Operator
+                    p.peek().typ in to_series
+                    or (p.peek().typ == filenamelexer.ItemType.Space and p.peek(2).typ in to_series)
+                    or p.peek_back().typ in to_series
+                    or (p.peek_back().typ == filenamelexer.ItemType.Space and p.peek_back(2).typ in to_series)
                 ):
-                    # Were not in something and the next or previous type is an operator, add it to the series
-                    p.used_items.append(item)
-
+                    # Were not in something and the next or previous type is an operator or number, add it to the series
                     return functools.partial(parse_series, i=item)
 
     # Number with a leading hash e.g. #003
@@ -600,7 +607,7 @@ def parse(p: Parser) -> Callable[[Parser], Callable | None] | None:  # type: ign
             number = p.get()
             # Mark volume info. Text will be added to the title/series later
             if item.val.casefold() in ["tpb"]:
-                p.title_parts.extend([item, number])
+                # p.title_parts.extend([item, number])
                 p.filename_info["volume"] = t2do.convert(number.val)
                 p.filename_info["issue"] = t2do.convert(number.val)
 
@@ -631,8 +638,9 @@ def parse(p: Parser) -> Callable[[Parser], Callable | None] | None:  # type: ign
         # Unset first item
         if p.firstItem:
             p.firstItem = False
-        if p.in_something == 0:
-            return functools.partial(parse_series, i=None)  # TODO
+        if p.in_something == 0 and not p.skip:
+            p.backup()
+            return functools.partial(parse_series, i=None)
 
     # Usually the word 'of' eg 1 (of 6)
     elif item.typ == filenamelexer.ItemType.InfoSpecifier:
@@ -741,31 +749,29 @@ def parse_issue_number(p: Parser) -> Callable[[Parser], Callable | None] | None:
     return parse
 
 
-def parse_series(p: Parser, i: filenamelexer.Item) -> Callable[[Parser], Callable | None] | None:  # type: ignore[type-arg]
-    item = p.input[p.pos]
-    current_part = 0
+# i=None is a split in the series
+def parse_series(p: Parser, i: filenamelexer.Item | None) -> Callable[[Parser], Callable | None] | None:
+    current = []
     prev_space = False
 
-    title_parts: list[filenamelexer.Item] = []
-    series_parts: list[filenamelexer.Item] = []
-    series: list[list[filenamelexer.Item]] = [[]]
     issue_marked_or_passed = (
         p.issue_number_marked and p.issue_number_passed or p.issue_number_at is not None and not p.issue_number_marked
     )
 
-    # We stop parsing the series when certain things come up if nothing was done with them continue where we left off
     if i:
-        if issue_marked_or_passed:
-            series[0].append(i)
-        else:
-            series_parts = p.series_parts
-            p.series_parts = []
-            series_parts.append(i)
+        if not issue_marked_or_passed:
+            if p.series:
+                current = p.series.pop()
+        current.append(i)
+    else:
+        # If we are splitting we don't want to sart with these
+        while p.peek().typ in [
+            filenamelexer.ItemType.Space,
+            filenamelexer.ItemType.Operator,
+            filenamelexer.ItemType.Symbol,
+        ]:
+            p.irrelevant.append(p.get())
 
-    # Space and Dots are not useful at the beginning of a title/series
-    if not p.skip and item.typ not in [filenamelexer.ItemType.Space, filenamelexer.ItemType.Dot]:
-        if item.typ in [filenamelexer.ItemType.Text, filenamelexer.ItemType.Honorific]:
-            p.backup()
     # Skip is only true if we have come across '--' or '__'
     while not p.skip:
         item = p.get()
@@ -780,14 +786,14 @@ def parse_series(p: Parser, i: filenamelexer.Item) -> Callable[[Parser], Callabl
             filenamelexer.ItemType.Publisher,
             filenamelexer.ItemType.Honorific,
         ]:
-            series[current_part].append(item)
+            current.append(item)
             if p.peek().typ == filenamelexer.ItemType.Dot:
                 dot = p.get()
                 if item.typ == filenamelexer.ItemType.Honorific or (
                     p.peek().typ == filenamelexer.ItemType.Space
                     and item.typ in (filenamelexer.ItemType.Text, filenamelexer.ItemType.Publisher)
                 ):
-                    series[current_part].append(dot)
+                    current.append(dot)
                 else:
                     p.backup()
             if item.typ == filenamelexer.ItemType.Publisher:
@@ -797,14 +803,14 @@ def parse_series(p: Parser, i: filenamelexer.Item) -> Callable[[Parser], Callabl
         elif item.typ == filenamelexer.ItemType.InfoSpecifier:
             # Exception for 'of'
             if item.val.casefold() == "of":
-                series[current_part].append(item)
+                current.append(item)
             else:
                 # This specifically lets 'X-Men-V1-067' parse correctly as Series: X-Men Volume: 1 Issue: 67
-                while len(series[current_part]) > 0 and series[current_part][-1].typ not in [
+                while len(current) > 0 and current[-1].typ not in [
                     filenamelexer.ItemType.Text,
                     filenamelexer.ItemType.Symbol,
                 ]:
-                    p.irrelevant.append(series[current_part].pop())
+                    p.irrelevant.append(current.pop())
                 p.backup()
                 break
 
@@ -812,14 +818,13 @@ def parse_series(p: Parser, i: filenamelexer.Item) -> Callable[[Parser], Callabl
             peek = p.peek()
             # ': ' separates the title from the series, only the last section is considered the title
             if not prev_space and peek.typ in [filenamelexer.ItemType.Space]:
-                series.append([])  # Starts a new section
-                series[current_part].append(item)
-                current_part += 1
+                current.append(item)
+                break
             else:
                 # Force space around '-' makes 'batman - superman' stay otherwise we get 'batman-superman'
                 if prev_space and peek.typ in [filenamelexer.ItemType.Space]:
                     item.val = " " + item.val + " "
-                series[current_part].append(item)
+                current.append(item)
 
         # Stop processing series/title if a skip item is found
         elif item.typ == filenamelexer.ItemType.Skip:
@@ -828,14 +833,18 @@ def parse_series(p: Parser, i: filenamelexer.Item) -> Callable[[Parser], Callabl
 
         elif item.typ == filenamelexer.ItemType.Number:
             # Special case for the word 'book'
-            if series[current_part] and series[current_part][-1].val.casefold() == "book":
-                title_parts.append(series[current_part].pop())
-                title_parts.append(item)
+            if current and current[-1].val.casefold() == "book":
+                # Mark the volume
                 p.filename_info["volume"] = t2do.convert(item.val)
+
+                # Add this section to the series EG [['bloodshot', 'book']]
+                p.series.append(current)
+                # Pop the last item and break to end this section EG [['bloodshot'], ['book', '3']]
+                current = [current.pop(), item]
                 break
 
             count = get_number(p, p.pos + 1)
-            # this is an issue or volume number
+            # this is an issue or volume number eg '1 of 2'
             if count is not None:
                 p.backup()
                 break
@@ -844,13 +853,13 @@ def parse_series(p: Parser, i: filenamelexer.Item) -> Callable[[Parser], Callabl
                 p.get()
                 # We have 2 numbers, add the first to the series and then go back to parse
                 if p.peek().typ in [filenamelexer.ItemType.Number, filenamelexer.ItemType.IssueNumber]:
-                    series[current_part].append(item)
+                    current.append(item)
                     break
 
                 # the issue number has been marked and passed, keep it as a part of the series
                 if issue_marked_or_passed:
                     # We already have an issue number, this should be a part of the series
-                    series[current_part].append(item)
+                    current.append(item)
                 else:
                     # We have 1 number break here, it's possible it's the issue
                     p.backup()  # Whitespace
@@ -862,7 +871,7 @@ def parse_series(p: Parser, i: filenamelexer.Item) -> Callable[[Parser], Callabl
                 # the issue number has been #marked or passed, keep it as a part of the series
                 if issue_marked_or_passed:
                     # We already have an issue number, this should be a part of the series
-                    series[current_part].append(item)
+                    current.append(item)
                 else:
                     p.backup()  # The number
                     break
@@ -871,13 +880,13 @@ def parse_series(p: Parser, i: filenamelexer.Item) -> Callable[[Parser], Callabl
             # Ensure 'ms. marvel' parses 'ms.' correctly
             if item.typ == filenamelexer.ItemType.Dot:
                 if p.peek_back().typ == filenamelexer.ItemType.Honorific:
-                    series[current_part].append(item)
+                    current.append(item)
                 elif (
                     p.peek().typ == filenamelexer.ItemType.Number
                     or p.peek_back().typ == filenamelexer.ItemType.Text
                     and len(p.peek_back().val) == 1
                 ):
-                    series[current_part].append(item)
+                    current.append(item)
                     item.no_space = True
                 # Allows avengers.hulk to parse correctly
                 elif p.peek().typ in (filenamelexer.ItemType.Text,):
@@ -889,24 +898,7 @@ def parse_series(p: Parser, i: filenamelexer.Item) -> Callable[[Parser], Callabl
 
         prev_space = False
 
-    # We have a title separator e.g. ': "
-    if len(series) > 1:
-        title_parts.extend(series.pop())
-        for s in series:
-            if s and s[-1].typ == filenamelexer.ItemType.Operator:
-                s[-1].val += " "  # Ensures that when there are multiple separators that they display properly
-            series_parts.extend(s)
-        p.used_items.append(series_parts.pop())
-    else:
-        series_parts.extend(series[0])
-
-    # If the series has already been set assume all of this is the title.
-    if len(p.series_parts) > 0:
-        p.title_parts.extend(series_parts)
-        p.title_parts.extend(title_parts)
-    else:
-        p.series_parts.extend(series_parts)
-        p.title_parts.extend(title_parts)
+    p.series.append(current)
     return parse
 
 
@@ -1008,7 +1000,40 @@ def resolve_issue(p: Parser) -> None:
         p.filename_info["format"] = protofolius_issue_number_scheme[p.filename_info["issue"][0].upper()]
 
 
+def split_series(items: list[list[filenamelexer.Item]]) -> tuple[list[filenamelexer.Item], list[filenamelexer.Item]]:
+    series_parts: list[list[filenamelexer.Item]] = []
+    title_parts: list[list[filenamelexer.Item]] = []
+    current = series_parts
+    # We probably have a title
+    if len(items) > 1:
+        for i, s in enumerate(items):
+            # Switch to title if we are on the last part
+            if i == len(items) - 1:
+                current = title_parts
+            if s:
+                current.append(s)
+                if s[-1].typ == filenamelexer.ItemType.Operator:
+                    s[-1].val += " "  # Ensures that when there are multiple separators that they display properly
+                else:  # We don't have an operator separating the parts, it's probably an issue number
+                    current = title_parts
+    else:
+        if items:
+            series_parts.extend(items)
+
+    series: list[filenamelexer.Item] = list(itertools.chain.from_iterable(series_parts))
+    title: list[filenamelexer.Item] = list(itertools.chain.from_iterable(title_parts))
+    if series and series[-1].typ == filenamelexer.ItemType.Operator:
+        series.pop()
+    return series, title
+
+
 def parse_finish(p: Parser) -> Callable[[Parser], Callable | None] | None:  # type: ignore[type-arg]
+    for part in p.series:
+        p.used_items.extend(part)
+    p.series_parts, p.title_parts = split_series(p.series)
+    p.filename_info["series"] = join_title(p.series_parts)
+    p.filename_info["title"] = join_title(p.title_parts)
+
     resolve_year(p)
     resolve_issue(p)
 
@@ -1140,7 +1165,8 @@ def parse_info_specifier(p: Parser) -> Callable[[Parser], Callable | None] | Non
                         # TODO: Figure out what to do here if it ever happens
                         pass
                 else:
-                    # Lets 'The Wrath of Foobar-Man, Part 1 of 2' parse correctly as the title
+                    # Resets back to '1' in  'The Wrath of Foobar-Man, Part 1 of 2'
+                    # we then go to parse_series it adds i (the '1') and then continues parsing at of
                     p.pos = [ind for ind, x in enumerate(p.input) if x == i][0]
 
             if not p.in_something:
