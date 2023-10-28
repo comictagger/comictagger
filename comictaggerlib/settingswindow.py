@@ -293,6 +293,7 @@ class SettingsWindow(QtWidgets.QDialog):
             "year",
             "alternate",
             "publisher",
+            "format",
             "archive",
             "remainder",
             "annual",
