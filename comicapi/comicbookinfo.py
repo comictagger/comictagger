@@ -16,7 +16,6 @@ from __future__ import annotations
 
 import json
 import logging
-from collections import defaultdict
 from datetime import datetime
 from typing import Any, Literal, TypedDict
 
@@ -75,26 +74,26 @@ CBIContainer = TypedDict("CBIContainer", {"appID": str, "lastModified": str, "Co
 
 class ComicBookInfo:
     def metadata_from_string(self, string: str) -> GenericMetadata:
-        cbi_container = json.loads(string)
+        cbi_container: CBIContainer = json.loads(string)
 
         metadata = GenericMetadata()
 
-        cbi = defaultdict(lambda: None, cbi_container["ComicBookInfo/1.0"])
+        cbi = cbi_container["ComicBookInfo/1.0"]
 
-        metadata.series = utils.xlate(cbi["series"])
-        metadata.title = utils.xlate(cbi["title"])
-        metadata.issue = utils.xlate(cbi["issue"])
-        metadata.publisher = utils.xlate(cbi["publisher"])
-        metadata.month = utils.xlate_int(cbi["publicationMonth"])
-        metadata.year = utils.xlate_int(cbi["publicationYear"])
-        metadata.issue_count = utils.xlate_int(cbi["numberOfIssues"])
-        metadata.description = utils.xlate(cbi["comments"])
-        metadata.genres = set(utils.split(cbi["genre"], ","))
-        metadata.volume = utils.xlate_int(cbi["volume"])
-        metadata.volume_count = utils.xlate_int(cbi["numberOfVolumes"])
-        metadata.language = utils.xlate(cbi["language"])
-        metadata.country = utils.xlate(cbi["country"])
-        metadata.critical_rating = utils.xlate_int(cbi["rating"])
+        metadata.series = utils.xlate(cbi.get("series"))
+        metadata.title = utils.xlate(cbi.get("title"))
+        metadata.issue = utils.xlate(cbi.get("issue"))
+        metadata.publisher = utils.xlate(cbi.get("publisher"))
+        metadata.month = utils.xlate_int(cbi.get("publicationMonth"))
+        metadata.year = utils.xlate_int(cbi.get("publicationYear"))
+        metadata.issue_count = utils.xlate_int(cbi.get("numberOfIssues"))
+        metadata.description = utils.xlate(cbi.get("comments"))
+        metadata.genres = set(utils.split(cbi.get("genre"), ","))
+        metadata.volume = utils.xlate_int(cbi.get("volume"))
+        metadata.volume_count = utils.xlate_int(cbi.get("numberOfVolumes"))
+        metadata.language = utils.xlate(cbi.get("language"))
+        metadata.country = utils.xlate(cbi.get("country"))
+        metadata.critical_rating = utils.xlate_int(cbi.get("rating"))
 
         metadata.credits = [
             Credits(
@@ -102,9 +101,9 @@ class ComicBookInfo:
                 role=x["role"] if "role" in x else "",
                 primary=x["primary"] if "primary" in x else False,
             )
-            for x in cbi["credits"]
+            for x in cbi.get("credits", [])
         ]
-        metadata.tags.update(cbi["tags"] if cbi["tags"] is not None else set())
+        metadata.tags.update(cbi.get("tags", set()))
 
         # need the language string to be ISO
         if metadata.language:
