@@ -23,6 +23,7 @@ from __future__ import annotations
 import copy
 import dataclasses
 import logging
+from collections.abc import Sequence
 from typing import Any, TypedDict
 
 from typing_extensions import NamedTuple
@@ -315,7 +316,10 @@ class GenericMetadata:
             return "No metadata"
 
         def add_string(tag: str, val: Any) -> None:
-            if val is not None and str(val) != "":
+            if isinstance(val, Sequence):
+                if val:
+                    vals.append((tag, val))
+            elif val is not None:
                 vals.append((tag, val))
 
         def add_attr_string(tag: str) -> None:
