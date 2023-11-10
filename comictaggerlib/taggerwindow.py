@@ -1619,7 +1619,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
             reply = QtWidgets.QMessageBox.question(
                 self,
                 "Copy Tags",
-                f"Are you sure you wish to copy the {MetaDataStyle.name[src_style]} tags to {MetaDataStyle.name[dest_style]} tags in {has_src_count} archive(s)?",
+                f"Are you sure you wish to copy the {MetaDataStyle.name[src_style]}"
+                + f" tags to {MetaDataStyle.name[dest_style]} tags in {has_src_count} archive(s)?",
                 QtWidgets.QMessageBox.StandardButton.Yes,
                 QtWidgets.QMessageBox.StandardButton.No,
             )
@@ -1837,8 +1838,9 @@ class TaggerWindow(QtWidgets.QMainWindow):
             self,
             self.config[0],
             (
-                f"You have selected {len(ca_list)} archive(s) to automatically identify and write {MetaDataStyle.name[style]} tags to."
-                "\n\nPlease choose config below, and select OK to Auto-Tag."
+                f"You have selected {len(ca_list)} archive(s) to automatically identify and write "
+                + MetaDataStyle.name[style]
+                + " tags to.\n\nPlease choose config below, and select OK to Auto-Tag."
             ),
         )
 
