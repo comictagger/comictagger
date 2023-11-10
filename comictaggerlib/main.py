@@ -141,7 +141,8 @@ class App:
 
     def register_settings(self) -> None:
         self.manager = settngs.Manager(
-            """A utility for reading and writing metadata to comic archives.\n\n\nIf no options are given, %(prog)s will run in windowed mode.""",
+            "A utility for reading and writing metadata to comic archives.\n\n\n"
+            + "If no options are given, %(prog)s will run in windowed mode.",
             "For more help visit the wiki at: https://github.com/comictagger/comictagger/wiki",
         )
         ctsettings.register_commandline_settings(self.manager)
@@ -182,7 +183,9 @@ class App:
 
         if len(talkers) < 1:
             error = error = (
-                f"Failed to load any talkers, please re-install and check the log located in '{self.config[0].Runtime_Options_config.user_log_dir}' for more details",
+                "Failed to load any talkers, please re-install and check the log located in '"
+                + str(self.config[0].Runtime_Options_config.user_log_dir)
+                + "' for more details",
                 True,
             )
 
@@ -209,7 +212,9 @@ class App:
 
         if not self.config_load_success:
             error = (
-                f"Failed to load settings, check the log located in '{self.config[0].Runtime_Options_config.user_log_dir}' for more details",
+                "Failed to load settings, check the log located in '"
+                + str(self.config[0].Runtime_Options_config.user_log_dir)
+                + "' for more details",
                 True,
             )
 
