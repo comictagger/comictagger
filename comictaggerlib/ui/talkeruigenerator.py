@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 from functools import partial
+from pathlib import Path
 from typing import Any, NamedTuple, cast
 
 import settngs
@@ -165,6 +166,31 @@ def generate_password_textbox(option: settngs.Setting, layout: QtWidgets.QGridLa
     widget = PasswordEdit()
     widget.setToolTip(option.help)
     layout.addWidget(widget, row, 1)
+
+    return widget
+
+
+def generate_path_textbox(option: settngs.Setting, layout: QtWidgets.QGridLayout) -> QtWidgets.QLineEdit:
+    def open_file_picker():
+        if widget.text():
+            current_path = Path(widget.text())
+        else:
+            current_path = Path.home()
+        file_path, _ = QtWidgets.QFileDialog.getOpenFileName(None, "Select File", str(current_path), "")
+        if file_path:
+            widget.setText(file_path)
+
+    row = layout.rowCount()
+    lbl = QtWidgets.QLabel(option.display_name)
+    lbl.setToolTip(option.help)
+    layout.addWidget(lbl, row, 0)
+    widget = QtWidgets.QLineEdit()
+    widget.setToolTip(option.help)
+    layout.addWidget(widget, row, 1)
+
+    browse_button = QtWidgets.QPushButton("Browse")
+    browse_button.clicked.connect(partial(open_file_picker))
+    layout.addWidget(browse_button, row, 2)
 
     return widget
 
@@ -347,6 +373,10 @@ def generate_source_option_tabs(
                 tab.widgets[option.dest] = current_widget
             elif option._guess_type() is float:
                 current_widget = generate_doublespinbox(option, layout_grid)
+                tab.widgets[option.dest] = current_widget
+
+            elif option._guess_type() is Path:
+                current_widget = generate_path_textbox(option, layout_grid)
                 tab.widgets[option.dest] = current_widget
 
             elif option._guess_type() is str:
