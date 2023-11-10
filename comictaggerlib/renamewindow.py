@@ -185,7 +185,6 @@ class RenameWindow(QtWidgets.QDialog):
 
                 prog_dialog.setValue(idx)
                 prog_dialog.setLabelText(comic[1])
-                center_window_on_parent(prog_dialog)
                 QtCore.QCoreApplication.processEvents()
 
                 folder = get_rename_dir(
