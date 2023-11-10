@@ -68,10 +68,11 @@ def generate_api_widgets(
     key_option: settngs.Setting,
     url_option: settngs.Setting,
     layout: QtWidgets.QGridLayout,
+    definitions: settngs.Definitions,
 ) -> None:
     # *args enforces keyword arguments and allows position arguments to be ignored
-    def call_check_api(*args: Any, tab: TalkerTab, talker: ComicTalker) -> None:
-        check_text, check_bool = talker.check_status(get_config_dict(tab))
+    def call_check_api(*args: Any, tab: TalkerTab, talker: ComicTalker, definitions: settngs.Definitions) -> None:
+        check_text, check_bool = talker.check_status(get_config_dict(tab, definitions[group_for_plugin(talker)]))
         if check_bool:
             QtWidgets.QMessageBox.information(None, "API Test Success", check_text)
         else:
@@ -107,7 +108,7 @@ def generate_api_widgets(
         btn = QtWidgets.QPushButton("Test API")
         layout.addWidget(btn, btn_test_row, 2)
         # partial is used as connect will pass in event information
-        btn.clicked.connect(partial(call_check_api, tab=widgets, talker=talker))
+        btn.clicked.connect(partial(call_check_api, tab=widgets, talker=talker, definitions=definitions))
 
 
 def generate_checkbox(option: settngs.Setting, layout: QtWidgets.QGridLayout) -> QtWidgets.QCheckBox:
@@ -244,7 +245,7 @@ def settings_to_talker_form(sources: Sources, config: settngs.Config[ct_ns]) -> 
                 logger.debug("Failed to set value of %s for %s(%s)", dest, talker.name, talker.id)
 
 
-def get_config_dict(tab: TalkerTab) -> dict[str, Any]:
+def get_config_dict(tab: TalkerTab, definitions: settngs.Group) -> dict[str, Any]:
     talker_options = {}
     # dest is guaranteed to be unique within a talker and refer to the correct item in config.values['group name']
     for dest, widget in tab.widgets.items():
@@ -258,6 +259,21 @@ def get_config_dict(tab: TalkerTab) -> dict[str, Any]:
         elif isinstance(widget, QtWidgets.QCheckBox):
             widget_value = widget.isChecked()
 
+        # Reset to default
+        if (isinstance(widget_value, str) and widget_value == "") or widget_value is None:
+            widget_value = definitions.v[dest].default
+
+        # Parse string values into their real types
+        typ = definitions.v[dest].type
+        if isinstance(widget_value, str) and typ:
+            widget_value = typ(widget_value)
+
+        # Warn if type isn't correct
+        guessed_type = definitions.v[dest]._guess_type()
+        if guessed_type not in (None, "Any") and type(widget_value) is not guessed_type:
+            logger.warn(
+                "Guessed type is wrong on for '%s': expected: %s got: %s", dest, guessed_type, type(widget_value)
+            )
         talker_options[dest] = widget_value
     return talker_options
 
@@ -270,7 +286,7 @@ def form_settings_to_config(sources: Sources, config: settngs.Config) -> settngs
     # Iterate over the tabs, the talker is included in the tab so no extra lookup is needed
     for talker, tab in sources.tabs:
         talker_options = cfg.values[group_for_plugin(talker)]
-        talker_options.update(get_config_dict(tab))
+        talker_options.update(get_config_dict(tab, cfg.definitions[group_for_plugin(talker)]))
     return cast(settngs.Config[ct_ns], settngs.get_namespace(cfg, True, True))
 
 
@@ -351,7 +367,7 @@ def generate_source_option_tabs(
             continue
 
         # Add talker URL and API key fields
-        generate_api_widgets(talker, tab, key_option, url_option, layout_grid)
+        generate_api_widgets(talker, tab, key_option, url_option, layout_grid, definitions=config.definitions)
 
         # Add vertical spacer
         vspacer = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
