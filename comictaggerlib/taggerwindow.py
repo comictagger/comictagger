@@ -508,7 +508,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
             prog_dialog = QtWidgets.QProgressDialog("", "Cancel", 0, non_zip_count, self)
             prog_dialog.setWindowTitle("Exporting as ZIP")
-            prog_dialog.setWindowModality(QtCore.Qt.WindowModality.ApplicationModal)
+            prog_dialog.setWindowModality(QtCore.Qt.WindowModality.WindowModal)
             prog_dialog.setMinimumDuration(300)
             center_window_on_parent(prog_dialog)
             QtCore.QCoreApplication.processEvents()
@@ -525,7 +525,6 @@ class TaggerWindow(QtWidgets.QMainWindow):
                     break
                 prog_dialog.setValue(prog_idx)
                 prog_dialog.setLabelText(str(ca.path))
-                center_window_on_parent(prog_dialog)
                 QtCore.QCoreApplication.processEvents()
 
                 export_name = ca.path.with_suffix(".cbz")
@@ -1551,7 +1550,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             if reply == QtWidgets.QMessageBox.StandardButton.Yes:
                 progdialog = QtWidgets.QProgressDialog("", "Cancel", 0, has_md_count, self)
                 progdialog.setWindowTitle("Removing Tags")
-                progdialog.setWindowModality(QtCore.Qt.WindowModality.ApplicationModal)
+                progdialog.setWindowModality(QtCore.Qt.WindowModality.WindowModal)
                 progdialog.setMinimumDuration(300)
                 center_window_on_parent(progdialog)
                 QtCore.QCoreApplication.processEvents()
@@ -1564,7 +1563,6 @@ class TaggerWindow(QtWidgets.QMainWindow):
                         break
                     progdialog.setValue(prog_idx)
                     progdialog.setLabelText(str(ca.path))
-                    center_window_on_parent(progdialog)
                     QtCore.QCoreApplication.processEvents()
                     if ca.has_metadata(style):
                         if ca.is_writable():
@@ -1631,7 +1629,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             if reply == QtWidgets.QMessageBox.StandardButton.Yes:
                 prog_dialog = QtWidgets.QProgressDialog("", "Cancel", 0, has_src_count, self)
                 prog_dialog.setWindowTitle("Copying Tags")
-                prog_dialog.setWindowModality(QtCore.Qt.WindowModality.ApplicationModal)
+                prog_dialog.setWindowModality(QtCore.Qt.WindowModality.WindowModal)
                 prog_dialog.setMinimumDuration(300)
                 center_window_on_parent(prog_dialog)
                 QtCore.QCoreApplication.processEvents()
@@ -1645,7 +1643,6 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
                     prog_dialog.setValue(prog_idx)
                     prog_dialog.setLabelText(str(ca.path))
-                    center_window_on_parent(prog_dialog)
                     QtCore.QCoreApplication.processEvents()
 
                     if ca.has_metadata(src_style) and ca.is_writable():
@@ -1858,6 +1855,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.atprogdialog.show()
         self.atprogdialog.progressBar.setMaximum(len(ca_list))
         self.atprogdialog.setWindowTitle("Auto-Tagging")
+        center_window_on_parent(self.atprogdialog)
 
         self.auto_tag_log("==========================================================================\n")
         self.auto_tag_log(f"Auto-Tagging Started for {len(ca_list)} items\n")
@@ -1883,7 +1881,6 @@ class TaggerWindow(QtWidgets.QMainWindow):
             self.atprogdialog.progressBar.setValue(prog_idx)
 
             self.atprogdialog.label.setText(str(ca.path))
-            center_window_on_parent(self.atprogdialog)
             QtCore.QCoreApplication.processEvents()
 
             if ca.is_writable():
