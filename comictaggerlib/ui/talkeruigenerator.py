@@ -296,7 +296,7 @@ def get_config_dict(tab: TalkerTab, definitions: settngs.Group) -> dict[str, Any
 
         # Warn if type isn't correct
         guessed_type = definitions.v[dest]._guess_type()
-        if guessed_type not in (None, "Any") and type(widget_value) is not guessed_type:
+        if guessed_type not in (None, "Any") and not isinstance(widget_value, guessed_type):  # type: ignore[arg-type]
             logger.warn(
                 "Guessed type is wrong on for '%s': expected: %s got: %s", dest, guessed_type, type(widget_value)
             )
