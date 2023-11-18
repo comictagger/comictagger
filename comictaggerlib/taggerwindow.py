@@ -39,7 +39,7 @@ from comicapi.comicinfoxml import ComicInfoXml
 from comicapi.filenameparser import FileNameParser
 from comicapi.genericmetadata import GenericMetadata
 from comicapi.issuestring import IssueString
-from comictaggerlib import ctversion
+from comictaggerlib import ctsettings, ctversion
 from comictaggerlib.applicationlogwindow import ApplicationLogWindow, QTextEditLogger
 from comictaggerlib.autotagmatchwindow import AutoTagMatchWindow
 from comictaggerlib.autotagprogresswindow import AutoTagProgressWindow
@@ -1994,7 +1994,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 self.config[0].internal__sort_column,
                 self.config[0].internal__sort_direction,
             ) = self.fileSelectionList.get_sorting()
-            settngs.save_file(self.config, self.config[0].Runtime_Options__config.user_config_dir / "settings.json")
+            ctsettings.save_file(self.config, self.config[0].Runtime_Options__config.user_config_dir / "settings.json")
 
             event.accept()
         else:

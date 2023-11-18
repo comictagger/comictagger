@@ -538,7 +538,7 @@ class SettingsWindow(QtWidgets.QDialog):
 
         self.update_talkers_config()
 
-        settngs.save_file(self.config, self.config[0].Runtime_Options__config.user_config_dir / "settings.json")
+        ctsettings.save_file(self.config, self.config[0].Runtime_Options__config.user_config_dir / "settings.json")
         self.parent().config = self.config
         QtWidgets.QDialog.accept(self)
 
