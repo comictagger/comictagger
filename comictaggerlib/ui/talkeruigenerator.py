@@ -259,6 +259,9 @@ def settings_to_talker_form(sources: Sources, config: settngs.Config[ct_ns]) -> 
             try:
                 if isinstance(value, str) and value and isinstance(widget, QtWidgets.QLineEdit) and not default:
                     widget.setText(value)
+                # A file picker saves and displays its path in/from a QLineEdit but is not a str
+                if isinstance(value, Path) and value and isinstance(widget, QtWidgets.QLineEdit) and not default:
+                    widget.setText(str(value))
                 if isinstance(value, str) and value and isinstance(widget, QtWidgets.QComboBox):
                     widget.setCurrentIndex(widget.findText(value))
                 if isinstance(value, (float, int)) and isinstance(
