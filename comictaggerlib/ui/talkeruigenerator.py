@@ -73,7 +73,7 @@ def generate_api_widgets(
 ) -> None:
     # *args enforces keyword arguments and allows position arguments to be ignored
     def call_check_api(*args: Any, tab: TalkerTab, talker: ComicTalker, definitions: settngs.Definitions) -> None:
-        check_text, check_bool = talker.check_status(get_config_dict(tab, definitions[group_for_plugin(talker)]))
+        check_text, check_bool = talker.check_status(get_config_from_tab(tab, definitions[group_for_plugin(talker)]))
         if check_bool:
             QtWidgets.QMessageBox.information(None, "API Test Success", check_text)
         else:
@@ -171,7 +171,7 @@ def generate_password_textbox(option: settngs.Setting, layout: QtWidgets.QGridLa
 
 
 def generate_path_textbox(option: settngs.Setting, layout: QtWidgets.QGridLayout) -> QtWidgets.QLineEdit:
-    def open_file_picker():
+    def open_file_picker() -> None:
         if widget.text():
             current_path = Path(widget.text())
         else:
@@ -195,7 +195,7 @@ def generate_path_textbox(option: settngs.Setting, layout: QtWidgets.QGridLayout
     return widget
 
 
-def generate_talker_info(talker: ComicTalker, config: settngs.Config, layout: QtWidgets.QGridLayout) -> None:
+def generate_talker_info(talker: ComicTalker, config: settngs.Config[ct_ns], layout: QtWidgets.QGridLayout) -> None:
     row = layout.rowCount()
 
     # Add a horizontal layout to break link from options below
@@ -255,27 +255,43 @@ def settings_to_talker_form(sources: Sources, config: settngs.Config[ct_ns]) -> 
         # dest is guaranteed to be unique within a talker
         # and refer to the correct item in config.definitions.v['group name']
         for dest, widget in tab.widgets.items():
-            value, default = settngs.get_option(config.values, config.definitions[group_for_plugin(talker)].v[dest])
+            setting = config.definitions[group_for_plugin(talker)].v[dest]
+            value, default = settngs.get_option(config.values, setting)
+
+            # The setting has already been associated to a widget,
+            # we try to force a conversion to the expected type
             try:
-                if isinstance(value, str) and value and isinstance(widget, QtWidgets.QLineEdit) and not default:
-                    widget.setText(value)
-                if isinstance(value, str) and value and isinstance(widget, QtWidgets.QComboBox):
-                    widget.setCurrentIndex(widget.findText(value))
-                if isinstance(value, (float, int)) and isinstance(
-                    widget, (QtWidgets.QSpinBox, QtWidgets.QDoubleSpinBox)
-                ):
-                    widget.setValue(value)
-                if isinstance(value, bool) and isinstance(widget, QtWidgets.QCheckBox):
-                    widget.setChecked(value)
+                if isinstance(widget, QtWidgets.QLineEdit):
+                    # Do not show the default value
+                    if setting.default is not None:
+                        widget.setPlaceholderText(str(setting.default))
+                    if not default:
+                        widget.setText(str(value))
+
+                elif isinstance(widget, QtWidgets.QComboBox):
+                    widget.setCurrentIndex(widget.findText(str(value)))
+
+                elif isinstance(widget, QtWidgets.QSpinBox):
+                    widget.setValue(int(value))
+
+                elif isinstance(widget, QtWidgets.QDoubleSpinBox):
+                    widget.setValue(float(value))
+
+                elif isinstance(widget, QtWidgets.QCheckBox):
+                    widget.setChecked(bool(value))
+                else:
+                    raise Exception("failed to set widget")
             except Exception:
                 logger.debug("Failed to set value of %s for %s(%s)", dest, talker.name, talker.id)
 
 
-def get_config_dict(tab: TalkerTab, definitions: settngs.Group) -> dict[str, Any]:
+def get_config_from_tab(tab: TalkerTab, definitions: settngs.Group) -> dict[str, Any]:
     talker_options = {}
     # dest is guaranteed to be unique within a talker and refer to the correct item in config.values['group name']
     for dest, widget in tab.widgets.items():
         widget_value = None
+
+        # Retrieve the widget value
         if isinstance(widget, (QtWidgets.QSpinBox, QtWidgets.QDoubleSpinBox)):
             widget_value = widget.value()
         elif isinstance(widget, QtWidgets.QLineEdit):
@@ -285,7 +301,7 @@ def get_config_dict(tab: TalkerTab, definitions: settngs.Group) -> dict[str, Any
         elif isinstance(widget, QtWidgets.QCheckBox):
             widget_value = widget.isChecked()
 
-        # Reset to default
+        # Reset to default if the widget_value is empty
         if (isinstance(widget_value, str) and widget_value == "") or widget_value is None:
             widget_value = definitions.v[dest].default
 
@@ -294,9 +310,9 @@ def get_config_dict(tab: TalkerTab, definitions: settngs.Group) -> dict[str, Any
         if isinstance(widget_value, str) and typ:
             widget_value = typ(widget_value)
 
-        # Warn if type isn't correct
+        # Warn if the resulting type isn't the guessed type
         guessed_type = definitions.v[dest]._guess_type()
-        if guessed_type not in (None, "Any") and not isinstance(widget_value, guessed_type):  # type: ignore[arg-type]
+        if widget_value is not None and guessed_type not in (None, "Any") and not isinstance(widget_value, guessed_type):  # type: ignore[arg-type]
             logger.warn(
                 "Guessed type is wrong on for '%s': expected: %s got: %s", dest, guessed_type, type(widget_value)
             )
@@ -304,7 +320,7 @@ def get_config_dict(tab: TalkerTab, definitions: settngs.Group) -> dict[str, Any
     return talker_options
 
 
-def form_settings_to_config(sources: Sources, config: settngs.Config) -> settngs.Config[ct_ns]:
+def form_settings_to_config(sources: Sources, config: settngs.Config[ct_ns]) -> settngs.Config[ct_ns]:
     # Update the currently selected talker
     config.values.Sources_source = sources.cbx_sources.currentData()
     cfg = settngs.normalize_config(config, True, True)
@@ -312,7 +328,7 @@ def form_settings_to_config(sources: Sources, config: settngs.Config) -> settngs
     # Iterate over the tabs, the talker is included in the tab so no extra lookup is needed
     for talker, tab in sources.tabs:
         talker_options = cfg.values[group_for_plugin(talker)]
-        talker_options.update(get_config_dict(tab, cfg.definitions[group_for_plugin(talker)]))
+        talker_options.update(get_config_from_tab(tab, cfg.definitions[group_for_plugin(talker)]))
     return cast(settngs.Config[ct_ns], settngs.get_namespace(cfg, True, True))
 
 
@@ -359,32 +375,38 @@ def generate_source_option_tabs(
         generate_talker_info(talker, config, layout_grid)
 
         for option in config.definitions[group_for_plugin(talker)].v.values():
+            guessed_type = option._guess_type()
+            # Pull out the key and url option, they get created last
             if option.dest == f"{t_id}_key":
                 key_option = option
             elif option.dest == f"{t_id}_url":
                 url_option = option
             elif not option.file:
                 continue
-            elif option._guess_type() is bool:
+
+            # Map types to widgets
+            elif guessed_type is bool:
                 current_widget = generate_checkbox(option, layout_grid)
                 tab.widgets[option.dest] = current_widget
-            elif option._guess_type() is int:
+            elif guessed_type is int:
                 current_widget = generate_spinbox(option, layout_grid)
                 tab.widgets[option.dest] = current_widget
-            elif option._guess_type() is float:
+            elif guessed_type is float:
                 current_widget = generate_doublespinbox(option, layout_grid)
                 tab.widgets[option.dest] = current_widget
-
-            elif option._guess_type() is Path:
+            elif guessed_type is Path:
                 current_widget = generate_path_textbox(option, layout_grid)
                 tab.widgets[option.dest] = current_widget
 
-            elif option._guess_type() is str:
+            elif guessed_type is str:
+                # If we have a specific set of options
                 if option.choices is not None:
                     current_widget = generate_combobox(option, layout_grid)
+                # It ends with a password we hide it by default
                 elif option.dest.casefold().endswith("password"):
                     current_widget = generate_password_textbox(option, layout_grid)
                 else:
+                    # Default to a text box
                     current_widget = generate_textbox(option, layout_grid)
                 tab.widgets[option.dest] = current_widget
             else:
