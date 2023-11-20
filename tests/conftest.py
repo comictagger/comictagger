@@ -117,7 +117,7 @@ def comicvine_api(monkeypatch, cbz, comic_cache, mock_version, config) -> comict
 
     cv = comictalker.talkers.comicvine.ComicVineTalker(
         version=mock_version[0],
-        cache_folder=config[0].Runtime_Options_config.user_cache_dir,
+        cache_folder=config[0].Runtime_Options__config.user_cache_dir,
     )
     manager = settngs.Manager()
     manager.add_persistent_group("comicvine", cv.register_settings)
@@ -174,14 +174,14 @@ def config(tmp_path):
     app.register_settings()
 
     defaults = app.parse_settings(comictaggerlib.ctsettings.ComicTaggerPaths(tmp_path / "config"), "")
-    defaults[0].Runtime_Options_config.user_data_dir.mkdir(parents=True, exist_ok=True)
-    defaults[0].Runtime_Options_config.user_config_dir.mkdir(parents=True, exist_ok=True)
-    defaults[0].Runtime_Options_config.user_cache_dir.mkdir(parents=True, exist_ok=True)
-    defaults[0].Runtime_Options_config.user_state_dir.mkdir(parents=True, exist_ok=True)
-    defaults[0].Runtime_Options_config.user_log_dir.mkdir(parents=True, exist_ok=True)
+    defaults[0].Runtime_Options__config.user_data_dir.mkdir(parents=True, exist_ok=True)
+    defaults[0].Runtime_Options__config.user_config_dir.mkdir(parents=True, exist_ok=True)
+    defaults[0].Runtime_Options__config.user_cache_dir.mkdir(parents=True, exist_ok=True)
+    defaults[0].Runtime_Options__config.user_state_dir.mkdir(parents=True, exist_ok=True)
+    defaults[0].Runtime_Options__config.user_log_dir.mkdir(parents=True, exist_ok=True)
     yield defaults
 
 
 @pytest.fixture
 def comic_cache(config, mock_version) -> Generator[comictalker.comiccacher.ComicCacher, Any, None]:
-    yield comictalker.comiccacher.ComicCacher(config[0].Runtime_Options_config.user_cache_dir, mock_version[0])
+    yield comictalker.comiccacher.ComicCacher(config[0].Runtime_Options__config.user_cache_dir, mock_version[0])

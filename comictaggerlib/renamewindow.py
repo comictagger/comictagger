@@ -62,32 +62,32 @@ class RenameWindow(QtWidgets.QDialog):
         self.rename_list: list[str] = []
 
         self.btnSettings.clicked.connect(self.modify_settings)
-        platform = "universal" if self.config[0].File_Rename_strict else "auto"
-        self.renamer = FileRenamer(None, platform=platform, replacements=self.config[0].File_Rename_replacements)
+        platform = "universal" if self.config[0].File_Rename__strict else "auto"
+        self.renamer = FileRenamer(None, platform=platform, replacements=self.config[0].File_Rename__replacements)
 
         self.do_preview()
 
     def config_renamer(self, ca: ComicArchive, md: GenericMetadata | None = None) -> str:
-        self.renamer.set_template(self.config[0].File_Rename_template)
-        self.renamer.set_issue_zero_padding(self.config[0].File_Rename_issue_number_padding)
-        self.renamer.set_smart_cleanup(self.config[0].File_Rename_use_smart_string_cleanup)
-        self.renamer.replacements = self.config[0].File_Rename_replacements
+        self.renamer.set_template(self.config[0].File_Rename__template)
+        self.renamer.set_issue_zero_padding(self.config[0].File_Rename__issue_number_padding)
+        self.renamer.set_smart_cleanup(self.config[0].File_Rename__use_smart_string_cleanup)
+        self.renamer.replacements = self.config[0].File_Rename__replacements
 
         new_ext = ca.path.suffix  # default
-        if self.config[0].File_Rename_set_extension_based_on_archive:
+        if self.config[0].File_Rename__set_extension_based_on_archive:
             new_ext = ca.extension()
 
         if md is None:
             md = ca.read_metadata(self.data_style)
             if md.is_empty:
                 md = ca.metadata_from_filename(
-                    self.config[0].Filename_Parsing_complicated_parser,
-                    self.config[0].Filename_Parsing_remove_c2c,
-                    self.config[0].Filename_Parsing_remove_fcbd,
-                    self.config[0].Filename_Parsing_remove_publisher,
+                    self.config[0].Filename_Parsing__complicated_parser,
+                    self.config[0].Filename_Parsing__remove_c2c,
+                    self.config[0].Filename_Parsing__remove_fcbd,
+                    self.config[0].Filename_Parsing__remove_publisher,
                 )
         self.renamer.set_metadata(md)
-        self.renamer.move = self.config[0].File_Rename_move_to_dir
+        self.renamer.move = self.config[0].File_Rename__move_to_dir
         return new_ext
 
     def do_preview(self) -> None:
@@ -100,7 +100,7 @@ class RenameWindow(QtWidgets.QDialog):
             try:
                 new_name = self.renamer.determine_name(new_ext)
             except ValueError as e:
-                logger.exception("Invalid format string: %s", self.config[0].File_Rename_template)
+                logger.exception("Invalid format string: %s", self.config[0].File_Rename__template)
                 QtWidgets.QMessageBox.critical(
                     self,
                     "Invalid format string!",
@@ -114,7 +114,7 @@ class RenameWindow(QtWidgets.QDialog):
                 return
             except Exception as e:
                 logger.exception(
-                    "Formatter failure: %s metadata: %s", self.config[0].File_Rename_template, self.renamer.metadata
+                    "Formatter failure: %s metadata: %s", self.config[0].File_Rename__template, self.renamer.metadata
                 )
                 QtWidgets.QMessageBox.critical(
                     self,
@@ -189,7 +189,7 @@ class RenameWindow(QtWidgets.QDialog):
 
                 folder = get_rename_dir(
                     comic[0],
-                    self.config[0].File_Rename_dir if self.config[0].File_Rename_move_to_dir else None,
+                    self.config[0].File_Rename__dir if self.config[0].File_Rename__move_to_dir else None,
                 )
 
                 full_path = folder / comic[1]

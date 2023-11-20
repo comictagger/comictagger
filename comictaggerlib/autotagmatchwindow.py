@@ -52,7 +52,7 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
         self.current_match_set: MultipleMatch = match_set_list[0]
 
         self.altCoverWidget = CoverImageWidget(
-            self.altCoverContainer, CoverImageWidget.AltCoverMode, config.Runtime_Options_config.user_cache_dir, talker
+            self.altCoverContainer, CoverImageWidget.AltCoverMode, config.Runtime_Options__config.user_cache_dir, talker
         )
         gridlayout = QtWidgets.QGridLayout(self.altCoverContainer)
         gridlayout.addWidget(self.altCoverWidget)
@@ -233,10 +233,10 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
         md = ca.read_metadata(self._style)
         if md.is_empty:
             md = ca.metadata_from_filename(
-                self.config.Filename_Parsing_complicated_parser,
-                self.config.Filename_Parsing_remove_c2c,
-                self.config.Filename_Parsing_remove_fcbd,
-                self.config.Filename_Parsing_remove_publisher,
+                self.config.Filename_Parsing__complicated_parser,
+                self.config.Filename_Parsing__remove_c2c,
+                self.config.Filename_Parsing__remove_fcbd,
+                self.config.Filename_Parsing__remove_publisher,
             )
 
         # now get the particular issue data

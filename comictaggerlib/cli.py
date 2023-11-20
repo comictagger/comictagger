@@ -44,9 +44,9 @@ class CLI:
         self.batch_mode = False
 
     def current_talker(self) -> ComicTalker:
-        if self.config.Sources_source in self.talkers:
-            return self.talkers[self.config.Sources_source]
-        logger.error("Could not find the '%s' talker", self.config.Sources_source)
+        if self.config.Sources__source in self.talkers:
+            return self.talkers[self.config.Sources__source]
+        logger.error("Could not find the '%s' talker", self.config.Sources__source)
         raise SystemExit(2)
 
     def actual_issue_data_fetch(self, issue_id: str) -> GenericMetadata:
@@ -57,14 +57,14 @@ class CLI:
             logger.exception(f"Error retrieving issue details. Save aborted.\n{e}")
             return GenericMetadata()
 
-        if self.config.Comic_Book_Lover_apply_transform_on_import:
+        if self.config.Comic_Book_Lover__apply_transform_on_import:
             ct_md = CBLTransformer(ct_md, self.config).apply()
 
         return ct_md
 
     def actual_metadata_save(self, ca: ComicArchive, md: GenericMetadata) -> bool:
-        if not self.config.Runtime_Options_dryrun:
-            for metadata_style in self.config.Runtime_Options_type:
+        if not self.config.Runtime_Options__dryrun:
+            for metadata_style in self.config.Runtime_Options__type:
                 # write out the new data
                 if not ca.write_metadata(md, metadata_style):
                     logger.error("The tag save seemed to fail for style: %s!", MetaDataStyle.name[metadata_style])
@@ -73,7 +73,7 @@ class CLI:
             print("Save complete.")
             logger.info("Save complete.")
         else:
-            if self.config.Runtime_Options_quiet:
+            if self.config.Runtime_Options__quiet:
                 logger.info("dry-run option was set, so nothing was written")
                 print("dry-run option was set, so nothing was written")
             else:
@@ -100,7 +100,7 @@ class CLI:
                     m["issue_title"],
                 )
             )
-        if self.config.Runtime_Options_interactive:
+        if self.config.Runtime_Options__interactive:
             while True:
                 i = input("Choose a match #, or 's' to skip: ")
                 if (i.isdigit() and int(i) in range(1, len(match_set.matches) + 1)) or i == "s":
@@ -111,7 +111,7 @@ class CLI:
                 ca = match_set.ca
                 md = self.create_local_metadata(ca)
                 ct_md = self.actual_issue_data_fetch(match_set.matches[int(i) - 1]["issue_id"])
-                if self.config.Issue_Identifier_clear_metadata_on_import:
+                if self.config.Issue_Identifier__clear_metadata_on_import:
                     md = ct_md
                 else:
                     notes = (
@@ -120,14 +120,14 @@ class CLI:
                     )
                     md.overlay(ct_md.replace(notes=utils.combine_notes(md.notes, notes, "Tagged with ComicTagger")))
 
-                if self.config.Issue_Identifier_auto_imprint:
+                if self.config.Issue_Identifier__auto_imprint:
                     md.fix_publisher()
 
                 self.actual_metadata_save(ca, md)
 
     def post_process_matches(self, match_results: OnlineMatchResults) -> None:
         # now go through the match results
-        if self.config.Runtime_Options_summary:
+        if self.config.Runtime_Options__summary:
             if len(match_results.good_matches) > 0:
                 print("\nSuccessful matches:\n------------------")
                 for f in match_results.good_matches:
@@ -148,7 +148,7 @@ class CLI:
                 for f in match_results.fetch_data_failures:
                     print(f)
 
-        if not self.config.Runtime_Options_summary and not self.config.Runtime_Options_interactive:
+        if not self.config.Runtime_Options__summary and not self.config.Runtime_Options__interactive:
             # just quit if we're not interactive or showing the summary
             return
 
@@ -168,20 +168,20 @@ class CLI:
                 self.display_match_set_for_choice(label, match_set)
 
     def run(self) -> None:
-        if len(self.config.Runtime_Options_files) < 1:
+        if len(self.config.Runtime_Options__files) < 1:
             logger.error("You must specify at least one filename.  Use the -h option for more info")
             return
 
         match_results = OnlineMatchResults()
-        self.batch_mode = len(self.config.Runtime_Options_files) > 1
+        self.batch_mode = len(self.config.Runtime_Options__files) > 1
 
-        for f in self.config.Runtime_Options_files:
+        for f in self.config.Runtime_Options__files:
             self.process_file_cli(f, match_results)
             sys.stdout.flush()
 
         self.post_process_matches(match_results)
 
-        if self.config.Runtime_Options_online:
+        if self.config.Runtime_Options__online:
             print(
                 f"\nFiles tagged with metadata provided by {self.current_talker().name} {self.current_talker().website}"
             )
@@ -191,18 +191,18 @@ class CLI:
         md.set_default_page_list(ca.get_number_of_pages())
 
         # now, overlay the parsed filename info
-        if self.config.Runtime_Options_parse_filename:
+        if self.config.Runtime_Options__parse_filename:
             f_md = ca.metadata_from_filename(
-                self.config.Filename_Parsing_complicated_parser,
-                self.config.Filename_Parsing_remove_c2c,
-                self.config.Filename_Parsing_remove_fcbd,
-                self.config.Filename_Parsing_remove_publisher,
-                self.config.Runtime_Options_split_words,
+                self.config.Filename_Parsing__complicated_parser,
+                self.config.Filename_Parsing__remove_c2c,
+                self.config.Filename_Parsing__remove_fcbd,
+                self.config.Filename_Parsing__remove_publisher,
+                self.config.Runtime_Options__split_words,
             )
 
             md.overlay(f_md)
 
-        for metadata_style in self.config.Runtime_Options_type:
+        for metadata_style in self.config.Runtime_Options__type:
             if ca.has_metadata(metadata_style):
                 try:
                     t_md = ca.read_metadata(metadata_style)
@@ -212,12 +212,12 @@ class CLI:
                     logger.error("Failed to load metadata for %s: %s", ca.path, e)
 
         # finally, use explicit stuff
-        md.overlay(self.config.Runtime_Options_metadata)
+        md.overlay(self.config.Runtime_Options__metadata)
 
         return md
 
     def print(self, ca: ComicArchive) -> None:
-        if not self.config.Runtime_Options_type:
+        if not self.config.Runtime_Options__type:
             page_count = ca.get_number_of_pages()
 
             brief = ""
@@ -247,17 +247,17 @@ class CLI:
 
             print(brief)
 
-        if self.config.Runtime_Options_quiet:
+        if self.config.Runtime_Options__quiet:
             return
 
         print()
 
         raw: str | bytes = ""
-        if not self.config.Runtime_Options_type or MetaDataStyle.CIX in self.config.Runtime_Options_type:
+        if not self.config.Runtime_Options__type or MetaDataStyle.CIX in self.config.Runtime_Options__type:
             if ca.has_metadata(MetaDataStyle.CIX):
                 print("--------- ComicRack tags ---------")
                 try:
-                    if self.config.Runtime_Options_raw:
+                    if self.config.Runtime_Options__raw:
                         raw = ca.read_raw_cix()
                         if isinstance(raw, bytes):
                             raw = raw.decode("utf-8")
@@ -267,11 +267,11 @@ class CLI:
                 except Exception as e:
                     logger.error("Failed to load metadata for %s: %s", ca.path, e)
 
-        if not self.config.Runtime_Options_type or MetaDataStyle.CBI in self.config.Runtime_Options_type:
+        if not self.config.Runtime_Options__type or MetaDataStyle.CBI in self.config.Runtime_Options__type:
             if ca.has_metadata(MetaDataStyle.CBI):
                 print("------- ComicBookLover tags -------")
                 try:
-                    if self.config.Runtime_Options_raw:
+                    if self.config.Runtime_Options__raw:
                         raw = ca.read_raw_cbi()
                         if isinstance(raw, bytes):
                             raw = raw.decode("utf-8")
@@ -281,11 +281,11 @@ class CLI:
                 except Exception as e:
                     logger.error("Failed to load metadata for %s: %s", ca.path, e)
 
-        if not self.config.Runtime_Options_type or MetaDataStyle.COMET in self.config.Runtime_Options_type:
+        if not self.config.Runtime_Options__type or MetaDataStyle.COMET in self.config.Runtime_Options__type:
             if ca.has_metadata(MetaDataStyle.COMET):
                 print("----------- CoMet tags -----------")
                 try:
-                    if self.config.Runtime_Options_raw:
+                    if self.config.Runtime_Options__raw:
                         raw = ca.read_raw_comet()
                         if isinstance(raw, bytes):
                             raw = raw.decode("utf-8")
@@ -296,10 +296,10 @@ class CLI:
                     logger.error("Failed to load metadata for %s: %s", ca.path, e)
 
     def delete(self, ca: ComicArchive) -> None:
-        for metadata_style in self.config.Runtime_Options_type:
+        for metadata_style in self.config.Runtime_Options__type:
             style_name = MetaDataStyle.name[metadata_style]
             if ca.has_metadata(metadata_style):
-                if not self.config.Runtime_Options_dryrun:
+                if not self.config.Runtime_Options__dryrun:
                     if not ca.remove_metadata(metadata_style):
                         print(f"{ca.path}: Tag removal seemed to fail!")
                     else:
@@ -310,25 +310,25 @@ class CLI:
                 print(f"{ca.path}: This archive doesn't have {style_name} tags to remove.")
 
     def copy(self, ca: ComicArchive) -> None:
-        for metadata_style in self.config.Runtime_Options_type:
+        for metadata_style in self.config.Runtime_Options__type:
             dst_style_name = MetaDataStyle.name[metadata_style]
-            if not self.config.Runtime_Options_overwrite and ca.has_metadata(metadata_style):
+            if not self.config.Runtime_Options__overwrite and ca.has_metadata(metadata_style):
                 print(f"{ca.path}: Already has {dst_style_name} tags. Not overwriting.")
                 return
-            if self.config.Commands_copy == metadata_style:
+            if self.config.Commands__copy == metadata_style:
                 print(f"{ca.path}: Destination and source are same: {dst_style_name}. Nothing to do.")
                 return
 
-            src_style_name = MetaDataStyle.name[self.config.Commands_copy]
-            if ca.has_metadata(self.config.Commands_copy):
-                if not self.config.Runtime_Options_dryrun:
+            src_style_name = MetaDataStyle.name[self.config.Commands__copy]
+            if ca.has_metadata(self.config.Commands__copy):
+                if not self.config.Runtime_Options__dryrun:
                     try:
-                        md = ca.read_metadata(self.config.Commands_copy)
+                        md = ca.read_metadata(self.config.Commands__copy)
                     except Exception as e:
                         md = GenericMetadata()
                         logger.error("Failed to load metadata for %s: %s", ca.path, e)
 
-                    if self.config.Comic_Book_Lover_apply_transform_on_bulk_operation == MetaDataStyle.CBI:
+                    if self.config.Comic_Book_Lover__apply_transform_on_bulk_operation == MetaDataStyle.CBI:
                         md = CBLTransformer(md, self.config).apply()
 
                     if not ca.write_metadata(md, metadata_style):
@@ -341,8 +341,8 @@ class CLI:
                 print(f"{ca.path}: This archive doesn't have {src_style_name} tags to copy.")
 
     def save(self, ca: ComicArchive, match_results: OnlineMatchResults) -> None:
-        if not self.config.Runtime_Options_overwrite:
-            for metadata_style in self.config.Runtime_Options_type:
+        if not self.config.Runtime_Options__overwrite:
+            for metadata_style in self.config.Runtime_Options__type:
                 if ca.has_metadata(metadata_style):
                     print(f"{ca.path}: Already has {MetaDataStyle.name[metadata_style]} tags. Not overwriting.")
                     return
@@ -352,26 +352,26 @@ class CLI:
 
         md = self.create_local_metadata(ca)
         if md.issue is None or md.issue == "":
-            if self.config.Auto_Tag_assume_1_if_no_issue_num:
+            if self.config.Auto_Tag__assume_1_if_no_issue_num:
                 md.issue = "1"
 
         # now, search online
-        if self.config.Runtime_Options_online:
-            if self.config.Runtime_Options_issue_id is not None:
+        if self.config.Runtime_Options__online:
+            if self.config.Runtime_Options__issue_id is not None:
                 # we were given the actual issue ID to search with
                 try:
-                    ct_md = self.current_talker().fetch_comic_data(self.config.Runtime_Options_issue_id)
+                    ct_md = self.current_talker().fetch_comic_data(self.config.Runtime_Options__issue_id)
                 except TalkerError as e:
                     logger.exception(f"Error retrieving issue details. Save aborted.\n{e}")
                     match_results.fetch_data_failures.append(str(ca.path.absolute()))
                     return
 
                 if ct_md is None:
-                    logger.error("No match for ID %s was found.", self.config.Runtime_Options_issue_id)
+                    logger.error("No match for ID %s was found.", self.config.Runtime_Options__issue_id)
                     match_results.no_matches.append(str(ca.path.absolute()))
                     return
 
-                if self.config.Comic_Book_Lover_apply_transform_on_import:
+                if self.config.Comic_Book_Lover__apply_transform_on_import:
                     ct_md = CBLTransformer(ct_md, self.config).apply()
             else:
                 if md is None or md.is_empty:
@@ -382,7 +382,7 @@ class CLI:
                 ii = IssueIdentifier(ca, self.config, self.current_talker())
 
                 def myoutput(text: str) -> None:
-                    if self.config.Runtime_Options_verbose:
+                    if self.config.Runtime_Options__verbose:
                         IssueIdentifier.default_write_output(text)
 
                 # use our overlaid MD struct to search
@@ -422,7 +422,7 @@ class CLI:
                     logger.error("Online search: Multiple good matches. Save aborted")
                     match_results.multiple_matches.append(MultipleMatch(ca, matches))
                     return
-                if low_confidence and self.config.Runtime_Options_abort_on_low_confidence:
+                if low_confidence and self.config.Runtime_Options__abort_on_low_confidence:
                     logger.error("Online search: Low confidence match. Save aborted")
                     match_results.low_confidence_matches.append(MultipleMatch(ca, matches))
                     return
@@ -439,7 +439,7 @@ class CLI:
                     match_results.fetch_data_failures.append(str(ca.path.absolute()))
                     return
 
-            if self.config.Issue_Identifier_clear_metadata_on_import:
+            if self.config.Issue_Identifier__clear_metadata_on_import:
                 md = GenericMetadata()
 
             notes = (
@@ -449,11 +449,11 @@ class CLI:
             md.overlay(
                 ct_md.replace(
                     notes=utils.combine_notes(md.notes, notes, "Tagged with ComicTagger"),
-                    description=cleanup_html(ct_md.description, self.config.Sources_remove_html_tables),
+                    description=cleanup_html(ct_md.description, self.config.Sources__remove_html_tables),
                 )
             )
 
-            if self.config.Issue_Identifier_auto_imprint:
+            if self.config.Issue_Identifier__auto_imprint:
                 md.fix_publisher()
 
         # ok, done building our metadata. time to save
@@ -475,18 +475,18 @@ class CLI:
             return
 
         new_ext = ""  # default
-        if self.config.File_Rename_set_extension_based_on_archive:
+        if self.config.File_Rename__set_extension_based_on_archive:
             new_ext = ca.extension()
 
         renamer = FileRenamer(
             md,
-            platform="universal" if self.config.File_Rename_strict else "auto",
-            replacements=self.config.File_Rename_replacements,
+            platform="universal" if self.config.File_Rename__strict else "auto",
+            replacements=self.config.File_Rename__replacements,
         )
-        renamer.set_template(self.config.File_Rename_template)
-        renamer.set_issue_zero_padding(self.config.File_Rename_issue_number_padding)
-        renamer.set_smart_cleanup(self.config.File_Rename_use_smart_string_cleanup)
-        renamer.move = self.config.File_Rename_move_to_dir
+        renamer.set_template(self.config.File_Rename__template)
+        renamer.set_issue_zero_padding(self.config.File_Rename__issue_number_padding)
+        renamer.set_smart_cleanup(self.config.File_Rename__use_smart_string_cleanup)
+        renamer.move = self.config.File_Rename__move_to_dir
 
         try:
             new_name = renamer.determine_name(ext=new_ext)
@@ -498,14 +498,14 @@ class CLI:
                 "Please consult the template help in the settings "
                 "and the documentation on the format at "
                 "https://docs.python.org/3/library/string.html#format-string-syntax",
-                self.config.File_Rename_template,
+                self.config.File_Rename__template,
             )
             return
         except Exception:
-            logger.exception("Formatter failure: %s metadata: %s", self.config.File_Rename_template, renamer.metadata)
+            logger.exception("Formatter failure: %s metadata: %s", self.config.File_Rename__template, renamer.metadata)
             return
 
-        folder = get_rename_dir(ca, self.config.File_Rename_dir if self.config.File_Rename_move_to_dir else None)
+        folder = get_rename_dir(ca, self.config.File_Rename__dir if self.config.File_Rename__move_to_dir else None)
 
         full_path = folder / new_name
 
@@ -514,7 +514,7 @@ class CLI:
             return
 
         suffix = ""
-        if not self.config.Runtime_Options_dryrun:
+        if not self.config.Runtime_Options__dryrun:
             # rename the file
             try:
                 ca.rename(utils.unique_file(full_path))
@@ -537,7 +537,7 @@ class CLI:
         filename_path = ca.path
         new_file = filename_path.with_suffix(".cbz")
 
-        if self.config.Runtime_Options_abort_on_conflict and new_file.exists():
+        if self.config.Runtime_Options__abort_on_conflict and new_file.exists():
             print(msg_hdr + f"{new_file.name} already exists in the that folder.")
             return
 
@@ -545,10 +545,10 @@ class CLI:
 
         delete_success = False
         export_success = False
-        if not self.config.Runtime_Options_dryrun:
+        if not self.config.Runtime_Options__dryrun:
             if ca.export_as_zip(new_file):
                 export_success = True
-                if self.config.Runtime_Options_delete_after_zip_export:
+                if self.config.Runtime_Options__delete_after_zip_export:
                     try:
                         filename_path.unlink(missing_ok=True)
                         delete_success = True
@@ -560,7 +560,7 @@ class CLI:
                 new_file.unlink(missing_ok=True)
         else:
             msg = msg_hdr + f"Dry-run:  Would try to create {os.path.split(new_file)[1]}"
-            if self.config.Runtime_Options_delete_after_zip_export:
+            if self.config.Runtime_Options__delete_after_zip_export:
                 msg += " and delete original."
             print(msg)
             return
@@ -568,7 +568,7 @@ class CLI:
         msg = msg_hdr
         if export_success:
             msg += f"Archive exported successfully to: {os.path.split(new_file)[1]}"
-            if self.config.Runtime_Options_delete_after_zip_export and delete_success:
+            if self.config.Runtime_Options__delete_after_zip_export and delete_success:
                 msg += " (Original deleted) "
         else:
             msg += "Archive failed to export!"
@@ -587,28 +587,28 @@ class CLI:
             return
 
         if not ca.is_writable() and (
-            self.config.Commands_delete
-            or self.config.Commands_copy
-            or self.config.Commands_save
-            or self.config.Commands_rename
+            self.config.Commands__delete
+            or self.config.Commands__copy
+            or self.config.Commands__save
+            or self.config.Commands__rename
         ):
             logger.error("This archive is not writable")
             return
 
-        if self.config.Commands_print:
+        if self.config.Commands__print:
             self.print(ca)
 
-        elif self.config.Commands_delete:
+        elif self.config.Commands__delete:
             self.delete(ca)
 
-        elif self.config.Commands_copy is not None:
+        elif self.config.Commands__copy is not None:
             self.copy(ca)
 
-        elif self.config.Commands_save:
+        elif self.config.Commands__save:
             self.save(ca, match_results)
 
-        elif self.config.Commands_rename:
+        elif self.config.Commands__rename:
             self.rename(ca)
 
-        elif self.config.Commands_export_to_zip:
+        elif self.config.Commands__export_to_zip:
             self.export(ca)

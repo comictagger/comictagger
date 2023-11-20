@@ -54,7 +54,7 @@ class IssueSelectionWindow(QtWidgets.QDialog):
         self.coverWidget = CoverImageWidget(
             self.coverImageContainer,
             CoverImageWidget.AltCoverMode,
-            config.Runtime_Options_config.user_cache_dir,
+            config.Runtime_Options__config.user_cache_dir,
             talker,
         )
         gridlayout = QtWidgets.QGridLayout(self.coverImageContainer)
@@ -98,7 +98,7 @@ class IssueSelectionWindow(QtWidgets.QDialog):
         self.imageIssuesSourceWidget = CoverImageWidget(
             self.imageIssuesSourceLogo,
             CoverImageWidget.URLMode,
-            config.Runtime_Options_config.user_cache_dir,
+            config.Runtime_Options__config.user_cache_dir,
             talker,
             False,
         )

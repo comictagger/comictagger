@@ -371,48 +371,50 @@ class SettingsWindow(QtWidgets.QDialog):
             self.leRarExePath.setText(getattr(self.config[0], self.config[1]["archiver"].v["rar"].internal_name))
         else:
             self.leRarExePath.setEnabled(False)
-        self.sbNameMatchIdentifyThresh.setValue(self.config[0].Issue_Identifier_series_match_identify_thresh)
-        self.sbNameMatchSearchThresh.setValue(self.config[0].Issue_Identifier_series_match_search_thresh)
-        self.tePublisherFilter.setPlainText("\n".join(self.config[0].Issue_Identifier_publisher_filter))
+        self.sbNameMatchIdentifyThresh.setValue(self.config[0].Issue_Identifier__series_match_identify_thresh)
+        self.sbNameMatchSearchThresh.setValue(self.config[0].Issue_Identifier__series_match_search_thresh)
+        self.tePublisherFilter.setPlainText("\n".join(self.config[0].Issue_Identifier__publisher_filter))
 
-        self.cbxCheckForNewVersion.setChecked(self.config[0].General_check_for_new_version)
+        self.cbxCheckForNewVersion.setChecked(self.config[0].General__check_for_new_version)
 
-        self.cbxComplicatedParser.setChecked(self.config[0].Filename_Parsing_complicated_parser)
-        self.cbxRemoveC2C.setChecked(self.config[0].Filename_Parsing_remove_c2c)
-        self.cbxRemoveFCBD.setChecked(self.config[0].Filename_Parsing_remove_fcbd)
-        self.cbxRemovePublisher.setChecked(self.config[0].Filename_Parsing_remove_publisher)
-        self.cbxProtofoliusIssueNumberScheme.setChecked(self.config[0].Filename_Parsing_protofolius_issue_number_scheme)
-        self.cbxAllowIssueStartWithLetter.setChecked(self.config[0].Filename_Parsing_allow_issue_start_with_letter)
+        self.cbxComplicatedParser.setChecked(self.config[0].Filename_Parsing__complicated_parser)
+        self.cbxRemoveC2C.setChecked(self.config[0].Filename_Parsing__remove_c2c)
+        self.cbxRemoveFCBD.setChecked(self.config[0].Filename_Parsing__remove_fcbd)
+        self.cbxRemovePublisher.setChecked(self.config[0].Filename_Parsing__remove_publisher)
+        self.cbxProtofoliusIssueNumberScheme.setChecked(
+            self.config[0].Filename_Parsing__protofolius_issue_number_scheme
+        )
+        self.cbxAllowIssueStartWithLetter.setChecked(self.config[0].Filename_Parsing__allow_issue_start_with_letter)
 
         self.switch_parser()
 
-        self.cbxClearFormBeforePopulating.setChecked(self.config[0].Issue_Identifier_clear_form_before_populating)
-        self.cbxUseFilter.setChecked(self.config[0].Issue_Identifier_always_use_publisher_filter)
-        self.cbxSortByYear.setChecked(self.config[0].Issue_Identifier_sort_series_by_year)
-        self.cbxExactMatches.setChecked(self.config[0].Issue_Identifier_exact_series_matches_first)
+        self.cbxClearFormBeforePopulating.setChecked(self.config[0].Issue_Identifier__clear_form_before_populating)
+        self.cbxUseFilter.setChecked(self.config[0].Issue_Identifier__always_use_publisher_filter)
+        self.cbxSortByYear.setChecked(self.config[0].Issue_Identifier__sort_series_by_year)
+        self.cbxExactMatches.setChecked(self.config[0].Issue_Identifier__exact_series_matches_first)
 
-        self.cbxAssumeLoneCreditIsPrimary.setChecked(self.config[0].Comic_Book_Lover_assume_lone_credit_is_primary)
-        self.cbxCopyCharactersToTags.setChecked(self.config[0].Comic_Book_Lover_copy_characters_to_tags)
-        self.cbxCopyTeamsToTags.setChecked(self.config[0].Comic_Book_Lover_copy_teams_to_tags)
-        self.cbxCopyLocationsToTags.setChecked(self.config[0].Comic_Book_Lover_copy_locations_to_tags)
-        self.cbxCopyStoryArcsToTags.setChecked(self.config[0].Comic_Book_Lover_copy_storyarcs_to_tags)
-        self.cbxCopyNotesToComments.setChecked(self.config[0].Comic_Book_Lover_copy_notes_to_comments)
-        self.cbxCopyWebLinkToComments.setChecked(self.config[0].Comic_Book_Lover_copy_weblink_to_comments)
-        self.cbxApplyCBLTransformOnCVIMport.setChecked(self.config[0].Comic_Book_Lover_apply_transform_on_import)
+        self.cbxAssumeLoneCreditIsPrimary.setChecked(self.config[0].Comic_Book_Lover__assume_lone_credit_is_primary)
+        self.cbxCopyCharactersToTags.setChecked(self.config[0].Comic_Book_Lover__copy_characters_to_tags)
+        self.cbxCopyTeamsToTags.setChecked(self.config[0].Comic_Book_Lover__copy_teams_to_tags)
+        self.cbxCopyLocationsToTags.setChecked(self.config[0].Comic_Book_Lover__copy_locations_to_tags)
+        self.cbxCopyStoryArcsToTags.setChecked(self.config[0].Comic_Book_Lover__copy_storyarcs_to_tags)
+        self.cbxCopyNotesToComments.setChecked(self.config[0].Comic_Book_Lover__copy_notes_to_comments)
+        self.cbxCopyWebLinkToComments.setChecked(self.config[0].Comic_Book_Lover__copy_weblink_to_comments)
+        self.cbxApplyCBLTransformOnCVIMport.setChecked(self.config[0].Comic_Book_Lover__apply_transform_on_import)
         self.cbxApplyCBLTransformOnBatchOperation.setChecked(
-            self.config[0].Comic_Book_Lover_apply_transform_on_bulk_operation
+            self.config[0].Comic_Book_Lover__apply_transform_on_bulk_operation
         )
 
-        self.leRenameTemplate.setText(self.config[0].File_Rename_template)
-        self.leIssueNumPadding.setText(str(self.config[0].File_Rename_issue_number_padding))
-        self.cbxSmartCleanup.setChecked(self.config[0].File_Rename_use_smart_string_cleanup)
-        self.cbxChangeExtension.setChecked(self.config[0].File_Rename_set_extension_based_on_archive)
-        self.cbxMoveFiles.setChecked(self.config[0].File_Rename_move_to_dir)
-        self.leDirectory.setText(self.config[0].File_Rename_dir)
-        self.cbxRenameStrict.setChecked(self.config[0].File_Rename_strict)
+        self.leRenameTemplate.setText(self.config[0].File_Rename__template)
+        self.leIssueNumPadding.setText(str(self.config[0].File_Rename__issue_number_padding))
+        self.cbxSmartCleanup.setChecked(self.config[0].File_Rename__use_smart_string_cleanup)
+        self.cbxChangeExtension.setChecked(self.config[0].File_Rename__set_extension_based_on_archive)
+        self.cbxMoveFiles.setChecked(self.config[0].File_Rename__move_to_dir)
+        self.leDirectory.setText(self.config[0].File_Rename__dir)
+        self.cbxRenameStrict.setChecked(self.config[0].File_Rename__strict)
 
         for table, replacments in zip(
-            (self.twLiteralReplacements, self.twValueReplacements), self.config[0].File_Rename_replacements
+            (self.twLiteralReplacements, self.twValueReplacements), self.config[0].File_Rename__replacements
         ):
             table.clearContents()
             for i in reversed(range(table.rowCount())):
@@ -452,30 +454,30 @@ class SettingsWindow(QtWidgets.QDialog):
         self.rename_test()
         if self.rename_error is not None:
             if isinstance(self.rename_error, ValueError):
-                logger.exception("Invalid format string: %s", self.config[0].File_Rename_template)
+                logger.exception("Invalid format string: %s", self.config[0].File_Rename__template)
                 QtWidgets.QMessageBox.critical(
                     self,
                     "Invalid format string!",
                     "Your rename template is invalid!"
-                    f"<br/><br/>{self.rename_error}<br/><br/>"
-                    "Please consult the template help in the "
-                    "settings and the documentation on the format at "
-                    "<a href='https://docs.python.org/3/library/string.html#format-string-syntax'>"
-                    "https://docs.python.org/3/library/string.html#format-string-syntax</a>",
+                    + f"<br/><br/>{self.rename_error}<br/><br/>"
+                    + "Please consult the template help in the "
+                    + "settings and the documentation on the format at "
+                    + "<a href='https://docs.python.org/3/library/string.html#format-string-syntax'>"
+                    + "https://docs.python.org/3/library/string.html#format-string-syntax</a>",
                 )
                 return
             else:
                 logger.exception(
-                    "Formatter failure: %s metadata: %s", self.config[0].File_Rename_template, self.renamer.metadata
+                    "Formatter failure: %s metadata: %s", self.config[0].File_Rename__template, self.renamer.metadata
                 )
                 QtWidgets.QMessageBox.critical(
                     self,
                     "The formatter had an issue!",
                     "The formatter has experienced an unexpected error!"
-                    f"<br/><br/>{type(self.rename_error).__name__}: {self.rename_error}<br/><br/>"
-                    "Please open an issue at "
-                    "<a href='https://github.com/comictagger/comictagger'>"
-                    "https://github.com/comictagger/comictagger</a>",
+                    + f"<br/><br/>{type(self.rename_error).__name__}: {self.rename_error}<br/><br/>"
+                    + "Please open an issue at "
+                    + "<a href='https://github.com/comictagger/comictagger'>"
+                    + "https://github.com/comictagger/comictagger</a>",
                 )
 
         # Copy values from form to settings and save
@@ -489,54 +491,54 @@ class SettingsWindow(QtWidgets.QDialog):
         if not str(self.leIssueNumPadding.text()).isdigit():
             self.leIssueNumPadding.setText("0")
 
-        self.config[0].General_check_for_new_version = self.cbxCheckForNewVersion.isChecked()
+        self.config[0].General__check_for_new_version = self.cbxCheckForNewVersion.isChecked()
 
-        self.config[0].Issue_Identifier_series_match_identify_thresh = self.sbNameMatchIdentifyThresh.value()
-        self.config[0].Issue_Identifier_series_match_search_thresh = self.sbNameMatchSearchThresh.value()
-        self.config[0].Issue_Identifier_publisher_filter = utils.split(self.tePublisherFilter.toPlainText(), "\n")
+        self.config[0].Issue_Identifier__series_match_identify_thresh = self.sbNameMatchIdentifyThresh.value()
+        self.config[0].Issue_Identifier__series_match_search_thresh = self.sbNameMatchSearchThresh.value()
+        self.config[0].Issue_Identifier__publisher_filter = utils.split(self.tePublisherFilter.toPlainText(), "\n")
 
-        self.config[0].Filename_Parsing_complicated_parser = self.cbxComplicatedParser.isChecked()
-        self.config[0].Filename_Parsing_remove_c2c = self.cbxRemoveC2C.isChecked()
-        self.config[0].Filename_Parsing_remove_fcbd = self.cbxRemoveFCBD.isChecked()
-        self.config[0].Filename_Parsing_remove_publisher = self.cbxRemovePublisher.isChecked()
-        self.config[0].Filename_Parsing_allow_issue_start_with_letter = self.cbxAllowIssueStartWithLetter.isChecked()
-        self.config.values.Filename_Parsing_protofolius_issue_number_scheme = (
+        self.config[0].Filename_Parsing__complicated_parser = self.cbxComplicatedParser.isChecked()
+        self.config[0].Filename_Parsing__remove_c2c = self.cbxRemoveC2C.isChecked()
+        self.config[0].Filename_Parsing__remove_fcbd = self.cbxRemoveFCBD.isChecked()
+        self.config[0].Filename_Parsing__remove_publisher = self.cbxRemovePublisher.isChecked()
+        self.config[0].Filename_Parsing__allow_issue_start_with_letter = self.cbxAllowIssueStartWithLetter.isChecked()
+        self.config.values.Filename_Parsing__protofolius_issue_number_scheme = (
             self.cbxProtofoliusIssueNumberScheme.isChecked()
         )
 
-        self.config[0].Issue_Identifier_clear_form_before_populating = self.cbxClearFormBeforePopulating.isChecked()
-        self.config[0].Issue_Identifier_always_use_publisher_filter = self.cbxUseFilter.isChecked()
-        self.config[0].Issue_Identifier_sort_series_by_year = self.cbxSortByYear.isChecked()
-        self.config[0].Issue_Identifier_exact_series_matches_first = self.cbxExactMatches.isChecked()
+        self.config[0].Issue_Identifier__clear_form_before_populating = self.cbxClearFormBeforePopulating.isChecked()
+        self.config[0].Issue_Identifier__always_use_publisher_filter = self.cbxUseFilter.isChecked()
+        self.config[0].Issue_Identifier__sort_series_by_year = self.cbxSortByYear.isChecked()
+        self.config[0].Issue_Identifier__exact_series_matches_first = self.cbxExactMatches.isChecked()
 
-        self.config[0].Comic_Book_Lover_assume_lone_credit_is_primary = self.cbxAssumeLoneCreditIsPrimary.isChecked()
-        self.config[0].Comic_Book_Lover_copy_characters_to_tags = self.cbxCopyCharactersToTags.isChecked()
-        self.config[0].Comic_Book_Lover_copy_teams_to_tags = self.cbxCopyTeamsToTags.isChecked()
-        self.config[0].Comic_Book_Lover_copy_locations_to_tags = self.cbxCopyLocationsToTags.isChecked()
-        self.config[0].Comic_Book_Lover_copy_storyarcs_to_tags = self.cbxCopyStoryArcsToTags.isChecked()
-        self.config[0].Comic_Book_Lover_copy_notes_to_comments = self.cbxCopyNotesToComments.isChecked()
-        self.config[0].Comic_Book_Lover_copy_weblink_to_comments = self.cbxCopyWebLinkToComments.isChecked()
-        self.config[0].Comic_Book_Lover_apply_transform_on_import = self.cbxApplyCBLTransformOnCVIMport.isChecked()
-        self.config.values.Comic_Book_Lover_apply_transform_on_bulk_operation = (
+        self.config[0].Comic_Book_Lover__assume_lone_credit_is_primary = self.cbxAssumeLoneCreditIsPrimary.isChecked()
+        self.config[0].Comic_Book_Lover__copy_characters_to_tags = self.cbxCopyCharactersToTags.isChecked()
+        self.config[0].Comic_Book_Lover__copy_teams_to_tags = self.cbxCopyTeamsToTags.isChecked()
+        self.config[0].Comic_Book_Lover__copy_locations_to_tags = self.cbxCopyLocationsToTags.isChecked()
+        self.config[0].Comic_Book_Lover__copy_storyarcs_to_tags = self.cbxCopyStoryArcsToTags.isChecked()
+        self.config[0].Comic_Book_Lover__copy_notes_to_comments = self.cbxCopyNotesToComments.isChecked()
+        self.config[0].Comic_Book_Lover__copy_weblink_to_comments = self.cbxCopyWebLinkToComments.isChecked()
+        self.config[0].Comic_Book_Lover__apply_transform_on_import = self.cbxApplyCBLTransformOnCVIMport.isChecked()
+        self.config.values.Comic_Book_Lover__apply_transform_on_bulk_operation = (
             self.cbxApplyCBLTransformOnBatchOperation.isChecked()
         )
 
-        self.config[0].File_Rename_template = str(self.leRenameTemplate.text())
-        self.config[0].File_Rename_issue_number_padding = int(self.leIssueNumPadding.text())
-        self.config[0].File_Rename_use_smart_string_cleanup = self.cbxSmartCleanup.isChecked()
-        self.config[0].File_Rename_set_extension_based_on_archive = self.cbxChangeExtension.isChecked()
-        self.config[0].File_Rename_move_to_dir = self.cbxMoveFiles.isChecked()
-        self.config[0].File_Rename_dir = self.leDirectory.text()
+        self.config[0].File_Rename__template = str(self.leRenameTemplate.text())
+        self.config[0].File_Rename__issue_number_padding = int(self.leIssueNumPadding.text())
+        self.config[0].File_Rename__use_smart_string_cleanup = self.cbxSmartCleanup.isChecked()
+        self.config[0].File_Rename__set_extension_based_on_archive = self.cbxChangeExtension.isChecked()
+        self.config[0].File_Rename__move_to_dir = self.cbxMoveFiles.isChecked()
+        self.config[0].File_Rename__dir = self.leDirectory.text()
 
-        self.config[0].File_Rename_strict = self.cbxRenameStrict.isChecked()
-        self.config[0].File_Rename_replacements = self.get_replacements()
+        self.config[0].File_Rename__strict = self.cbxRenameStrict.isChecked()
+        self.config[0].File_Rename__replacements = self.get_replacements()
 
         # Read settings from talker tabs
         self.config = comictaggerlib.ui.talkeruigenerator.form_settings_to_config(self.sources, self.config)
 
         self.update_talkers_config()
 
-        settngs.save_file(self.config, self.config[0].Runtime_Options_config.user_config_dir / "settings.json")
+        settngs.save_file(self.config, self.config[0].Runtime_Options__config.user_config_dir / "settings.json")
         self.parent().config = self.config
         QtWidgets.QDialog.accept(self)
 
@@ -549,8 +551,8 @@ class SettingsWindow(QtWidgets.QDialog):
         self.select_file(self.leRarExePath, "RAR")
 
     def clear_cache(self) -> None:
-        ImageFetcher(self.config[0].Runtime_Options_config.user_cache_dir).clear_cache()
-        ComicCacher(self.config[0].Runtime_Options_config.user_cache_dir, version).clear_cache()
+        ImageFetcher(self.config[0].Runtime_Options__config.user_cache_dir).clear_cache()
+        ComicCacher(self.config[0].Runtime_Options__config.user_cache_dir, version).clear_cache()
         QtWidgets.QMessageBox.information(self, self.name, "Cache has been cleared.")
 
     def reset_settings(self) -> None:
