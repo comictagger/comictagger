@@ -26,7 +26,7 @@ path = f"dist/{app_name}"
 zip_file = pathlib.Path(f"dist/{final_name}.zip")
 
 
-def addToZip(zf, path, zippath):
+def addToZip(zf: zipfile.ZipFile, path: str, zippath: str) -> None:
     if os.path.isfile(path):
         zf.write(path, zippath)
     elif os.path.isdir(path):

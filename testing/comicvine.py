@@ -248,5 +248,5 @@ class MockResponse:
         self.result = result
         self.content = content
 
-    def json(self) -> dict[str, list]:
+    def json(self) -> dict[str, list[Any]]:
         return self.result

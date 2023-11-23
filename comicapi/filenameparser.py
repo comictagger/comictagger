@@ -27,7 +27,7 @@ import os
 import re
 from operator import itemgetter
 from re import Match
-from typing import Callable, TypedDict
+from typing import Protocol, TypedDict
 from urllib.parse import unquote
 
 from text2digits import text2digits
@@ -343,6 +343,11 @@ protofolius_issue_number_scheme = {
 }
 
 
+class ParserFunc(Protocol):
+    def __call__(self, __origin: Parser) -> ParserFunc | None:
+        ...
+
+
 eof = filenamelexer.Item(filenamelexer.ItemType.EOF, -1, "")
 
 
@@ -360,7 +365,7 @@ class Parser:
         remove_publisher: bool = False,
         protofolius_issue_number_scheme: bool = False,
     ) -> None:
-        self.state: Callable[[Parser], Callable | None] | None = None  # type: ignore[type-arg]
+        self.state: ParserFunc | None = None
         self.pos = -1
 
         self.firstItem = True
@@ -450,7 +455,7 @@ class Parser:
             self.state = self.state(self)
 
 
-def parse(p: Parser) -> Callable[[Parser], Callable | None] | None:  # type: ignore[type-arg]
+def parse(p: Parser) -> ParserFunc:
     item: filenamelexer.Item = p.get()
     # We're done, time to do final processing
     if item.typ == filenamelexer.ItemType.EOF:
@@ -706,7 +711,7 @@ def parse(p: Parser) -> Callable[[Parser], Callable | None] | None:  # type: ign
 
 
 # TODO: What about more esoteric numbers???
-def parse_issue_number(p: Parser) -> Callable[[Parser], Callable | None] | None:  # type: ignore[type-arg]
+def parse_issue_number(p: Parser) -> ParserFunc:
     item = p.input[p.pos]
 
     if p.filename_info["issue"]:
@@ -739,7 +744,7 @@ def parse_issue_number(p: Parser) -> Callable[[Parser], Callable | None] | None:
 
 
 # i=None is a split in the series
-def parse_series(p: Parser, i: filenamelexer.Item | None) -> Callable[[Parser], Callable | None] | None:
+def parse_series(p: Parser, i: filenamelexer.Item | None) -> ParserFunc:
     current = []
     prev_space = False
 
@@ -1016,7 +1021,7 @@ def split_series(items: list[list[filenamelexer.Item]]) -> tuple[list[filenamele
     return series, title
 
 
-def parse_finish(p: Parser) -> Callable[[Parser], Callable | None] | None:  # type: ignore[type-arg]
+def parse_finish(p: Parser) -> None:
     for part in p.series:
         p.used_items.extend(part)
     p.series_parts, p.title_parts = split_series(p.series)
@@ -1104,7 +1109,7 @@ def get_remainder(p: Parser) -> str:
     return remainder.strip()
 
 
-def parse_info_specifier(p: Parser) -> Callable[[Parser], Callable | None] | None:  # type: ignore[type-arg]
+def parse_info_specifier(p: Parser) -> ParserFunc:
     item = p.input[p.pos]
     index = p.pos
 
