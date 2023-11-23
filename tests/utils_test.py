@@ -124,7 +124,8 @@ language_values = [
     ("english", "en"),
     ("ENGLISH", "en"),
     ("EnglisH", "en"),
-    ("", ""),
+    ("", ""),  # Does not match a language
+    ("unknown", "unknown"),  # Does not match a language
     ("aaa", None),  # does not have a 2-letter code
     (None, None),
 ]
