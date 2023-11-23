@@ -305,21 +305,19 @@ _countries: dict[str | None, str | None] = defaultdict(lambda: None)
 
 def countries() -> dict[str | None, str | None]:
     if not _countries:
-        import pycountry
+        import isocodes
 
-        for c in pycountry.countries:
-            if "alpha_2" in c._fields:
-                _countries[c.alpha_2] = c.name
+        for alpha_2, c in isocodes.countries.by_alpha_2:
+            _countries[alpha_2] = c["name"]
     return _countries
 
 
 def languages() -> dict[str | None, str | None]:
     if not _languages:
-        import pycountry
+        import isocodes
 
-        for lng in pycountry.languages:
-            if "alpha_2" in lng._fields:
-                _languages[lng.alpha_2] = lng.name
+        for alpha_2, lng in isocodes.extendend_languages._sorted_by_index(index="alpha_2"):
+            _languages[alpha_2] = lng["name"]
     return _languages
 
 
@@ -330,15 +328,21 @@ def get_language_from_iso(iso: str | None) -> str | None:
 def get_language_iso(string: str | None) -> str | None:
     if string is None:
         return None
-    import pycountry
+    import isocodes
 
     # Return current string if all else fails
     lang = string.casefold()
 
-    try:
-        return getattr(pycountry.languages.lookup(string), "alpha_2", None)
-    except LookupError:
-        pass
+    found = None
+    for lng in isocodes.extendend_languages.items:
+        for x in ("alpha_2", "alpha_3", "bibliographic", "common_name", "name"):
+            if x in lng and lng[x].casefold() == lang:
+                found = lng
+        if found:
+            break
+
+    if found:
+        return found.get("alpha_2", None)
     return lang
 
 
