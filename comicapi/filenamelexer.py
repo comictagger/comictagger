@@ -6,7 +6,7 @@ import calendar
 import os
 import unicodedata
 from enum import Enum, auto
-from typing import Any, Callable
+from typing import Any, Callable, Protocol
 
 
 class ItemType(Enum):
@@ -87,11 +87,16 @@ class Item:
         return f"{self.val}: index: {self.pos}: {self.typ}"
 
 
+class LexerFunc(Protocol):
+    def __call__(self, __origin: Lexer) -> LexerFunc | None:
+        ...
+
+
 class Lexer:
     def __init__(self, string: str, allow_issue_start_with_letter: bool = False) -> None:
         self.input: str = string  # The string being scanned
         # The next lexing function to enter
-        self.state: Callable[[Lexer], Callable | None] | None = None  # type: ignore[type-arg]
+        self.state: LexerFunc | None = None
         self.pos: int = -1  # Current position in the input
         self.start: int = 0  # Start position of this item
         self.lastPos: int = 0  # Position of most recent item returned by nextItem
@@ -171,20 +176,22 @@ class Lexer:
 
 # Errorf returns an error token and terminates the scan by passing
 # Back a nil pointer that will be the next state, terminating self.nextItem.
-def errorf(lex: Lexer, message: str) -> Callable[[Lexer], Callable | None] | None:  # type: ignore[type-arg]
+def errorf(lex: Lexer, message: str) -> Any:
     lex.items.append(Item(ItemType.Error, lex.start, message))
     return None
 
 
 # Scans the elements inside action delimiters.
-def lex_filename(lex: Lexer) -> Callable[[Lexer], Callable | None] | None:  # type: ignore[type-arg]
+def lex_filename(lex: Lexer) -> LexerFunc | None:
     r = lex.get()
     if r == eof:
         if lex.paren_depth != 0:
-            return errorf(lex, "unclosed left paren")
+            errorf(lex, "unclosed left paren")
+            return None
 
         if lex.brace_depth != 0:
-            return errorf(lex, "unclosed left paren")
+            errorf(lex, "unclosed left paren")
+            return None
         lex.emit(ItemType.EOF)
         return None
     elif is_space(r):
@@ -230,7 +237,8 @@ def lex_filename(lex: Lexer) -> Callable[[Lexer], Callable | None] | None:  # ty
         lex.emit(ItemType.RightParen)
         lex.paren_depth -= 1
         if lex.paren_depth < 0:
-            return errorf(lex, "unexpected right paren " + r)
+            errorf(lex, "unexpected right paren " + r)
+            return None
 
     elif r == "{":
         lex.emit(ItemType.LeftBrace)
@@ -239,7 +247,8 @@ def lex_filename(lex: Lexer) -> Callable[[Lexer], Callable | None] | None:  # ty
         lex.emit(ItemType.RightBrace)
         lex.brace_depth -= 1
         if lex.brace_depth < 0:
-            return errorf(lex, "unexpected right brace " + r)
+            errorf(lex, "unexpected right brace " + r)
+            return None
 
     elif r == "[":
         lex.emit(ItemType.LeftSBrace)
@@ -248,19 +257,21 @@ def lex_filename(lex: Lexer) -> Callable[[Lexer], Callable | None] | None:  # ty
         lex.emit(ItemType.RightSBrace)
         lex.sbrace_depth -= 1
         if lex.sbrace_depth < 0:
-            return errorf(lex, "unexpected right brace " + r)
+            errorf(lex, "unexpected right brace " + r)
+            return None
     elif is_symbol(r):
         if unicodedata.category(r) == "Sc":
             return lex_currency
         lex.accept_run(is_symbol)
         lex.emit(ItemType.Symbol)
     else:
-        return errorf(lex, "unrecognized character in action: " + repr(r))
+        errorf(lex, "unrecognized character in action: " + repr(r))
+        return None
 
     return lex_filename
 
 
-def lex_currency(lex: Lexer) -> Callable:
+def lex_currency(lex: Lexer) -> LexerFunc:
     orig = lex.pos
     lex.accept_run(is_space)
     if lex.peek().isnumeric():
@@ -272,7 +283,7 @@ def lex_currency(lex: Lexer) -> Callable:
     return lex_filename
 
 
-def lex_operator(lex: Lexer) -> Callable:  # type: ignore[type-arg]
+def lex_operator(lex: Lexer) -> LexerFunc:
     lex.accept_run("-|:;")
     lex.emit(ItemType.Operator)
     return lex_filename
@@ -280,7 +291,7 @@ def lex_operator(lex: Lexer) -> Callable:  # type: ignore[type-arg]
 
 # LexSpace scans a run of space characters.
 # One space has already been seen.
-def lex_space(lex: Lexer) -> Callable:  # type: ignore[type-arg]
+def lex_space(lex: Lexer) -> LexerFunc:
     lex.accept_run(is_space)
 
     lex.emit(ItemType.Space)
@@ -288,7 +299,7 @@ def lex_space(lex: Lexer) -> Callable:  # type: ignore[type-arg]
 
 
 # Lex_text scans an alphanumeric.
-def lex_text(lex: Lexer) -> Callable:  # type: ignore[type-arg]
+def lex_text(lex: Lexer) -> LexerFunc:
     while True:
         r = lex.get()
         if is_alpha_numeric(r):
@@ -327,7 +338,7 @@ def cal(value: str) -> set[Any]:
     return set(month_abbr + month_name + day_abbr + day_name)
 
 
-def lex_number(lex: Lexer) -> Callable[[Lexer], Callable | None] | None:  # type: ignore[type-arg]
+def lex_number(lex: Lexer) -> LexerFunc | None:
     if not lex.scan_number():
         return errorf(lex, "bad number syntax: " + lex.input[lex.start : lex.pos])
     # Complex number logic removed. Messes with math operations without space

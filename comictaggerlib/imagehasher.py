@@ -18,6 +18,7 @@ from __future__ import annotations
 import io
 import logging
 import math
+from collections.abc import Sequence
 from functools import reduce
 from statistics import median
 from typing import TypeVar
@@ -98,8 +99,8 @@ class ImageHasher:
         Implementation follows http://www.hackerfactor.com/blog/index.php?/archives/432-Looks-Like-It.html
         """
 
-        def generate_dct2(block, axis=0):
-            def dct1(block):
+        def generate_dct2(block: Sequence[Sequence[float]], axis: int = 0) -> list[list[float]]:
+            def dct1(block: Sequence[float]) -> list[float]:
                 """Perform 1D Discrete Cosine Transform (DCT) on a given block."""
                 N = len(block)
                 dct_block = [0.0] * N
@@ -134,7 +135,7 @@ class ImageHasher:
 
             return dct_block
 
-        def convert_image_to_ndarray(image):
+        def convert_image_to_ndarray(image: Image.Image) -> Sequence[Sequence[float]]:
             width, height = image.size
 
             pixels2 = []
@@ -173,12 +174,14 @@ class ImageHasher:
 
     @staticmethod
     def hamming_distance(h1: T, h2: T) -> int:
-        if isinstance(h1, int) or isinstance(h2, int):
+        if isinstance(h1, int):
             n1 = h1
+        else:
+            n1 = int(h1, 16)
+
+        if isinstance(h2, int):
             n2 = h2
         else:
-            # convert hex strings to ints
-            n1 = int(h1, 16)
             n2 = int(h2, 16)
 
         # xor the two numbers

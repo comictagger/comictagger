@@ -221,7 +221,7 @@ class ComicVineTalker(ComicTalker):
         try:
             test_url = urljoin(url, "issue/1/")
 
-            cv_response: CVResult = requests.get(
+            cv_response: CVResult = requests.get(  # type: ignore[type-arg]
                 test_url,
                 headers={"user-agent": "comictagger/" + self.version},
                 params={
@@ -400,12 +400,12 @@ class ComicVineTalker(ComicTalker):
 
         return formatted_filtered_issues_result
 
-    def _get_cv_content(self, url: str, params: dict[str, Any]) -> CVResult:
+    def _get_cv_content(self, url: str, params: dict[str, Any]) -> CVResult[T]:
         """
         Get the content from the CV server.
         """
         with self.limiter.ratelimit("cv", delay=True):
-            cv_response: CVResult = self._get_url_content(url, params)
+            cv_response: CVResult[T] = self._get_url_content(url, params)
 
             if cv_response["status_code"] != 1:
                 logger.debug(
@@ -463,7 +463,7 @@ class ComicVineTalker(ComicTalker):
 
         return formatted_results
 
-    def _format_series(self, record) -> ComicSeries:
+    def _format_series(self, record: CVSeries) -> ComicSeries:
         # Flatten publisher to name only
         if record.get("publisher") is None:
             pub_name = ""

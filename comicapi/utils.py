@@ -23,7 +23,7 @@ import unicodedata
 from collections import defaultdict
 from collections.abc import Iterable, Mapping
 from shutil import which  # noqa: F401
-from typing import Any
+from typing import Any, TypeVar
 
 import comicapi.data
 from comicapi import filenamelexer, filenameparser
@@ -39,7 +39,7 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-def _custom_key(tup):
+def _custom_key(tup: Any) -> Any:
     import natsort
 
     lst = []
@@ -52,7 +52,10 @@ def _custom_key(tup):
     return tuple(lst)
 
 
-def os_sorted(lst: Iterable) -> Iterable:
+T = TypeVar("T")
+
+
+def os_sorted(lst: Iterable[T]) -> Iterable[T]:
     import natsort
 
     key = _custom_key
