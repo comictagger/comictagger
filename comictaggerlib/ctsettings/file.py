@@ -235,7 +235,7 @@ def autotag(parser: settngs.Manager) -> None:
 def parse_filter(config: settngs.Config[ct_ns]) -> settngs.Config[ct_ns]:
     new_filter = []
     remove = []
-    for x in config[0].Issue_Identifier_publisher_filter:
+    for x in config[0].Issue_Identifier__publisher_filter:
         x = x.strip()
         if x:  # ignore empty arguments
             if x[-1] == "-":  # this publisher needs to be removed. We remove after all publishers have been enumerated
@@ -246,18 +246,18 @@ def parse_filter(config: settngs.Config[ct_ns]) -> settngs.Config[ct_ns]:
     for x in remove:  # remove publishers
         if x in new_filter:
             new_filter.remove(x)
-    config[0].Issue_Identifier_publisher_filter = new_filter
+    config[0].Issue_Identifier__publisher_filter = new_filter
     return config
 
 
 def validate_file_settings(config: settngs.Config[ct_ns]) -> settngs.Config[ct_ns]:
     config = parse_filter(config)
-    if config[0].Filename_Parsing_protofolius_issue_number_scheme:
-        config[0].Filename_Parsing_allow_issue_start_with_letter = True
+    if config[0].Filename_Parsing__protofolius_issue_number_scheme:
+        config[0].Filename_Parsing__allow_issue_start_with_letter = True
 
-    config[0].File_Rename_replacements = Replacements(
-        [Replacement(x[0], x[1], x[2]) for x in config[0].File_Rename_replacements[0]],
-        [Replacement(x[0], x[1], x[2]) for x in config[0].File_Rename_replacements[1]],
+    config[0].File_Rename__replacements = Replacements(
+        [Replacement(x[0], x[1], x[2]) for x in config[0].File_Rename__replacements[0]],
+        [Replacement(x[0], x[1], x[2]) for x in config[0].File_Rename__replacements[1]],
     )
     return config
 

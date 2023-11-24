@@ -204,7 +204,7 @@ def generate_talker_info(talker: ComicTalker, config: settngs.Config[ct_ns], lay
     logo = CoverImageWidget(
         talker_info_layout.parentWidget(),
         CoverImageWidget.URLMode,
-        config.values.Runtime_Options_config.user_cache_dir,
+        config.values.Runtime_Options__config.user_cache_dir,
         talker,
         False,
     )
@@ -248,7 +248,7 @@ def generate_combobox(option: settngs.Setting, layout: QtWidgets.QGridLayout) ->
 
 def settings_to_talker_form(sources: Sources, config: settngs.Config[ct_ns]) -> None:
     # Set the active talker via id in sources combo box
-    sources[0].setCurrentIndex(sources[0].findData(config[0].Sources_source))
+    sources[0].setCurrentIndex(sources[0].findData(config[0].Sources__source))
 
     # Iterate over the tabs, the talker is included in the tab so no extra lookup is needed
     for talker, tab in sources.tabs:
@@ -322,7 +322,7 @@ def get_config_from_tab(tab: TalkerTab, definitions: settngs.Group) -> dict[str,
 
 def form_settings_to_config(sources: Sources, config: settngs.Config[ct_ns]) -> settngs.Config[ct_ns]:
     # Update the currently selected talker
-    config.values.Sources_source = sources.cbx_sources.currentData()
+    config.values.Sources__source = sources.cbx_sources.currentData()
     cfg = settngs.normalize_config(config, True, True)
 
     # Iterate over the tabs, the talker is included in the tab so no extra lookup is needed

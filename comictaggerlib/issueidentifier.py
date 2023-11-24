@@ -96,10 +96,10 @@ class IssueIdentifier:
 
         # used to eliminate series names that are too long based on our search
         # string
-        self.series_match_thresh = config.Issue_Identifier_series_match_identify_thresh
+        self.series_match_thresh = config.Issue_Identifier__series_match_identify_thresh
 
         # used to eliminate unlikely publishers
-        self.publisher_filter = [s.strip().casefold() for s in config.Issue_Identifier_publisher_filter]
+        self.publisher_filter = [s.strip().casefold() for s in config.Issue_Identifier__publisher_filter]
 
         self.additional_metadata = GenericMetadata()
         self.output_function: Callable[[str], None] = IssueIdentifier.default_write_output
@@ -239,10 +239,10 @@ class IssueIdentifier:
 
         # try to get some metadata from filename
         md_from_filename = ca.metadata_from_filename(
-            self.config.Filename_Parsing_complicated_parser,
-            self.config.Filename_Parsing_remove_c2c,
-            self.config.Filename_Parsing_remove_fcbd,
-            self.config.Filename_Parsing_remove_publisher,
+            self.config.Filename_Parsing__complicated_parser,
+            self.config.Filename_Parsing__remove_c2c,
+            self.config.Filename_Parsing__remove_fcbd,
+            self.config.Filename_Parsing__remove_publisher,
         )
 
         working_md = md_from_filename.copy()
@@ -291,7 +291,7 @@ class IssueIdentifier:
             return Score(score=100, url="", hash=0)
 
         try:
-            url_image_data = ImageFetcher(self.config.Runtime_Options_config.user_cache_dir).fetch(
+            url_image_data = ImageFetcher(self.config.Runtime_Options__config.user_cache_dir).fetch(
                 primary_img_url, blocking=True
             )
         except ImageFetcherException as e:
@@ -313,7 +313,7 @@ class IssueIdentifier:
         if use_remote_alternates:
             for alt_url in alt_urls:
                 try:
-                    alt_url_image_data = ImageFetcher(self.config.Runtime_Options_config.user_cache_dir).fetch(
+                    alt_url_image_data = ImageFetcher(self.config.Runtime_Options__config.user_cache_dir).fetch(
                         alt_url, blocking=True
                     )
                 except ImageFetcherException as e:
@@ -499,7 +499,7 @@ class IssueIdentifier:
             if narrow_cover_hash is not None:
                 hash_list.append(narrow_cover_hash)
 
-            cropped_border = self.crop_border(cover_image_data, self.config.Issue_Identifier_border_crop_percent)
+            cropped_border = self.crop_border(cover_image_data, self.config.Issue_Identifier__border_crop_percent)
             if cropped_border is not None:
                 hash_list.append(self.calculate_hash(cropped_border))
                 logger.info("Adding cropped cover to the hashlist")

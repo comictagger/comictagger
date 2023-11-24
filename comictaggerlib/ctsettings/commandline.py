@@ -247,55 +247,55 @@ def register_commandline_settings(parser: settngs.Manager) -> None:
 
 
 def validate_commandline_settings(config: settngs.Config[ct_ns], parser: settngs.Manager) -> settngs.Config[ct_ns]:
-    if config[0].Commands_version:
+    if config[0].Commands__version:
         parser.exit(
             status=1,
             message=f"ComicTagger {ctversion.version}:  Copyright (c) 2012-2022 ComicTagger Team\n"
             "Distributed under Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)\n",
         )
 
-    config[0].Runtime_Options_no_gui = any(
+    config[0].Runtime_Options__no_gui = any(
         [
-            config[0].Commands_print,
-            config[0].Commands_delete,
-            config[0].Commands_save,
-            config[0].Commands_copy,
-            config[0].Commands_rename,
-            config[0].Commands_export_to_zip,
-            config[0].Commands_only_save_config,
-            config[0].Commands_list_plugins,
-            config[0].Runtime_Options_no_gui,
+            config[0].Commands__print,
+            config[0].Commands__delete,
+            config[0].Commands__save,
+            config[0].Commands__copy,
+            config[0].Commands__rename,
+            config[0].Commands__export_to_zip,
+            config[0].Commands__only_save_config,
+            config[0].Commands__list_plugins,
+            config[0].Runtime_Options__no_gui,
         ]
     )
 
-    if platform.system() == "Windows" and config[0].Runtime_Options_glob:
+    if platform.system() == "Windows" and config[0].Runtime_Options__glob:
         # no globbing on windows shell, so do it for them
         import glob
 
-        globs = config[0].Runtime_Options_files
-        config[0].Runtime_Options_files = []
+        globs = config[0].Runtime_Options__files
+        config[0].Runtime_Options__files = []
         for item in globs:
-            config[0].Runtime_Options_files.extend(glob.glob(item))
+            config[0].Runtime_Options__files.extend(glob.glob(item))
 
     if (
-        not config[0].Commands_only_save_config
-        and config[0].Runtime_Options_no_gui
-        and not config[0].Runtime_Options_files
+        not config[0].Commands__only_save_config
+        and config[0].Runtime_Options__no_gui
+        and not config[0].Runtime_Options__files
     ):
         parser.exit(message="Command requires at least one filename!\n", status=1)
 
-    if config[0].Commands_delete and not config[0].Runtime_Options_type:
+    if config[0].Commands__delete and not config[0].Runtime_Options__type:
         parser.exit(message="Please specify the type to delete with -t\n", status=1)
 
-    if config[0].Commands_save and not config[0].Runtime_Options_type:
+    if config[0].Commands__save and not config[0].Runtime_Options__type:
         parser.exit(message="Please specify the type to save with -t\n", status=1)
 
-    if config[0].Commands_copy:
-        if not config[0].Runtime_Options_type:
+    if config[0].Commands__copy:
+        if not config[0].Runtime_Options__type:
             parser.exit(message="Please specify the type to copy to with -t\n", status=1)
 
-    if config[0].Runtime_Options_recursive:
-        config[0].Runtime_Options_files = utils.get_recursive_filelist(config[0].Runtime_Options_files)
+    if config[0].Runtime_Options__recursive:
+        config[0].Runtime_Options__files = utils.get_recursive_filelist(config[0].Runtime_Options__files)
 
     # take a crack at finding rar exe if it's not in the path
     if not utils.which("rar"):
