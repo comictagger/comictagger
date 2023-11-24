@@ -122,7 +122,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
             uic.loadUi(uifile, self)
 
         self.imageWidget = CoverImageWidget(
-            self.imageContainer, CoverImageWidget.URLMode, config.Runtime_Options_config.user_cache_dir, talker
+            self.imageContainer, CoverImageWidget.URLMode, config.Runtime_Options__config.user_cache_dir, talker
         )
         gridlayout = QtWidgets.QGridLayout(self.imageContainer)
         gridlayout.addWidget(self.imageWidget)
@@ -167,7 +167,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         self.progdialog: QtWidgets.QProgressDialog | None = None
         self.search_thread: SearchThread | None = None
 
-        self.use_filter = self.config.Issue_Identifier_always_use_publisher_filter
+        self.use_filter = self.config.Issue_Identifier__always_use_publisher_filter
 
         # Load to retrieve settings
         self.talker = talker
@@ -178,7 +178,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         self.imageSourceWidget = CoverImageWidget(
             self.imageSourceLogo,
             CoverImageWidget.URLMode,
-            config.Runtime_Options_config.user_cache_dir,
+            config.Runtime_Options__config.user_cache_dir,
             talker,
             False,
         )
@@ -366,7 +366,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
             self.series_name,
             refresh,
             self.literal,
-            self.config.Issue_Identifier_series_match_search_thresh,
+            self.config.Issue_Identifier__series_match_search_thresh,
         )
         self.search_thread.searchComplete.connect(self.search_complete)
         self.search_thread.progressUpdate.connect(self.search_progress_update)
@@ -419,7 +419,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         # filter the publishers if enabled set
         if self.use_filter:
             try:
-                publisher_filter = {s.strip().casefold() for s in self.config.Issue_Identifier_publisher_filter}
+                publisher_filter = {s.strip().casefold() for s in self.config.Issue_Identifier__publisher_filter}
                 # use '' as publisher name if None
                 self.series_list = dict(
                     filter(
@@ -435,7 +435,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         # compare as str in case extra chars ie. '1976?'
         # - missing (none) values being converted to 'None' - consistent with prior behaviour in v1.2.3
         # sort by start_year if set
-        if self.config.Issue_Identifier_sort_series_by_year:
+        if self.config.Issue_Identifier__sort_series_by_year:
             try:
                 self.series_list = dict(
                     natsort.natsorted(
@@ -455,7 +455,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
                 logger.exception("bad data error sorting results by count_of_issues")
 
         # move sanitized matches to the front
-        if self.config.Issue_Identifier_exact_series_matches_first:
+        if self.config.Issue_Identifier__exact_series_matches_first:
             try:
                 sanitized = utils.sanitize_title(self.series_name, False).casefold()
                 sanitized_no_articles = utils.sanitize_title(self.series_name, True).casefold()
