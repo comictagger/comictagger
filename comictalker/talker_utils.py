@@ -43,25 +43,11 @@ def cleanup_html(string: str | None, remove_html_tables: bool = False) -> str:
     soup = BeautifulSoup(string, "html.parser")
     tables = soup.findAll("table")
 
-    # remove all newlines first
-    string = string.replace("\n", "")
-
     # put in our own
-    string = string.replace("<br>", "\n")
-    string = string.replace("</li>", "\n")
-    string = string.replace("</p>", "\n\n")
-    string = string.replace("<h1>", "*")
-    string = string.replace("</h1>", "*\n")
-    string = string.replace("<h2>", "*")
-    string = string.replace("</h2>", "*\n")
-    string = string.replace("<h3>", "*")
-    string = string.replace("</h3>", "*\n")
-    string = string.replace("<h4>", "*")
-    string = string.replace("</h4>", "*\n")
-    string = string.replace("<h5>", "*")
-    string = string.replace("</h5>", "*\n")
-    string = string.replace("<h6>", "*")
-    string = string.replace("</h6>", "*\n")
+    string = re.sub(r"<br>|</li>", "\n", string, flags=re.IGNORECASE)
+    string = re.sub(r"</p>", "\n\n", string, flags=re.IGNORECASE)
+    string = re.sub(r"<h([1-6])>", "*", string, flags=re.IGNORECASE)
+    string = re.sub(r"</h[1-6]>", "*\n", string, flags=re.IGNORECASE)
 
     # remove the tables
     p = re.compile(r"<table[^<]*?>.*?</table>")
@@ -77,6 +63,7 @@ def cleanup_html(string: str | None, remove_html_tables: bool = False) -> str:
 
     newstring = newstring.replace("&nbsp;", " ")
     newstring = newstring.replace("&amp;", "&")
+    newstring = newstring.replace("&#039;", "'")
 
     newstring = newstring.strip()
 
