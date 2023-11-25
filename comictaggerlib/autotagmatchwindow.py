@@ -45,7 +45,8 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
     ) -> None:
         super().__init__(parent)
 
-        uic.loadUi(ui_path / "matchselectionwindow.ui", self)
+        with (ui_path / "matchselectionwindow.ui").open(encoding="utf-8") as uifile:
+            uic.loadUi(uifile, self)
 
         self.config = config
 

@@ -31,7 +31,8 @@ class AutoTagProgressWindow(QtWidgets.QDialog):
     def __init__(self, parent: QtWidgets.QWidget, talker: ComicTalker) -> None:
         super().__init__(parent)
 
-        uic.loadUi(ui_path / "autotagprogresswindow.ui", self)
+        with (ui_path / "autotagprogresswindow.ui").open(encoding="utf-8") as uifile:
+            uic.loadUi(uifile, self)
 
         self.archiveCoverWidget = CoverImageWidget(
             self.archiveCoverContainer, CoverImageWidget.DataMode, None, None, False

@@ -28,7 +28,8 @@ class LogWindow(QtWidgets.QDialog):
     def __init__(self, parent: QtWidgets.QWidget) -> None:
         super().__init__(parent)
 
-        uic.loadUi(ui_path / "logwindow.ui", self)
+        with (ui_path / "logwindow.ui").open(encoding="utf-8") as uifile:
+            uic.loadUi(uifile, self)
 
         self.setWindowFlags(
             QtCore.Qt.WindowType(

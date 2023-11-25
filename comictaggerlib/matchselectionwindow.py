@@ -42,7 +42,8 @@ class MatchSelectionWindow(QtWidgets.QDialog):
     ) -> None:
         super().__init__(parent)
 
-        uic.loadUi(ui_path / "matchselectionwindow.ui", self)
+        with (ui_path / "matchselectionwindow.ui").open(encoding="utf-8") as uifile:
+            uic.loadUi(uifile, self)
 
         self.altCoverWidget = CoverImageWidget(
             self.altCoverContainer, CoverImageWidget.AltCoverMode, config.Runtime_Options__config.user_cache_dir, talker

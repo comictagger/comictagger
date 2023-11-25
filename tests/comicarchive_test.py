@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import pathlib
 import platform
 import shutil
 
@@ -14,7 +15,7 @@ from testing.filenames import datadir
 
 @pytest.mark.xfail(not comicapi.archivers.rar.rar_support, reason="rar support")
 def test_getPageNameList():
-    c = comicapi.comicarchive.ComicArchive(datadir / "fake_cbr.cbr")
+    c = comicapi.comicarchive.ComicArchive(pathlib.Path(str(datadir)) / "fake_cbr.cbr")
     assert c.seems_to_be_a_comic_archive()
     pageNameList = c.get_page_name_list()
 
@@ -61,7 +62,7 @@ def test_save_cbi(tmp_comic):
 
 @pytest.mark.xfail(not (comicapi.archivers.rar.rar_support and shutil.which("rar")), reason="rar support")
 def test_save_cix_rar(tmp_path, md_saved):
-    cbr_path = datadir / "fake_cbr.cbr"
+    cbr_path = pathlib.Path(str(datadir)) / "fake_cbr.cbr"
     shutil.copy(cbr_path, tmp_path)
 
     tmp_comic = comicapi.comicarchive.ComicArchive(tmp_path / cbr_path.name)
@@ -74,7 +75,7 @@ def test_save_cix_rar(tmp_path, md_saved):
 
 @pytest.mark.xfail(not (comicapi.archivers.rar.rar_support and shutil.which("rar")), reason="rar support")
 def test_save_cbi_rar(tmp_path, md_saved):
-    cbr_path = datadir / "fake_cbr.cbr"
+    cbr_path = pathlib.Path(str(datadir)) / "fake_cbr.cbr"
     shutil.copy(cbr_path, tmp_path)
 
     tmp_comic = comicapi.comicarchive.ComicArchive(tmp_path / cbr_path.name)

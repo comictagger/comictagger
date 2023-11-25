@@ -29,7 +29,8 @@ class AutoTagStartWindow(QtWidgets.QDialog):
     def __init__(self, parent: QtWidgets.QWidget, config: ct_ns, msg: str) -> None:
         super().__init__(parent)
 
-        uic.loadUi(ui_path / "autotagstartwindow.ui", self)
+        with (ui_path / "autotagstartwindow.ui").open(encoding="utf-8") as uifile:
+            uic.loadUi(uifile, self)
         self.label.setText(msg)
 
         self.setWindowFlags(

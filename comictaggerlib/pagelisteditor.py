@@ -68,7 +68,8 @@ class PageListEditor(QtWidgets.QWidget):
     def __init__(self, parent: QtWidgets.QWidget) -> None:
         super().__init__(parent)
 
-        uic.loadUi(ui_path / "pagelisteditor.ui", self)
+        with (ui_path / "pagelisteditor.ui").open(encoding="utf-8") as uifile:
+            uic.loadUi(uifile, self)
 
         self.pageWidget = CoverImageWidget(self.pageContainer, CoverImageWidget.ArchiveMode, None, None)
         gridlayout = QtWidgets.QGridLayout(self.pageContainer)

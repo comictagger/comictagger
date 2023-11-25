@@ -78,7 +78,8 @@ class CoverImageWidget(QtWidgets.QWidget):
         else:
             self.cover_fetcher = ImageFetcher(cache_folder)
             self.talker = None
-        uic.loadUi(ui_path / "coverimagewidget.ui", self)
+        with (ui_path / "coverimagewidget.ui").open(encoding="utf-8") as uifile:
+            uic.loadUi(uifile, self)
 
         reduce_widget_font_size(self.label)
 

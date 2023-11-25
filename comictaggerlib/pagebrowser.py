@@ -33,7 +33,8 @@ class PageBrowserWindow(QtWidgets.QDialog):
     def __init__(self, parent: QtWidgets.QWidget, metadata: GenericMetadata) -> None:
         super().__init__(parent)
 
-        uic.loadUi(ui_path / "pagebrowser.ui", self)
+        with (ui_path / "pagebrowser.ui").open(encoding="utf-8") as uifile:
+            uic.loadUi(uifile, self)
 
         self.pageWidget = CoverImageWidget(self.pageContainer, CoverImageWidget.ArchiveMode, None, None)
         gridlayout = QtWidgets.QGridLayout(self.pageContainer)

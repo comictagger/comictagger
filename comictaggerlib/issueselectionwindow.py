@@ -49,7 +49,8 @@ class IssueSelectionWindow(QtWidgets.QDialog):
     ) -> None:
         super().__init__(parent)
 
-        uic.loadUi(ui_path / "issueselectionwindow.ui", self)
+        with (ui_path / "issueselectionwindow.ui").open(encoding="utf-8") as uifile:
+            uic.loadUi(uifile, self)
 
         self.coverWidget = CoverImageWidget(
             self.coverImageContainer,

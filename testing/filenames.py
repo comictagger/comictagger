@@ -12,6 +12,7 @@ format is
 from __future__ import annotations
 
 import datetime
+import importlib.resources
 import os
 import os.path
 import pathlib
@@ -19,8 +20,8 @@ from contextlib import nullcontext as does_not_raise
 
 import pytest
 
-datadir = pathlib.Path(__file__).parent / "data"
-cbz_path = datadir / "Cory Doctorow's Futuristic Tales of the Here and Now #001 - Anda's Game (2007).cbz"
+datadir = importlib.resources.files(__package__).joinpath("data")
+cbz_path = datadir.joinpath("Cory Doctorow's Futuristic Tales of the Here and Now #001 - Anda's Game (2007).cbz")
 
 names: list[tuple[str, str, dict[str, str | bool], tuple[bool, bool]]] = [
     (

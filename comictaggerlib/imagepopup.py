@@ -29,7 +29,8 @@ class ImagePopup(QtWidgets.QDialog):
     def __init__(self, parent: QtWidgets.QWidget, image_pixmap: QtGui.QPixmap) -> None:
         super().__init__(parent)
 
-        uic.loadUi(ui_path / "imagepopup.ui", self)
+        with (ui_path / "imagepopup.ui").open(encoding="utf-8") as uifile:
+            uic.loadUi(uifile, self)
 
         QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
 

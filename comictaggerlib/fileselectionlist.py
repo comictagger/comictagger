@@ -61,7 +61,8 @@ class FileSelectionList(QtWidgets.QWidget):
     ) -> None:
         super().__init__(parent)
 
-        uic.loadUi(ui_path / "fileselectionlist.ui", self)
+        with (ui_path / "fileselectionlist.ui").open(encoding="utf-8") as uifile:
+            uic.loadUi(uifile, self)
 
         self.config = config
 

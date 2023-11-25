@@ -113,7 +113,8 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
     ) -> None:
         super().__init__(parent)
 
-        uic.loadUi(ui_path / "seriesselectionwindow.ui", self)
+        with (ui_path / "seriesselectionwindow.ui").open(encoding="utf-8") as uifile:
+            uic.loadUi(uifile, self)
 
         self.imageWidget = CoverImageWidget(
             self.imageContainer, CoverImageWidget.URLMode, config.Runtime_Options__config.user_cache_dir, talker

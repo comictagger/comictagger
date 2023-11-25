@@ -1,5 +1,5 @@
 from __future__ import annotations
 
-import pathlib
+import importlib.resources
 
-data_path = pathlib.Path(__file__).parent
+data_path = importlib.resources.files(__package__)

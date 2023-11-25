@@ -138,7 +138,8 @@ class SettingsWindow(QtWidgets.QDialog):
     ) -> None:
         super().__init__(parent)
 
-        uic.loadUi(ui_path / "settingswindow.ui", self)
+        with (ui_path / "settingswindow.ui").open(encoding="utf-8") as uifile:
+            uic.loadUi(uifile, self)
 
         self.setWindowFlags(
             QtCore.Qt.WindowType(self.windowFlags() & ~QtCore.Qt.WindowType.WindowContextHelpButtonHint)
@@ -596,4 +597,5 @@ class TemplateHelpWindow(QtWidgets.QDialog):
     def __init__(self, parent: QtWidgets.QWidget) -> None:
         super().__init__(parent)
 
-        uic.loadUi(ui_path / "TemplateHelp.ui", self)
+        with (ui_path / "TemplateHelp.ui").open(encoding="utf-8") as uifile:
+            uic.loadUi(uifile, self)
