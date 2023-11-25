@@ -1,5 +1,5 @@
 from __future__ import annotations
 
-import pathlib
+import importlib.resources
 
-graphics_path = pathlib.Path(__file__).parent
+graphics_path = importlib.resources.files(__package__)

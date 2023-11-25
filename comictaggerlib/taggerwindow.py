@@ -86,7 +86,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
     ) -> None:
         super().__init__(parent)
 
-        uic.loadUi(ui_path / "taggerwindow.ui", self)
+        with (ui_path / "taggerwindow.ui").open(encoding="utf-8") as uifile:
+            uic.loadUi(uifile, self)
         self.config = config
         self.talkers = talkers
         self.log_window = self.setup_logger()

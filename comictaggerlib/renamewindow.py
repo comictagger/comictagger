@@ -44,7 +44,8 @@ class RenameWindow(QtWidgets.QDialog):
     ) -> None:
         super().__init__(parent)
 
-        uic.loadUi(ui_path / "renamewindow.ui", self)
+        with (ui_path / "renamewindow.ui").open(encoding="utf-8") as uifile:
+            uic.loadUi(uifile, self)
         self.label.setText(f"Preview (based on {MetaDataStyle.name[data_style]} tags):")
 
         self.setWindowFlags(

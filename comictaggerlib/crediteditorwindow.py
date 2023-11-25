@@ -32,7 +32,8 @@ class CreditEditorWindow(QtWidgets.QDialog):
     def __init__(self, parent: QtWidgets.QWidget, mode: int, role: str, name: str, primary: bool) -> None:
         super().__init__(parent)
 
-        uic.loadUi(ui_path / "crediteditorwindow.ui", self)
+        with (ui_path / "crediteditorwindow.ui").open(encoding="utf-8") as uifile:
+            uic.loadUi(uifile, self)
 
         self.mode = mode
 
