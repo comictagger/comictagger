@@ -4,7 +4,7 @@ import logging
 import pathlib
 import sys
 
-from packaging.specifiers import InvalidSpecifier, SpecifierSet
+from packaging.version import InvalidVersion, parse
 
 if sys.version_info < (3, 10):
     from importlib_metadata import entry_points
@@ -33,14 +33,14 @@ def get_talkers(version: str, cache: pathlib.Path) -> dict[str, ComicTalker]:
                 logger.error("Talker ID must be the same as the entry point name")
                 continue
             try:
-                if version in SpecifierSet(obj.ct_req_spec, prereleases=True):
+                if parse(version) >= parse(obj.comictagger_min_ver):
                     talkers[talker.name] = obj
                 else:
                     logger.error(
-                        f"CT required version not met for talker: {talker.name} with specifier: {obj.ct_req_spec}"
+                        f"CT minimum required version not met for talker: {talker.name} with version: {obj.comictagger_min_ver}"
                     )
-            except InvalidSpecifier:
-                logger.error(f"Invalid specifier for talker: {talker.name} - specifier: {obj.ct_req_spec}")
+            except InvalidVersion:
+                logger.error(f"Invalid version number for talker: {talker.name} - version: {obj.comictagger_min_ver}")
 
         except Exception:
             logger.exception("Failed to load talker: %s", talker.name)
