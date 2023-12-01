@@ -37,10 +37,15 @@ def get_talkers(version: str, cache: pathlib.Path) -> dict[str, ComicTalker]:
                     talkers[talker.name] = obj
                 else:
                     logger.error(
-                        f"CT minimum required version not met for talker: {talker.name} with version: {obj.comictagger_min_ver}"
+                        f"Minimum ComicTagger version required of {obj.comictagger_min_ver} for talker {talker.name} is not met, will NOT load talker"
                     )
             except InvalidVersion:
-                logger.error(f"Invalid version number for talker: {talker.name} - version: {obj.comictagger_min_ver}")
+                logger.warning(
+                    f"Invalid minimum required ComicTagger version number for talker: {talker.name} - version: {obj.comictagger_min_ver}, will load talker anyway"
+                )
+                # Attempt to use the talker anyway
+                # TODO flag this problem for later display to the user
+                talkers[talker.name] = obj
 
         except Exception:
             logger.exception("Failed to load talker: %s", talker.name)
