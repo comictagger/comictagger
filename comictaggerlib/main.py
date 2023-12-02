@@ -150,8 +150,8 @@ class App:
         ctsettings.register_plugin_settings(self.manager)
 
     def parse_settings(self, config_paths: ctsettings.ComicTaggerPaths, *args: str) -> settngs.Config[ct_ns]:
-        cfg, self.config_load_success = self.manager.parse_config(
-            config_paths.user_config_dir / "settings.json", list(args) or None
+        cfg, self.config_load_success = ctsettings.parse_config(
+            self.manager, config_paths.user_config_dir / "settings.json", list(args) or None
         )
         config = cast(settngs.Config[ct_ns], self.manager.get_namespace(cfg, file=True, cmdline=True))
         config[0].Runtime_Options__config = config_paths
@@ -206,8 +206,8 @@ class App:
             if self.config_load_success:
                 settings_path = self.config[0].Runtime_Options__config.user_config_dir / "settings.json"
                 if self.config_load_success:
-                    self.manager.save_file(self.config[0], settings_path)
-                print("Key set")  # noqa: T201
+                    ctsettings.save_file(self.config, settings_path)
+                print("Settings saved")  # noqa: T201
                 return
 
         if not self.config_load_success:
