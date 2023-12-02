@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import pathlib
 
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
@@ -23,9 +24,11 @@ class QTextEditLogger(QtCore.QObject, logging.Handler):
 
 
 class ApplicationLogWindow(QtWidgets.QDialog):
-    def __init__(self, log_handler: QTextEditLogger, parent: QtCore.QObject | None = None) -> None:
+    def __init__(
+        self, log_folder: pathlib.Path, log_handler: QTextEditLogger, parent: QtCore.QObject | None = None
+    ) -> None:
         super().__init__(parent)
-        with (ui_path / "logwindow.ui").open(encoding="utf-8") as uifile:
+        with (ui_path / "applicationlogwindow.ui").open(encoding="utf-8") as uifile:
             uic.loadUi(uifile, self)
 
         self.log_handler = log_handler
@@ -36,6 +39,9 @@ class ApplicationLogWindow(QtWidgets.QDialog):
         self.setFont(f)
         self._button = QtWidgets.QPushButton(self)
         self._button.setText("Test Me")
+
+        self.log_folder = log_folder
+        self.lblLogLocation.setText(f'Log Location: <a href="file://{log_folder}">{log_folder}</a>')
 
         layout = self.layout()
         layout.addWidget(self._button)
