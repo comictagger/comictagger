@@ -24,6 +24,7 @@ __all__ = [
 def get_talkers(version: str, cache: pathlib.Path) -> dict[str, ComicTalker]:
     """Returns all comic talker instances"""
     talkers: dict[str, ComicTalker] = {}
+    ct_version = parse(version)
 
     for talker in entry_points(group="comictagger.talker"):
         try:
@@ -33,7 +34,7 @@ def get_talkers(version: str, cache: pathlib.Path) -> dict[str, ComicTalker]:
                 logger.error("Talker ID must be the same as the entry point name")
                 continue
             try:
-                if parse(version) >= parse(obj.comictagger_min_ver):
+                if ct_version >= parse(obj.comictagger_min_ver):
                     talkers[talker.name] = obj
                 else:
                     logger.error(
