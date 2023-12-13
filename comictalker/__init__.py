@@ -4,6 +4,8 @@ import logging
 import pathlib
 import sys
 
+from packaging.version import InvalidVersion, parse
+
 if sys.version_info < (3, 10):
     from importlib_metadata import entry_points
 else:
@@ -22,6 +24,7 @@ __all__ = [
 def get_talkers(version: str, cache: pathlib.Path) -> dict[str, ComicTalker]:
     """Returns all comic talker instances"""
     talkers: dict[str, ComicTalker] = {}
+    ct_version = parse(version)
 
     for talker in entry_points(group="comictagger.talker"):
         try:
@@ -30,7 +33,20 @@ def get_talkers(version: str, cache: pathlib.Path) -> dict[str, ComicTalker]:
             if obj.id != talker.name:
                 logger.error("Talker ID must be the same as the entry point name")
                 continue
-            talkers[talker.name] = obj
+            try:
+                if ct_version >= parse(obj.comictagger_min_ver):
+                    talkers[talker.name] = obj
+                else:
+                    logger.error(
+                        f"Minimum ComicTagger version required of {obj.comictagger_min_ver} for talker {talker.name} is not met, will NOT load talker"
+                    )
+            except InvalidVersion:
+                logger.warning(
+                    f"Invalid minimum required ComicTagger version number for talker: {talker.name} - version: {obj.comictagger_min_ver}, will load talker anyway"
+                )
+                # Attempt to use the talker anyway
+                # TODO flag this problem for later display to the user
+                talkers[talker.name] = obj
 
         except Exception:
             logger.exception("Failed to load talker: %s", talker.name)

@@ -107,6 +107,7 @@ class ComicTalker:
 
     name: str = "Example"
     id: str = "example"
+    comictagger_min_ver: str = "1.6.0a7"  # The ComicTagger minimum version required by the talker
     website: str = "https://example.com"
     logo_url: str = f"{website}/logo.png"
     attribution: str = f"Metadata provided by <a href='{website}'>{name}</a>"
