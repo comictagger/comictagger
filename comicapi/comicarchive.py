@@ -21,7 +21,7 @@ import pathlib
 import shutil
 import sys
 import traceback
-from typing import cast
+from typing import Tuple, cast
 
 from comicapi import utils
 from comicapi.archivers import Archiver, UnknownArchiver, ZipArchiver
@@ -515,6 +515,31 @@ class ComicArchive:
                         break
 
         return self._has_comet
+
+    def get_image_dimensions(self, image_idx: int) -> Tuple[int, int, int]:
+        if not self.pil_available:
+            return -1, -1, -1
+
+        try:
+            from PIL import Image
+        except ImportError:
+            self.pil_available = False
+            return -1, -1, -1
+
+        data = self.get_page(image_idx)
+        if data:
+            try:
+                if isinstance(data, bytes):
+                    im = Image.open(io.BytesIO(data))
+                else:
+                    im = Image.open(io.StringIO(data))
+                w, h = im.size
+
+                return w, h, len(data)
+            except Exception:
+                return -1, -1, -1
+
+        return -1, -1, -1
 
     def apply_archive_info_to_metadata(self, md: GenericMetadata, calc_page_sizes: bool = False) -> None:
         md.page_count = self.get_number_of_pages()

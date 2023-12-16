@@ -97,6 +97,7 @@ class PageListEditor(QtWidgets.QWidget):
         item_move_events(self.listWidget).connect(self.item_move_event)
         self.cbPageType.activated.connect(self.change_page_type)
         self.chkDoublePage.clicked.connect(self.toggle_double_page)
+        self.btnAutoDouble.clicked.connect(self.autodetect_double_pages)
         self.leBookmark.editingFinished.connect(self.save_bookmark)
         self.btnUp.clicked.connect(self.move_current_up)
         self.btnDown.clicked.connect(self.move_current_down)
@@ -110,6 +111,7 @@ class PageListEditor(QtWidgets.QWidget):
         self.pageWidget.clear()
         self.cbPageType.setDisabled(True)
         self.chkDoublePage.setDisabled(True)
+        self.btnAutoDouble.setDisabled(True)
         self.leBookmark.setDisabled(True)
         self.comic_archive = None
         self.pages_list = []
@@ -286,6 +288,48 @@ class PageListEditor(QtWidgets.QWidget):
 
         self.listWidget.setFocus()
 
+    def autodetect_double_pages(self) -> None:
+        if self.comic_archive is None:
+            return
+
+        for page_number in range(self.listWidget.count()):
+            page = self.listWidget.item(page_number)
+            page_dict: ImageMetadata = self.listWidget.item(page_number).data(QtCore.Qt.ItemDataRole.UserRole)[0]
+
+            if "Image" not in page_dict:
+                continue
+
+            image = int(page_dict["Image"])
+
+            # If the page metadata already knows its size, use that. Otherwise, calculate it from the image in the archive
+            if ("ImageWidth" in page_dict) and ("ImageHeight" in page_dict) and ("ImageSize" in page_dict):
+                width = int(page_dict["ImageWidth"])
+                height = int(page_dict["ImageHeight"])
+                size = int(page_dict["ImageSize"])
+            else:
+                width, height, size = self.comic_archive.get_image_dimensions(image)
+
+            if (width <= 0) or (height <= 0) or (size <= 0):
+                continue
+
+            # Is the image at least as wide as tall? It's a double page. Otherwise, it isn't
+            double_page: bool = width >= height
+
+            if double_page:
+                page_dict["DoublePage"] = True
+            elif "DoublePage" in page_dict:
+                del page_dict["DoublePage"]
+
+            # Cache the image size
+            page_dict["ImageWidth"] = str(width)
+            page_dict["ImageHeight"] = str(height)
+            page_dict["ImageSize"] = str(size)
+
+            page.setData(QtCore.Qt.UserRole, (page_dict,))
+            page.setText(self.list_entry_text(page_dict))
+
+        self.modified.emit()
+
     def save_bookmark(self) -> None:
         row = self.listWidget.currentRow()
         page_dict: ImageMetadata = self.listWidget.item(row).data(QtCore.Qt.UserRole)[0]
@@ -316,6 +360,7 @@ class PageListEditor(QtWidgets.QWidget):
         if pages_list is not None and len(pages_list) > 0:
             self.cbPageType.setDisabled(False)
             self.chkDoublePage.setDisabled(False)
+            self.btnAutoDouble.setDisabled(False)
             self.leBookmark.setDisabled(False)
 
         self.listWidget.itemSelectionChanged.disconnect(self.change_page)
@@ -370,6 +415,7 @@ class PageListEditor(QtWidgets.QWidget):
             self.btnDown.setEnabled(True)
             self.cbPageType.setEnabled(True)
             self.chkDoublePage.setEnabled(True)
+            self.btnAutoDouble.setEnabled(True)
             self.leBookmark.setEnabled(True)
             self.listWidget.setEnabled(True)
 
@@ -381,6 +427,7 @@ class PageListEditor(QtWidgets.QWidget):
             self.btnDown.setEnabled(False)
             self.cbPageType.setEnabled(False)
             self.chkDoublePage.setEnabled(False)
+            self.btnAutoDouble.setEnabled(False)
             self.leBookmark.setEnabled(False)
             self.listWidget.setEnabled(False)
 
@@ -394,4 +441,5 @@ class PageListEditor(QtWidgets.QWidget):
         if self.comic_archive is None:
             self.cbPageType.setEnabled(False)
             self.chkDoublePage.setEnabled(False)
+            self.btnAutoDouble.setEnabled(False)
             self.leBookmark.setEnabled(False)
