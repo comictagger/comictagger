@@ -124,26 +124,67 @@ class App:
     def list_plugins(
         self, talkers: list[comictalker.ComicTalker], archivers: list[type[comicapi.comicarchive.Archiver]]
     ) -> None:
-        print("Metadata Sources: (ID: Name URL)")  # noqa: T201
-        for talker in talkers:
-            print(f"{talker.id}: {talker.name} {talker.default_api_url}")  # noqa: T201
+        if self.config[0].Runtime_Options__json:
+            for talker in talkers:
+                print(  # noqa: T201
+                    json.dumps(
+                        {
+                            "type": "talker",
+                            "id": talker.id,
+                            "name": talker.name,
+                            "website": talker.website,
+                        }
+                    )
+                )
 
-        print("\nComic Archive: (Name: extension, exe)")  # noqa: T201
-        for archiver in archivers:
-            a = archiver()
-            print(f"{a.name()}: {a.extension()}, {a.exe}")  # noqa: T201
+            for archiver in archivers:
+                try:
+                    a = archiver()
+                    print(  # noqa: T201
+                        json.dumps(
+                            {
+                                "type": "archiver",
+                                "enabled": a.enabled,
+                                "name": a.name(),
+                                "extension": a.extension(),
+                                "exe": a.exe,
+                            }
+                        )
+                    )
+                except Exception:
+                    print(  # noqa: T201
+                        json.dumps(
+                            {
+                                "type": "archiver",
+                                "enabled": archiver.enabled,
+                                "name": "",
+                                "extension": "",
+                                "exe": archiver.exe,
+                            }
+                        )
+                    )
+        else:
+            print("Metadata Sources: (ID: Name URL)")  # noqa: T201
+            for talker in talkers:
+                print(f"{talker.id}: {talker.name} {talker.website}")  # noqa: T201
+
+            print("\nComic Archive: (Name: extension, exe)")  # noqa: T201
+            for archiver in archivers:
+                a = archiver()
+                print(f"{a.name()}: {a.extension()}, {a.exe}")  # noqa: T201
 
     def initialize(self) -> argparse.Namespace:
-        conf, _ = self.initial_arg_parser.parse_known_args()
+        conf, _ = self.initial_arg_parser.parse_known_intermixed_args()
+
         assert conf is not None
         setup_logging(conf.verbose, conf.config.user_log_dir)
         return conf
 
     def register_settings(self) -> None:
         self.manager = settngs.Manager(
-            "A utility for reading and writing metadata to comic archives.\n\n\n"
-            + "If no options are given, %(prog)s will run in windowed mode.",
-            "For more help visit the wiki at: https://github.com/comictagger/comictagger/wiki",
+            description="A utility for reading and writing metadata to comic archives.\n\n\n"
+            + "If no options are given, %(prog)s will run in windowed mode.\nPlease keep the '-v' option separated '-so -v' not '-sov'",
+            epilog="For more help visit the wiki at: https://github.com/comictagger/comictagger/wiki",
         )
         ctsettings.register_commandline_settings(self.manager)
         ctsettings.register_file_settings(self.manager)
@@ -233,6 +274,7 @@ class App:
         if error and error[1]:
             print(f"A fatal error occurred please check the log for more information: {error[0]}")  # noqa: T201
             raise SystemExit(1)
+
         try:
             cli.CLI(self.config[0], talkers).run()
         except Exception:

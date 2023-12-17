@@ -36,6 +36,7 @@ class settngs_namespace(settngs.TypedNS):
     Runtime_Options__darkmode: bool
     Runtime_Options__glob: bool
     Runtime_Options__quiet: bool
+    Runtime_Options__json: bool
     Runtime_Options__type: list[int]
     Runtime_Options__overwrite: bool
     Runtime_Options__no_gui: bool
@@ -63,7 +64,6 @@ class settngs_namespace(settngs.TypedNS):
     Issue_Identifier__sort_series_by_year: bool
     Issue_Identifier__exact_series_matches_first: bool
     Issue_Identifier__always_use_publisher_filter: bool
-    Issue_Identifier__clear_form_before_populating: bool
 
     Filename_Parsing__complicated_parser: bool
     Filename_Parsing__remove_c2c: bool

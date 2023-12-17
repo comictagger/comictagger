@@ -109,46 +109,44 @@ class GenericMetadata:
     series: str | None = None
     series_aliases: set[str] = dataclasses.field(default_factory=set)
     issue: str | None = None
+    issue_count: int | None = None
     title: str | None = None
     title_aliases: set[str] = dataclasses.field(default_factory=set)
-    publisher: str | None = None
-    month: int | None = None
-    year: int | None = None
-    day: int | None = None
-    issue_count: int | None = None
     volume: int | None = None
-    genres: set[str] = dataclasses.field(default_factory=set)
-    language: str | None = None  # 2 letter iso code
-    description: str | None = None  # use same way as Summary in CIX
-
     volume_count: int | None = None
-    critical_rating: float | None = None  # rating in CBL; CommunityRating in CIX
-    country: str | None = None
+    genres: set[str] = dataclasses.field(default_factory=set)
+    description: str | None = None  # use same way as Summary in CIX
+    notes: str | None = None
 
     alternate_series: str | None = None
     alternate_number: str | None = None
     alternate_count: int | None = None
+    story_arcs: list[str] = dataclasses.field(default_factory=list)
+    series_groups: list[str] = dataclasses.field(default_factory=list)
+
+    publisher: str | None = None
     imprint: str | None = None
-    notes: str | None = None
+    day: int | None = None
+    month: int | None = None
+    year: int | None = None
+    language: str | None = None  # 2 letter iso code
+    country: str | None = None
     web_link: str | None = None
     format: str | None = None
     manga: str | None = None
     black_and_white: bool | None = None
-    page_count: int | None = None
     maturity_rating: str | None = None
-
-    story_arcs: list[str] = dataclasses.field(default_factory=list)
-    series_groups: list[str] = dataclasses.field(default_factory=list)
+    critical_rating: float | None = None  # rating in CBL; CommunityRating in CIX
     scan_info: str | None = None
+
+    tags: set[str] = dataclasses.field(default_factory=set)
+    pages: list[ImageMetadata] = dataclasses.field(default_factory=list)
+    page_count: int | None = None
 
     characters: set[str] = dataclasses.field(default_factory=set)
     teams: set[str] = dataclasses.field(default_factory=set)
     locations: set[str] = dataclasses.field(default_factory=set)
-
-    alternate_images: list[str] = dataclasses.field(default_factory=list)
     credits: list[Credit] = dataclasses.field(default_factory=list)
-    tags: set[str] = dataclasses.field(default_factory=set)
-    pages: list[ImageMetadata] = dataclasses.field(default_factory=list)
 
     # Some CoMet-only items
     price: float | None = None
@@ -156,7 +154,10 @@ class GenericMetadata:
     rights: str | None = None
     identifier: str | None = None
     last_mark: str | None = None
-    cover_image: str | None = None  # url to cover image
+
+    # urls to cover image, not generally part of the metadata
+    _cover_image: str | None = None
+    _alternate_images: list[str] = dataclasses.field(default_factory=list)
 
     def __post_init__(self) -> None:
         for key, value in self.__dict__.items():
@@ -191,58 +192,61 @@ class GenericMetadata:
         if not new_md.is_empty:
             self.is_empty = False
 
-        assign("series", new_md.series)
-        assign("series_id", new_md.series_id)
-        assign("issue", new_md.issue)
+        assign("tag_origin", new_md.tag_origin)
         assign("issue_id", new_md.issue_id)
+        assign("series_id", new_md.series_id)
+
+        assign("series", new_md.series)
+        assign("series_aliases", new_md.series_aliases)
+        assign("issue", new_md.issue)
         assign("issue_count", new_md.issue_count)
         assign("title", new_md.title)
-        assign("publisher", new_md.publisher)
-        assign("day", new_md.day)
-        assign("month", new_md.month)
-        assign("year", new_md.year)
+        assign("title_aliases", new_md.title_aliases)
         assign("volume", new_md.volume)
         assign("volume_count", new_md.volume_count)
-        assign("language", new_md.language)
-        assign("country", new_md.country)
-        assign("critical_rating", new_md.critical_rating)
+        assign("genres", new_md.genres)
+        assign("description", new_md.description)
+        assign("notes", new_md.notes)
+
         assign("alternate_series", new_md.alternate_series)
         assign("alternate_number", new_md.alternate_number)
         assign("alternate_count", new_md.alternate_count)
+        assign("story_arcs", new_md.story_arcs)
+        assign("series_groups", new_md.series_groups)
+
+        assign("publisher", new_md.publisher)
         assign("imprint", new_md.imprint)
+        assign("day", new_md.day)
+        assign("month", new_md.month)
+        assign("year", new_md.year)
+        assign("language", new_md.language)
+        assign("country", new_md.country)
         assign("web_link", new_md.web_link)
         assign("format", new_md.format)
         assign("manga", new_md.manga)
         assign("black_and_white", new_md.black_and_white)
         assign("maturity_rating", new_md.maturity_rating)
+        assign("critical_rating", new_md.critical_rating)
         assign("scan_info", new_md.scan_info)
-        assign("description", new_md.description)
-        assign("notes", new_md.notes)
+
+        assign("tags", new_md.tags)
+        print("before", self.pages, new_md.pages)
+        assign("pages", new_md.pages)
+        print("after", self.pages, new_md.pages)
+        assign("page_count", new_md.page_count)
+
+        assign("characters", new_md.characters)
+        assign("teams", new_md.teams)
+        assign("locations", new_md.locations)
+        self.overlay_credits(new_md.credits)
 
         assign("price", new_md.price)
         assign("is_version_of", new_md.is_version_of)
         assign("rights", new_md.rights)
         assign("identifier", new_md.identifier)
         assign("last_mark", new_md.last_mark)
-
-        self.overlay_credits(new_md.credits)
-        # TODO
-
-        # not sure if the tags and pages should broken down, or treated
-        # as whole lists....
-
-        # For now, go the easy route, where any overlay
-        # value wipes out the whole list
-        assign("series_aliases", new_md.series_aliases)
-        assign("title_aliases", new_md.title_aliases)
-        assign("genres", new_md.genres)
-        assign("story_arcs", new_md.story_arcs)
-        assign("series_groups", new_md.series_groups)
-        assign("characters", new_md.characters)
-        assign("teams", new_md.teams)
-        assign("locations", new_md.locations)
-        assign("tags", new_md.tags)
-        assign("pages", new_md.pages)
+        assign("_cover_image", new_md._cover_image)
+        assign("_alternate_images", new_md._alternate_images)
 
     def overlay_credits(self, new_credits: list[Credit]) -> None:
         for c in new_credits:
@@ -494,5 +498,5 @@ md_test: GenericMetadata = GenericMetadata(
     rights=None,
     identifier=None,
     last_mark=None,
-    cover_image=None,
+    _cover_image=None,
 )

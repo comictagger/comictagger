@@ -50,7 +50,7 @@ def identifier(parser: settngs.Manager) -> None:
     parser.add_setting("--series-match-search-thresh", default=90, type=int)
     parser.add_setting(
         "--clear-metadata",
-        default=True,
+        default=False,
         help="Clears all existing metadata during import, default is to merges metadata.\nMay be used in conjunction with -o, -f and -m.\n\n",
         dest="clear_metadata_on_import",
         action=argparse.BooleanOptionalAction,
@@ -77,12 +77,6 @@ def identifier(parser: settngs.Manager) -> None:
         default=False,
         action=argparse.BooleanOptionalAction,
         help="Enables the publisher filter",
-    )
-    parser.add_setting(
-        "--clear-form-before-populating",
-        default=False,
-        action=argparse.BooleanOptionalAction,
-        help="Clears all existing metadata when applying metadata from comic source",
     )
 
 

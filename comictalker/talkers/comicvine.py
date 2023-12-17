@@ -642,12 +642,12 @@ class ComicVineTalker(ComicTalker):
             series_aliases=series.aliases,
         )
         if issue.get("image") is None:
-            md.cover_image = ""
+            md._cover_image = ""
         else:
-            md.cover_image = issue.get("image", {}).get("super_url", "")
+            md._cover_image = issue.get("image", {}).get("super_url", "")
 
         for alt in issue.get("associated_images", []):
-            md.alternate_images.append(alt["original_url"])
+            md._alternate_images.append(alt["original_url"])
 
         for character in issue.get("character_credits", set()):
             md.characters.add(character["name"])

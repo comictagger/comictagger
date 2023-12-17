@@ -389,7 +389,6 @@ class SettingsWindow(QtWidgets.QDialog):
 
         self.switch_parser()
 
-        self.cbxClearFormBeforePopulating.setChecked(self.config[0].Issue_Identifier__clear_form_before_populating)
         self.cbxUseFilter.setChecked(self.config[0].Issue_Identifier__always_use_publisher_filter)
         self.cbxSortByYear.setChecked(self.config[0].Issue_Identifier__sort_series_by_year)
         self.cbxExactMatches.setChecked(self.config[0].Issue_Identifier__exact_series_matches_first)
@@ -507,7 +506,6 @@ class SettingsWindow(QtWidgets.QDialog):
             self.cbxProtofoliusIssueNumberScheme.isChecked()
         )
 
-        self.config[0].Issue_Identifier__clear_form_before_populating = self.cbxClearFormBeforePopulating.isChecked()
         self.config[0].Issue_Identifier__always_use_publisher_filter = self.cbxUseFilter.isChecked()
         self.config[0].Issue_Identifier__sort_series_by_year = self.cbxSortByYear.isChecked()
         self.config[0].Issue_Identifier__exact_series_matches_first = self.cbxExactMatches.isChecked()

@@ -222,7 +222,7 @@ class IssueSelectionWindow(QtWidgets.QDialog):
 
         # list selection was changed, update the issue cover
         issue = self.issue_list[self.issue_id]
-        if not (issue.issue and issue.year and issue.month and issue.cover_image and issue.title):
+        if not (issue.issue and issue.year and issue.month and issue._cover_image and issue.title):
             QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
             try:
                 issue = self.talker.fetch_comic_data(issue_id=self.issue_id)
@@ -231,7 +231,7 @@ class IssueSelectionWindow(QtWidgets.QDialog):
         QtWidgets.QApplication.restoreOverrideCursor()
 
         self.issue_number = issue.issue or ""
-        self.coverWidget.set_issue_details(self.issue_id, [issue.cover_image or "", *issue.alternate_images])
+        self.coverWidget.set_issue_details(self.issue_id, [issue._cover_image or "", *issue._alternate_images])
         if issue.description is None:
             self.set_description(self.teDescription, "")
         else:

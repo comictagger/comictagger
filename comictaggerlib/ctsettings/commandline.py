@@ -159,6 +159,7 @@ def register_runtime(parser: settngs.Manager) -> None:
     parser.add_setting("--darkmode", action="store_true", help="Windows only. Force a dark pallet", file=False)
     parser.add_setting("-g", "--glob", action="store_true", help="Windows only. Enable globbing", file=False)
     parser.add_setting("--quiet", "-q", action="store_true", help="Don't say much (for print mode).", file=False)
+    parser.add_setting("--json", "-j", action="store_true", help="Output json on stdout", file=False)
 
     parser.add_setting(
         "-t",
