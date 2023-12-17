@@ -516,7 +516,7 @@ class ComicArchive:
 
         return self._has_comet
 
-    def get_image_dimensions(self, image_idx: int) -> Tuple[int, int, int]:
+    def get_image_dimensions(self, image_idx: int) -> tuple[int, int, int]:
         if not self.pil_available:
             return -1, -1, -1
 
