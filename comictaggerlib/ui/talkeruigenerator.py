@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 class TalkerTab(NamedTuple):
     tab: QtWidgets.QWidget
-    # dict[option.dest] = QWidget
+    # dict[option.setting_name] = QWidget
     widgets: dict[str, QtWidgets.QWidget]
 
 
@@ -91,7 +91,7 @@ def generate_api_widgets(
         le_key = generate_password_textbox(key_option, layout)
 
         # To enable setting and getting
-        widgets.widgets[key_option.dest] = le_key
+        widgets.widgets[key_option.setting_name] = le_key
 
     # only file settings are saved
     if url_option.file:
@@ -102,7 +102,7 @@ def generate_api_widgets(
         # We insert the default url here so that people don't think it's unset
         le_url.setText(talker.default_api_url)
         # To enable setting and getting
-        widgets.widgets[url_option.dest] = le_url
+        widgets.widgets[url_option.setting_name] = le_url
 
     # The button row was recorded so we add it
     if btn_test_row is not None:
@@ -252,10 +252,10 @@ def settings_to_talker_form(sources: Sources, config: settngs.Config[ct_ns]) -> 
 
     # Iterate over the tabs, the talker is included in the tab so no extra lookup is needed
     for talker, tab in sources.tabs:
-        # dest is guaranteed to be unique within a talker
+        # setting_name is guaranteed to be unique within a talker
         # and refer to the correct item in config.definitions.v['group name']
-        for dest, widget in tab.widgets.items():
-            setting = config.definitions[group_for_plugin(talker)].v[dest]
+        for setting_name, widget in tab.widgets.items():
+            setting = config.definitions[group_for_plugin(talker)].v[setting_name]
             value, default = settngs.get_option(config.values, setting)
 
             # The setting has already been associated to a widget,
@@ -282,41 +282,50 @@ def settings_to_talker_form(sources: Sources, config: settngs.Config[ct_ns]) -> 
                 else:
                     raise Exception("failed to set widget")
             except Exception:
-                logger.debug("Failed to set value of %s for %s(%s)", dest, talker.name, talker.id)
+                logger.debug("Failed to set value of %s for %s(%s)", setting_name, talker.name, talker.id)
 
 
 def get_config_from_tab(tab: TalkerTab, definitions: settngs.Group) -> dict[str, Any]:
     talker_options = {}
-    # dest is guaranteed to be unique within a talker and refer to the correct item in config.values['group name']
-    for dest, widget in tab.widgets.items():
-        widget_value = None
+    # setting_name is guaranteed to be unique within a talker
+    # and refer to the correct item in config.values['group name']
+    for setting_name, widget in tab.widgets.items():
+        value = None
+        setting = definitions.v[setting_name]
 
         # Retrieve the widget value
         if isinstance(widget, (QtWidgets.QSpinBox, QtWidgets.QDoubleSpinBox)):
-            widget_value = widget.value()
+            value = widget.value()
         elif isinstance(widget, QtWidgets.QLineEdit):
-            widget_value = widget.text().strip()
+            value = widget.text().strip()
         elif isinstance(widget, QtWidgets.QComboBox):
-            widget_value = widget.currentText()
+            value = widget.currentText()
         elif isinstance(widget, QtWidgets.QCheckBox):
-            widget_value = widget.isChecked()
+            value = widget.isChecked()
 
         # Reset to default if the widget_value is empty
-        if (isinstance(widget_value, str) and widget_value == "") or widget_value is None:
-            widget_value = definitions.v[dest].default
+        if (isinstance(value, str) and value == "") or value is None:
+            value = setting.default
 
         # Parse string values into their real types
-        typ = definitions.v[dest].type
-        if isinstance(widget_value, str) and typ:
-            widget_value = typ(widget_value)
+        typ = setting.type
+        if isinstance(value, str) and typ:
+            value = typ(value)
 
         # Warn if the resulting type isn't the guessed type
-        guessed_type = definitions.v[dest]._guess_type()
-        if widget_value is not None and guessed_type not in (None, "Any") and not isinstance(widget_value, guessed_type):  # type: ignore[arg-type]
+        guessed_type = setting._guess_type()
+        if (
+            value is not None
+            and guessed_type not in (None, "Any")
+            and (isinstance(guessed_type, type) and not isinstance(value, guessed_type))
+        ):
             logger.warn(
-                "Guessed type is wrong on for '%s': expected: %s got: %s", dest, guessed_type, type(widget_value)
+                "Guessed type is wrong on for '%s': expected: %s got: %s",
+                setting_name,
+                guessed_type,
+                type(value),
             )
-        talker_options[dest] = widget_value
+        talker_options[setting.dest] = value
     return talker_options
 
 
@@ -374,43 +383,56 @@ def generate_source_option_tabs(
         # Add logo and about text
         generate_talker_info(talker, config, layout_grid)
 
+        dest_created = set()
         for option in config.definitions[group_for_plugin(talker)].v.values():
             guessed_type = option._guess_type()
+
+            # Skip destinations that have already been created
+            if option.dest in dest_created:
+                logger.debug("Skipped creating gui option for %s", option.dest)
+                continue
+
             # Pull out the key and url option, they get created last
-            if option.dest == f"{t_id}_key":
+            if option.setting_name == f"{t_id}_key":
                 key_option = option
-            elif option.dest == f"{t_id}_url":
+                continue
+            elif option.setting_name == f"{t_id}_url":
                 url_option = option
+                continue
             elif not option.file:
                 continue
 
             # Map types to widgets
             elif guessed_type is bool:
                 current_widget = generate_checkbox(option, layout_grid)
-                tab.widgets[option.dest] = current_widget
+                tab.widgets[option.setting_name] = current_widget
             elif guessed_type is int:
                 current_widget = generate_spinbox(option, layout_grid)
-                tab.widgets[option.dest] = current_widget
+                tab.widgets[option.setting_name] = current_widget
             elif guessed_type is float:
                 current_widget = generate_doublespinbox(option, layout_grid)
-                tab.widgets[option.dest] = current_widget
+                tab.widgets[option.setting_name] = current_widget
             elif guessed_type is Path:
                 current_widget = generate_path_textbox(option, layout_grid)
-                tab.widgets[option.dest] = current_widget
+                tab.widgets[option.setting_name] = current_widget
 
             elif guessed_type is str:
                 # If we have a specific set of options
                 if option.choices is not None:
                     current_widget = generate_combobox(option, layout_grid)
                 # It ends with a password we hide it by default
-                elif option.dest.casefold().endswith("password"):
+                elif option.setting_name.casefold().endswith("password"):
                     current_widget = generate_password_textbox(option, layout_grid)
                 else:
                     # Default to a text box
                     current_widget = generate_textbox(option, layout_grid)
-                tab.widgets[option.dest] = current_widget
+                tab.widgets[option.setting_name] = current_widget
             else:
+                # We didn't create anything for this dest
                 logger.debug(f"Unsupported talker option found. Name: {option.internal_name} Type: {option.type}")
+                continue
+            # Mark this destination as being created
+            dest_created.add(option.dest)
 
         # The key and url options are always defined.
         # If they aren't something has gone wrong with the talker, remove it
