@@ -36,8 +36,8 @@ def archiver(manager: settngs.Manager) -> None:
             )
 
 
-def register_talker_settings(manager: settngs.Manager) -> None:
-    for talker in comictaggerlib.ctsettings.talkers.values():
+def register_talker_settings(manager: settngs.Manager, talkers: dict[str, ComicTalker]) -> None:
+    for talker in talkers.values():
 
         def api_options(manager: settngs.Manager) -> None:
             # The default needs to be unset or None.
@@ -76,10 +76,10 @@ def validate_archive_settings(config: settngs.Config[ct_ns]) -> settngs.Config[c
     return config
 
 
-def validate_talker_settings(config: settngs.Config[ct_ns]) -> settngs.Config[ct_ns]:
+def validate_talker_settings(config: settngs.Config[ct_ns], talkers: dict[str, ComicTalker]) -> settngs.Config[ct_ns]:
     # Apply talker settings from config file
     cfg = settngs.normalize_config(config, True, True)
-    for talker in list(comictaggerlib.ctsettings.talkers.values()):
+    for talker in list(talkers.values()):
         try:
             cfg[0][group_for_plugin(talker)] = talker.parse_settings(cfg[0][group_for_plugin(talker)])
         except Exception as e:
@@ -90,12 +90,12 @@ def validate_talker_settings(config: settngs.Config[ct_ns]) -> settngs.Config[ct
     return cast(settngs.Config[ct_ns], settngs.get_namespace(cfg, file=True, cmdline=True))
 
 
-def validate_plugin_settings(config: settngs.Config[ct_ns]) -> settngs.Config[ct_ns]:
+def validate_plugin_settings(config: settngs.Config[ct_ns], talkers: dict[str, ComicTalker]) -> settngs.Config[ct_ns]:
     config = validate_archive_settings(config)
-    config = validate_talker_settings(config)
+    config = validate_talker_settings(config, talkers)
     return config
 
 
-def register_plugin_settings(manager: settngs.Manager) -> None:
+def register_plugin_settings(manager: settngs.Manager, talkers: dict[str, ComicTalker]) -> None:
     manager.add_persistent_group("Archive", archiver, False)
-    register_talker_settings(manager)
+    register_talker_settings(manager, talkers)

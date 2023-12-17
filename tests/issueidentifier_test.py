@@ -69,7 +69,6 @@ def test_search(cbz, config, comicvine_api):
         url_image_hash=1747255366011518976,
     )
     for r, e in zip(results, [cv_expected]):
-        # del r["url_image_hash"]
         assert r == e
 
 

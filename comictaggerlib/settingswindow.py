@@ -542,9 +542,7 @@ class SettingsWindow(QtWidgets.QDialog):
         QtWidgets.QDialog.accept(self)
 
     def update_talkers_config(self) -> None:
-        ctsettings.talkers = self.talkers
-        self.config = ctsettings.plugin.validate_talker_settings(self.config)
-        del ctsettings.talkers
+        self.config = ctsettings.plugin.validate_talker_settings(self.config, self.talkers)
 
     def select_rar(self) -> None:
         self.select_file(self.leRarExePath, "RAR")

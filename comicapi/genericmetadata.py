@@ -230,9 +230,7 @@ class GenericMetadata:
         assign("scan_info", new_md.scan_info)
 
         assign("tags", new_md.tags)
-        print("before", self.pages, new_md.pages)
         assign("pages", new_md.pages)
-        print("after", self.pages, new_md.pages)
         assign("page_count", new_md.page_count)
 
         assign("characters", new_md.characters)

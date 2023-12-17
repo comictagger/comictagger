@@ -102,7 +102,7 @@ class IssueIdentifier:
         self.publisher_filter = [s.strip().casefold() for s in config.Issue_Identifier__publisher_filter]
 
         self.additional_metadata = GenericMetadata()
-        self.output_function: Callable[[str], None] = lambda x: print(x)
+        self.output_function: Callable[[str], None] = print
         self.progress_callback: Callable[[int, int], None] | None = None
         self.cover_url_callback: Callable[[bytes], None] | None = None
         self.search_result = self.result_no_matches
@@ -271,7 +271,7 @@ class IssueIdentifier:
         self.output(msg)
 
     def output(self, *args: Any, file: Any = None, **kwargs: Any) -> None:
-        # We intercept the file argument otherwise everything is passed to self.output_function
+        # We intercept and discard the file argument otherwise everything is passed to self.output_function
 
         # Ensure args[0] is defined and is a string for logger.info
         if not args:
@@ -289,6 +289,7 @@ class IssueIdentifier:
         if self.config.Runtime_Options__verbose > 0 or self.config.Runtime_Options__quiet:
             return
 
+        # default output is stdout
         self.output_function(*args, **kwargs)
 
     def get_issue_cover_match_score(
@@ -347,7 +348,6 @@ class IssueIdentifier:
                 if self.cancel:
                     raise IssueIdentifierCancelled
 
-        if use_remote_alternates:
             self.log_msg(f"[{len(remote_cover_list) - 1} alt. covers]")
 
         score_list = []

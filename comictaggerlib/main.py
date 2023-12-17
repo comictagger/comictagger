@@ -36,6 +36,7 @@ from comictaggerlib.ctsettings import ct_ns
 from comictaggerlib.ctversion import version
 from comictaggerlib.log import setup_logging
 from comictaggerlib.resulttypes import Action
+from comictalker.comictalker import ComicTalker
 
 if sys.version_info < (3, 10):
     import importlib_metadata
@@ -107,6 +108,7 @@ class App:
         self.config: settngs.Config[ct_ns]
         self.initial_arg_parser = ctsettings.initial_commandline_parser()
         self.config_load_success = False
+        self.talkers: dict[str, ComicTalker]
 
     def run(self) -> None:
         configure_locale()
@@ -120,7 +122,7 @@ class App:
 
     def load_plugins(self, opts: argparse.Namespace) -> None:
         comicapi.comicarchive.load_archive_plugins()
-        ctsettings.talkers = comictalker.get_talkers(version, opts.config.user_cache_dir)
+        self.talkers = comictalker.get_talkers(version, opts.config.user_cache_dir)
 
     def list_plugins(
         self, talkers: list[comictalker.ComicTalker], archivers: list[type[comicapi.comicarchive.Archiver]]
@@ -189,7 +191,7 @@ class App:
         )
         ctsettings.register_commandline_settings(self.manager)
         ctsettings.register_file_settings(self.manager)
-        ctsettings.register_plugin_settings(self.manager)
+        ctsettings.register_plugin_settings(self.manager, getattr(self, "talkers", {}))
 
     def parse_settings(self, config_paths: ctsettings.ComicTaggerPaths, *args: str) -> settngs.Config[ct_ns]:
         cfg, self.config_load_success = ctsettings.parse_config(
@@ -200,7 +202,7 @@ class App:
 
         config = ctsettings.validate_commandline_settings(config, self.manager)
         config = ctsettings.validate_file_settings(config)
-        config = ctsettings.validate_plugin_settings(config)
+        config = ctsettings.validate_plugin_settings(config, getattr(self, "talkers", {}))
         return config
 
     def initialize_dirs(self, paths: ctsettings.ComicTaggerPaths) -> None:
@@ -220,10 +222,7 @@ class App:
         # config already loaded
         error = None
 
-        talkers = ctsettings.talkers
-        del ctsettings.talkers
-
-        if len(talkers) < 1:
+        if len(self.talkers) < 1:
             error = error = (
                 "Failed to load any talkers, please re-install and check the log located in '"
                 + str(self.config[0].Runtime_Options__config.user_log_dir)
@@ -241,7 +240,7 @@ class App:
         update_publishers(self.config)
 
         if self.config[0].Commands__command == Action.list_plugins:
-            self.list_plugins(list(talkers.values()), comicapi.comicarchive.archivers)
+            self.list_plugins(list(self.talkers.values()), comicapi.comicarchive.archivers)
             return
 
         if self.config[0].Commands__command == Action.save_config:
@@ -266,7 +265,7 @@ class App:
 
                 if not gui.qt_available:
                     raise gui.import_error
-                return gui.open_tagger_window(talkers, self.config, error)
+                return gui.open_tagger_window(self.talkers, self.config, error)
             except ImportError:
                 self.config[0].Runtime_Options__no_gui = True
                 logger.warning("PyQt5 is not available. ComicTagger is limited to command-line mode.")
@@ -277,7 +276,7 @@ class App:
             raise SystemExit(1)
 
         try:
-            cli.CLI(self.config[0], talkers).run()
+            cli.CLI(self.config[0], self.talkers).run()
         except Exception:
             logger.exception("CLI mode failed")
 
