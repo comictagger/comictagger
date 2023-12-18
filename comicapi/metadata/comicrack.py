@@ -18,49 +18,125 @@ import logging
 import xml.etree.ElementTree as ET
 from collections import OrderedDict
 from typing import Any, cast
-from xml.etree.ElementTree import ElementTree
 
 from comicapi import utils
+from comicapi.archivers import Archiver
 from comicapi.genericmetadata import GenericMetadata, ImageMetadata
+from comicapi.metadata import Metadata
 
 logger = logging.getLogger(__name__)
 
 
-class ComicInfoXml:
-    writer_synonyms = ["writer", "plotter", "scripter"]
-    penciller_synonyms = ["artist", "penciller", "penciler", "breakdowns"]
-    inker_synonyms = ["inker", "artist", "finishes"]
-    colorist_synonyms = ["colorist", "colourist", "colorer", "colourer"]
-    letterer_synonyms = ["letterer"]
-    cover_synonyms = ["cover", "covers", "coverartist", "cover artist"]
-    editor_synonyms = ["editor"]
+class ComicRack(Metadata):
+    _writer_synonyms = ("writer", "plotter", "scripter")
+    _penciller_synonyms = ("artist", "penciller", "penciler", "breakdowns")
+    _inker_synonyms = ("inker", "artist", "finishes")
+    _colorist_synonyms = ("colorist", "colourist", "colorer", "colourer")
+    _letterer_synonyms = ("letterer",)
+    _cover_synonyms = ("cover", "covers", "coverartist", "cover artist")
+    _editor_synonyms = ("editor",)
 
-    def get_parseable_credits(self) -> list[str]:
-        parsable_credits = []
-        parsable_credits.extend(self.writer_synonyms)
-        parsable_credits.extend(self.penciller_synonyms)
-        parsable_credits.extend(self.inker_synonyms)
-        parsable_credits.extend(self.colorist_synonyms)
-        parsable_credits.extend(self.letterer_synonyms)
-        parsable_credits.extend(self.cover_synonyms)
-        parsable_credits.extend(self.editor_synonyms)
-        return parsable_credits
+    enabled = True
 
-    def metadata_from_string(self, string: bytes) -> GenericMetadata:
-        tree = ET.ElementTree(ET.fromstring(string))
-        return self.convert_xml_to_metadata(tree)
+    short_name = "cr"
 
-    def string_from_metadata(self, metadata: GenericMetadata, xml: bytes = b"") -> str:
-        tree = self.convert_metadata_to_xml(metadata, xml)
-        tree_str = ET.tostring(tree.getroot(), encoding="utf-8", xml_declaration=True).decode("utf-8")
-        return str(tree_str)
+    def __init__(self, version: str) -> None:
+        super().__init__(version)
 
-    def convert_metadata_to_xml(self, metadata: GenericMetadata, xml: bytes = b"") -> ElementTree:
+        self.file = "ComicInfo.xml"
+        self.supported_attributes = {
+            "alternate_count",
+            "alternate_number",
+            "alternate_series",
+            "black_and_white",
+            "characters",
+            "description",
+            "credits",
+            "credits.person",
+            "credits.role",
+            "critical_rating",
+            "day",
+            "format",
+            "genres",
+            "imprint",
+            "issue",
+            "issue_count",
+            "language",
+            "locations",
+            "manga",
+            "maturity_rating",
+            "month",
+            "notes",
+            "page_count",
+            "pages",
+            "pages.bookmark",
+            "pages.double_page",
+            "pages.height",
+            "pages.image_index",
+            "pages.size",
+            "pages.type",
+            "pages.width",
+            "publisher",
+            "scan_info",
+            "series",
+            "series_groups",
+            "story_arcs",
+            "teams",
+            "title",
+            "volume",
+            "web_link",
+            "year",
+        }
+
+    def supports_metadata(self, archive: Archiver) -> bool:
+        return True
+
+    def has_metadata(self, archive: Archiver) -> bool:
+        return (
+            self.supports_metadata(archive)
+            and self.file in archive.get_filename_list()
+            and self._validate_bytes(archive.read_file(self.file))
+        )
+
+    def remove_metadata(self, archive: Archiver) -> bool:
+        return self.has_metadata(archive) and archive.remove_file(self.file)
+
+    def get_metadata(self, archive: Archiver) -> GenericMetadata:
+        if self.has_metadata(archive):
+            metadata = archive.read_file(self.file) or b""
+            if self._validate_bytes(metadata):
+                return self._metadata_from_bytes(metadata)
+        return GenericMetadata()
+
+    def get_metadata_string(self, archive: Archiver) -> str:
+        if self.has_metadata(archive):
+            return ET.tostring(ET.fromstring(archive.read_file(self.file)), encoding="unicode", xml_declaration=True)
+        return ""
+
+    def set_metadata(self, metadata: GenericMetadata, archive: Archiver) -> bool:
+        if self.supports_metadata(archive):
+            return archive.write_file(self.file, self._bytes_from_metadata(metadata))
+        else:
+            logger.warning(f"Archive ({archive.name()}) does not support {self.name()} metadata")
+        return False
+
+    def name(self) -> str:
+        return "Comic Rack"
+
+    def _metadata_from_bytes(self, string: bytes) -> GenericMetadata:
+        root = ET.fromstring(string)
+        return self._convert_xml_to_metadata(root)
+
+    def _bytes_from_metadata(self, metadata: GenericMetadata, xml: bytes = b"") -> bytes:
+        root = self._convert_metadata_to_xml(metadata, xml)
+        return ET.tostring(root, encoding="utf-8", xml_declaration=True)
+
+    def _convert_metadata_to_xml(self, metadata: GenericMetadata, xml: bytes = b"") -> ET.Element:
         # shorthand for the metadata
         md = metadata
 
         if xml:
-            root = ET.ElementTree(ET.fromstring(xml)).getroot()
+            root = ET.fromstring(xml)
         else:
             # build a tree structure
             root = ET.Element("ComicInfo")
@@ -68,7 +144,7 @@ class ComicInfoXml:
             root.attrib["xmlns:xsd"] = "http://www.w3.org/2001/XMLSchema"
         # helper func
 
-        def assign(cix_entry: str, md_entry: Any) -> None:
+        def assign(cr_entry: str, md_entry: Any) -> None:
             if md_entry:
                 text = ""
                 if isinstance(md_entry, str):
@@ -77,13 +153,13 @@ class ComicInfoXml:
                     text = ",".join(md_entry)
                 else:
                     text = str(md_entry)
-                et_entry = root.find(cix_entry)
+                et_entry = root.find(cr_entry)
                 if et_entry is not None:
                     et_entry.text = text
                 else:
-                    ET.SubElement(root, cix_entry).text = text
+                    ET.SubElement(root, cr_entry).text = text
             else:
-                et_entry = root.find(cix_entry)
+                et_entry = root.find(cr_entry)
                 if et_entry is not None:
                     root.remove(et_entry)
 
@@ -116,25 +192,25 @@ class ComicInfoXml:
         # first, loop thru credits, and build a list for each role that CIX
         # supports
         for credit in metadata.credits:
-            if credit["role"].casefold() in set(self.writer_synonyms):
+            if credit["role"].casefold() in set(self._writer_synonyms):
                 credit_writer_list.append(credit["person"].replace(",", ""))
 
-            if credit["role"].casefold() in set(self.penciller_synonyms):
+            if credit["role"].casefold() in set(self._penciller_synonyms):
                 credit_penciller_list.append(credit["person"].replace(",", ""))
 
-            if credit["role"].casefold() in set(self.inker_synonyms):
+            if credit["role"].casefold() in set(self._inker_synonyms):
                 credit_inker_list.append(credit["person"].replace(",", ""))
 
-            if credit["role"].casefold() in set(self.colorist_synonyms):
+            if credit["role"].casefold() in set(self._colorist_synonyms):
                 credit_colorist_list.append(credit["person"].replace(",", ""))
 
-            if credit["role"].casefold() in set(self.letterer_synonyms):
+            if credit["role"].casefold() in set(self._letterer_synonyms):
                 credit_letterer_list.append(credit["person"].replace(",", ""))
 
-            if credit["role"].casefold() in set(self.cover_synonyms):
+            if credit["role"].casefold() in set(self._cover_synonyms):
                 credit_cover_list.append(credit["person"].replace(",", ""))
 
-            if credit["role"].casefold() in set(self.editor_synonyms):
+            if credit["role"].casefold() in set(self._editor_synonyms):
                 credit_editor_list.append(credit["person"].replace(",", ""))
 
         # second, convert each list to string, and add to XML struct
@@ -171,17 +247,28 @@ class ComicInfoXml:
 
         for page_dict in md.pages:
             page_node = ET.SubElement(pages_node, "Page")
-            page_node.attrib = OrderedDict(sorted((k, str(v)) for k, v in page_dict.items()))
+            page_node.attrib = {}
+            if "bookmark" in page_dict:
+                page_node.attrib["Bookmark"] = str(page_dict["bookmark"])
+            if "double_page" in page_dict:
+                page_node.attrib["DoublePage"] = str(page_dict["double_page"])
+            if "image_index" in page_dict:
+                page_node.attrib["Image"] = str(page_dict["image_index"])
+            if "height" in page_dict:
+                page_node.attrib["ImageHeight"] = str(page_dict["height"])
+            if "size" in page_dict:
+                page_node.attrib["ImageSize"] = str(page_dict["size"])
+            if "width" in page_dict:
+                page_node.attrib["ImageWidth"] = str(page_dict["width"])
+            if "type" in page_dict:
+                page_node.attrib["Type"] = str(page_dict["type"])
+            page_node.attrib = OrderedDict(sorted(page_node.attrib.items()))
 
         ET.indent(root)
 
-        # wrap it in an ElementTree instance, and save as XML
-        tree = ET.ElementTree(root)
-        return tree
+        return root
 
-    def convert_xml_to_metadata(self, tree: ElementTree) -> GenericMetadata:
-        root = tree.getroot()
-
+    def _convert_xml_to_metadata(self, root: ET.Element) -> GenericMetadata:
         if root.tag != "ComicInfo":
             raise Exception("Not a ComicInfo file")
 
@@ -252,20 +339,36 @@ class ComicInfoXml:
         if pages_node is not None:
             for page in pages_node:
                 p: dict[str, Any] = page.attrib
-                if "Image" in p:
-                    p["Image"] = int(p["Image"])
+                md_page = ImageMetadata()
+
+                if "Bookmark" in p:
+                    md_page["bookmark"] = p["Bookmark"]
                 if "DoublePage" in p:
-                    p["DoublePage"] = True if p["DoublePage"].casefold() in ("yes", "true", "1") else False
-                md.pages.append(cast(ImageMetadata, p))
+                    md_page["double_page"] = True if p["DoublePage"].casefold() in ("yes", "true", "1") else False
+                if "Image" in p:
+                    md_page["image_index"] = int(p["Image"])
+                if "ImageHeight" in p:
+                    md_page["height"] = p["ImageHeight"]
+                if "ImageSize" in p:
+                    md_page["size"] = p["ImageSize"]
+                if "ImageWidth" in p:
+                    md_page["width"] = p["ImageWidth"]
+                if "Type" in p:
+                    md_page["type"] = p["Type"]
+
+                md.pages.append(cast(ImageMetadata, md_page))
 
         md.is_empty = False
 
         return md
 
-    def write_to_external_file(self, filename: str, metadata: GenericMetadata, xml: bytes = b"") -> None:
-        tree = self.convert_metadata_to_xml(metadata, xml)
-        tree.write(filename, encoding="utf-8", xml_declaration=True)
+    def _validate_bytes(self, string: bytes) -> bool:
+        """verify that the string actually contains CIX data in XML format"""
+        try:
+            root = ET.fromstring(string)
+            if root.tag != "ComicInfo":
+                return False
+        except ET.ParseError:
+            return False
 
-    def read_from_external_file(self, filename: str) -> GenericMetadata:
-        tree = ET.parse(filename)
-        return self.convert_xml_to_metadata(tree)
+        return True

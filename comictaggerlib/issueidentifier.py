@@ -23,7 +23,7 @@ from typing import Any, Callable
 from typing_extensions import NotRequired, TypedDict
 
 from comicapi import utils
-from comicapi.comicarchive import ComicArchive
+from comicapi.comicarchive import ComicArchive, metadata_styles
 from comicapi.genericmetadata import GenericMetadata
 from comicapi.issuestring import IssueString
 from comictaggerlib.ctsettings import ct_ns
@@ -229,10 +229,10 @@ class IssueIdentifier:
 
         # see if the archive has any useful meta data for searching with
         try:
-            if ca.has_cix():
-                internal_metadata = ca.read_cix()
-            else:
-                internal_metadata = ca.read_cbi()
+            for style in metadata_styles:
+                internal_metadata = ca.read_metadata(style)
+                if not internal_metadata.is_empty:
+                    break
         except Exception as e:
             internal_metadata = GenericMetadata()
             logger.error("Failed to load metadata for %s: %s", ca.path, e)

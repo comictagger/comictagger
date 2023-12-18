@@ -12,7 +12,7 @@ def test_set_default_page_list(tmp_path):
     md.pages = []
     md.set_default_page_list(len(comicapi.genericmetadata.md_test.pages))
 
-    assert isinstance(md.pages[0]["Image"], int)
+    assert isinstance(md.pages[0]["image_index"], int)
 
 
 @pytest.mark.parametrize("replaced, expected", metadata)

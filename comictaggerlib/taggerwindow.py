@@ -15,13 +15,12 @@
 # limitations under the License.
 from __future__ import annotations
 
-import json
+import functools
 import logging
 import operator
 import os
 import pickle
 import platform
-import pprint
 import re
 import sys
 import webbrowser
@@ -33,9 +32,9 @@ import natsort
 import settngs
 from PyQt5 import QtCore, QtGui, QtNetwork, QtWidgets, uic
 
+import comictaggerlib.ui
 from comicapi import utils
-from comicapi.comicarchive import ComicArchive, MetaDataStyle
-from comicapi.comicinfoxml import ComicInfoXml
+from comicapi.comicarchive import ComicArchive, metadata_styles
 from comicapi.filenameparser import FileNameParser
 from comicapi.genericmetadata import GenericMetadata
 from comicapi.issuestring import IssueString
@@ -61,7 +60,7 @@ from comictaggerlib.resulttypes import Action, IssueResult, MatchStatus, OnlineM
 from comictaggerlib.seriesselectionwindow import SeriesSelectionWindow
 from comictaggerlib.settingswindow import SettingsWindow
 from comictaggerlib.ui import ui_path
-from comictaggerlib.ui.qtutils import center_window_on_parent, reduce_widget_font_size
+from comictaggerlib.ui.qtutils import center_window_on_parent, enable_widget, reduce_widget_font_size
 from comictaggerlib.versionchecker import VersionChecker
 from comictalker.comictalker import ComicTalker, TalkerError
 from comictalker.talker_utils import cleanup_html
@@ -88,6 +87,62 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
         with (ui_path / "taggerwindow.ui").open(encoding="utf-8") as uifile:
             uic.loadUi(uifile, self)
+
+        self.md_attributes = {
+            "tag_origin": None,
+            "issue_id": None,
+            "series": self.leSeries,
+            "issue": self.leIssueNum,
+            "title": self.leTitle,
+            "publisher": self.lePublisher,
+            "month": self.lePubMonth,
+            "year": self.lePubYear,
+            "day": self.lePubDay,
+            "issue_count": self.leIssueCount,
+            "volume": self.leVolumeNum,
+            "genres": self.leGenre,
+            "language": self.cbLanguage,
+            "description": self.teComments,
+            "volume_count": self.leVolumeCount,
+            "critical_rating": self.dsbCriticalRating,
+            "country": self.cbCountry,
+            "alternate_series": self.leAltSeries,
+            "alternate_number": self.leAltIssueNum,
+            "alternate_count": self.leAltIssueCount,
+            "imprint": self.leImprint,
+            "notes": self.teNotes,
+            "web_link": self.leWebLink,
+            "format": self.cbFormat,
+            "manga": self.cbManga,
+            "black_and_white": self.cbBW,
+            "page_count": None,
+            "maturity_rating": self.cbMaturityRating,
+            "story_arcs": self.leStoryArc,
+            "series_groups": self.leSeriesGroup,
+            "scan_info": self.leScanInfo,
+            "characters": self.teCharacters,
+            "teams": self.teTeams,
+            "locations": self.teLocations,
+            "credits": [self.twCredits, self.btnAddCredit, self.btnEditCredit, self.btnRemoveCredit],
+            "credits.person": 2,
+            "credits.role": 1,
+            "credits.primary": 0,
+            "tags": self.teTags,
+            "pages": None,
+            "page.type": None,
+            "page.bookmark": None,
+            "page.double_page": None,
+            "page.image_index": None,
+            "page.size": None,
+            "page.height": None,
+            "page.width": None,
+            "price": None,
+            "is_version_of": None,
+            "rights": None,
+            "identifier": None,
+            "last_mark": None,
+        }
+        comictaggerlib.ui.qtutils.active_palette = self.leSeries.palette()
         self.config = config
         self.talkers = talkers
         self.log_window = self.setup_logger()
@@ -157,15 +212,20 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
         self.setWindowIcon(QtGui.QIcon(str(graphics_path / "app.png")))
 
-        if config[0].Runtime_Options__type and isinstance(config[0].Runtime_Options__type[0], int):
+        if config[0].Runtime_Options__type and isinstance(config[0].Runtime_Options__type[0], str):
             # respect the command line option tag type
             config[0].internal__save_data_style = config[0].Runtime_Options__type[0]
             config[0].internal__load_data_style = config[0].Runtime_Options__type[0]
 
+        if config[0].internal__save_data_style not in metadata_styles:
+            config[0].internal__save_data_style = list(metadata_styles.keys())[0]
+        if config[0].internal__load_data_style not in metadata_styles:
+            config[0].internal__load_data_style = list(metadata_styles.keys())[0]
         self.save_data_style = config[0].internal__save_data_style
         self.load_data_style = config[0].internal__load_data_style
 
         self.setAcceptDrops(True)
+        self.view_tag_actions, self.remove_tag_actions = self.tag_actions()
         self.config_menus()
         self.statusBar()
         self.populate_combo_boxes()
@@ -225,7 +285,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.page_list_editor.listOrderChanged.connect(self.page_list_order_changed)
         self.tabWidget.currentChanged.connect(self.tab_changed)
 
-        self.update_style_tweaks()
+        self.update_metadata_style_tweaks()
 
         self.show()
         self.set_app_position()
@@ -244,7 +304,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.fileSelectionList.add_app_action(self.actionRemoveAuto)
         self.fileSelectionList.add_app_action(self.actionRepackage)
 
-        if len(file_list) != 0:
+        if file_list:
             self.fileSelectionList.add_path_list(file_list)
 
         if self.config[0].Dialog_Flags__show_disclaimer:
@@ -270,6 +330,20 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
         if self.config[0].General__check_for_new_version:
             self.check_latest_version_online()
+
+    def tag_actions(self) -> tuple[dict[str, QtGui.QAction], dict[str, QtGui.QAction]]:
+        view_raw_tags = {}
+        remove_raw_tags = {}
+        for style in metadata_styles.values():
+            view_raw_tags[style.short_name] = self.menuViewRawTags.addAction(f"View Raw {style.name()} Tags")
+            view_raw_tags[style.short_name].setStatusTip(f"View raw {style.name()} tag block from file")
+            view_raw_tags[style.short_name].triggered.connect(functools.partial(self.view_raw_tags, style.short_name))
+
+            remove_raw_tags[style.short_name] = self.menuRemove.addAction(f"Remove Raw {style.name()} Tags")
+            remove_raw_tags[style.short_name].setStatusTip(f"Remove {style.name()} tags from comic archive")
+            remove_raw_tags[style.short_name].triggered.connect(functools.partial(self.remove_tags, style.short_name))
+
+        return view_raw_tags, remove_raw_tags
 
     def current_talker(self) -> ComicTalker:
         if self.config[0].Sources__source in self.talkers:
@@ -365,18 +439,6 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.actionRemoveAuto.setShortcut("Ctrl+D")
         self.actionRemoveAuto.setStatusTip("Remove currently selected modify tag style from the archive")
         self.actionRemoveAuto.triggered.connect(self.remove_auto)
-
-        self.actionRemoveCBLTags.setStatusTip("Remove ComicBookLover tags from comic archive")
-        self.actionRemoveCBLTags.triggered.connect(self.remove_cbl_tags)
-
-        self.actionRemoveCRTags.setStatusTip("Remove ComicRack tags from comic archive")
-        self.actionRemoveCRTags.triggered.connect(self.remove_cr_tags)
-
-        self.actionViewRawCRTags.setStatusTip("View raw ComicRack tag block from file")
-        self.actionViewRawCRTags.triggered.connect(self.view_raw_cr_tags)
-
-        self.actionViewRawCBLTags.setStatusTip("View raw ComicBookLover tag block from file")
-        self.actionViewRawCBLTags.triggered.connect(self.view_raw_cbl_tags)
 
         self.actionRepackage.setShortcut("Ctrl+E")
         self.actionRepackage.setStatusTip("Re-create archive as CBZ")
@@ -648,48 +710,27 @@ class TaggerWindow(QtWidgets.QMainWindow):
             self.archiveCoverWidget.set_archive(self.comic_archive, cover_idx)
 
     def update_menus(self) -> None:
-        # First just disable all the questionable items
-        self.actionAutoTag.setEnabled(False)
-        self.actionCopyTags.setEnabled(False)
-        self.actionRemoveAuto.setEnabled(False)
-        self.actionRemoveCRTags.setEnabled(False)
-        self.actionRemoveCBLTags.setEnabled(False)
-        self.actionWrite_Tags.setEnabled(False)
-        self.actionRepackage.setEnabled(False)
-        self.actionViewRawCBLTags.setEnabled(False)
-        self.actionViewRawCRTags.setEnabled(False)
-        self.actionParse_Filename.setEnabled(False)
-        self.actionParse_Filename_split_words.setEnabled(False)
-        self.actionAutoIdentify.setEnabled(False)
-        self.actionRename.setEnabled(False)
-        self.actionApplyCBLTransform.setEnabled(False)
-        self.actionReCalcPageDims.setEnabled(False)
+        enabled = self.comic_archive is not None
+        writeable = self.comic_archive is not None and self.comic_archive.is_writable()
+        self.actionApplyCBLTransform.setEnabled(enabled)
+        self.actionAutoIdentify.setEnabled(enabled)
+        self.actionAutoTag.setEnabled(enabled)
+        self.actionCopyTags.setEnabled(enabled)
+        self.actionParse_Filename.setEnabled(enabled)
+        self.actionParse_Filename_split_words.setEnabled(enabled)
+        self.actionReCalcPageDims.setEnabled(enabled)
+        self.actionRemoveAuto.setEnabled(enabled)
+        self.actionRename.setEnabled(enabled)
+        self.actionRepackage.setEnabled(enabled)
 
-        # now, selectively re-enable
+        self.menuRemove.setEnabled(enabled)
+        self.menuViewRawTags.setEnabled(enabled)
         if self.comic_archive is not None:
-            has_cix = self.comic_archive.has_cix()
-            has_cbi = self.comic_archive.has_cbi()
+            for style in metadata_styles:
+                self.view_tag_actions[style].setEnabled(self.comic_archive.has_metadata(style))
+                self.remove_tag_actions[style].setEnabled(self.comic_archive.has_metadata(style))
 
-            self.actionParse_Filename.setEnabled(True)
-            self.actionParse_Filename_split_words.setEnabled(True)
-            self.actionAutoIdentify.setEnabled(True)
-            self.actionAutoTag.setEnabled(True)
-            self.actionRename.setEnabled(True)
-            self.actionApplyCBLTransform.setEnabled(True)
-            self.actionReCalcPageDims.setEnabled(True)
-            self.actionRepackage.setEnabled(True)
-            self.actionRemoveAuto.setEnabled(True)
-            self.actionRemoveCRTags.setEnabled(True)
-            self.actionRemoveCBLTags.setEnabled(True)
-            self.actionCopyTags.setEnabled(True)
-
-            if has_cix:
-                self.actionViewRawCRTags.setEnabled(True)
-            if has_cbi:
-                self.actionViewRawCBLTags.setEnabled(True)
-
-            if self.comic_archive.is_writable():
-                self.actionWrite_Tags.setEnabled(True)
+        self.actionWrite_Tags.setEnabled(writeable)
 
     def update_info_box(self) -> None:
         ca = self.comic_archive
@@ -712,13 +753,11 @@ class TaggerWindow(QtWidgets.QMainWindow):
         page_count = f" ({ca.get_number_of_pages()} pages)"
         self.lblPageCount.setText(page_count)
 
+        supported_md = ca.get_supported_metadata()
         tag_info = ""
-        if ca.has_cix():
-            tag_info = "• ComicRack tags"
-        if ca.has_cbi():
-            if tag_info != "":
-                tag_info += "\n"
-            tag_info += "• ComicBookLover tags"
+        for md in supported_md:
+            if ca.has_metadata(md):
+                tag_info += "• " + metadata_styles[md].name() + "\n"
 
         self.lblTagList.setText(tag_info)
 
@@ -872,7 +911,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 )
 
         self.twCredits.setSortingEnabled(True)
-        self.update_credit_colors()
+        self.update_metadata_credit_colors()
 
     def add_new_credit_entry(self, row: int, role: str, name: str, primary_flag: bool = False) -> None:
         self.twCredits.insertRow(row)
@@ -1111,7 +1150,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             reply = QtWidgets.QMessageBox.question(
                 self,
                 "Save Tags",
-                f"Are you sure you wish to save {MetaDataStyle.name[self.save_data_style]} tags to this archive?",
+                f"Are you sure you wish to save {metadata_styles[self.save_data_style].name()} tags to this archive?",
                 QtWidgets.QMessageBox.StandardButton.Yes,
                 QtWidgets.QMessageBox.StandardButton.No,
             )
@@ -1121,7 +1160,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 self.form_to_metadata()
 
                 success = self.comic_archive.write_metadata(self.metadata, self.save_data_style)
-                self.comic_archive.load_cache([MetaDataStyle.CBI, MetaDataStyle.CIX])
+                self.comic_archive.load_cache(list(metadata_styles))
                 QtWidgets.QApplication.restoreOverrideCursor()
 
                 if not success:
@@ -1137,7 +1176,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         else:
             QtWidgets.QMessageBox.information(self, "Whoops!", "No data to commit!")
 
-    def set_load_data_style(self, s: int) -> None:
+    def set_load_data_style(self, s: str) -> None:
         if self.dirty_flag_verification(
             "Change Tag Read Style", "If you change read tag style now, data in the form will be lost.  Are you sure?"
         ):
@@ -1151,118 +1190,35 @@ class TaggerWindow(QtWidgets.QMainWindow):
             self.adjust_load_style_combo()
             self.cbLoadDataStyle.currentIndexChanged.connect(self.set_load_data_style)
 
-    def set_save_data_style(self, s: int) -> None:
+    def set_save_data_style(self, s: str) -> None:
         self.save_data_style = self.cbSaveDataStyle.itemData(s)
         self.config[0].internal__save_data_style = self.save_data_style
-        self.update_style_tweaks()
+        self.update_metadata_style_tweaks()
         self.update_menus()
 
     def set_source(self, s: int) -> None:
         self.config[0].Sources__source = self.cbx_sources.itemData(s)
 
-    def update_credit_colors(self) -> None:
-        # !!!ATB qt5 porting TODO
-        inactive_color = QtGui.QColor(255, 170, 150)
-        active_palette = self.leSeries.palette()
-        active_color = active_palette.color(QtGui.QPalette.ColorRole.Base)
+    def update_metadata_credit_colors(self) -> None:
+        style = metadata_styles[self.save_data_style]
+        enabled = style.supported_attributes
+        credit_attributes = [x for x in self.md_attributes.items() if "credits." in x[0]]
 
-        inactive_brush = QtGui.QBrush(inactive_color)
-        active_brush = QtGui.QBrush(active_color)
+        for r in range(self.twCredits.rowCount()):
+            for credit in credit_attributes:
+                widget_enabled = credit[0] in enabled
+                widget = self.twCredits.item(r, credit[1])
+                enable_widget(widget, widget_enabled)
 
-        cix_credits = ComicInfoXml().get_parseable_credits()
-
-        if self.save_data_style == MetaDataStyle.CIX:
-            # loop over credit table, mark selected rows
-            for r in range(self.twCredits.rowCount()):
-                if str(self.twCredits.item(r, 1).text()).casefold() not in cix_credits:
-                    self.twCredits.item(r, 1).setBackground(inactive_brush)
-                else:
-                    self.twCredits.item(r, 1).setBackground(active_brush)
-                # turn off entire primary column
-                self.twCredits.item(r, 0).setBackground(inactive_brush)
-
-        if self.save_data_style == MetaDataStyle.CBI:
-            # loop over credit table, make all active color
-            for r in range(self.twCredits.rowCount()):
-                self.twCredits.item(r, 0).setBackground(active_brush)
-                self.twCredits.item(r, 1).setBackground(active_brush)
-
-    def update_style_tweaks(self) -> None:
+    def update_metadata_style_tweaks(self) -> None:
         # depending on the current data style, certain fields are disabled
 
-        inactive_color = QtGui.QColor(255, 170, 150)
-        active_palette = self.leSeries.palette()
+        enabled_widgets = metadata_styles[self.save_data_style].supported_attributes
+        for metadata, widget in self.md_attributes.items():
+            if isinstance(widget, QtWidgets.QWidget):
+                enable_widget(widget, metadata in enabled_widgets)
 
-        inactive_palette1 = self.leSeries.palette()
-        inactive_palette1.setColor(QtGui.QPalette.ColorRole.Base, inactive_color)
-
-        inactive_palette2 = self.leSeries.palette()
-
-        inactive_palette3 = self.leSeries.palette()
-        inactive_palette3.setColor(QtGui.QPalette.ColorRole.Base, inactive_color)
-
-        inactive_palette3.setColor(QtGui.QPalette.ColorRole.Base, inactive_color)
-
-        # helper func
-        def enable_widget(widget: QtWidgets.QWidget, enable: bool) -> None:
-            inactive_palette3.setColor(widget.backgroundRole(), inactive_color)
-            inactive_palette2.setColor(widget.backgroundRole(), inactive_color)
-            inactive_palette3.setColor(widget.foregroundRole(), inactive_color)
-
-            if enable:
-                widget.setPalette(active_palette)
-                widget.setAutoFillBackground(False)
-                if isinstance(widget, QtWidgets.QCheckBox):
-                    widget.setEnabled(True)
-                elif isinstance(widget, QtWidgets.QComboBox):
-                    widget.setEnabled(True)
-                elif isinstance(widget, (QtWidgets.QTextEdit, QtWidgets.QLineEdit, QtWidgets.QAbstractSpinBox)):
-                    widget.setReadOnly(False)
-            else:
-                widget.setAutoFillBackground(True)
-                if isinstance(widget, QtWidgets.QCheckBox):
-                    widget.setPalette(inactive_palette2)
-                    widget.setEnabled(False)
-                elif isinstance(widget, QtWidgets.QComboBox):
-                    widget.setPalette(inactive_palette3)
-                    widget.setEnabled(False)
-                elif isinstance(widget, (QtWidgets.QTextEdit, QtWidgets.QLineEdit, QtWidgets.QAbstractSpinBox)):
-                    widget.setReadOnly(True)
-                    widget.setPalette(inactive_palette1)
-
-        cbi_only = [self.leVolumeCount, self.cbCountry, self.teTags]
-        cix_only = [
-            self.leImprint,
-            self.teNotes,
-            self.cbBW,
-            self.cbManga,
-            self.leStoryArc,
-            self.leScanInfo,
-            self.leSeriesGroup,
-            self.leAltSeries,
-            self.leAltIssueNum,
-            self.leAltIssueCount,
-            self.leWebLink,
-            self.teCharacters,
-            self.teTeams,
-            self.teLocations,
-            self.cbMaturityRating,
-            self.cbFormat,
-        ]
-
-        if self.save_data_style == MetaDataStyle.CIX:
-            for item in cix_only:
-                enable_widget(item, True)
-            for item in cbi_only:
-                enable_widget(item, False)
-
-        if self.save_data_style == MetaDataStyle.CBI:
-            for item in cbi_only:
-                enable_widget(item, True)
-            for item in cix_only:
-                enable_widget(item, False)
-
-        self.update_credit_colors()
+        self.update_metadata_credit_colors()
         self.page_list_editor.set_metadata_style(self.save_data_style)
 
     def cell_double_clicked(self, r: int, c: int) -> None:
@@ -1353,7 +1309,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                     row = self.twCredits.rowCount()
                     self.add_new_credit_entry(row, new_role, new_name, new_primary)
 
-            self.update_credit_colors()
+            self.update_metadata_credit_colors()
             self.set_dirty_flag()
 
     def remove_credit(self) -> None:
@@ -1393,27 +1349,20 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
     def adjust_load_style_combo(self) -> None:
         # select the current style
-        if self.load_data_style == MetaDataStyle.CBI:
-            self.cbLoadDataStyle.setCurrentIndex(0)
-        elif self.load_data_style == MetaDataStyle.CIX:
-            self.cbLoadDataStyle.setCurrentIndex(1)
+        self.cbLoadDataStyle.setCurrentIndex(self.cbLoadDataStyle.findData(self.load_data_style))
 
     def adjust_save_style_combo(self) -> None:
         # select the current style
-        if self.save_data_style == MetaDataStyle.CBI:
-            self.cbSaveDataStyle.setCurrentIndex(0)
-        elif self.save_data_style == MetaDataStyle.CIX:
-            self.cbSaveDataStyle.setCurrentIndex(1)
-        self.update_style_tweaks()
+        self.cbSaveDataStyle.setCurrentIndex(self.cbSaveDataStyle.findData(self.save_data_style))
+        self.update_metadata_style_tweaks()
 
     def populate_combo_boxes(self) -> None:
         # Add the entries to the tag style combobox
-        self.cbLoadDataStyle.addItem("ComicBookLover", MetaDataStyle.CBI)
-        self.cbLoadDataStyle.addItem("ComicRack", MetaDataStyle.CIX)
-        self.adjust_load_style_combo()
+        for style in metadata_styles.values():
+            self.cbLoadDataStyle.addItem(style.name(), style.short_name)
+            self.cbSaveDataStyle.addItem(style.name(), style.short_name)
 
-        self.cbSaveDataStyle.addItem("ComicBookLover", MetaDataStyle.CBI)
-        self.cbSaveDataStyle.addItem("ComicRack", MetaDataStyle.CIX)
+        self.adjust_load_style_combo()
         self.adjust_save_style_combo()
 
         # Add talker entries
@@ -1514,13 +1463,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
     def remove_auto(self) -> None:
         self.remove_tags(self.save_data_style)
 
-    def remove_cbl_tags(self) -> None:
-        self.remove_tags(MetaDataStyle.CBI)
-
-    def remove_cr_tags(self) -> None:
-        self.remove_tags(MetaDataStyle.CIX)
-
-    def remove_tags(self, style: int) -> None:
+    def remove_tags(self, style: str) -> None:
         # remove the indicated tags from the archive
         ca_list = self.fileSelectionList.get_selected_archive_list()
         has_md_count = 0
@@ -1530,7 +1473,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
         if has_md_count == 0:
             QtWidgets.QMessageBox.information(
-                self, "Remove Tags", f"No archives with {MetaDataStyle.name[style]} tags selected!"
+                self, "Remove Tags", f"No archives with {metadata_styles[style].name()} tags selected!"
             )
             return
 
@@ -1543,7 +1486,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             reply = QtWidgets.QMessageBox.question(
                 self,
                 "Remove Tags",
-                f"Are you sure you wish to remove the {MetaDataStyle.name[style]} tags from {has_md_count} archive(s)?",
+                f"Are you sure you wish to remove the {metadata_styles[style].name()} tags from {has_md_count} archive(s)?",
                 QtWidgets.QMessageBox.StandardButton.Yes,
                 QtWidgets.QMessageBox.StandardButton.No,
             )
@@ -1565,13 +1508,12 @@ class TaggerWindow(QtWidgets.QMainWindow):
                     progdialog.setValue(prog_idx)
                     progdialog.setLabelText(str(ca.path))
                     QtCore.QCoreApplication.processEvents()
-                    if ca.has_metadata(style):
-                        if ca.is_writable():
-                            if not ca.remove_metadata(style):
-                                failed_list.append(ca.path)
-                            else:
-                                success_count += 1
-                            ca.load_cache([MetaDataStyle.CBI, MetaDataStyle.CIX])
+                    if ca.has_metadata(style) and ca.is_writable():
+                        if not ca.remove_metadata(style):
+                            failed_list.append(ca.path)
+                        else:
+                            success_count += 1
+                        ca.load_cache(list(metadata_styles))
 
                 progdialog.hide()
                 QtCore.QCoreApplication.processEvents()
@@ -1621,8 +1563,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
             reply = QtWidgets.QMessageBox.question(
                 self,
                 "Copy Tags",
-                f"Are you sure you wish to copy the {MetaDataStyle.name[src_style]}"
-                + f" tags to {MetaDataStyle.name[dest_style]} tags in {has_src_count} archive(s)?",
+                f"Are you sure you wish to copy the {metadata_styles[src_style].name()}"
+                + f" tags to {metadata_styles[dest_style].name()} tags in {has_src_count} archive(s)?",
                 QtWidgets.QMessageBox.StandardButton.Yes,
                 QtWidgets.QMessageBox.StandardButton.No,
             )
@@ -1649,10 +1591,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                     if ca.has_metadata(src_style) and ca.is_writable():
                         md = ca.read_metadata(src_style)
 
-                        if (
-                            dest_style == MetaDataStyle.CBI
-                            and self.config[0].Comic_Book_Lover__apply_transform_on_bulk_operation
-                        ):
+                        if dest_style == "cbi" and self.config[0].Comic_Book_Lover__apply_transform_on_bulk_operation:
                             md = CBLTransformer(md, self.config[0]).apply()
 
                         if not ca.write_metadata(md, dest_style):
@@ -1660,7 +1599,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                         else:
                             success_count += 1
 
-                        ca.load_cache([MetaDataStyle.CBI, MetaDataStyle.CIX])
+                        ca.load_cache([self.load_data_style, self.save_data_style, src_style, dest_style])
 
                 prog_dialog.hide()
                 QtCore.QCoreApplication.processEvents()
@@ -1874,7 +1813,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                     )
                     success = True
                     self.auto_tag_log("Save complete!\n")
-                ca.load_cache([MetaDataStyle.CBI, MetaDataStyle.CIX])
+                ca.load_cache([self.load_data_style, self.save_data_style])
 
         return success, match_results
 
@@ -1896,7 +1835,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             self.config[0],
             (
                 f"You have selected {len(ca_list)} archive(s) to automatically identify and write "
-                + MetaDataStyle.name[style]
+                + metadata_styles[style].name()
                 + " tags to.\n\nPlease choose config below, and select OK to Auto-Tag."
             ),
         )
@@ -2067,19 +2006,12 @@ class TaggerWindow(QtWidgets.QMainWindow):
     def page_browser_closed(self) -> None:
         self.page_browser = None
 
-    def view_raw_cr_tags(self) -> None:
-        if self.comic_archive is not None and self.comic_archive.has_cix():
+    def view_raw_tags(self, style: str) -> None:
+        if self.comic_archive is not None and self.comic_archive.has_metadata(style):
+            md_style = metadata_styles[style]
             dlg = LogWindow(self)
-            dlg.set_text(self.comic_archive.read_raw_cix())
-            dlg.setWindowTitle("Raw ComicRack Tag View")
-            dlg.exec()
-
-    def view_raw_cbl_tags(self) -> None:
-        if self.comic_archive is not None and self.comic_archive.has_cbi():
-            dlg = LogWindow(self)
-            text = pprint.pformat(json.loads(self.comic_archive.read_raw_cbi()), indent=4)
-            dlg.set_text(text)
-            dlg.setWindowTitle("Raw ComicBookLover Tag View")
+            dlg.set_text(self.comic_archive.read_metadata_string(style))
+            dlg.setWindowTitle(f"Raw {md_style.name()} Tag View")
             dlg.exec()
 
     def show_wiki(self) -> None:
@@ -2106,12 +2038,12 @@ class TaggerWindow(QtWidgets.QMainWindow):
     def recalc_page_dimensions(self) -> None:
         QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
         for p in self.metadata.pages:
-            if "ImageSize" in p:
-                del p["ImageSize"]
-            if "ImageHeight" in p:
-                del p["ImageHeight"]
-            if "ImageWidth" in p:
-                del p["ImageWidth"]
+            if "size" in p:
+                del p["size"]
+            if "height" in p:
+                del p["height"]
+            if "width" in p:
+                del p["width"]
         self.set_dirty_flag()
         QtWidgets.QApplication.restoreOverrideCursor()
 

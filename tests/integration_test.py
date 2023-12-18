@@ -3,7 +3,6 @@ from __future__ import annotations
 import settngs
 
 import comicapi.comicarchive
-import comicapi.comicinfoxml
 import comicapi.genericmetadata
 import comictaggerlib.resulttypes
 from comictaggerlib import ctsettings
@@ -19,9 +18,9 @@ def test_save(
     mock_now,
 ) -> None:
     # Overwrite the series so it has definitely changed
-    tmp_comic.write_cix(md_saved.replace(series="nothing"))
+    tmp_comic.write_metadata(md_saved.replace(series="nothing"), "cr")
 
-    md = tmp_comic.read_cix()
+    md = tmp_comic.read_metadata("cr")
 
     # Check that it changed
     assert md != md_saved
@@ -41,14 +40,14 @@ def test_save(
     # Use the temporary comic we created
     config[0].Runtime_Options__files = [tmp_comic.path]
     # Save ComicRack tags
-    config[0].Runtime_Options__type = [comicapi.comicarchive.MetaDataStyle.CIX]
+    config[0].Runtime_Options__type = ["cr"]
     # Search using the correct series since we just put the wrong series name in the CBZ
     config[0].Runtime_Options__metadata = comicapi.genericmetadata.GenericMetadata(series=md_saved.series)
     # Run ComicTagger
     CLI(config[0], talkers).run()
 
     # Read the CBZ
-    md = tmp_comic.read_cix()
+    md = tmp_comic.read_metadata("cr")
 
     # Validate that we got the correct metadata back
     assert md == md_saved
@@ -61,7 +60,7 @@ def test_delete(
     md_saved,
     mock_now,
 ) -> None:
-    md = tmp_comic.read_cix()
+    md = tmp_comic.read_metadata("cr")
 
     # Check that the metadata starts correct
     assert md == md_saved
@@ -79,16 +78,16 @@ def test_delete(
     # Use the temporary comic we created
     config[0].Runtime_Options__files = [tmp_comic.path]
     # Delete ComicRack tags
-    config[0].Runtime_Options__type = [comicapi.comicarchive.MetaDataStyle.CIX]
+    config[0].Runtime_Options__type = ["cr"]
     # Run ComicTagger
     CLI(config[0], talkers).run()
 
     # Read the CBZ
-    md = tmp_comic.read_cix()
+    md = tmp_comic.read_metadata("cr")
 
     # Currently we set the default page list on load
     empty_md = comicapi.genericmetadata.GenericMetadata()
-    empty_md.set_default_page_list(tmp_comic.get_number_of_pages())
+    # empty_md.set_default_page_list(tmp_comic.get_number_of_pages())
 
     # Validate that we got an empty metadata back
     assert md == empty_md

@@ -11,7 +11,7 @@ import comictaggerlib.resulttypes
 class settngs_namespace(settngs.TypedNS):
     Commands__version: bool
     Commands__command: comictaggerlib.resulttypes.Action
-    Commands__copy: int
+    Commands__copy: str
 
     Runtime_Options__config: comictaggerlib.ctsettings.types.ComicTaggerPaths
     Runtime_Options__verbose: int
@@ -32,14 +32,14 @@ class settngs_namespace(settngs.TypedNS):
     Runtime_Options__glob: bool
     Runtime_Options__quiet: bool
     Runtime_Options__json: bool
-    Runtime_Options__type: list[int]
+    Runtime_Options__type: list[str]
     Runtime_Options__overwrite: bool
     Runtime_Options__no_gui: bool
     Runtime_Options__files: list[str]
 
     internal__install_id: str
-    internal__save_data_style: int
-    internal__load_data_style: int
+    internal__save_data_style: str
+    internal__load_data_style: str
     internal__last_opened_folder: str
     internal__window_width: int
     internal__window_height: int
@@ -91,7 +91,7 @@ class settngs_namespace(settngs.TypedNS):
 
     Auto_Tag__save_on_low_confidence: bool
     Auto_Tag__dont_use_year_when_identifying: bool
-    Auto_Tag__assume_1_if_no_issue_num: bool
+    Auto_Tag__assume_issue_one: bool
     Auto_Tag__ignore_leading_numbers_in_filename: bool
     Auto_Tag__remove_archive_after_successful_match: bool
 

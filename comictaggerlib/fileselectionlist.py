@@ -23,7 +23,7 @@ from typing import Callable, cast
 from PyQt5 import QtCore, QtWidgets, uic
 
 from comicapi import utils
-from comicapi.comicarchive import ComicArchive
+from comicapi.comicarchive import ComicArchive, metadata_styles
 from comictaggerlib.ctsettings import ct_ns
 from comictaggerlib.graphics import graphics_path
 from comictaggerlib.optionalmsgdialog import OptionalMessageDialog
@@ -206,7 +206,7 @@ class FileSelectionList(QtWidgets.QWidget):
             if row is not None:
                 ca = self.get_archive_by_row(row)
                 rar_added_ro = bool(ca and ca.archiver.name() == "RAR" and not ca.archiver.is_writable())
-                if first_added is None:
+                if first_added is None and row != -1:
                     first_added = row
 
         progdialog.hide()
@@ -286,7 +286,7 @@ class FileSelectionList(QtWidgets.QWidget):
 
             filename_item = QtWidgets.QTableWidgetItem()
             folder_item = QtWidgets.QTableWidgetItem()
-            cix_item = FileTableWidgetItem()
+            md_item = FileTableWidgetItem()
             cbi_item = FileTableWidgetItem()
             readonly_item = FileTableWidgetItem()
             type_item = QtWidgets.QTableWidgetItem()
@@ -301,9 +301,9 @@ class FileSelectionList(QtWidgets.QWidget):
             type_item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
             self.twList.setItem(row, FileSelectionList.typeColNum, type_item)
 
-            cix_item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
-            cix_item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignHCenter)
-            self.twList.setItem(row, FileSelectionList.CRFlagColNum, cix_item)
+            md_item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
+            md_item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignHCenter)
+            self.twList.setItem(row, FileSelectionList.CRFlagColNum, md_item)
 
             cbi_item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
             cbi_item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignHCenter)
@@ -324,8 +324,7 @@ class FileSelectionList(QtWidgets.QWidget):
 
             filename_item = self.twList.item(row, FileSelectionList.fileColNum)
             folder_item = self.twList.item(row, FileSelectionList.folderColNum)
-            cix_item = self.twList.item(row, FileSelectionList.CRFlagColNum)
-            cbi_item = self.twList.item(row, FileSelectionList.CBLFlagColNum)
+            md_item = self.twList.item(row, FileSelectionList.CRFlagColNum)
             type_item = self.twList.item(row, FileSelectionList.typeColNum)
             readonly_item = self.twList.item(row, FileSelectionList.readonlyColNum)
 
@@ -341,19 +340,10 @@ class FileSelectionList(QtWidgets.QWidget):
             type_item.setText(item_text)
             type_item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
 
-            if fi.ca.has_cix():
-                cix_item.setCheckState(QtCore.Qt.CheckState.Checked)
-                cix_item.setData(QtCore.Qt.ItemDataRole.UserRole, True)
-            else:
-                cix_item.setData(QtCore.Qt.ItemDataRole.UserRole, False)
-                cix_item.setCheckState(QtCore.Qt.CheckState.Unchecked)
-
-            if fi.ca.has_cbi():
-                cbi_item.setCheckState(QtCore.Qt.CheckState.Checked)
-                cbi_item.setData(QtCore.Qt.ItemDataRole.UserRole, True)
-            else:
-                cbi_item.setData(QtCore.Qt.ItemDataRole.UserRole, False)
-                cbi_item.setCheckState(QtCore.Qt.CheckState.Unchecked)
+            styles = ", ".join(
+                metadata_styles[x].name() for x in fi.ca.get_supported_metadata() if fi.ca.has_metadata(x)
+            )
+            md_item.setText(styles)
 
             if not fi.ca.is_writable():
                 readonly_item.setCheckState(QtCore.Qt.CheckState.Checked)
@@ -361,13 +351,6 @@ class FileSelectionList(QtWidgets.QWidget):
             else:
                 readonly_item.setData(QtCore.Qt.ItemDataRole.UserRole, False)
                 readonly_item.setCheckState(QtCore.Qt.CheckState.Unchecked)
-
-            # Reading these will force them into the ComicArchive's cache
-            try:
-                fi.ca.read_cix()
-            except Exception:
-                pass
-            fi.ca.has_cbi()
 
     def get_selected_archive_list(self) -> list[ComicArchive]:
         ca_list: list[ComicArchive] = []

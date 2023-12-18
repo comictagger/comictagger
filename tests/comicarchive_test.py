@@ -32,45 +32,45 @@ def test_getPageNameList():
 
 
 def test_page_type_read(cbz):
-    md = cbz.read_cix()
+    md = cbz.read_metadata("cr")
 
-    assert isinstance(md.pages[0]["Type"], str)
+    assert isinstance(md.pages[0]["type"], str)
 
 
 def test_metadata_read(cbz, md_saved):
-    md = cbz.read_cix()
+    md = cbz.read_metadata("cr")
     assert md == md_saved
 
 
-def test_save_cix(tmp_comic):
-    md = tmp_comic.read_cix()
+def test_save_cr(tmp_comic):
+    md = tmp_comic.read_metadata("cr")
     md.set_default_page_list(tmp_comic.get_number_of_pages())
 
-    assert tmp_comic.write_cix(md)
+    assert tmp_comic.write_metadata(md, "cr")
 
-    md = tmp_comic.read_cix()
+    md = tmp_comic.read_metadata("cr")
 
 
 def test_save_cbi(tmp_comic):
-    md = tmp_comic.read_cix()
+    md = tmp_comic.read_metadata("cr")
     md.set_default_page_list(tmp_comic.get_number_of_pages())
 
-    assert tmp_comic.write_cbi(md)
+    assert tmp_comic.write_metadata(md, "cbi")
 
-    md = tmp_comic.read_cbi()
+    md = tmp_comic.read_metadata("cbi")
 
 
 @pytest.mark.xfail(not (comicapi.archivers.rar.rar_support and shutil.which("rar")), reason="rar support")
-def test_save_cix_rar(tmp_path, md_saved):
-    cbr_path = pathlib.Path(str(datadir)) / "fake_cbr.cbr"
+def test_save_cr_rar(tmp_path, md_saved):
+    cbr_path = datadir / "fake_cbr.cbr"
     shutil.copy(cbr_path, tmp_path)
 
     tmp_comic = comicapi.comicarchive.ComicArchive(tmp_path / cbr_path.name)
     assert tmp_comic.seems_to_be_a_comic_archive()
-    assert tmp_comic.write_cix(comicapi.genericmetadata.md_test)
+    assert tmp_comic.write_metadata(comicapi.genericmetadata.md_test, "cr")
 
-    md = tmp_comic.read_cix()
-    assert md.replace(pages=[], page_count=0) == md_saved.replace(pages=[], page_count=0)
+    md = tmp_comic.read_metadata("cr")
+    assert md == md_saved
 
 
 @pytest.mark.xfail(not (comicapi.archivers.rar.rar_support and shutil.which("rar")), reason="rar support")
@@ -80,46 +80,28 @@ def test_save_cbi_rar(tmp_path, md_saved):
 
     tmp_comic = comicapi.comicarchive.ComicArchive(tmp_path / cbr_path.name)
     assert tmp_comic.seems_to_be_a_comic_archive()
-    assert tmp_comic.write_cbi(comicapi.genericmetadata.md_test)
+    assert tmp_comic.write_metadata(comicapi.genericmetadata.md_test, "cbi")
 
-    md = tmp_comic.read_cbi()
-    assert md.replace(pages=[]) == md_saved.replace(
-        pages=[],
-        day=None,
-        alternate_series=None,
-        alternate_number=None,
-        alternate_count=None,
-        imprint=None,
-        notes=None,
-        web_link=None,
-        format=None,
-        manga=None,
-        page_count=None,
-        maturity_rating=None,
-        story_arcs=[],
-        series_groups=[],
-        scan_info=None,
-        characters=set(),
-        teams=set(),
-        locations=set(),
-    )
+    md = tmp_comic.read_metadata("cbi")
+    supported_attributes = comicapi.comicarchive.metadata_styles["cbi"].supported_attributes
+    assert md.get_clean_metadata(*supported_attributes) == md_saved.get_clean_metadata(*supported_attributes)
 
 
 def test_page_type_save(tmp_comic):
-    md = tmp_comic.read_cix()
+    md = tmp_comic.read_metadata("cr")
     t = md.pages[0]
-    t["Type"] = ""
+    t["type"] = ""
 
-    assert tmp_comic.write_cix(md)
+    assert tmp_comic.write_metadata(md, "cr")
 
-    md = tmp_comic.read_cix()
+    md = tmp_comic.read_metadata("cr")
 
 
 def test_invalid_zip(tmp_comic):
     with open(tmp_comic.path, mode="b+r") as f:
         f.write(b"PK\000\000")
 
-    result = tmp_comic.write_cix(comicapi.genericmetadata.md_test)
+    result = tmp_comic.write_metadata(comicapi.genericmetadata.md_test, "cr")
     assert not result
 
 
@@ -149,7 +131,7 @@ def test_copy_from_archive(archiver, tmp_path, cbz, md_saved):
     assert comic_archive.seems_to_be_a_comic_archive()
     assert set(cbz.archiver.get_filename_list()) == set(comic_archive.archiver.get_filename_list())
 
-    md = comic_archive.read_cix()
+    md = comic_archive.read_metadata("cr")
     assert md == md_saved
 
 

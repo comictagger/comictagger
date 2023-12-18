@@ -54,13 +54,13 @@ class PageType:
 
 
 class ImageMetadata(TypedDict, total=False):
-    Type: str
-    Bookmark: str
-    DoublePage: bool
-    Image: int
-    ImageSize: str
-    ImageHeight: str
-    ImageWidth: str
+    type: str
+    bookmark: str
+    double_page: bool
+    image_index: int
+    size: str
+    height: str
+    width: str
 
 
 class Credit(TypedDict):
@@ -173,6 +173,33 @@ class GenericMetadata:
         tmp.__dict__.update(kwargs)
         return tmp
 
+    def get_clean_metadata(self, *attributes: str) -> GenericMetadata:
+        new_md = GenericMetadata()
+        for attr in sorted(attributes):
+            if "." in attr:
+                lst, _, name = attr.partition(".")
+                old_value = getattr(self, lst)
+                new_value = getattr(new_md, lst)
+                if old_value:
+                    if not new_value:
+                        for x in old_value:
+                            new_value.append(x.__class__())
+                    for i, x in enumerate(old_value):
+                        if isinstance(x, dict):
+                            if name in x:
+                                new_value[i][name] = x[name]
+                        else:
+                            setattr(new_value[i], name, getattr(x, name))
+
+            else:
+                old_value = getattr(self, attr)
+                if isinstance(old_value, list):
+                    continue
+                setattr(new_md, attr, old_value)
+
+        new_md.__post_init__()
+        return new_md
+
     def overlay(self, new_md: GenericMetadata) -> None:
         """Overlay a metadata object on this one
 
@@ -262,15 +289,15 @@ class GenericMetadata:
     def set_default_page_list(self, count: int) -> None:
         # generate a default page list, with the first page marked as the cover
         for i in range(count):
-            page_dict = ImageMetadata(Image=i)
+            page_dict = ImageMetadata(image_index=i)
             if i == 0:
-                page_dict["Type"] = PageType.FrontCover
+                page_dict["type"] = PageType.FrontCover
             self.pages.append(page_dict)
 
     def get_archive_page_index(self, pagenum: int) -> int:
         # convert the displayed page number to the page index of the file in the archive
         if pagenum < len(self.pages):
-            return int(self.pages[pagenum]["Image"])
+            return int(self.pages[pagenum]["image_index"])
 
         return 0
 
@@ -278,8 +305,8 @@ class GenericMetadata:
         # return a list of archive page indices of cover pages
         coverlist = []
         for p in self.pages:
-            if "Type" in p and p["Type"] == PageType.FrontCover:
-                coverlist.append(int(p["Image"]))
+            if "type" in p and p["type"] == PageType.FrontCover:
+                coverlist.append(int(p["image_index"]))
 
         if len(coverlist) == 0:
             coverlist.append(0)
@@ -459,36 +486,36 @@ md_test: GenericMetadata = GenericMetadata(
     ],
     tags=set(),
     pages=[
-        ImageMetadata(Image=0, ImageHeight="1280", ImageSize="195977", ImageWidth="800", Type=PageType.FrontCover),
-        ImageMetadata(Image=1, ImageHeight="2039", ImageSize="611993", ImageWidth="1327"),
-        ImageMetadata(Image=2, ImageHeight="2039", ImageSize="783726", ImageWidth="1327"),
-        ImageMetadata(Image=3, ImageHeight="2039", ImageSize="679584", ImageWidth="1327"),
-        ImageMetadata(Image=4, ImageHeight="2039", ImageSize="788179", ImageWidth="1327"),
-        ImageMetadata(Image=5, ImageHeight="2039", ImageSize="864433", ImageWidth="1327"),
-        ImageMetadata(Image=6, ImageHeight="2039", ImageSize="765606", ImageWidth="1327"),
-        ImageMetadata(Image=7, ImageHeight="2039", ImageSize="876427", ImageWidth="1327"),
-        ImageMetadata(Image=8, ImageHeight="2039", ImageSize="852622", ImageWidth="1327"),
-        ImageMetadata(Image=9, ImageHeight="2039", ImageSize="800205", ImageWidth="1327"),
-        ImageMetadata(Image=10, ImageHeight="2039", ImageSize="746243", ImageWidth="1326"),
-        ImageMetadata(Image=11, ImageHeight="2039", ImageSize="718062", ImageWidth="1327"),
-        ImageMetadata(Image=12, ImageHeight="2039", ImageSize="532179", ImageWidth="1326"),
-        ImageMetadata(Image=13, ImageHeight="2039", ImageSize="686708", ImageWidth="1327"),
-        ImageMetadata(Image=14, ImageHeight="2039", ImageSize="641907", ImageWidth="1327"),
-        ImageMetadata(Image=15, ImageHeight="2039", ImageSize="805388", ImageWidth="1327"),
-        ImageMetadata(Image=16, ImageHeight="2039", ImageSize="668927", ImageWidth="1326"),
-        ImageMetadata(Image=17, ImageHeight="2039", ImageSize="710605", ImageWidth="1327"),
-        ImageMetadata(Image=18, ImageHeight="2039", ImageSize="761398", ImageWidth="1326"),
-        ImageMetadata(Image=19, ImageHeight="2039", ImageSize="743807", ImageWidth="1327"),
-        ImageMetadata(Image=20, ImageHeight="2039", ImageSize="552911", ImageWidth="1326"),
-        ImageMetadata(Image=21, ImageHeight="2039", ImageSize="556827", ImageWidth="1327"),
-        ImageMetadata(Image=22, ImageHeight="2039", ImageSize="675078", ImageWidth="1326"),
+        ImageMetadata(image_index=0, height="1280", size="195977", width="800", type=PageType.FrontCover),
+        ImageMetadata(image_index=1, height="2039", size="611993", width="1327"),
+        ImageMetadata(image_index=2, height="2039", size="783726", width="1327"),
+        ImageMetadata(image_index=3, height="2039", size="679584", width="1327"),
+        ImageMetadata(image_index=4, height="2039", size="788179", width="1327"),
+        ImageMetadata(image_index=5, height="2039", size="864433", width="1327"),
+        ImageMetadata(image_index=6, height="2039", size="765606", width="1327"),
+        ImageMetadata(image_index=7, height="2039", size="876427", width="1327"),
+        ImageMetadata(image_index=8, height="2039", size="852622", width="1327"),
+        ImageMetadata(image_index=9, height="2039", size="800205", width="1327"),
+        ImageMetadata(image_index=10, height="2039", size="746243", width="1326"),
+        ImageMetadata(image_index=11, height="2039", size="718062", width="1327"),
+        ImageMetadata(image_index=12, height="2039", size="532179", width="1326"),
+        ImageMetadata(image_index=13, height="2039", size="686708", width="1327"),
+        ImageMetadata(image_index=14, height="2039", size="641907", width="1327"),
+        ImageMetadata(image_index=15, height="2039", size="805388", width="1327"),
+        ImageMetadata(image_index=16, height="2039", size="668927", width="1326"),
+        ImageMetadata(image_index=17, height="2039", size="710605", width="1327"),
+        ImageMetadata(image_index=18, height="2039", size="761398", width="1326"),
+        ImageMetadata(image_index=19, height="2039", size="743807", width="1327"),
+        ImageMetadata(image_index=20, height="2039", size="552911", width="1326"),
+        ImageMetadata(image_index=21, height="2039", size="556827", width="1327"),
+        ImageMetadata(image_index=22, height="2039", size="675078", width="1326"),
         ImageMetadata(
-            Bookmark="Interview",
-            Image=23,
-            ImageHeight="2032",
-            ImageSize="800965",
-            ImageWidth="1338",
-            Type=PageType.Letters,
+            bookmark="Interview",
+            image_index=23,
+            height="2032",
+            size="800965",
+            width="1338",
+            type=PageType.Letters,
         ),
     ],
     price=None,

@@ -16,33 +16,122 @@
 from __future__ import annotations
 
 import logging
+import os
 import xml.etree.ElementTree as ET
 from typing import Any
 
 from comicapi import utils
+from comicapi.archivers import Archiver
 from comicapi.genericmetadata import GenericMetadata
+from comicapi.metadata import Metadata
 
 logger = logging.getLogger(__name__)
 
 
-class CoMet:
-    writer_synonyms = ["writer", "plotter", "scripter"]
-    penciller_synonyms = ["artist", "penciller", "penciler", "breakdowns"]
-    inker_synonyms = ["inker", "artist", "finishes"]
-    colorist_synonyms = ["colorist", "colourist", "colorer", "colourer"]
-    letterer_synonyms = ["letterer"]
-    cover_synonyms = ["cover", "covers", "coverartist", "cover artist"]
-    editor_synonyms = ["editor"]
+class CoMet(Metadata):
+    _writer_synonyms = ("writer", "plotter", "scripter")
+    _penciller_synonyms = ("artist", "penciller", "penciler", "breakdowns")
+    _inker_synonyms = ("inker", "artist", "finishes")
+    _colorist_synonyms = ("colorist", "colourist", "colorer", "colourer")
+    _letterer_synonyms = ("letterer",)
+    _cover_synonyms = ("cover", "covers", "coverartist", "cover artist")
+    _editor_synonyms = ("editor",)
 
-    def metadata_from_string(self, string: str) -> GenericMetadata:
+    enabled = True
+
+    short_name = "comet"
+
+    def __init__(self, version: str) -> None:
+        super().__init__(version)
+
+        self.comet_filename = "CoMet.xml"
+        self.file = "CoMet.xml"
+        self.supported_attributes = {
+            "characters",
+            "description",
+            "credits",
+            "credits.person",
+            "credits.primary",
+            "credits.role",
+            "format",
+            "genres",
+            "identifier",
+            "is_version_of",
+            "issue",
+            "language",
+            "last_mark",
+            "maturity_rating",
+            "month",
+            "page_count",
+            "price",
+            "publisher",
+            "rights",
+            "series",
+            "title",
+            "volume",
+            "year",
+        }
+
+    def supports_metadata(self, archive: Archiver) -> bool:
+        return archive.supports_files()
+
+    def has_metadata(self, archive: Archiver) -> bool:
+        if not self.supports_metadata(archive):
+            return False
+        has_metadata = False
+        # look at all xml files in root, and search for CoMet data, get first
+        for n in archive.get_filename_list():
+            if os.path.dirname(n) == "" and os.path.splitext(n)[1].casefold() == ".xml":
+                # read in XML file, and validate it
+                data = b""
+                try:
+                    data = archive.read_file(n)
+                except Exception as e:
+                    logger.warning("Error reading in Comet XML for validation! from %s: %s", archive.path, e)
+                if self._validate_bytes(data):
+                    # since we found it, save it!
+                    self.file = n
+                    has_metadata = True
+                    break
+        return has_metadata
+
+    def remove_metadata(self, archive: Archiver) -> bool:
+        return self.has_metadata(archive) and archive.remove_file(self.file)
+
+    def get_metadata(self, archive: Archiver) -> GenericMetadata:
+        if self.has_metadata(archive):
+            metadata = archive.read_file(self.file) or b""
+            if self._validate_bytes(metadata):
+                return self._metadata_from_bytes(metadata)
+        return GenericMetadata()
+
+    def get_metadata_string(self, archive: Archiver) -> str:
+        if self.has_metadata(archive):
+            return ET.tostring(ET.fromstring(archive.read_file(self.file)), encoding="unicode", xml_declaration=True)
+        return ""
+
+    def set_metadata(self, metadata: GenericMetadata, archive: Archiver) -> bool:
+        if self.supports_metadata(archive):
+            success = True
+            if self.file != self.comet_filename:
+                success = self.remove_metadata(archive)
+            return archive.write_file(self.comet_filename, self._bytes_from_metadata(metadata)) and success
+        else:
+            logger.warning(f"Archive ({archive.name()}) does not support {self.name()} metadata")
+        return False
+
+    def name(self) -> str:
+        return "Comic Metadata (CoMet)"
+
+    def _metadata_from_bytes(self, string: bytes) -> GenericMetadata:
         tree = ET.ElementTree(ET.fromstring(string))
-        return self.convert_xml_to_metadata(tree)
+        return self._convert_xml_to_metadata(tree)
 
-    def string_from_metadata(self, metadata: GenericMetadata) -> str:
-        tree = self.convert_metadata_to_xml(metadata)
-        return str(ET.tostring(tree.getroot(), encoding="utf-8", xml_declaration=True).decode("utf-8"))
+    def _bytes_from_metadata(self, metadata: GenericMetadata) -> bytes:
+        tree = self._convert_metadata_to_xml(metadata)
+        return ET.tostring(tree.getroot(), encoding="utf-8", xml_declaration=True)
 
-    def convert_metadata_to_xml(self, metadata: GenericMetadata) -> ET.ElementTree:
+    def _convert_metadata_to_xml(self, metadata: GenericMetadata) -> ET.ElementTree:
         # shorthand for the metadata
         md = metadata
 
@@ -95,25 +184,25 @@ class CoMet:
 
         # loop thru credits, and build a list for each role that CoMet supports
         for credit in metadata.credits:
-            if credit["role"].casefold() in set(self.writer_synonyms):
+            if credit["role"].casefold() in set(self._writer_synonyms):
                 ET.SubElement(root, "writer").text = str(credit["person"])
 
-            if credit["role"].casefold() in set(self.penciller_synonyms):
+            if credit["role"].casefold() in set(self._penciller_synonyms):
                 ET.SubElement(root, "penciller").text = str(credit["person"])
 
-            if credit["role"].casefold() in set(self.inker_synonyms):
+            if credit["role"].casefold() in set(self._inker_synonyms):
                 ET.SubElement(root, "inker").text = str(credit["person"])
 
-            if credit["role"].casefold() in set(self.colorist_synonyms):
+            if credit["role"].casefold() in set(self._colorist_synonyms):
                 ET.SubElement(root, "colorist").text = str(credit["person"])
 
-            if credit["role"].casefold() in set(self.letterer_synonyms):
+            if credit["role"].casefold() in set(self._letterer_synonyms):
                 ET.SubElement(root, "letterer").text = str(credit["person"])
 
-            if credit["role"].casefold() in set(self.cover_synonyms):
+            if credit["role"].casefold() in set(self._cover_synonyms):
                 ET.SubElement(root, "coverDesigner").text = str(credit["person"])
 
-            if credit["role"].casefold() in set(self.editor_synonyms):
+            if credit["role"].casefold() in set(self._editor_synonyms):
                 ET.SubElement(root, "editor").text = str(credit["person"])
 
         ET.indent(root)
@@ -122,7 +211,7 @@ class CoMet:
         tree = ET.ElementTree(root)
         return tree
 
-    def convert_xml_to_metadata(self, tree: ET.ElementTree) -> GenericMetadata:
+    def _convert_xml_to_metadata(self, tree: ET.ElementTree) -> GenericMetadata:
         root = tree.getroot()
 
         if root.tag != "comet":
@@ -194,7 +283,7 @@ class CoMet:
         return metadata
 
     # verify that the string actually contains CoMet data in XML format
-    def validate_string(self, string: str) -> bool:
+    def _validate_bytes(self, string: bytes) -> bool:
         try:
             tree = ET.ElementTree(ET.fromstring(string))
             root = tree.getroot()
@@ -204,11 +293,3 @@ class CoMet:
             return False
 
         return True
-
-    def write_to_external_file(self, filename: str, metadata: GenericMetadata) -> None:
-        tree = self.convert_metadata_to_xml(metadata)
-        tree.write(filename, encoding="utf-8")
-
-    def read_from_external_file(self, filename: str) -> GenericMetadata:
-        tree = ET.parse(filename)
-        return self.convert_xml_to_metadata(tree)

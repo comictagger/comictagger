@@ -20,11 +20,13 @@ from datetime import datetime
 from typing import Any, Literal, TypedDict
 
 from comicapi import utils
+from comicapi.archivers import Archiver
 from comicapi.genericmetadata import GenericMetadata
+from comicapi.metadata import Metadata
 
 logger = logging.getLogger(__name__)
 
-CBILiteralType = Literal[
+_CBILiteralType = Literal[
     "series",
     "title",
     "issue",
@@ -44,13 +46,13 @@ CBILiteralType = Literal[
 ]
 
 
-class Credits(TypedDict):
+class _Credits(TypedDict):
     person: str
     role: str
     primary: bool
 
 
-class ComicBookInfoJson(TypedDict, total=False):
+class _ComicBookInfoJson(TypedDict, total=False):
     series: str
     title: str
     publisher: str
@@ -64,17 +66,77 @@ class ComicBookInfoJson(TypedDict, total=False):
     genre: str
     language: str
     country: str
-    credits: list[Credits]
+    credits: list[_Credits]
     tags: list[str]
     comments: str
 
 
-CBIContainer = TypedDict("CBIContainer", {"appID": str, "lastModified": str, "ComicBookInfo/1.0": ComicBookInfoJson})
+_CBIContainer = TypedDict("_CBIContainer", {"appID": str, "lastModified": str, "ComicBookInfo/1.0": _ComicBookInfoJson})
 
 
-class ComicBookInfo:
-    def metadata_from_string(self, string: str) -> GenericMetadata:
-        cbi_container: CBIContainer = json.loads(string)
+class ComicBookInfo(Metadata):
+    enabled = True
+
+    short_name = "cbi"
+
+    def __init__(self, version: str) -> None:
+        super().__init__(version)
+
+        self.supported_attributes = {
+            "description",
+            "country",
+            "credits",
+            "credits.person",
+            "credits.primary",
+            "credits.role",
+            "critical_rating",
+            "genres",
+            "issue",
+            "issue_count",
+            "language",
+            "month",
+            "publisher",
+            "series",
+            "tags",
+            "title",
+            "volume",
+            "volume_count",
+            "year",
+        }
+
+    def supports_metadata(self, archive: Archiver) -> bool:
+        return archive.supports_comment()
+
+    def has_metadata(self, archive: Archiver) -> bool:
+        return self.supports_metadata(archive) and self._validate_string(archive.get_comment())
+
+    def remove_metadata(self, archive: Archiver) -> bool:
+        return archive.set_comment("")
+
+    def get_metadata(self, archive: Archiver) -> GenericMetadata:
+        if self.has_metadata(archive):
+            comment = archive.get_comment()
+            if self._validate_string(comment):
+                return self._metadata_from_string(comment)
+        return GenericMetadata()
+
+    def get_metadata_string(self, archive: Archiver) -> str:
+        if self.has_metadata(archive):
+            return json.dumps(json.loads(archive.get_comment()), indent=2)
+        return ""
+
+    def set_metadata(self, metadata: GenericMetadata, archive: Archiver) -> bool:
+        if self.supports_metadata(archive):
+            return archive.set_comment(self._string_from_metadata(metadata))
+        else:
+            logger.warning(f"Archive ({archive.name()}) does not support {self.name()} metadata")
+        return False
+
+    def name(self) -> str:
+        return "ComicBookInfo"
+
+    def _metadata_from_string(self, string: str) -> GenericMetadata:
+        cbi_container: _CBIContainer = json.loads(string)
 
         metadata = GenericMetadata()
 
@@ -96,7 +158,7 @@ class ComicBookInfo:
         metadata.critical_rating = utils.xlate_int(cbi.get("rating"))
 
         metadata.credits = [
-            Credits(
+            _Credits(
                 person=x["person"] if "person" in x else "",
                 role=x["role"] if "role" in x else "",
                 primary=x["primary"] if "primary" in x else False,
@@ -113,11 +175,11 @@ class ComicBookInfo:
 
         return metadata
 
-    def string_from_metadata(self, metadata: GenericMetadata) -> str:
-        cbi_container = self.create_json_dictionary(metadata)
+    def _string_from_metadata(self, metadata: GenericMetadata) -> str:
+        cbi_container = self._create_json_dictionary(metadata)
         return json.dumps(cbi_container)
 
-    def validate_string(self, string: bytes | str) -> bool:
+    def _validate_string(self, string: bytes | str) -> bool:
         """Verify that the string actually contains CBI data in JSON format"""
 
         try:
@@ -127,10 +189,10 @@ class ComicBookInfo:
 
         return "ComicBookInfo/1.0" in cbi_container
 
-    def create_json_dictionary(self, metadata: GenericMetadata) -> CBIContainer:
+    def _create_json_dictionary(self, metadata: GenericMetadata) -> _CBIContainer:
         """Create the dictionary that we will convert to JSON text"""
 
-        cbi_container = CBIContainer(
+        cbi_container = _CBIContainer(
             {
                 "appID": "ComicTagger/1.0.0",
                 "lastModified": str(datetime.now()),
@@ -139,7 +201,7 @@ class ComicBookInfo:
         )  # TODO: ctversion.version,
 
         # helper func
-        def assign(cbi_entry: CBILiteralType, md_entry: Any) -> None:
+        def assign(cbi_entry: _CBILiteralType, md_entry: Any) -> None:
             if md_entry is not None or isinstance(md_entry, str) and md_entry != "":
                 cbi_container["ComicBookInfo/1.0"][cbi_entry] = md_entry
 
@@ -161,9 +223,3 @@ class ComicBookInfo:
         assign("tags", list(metadata.tags))
 
         return cbi_container
-
-    def write_to_external_file(self, filename: str, metadata: GenericMetadata) -> None:
-        cbi_container = self.create_json_dictionary(metadata)
-
-        with open(filename, "w", encoding="utf-8") as f:
-            f.write(json.dumps(cbi_container, indent=4))

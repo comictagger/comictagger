@@ -91,6 +91,9 @@ class RarArchiver(Archiver):
         else:
             return False
 
+    def supports_comment(self) -> bool:
+        return True
+
     def read_file(self, archive_file: str) -> bytes:
         rarc = self.get_rar_obj()
         if rarc is None:
@@ -212,6 +215,9 @@ class RarArchiver(Archiver):
                 else:
                     return namelist
         return []
+
+    def supports_files(self) -> bool:
+        return True
 
     def copy_from_archive(self, other_archive: Archiver) -> bool:
         """Replace the current archive with one copied from another archive"""

@@ -121,8 +121,8 @@ class Result:
 
     md: GenericMetadata | None = None
 
-    tags_deleted: list[int] = dataclasses.field(default_factory=list)
-    tags_written: list[int] = dataclasses.field(default_factory=list)
+    tags_deleted: list[str] = dataclasses.field(default_factory=list)
+    tags_written: list[str] = dataclasses.field(default_factory=list)
 
     def __str__(self) -> str:
         if len(self.online_results) == 0:

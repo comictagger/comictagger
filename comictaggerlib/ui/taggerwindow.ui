@@ -1178,15 +1178,11 @@
       <string>Remove Tags</string>
      </property>
      <addaction name="actionRemoveAuto"/>
-     <addaction name="actionRemoveCBLTags"/>
-     <addaction name="actionRemoveCRTags"/>
     </widget>
     <widget class="QMenu" name="menuViewRawTags">
      <property name="title">
       <string>View Raw Tags</string>
      </property>
-     <addaction name="actionViewRawCRTags"/>
-     <addaction name="actionViewRawCBLTags"/>
     </widget>
     <addaction name="actionLoad"/>
     <addaction name="actionLoadFolder"/>

@@ -25,14 +25,14 @@ from typing import cast
 
 from comicapi import utils
 from comicapi.archivers import Archiver, UnknownArchiver, ZipArchiver
-from comicapi.comet import CoMet
-from comicapi.comicbookinfo import ComicBookInfo
-from comicapi.comicinfoxml import ComicInfoXml
-from comicapi.genericmetadata import GenericMetadata, PageType
+from comicapi.genericmetadata import GenericMetadata
+from comicapi.metadata import Metadata
+from comictaggerlib.ctversion import version
 
 logger = logging.getLogger(__name__)
 
 archivers: list[type[Archiver]] = []
+metadata_styles: dict[str, Metadata] = {}
 
 
 def load_archive_plugins() -> None:
@@ -54,12 +54,27 @@ def load_archive_plugins() -> None:
         archivers.extend(builtin)
 
 
-class MetaDataStyle:
-    CBI = 0
-    CIX = 1
-    COMET = 2
-    name = ["ComicBookLover", "ComicRack", "CoMet"]
-    short_name = ["cbl", "cr", "comet"]
+def load_metadata_plugins(version: str = f"ComicAPI/{version}") -> None:
+    if not metadata_styles:
+        if sys.version_info < (3, 10):
+            from importlib_metadata import entry_points
+        else:
+            from importlib.metadata import entry_points
+        builtin: dict[str, Metadata] = {}
+        styles: dict[str, Metadata] = {}
+        for arch in entry_points(group="comicapi.metadata"):
+            try:
+                style: type[Metadata] = arch.load()
+                if style.enabled:
+                    if arch.module.startswith("comicapi"):
+                        builtin[style.short_name] = style(version)
+                    else:
+                        styles[style.short_name] = style(version)
+            except Exception:
+                logger.exception("Failed to load metadata plugin: %s", arch.name)
+        metadata_styles.clear()
+        metadata_styles.update(builtin)
+        metadata_styles.update(styles)
 
 
 class ComicArchive:
@@ -67,25 +82,18 @@ class ComicArchive:
     pil_available = True
 
     def __init__(self, path: pathlib.Path | str, default_image_path: pathlib.Path | str | None = None) -> None:
-        self.cbi_md: GenericMetadata | None = None
-        self.cix_md: GenericMetadata | None = None
-        self.comet_filename: str | None = None
-        self.comet_md: GenericMetadata | None = None
-        self._has_cbi: bool | None = None
-        self._has_cix: bool | None = None
-        self._has_comet: bool | None = None
+        self.md: dict[str, GenericMetadata] = {}
         self.path = pathlib.Path(path).absolute()
         self.page_count: int | None = None
         self.page_list: list[str] = []
 
-        self.ci_xml_filename = "ComicInfo.xml"
-        self.comet_default_filename = "CoMet.xml"
         self.reset_cache()
         self.default_image_path = default_image_path
 
         self.archiver: Archiver = UnknownArchiver.open(self.path)
 
         load_archive_plugins()
+        load_metadata_plugins()
         for archiver in archivers:
             if archiver.enabled and archiver.is_valid(self.path):
                 self.archiver = archiver.open(self.path)
@@ -98,19 +106,19 @@ class ComicArchive:
     def reset_cache(self) -> None:
         """Clears the cached data"""
 
-        self._has_cix = None
-        self._has_cbi = None
-        self._has_comet = None
-        self.comet_filename = None
         self.page_count = None
-        self.page_list = []
-        self.cix_md = None
-        self.cbi_md = None
-        self.comet_md = None
+        self.page_list.clear()
+        self.md.clear()
 
-    def load_cache(self, style_list: list[int]) -> None:
+    def load_cache(self, style_list: list[str]) -> None:
         for style in style_list:
-            self.read_metadata(style)
+            if style in metadata_styles:
+                md = metadata_styles[style].get_metadata(self.archiver)
+                if not md.is_empty:
+                    self.md[style] = md
+
+    def get_supported_metadata(self) -> list[str]:
+        return [style[0] for style in metadata_styles.items() if style[1].supports_metadata(self.archiver)]
 
     def rename(self, path: pathlib.Path | str) -> None:
         new_path = pathlib.Path(path).absolute()
@@ -133,8 +141,10 @@ class ComicArchive:
 
         return True
 
-    def is_writable_for_style(self, data_style: int) -> bool:
-        return not (data_style == MetaDataStyle.CBI and not self.archiver.supports_comment())
+    def is_writable_for_style(self, style: str) -> bool:
+        if style in metadata_styles:
+            return self.archiver.is_writable() and metadata_styles[style].supports_metadata(self.archiver)
+        return False
 
     def is_zip(self) -> bool:
         return self.archiver.name() == "ZIP"
@@ -148,43 +158,28 @@ class ComicArchive:
     def extension(self) -> str:
         return self.archiver.extension()
 
-    def read_metadata(self, style: int) -> GenericMetadata:
-        if style == MetaDataStyle.CIX:
-            return self.read_cix()
-        if style == MetaDataStyle.CBI:
-            return self.read_cbi()
-        if style == MetaDataStyle.COMET:
-            return self.read_comet()
-        return GenericMetadata()
+    def read_metadata(self, style: str) -> GenericMetadata:
+        if style in self.md:
+            return self.md[style]
+        return metadata_styles[style].get_metadata(self.archiver)
 
-    def write_metadata(self, metadata: GenericMetadata, style: int) -> bool:
-        retcode = False
-        if style == MetaDataStyle.CIX:
-            retcode = self.write_cix(metadata)
-        if style == MetaDataStyle.CBI:
-            retcode = self.write_cbi(metadata)
-        if style == MetaDataStyle.COMET:
-            retcode = self.write_comet(metadata)
-        return retcode
+    def read_metadata_string(self, style: str) -> str:
+        return metadata_styles[style].get_metadata_string(self.archiver)
 
-    def has_metadata(self, style: int) -> bool:
-        if style == MetaDataStyle.CIX:
-            return self.has_cix()
-        if style == MetaDataStyle.CBI:
-            return self.has_cbi()
-        if style == MetaDataStyle.COMET:
-            return self.has_comet()
-        return False
+    def write_metadata(self, metadata: GenericMetadata, style: str) -> bool:
+        if style in self.md:
+            del self.md[style]
+        return metadata_styles[style].set_metadata(metadata, self.archiver)
 
-    def remove_metadata(self, style: int) -> bool:
-        retcode = True
-        if style == MetaDataStyle.CIX:
-            retcode = self.remove_cix()
-        elif style == MetaDataStyle.CBI:
-            retcode = self.remove_cbi()
-        elif style == MetaDataStyle.COMET:
-            retcode = self.remove_co_met()
-        return retcode
+    def has_metadata(self, style: str) -> bool:
+        if style in self.md:
+            return True
+        return metadata_styles[style].has_metadata(self.archiver)
+
+    def remove_metadata(self, style: str) -> bool:
+        if style in self.md:
+            del self.md[style]
+        return metadata_styles[style].remove_metadata(self.archiver)
 
     def get_page(self, index: int) -> bytes:
         image_data = b""
@@ -288,239 +283,12 @@ class ComicArchive:
             self.page_count = len(self.get_page_name_list())
         return self.page_count
 
-    def read_cbi(self) -> GenericMetadata:
-        if self.cbi_md is None:
-            raw_cbi = self.read_raw_cbi()
-            if raw_cbi:
-                self.cbi_md = ComicBookInfo().metadata_from_string(raw_cbi)
-            else:
-                self.cbi_md = GenericMetadata()
-
-            self.cbi_md.set_default_page_list(self.get_number_of_pages())
-
-        return self.cbi_md
-
-    def read_raw_cbi(self) -> str:
-        if not self.has_cbi():
-            return ""
-
-        return self.archiver.get_comment()
-
-    def has_cbi(self) -> bool:
-        if self._has_cbi is None:
-            if not self.seems_to_be_a_comic_archive():
-                self._has_cbi = False
-            else:
-                comment = self.archiver.get_comment()
-                self._has_cbi = ComicBookInfo().validate_string(comment)
-
-        return self._has_cbi
-
-    def write_cbi(self, metadata: GenericMetadata) -> bool:
-        if metadata is not None:
-            try:
-                self.apply_archive_info_to_metadata(metadata)
-                cbi_string = ComicBookInfo().string_from_metadata(metadata)
-                write_success = self.archiver.set_comment(cbi_string)
-                if write_success:
-                    self._has_cbi = True
-                    self.cbi_md = metadata
-                self.reset_cache()
-                return write_success
-            except Exception as e:
-                tb = traceback.extract_tb(e.__traceback__)
-                logger.error("%s:%s: Error saving CBI! for %s: %s", tb[1].filename, tb[1].lineno, self.path, e)
-
-        return False
-
-    def remove_cbi(self) -> bool:
-        if self.has_cbi():
-            write_success = self.archiver.set_comment("")
-            if write_success:
-                self._has_cbi = False
-                self.cbi_md = None
-            self.reset_cache()
-            return write_success
-        return True
-
-    def read_cix(self) -> GenericMetadata:
-        if self.cix_md is None:
-            raw_cix = self.read_raw_cix()
-            if raw_cix:
-                self.cix_md = ComicInfoXml().metadata_from_string(raw_cix)
-            else:
-                self.cix_md = GenericMetadata()
-
-            # validate the existing page list (make sure count is correct)
-            if len(self.cix_md.pages) != 0:
-                if len(self.cix_md.pages) != self.get_number_of_pages():
-                    # pages array doesn't match the actual number of images we're seeing
-                    # in the archive, so discard the data
-                    self.cix_md.pages = []
-
-            if len(self.cix_md.pages) == 0:
-                self.cix_md.set_default_page_list(self.get_number_of_pages())
-
-        return self.cix_md
-
-    def read_raw_cix(self) -> bytes:
-        if not self.has_cix():
-            return b""
-        try:
-            raw_cix = self.archiver.read_file(self.ci_xml_filename) or b""
-        except Exception as e:
-            tb = traceback.extract_tb(e.__traceback__)
-            logger.error("%s:%s: Error reading in raw CIX! for %s: %s", tb[1].filename, tb[1].lineno, self.path, e)
-            raw_cix = b""
-        return raw_cix
-
-    def write_cix(self, metadata: GenericMetadata) -> bool:
-        if metadata is not None:
-            try:
-                self.apply_archive_info_to_metadata(metadata, calc_page_sizes=True)
-                raw_cix = self.read_raw_cix()
-                cix_string = ComicInfoXml().string_from_metadata(metadata, xml=raw_cix)
-                write_success = self.archiver.write_file(self.ci_xml_filename, cix_string.encode("utf-8"))
-                if write_success:
-                    self._has_cix = True
-                    self.cix_md = metadata
-                self.reset_cache()
-                return write_success
-            except Exception as e:
-                tb = traceback.extract_tb(e.__traceback__)
-                logger.error("%s:%s: Error saving CIX! for %s: %s", tb[1].filename, tb[1].lineno, self.path, e)
-
-        return False
-
-    def remove_cix(self) -> bool:
-        if self.has_cix():
-            write_success = self.archiver.remove_file(self.ci_xml_filename)
-            if write_success:
-                self._has_cix = False
-                self.cix_md = None
-            self.reset_cache()
-            return write_success
-        return True
-
-    def has_cix(self) -> bool:
-        if self._has_cix is None:
-            if not self.seems_to_be_a_comic_archive():
-                self._has_cix = False
-            elif self.ci_xml_filename in self.archiver.get_filename_list():
-                self._has_cix = True
-            else:
-                self._has_cix = False
-        return self._has_cix
-
-    def read_comet(self) -> GenericMetadata:
-        if self.comet_md is None:
-            raw_comet = self.read_raw_comet()
-            if raw_comet is None or raw_comet == "":
-                self.comet_md = GenericMetadata()
-            else:
-                self.comet_md = CoMet().metadata_from_string(raw_comet)
-
-            self.comet_md.set_default_page_list(self.get_number_of_pages())
-            # use the coverImage value from the comet_data to mark the cover in this struct
-            # walk through list of images in file, and find the matching one for md.coverImage
-            # need to remove the existing one in the default
-            if self.comet_md._cover_image is not None:
-                cover_idx = 0
-                for idx, f in enumerate(self.get_page_name_list()):
-                    if self.comet_md._cover_image == f:
-                        cover_idx = idx
-                        break
-                if cover_idx != 0:
-                    del self.comet_md.pages[0]["Type"]
-                    self.comet_md.pages[cover_idx]["Type"] = PageType.FrontCover
-
-        return self.comet_md
-
-    def read_raw_comet(self) -> str:
-        raw_comet = ""
-        if not self.has_comet():
-            raw_comet = ""
-        else:
-            try:
-                raw_bytes = self.archiver.read_file(cast(str, self.comet_filename))
-                if raw_bytes:
-                    raw_comet = raw_bytes.decode("utf-8")
-            except OSError as e:
-                tb = traceback.extract_tb(e.__traceback__)
-                logger.error(
-                    "%s:%s: Error reading in raw CoMet! for %s: %s", tb[1].filename, tb[1].lineno, self.path, e
-                )
-        return raw_comet
-
-    def write_comet(self, metadata: GenericMetadata) -> bool:
-        if metadata is not None:
-            if not self.has_comet():
-                self.comet_filename = self.comet_default_filename
-
-            self.apply_archive_info_to_metadata(metadata)
-            # Set the coverImage value, if it's not the first page
-            cover_idx = int(metadata.get_cover_page_index_list()[0])
-            if cover_idx != 0:
-                metadata._cover_image = self.get_page_name(cover_idx)
-
-            comet_string = CoMet().string_from_metadata(metadata)
-            write_success = self.archiver.write_file(cast(str, self.comet_filename), comet_string.encode("utf-8"))
-            if write_success:
-                self._has_comet = True
-                self.comet_md = metadata
-            self.reset_cache()
-            return write_success
-
-        return False
-
-    def remove_co_met(self) -> bool:
-        if self.has_comet():
-            write_success = self.archiver.remove_file(cast(str, self.comet_filename))
-            if write_success:
-                self._has_comet = False
-                self.comet_md = None
-            self.reset_cache()
-            return write_success
-        return True
-
-    def has_comet(self) -> bool:
-        if self._has_comet is None:
-            self._has_comet = False
-            if not self.seems_to_be_a_comic_archive():
-                return self._has_comet
-
-            # look at all xml files in root, and search for CoMet data, get first
-            for n in self.archiver.get_filename_list():
-                if os.path.dirname(n) == "" and os.path.splitext(n)[1].casefold() == ".xml":
-                    # read in XML file, and validate it
-                    data = ""
-                    try:
-                        d = self.archiver.read_file(n)
-                        if d:
-                            data = d.decode("utf-8")
-                    except Exception as e:
-                        tb = traceback.extract_tb(e.__traceback__)
-                        logger.warning(
-                            "%s:%s: Error reading in Comet XML for validation! from %s: %s",
-                            tb[1].filename,
-                            tb[1].lineno,
-                            self.path,
-                            e,
-                        )
-                    if CoMet().validate_string(data):
-                        # since we found it, save it!
-                        self.comet_filename = n
-                        self._has_comet = True
-                        break
-
-        return self._has_comet
-
     def apply_archive_info_to_metadata(self, md: GenericMetadata, calc_page_sizes: bool = False) -> None:
         md.page_count = self.get_number_of_pages()
 
         if calc_page_sizes:
             for index, p in enumerate(md.pages):
-                idx = int(p["Image"])
+                idx = int(p["image_index"])
                 if self.pil_available:
                     try:
                         from PIL import Image
@@ -528,7 +296,7 @@ class ComicArchive:
                         self.pil_available = True
                     except ImportError:
                         self.pil_available = False
-                    if "ImageSize" not in p or "ImageHeight" not in p or "ImageWidth" not in p:
+                    if "size" not in p or "height" not in p or "width" not in p:
                         data = self.get_page(idx)
                         if data:
                             try:
@@ -538,17 +306,17 @@ class ComicArchive:
                                     im = Image.open(io.StringIO(data))
                                 w, h = im.size
 
-                                p["ImageSize"] = str(len(data))
-                                p["ImageHeight"] = str(h)
-                                p["ImageWidth"] = str(w)
+                                p["size"] = str(len(data))
+                                p["height"] = str(h)
+                                p["width"] = str(w)
                             except Exception as e:
                                 logger.warning("Error decoding image [%s] %s :: image %s", e, self.path, index)
-                                p["ImageSize"] = str(len(data))
+                                p["size"] = str(len(data))
 
                 else:
-                    if "ImageSize" not in p:
+                    if "size" not in p:
                         data = self.get_page(idx)
-                        p["ImageSize"] = str(len(data))
+                        p["size"] = str(len(data))
 
     def metadata_from_filename(
         self,

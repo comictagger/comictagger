@@ -72,6 +72,9 @@ class FolderArchiver(Archiver):
             logger.error("Error listing files in folder archive [%s]: %s", e, self.path)
             return []
 
+    def supports_files(self) -> bool:
+        return True
+
     def copy_from_archive(self, other_archive: Archiver) -> bool:
         """Replace the current zip with one copied from another archive"""
         try:

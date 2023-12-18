@@ -122,6 +122,7 @@ class App:
 
     def load_plugins(self, opts: argparse.Namespace) -> None:
         comicapi.comicarchive.load_archive_plugins()
+        comicapi.comicarchive.load_metadata_plugins(version=version)
         self.talkers = comictalker.get_talkers(version, opts.config.user_cache_dir)
 
     def list_plugins(

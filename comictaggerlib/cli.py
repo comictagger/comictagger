@@ -28,7 +28,8 @@ from datetime import datetime
 from typing import Any, TextIO
 
 from comicapi import utils
-from comicapi.comicarchive import ComicArchive, MetaDataStyle
+from comicapi.comicarchive import ComicArchive
+from comicapi.comicarchive import metadata_styles as md_styles
 from comicapi.genericmetadata import GenericMetadata
 from comictaggerlib import ctversion
 from comictaggerlib.cbltransformer import CBLTransformer
@@ -134,10 +135,10 @@ class CLI:
 
     def actual_metadata_save(self, ca: ComicArchive, md: GenericMetadata) -> bool:
         if not self.config.Runtime_Options__dryrun:
-            for metadata_style in self.config.Runtime_Options__type:
+            for style in self.config.Runtime_Options__type:
                 # write out the new data
-                if not ca.write_metadata(md, metadata_style):
-                    logger.error("The tag save seemed to fail for style: %s!", MetaDataStyle.name[metadata_style])
+                if not ca.write_metadata(md, style):
+                    logger.error("The tag save seemed to fail for style: %s!", md_styles[style].name())
                     return False
 
             self.output("Save complete.")
@@ -258,10 +259,10 @@ class CLI:
 
             md.overlay(f_md)
 
-        for metadata_style in self.config.Runtime_Options__type:
-            if ca.has_metadata(metadata_style):
+        for style in self.config.Runtime_Options__type:
+            if ca.has_metadata(style):
                 try:
-                    t_md = ca.read_metadata(metadata_style)
+                    t_md = ca.read_metadata(style)
                     md.overlay(t_md)
                     break
                 except Exception as e:
@@ -286,20 +287,9 @@ class CLI:
             brief += f"({page_count: >3} pages)"
             brief += "  tags:[ "
 
-            if not (
-                ca.has_metadata(MetaDataStyle.CBI)
-                or ca.has_metadata(MetaDataStyle.CIX)
-                or ca.has_metadata(MetaDataStyle.COMET)
-            ):
-                brief += "none "
-            else:
-                if ca.has_metadata(MetaDataStyle.CBI):
-                    brief += "CBL "
-                if ca.has_metadata(MetaDataStyle.CIX):
-                    brief += "CR "
-                if ca.has_metadata(MetaDataStyle.COMET):
-                    brief += "CoMet "
-            brief += "]"
+            metadata_styles = [md_styles[style].name() for style in md_styles if ca.has_metadata(style)]
+            brief += " ".join(metadata_styles)
+            brief += " ]"
 
             self.output(brief)
 
@@ -308,57 +298,23 @@ class CLI:
 
         self.output()
 
-        raw: str | bytes = ""
         md = None
-        if not self.config.Runtime_Options__type or MetaDataStyle.CIX in self.config.Runtime_Options__type:
-            if ca.has_metadata(MetaDataStyle.CIX):
-                self.output("--------- ComicRack tags ---------")
-                try:
-                    if self.config.Runtime_Options__raw:
-                        raw = ca.read_raw_cix()
-                        if isinstance(raw, bytes):
-                            raw = raw.decode("utf-8")
-                        self.output(raw)
-                    else:
-                        md = ca.read_cix()
-                        self.output(md)
-                except Exception as e:
-                    logger.error("Failed to load metadata for %s: %s", ca.path, e)
-
-        if not self.config.Runtime_Options__type or MetaDataStyle.CBI in self.config.Runtime_Options__type:
-            if ca.has_metadata(MetaDataStyle.CBI):
-                self.output("------- ComicBookLover tags -------")
-                try:
-                    if self.config.Runtime_Options__raw:
-                        raw = ca.read_raw_cbi()
-                        if isinstance(raw, bytes):
-                            raw = raw.decode("utf-8")
-                        self.output(raw)
-                    else:
-                        md = ca.read_cbi()
-                        self.output(md)
-                except Exception as e:
-                    logger.error("Failed to load metadata for %s: %s", ca.path, e)
-
-        if not self.config.Runtime_Options__type or MetaDataStyle.COMET in self.config.Runtime_Options__type:
-            if ca.has_metadata(MetaDataStyle.COMET):
-                self.output("----------- CoMet tags -----------")
-                try:
-                    if self.config.Runtime_Options__raw:
-                        raw = ca.read_raw_comet()
-                        if isinstance(raw, bytes):
-                            raw = raw.decode("utf-8")
-                        self.output(raw)
-                    else:
-                        md = ca.read_comet()
-                        self.output(md)
-                except Exception as e:
-                    logger.error("Failed to load metadata for %s: %s", ca.path, e)
-
+        for style, style_obj in md_styles.items():
+            if not self.config.Runtime_Options__type or style in self.config.Runtime_Options__type:
+                if ca.has_metadata(style):
+                    self.output(f"--------- {style_obj.name()} tags ---------")
+                    try:
+                        if self.config.Runtime_Options__raw:
+                            self.output(ca.read_metadata_string(style))
+                        else:
+                            md = ca.read_metadata(style)
+                            self.output(md)
+                    except Exception as e:
+                        logger.error("Failed to load metadata for %s: %s", ca.path, e)
         return Result(Action.print, Status.success, ca.path, md=md)
 
-    def delete_style(self, ca: ComicArchive, style: int) -> Status:
-        style_name = MetaDataStyle.name[style]
+    def delete_style(self, ca: ComicArchive, style: str) -> Status:
+        style_name = md_styles[style].name()
 
         if ca.has_metadata(style):
             if not self.config.Runtime_Options__dryrun:
@@ -376,16 +332,16 @@ class CLI:
 
     def delete(self, ca: ComicArchive) -> Result:
         res = Result(Action.delete, Status.success, ca.path)
-        for metadata_style in self.config.Runtime_Options__type:
-            status = self.delete_style(ca, metadata_style)
+        for style in self.config.Runtime_Options__type:
+            status = self.delete_style(ca, style)
             if status == Status.success:
-                res.tags_deleted.append(metadata_style)
+                res.tags_deleted.append(style)
             else:
                 res.status = status
         return res
 
-    def copy_style(self, ca: ComicArchive, md: GenericMetadata, style: int) -> Status:
-        dst_style_name = MetaDataStyle.name[style]
+    def copy_style(self, ca: ComicArchive, md: GenericMetadata, style: str) -> Status:
+        dst_style_name = md_styles[style].name()
         if not self.config.Runtime_Options__overwrite and ca.has_metadata(style):
             self.output(f"{ca.path}: Already has {dst_style_name} tags. Not overwriting.")
             return Status.existing_tags
@@ -393,44 +349,47 @@ class CLI:
             self.output(f"{ca.path}: Destination and source are same: {dst_style_name}. Nothing to do.")
             return Status.existing_tags
 
-        src_style_name = MetaDataStyle.name[self.config.Commands__copy]
-        if ca.has_metadata(self.config.Commands__copy):
-            if not self.config.Runtime_Options__dryrun:
-                if self.config.Comic_Book_Lover__apply_transform_on_bulk_operation == MetaDataStyle.CBI:
-                    md = CBLTransformer(md, self.config).apply()
+        src_style_name = md_styles[self.config.Commands__copy].name()
+        if not self.config.Runtime_Options__dryrun:
+            if self.config.Comic_Book_Lover__apply_transform_on_bulk_operation == "cbi":
+                md = CBLTransformer(md, self.config).apply()
 
-                if ca.write_metadata(md, style):
-                    self.output(f"{ca.path}: Copied {src_style_name} tags to {dst_style_name}.")
-                    return Status.success
-                else:
-                    self.output(f"{ca.path}: Tag copy seemed to fail!")
-                    return Status.write_failure
-            else:
-                self.output(f"{ca.path}: dry-run.  {src_style_name} tags not copied")
+            if ca.write_metadata(md, style):
+                self.output(f"{ca.path}: Copied {src_style_name} tags to {dst_style_name}.")
                 return Status.success
-        self.output(f"{ca.path}: This archive doesn't have {src_style_name} tags to copy.")
+            else:
+                self.output(f"{ca.path}: Tag copy seemed to fail!")
+                return Status.write_failure
+        else:
+            self.output(f"{ca.path}: dry-run.  {src_style_name} tags not copied")
+            return Status.success
         return Status.read_failure
 
     def copy(self, ca: ComicArchive) -> Result:
+        src_style_name = md_styles[self.config.Commands__copy].name()
         res = Result(Action.copy, Status.success, ca.path)
+        if not ca.has_metadata(self.config.Commands__copy):
+            self.output(f"{ca.path}: This archive doesn't have {src_style_name} tags to copy.")
+            res.status = Status.read_failure
+            return res
         try:
             res.md = ca.read_metadata(self.config.Commands__copy)
         except Exception as e:
             logger.error("Failed to load metadata for %s: %s", ca.path, e)
             return res
-        for metadata_style in self.config.Runtime_Options__type:
-            status = self.copy_style(ca, res.md, metadata_style)
+        for style in self.config.Runtime_Options__type:
+            status = self.copy_style(ca, res.md, style)
             if status == Status.success:
-                res.tags_written.append(metadata_style)
+                res.tags_written.append(style)
             else:
                 res.status = status
         return res
 
     def save(self, ca: ComicArchive, match_results: OnlineMatchResults) -> Result:
         if not self.config.Runtime_Options__overwrite:
-            for metadata_style in self.config.Runtime_Options__type:
-                if ca.has_metadata(metadata_style):
-                    self.output(f"{ca.path}: Already has {MetaDataStyle.name[metadata_style]} tags. Not overwriting.")
+            for style in self.config.Runtime_Options__type:
+                if ca.has_metadata(style):
+                    self.output(f"{ca.path}: Already has {md_styles[style].name()} tags. Not overwriting.")
                     return Result(
                         Action.save,
                         original_path=ca.path,
@@ -443,7 +402,7 @@ class CLI:
 
         md = self.create_local_metadata(ca)
         if md.issue is None or md.issue == "":
-            if self.config.Auto_Tag__assume_1_if_no_issue_num:
+            if self.config.Auto_Tag__assume_issue_one:
                 md.issue = "1"
 
         matches: list[IssueResult] = []

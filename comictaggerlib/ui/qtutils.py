@@ -152,3 +152,64 @@ if qt_available:
             trace = "\n".join(traceback.format_exception(type(e), e, e.__traceback__))
 
         QtWidgets.QMessageBox.critical(QtWidgets.QMainWindow(), "Error", msg + trace)
+
+    active_palette = None
+
+    def enable_widget(widget: QtWidgets.QWidget | list[QtWidgets.QWidget], enable: bool) -> None:
+        if isinstance(widget, list):
+            for w in widget:
+                _enable_widget(w, enable)
+        else:
+            _enable_widget(widget, enable)
+
+    def _enable_widget(widget: QtWidgets.QWidget, enable: bool) -> None:
+        global active_palette
+        if not (widget and active_palette and widget):
+            return
+        active_color = active_palette.color(QtGui.QPalette.ColorRole.Base)
+
+        inactive_color = QtGui.QColor(255, 170, 150)
+        inactive_brush = QtGui.QBrush(inactive_color)
+        active_brush = QtGui.QBrush(active_color)
+
+        def palettes() -> tuple[QtGui.QPalette, QtGui.QPalette, QtGui.QPalette]:
+            inactive_palette1 = QtGui.QPalette(active_palette)
+            inactive_palette1.setColor(QtGui.QPalette.ColorRole.Base, inactive_color)
+
+            inactive_palette2 = QtGui.QPalette(active_palette)
+            inactive_palette2.setColor(widget.backgroundRole(), inactive_color)
+
+            inactive_palette3 = QtGui.QPalette(active_palette)
+            inactive_palette3.setColor(QtGui.QPalette.ColorRole.Base, inactive_color)
+            inactive_palette3.setColor(widget.foregroundRole(), inactive_color)
+            return inactive_palette1, inactive_palette2, inactive_palette3
+
+        if enable:
+            if isinstance(widget, QtWidgets.QTableWidgetItem):
+                widget.setBackground(active_brush)
+                return
+
+            widget.setAutoFillBackground(False)
+            widget.setPalette(active_palette)
+            if isinstance(widget, (QtWidgets.QCheckBox, QtWidgets.QComboBox, QtWidgets.QPushButton)):
+                widget.setEnabled(True)
+            elif isinstance(widget, (QtWidgets.QTextEdit, QtWidgets.QLineEdit, QtWidgets.QAbstractSpinBox)):
+                widget.setReadOnly(False)
+            elif isinstance(widget, QtWidgets.QListWidget):
+                widget.setMovement(QtWidgets.QListWidget.Free)
+        else:
+            if isinstance(widget, QtWidgets.QTableWidgetItem):
+                widget.setBackground(inactive_brush)
+                return
+
+            widget.setAutoFillBackground(True)
+            if isinstance(widget, (QtWidgets.QCheckBox, QtWidgets.QComboBox, QtWidgets.QPushButton)):
+                inactive_palette = palettes()
+                widget.setPalette(inactive_palette[1])
+                widget.setEnabled(False)
+            elif isinstance(widget, (QtWidgets.QTextEdit, QtWidgets.QLineEdit, QtWidgets.QAbstractSpinBox)):
+                inactive_palette = palettes()
+                widget.setReadOnly(True)
+                widget.setPalette(inactive_palette[0])
+            elif isinstance(widget, QtWidgets.QListWidget):
+                widget.setMovement(QtWidgets.QListWidget.Static)
