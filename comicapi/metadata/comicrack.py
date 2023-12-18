@@ -331,7 +331,8 @@ class ComicRack(Metadata):
         md.locations = set(utils.split(get("Locations"), ","))
 
         tmp = utils.xlate(get("BlackAndWhite"))
-        md.black_and_white = tmp is not None and tmp.casefold() in ["yes", "true", "1"]
+        if tmp is not None:
+            md.black_and_white = tmp.casefold() in ["yes", "true", "1"]
 
         # Now extract the credit info
         for n in root:
