@@ -276,7 +276,7 @@ class App:
             raise SystemExit(1)
 
         try:
-            cli.CLI(self.config[0], self.talkers).run()
+            raise SystemExit(cli.CLI(self.config[0], self.talkers).run())
         except Exception:
             logger.exception("CLI mode failed")
 

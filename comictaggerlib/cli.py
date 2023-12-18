@@ -92,10 +92,11 @@ class CLI:
         if not self.config.Runtime_Options__quiet or force_output:
             print(*args, **kwargs, file=file)
 
-    def run(self) -> None:
+    def run(self) -> int:
         if len(self.config.Runtime_Options__files) < 1:
             logger.error("You must specify at least one filename.  Use the -h option for more info")
-            return
+            return 1
+        return_code = 0
 
         results: list[Result] = []
         match_results = OnlineMatchResults()
@@ -103,6 +104,8 @@ class CLI:
 
         for f in self.config.Runtime_Options__files:
             results.append(self.process_file_cli(self.config.Commands__command, f, match_results))
+            if results[-1].status != Status.success:
+                return_code = 3
             if self.config.Runtime_Options__json:
                 print(json.dumps(dataclasses.asdict(results[-1]), cls=OutputEncoder, indent=2))
             sys.stdout.flush()
@@ -114,6 +117,7 @@ class CLI:
             self.output(
                 f"\nFiles tagged with metadata provided by {self.current_talker().name} {self.current_talker().website}",
             )
+        return return_code
 
     def actual_issue_data_fetch(self, issue_id: str) -> GenericMetadata:
         # now get the particular issue data
