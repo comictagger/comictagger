@@ -44,7 +44,6 @@ logger = logging.getLogger(__name__)
 
 class OutputEncoder(json.JSONEncoder):
     def default(self, obj: Any) -> Any:
-        print(obj)
         if isinstance(obj, pathlib.Path):
             return str(obj)
         if not isinstance(obj, str) and isinstance(obj, Collection):
@@ -96,7 +95,6 @@ class CLI:
         for f in self.config.Runtime_Options__files:
             results.append(self.process_file_cli(self.config.Commands__command, f, match_results))
             if self.config.Runtime_Options__json:
-                print(dataclasses.asdict(results[-1]))
                 print(json.dumps(dataclasses.asdict(results[-1]), cls=OutputEncoder, indent=2))
             sys.stdout.flush()
             sys.stderr.flush()
