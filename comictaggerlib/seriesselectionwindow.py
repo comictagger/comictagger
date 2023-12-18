@@ -265,9 +265,11 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
 
     def log_id_output(self, text: str) -> None:
         if self.iddialog is not None:
-            print(text, end=" ")  # noqa: T201
+            self.iddialog.textEdit.append(text.rstrip())
             self.iddialog.textEdit.ensureCursorVisible()
-            self.iddialog.textEdit.insertPlainText(text)
+            QtCore.QCoreApplication.processEvents()
+            QtCore.QCoreApplication.processEvents()
+            QtCore.QCoreApplication.processEvents()
 
     def identify_progress(self, cur: int, total: int) -> None:
         if self.iddialog is not None:
@@ -325,8 +327,8 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
             if found_match is not None:
                 self.iddialog.accept()
 
-                self.series_id = utils.xlate(found_match["series_id"]) or ""
-                self.issue_number = found_match["issue_number"]
+                self.series_id = utils.xlate(found_match.series_id) or ""
+                self.issue_number = found_match.issue_number
                 self.select_by_id()
                 self.show_issues()
 

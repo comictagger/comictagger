@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import copy
+import datetime
 import io
 import shutil
 import unittest.mock
+from argparse import Namespace
 from collections.abc import Generator
 from typing import Any
 
@@ -15,6 +17,7 @@ from pyrate_limiter import Limiter, RequestRate
 
 import comicapi.comicarchive
 import comicapi.genericmetadata
+import comictaggerlib.cli
 import comictaggerlib.ctsettings
 import comictalker
 import comictalker.comiccacher
@@ -128,9 +131,21 @@ def comicvine_api(monkeypatch, cbz, comic_cache, mock_version, config) -> comict
 
 
 @pytest.fixture
+def mock_now(monkeypatch):
+    class mydatetime:
+        time = datetime.datetime(2022, 4, 16, 15, 52, 26)
+
+        @classmethod
+        def now(cls):
+            return cls.time
+
+    monkeypatch.setattr(comictaggerlib.cli, "datetime", mydatetime)
+
+
+@pytest.fixture
 def mock_version(monkeypatch):
-    version = "1.4.4a9.dev20"
-    version_tuple = (1, 4, 4, "dev20")
+    version = "1.3.2a5"
+    version_tuple = (1, 3, 2)
 
     monkeypatch.setattr(comictaggerlib.ctversion, "version", version)
     monkeypatch.setattr(comictaggerlib.ctversion, "__version__", version)
@@ -180,6 +195,24 @@ def config(tmp_path):
     defaults[0].Runtime_Options__config.user_state_dir.mkdir(parents=True, exist_ok=True)
     defaults[0].Runtime_Options__config.user_log_dir.mkdir(parents=True, exist_ok=True)
     yield defaults
+
+
+@pytest.fixture
+def plugin_config(tmp_path):
+    from comictaggerlib.main import App
+
+    ns = Namespace(config=comictaggerlib.ctsettings.ComicTaggerPaths(tmp_path / "config"))
+    app = App()
+    app.load_plugins(ns)
+    app.register_settings()
+
+    defaults = app.parse_settings(ns.config, "")
+    defaults[0].Runtime_Options__config.user_data_dir.mkdir(parents=True, exist_ok=True)
+    defaults[0].Runtime_Options__config.user_config_dir.mkdir(parents=True, exist_ok=True)
+    defaults[0].Runtime_Options__config.user_cache_dir.mkdir(parents=True, exist_ok=True)
+    defaults[0].Runtime_Options__config.user_state_dir.mkdir(parents=True, exist_ok=True)
+    defaults[0].Runtime_Options__config.user_log_dir.mkdir(parents=True, exist_ok=True)
+    yield (defaults, app.talkers)
 
 
 @pytest.fixture

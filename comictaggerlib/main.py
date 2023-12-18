@@ -35,6 +35,8 @@ from comictaggerlib import cli, ctsettings
 from comictaggerlib.ctsettings import ct_ns
 from comictaggerlib.ctversion import version
 from comictaggerlib.log import setup_logging
+from comictaggerlib.resulttypes import Action
+from comictalker.comictalker import ComicTalker
 
 if sys.version_info < (3, 10):
     import importlib_metadata
@@ -106,6 +108,7 @@ class App:
         self.config: settngs.Config[ct_ns]
         self.initial_arg_parser = ctsettings.initial_commandline_parser()
         self.config_load_success = False
+        self.talkers: dict[str, ComicTalker]
 
     def run(self) -> None:
         configure_locale()
@@ -119,35 +122,76 @@ class App:
 
     def load_plugins(self, opts: argparse.Namespace) -> None:
         comicapi.comicarchive.load_archive_plugins()
-        ctsettings.talkers = comictalker.get_talkers(version, opts.config.user_cache_dir)
+        self.talkers = comictalker.get_talkers(version, opts.config.user_cache_dir)
 
     def list_plugins(
         self, talkers: list[comictalker.ComicTalker], archivers: list[type[comicapi.comicarchive.Archiver]]
     ) -> None:
-        print("Metadata Sources: (ID: Name URL)")  # noqa: T201
-        for talker in talkers:
-            print(f"{talker.id}: {talker.name} {talker.default_api_url}")  # noqa: T201
+        if self.config[0].Runtime_Options__json:
+            for talker in talkers:
+                print(  # noqa: T201
+                    json.dumps(
+                        {
+                            "type": "talker",
+                            "id": talker.id,
+                            "name": talker.name,
+                            "website": talker.website,
+                        }
+                    )
+                )
 
-        print("\nComic Archive: (Name: extension, exe)")  # noqa: T201
-        for archiver in archivers:
-            a = archiver()
-            print(f"{a.name()}: {a.extension()}, {a.exe}")  # noqa: T201
+            for archiver in archivers:
+                try:
+                    a = archiver()
+                    print(  # noqa: T201
+                        json.dumps(
+                            {
+                                "type": "archiver",
+                                "enabled": a.enabled,
+                                "name": a.name(),
+                                "extension": a.extension(),
+                                "exe": a.exe,
+                            }
+                        )
+                    )
+                except Exception:
+                    print(  # noqa: T201
+                        json.dumps(
+                            {
+                                "type": "archiver",
+                                "enabled": archiver.enabled,
+                                "name": "",
+                                "extension": "",
+                                "exe": archiver.exe,
+                            }
+                        )
+                    )
+        else:
+            print("Metadata Sources: (ID: Name URL)")  # noqa: T201
+            for talker in talkers:
+                print(f"{talker.id}: {talker.name} {talker.website}")  # noqa: T201
+
+            print("\nComic Archive: (Name: extension, exe)")  # noqa: T201
+            for archiver in archivers:
+                a = archiver()
+                print(f"{a.name()}: {a.extension()}, {a.exe}")  # noqa: T201
 
     def initialize(self) -> argparse.Namespace:
-        conf, _ = self.initial_arg_parser.parse_known_args()
+        conf, _ = self.initial_arg_parser.parse_known_intermixed_args()
+
         assert conf is not None
         setup_logging(conf.verbose, conf.config.user_log_dir)
         return conf
 
     def register_settings(self) -> None:
         self.manager = settngs.Manager(
-            "A utility for reading and writing metadata to comic archives.\n\n\n"
-            + "If no options are given, %(prog)s will run in windowed mode.",
-            "For more help visit the wiki at: https://github.com/comictagger/comictagger/wiki",
+            description="A utility for reading and writing metadata to comic archives.\n\n\n"
+            + "If no options are given, %(prog)s will run in windowed mode.\nPlease keep the '-v' option separated '-so -v' not '-sov'",
+            epilog="For more help visit the wiki at: https://github.com/comictagger/comictagger/wiki",
         )
         ctsettings.register_commandline_settings(self.manager)
         ctsettings.register_file_settings(self.manager)
-        ctsettings.register_plugin_settings(self.manager)
+        ctsettings.register_plugin_settings(self.manager, getattr(self, "talkers", {}))
 
     def parse_settings(self, config_paths: ctsettings.ComicTaggerPaths, *args: str) -> settngs.Config[ct_ns]:
         cfg, self.config_load_success = ctsettings.parse_config(
@@ -158,7 +202,7 @@ class App:
 
         config = ctsettings.validate_commandline_settings(config, self.manager)
         config = ctsettings.validate_file_settings(config)
-        config = ctsettings.validate_plugin_settings(config)
+        config = ctsettings.validate_plugin_settings(config, getattr(self, "talkers", {}))
         return config
 
     def initialize_dirs(self, paths: ctsettings.ComicTaggerPaths) -> None:
@@ -178,10 +222,7 @@ class App:
         # config already loaded
         error = None
 
-        talkers = ctsettings.talkers
-        del ctsettings.talkers
-
-        if len(talkers) < 1:
+        if len(self.talkers) < 1:
             error = error = (
                 "Failed to load any talkers, please re-install and check the log located in '"
                 + str(self.config[0].Runtime_Options__config.user_log_dir)
@@ -198,11 +239,11 @@ class App:
         comicapi.utils.load_publishers()
         update_publishers(self.config)
 
-        if self.config[0].Commands__list_plugins:
-            self.list_plugins(list(talkers.values()), comicapi.comicarchive.archivers)
+        if self.config[0].Commands__command == Action.list_plugins:
+            self.list_plugins(list(self.talkers.values()), comicapi.comicarchive.archivers)
             return
 
-        if self.config[0].Commands__only_save_config:
+        if self.config[0].Commands__command == Action.save_config:
             if self.config_load_success:
                 settings_path = self.config[0].Runtime_Options__config.user_config_dir / "settings.json"
                 if self.config_load_success:
@@ -224,7 +265,7 @@ class App:
 
                 if not gui.qt_available:
                     raise gui.import_error
-                return gui.open_tagger_window(talkers, self.config, error)
+                return gui.open_tagger_window(self.talkers, self.config, error)
             except ImportError:
                 self.config[0].Runtime_Options__no_gui = True
                 logger.warning("PyQt5 is not available. ComicTagger is limited to command-line mode.")
@@ -233,8 +274,9 @@ class App:
         if error and error[1]:
             print(f"A fatal error occurred please check the log for more information: {error[0]}")  # noqa: T201
             raise SystemExit(1)
+
         try:
-            cli.CLI(self.config[0], talkers).run()
+            raise SystemExit(cli.CLI(self.config[0], self.talkers).run())
         except Exception:
             logger.exception("CLI mode failed")
 

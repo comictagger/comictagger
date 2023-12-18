@@ -5,18 +5,13 @@ import settngs
 import comicapi.genericmetadata
 import comictaggerlib.ctsettings.types
 import comictaggerlib.defaults
+import comictaggerlib.resulttypes
 
 
 class settngs_namespace(settngs.TypedNS):
     Commands__version: bool
-    Commands__print: bool
-    Commands__delete: bool
+    Commands__command: comictaggerlib.resulttypes.Action
     Commands__copy: int
-    Commands__save: bool
-    Commands__rename: bool
-    Commands__export_to_zip: bool
-    Commands__only_save_config: bool
-    Commands__list_plugins: bool
 
     Runtime_Options__config: comictaggerlib.ctsettings.types.ComicTaggerPaths
     Runtime_Options__verbose: int
@@ -36,6 +31,7 @@ class settngs_namespace(settngs.TypedNS):
     Runtime_Options__darkmode: bool
     Runtime_Options__glob: bool
     Runtime_Options__quiet: bool
+    Runtime_Options__json: bool
     Runtime_Options__type: list[int]
     Runtime_Options__overwrite: bool
     Runtime_Options__no_gui: bool
@@ -63,7 +59,6 @@ class settngs_namespace(settngs.TypedNS):
     Issue_Identifier__sort_series_by_year: bool
     Issue_Identifier__exact_series_matches_first: bool
     Issue_Identifier__always_use_publisher_filter: bool
-    Issue_Identifier__clear_form_before_populating: bool
 
     Filename_Parsing__complicated_parser: bool
     Filename_Parsing__remove_c2c: bool

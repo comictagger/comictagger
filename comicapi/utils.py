@@ -153,6 +153,48 @@ def parse_date_str(date_str: str | None) -> tuple[int | None, int | None, int | 
     return day, month, year
 
 
+def shorten_path(path: pathlib.Path, path2: pathlib.Path | None = None) -> tuple[pathlib.Path, pathlib.Path]:
+    if path2:
+        path2 = path2.absolute()
+
+    path = path.absolute()
+    shortened_path: pathlib.Path = path
+    relative_path = pathlib.Path(path.anchor)
+
+    if path.is_relative_to(path.home()):
+        relative_path = path.home()
+        shortened_path = path.relative_to(path.home())
+    if path.is_relative_to(path.cwd()):
+        relative_path = path.cwd()
+        shortened_path = path.relative_to(path.cwd())
+
+    if path2 and shortened_path.is_relative_to(path2.parent):
+        relative_path = path2
+        shortened_path = shortened_path.relative_to(path2)
+
+    return relative_path, shortened_path
+
+
+def path_to_short_str(original_path: pathlib.Path, renamed_path: pathlib.Path | None = None) -> str:
+    rel, _original_path = shorten_path(original_path)
+    path_str = str(_original_path)
+    if rel.samefile(rel.cwd()):
+        path_str = f"./{_original_path}"
+    elif rel.samefile(rel.home()):
+        path_str = f"~/{_original_path}"
+
+    if renamed_path:
+        rel, path = shorten_path(renamed_path, original_path.parent)
+        rename_str = f" -> {path}"
+        if rel.samefile(rel.cwd()):
+            rename_str = f" -> ./{_original_path}"
+        elif rel.samefile(rel.home()):
+            rename_str = f" -> ~/{_original_path}"
+        path_str += rename_str
+
+    return path_str
+
+
 def get_recursive_filelist(pathlist: list[str]) -> list[str]:
     """Get a recursive list of of all files under all path items in the list"""
 
@@ -299,6 +341,14 @@ def unique_file(file_name: pathlib.Path) -> pathlib.Path:
             return file_name
         file_name = file_name.with_stem(name + " (" + str(counter) + ")")
         counter += 1
+
+
+def parse_version(s: str) -> tuple[int, int, int]:
+    str_parts = s.split(".")[:3]
+    parts = [int(x) if x.isdigit() else 0 for x in str_parts]
+    parts.extend([0] * (3 - len(parts)))  # Ensure exactly three elements in the resulting list
+
+    return (parts[0], parts[1], parts[2])
 
 
 _languages: dict[str | None, str | None] = defaultdict(lambda: None)

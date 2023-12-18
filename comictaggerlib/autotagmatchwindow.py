@@ -21,11 +21,11 @@ from typing import Callable
 
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
-from comicapi.comicarchive import MetaDataStyle
+from comicapi.comicarchive import ComicArchive, MetaDataStyle
 from comicapi.genericmetadata import GenericMetadata
 from comictaggerlib.coverimagewidget import CoverImageWidget
 from comictaggerlib.ctsettings import ct_ns
-from comictaggerlib.resulttypes import IssueResult, MultipleMatch
+from comictaggerlib.resulttypes import IssueResult, Result
 from comictaggerlib.ui import ui_path
 from comictaggerlib.ui.qtutils import reduce_widget_font_size
 from comictalker.comictalker import ComicTalker
@@ -37,7 +37,7 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
     def __init__(
         self,
         parent: QtWidgets.QWidget,
-        match_set_list: list[MultipleMatch],
+        match_set_list: list[Result],
         style: int,
         fetch_func: Callable[[IssueResult], GenericMetadata],
         config: ct_ns,
@@ -50,7 +50,7 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
 
         self.config = config
 
-        self.current_match_set: MultipleMatch = match_set_list[0]
+        self.current_match_set: Result = match_set_list[0]
 
         self.altCoverWidget = CoverImageWidget(
             self.altCoverContainer, CoverImageWidget.AltCoverMode, config.Runtime_Options__config.user_cache_dir, talker
@@ -103,7 +103,7 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
         self.twList.resizeColumnsToContents()
         self.twList.selectRow(0)
 
-        path = self.current_match_set.ca.path
+        path = self.current_match_set.original_path
         self.setWindowTitle(
             "Select correct match or skip ({} of {}): {}".format(
                 self.current_match_set_idx + 1,
@@ -120,18 +120,18 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
 
         self.twList.setSortingEnabled(False)
 
-        for row, match in enumerate(self.current_match_set.matches):
+        for row, match in enumerate(self.current_match_set.online_results):
             self.twList.insertRow(row)
 
-            item_text = match["series"]
+            item_text = match.series
             item = QtWidgets.QTableWidgetItem(item_text)
             item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
             item.setData(QtCore.Qt.ItemDataRole.UserRole, (match,))
             item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
             self.twList.setItem(row, 0, item)
 
-            if match["publisher"] is not None:
-                item_text = str(match["publisher"])
+            if match.publisher is not None:
+                item_text = str(match.publisher)
             else:
                 item_text = "Unknown"
             item = QtWidgets.QTableWidgetItem(item_text)
@@ -141,10 +141,10 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
 
             month_str = ""
             year_str = "????"
-            if match["month"] is not None:
-                month_str = f"-{int(match['month']):02d}"
-            if match["year"] is not None:
-                year_str = str(match["year"])
+            if match.month is not None:
+                month_str = f"-{int(match.month):02d}"
+            if match.year is not None:
+                year_str = str(match.year)
 
             item_text = year_str + month_str
             item = QtWidgets.QTableWidgetItem(item_text)
@@ -152,7 +152,7 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
             item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
             self.twList.setItem(row, 2, item)
 
-            item_text = match["issue_title"]
+            item_text = match.issue_title
             if item_text is None:
                 item_text = ""
             item = QtWidgets.QTableWidgetItem(item_text)
@@ -176,17 +176,15 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
         if prev is not None and prev.row() == curr.row():
             return None
 
-        self.altCoverWidget.set_issue_details(
-            self.current_match()["issue_id"],
-            [self.current_match()["image_url"], *self.current_match()["alt_image_urls"]],
-        )
-        if self.current_match()["description"] is None:
+        match = self.current_match()
+        self.altCoverWidget.set_issue_details(match.issue_id, [match.image_url, *match.alt_image_urls])
+        if match.description is None:
             self.teDescription.setText("")
         else:
-            self.teDescription.setText(self.current_match()["description"])
+            self.teDescription.setText(match.description)
 
     def set_cover_image(self) -> None:
-        ca = self.current_match_set.ca
+        ca = ComicArchive(self.current_match_set.original_path)
         self.archiveCoverWidget.set_archive(ca)
 
     def current_match(self) -> IssueResult:
@@ -229,7 +227,7 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
 
     def save_match(self) -> None:
         match = self.current_match()
-        ca = self.current_match_set.ca
+        ca = ComicArchive(self.current_match_set.original_path)
 
         md = ca.read_metadata(self._style)
         if md.is_empty:
@@ -241,7 +239,7 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
             )
 
         # now get the particular issue data
-        ct_md = self.fetch_func(match)
+        self.current_match_set.md = ct_md = self.fetch_func(match)
         if ct_md is None:
             QtWidgets.QMessageBox.critical(self, "Network Issue", "Could not retrieve issue details!")
             return

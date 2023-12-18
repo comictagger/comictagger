@@ -45,11 +45,10 @@ def load_archive_plugins() -> None:
         for arch in entry_points(group="comicapi.archiver"):
             try:
                 archiver: type[Archiver] = arch.load()
-                if archiver.enabled:
-                    if arch.module.startswith("comicapi"):
-                        builtin.append(archiver)
-                    else:
-                        archivers.append(archiver)
+                if arch.module.startswith("comicapi"):
+                    builtin.append(archiver)
+                else:
+                    archivers.append(archiver)
             except Exception:
                 logger.warning("Failed to load talker: %s", arch.name)
         archivers.extend(builtin)
@@ -88,7 +87,7 @@ class ComicArchive:
 
         load_archive_plugins()
         for archiver in archivers:
-            if archiver.is_valid(self.path):
+            if archiver.enabled and archiver.is_valid(self.path):
                 self.archiver = archiver.open(self.path)
                 break
 
@@ -425,10 +424,10 @@ class ComicArchive:
             # use the coverImage value from the comet_data to mark the cover in this struct
             # walk through list of images in file, and find the matching one for md.coverImage
             # need to remove the existing one in the default
-            if self.comet_md.cover_image is not None:
+            if self.comet_md._cover_image is not None:
                 cover_idx = 0
                 for idx, f in enumerate(self.get_page_name_list()):
-                    if self.comet_md.cover_image == f:
+                    if self.comet_md._cover_image == f:
                         cover_idx = idx
                         break
                 if cover_idx != 0:
@@ -462,7 +461,7 @@ class ComicArchive:
             # Set the coverImage value, if it's not the first page
             cover_idx = int(metadata.get_cover_page_index_list()[0])
             if cover_idx != 0:
-                metadata.cover_image = self.get_page_name(cover_idx)
+                metadata._cover_image = self.get_page_name(cover_idx)
 
             comet_string = CoMet().string_from_metadata(metadata)
             write_success = self.archiver.write_file(cast(str, self.comet_filename), comet_string.encode("utf-8"))

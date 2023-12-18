@@ -91,7 +91,7 @@ class CoMet:
                 date_str += f"-{md.month:02}"
             assign("date", date_str)
 
-        assign("coverImage", md.cover_image)
+        assign("coverImage", md._cover_image)
 
         # loop thru credits, and build a list for each role that CoMet supports
         for credit in metadata.credits:
@@ -156,7 +156,7 @@ class CoMet:
 
         _, md.month, md.year = utils.parse_date_str(utils.xlate(get("date")))
 
-        md.cover_image = utils.xlate(get("coverImage"))
+        md._cover_image = utils.xlate(get("coverImage"))
 
         reading_direction = utils.xlate(get("readingDirection"))
         if reading_direction is not None and reading_direction == "rtl":

@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import io
 import logging
-import sys
+from operator import attrgetter
 from typing import Any, Callable
 
 from typing_extensions import NotRequired, TypedDict
@@ -102,8 +102,8 @@ class IssueIdentifier:
         self.publisher_filter = [s.strip().casefold() for s in config.Issue_Identifier__publisher_filter]
 
         self.additional_metadata = GenericMetadata()
-        self.output_function: Callable[[str], None] = IssueIdentifier.default_write_output
-        self.callback: Callable[[int, int], None] | None = None
+        self.output_function: Callable[[str], None] = print
+        self.progress_callback: Callable[[int, int], None] | None = None
         self.cover_url_callback: Callable[[bytes], None] | None = None
         self.search_result = self.result_no_matches
         self.cover_page_index = 0
@@ -208,7 +208,7 @@ class IssueIdentifier:
         return None
 
     def set_progress_callback(self, cb_func: Callable[[int, int], None]) -> None:
-        self.callback = cb_func
+        self.progress_callback = cb_func
 
     def set_cover_url_callback(self, cb_func: Callable[[bytes], None]) -> None:
         self.cover_url_callback = cb_func
@@ -264,16 +264,33 @@ class IssueIdentifier:
 
         return search_keys
 
-    @staticmethod
-    def default_write_output(text: str) -> None:
-        sys.stdout.write(text)
-        sys.stdout.flush()
-
-    def log_msg(self, msg: Any, newline: bool = True) -> None:
+    def log_msg(self, msg: Any) -> None:
         msg = str(msg)
-        if newline:
-            msg += "\n"
-        self.output_function(msg)
+        for handler in logging.getLogger().handlers:
+            handler.flush()
+        self.output(msg)
+
+    def output(self, *args: Any, file: Any = None, **kwargs: Any) -> None:
+        # We intercept and discard the file argument otherwise everything is passed to self.output_function
+
+        # Ensure args[0] is defined and is a string for logger.info
+        if not args:
+            log_args: tuple[Any, ...] = ("",)
+        elif isinstance(args[0], str):
+            log_args = (args[0].strip("\n"), *args[1:])
+        else:
+            log_args = args
+        log_msg = " ".join([str(x) for x in log_args])
+
+        # Always send to logger so that we have a record for troubleshooting
+        logger.info(log_msg, **kwargs)
+
+        # If we are verbose or quiet we don't need to call the output function
+        if self.config.Runtime_Options__verbose > 0 or self.config.Runtime_Options__quiet:
+            return
+
+        # default output is stdout
+        self.output_function(*args, **kwargs)
 
     def get_issue_cover_match_score(
         self,
@@ -281,7 +298,6 @@ class IssueIdentifier:
         alt_urls: list[str],
         local_cover_hash_list: list[int],
         use_remote_alternates: bool = False,
-        use_log: bool = True,
     ) -> Score:
         # local_cover_hash_list is a list of pre-calculated hashes.
         # use_remote_alternates - indicates to use alternate covers from CV
@@ -332,10 +348,7 @@ class IssueIdentifier:
                 if self.cancel:
                     raise IssueIdentifierCancelled
 
-        if use_log and use_remote_alternates:
-            self.log_msg(f"[{len(remote_cover_list) - 1} alt. covers]", False)
-        if use_log:
-            self.log_msg("[ ", False)
+            self.log_msg(f"[{len(remote_cover_list) - 1} alt. covers]")
 
         score_list = []
         done = False
@@ -343,8 +356,8 @@ class IssueIdentifier:
             for remote_cover_item in remote_cover_list:
                 score = ImageHasher.hamming_distance(local_cover_hash, remote_cover_item["hash"])
                 score_list.append(Score(score=score, url=remote_cover_item["url"], hash=remote_cover_item["hash"]))
-                if use_log:
-                    self.log_msg(score, False)
+
+                self.log_msg(f" -  {score:03}")
 
                 if score <= self.strong_score_thresh:
                     # such a good score, we can quit now, since for sure we have a winner
@@ -352,9 +365,6 @@ class IssueIdentifier:
                     break
             if done:
                 break
-
-        if use_log:
-            self.log_msg(" ]", False)
 
         best_score_item = min(score_list, key=lambda x: x["score"])
 
@@ -446,8 +456,8 @@ class IssueIdentifier:
 
         self.log_msg("Searching in " + str(len(series_second_round_list)) + " series")
 
-        if self.callback is not None:
-            self.callback(0, len(series_second_round_list))
+        if self.progress_callback is not None:
+            self.progress_callback(0, len(series_second_round_list))
 
         # now sort the list by name length
         series_second_round_list.sort(key=lambda x: len(x.name), reverse=False)
@@ -485,13 +495,12 @@ class IssueIdentifier:
         # Do first round of cover matching
         counter = len(shortlist)
         for series, issue in shortlist:
-            if self.callback is not None:
-                self.callback(counter, len(shortlist) * 3)
+            if self.progress_callback is not None:
+                self.progress_callback(counter, len(shortlist) * 3)
                 counter += 1
 
             self.log_msg(
-                f"Examining covers for  ID: {series.id} {series.name} ({series.start_year}) ...",
-                newline=False,
+                f"Examining covers for  ID: {series.id} {series.name} ({series.start_year}):",
             )
 
             # Now check the cover match against the primary image
@@ -505,8 +514,8 @@ class IssueIdentifier:
                 logger.info("Adding cropped cover to the hashlist")
 
             try:
-                image_url = issue.cover_image or ""
-                alt_urls = issue.alternate_images
+                image_url = issue._cover_image or ""
+                alt_urls = issue._alternate_images
 
                 score_item = self.get_issue_cover_match_score(
                     image_url, alt_urls, hash_list, use_remote_alternates=False
@@ -516,28 +525,28 @@ class IssueIdentifier:
                 self.match_list = []
                 return self.match_list
 
-            match: IssueResult = {
-                "series": f"{series.name} ({series.start_year})",
-                "distance": score_item["score"],
-                "issue_number": keys["issue_number"],
-                "cv_issue_count": series.count_of_issues,
-                "url_image_hash": score_item["hash"],
-                "issue_title": issue.title or "",
-                "issue_id": issue.issue_id or "",
-                "series_id": series.id,
-                "month": issue.month,
-                "year": issue.year,
-                "publisher": None,
-                "image_url": image_url,
-                "alt_image_urls": alt_urls,
-                "description": issue.description or "",
-            }
+            match = IssueResult(
+                series=f"{series.name} ({series.start_year})",
+                distance=score_item["score"],
+                issue_number=keys["issue_number"],
+                cv_issue_count=series.count_of_issues,
+                url_image_hash=score_item["hash"],
+                issue_title=issue.title or "",
+                issue_id=issue.issue_id or "",
+                series_id=series.id,
+                month=issue.month,
+                year=issue.year,
+                publisher=None,
+                image_url=image_url,
+                alt_image_urls=alt_urls,
+                description=issue.description or "",
+            )
             if series.publisher is not None:
-                match["publisher"] = series.publisher
+                match.publisher = series.publisher
 
             self.match_list.append(match)
 
-            self.log_msg(f" --> {match['distance']}", newline=False)
+            self.log_msg(f"best score {match.distance:03}")
 
             self.log_msg("")
 
@@ -547,28 +556,27 @@ class IssueIdentifier:
             return self.match_list
 
         # sort list by image match scores
-        self.match_list.sort(key=lambda k: k["distance"])
+        self.match_list.sort(key=attrgetter("distance"))
 
         lst = []
         for i in self.match_list:
-            lst.append(i["distance"])
+            lst.append(i.distance)
 
-        self.log_msg(f"Compared to covers in {len(self.match_list)} issue(s):", newline=False)
-        self.log_msg(str(lst))
+        self.log_msg(f"Compared to covers in {len(self.match_list)} issue(s): {lst}")
 
         def print_match(item: IssueResult) -> None:
             self.log_msg(
                 "-----> {} #{} {} ({}/{}) -- score: {}".format(
-                    item["series"],
-                    item["issue_number"],
-                    item["issue_title"],
-                    item["month"],
-                    item["year"],
-                    item["distance"],
+                    item.series,
+                    item.issue_number,
+                    item.issue_title,
+                    item.month,
+                    item.year,
+                    item.distance,
                 )
             )
 
-        best_score: int = self.match_list[0]["distance"]
+        best_score: int = self.match_list[0].distance
 
         if best_score >= self.min_score_thresh:
             # we have 1 or more low-confidence matches (all bad cover scores)
@@ -585,14 +593,14 @@ class IssueIdentifier:
             second_match_list = []
             counter = 2 * len(self.match_list)
             for m in self.match_list:
-                if self.callback is not None:
-                    self.callback(counter, len(self.match_list) * 3)
+                if self.progress_callback is not None:
+                    self.progress_callback(counter, len(self.match_list) * 3)
                     counter += 1
-                self.log_msg(f"Examining alternate covers for ID: {m['series_id']} {m['series']} ...", newline=False)
+                self.log_msg(f"Examining alternate covers for ID: {m.series_id} {m.series}:")
                 try:
                     score_item = self.get_issue_cover_match_score(
-                        m["image_url"],
-                        m["alt_image_urls"],
+                        m.image_url,
+                        m.alt_image_urls,
                         hash_list,
                         use_remote_alternates=True,
                     )
@@ -605,7 +613,7 @@ class IssueIdentifier:
 
                 if score_item["score"] < self.min_alternate_score_thresh:
                     second_match_list.append(m)
-                    m["distance"] = score_item["score"]
+                    m.distance = score_item["score"]
 
             if len(second_match_list) == 0:
                 if len(self.match_list) == 1:
@@ -626,17 +634,17 @@ class IssueIdentifier:
 
             self.match_list = second_match_list
             # sort new list by image match scores
-            self.match_list.sort(key=lambda k: k["distance"])
-            best_score = self.match_list[0]["distance"]
+            self.match_list.sort(key=attrgetter("distance"))
+            best_score = self.match_list[0].distance
             self.log_msg("[Second round cover matching: best score = {best_score}]")
             # now drop down into the rest of the processing
 
-        if self.callback is not None:
-            self.callback(99, 100)
+        if self.progress_callback is not None:
+            self.progress_callback(99, 100)
 
         # now pare down list, remove any item more than specified distant from the top scores
         for match_item in reversed(self.match_list):
-            if match_item["distance"] > best_score + self.min_score_distance:
+            if match_item.distance > best_score + self.min_score_distance:
                 self.match_list.remove(match_item)
 
         # One more test for the case choosing limited series first issue vs a trade with the same cover:
@@ -644,11 +652,11 @@ class IssueIdentifier:
         if len(self.match_list) >= 2 and keys["issue_count"] is not None and keys["issue_count"] != 1:
             new_list = []
             for match in self.match_list:
-                if match["cv_issue_count"] != 1:
+                if match.cv_issue_count != 1:
                     new_list.append(match)
                 else:
                     self.log_msg(
-                        f"Removing series {match['series']} [{match['series_id']}] from consideration (only 1 issue)"
+                        f"Removing series {match.series} [{match.series_id}] from consideration (only 1 issue)"
                     )
 
             if len(new_list) > 0:

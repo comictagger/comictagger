@@ -387,7 +387,6 @@ class SettingsWindow(QtWidgets.QDialog):
 
         self.switch_parser()
 
-        self.cbxClearFormBeforePopulating.setChecked(self.config[0].Issue_Identifier__clear_form_before_populating)
         self.cbxUseFilter.setChecked(self.config[0].Issue_Identifier__always_use_publisher_filter)
         self.cbxSortByYear.setChecked(self.config[0].Issue_Identifier__sort_series_by_year)
         self.cbxExactMatches.setChecked(self.config[0].Issue_Identifier__exact_series_matches_first)
@@ -505,7 +504,6 @@ class SettingsWindow(QtWidgets.QDialog):
             self.cbxProtofoliusIssueNumberScheme.isChecked()
         )
 
-        self.config[0].Issue_Identifier__clear_form_before_populating = self.cbxClearFormBeforePopulating.isChecked()
         self.config[0].Issue_Identifier__always_use_publisher_filter = self.cbxUseFilter.isChecked()
         self.config[0].Issue_Identifier__sort_series_by_year = self.cbxSortByYear.isChecked()
         self.config[0].Issue_Identifier__exact_series_matches_first = self.cbxExactMatches.isChecked()
@@ -542,9 +540,7 @@ class SettingsWindow(QtWidgets.QDialog):
         QtWidgets.QDialog.accept(self)
 
     def update_talkers_config(self) -> None:
-        ctsettings.talkers = self.talkers
-        self.config = ctsettings.plugin.validate_talker_settings(self.config)
-        del ctsettings.talkers
+        self.config = ctsettings.plugin.validate_talker_settings(self.config, self.talkers)
 
     def select_rar(self) -> None:
         self.select_file(self.leRarExePath, "RAR")

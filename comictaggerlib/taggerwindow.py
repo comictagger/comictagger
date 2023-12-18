@@ -57,7 +57,7 @@ from comictaggerlib.optionalmsgdialog import OptionalMessageDialog
 from comictaggerlib.pagebrowser import PageBrowserWindow
 from comictaggerlib.pagelisteditor import PageListEditor
 from comictaggerlib.renamewindow import RenameWindow
-from comictaggerlib.resulttypes import IssueResult, MultipleMatch, OnlineMatchResults
+from comictaggerlib.resulttypes import Action, IssueResult, MatchStatus, OnlineMatchResults, Result, Status
 from comictaggerlib.seriesselectionwindow import SeriesSelectionWindow
 from comictaggerlib.settingswindow import SettingsWindow
 from comictaggerlib.ui import ui_path
@@ -292,6 +292,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             current_logs = ""
         root_logger = logging.getLogger()
         qapplogwindow = ApplicationLogWindow(
+            self.config[0].Runtime_Options__config.user_log_dir,
             QTextEditLogger(logging.Formatter("%(asctime)s | %(name)s | %(levelname)s | %(message)s"), logging.DEBUG),
             parent=self,
         )
@@ -1083,12 +1084,12 @@ class TaggerWindow(QtWidgets.QMainWindow):
                     if self.config[0].Comic_Book_Lover__apply_transform_on_import:
                         new_metadata = CBLTransformer(new_metadata, self.config[0]).apply()
 
-                    if self.config[0].Issue_Identifier__clear_form_before_populating:
+                    if self.config[0].Issue_Identifier__clear_metadata_on_import:
                         self.clear_form()
 
                     notes = (
                         f"Tagged with ComicTagger {ctversion.version} using info from {self.current_talker().name} on"
-                        f" {datetime.now():%Y-%m-%d %H:%M:%S}.  [Issue ID {new_metadata.issue_id}]"
+                        f" {datetime.now():%Y-%m-%d %H:%M:%S}. [Issue ID {new_metadata.issue_id}]"
                     )
                     self.metadata.overlay(
                         new_metadata.replace(
@@ -1684,7 +1685,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
 
         try:
-            ct_md = self.current_talker().fetch_comic_data(match["issue_id"])
+            ct_md = self.current_talker().fetch_comic_data(match.issue_id)
         except TalkerError:
             logger.exception("Save aborted.")
 
@@ -1697,7 +1698,6 @@ class TaggerWindow(QtWidgets.QMainWindow):
         return ct_md
 
     def auto_tag_log(self, text: str) -> None:
-        IssueIdentifier.default_write_output(text)
         if self.atprogdialog is not None:
             self.atprogdialog.textEdit.append(text.rstrip())
             self.atprogdialog.textEdit.ensureCursorVisible()
@@ -1778,16 +1778,48 @@ class TaggerWindow(QtWidgets.QMainWindow):
         if choices:
             if low_confidence:
                 self.auto_tag_log("Online search: Multiple low-confidence matches.  Save aborted\n")
-                match_results.low_confidence_matches.append(MultipleMatch(ca, matches))
+                match_results.low_confidence_matches.append(
+                    Result(
+                        Action.save,
+                        Status.match_failure,
+                        ca.path,
+                        online_results=matches,
+                        match_status=MatchStatus.low_confidence_match,
+                    )
+                )
             else:
                 self.auto_tag_log("Online search: Multiple matches.  Save aborted\n")
-                match_results.multiple_matches.append(MultipleMatch(ca, matches))
+                match_results.multiple_matches.append(
+                    Result(
+                        Action.save,
+                        Status.match_failure,
+                        ca.path,
+                        online_results=matches,
+                        match_status=MatchStatus.multiple_match,
+                    )
+                )
         elif low_confidence and not dlg.auto_save_on_low:
             self.auto_tag_log("Online search: Low confidence match.  Save aborted\n")
-            match_results.low_confidence_matches.append(MultipleMatch(ca, matches))
+            match_results.low_confidence_matches.append(
+                Result(
+                    Action.save,
+                    Status.match_failure,
+                    ca.path,
+                    online_results=matches,
+                    match_status=MatchStatus.low_confidence_match,
+                )
+            )
         elif not found_match:
             self.auto_tag_log("Online search: No match found.  Save aborted\n")
-            match_results.no_matches.append(str(ca.path.absolute()))
+            match_results.no_matches.append(
+                Result(
+                    Action.save,
+                    Status.match_failure,
+                    ca.path,
+                    online_results=matches,
+                    match_status=MatchStatus.no_match,
+                )
+            )
         else:
             # a single match!
             if low_confidence:
@@ -1796,7 +1828,15 @@ class TaggerWindow(QtWidgets.QMainWindow):
             # now get the particular issue data
             ct_md = self.actual_issue_data_fetch(matches[0])
             if ct_md is None:
-                match_results.fetch_data_failures.append(str(ca.path.absolute()))
+                match_results.fetch_data_failures.append(
+                    Result(
+                        Action.save,
+                        Status.fetch_data_failure,
+                        ca.path,
+                        online_results=matches,
+                        match_status=MatchStatus.good_match,
+                    )
+                )
 
             if ct_md is not None:
                 if dlg.cbxRemoveMetadata.isChecked():
@@ -1804,7 +1844,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 else:
                     notes = (
                         f"Tagged with ComicTagger {ctversion.version} using info from {self.current_talker().name} on"
-                        f" {datetime.now():%Y-%m-%d %H:%M:%S}.  [Issue ID {ct_md.issue_id}]"
+                        f" {datetime.now():%Y-%m-%d %H:%M:%S}. [Issue ID {ct_md.issue_id}]"
                     )
                     md.overlay(ct_md.replace(notes=utils.combine_notes(md.notes, notes, "Tagged with ComicTagger")))
 
@@ -1812,10 +1852,26 @@ class TaggerWindow(QtWidgets.QMainWindow):
                     md.fix_publisher()
 
                 if not ca.write_metadata(md, self.save_data_style):
-                    match_results.write_failures.append(str(ca.path.absolute()))
+                    match_results.write_failures.append(
+                        Result(
+                            Action.save,
+                            Status.write_failure,
+                            ca.path,
+                            online_results=matches,
+                            match_status=MatchStatus.good_match,
+                        )
+                    )
                     self.auto_tag_log("Save failed ;-(\n")
                 else:
-                    match_results.good_matches.append(str(ca.path.absolute()))
+                    match_results.good_matches.append(
+                        Result(
+                            Action.save,
+                            Status.success,
+                            ca.path,
+                            online_results=matches,
+                            match_status=MatchStatus.good_match,
+                        )
+                    )
                     success = True
                     self.auto_tag_log("Save complete!\n")
                 ca.load_cache([MetaDataStyle.CBI, MetaDataStyle.CIX])

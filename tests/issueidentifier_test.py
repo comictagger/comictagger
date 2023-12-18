@@ -8,6 +8,7 @@ from PIL import Image
 import comictaggerlib.issueidentifier
 import testing.comicdata
 import testing.comicvine
+from comictaggerlib.resulttypes import IssueResult
 
 
 def test_crop(cbz_double_cover, config, tmp_path, comicvine_api):
@@ -51,23 +52,23 @@ def test_search(cbz, config, comicvine_api):
     config, definitions = config
     ii = comictaggerlib.issueidentifier.IssueIdentifier(cbz, config, comicvine_api)
     results = ii.search()
-    cv_expected = {
-        "series": f"{testing.comicvine.cv_volume_result['results']['name']} ({testing.comicvine.cv_volume_result['results']['start_year']})",
-        "distance": 0,
-        "issue_number": testing.comicvine.cv_issue_result["results"]["issue_number"],
-        "alt_image_urls": [],
-        "cv_issue_count": testing.comicvine.cv_volume_result["results"]["count_of_issues"],
-        "issue_title": testing.comicvine.cv_issue_result["results"]["name"],
-        "issue_id": str(testing.comicvine.cv_issue_result["results"]["id"]),
-        "series_id": str(testing.comicvine.cv_volume_result["results"]["id"]),
-        "month": testing.comicvine.date[1],
-        "year": testing.comicvine.date[2],
-        "publisher": testing.comicvine.cv_volume_result["results"]["publisher"]["name"],
-        "image_url": testing.comicvine.cv_issue_result["results"]["image"]["super_url"],
-        "description": testing.comicvine.cv_issue_result["results"]["description"],
-    }
+    cv_expected = IssueResult(
+        series=f"{testing.comicvine.cv_volume_result['results']['name']} ({testing.comicvine.cv_volume_result['results']['start_year']})",
+        distance=0,
+        issue_number=testing.comicvine.cv_issue_result["results"]["issue_number"],
+        alt_image_urls=[],
+        cv_issue_count=testing.comicvine.cv_volume_result["results"]["count_of_issues"],
+        issue_title=testing.comicvine.cv_issue_result["results"]["name"],
+        issue_id=str(testing.comicvine.cv_issue_result["results"]["id"]),
+        series_id=str(testing.comicvine.cv_volume_result["results"]["id"]),
+        month=testing.comicvine.date[1],
+        year=testing.comicvine.date[2],
+        publisher=testing.comicvine.cv_volume_result["results"]["publisher"]["name"],
+        image_url=testing.comicvine.cv_issue_result["results"]["image"]["super_url"],
+        description=testing.comicvine.cv_issue_result["results"]["description"],
+        url_image_hash=1747255366011518976,
+    )
     for r, e in zip(results, [cv_expected]):
-        del r["url_image_hash"]
         assert r == e
 
 
