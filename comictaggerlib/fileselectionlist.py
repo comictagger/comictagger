@@ -23,7 +23,7 @@ from typing import Callable, cast
 from PyQt5 import QtCore, QtWidgets, uic
 
 from comicapi import utils
-from comicapi.comicarchive import ComicArchive, metadata_styles
+from comicapi.comicarchive import ComicArchive
 from comictaggerlib.ctsettings import ct_ns
 from comictaggerlib.graphics import graphics_path
 from comictaggerlib.optionalmsgdialog import OptionalMessageDialog
@@ -37,11 +37,6 @@ logger = logging.getLogger(__name__)
 class FileTableWidgetItem(QtWidgets.QTableWidgetItem):
     def __lt__(self, other: object) -> bool:
         return self.data(QtCore.Qt.ItemDataRole.UserRole) < other.data(QtCore.Qt.ItemDataRole.UserRole)  # type: ignore
-
-
-class FileInfo:
-    def __init__(self, ca: ComicArchive) -> None:
-        self.ca: ComicArchive = ca
 
 
 class FileSelectionList(QtWidgets.QWidget):
@@ -137,8 +132,8 @@ class FileSelectionList(QtWidgets.QWidget):
 
     def get_archive_by_row(self, row: int) -> ComicArchive | None:
         if row >= 0:
-            fi: FileInfo = self.twList.item(row, FileSelectionList.dataColNum).data(QtCore.Qt.ItemDataRole.UserRole)
-            return fi.ca
+            ca: ComicArchive = self.twList.item(row, FileSelectionList.dataColNum).data(QtCore.Qt.ItemDataRole.UserRole)
+            return ca
         return None
 
     def get_current_archive(self) -> ComicArchive | None:
@@ -282,8 +277,6 @@ class FileSelectionList(QtWidgets.QWidget):
             row: int = self.twList.rowCount()
             self.twList.insertRow(row)
 
-            fi = FileInfo(ca)
-
             filename_item = QtWidgets.QTableWidgetItem()
             folder_item = QtWidgets.QTableWidgetItem()
             md_item = FileTableWidgetItem()
@@ -292,7 +285,7 @@ class FileSelectionList(QtWidgets.QWidget):
             type_item = QtWidgets.QTableWidgetItem()
 
             filename_item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
-            filename_item.setData(QtCore.Qt.ItemDataRole.UserRole, fi)
+            filename_item.setData(QtCore.Qt.ItemDataRole.UserRole, ca)
             self.twList.setItem(row, FileSelectionList.fileColNum, filename_item)
 
             folder_item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
@@ -320,7 +313,7 @@ class FileSelectionList(QtWidgets.QWidget):
 
     def update_row(self, row: int) -> None:
         if row >= 0:
-            fi: FileInfo = self.twList.item(row, FileSelectionList.dataColNum).data(QtCore.Qt.ItemDataRole.UserRole)
+            ca: ComicArchive = self.twList.item(row, FileSelectionList.dataColNum).data(QtCore.Qt.ItemDataRole.UserRole)
 
             filename_item = self.twList.item(row, FileSelectionList.fileColNum)
             folder_item = self.twList.item(row, FileSelectionList.folderColNum)
@@ -328,24 +321,22 @@ class FileSelectionList(QtWidgets.QWidget):
             type_item = self.twList.item(row, FileSelectionList.typeColNum)
             readonly_item = self.twList.item(row, FileSelectionList.readonlyColNum)
 
-            item_text = os.path.split(fi.ca.path)[0]
+            item_text = os.path.split(ca.path)[0]
             folder_item.setText(item_text)
             folder_item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
 
-            item_text = os.path.split(fi.ca.path)[1]
+            item_text = os.path.split(ca.path)[1]
             filename_item.setText(item_text)
             filename_item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
 
-            item_text = fi.ca.archiver.name()
+            item_text = ca.archiver.name()
             type_item.setText(item_text)
             type_item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
 
-            styles = ", ".join(
-                metadata_styles[x].name() for x in fi.ca.get_supported_metadata() if fi.ca.has_metadata(x)
-            )
+            styles = ", ".join(x for x in ca.get_supported_metadata() if ca.has_metadata(x))
             md_item.setText(styles)
 
-            if not fi.ca.is_writable():
+            if not ca.is_writable():
                 readonly_item.setCheckState(QtCore.Qt.CheckState.Checked)
                 readonly_item.setData(QtCore.Qt.ItemDataRole.UserRole, True)
             else:
@@ -357,8 +348,8 @@ class FileSelectionList(QtWidgets.QWidget):
         for r in range(self.twList.rowCount()):
             item = self.twList.item(r, FileSelectionList.dataColNum)
             if item.isSelected():
-                fi: FileInfo = item.data(QtCore.Qt.ItemDataRole.UserRole)
-                ca_list.append(fi.ca)
+                ca: ComicArchive = item.data(QtCore.Qt.ItemDataRole.UserRole)
+                ca_list.append(ca)
 
         return ca_list
 

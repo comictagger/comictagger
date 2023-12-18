@@ -48,7 +48,7 @@ from comictaggerlib.coverimagewidget import CoverImageWidget
 from comictaggerlib.crediteditorwindow import CreditEditorWindow
 from comictaggerlib.ctsettings import ct_ns
 from comictaggerlib.exportwindow import ExportConflictOpts, ExportWindow
-from comictaggerlib.fileselectionlist import FileInfo, FileSelectionList
+from comictaggerlib.fileselectionlist import FileSelectionList
 from comictaggerlib.graphics import graphics_path
 from comictaggerlib.issueidentifier import IssueIdentifier
 from comictaggerlib.logwindow import LogWindow
@@ -191,7 +191,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         grid_layout = QtWidgets.QGridLayout(self.widgetListHolder)
         grid_layout.addWidget(self.fileSelectionList)
 
-        self.fileSelectionList.selectionChanged.connect(self.file_list_selection_changed)
+        self.fileSelectionList.selectionChanged.connect(self.load_archive)
         self.fileSelectionList.listCleared.connect(self.file_list_cleared)
         self.fileSelectionList.set_sorting(
             self.config[0].internal__sort_column, QtCore.Qt.SortOrder(self.config[0].internal__sort_direction)
@@ -2064,9 +2064,6 @@ class TaggerWindow(QtWidgets.QMainWindow):
             if dlg.exec() and self.comic_archive is not None:
                 self.fileSelectionList.update_selected_rows()
                 self.load_archive(self.comic_archive)
-
-    def file_list_selection_changed(self, fi: FileInfo) -> None:
-        self.load_archive(fi.ca)
 
     def load_archive(self, comic_archive: ComicArchive) -> None:
         self.comic_archive = None
