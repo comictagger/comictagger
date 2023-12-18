@@ -73,12 +73,11 @@ class PageListEditor(QtWidgets.QWidget):
             uic.loadUi(uifile, self)
 
         self.md_attributes = {
-            "page.image_index": [self.btnDown, self.btnUp, self.listWidget],
-            "page.type": self.cbPageType,
-            "page.double_page": self.chkDoublePage,
-            "page.bookmark": self.leBookmark,
-            # Python dicts are order preserving this must be placed last
-            "pages": [self.btnDown, self.btnUp, self.listWidget, self.cbPageType, self.chkDoublePage, self.leBookmark],
+            "pages.image_index": [self.btnDown, self.btnUp],
+            "pages.type": self.cbPageType,
+            "pages.double_page": self.chkDoublePage,
+            "pages.bookmark": self.leBookmark,
+            "pages": self,
         }
 
         self.pageWidget = CoverImageWidget(self.pageContainer, CoverImageWidget.ArchiveMode, None, None)
@@ -119,9 +118,10 @@ class PageListEditor(QtWidgets.QWidget):
 
     def reset_page(self) -> None:
         self.pageWidget.clear()
-        self.cbPageType.setDisabled(True)
-        self.chkDoublePage.setDisabled(True)
-        self.leBookmark.setDisabled(True)
+        self.cbPageType.setEnabled(False)
+        self.chkDoublePage.setEnabled(False)
+        self.leBookmark.setEnabled(False)
+        self.listWidget.clear()
         self.comic_archive = None
         self.pages_list = []
 

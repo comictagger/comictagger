@@ -164,7 +164,7 @@ if qt_available:
 
     def _enable_widget(widget: QtWidgets.QWidget, enable: bool) -> None:
         global active_palette
-        if not (widget and active_palette and widget):
+        if not (widget is not None and active_palette is not None):
             return
         active_color = active_palette.color(QtGui.QPalette.ColorRole.Base)
 
@@ -183,6 +183,9 @@ if qt_available:
             inactive_palette3.setColor(QtGui.QPalette.ColorRole.Base, inactive_color)
             inactive_palette3.setColor(widget.foregroundRole(), inactive_color)
             return inactive_palette1, inactive_palette2, inactive_palette3
+
+        if hasattr(widget, "setEnabled"):
+            widget.setEnabled(enable)
 
         if enable:
             if isinstance(widget, QtWidgets.QTableWidgetItem):

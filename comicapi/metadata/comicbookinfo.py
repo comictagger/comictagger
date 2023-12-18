@@ -83,25 +83,25 @@ class ComicBookInfo(Metadata):
         super().__init__(version)
 
         self.supported_attributes = {
+            "series",
+            "issue",
+            "issue_count",
+            "title",
+            "volume",
+            "volume_count",
+            "genres",
             "description",
+            "publisher",
+            "month",
+            "year",
+            "language",
             "country",
+            "critical_rating",
+            "tags",
             "credits",
             "credits.person",
             "credits.primary",
             "credits.role",
-            "critical_rating",
-            "genres",
-            "issue",
-            "issue_count",
-            "language",
-            "month",
-            "publisher",
-            "series",
-            "tags",
-            "title",
-            "volume",
-            "volume_count",
-            "year",
         }
 
     def supports_credit_role(self, role: str) -> bool:

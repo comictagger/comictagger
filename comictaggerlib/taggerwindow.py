@@ -1205,11 +1205,13 @@ class TaggerWindow(QtWidgets.QMainWindow):
         credit_attributes = [x for x in self.md_attributes.items() if "credits." in x[0]]
 
         for r in range(self.twCredits.rowCount()):
+            w = self.twCredits.item(r, 1)
+            supports_role = style.supports_credit_role(str(w.text()))
             for credit in credit_attributes:
                 widget_enabled = credit[0] in enabled
                 widget = self.twCredits.item(r, credit[1])
                 if credit[0] == "credits.role":
-                    widget_enabled = widget_enabled and style.supports_credit_role(str(widget.text()))
+                    widget_enabled = widget_enabled and supports_role
                 enable_widget(widget, widget_enabled)
 
     def update_metadata_style_tweaks(self) -> None:
@@ -1217,7 +1219,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
         enabled_widgets = metadata_styles[self.save_data_style].supported_attributes
         for metadata, widget in self.md_attributes.items():
-            if isinstance(widget, QtWidgets.QWidget):
+            if widget is not None and not isinstance(widget, (int)):
                 enable_widget(widget, metadata in enabled_widgets)
 
         self.update_metadata_credit_colors()
