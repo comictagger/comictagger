@@ -87,7 +87,7 @@ def test_delete(
 
     # Currently we set the default page list on load
     empty_md = comicapi.genericmetadata.GenericMetadata()
-    # empty_md.set_default_page_list(tmp_comic.get_number_of_pages())
+    empty_md.apply_default_page_list(tmp_comic.get_page_name_list())
 
     # Validate that we got an empty metadata back
     assert md == empty_md

@@ -245,7 +245,7 @@ class CLI:
 
     def create_local_metadata(self, ca: ComicArchive) -> GenericMetadata:
         md = GenericMetadata()
-        md.set_default_page_list(ca.get_number_of_pages())
+        md.apply_default_page_list(ca.get_page_name_list())
 
         # now, overlay the parsed filename info
         if self.config.Runtime_Options__parse_filename:

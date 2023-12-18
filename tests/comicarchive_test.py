@@ -44,7 +44,7 @@ def test_metadata_read(cbz, md_saved):
 
 def test_save_cr(tmp_comic):
     md = tmp_comic.read_metadata("cr")
-    md.set_default_page_list(tmp_comic.get_number_of_pages())
+    md.apply_default_page_list(tmp_comic.get_page_name_list())
 
     assert tmp_comic.write_metadata(md, "cr")
 
@@ -53,7 +53,7 @@ def test_save_cr(tmp_comic):
 
 def test_save_cbi(tmp_comic):
     md = tmp_comic.read_metadata("cr")
-    md.set_default_page_list(tmp_comic.get_number_of_pages())
+    md.apply_default_page_list(tmp_comic.get_page_name_list())
 
     assert tmp_comic.write_metadata(md, "cbi")
 
@@ -70,6 +70,10 @@ def test_save_cr_rar(tmp_path, md_saved):
     assert tmp_comic.write_metadata(comicapi.genericmetadata.md_test, "cr")
 
     md = tmp_comic.read_metadata("cr")
+
+    # This is a fake CBR we don't need to care about the pages for this test
+    md.pages = []
+    md_saved.pages = []
     assert md == md_saved
 
 

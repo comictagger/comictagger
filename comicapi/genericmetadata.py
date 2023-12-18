@@ -26,7 +26,7 @@ import logging
 from collections.abc import Sequence
 from typing import Any, TypedDict
 
-from typing_extensions import NamedTuple
+from typing_extensions import NamedTuple, Required
 
 from comicapi import utils
 
@@ -54,10 +54,11 @@ class PageType:
 
 
 class ImageMetadata(TypedDict, total=False):
+    filename: str
     type: str
     bookmark: str
     double_page: bool
-    image_index: int
+    image_index: Required[int]
     size: str
     height: str
     width: str
@@ -286,13 +287,28 @@ class GenericMetadata:
             else:
                 self.add_credit(c["person"], c["role"], primary)
 
-    def set_default_page_list(self, count: int) -> None:
+    def apply_default_page_list(self, page_list: Sequence[str]) -> None:
         # generate a default page list, with the first page marked as the cover
-        for i in range(count):
-            page_dict = ImageMetadata(image_index=i)
-            if i == 0:
-                page_dict["type"] = PageType.FrontCover
-            self.pages.append(page_dict)
+        # Create a dictionary of all pages in the metadata
+        pages = {p["image_index"]: p for p in self.pages}
+        cover_set = False
+        # Go through each page in the archive
+        # The indexes should always match up
+        # It might be a good idea to validate that each page in `pages` is found
+        for i, filename in enumerate(page_list):
+            if i not in pages:
+                pages[i] = ImageMetadata(image_index=i, filename=filename)
+            else:
+                pages[i]["filename"] = filename
+
+            # Check if we know what the cover is
+            cover_set = pages[i].get("type", None) == PageType.FrontCover or cover_set
+
+        self.pages = [p[1] for p in sorted(pages.items())]
+
+        # Set the cover to the first image if we don't know what the cover is
+        if not cover_set:
+            self.pages[0]["type"] = PageType.FrontCover
 
     def get_archive_page_index(self, pagenum: int) -> int:
         # convert the displayed page number to the page index of the file in the archive
@@ -486,29 +502,31 @@ md_test: GenericMetadata = GenericMetadata(
     ],
     tags=set(),
     pages=[
-        ImageMetadata(image_index=0, height="1280", size="195977", width="800", type=PageType.FrontCover),
-        ImageMetadata(image_index=1, height="2039", size="611993", width="1327"),
-        ImageMetadata(image_index=2, height="2039", size="783726", width="1327"),
-        ImageMetadata(image_index=3, height="2039", size="679584", width="1327"),
-        ImageMetadata(image_index=4, height="2039", size="788179", width="1327"),
-        ImageMetadata(image_index=5, height="2039", size="864433", width="1327"),
-        ImageMetadata(image_index=6, height="2039", size="765606", width="1327"),
-        ImageMetadata(image_index=7, height="2039", size="876427", width="1327"),
-        ImageMetadata(image_index=8, height="2039", size="852622", width="1327"),
-        ImageMetadata(image_index=9, height="2039", size="800205", width="1327"),
-        ImageMetadata(image_index=10, height="2039", size="746243", width="1326"),
-        ImageMetadata(image_index=11, height="2039", size="718062", width="1327"),
-        ImageMetadata(image_index=12, height="2039", size="532179", width="1326"),
-        ImageMetadata(image_index=13, height="2039", size="686708", width="1327"),
-        ImageMetadata(image_index=14, height="2039", size="641907", width="1327"),
-        ImageMetadata(image_index=15, height="2039", size="805388", width="1327"),
-        ImageMetadata(image_index=16, height="2039", size="668927", width="1326"),
-        ImageMetadata(image_index=17, height="2039", size="710605", width="1327"),
-        ImageMetadata(image_index=18, height="2039", size="761398", width="1326"),
-        ImageMetadata(image_index=19, height="2039", size="743807", width="1327"),
-        ImageMetadata(image_index=20, height="2039", size="552911", width="1326"),
-        ImageMetadata(image_index=21, height="2039", size="556827", width="1327"),
-        ImageMetadata(image_index=22, height="2039", size="675078", width="1326"),
+        ImageMetadata(
+            image_index=0, height="1280", size="195977", width="800", type=PageType.FrontCover, filename="!cover.jpg"
+        ),
+        ImageMetadata(image_index=1, height="2039", size="611993", width="1327", filename="01.jpg"),
+        ImageMetadata(image_index=2, height="2039", size="783726", width="1327", filename="02.jpg"),
+        ImageMetadata(image_index=3, height="2039", size="679584", width="1327", filename="03.jpg"),
+        ImageMetadata(image_index=4, height="2039", size="788179", width="1327", filename="04.jpg"),
+        ImageMetadata(image_index=5, height="2039", size="864433", width="1327", filename="05.jpg"),
+        ImageMetadata(image_index=6, height="2039", size="765606", width="1327", filename="06.jpg"),
+        ImageMetadata(image_index=7, height="2039", size="876427", width="1327", filename="07.jpg"),
+        ImageMetadata(image_index=8, height="2039", size="852622", width="1327", filename="08.jpg"),
+        ImageMetadata(image_index=9, height="2039", size="800205", width="1327", filename="09.jpg"),
+        ImageMetadata(image_index=10, height="2039", size="746243", width="1326", filename="10.jpg"),
+        ImageMetadata(image_index=11, height="2039", size="718062", width="1327", filename="11.jpg"),
+        ImageMetadata(image_index=12, height="2039", size="532179", width="1326", filename="12.jpg"),
+        ImageMetadata(image_index=13, height="2039", size="686708", width="1327", filename="13.jpg"),
+        ImageMetadata(image_index=14, height="2039", size="641907", width="1327", filename="14.jpg"),
+        ImageMetadata(image_index=15, height="2039", size="805388", width="1327", filename="15.jpg"),
+        ImageMetadata(image_index=16, height="2039", size="668927", width="1326", filename="16.jpg"),
+        ImageMetadata(image_index=17, height="2039", size="710605", width="1327", filename="17.jpg"),
+        ImageMetadata(image_index=18, height="2039", size="761398", width="1326", filename="18.jpg"),
+        ImageMetadata(image_index=19, height="2039", size="743807", width="1327", filename="19.jpg"),
+        ImageMetadata(image_index=20, height="2039", size="552911", width="1326", filename="20.jpg"),
+        ImageMetadata(image_index=21, height="2039", size="556827", width="1327", filename="21.jpg"),
+        ImageMetadata(image_index=22, height="2039", size="675078", width="1326", filename="22.jpg"),
         ImageMetadata(
             bookmark="Interview",
             image_index=23,
@@ -516,6 +534,7 @@ md_test: GenericMetadata = GenericMetadata(
             size="800965",
             width="1338",
             type=PageType.Letters,
+            filename="23.jpg",
         ),
     ],
     price=None,

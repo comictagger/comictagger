@@ -81,16 +81,22 @@ class ComicArchive:
     logo_data = b""
     pil_available = True
 
-    def __init__(self, path: pathlib.Path | str, default_image_path: pathlib.Path | str | None = None) -> None:
+    def __init__(
+        self, path: pathlib.Path | str | Archiver, default_image_path: pathlib.Path | str | None = None
+    ) -> None:
         self.md: dict[str, GenericMetadata] = {}
-        self.path = pathlib.Path(path).absolute()
         self.page_count: int | None = None
         self.page_list: list[str] = []
 
         self.reset_cache()
         self.default_image_path = default_image_path
 
-        self.archiver: Archiver = UnknownArchiver.open(self.path)
+        if isinstance(path, Archiver):
+            self.path = path.path
+            self.archiver: Archiver = path
+        else:
+            self.path = pathlib.Path(path).absolute()
+            self.archiver = UnknownArchiver.open(self.path)
 
         load_archive_plugins()
         load_metadata_plugins()
@@ -161,7 +167,9 @@ class ComicArchive:
     def read_metadata(self, style: str) -> GenericMetadata:
         if style in self.md:
             return self.md[style]
-        return metadata_styles[style].get_metadata(self.archiver)
+        md = metadata_styles[style].get_metadata(self.archiver)
+        md.apply_default_page_list(self.get_page_name_list())
+        return md
 
     def read_metadata_string(self, style: str) -> str:
         return metadata_styles[style].get_metadata_string(self.archiver)
@@ -258,14 +266,12 @@ class ComicArchive:
 
         return scanner_page_index
 
-    def get_page_name_list(self, sort_list: bool = True) -> list[str]:
+    def get_page_name_list(self) -> list[str]:
         if not self.page_list:
             # get the list file names in the archive, and sort
             files: list[str] = self.archiver.get_filename_list()
 
-            # seems like some archive creators are on Windows, and don't know about case-sensitivity!
-            if sort_list:
-                files = cast(list[str], utils.os_sorted(files))
+            files = cast(list[str], utils.os_sorted(files))
 
             # make a sub-list of image files
             self.page_list = []
@@ -289,6 +295,7 @@ class ComicArchive:
         if calc_page_sizes:
             for index, p in enumerate(md.pages):
                 idx = int(p["image_index"])
+                p["filename"] = self.get_page_name(idx)
                 if self.pil_available:
                     try:
                         from PIL import Image

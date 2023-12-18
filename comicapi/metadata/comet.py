@@ -22,7 +22,8 @@ from typing import Any
 
 from comicapi import utils
 from comicapi.archivers import Archiver
-from comicapi.genericmetadata import GenericMetadata
+from comicapi.comicarchive import ComicArchive
+from comicapi.genericmetadata import GenericMetadata, ImageMetadata, PageType
 from comicapi.metadata import Metadata
 
 logger = logging.getLogger(__name__)
@@ -107,7 +108,7 @@ class CoMet(Metadata):
         if self.has_metadata(archive):
             metadata = archive.read_file(self.file) or b""
             if self._validate_bytes(metadata):
-                return self._metadata_from_bytes(metadata)
+                return self._metadata_from_bytes(metadata, archive)
         return GenericMetadata()
 
     def get_metadata_string(self, archive: Archiver) -> str:
@@ -140,9 +141,9 @@ class CoMet(Metadata):
         parsable_credits.extend(cls._editor_synonyms)
         return parsable_credits
 
-    def _metadata_from_bytes(self, string: bytes) -> GenericMetadata:
+    def _metadata_from_bytes(self, string: bytes, archive: Archiver) -> GenericMetadata:
         tree = ET.ElementTree(ET.fromstring(string))
-        return self._convert_xml_to_metadata(tree)
+        return self._convert_xml_to_metadata(tree, archive)
 
     def _bytes_from_metadata(self, metadata: GenericMetadata) -> bytes:
         tree = self._convert_metadata_to_xml(metadata)
@@ -197,7 +198,8 @@ class CoMet(Metadata):
                 date_str += f"-{md.month:02}"
             assign("date", date_str)
 
-        assign("coverImage", md._cover_image)
+        page = md.get_cover_page_index_list()[0]
+        assign("coverImage", md.pages[page]["filename"])
 
         # loop thru credits, and build a list for each role that CoMet supports
         for credit in metadata.credits:
@@ -228,7 +230,7 @@ class CoMet(Metadata):
         tree = ET.ElementTree(root)
         return tree
 
-    def _convert_xml_to_metadata(self, tree: ET.ElementTree) -> GenericMetadata:
+    def _convert_xml_to_metadata(self, tree: ET.ElementTree, archive: Archiver) -> GenericMetadata:
         root = tree.getroot()
 
         if root.tag != "comet":
@@ -262,7 +264,12 @@ class CoMet(Metadata):
 
         _, md.month, md.year = utils.parse_date_str(utils.xlate(get("date")))
 
-        md._cover_image = utils.xlate(get("coverImage"))
+        ca = ComicArchive(archive)
+        cover_filename = utils.xlate(get("coverImage"))
+        page_list = ca.get_page_name_list()
+        if cover_filename in page_list:
+            cover_index = page_list.index(cover_filename)
+            md.pages = [ImageMetadata(image_index=cover_index, filename=cover_filename, type=PageType.FrontCover)]
 
         reading_direction = utils.xlate(get("readingDirection"))
         if reading_direction is not None and reading_direction == "rtl":

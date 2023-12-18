@@ -679,16 +679,17 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.fileSelectionList.add_path_list(self.droppedFiles)
         event.accept()
 
-    def actual_load_current_archive(self) -> None:
-        if self.metadata.is_empty and self.comic_archive is not None:
-            self.metadata = self.comic_archive.metadata_from_filename(
-                self.config[0].Filename_Parsing__complicated_parser,
-                self.config[0].Filename_Parsing__remove_c2c,
-                self.config[0].Filename_Parsing__remove_fcbd,
-                self.config[0].Filename_Parsing__remove_publisher,
-            )
-        if len(self.metadata.pages) == 0 and self.comic_archive is not None:
-            self.metadata.set_default_page_list(self.comic_archive.get_number_of_pages())
+    def update_ui_for_archive(self, parse_filename: bool = True) -> None:
+        if self.comic_archive is not None:
+            if self.metadata.is_empty and parse_filename:
+                self.metadata = self.comic_archive.metadata_from_filename(
+                    self.config[0].Filename_Parsing__complicated_parser,
+                    self.config[0].Filename_Parsing__remove_c2c,
+                    self.config[0].Filename_Parsing__remove_fcbd,
+                    self.config[0].Filename_Parsing__remove_publisher,
+                )
+
+            self.metadata.apply_default_page_list(self.comic_archive.get_page_name_list())
 
         self.update_cover_image()
 
@@ -795,15 +796,13 @@ class TaggerWindow(QtWidgets.QMainWindow):
     def clear_form(self) -> None:
         # get a minty fresh metadata object
         self.metadata = GenericMetadata()
-        if self.comic_archive is not None:
-            self.metadata.set_default_page_list(self.comic_archive.get_number_of_pages())
-            self.page_list_editor.set_data(self.comic_archive, self.metadata.pages)
 
         # recursively clear the tab form
         self.clear_children(self.tabWidget)
 
         # clear the dirty flag, since there is nothing in there now to lose
         self.clear_dirty_flag()
+        self.update_ui_for_archive(parse_filename=False)
 
     def clear_children(self, widget: QtCore.QObject) -> None:
         if isinstance(widget, (QtWidgets.QLineEdit, QtWidgets.QTextEdit)):
@@ -1172,7 +1171,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 self.fileSelectionList.update_current_row()
 
             self.metadata = self.comic_archive.read_metadata(self.load_data_style)
-            self.actual_load_current_archive()
+            self.update_ui_for_archive()
         else:
             QtWidgets.QMessageBox.information(self, "Whoops!", "No data to commit!")
 
@@ -2086,7 +2085,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             self.exception(f"Failed to load metadata for {self.comic_archive.path}:\n\n{e}")
             self.metadata = GenericMetadata()
 
-        self.actual_load_current_archive()
+        self.update_ui_for_archive()
 
     def file_list_cleared(self) -> None:
         self.reset_app()

@@ -17,9 +17,24 @@ for x in entry_points(group="comicapi.metadata"):
 
 
 @pytest.mark.parametrize("metadata", metadata_styles)
-def test_metadata(mock_version, tmp_comic, md, metadata):
+def test_metadata(mock_version, tmp_comic, md_saved, metadata):
     md_style = metadata(mock_version[0])
     supported_attributes = md_style.supported_attributes
     md_style.set_metadata(comicapi.genericmetadata.md_test, tmp_comic.archiver)
     written_metadata = md_style.get_metadata(tmp_comic.archiver)
-    assert written_metadata.get_clean_metadata(*supported_attributes) == md.get_clean_metadata(*supported_attributes)
+    md = md_saved.get_clean_metadata(*supported_attributes)
+
+    # Hack back in the pages variable because CoMet supports identifying the cover by the filename
+    if md_style.short_name == "comet":
+        md.pages = [
+            comicapi.genericmetadata.ImageMetadata(
+                image_index=0, filename="!cover.jpg", type=comicapi.genericmetadata.PageType.FrontCover
+            )
+        ]
+        written_metadata = written_metadata.get_clean_metadata(*supported_attributes).replace(
+            pages=written_metadata.pages
+        )
+    else:
+        written_metadata = written_metadata.get_clean_metadata(*supported_attributes)
+
+    assert written_metadata == md

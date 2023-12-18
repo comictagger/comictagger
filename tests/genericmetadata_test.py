@@ -6,11 +6,11 @@ import comicapi.genericmetadata
 from testing.comicdata import credits, metadata
 
 
-def test_set_default_page_list(tmp_path):
+def test_apply_default_page_list(tmp_path):
     md = comicapi.genericmetadata.GenericMetadata()
     md.overlay(comicapi.genericmetadata.md_test)
     md.pages = []
-    md.set_default_page_list(len(comicapi.genericmetadata.md_test.pages))
+    md.apply_default_page_list(["testing"])
 
     assert isinstance(md.pages[0]["image_index"], int)
 

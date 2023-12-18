@@ -17,7 +17,7 @@ from __future__ import annotations
 import logging
 import xml.etree.ElementTree as ET
 from collections import OrderedDict
-from typing import Any, cast
+from typing import Any
 
 from comicapi import utils
 from comicapi.archivers import Archiver
@@ -352,16 +352,14 @@ class ComicRack(Metadata):
         # parse page data now
         pages_node = root.find("Pages")
         if pages_node is not None:
-            for page in pages_node:
+            for i, page in enumerate(pages_node):
                 p: dict[str, Any] = page.attrib
-                md_page = ImageMetadata()
+                md_page = ImageMetadata(image_index=int(p.get("Image", i)))
 
                 if "Bookmark" in p:
                     md_page["bookmark"] = p["Bookmark"]
                 if "DoublePage" in p:
                     md_page["double_page"] = True if p["DoublePage"].casefold() in ("yes", "true", "1") else False
-                if "Image" in p:
-                    md_page["image_index"] = int(p["Image"])
                 if "ImageHeight" in p:
                     md_page["height"] = p["ImageHeight"]
                 if "ImageSize" in p:
@@ -371,7 +369,7 @@ class ComicRack(Metadata):
                 if "Type" in p:
                     md_page["type"] = p["Type"]
 
-                md.pages.append(cast(ImageMetadata, md_page))
+                md.pages.append(md_page)
 
         md.is_empty = False
 
