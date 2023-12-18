@@ -35,6 +35,7 @@ from comictaggerlib import cli, ctsettings
 from comictaggerlib.ctsettings import ct_ns
 from comictaggerlib.ctversion import version
 from comictaggerlib.log import setup_logging
+from comictaggerlib.resulttypes import Action
 
 if sys.version_info < (3, 10):
     import importlib_metadata
@@ -239,11 +240,11 @@ class App:
         comicapi.utils.load_publishers()
         update_publishers(self.config)
 
-        if self.config[0].Commands__list_plugins:
+        if self.config[0].Commands__command == Action.list_plugins:
             self.list_plugins(list(talkers.values()), comicapi.comicarchive.archivers)
             return
 
-        if self.config[0].Commands__only_save_config:
+        if self.config[0].Commands__command == Action.save_config:
             if self.config_load_success:
                 settings_path = self.config[0].Runtime_Options__config.user_config_dir / "settings.json"
                 if self.config_load_success:

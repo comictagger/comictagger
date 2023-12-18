@@ -57,7 +57,7 @@ from comictaggerlib.optionalmsgdialog import OptionalMessageDialog
 from comictaggerlib.pagebrowser import PageBrowserWindow
 from comictaggerlib.pagelisteditor import PageListEditor
 from comictaggerlib.renamewindow import RenameWindow
-from comictaggerlib.resulttypes import IssueResult, OnlineMatchResults, Result
+from comictaggerlib.resulttypes import Action, IssueResult, MatchStatus, OnlineMatchResults, Result, Status
 from comictaggerlib.seriesselectionwindow import SeriesSelectionWindow
 from comictaggerlib.settingswindow import SettingsWindow
 from comictaggerlib.ui import ui_path
@@ -1779,16 +1779,48 @@ class TaggerWindow(QtWidgets.QMainWindow):
         if choices:
             if low_confidence:
                 self.auto_tag_log("Online search: Multiple low-confidence matches.  Save aborted\n")
-                match_results.low_confidence_matches.append(Result(ca.path, None, matches))
+                match_results.low_confidence_matches.append(
+                    Result(
+                        Action.save,
+                        Status.match_failure,
+                        ca.path,
+                        online_results=matches,
+                        match_status=MatchStatus.low_confidence_match,
+                    )
+                )
             else:
                 self.auto_tag_log("Online search: Multiple matches.  Save aborted\n")
-                match_results.multiple_matches.append(Result(ca.path, None, matches))
+                match_results.multiple_matches.append(
+                    Result(
+                        Action.save,
+                        Status.match_failure,
+                        ca.path,
+                        online_results=matches,
+                        match_status=MatchStatus.multiple_match,
+                    )
+                )
         elif low_confidence and not dlg.auto_save_on_low:
             self.auto_tag_log("Online search: Low confidence match.  Save aborted\n")
-            match_results.low_confidence_matches.append(Result(ca.path, None, matches))
+            match_results.low_confidence_matches.append(
+                Result(
+                    Action.save,
+                    Status.match_failure,
+                    ca.path,
+                    online_results=matches,
+                    match_status=MatchStatus.low_confidence_match,
+                )
+            )
         elif not found_match:
             self.auto_tag_log("Online search: No match found.  Save aborted\n")
-            match_results.no_matches.append(Result(ca.path, None, matches))
+            match_results.no_matches.append(
+                Result(
+                    Action.save,
+                    Status.match_failure,
+                    ca.path,
+                    online_results=matches,
+                    match_status=MatchStatus.no_match,
+                )
+            )
         else:
             # a single match!
             if low_confidence:
@@ -1797,7 +1829,15 @@ class TaggerWindow(QtWidgets.QMainWindow):
             # now get the particular issue data
             ct_md = self.actual_issue_data_fetch(matches[0])
             if ct_md is None:
-                match_results.fetch_data_failures.append(Result(ca.path, None, matches))
+                match_results.fetch_data_failures.append(
+                    Result(
+                        Action.save,
+                        Status.fetch_data_failure,
+                        ca.path,
+                        online_results=matches,
+                        match_status=MatchStatus.good_match,
+                    )
+                )
 
             if ct_md is not None:
                 if dlg.cbxRemoveMetadata.isChecked():
@@ -1813,10 +1853,26 @@ class TaggerWindow(QtWidgets.QMainWindow):
                     md.fix_publisher()
 
                 if not ca.write_metadata(md, self.save_data_style):
-                    match_results.write_failures.append(Result(ca.path, None, matches))
+                    match_results.write_failures.append(
+                        Result(
+                            Action.save,
+                            Status.write_failure,
+                            ca.path,
+                            online_results=matches,
+                            match_status=MatchStatus.good_match,
+                        )
+                    )
                     self.auto_tag_log("Save failed ;-(\n")
                 else:
-                    match_results.good_matches.append(Result(ca.path, None, matches))
+                    match_results.good_matches.append(
+                        Result(
+                            Action.save,
+                            Status.success,
+                            ca.path,
+                            online_results=matches,
+                            match_status=MatchStatus.good_match,
+                        )
+                    )
                     success = True
                     self.auto_tag_log("Save complete!\n")
                 ca.load_cache([MetaDataStyle.CBI, MetaDataStyle.CIX])

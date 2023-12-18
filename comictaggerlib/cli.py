@@ -35,7 +35,7 @@ from comictaggerlib.ctsettings import ct_ns
 from comictaggerlib.filerenamer import FileRenamer, get_rename_dir
 from comictaggerlib.graphics import graphics_path
 from comictaggerlib.issueidentifier import IssueIdentifier
-from comictaggerlib.resulttypes import IssueResult, OnlineMatchResults, Result, Status
+from comictaggerlib.resulttypes import Action, IssueResult, MatchStatus, OnlineMatchResults, Result, Status
 from comictalker.comictalker import ComicTalker, TalkerError
 from comictalker.talker_utils import cleanup_html
 
@@ -94,7 +94,7 @@ class CLI:
         self.batch_mode = len(self.config.Runtime_Options__files) > 1
 
         for f in self.config.Runtime_Options__files:
-            results.append(self.process_file_cli(f, match_results))
+            results.append(self.process_file_cli(self.config.Commands__command, f, match_results))
             if self.config.Runtime_Options__json:
                 print(dataclasses.asdict(results[-1]))
                 print(json.dumps(dataclasses.asdict(results[-1]), cls=OutputEncoder, indent=2))
@@ -292,7 +292,7 @@ class CLI:
             self.output(brief)
 
         if self.config.Runtime_Options__quiet:
-            return Result(ca.path, None, [], Status.success)
+            return Result(Action.print, Status.success, ca.path)
 
         self.output()
 
@@ -343,7 +343,7 @@ class CLI:
                 except Exception as e:
                     logger.error("Failed to load metadata for %s: %s", ca.path, e)
 
-        return Result(ca.path, None, [], Status.success, md=md)
+        return Result(Action.print, Status.success, ca.path, md=md)
 
     def delete_style(self, ca: ComicArchive, style: int) -> Status:
         style_name = MetaDataStyle.name[style]
@@ -363,11 +363,11 @@ class CLI:
         return Status.success
 
     def delete(self, ca: ComicArchive) -> Result:
-        res = Result(ca.path, None, status=Status.success)
+        res = Result(Action.delete, Status.success, ca.path)
         for metadata_style in self.config.Runtime_Options__type:
             status = self.delete_style(ca, metadata_style)
             if status == Status.success:
-                res.tags_removed.append(metadata_style)
+                res.tags_deleted.append(metadata_style)
             else:
                 res.status = status
         return res
@@ -400,7 +400,7 @@ class CLI:
         return Status.read_failure
 
     def copy(self, ca: ComicArchive) -> Result:
-        res = Result(ca.path, None)
+        res = Result(Action.copy, Status.success, ca.path)
         try:
             res.md = ca.read_metadata(self.config.Commands__copy)
         except Exception as e:
@@ -409,7 +409,7 @@ class CLI:
         for metadata_style in self.config.Runtime_Options__type:
             status = self.copy_style(ca, res.md, metadata_style)
             if status == Status.success:
-                res.tags_saved.append(metadata_style)
+                res.tags_written.append(metadata_style)
             else:
                 res.status = status
         return res
@@ -420,11 +420,10 @@ class CLI:
                 if ca.has_metadata(metadata_style):
                     self.output(f"{ca.path}: Already has {MetaDataStyle.name[metadata_style]} tags. Not overwriting.")
                     return Result(
+                        Action.save,
                         original_path=ca.path,
-                        renamed_path=None,
-                        online_results=[],
                         status=Status.existing_tags,
-                        tags_saved=self.config.Runtime_Options__type,
+                        tags_written=self.config.Runtime_Options__type,
                     )
 
         if self.batch_mode:
@@ -445,11 +444,10 @@ class CLI:
                 except TalkerError as e:
                     logger.exception(f"Error retrieving issue details. Save aborted.\n{e}")
                     res = Result(
+                        Action.save,
                         original_path=ca.path,
-                        renamed_path=None,
-                        online_results=[],
                         status=Status.fetch_data_failure,
-                        tags_saved=self.config.Runtime_Options__type,
+                        tags_written=self.config.Runtime_Options__type,
                     )
                     match_results.fetch_data_failures.append(res)
                     return res
@@ -457,11 +455,11 @@ class CLI:
                 if ct_md is None:
                     logger.error("No match for ID %s was found.", self.config.Runtime_Options__issue_id)
                     res = Result(
+                        Action.save,
+                        status=Status.match_failure,
                         original_path=ca.path,
-                        renamed_path=None,
-                        online_results=[],
-                        status=Status.no_match,
-                        tags_saved=self.config.Runtime_Options__type,
+                        match_status=MatchStatus.no_match,
+                        tags_written=self.config.Runtime_Options__type,
                     )
                     match_results.no_matches.append(res)
                     return res
@@ -472,11 +470,11 @@ class CLI:
                 if md is None or md.is_empty:
                     logger.error("No metadata given to search online with!")
                     res = Result(
+                        Action.save,
+                        status=Status.match_failure,
                         original_path=ca.path,
-                        renamed_path=None,
-                        online_results=[],
-                        status=Status.no_match,
-                        tags_saved=self.config.Runtime_Options__type,
+                        match_status=MatchStatus.no_match,
+                        tags_written=self.config.Runtime_Options__type,
                     )
                     match_results.no_matches.append(res)
                     return res
@@ -519,44 +517,48 @@ class CLI:
                     if low_confidence:
                         logger.error("Online search: Multiple low confidence matches. Save aborted")
                         res = Result(
+                            Action.save,
+                            status=Status.match_failure,
                             original_path=ca.path,
-                            renamed_path=None,
                             online_results=matches,
-                            status=Status.low_confidence_match,
-                            tags_saved=self.config.Runtime_Options__type,
+                            match_status=MatchStatus.low_confidence_match,
+                            tags_written=self.config.Runtime_Options__type,
                         )
                         match_results.low_confidence_matches.append(res)
                         return res
 
                     logger.error("Online search: Multiple good matches. Save aborted")
                     res = Result(
+                        Action.save,
+                        status=Status.match_failure,
                         original_path=ca.path,
-                        renamed_path=None,
                         online_results=matches,
-                        status=Status.multiple_match,
-                        tags_saved=self.config.Runtime_Options__type,
+                        match_status=MatchStatus.multiple_match,
+                        tags_written=self.config.Runtime_Options__type,
                     )
                     match_results.multiple_matches.append(res)
                     return res
                 if low_confidence and self.config.Runtime_Options__abort_on_low_confidence:
                     logger.error("Online search: Low confidence match. Save aborted")
                     res = Result(
+                        Action.save,
+                        status=Status.match_failure,
                         original_path=ca.path,
-                        renamed_path=None,
                         online_results=matches,
-                        status=Status.low_confidence_match,
-                        tags_saved=self.config.Runtime_Options__type,
+                        match_status=MatchStatus.low_confidence_match,
+                        tags_written=self.config.Runtime_Options__type,
                     )
                     match_results.low_confidence_matches.append(res)
                     return res
                 if not found_match:
                     logger.error("Online search: No match found. Save aborted")
                     res = Result(
+                        Action.save,
+                        status=Status.match_failure,
                         original_path=ca.path,
-                        renamed_path=None,
                         online_results=matches,
-                        status=Status.no_match,
-                        tags_saved=self.config.Runtime_Options__type,
+                        match_status=MatchStatus.no_match,
+                        tags_written=self.config.Runtime_Options__type,
                     )
                     match_results.no_matches.append(res)
                     return res
@@ -567,11 +569,12 @@ class CLI:
                 ct_md = self.actual_issue_data_fetch(matches[0].issue_id)
                 if ct_md.is_empty:
                     res = Result(
-                        original_path=ca.path,
-                        renamed_path=None,
-                        online_results=matches,
+                        Action.save,
                         status=Status.fetch_data_failure,
-                        tags_saved=self.config.Runtime_Options__type,
+                        original_path=ca.path,
+                        online_results=matches,
+                        match_status=MatchStatus.good_match,
+                        tags_written=self.config.Runtime_Options__type,
                     )
                     match_results.fetch_data_failures.append(res)
                     return res
@@ -594,12 +597,13 @@ class CLI:
                 md.fix_publisher()
 
         res = Result(
-            original_path=ca.path,
-            renamed_path=None,
-            online_results=matches,
+            Action.save,
             status=Status.success,
+            original_path=ca.path,
+            online_results=matches,
+            match_status=MatchStatus.good_match,
             md=md,
-            tags_saved=self.config.Runtime_Options__type,
+            tags_written=self.config.Runtime_Options__type,
         )
         # ok, done building our metadata. time to save
         if self.actual_metadata_save(ca, md):
@@ -619,7 +623,7 @@ class CLI:
 
         if md.series is None:
             logger.error(msg_hdr + "Can't rename without series name")
-            return Result(original_path, None, [], Status.no_match)
+            return Result(Action.rename, Status.read_failure, original_path)
 
         new_ext = ""  # default
         if self.config.File_Rename__set_extension_based_on_archive:
@@ -648,10 +652,10 @@ class CLI:
                 + "https://docs.python.org/3/library/string.html#format-string-syntax",
                 self.config.File_Rename__template,
             )
-            return Result(original_path, None, [], Status.rename_failure, md=md)
+            return Result(Action.rename, Status.rename_failure, original_path, md=md)
         except Exception:
             logger.exception("Formatter failure: %s metadata: %s", self.config.File_Rename__template, renamer.metadata)
-            return Result(original_path, None, [], Status.rename_failure, md=md)
+            return Result(Action.rename, Status.rename_failure, original_path, md=md)
 
         folder = get_rename_dir(ca, self.config.File_Rename__dir if self.config.File_Rename__move_to_dir else None)
 
@@ -659,7 +663,7 @@ class CLI:
 
         if full_path == ca.path:
             self.output(msg_hdr + "Filename is already good!")
-            return Result(original_path, full_path, [], Status.existing_tags, md=md)
+            return Result(Action.rename, Status.success, original_path, full_path, md=md)
 
         suffix = ""
         if not self.config.Runtime_Options__dryrun:
@@ -668,43 +672,41 @@ class CLI:
                 ca.rename(utils.unique_file(full_path))
             except OSError:
                 logger.exception("Failed to rename comic archive: %s", ca.path)
-                return Result(original_path, full_path, [], Status.write_failure, md=md)
+                return Result(Action.rename, Status.write_failure, original_path, full_path, md=md)
         else:
             suffix = " (dry-run, no change)"
 
         self.output(f"renamed '{original_path.name}' -> '{new_name}' {suffix}")
-        return Result(original_path, None, [], Status.success, md=md)
+        return Result(Action.rename, Status.success, original_path, md=md)
 
-    def export(self, ca: ComicArchive) -> None:
+    def export(self, ca: ComicArchive) -> Result:
         msg_hdr = ""
         if self.batch_mode:
             msg_hdr = f"{ca.path}: "
 
         if ca.is_zip():
             logger.error(msg_hdr + "Archive is already a zip file.")
-            return
+            return Result(Action.export, Status.success, ca.path)
 
         filename_path = ca.path
         new_file = filename_path.with_suffix(".cbz")
 
         if self.config.Runtime_Options__abort_on_conflict and new_file.exists():
             self.output(msg_hdr + f"{new_file.name} already exists in the that folder.")
-            return
+            return Result(Action.export, Status.write_failure, ca.path)
 
         new_file = utils.unique_file(new_file)
 
         delete_success = False
         export_success = False
         if not self.config.Runtime_Options__dryrun:
-            if ca.export_as_zip(new_file):
-                export_success = True
+            if export_success := ca.export_as_zip(new_file):
                 if self.config.Runtime_Options__delete_after_zip_export:
                     try:
                         filename_path.unlink(missing_ok=True)
                         delete_success = True
                     except OSError:
                         logger.exception(msg_hdr + "Error deleting original archive after export")
-                        delete_success = False
             else:
                 # last export failed, so remove the zip, if it exists
                 new_file.unlink(missing_ok=True)
@@ -713,7 +715,7 @@ class CLI:
             if self.config.Runtime_Options__delete_after_zip_export:
                 msg += " and delete original."
             self.output(msg)
-            return
+            return Result(Action.export, Status.success, ca.path, new_file)
 
         msg = msg_hdr
         if export_success:
@@ -725,40 +727,38 @@ class CLI:
 
         self.output(msg)
 
-    def process_file_cli(self, filename: str, match_results: OnlineMatchResults) -> Result:
+        return Result(Action.export, Status.success, ca.path, new_file)
+
+    def process_file_cli(self, command: Action, filename: str, match_results: OnlineMatchResults) -> Result:
         if not os.path.lexists(filename):
             logger.error("Cannot find %s", filename)
-            return Result(pathlib.Path(filename), None, [], Status.read_failure)
+            return Result(command, Status.read_failure, pathlib.Path(filename))
 
         ca = ComicArchive(filename, str(graphics_path / "nocover.png"))
 
         if not ca.seems_to_be_a_comic_archive():
             logger.error("Sorry, but %s is not a comic archive!", filename)
-            return Result(ca.path, None, [], Status.read_failure)
+            return Result(Action.rename, Status.read_failure, ca.path)
 
-        if not ca.is_writable() and (
-            self.config.Commands__delete
-            or self.config.Commands__copy
-            or self.config.Commands__save
-            or self.config.Commands__rename
-        ):
+        if not ca.is_writable() and (command in (Action.delete, Action.copy, Action.save, Action.rename)):
             logger.error("This archive is not writable")
-            return Result(ca.path, None, [], Status.write_permission_failure)
+            return Result(command, Status.write_permission_failure, ca.path)
 
-        if self.config.Commands__print:
+        if command == Action.print:
             return self.print(ca)
 
-        elif self.config.Commands__delete:
+        elif command == Action.delete:
             return self.delete(ca)
 
-        elif self.config.Commands__copy is not None:
+        elif command == Action.copy is not None:
             return self.copy(ca)
 
-        elif self.config.Commands__save:
+        elif command == Action.save:
             return self.save(ca, match_results)
 
-        elif self.config.Commands__rename:
+        elif command == Action.rename:
             return self.rename(ca)
 
-        elif self.config.Commands__export_to_zip:
+        elif command == Action.export:
             return self.export(ca)
+        return Result(None, Status.read_failure, ca.path)  # type: ignore[arg-type]

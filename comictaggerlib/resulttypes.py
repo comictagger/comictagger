@@ -69,6 +69,17 @@ class IssueResult:
         return f"series: {self.series}; series id: {self.series_id}; issue number: {self.issue_number}; issue id: {self.issue_id}; published: {self.month} {self.year}"
 
 
+class Action(StrEnum):
+    print = auto()
+    delete = auto()
+    copy = auto()
+    save = auto()
+    rename = auto()
+    export = auto()
+    save_config = auto()
+    list_plugins = auto()
+
+
 class MatchStatus(StrEnum):
     good_match = auto()
     no_match = auto()
@@ -77,11 +88,14 @@ class MatchStatus(StrEnum):
 
 
 class Status(StrEnum):
+    success = auto()
+    match_failure = auto()
     write_failure = auto()
     fetch_data_failure = auto()
     existing_tags = auto()
     read_failure = auto()
     write_permission_failure = auto()
+    rename_failure = auto()
 
 
 @dataclasses.dataclass
@@ -96,14 +110,19 @@ class OnlineMatchResults:
 
 @dataclasses.dataclass
 class Result:
+    action: Action
+    status: Status | None
+
     original_path: pathlib.Path
-    renamed_path: pathlib.Path | None
+    renamed_path: pathlib.Path | None = None
+
     online_results: list[IssueResult] = dataclasses.field(default_factory=list)
     match_status: MatchStatus | None = None
-    status: Status | None = None
+
     md: GenericMetadata | None = None
-    tags_removed: list[int] = dataclasses.field(default_factory=list)
-    tags_saved: list[int] = dataclasses.field(default_factory=list)
+
+    tags_deleted: list[int] = dataclasses.field(default_factory=list)
+    tags_written: list[int] = dataclasses.field(default_factory=list)
 
     def __str__(self) -> str:
         if len(self.online_results) == 0:

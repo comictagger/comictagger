@@ -5,18 +5,13 @@ import settngs
 import comicapi.genericmetadata
 import comictaggerlib.ctsettings.types
 import comictaggerlib.defaults
+import comictaggerlib.resulttypes
 
 
 class settngs_namespace(settngs.TypedNS):
     Commands__version: bool
-    Commands__print: bool
-    Commands__delete: bool
+    Commands__command: comictaggerlib.resulttypes.Action
     Commands__copy: int
-    Commands__save: bool
-    Commands__rename: bool
-    Commands__export_to_zip: bool
-    Commands__only_save_config: bool
-    Commands__list_plugins: bool
 
     Runtime_Options__config: comictaggerlib.ctsettings.types.ComicTaggerPaths
     Runtime_Options__verbose: int

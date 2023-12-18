@@ -32,6 +32,7 @@ from comictaggerlib.ctsettings.types import (
     metadata_type_single,
     parse_metadata_from_string,
 )
+from comictaggerlib.resulttypes import Action
 
 logger = logging.getLogger(__name__)
 
@@ -188,14 +189,18 @@ def register_commands(parser: settngs.Manager) -> None:
     parser.add_setting(
         "-p",
         "--print",
-        action="store_true",
+        dest="command",
+        action="store_const",
+        const=Action.print,
         help="""Print out tag info from file. Specify type\n(via -t) to get only info of that tag type.\n\n""",
         file=False,
     )
     parser.add_setting(
         "-d",
         "--delete",
-        action="store_true",
+        dest="command",
+        action="store_const",
+        const=Action.delete,
         help="Deletes the tag block of specified type (via -t).\n",
         file=False,
     )
@@ -210,33 +215,43 @@ def register_commands(parser: settngs.Manager) -> None:
     parser.add_setting(
         "-s",
         "--save",
-        action="store_true",
+        dest="command",
+        action="store_const",
+        const=Action.save,
         help="Save out tags as specified type (via -t).\nMust specify also at least -o, -f, or -m.\n\n",
         file=False,
     )
     parser.add_setting(
         "-r",
         "--rename",
-        action="store_true",
+        dest="command",
+        action="store_const",
+        const=Action.print,
         help="Rename the file based on specified tag style.",
         file=False,
     )
     parser.add_setting(
         "-e",
         "--export-to-zip",
-        action="store_true",
+        dest="command",
+        action="store_const",
+        const=Action.export,
         help="Export RAR archive to Zip format.",
         file=False,
     )
     parser.add_setting(
         "--only-save-config",
-        action="store_true",
+        dest="command",
+        action="store_const",
+        const=Action.save_config,
         help="Only save the configuration (eg, Comic Vine API key) and quit.",
         file=False,
     )
     parser.add_setting(
         "--list-plugins",
-        action="store_true",
+        dest="command",
+        action="store_const",
+        const=Action.list_plugins,
         help="List the available plugins.\n\n",
         file=False,
     )
@@ -252,21 +267,11 @@ def validate_commandline_settings(config: settngs.Config[ct_ns], parser: settngs
         parser.exit(
             status=1,
             message=f"ComicTagger {ctversion.version}:  Copyright (c) 2012-2022 ComicTagger Team\n"
-            "Distributed under Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)\n",
+            + "Distributed under Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)\n",
         )
 
     config[0].Runtime_Options__no_gui = any(
-        [
-            config[0].Commands__print,
-            config[0].Commands__delete,
-            config[0].Commands__save,
-            config[0].Commands__copy,
-            config[0].Commands__rename,
-            config[0].Commands__export_to_zip,
-            config[0].Commands__only_save_config,
-            config[0].Commands__list_plugins,
-            config[0].Runtime_Options__no_gui,
-        ]
+        (config[0].Commands__command, config[0].Runtime_Options__no_gui, config[0].Commands__copy)
     )
 
     if platform.system() == "Windows" and config[0].Runtime_Options__glob:
@@ -279,19 +284,20 @@ def validate_commandline_settings(config: settngs.Config[ct_ns], parser: settngs
             config[0].Runtime_Options__files.extend(glob.glob(item))
 
     if (
-        not config[0].Commands__only_save_config
+        config[0].Commands__command != Action.save_config
         and config[0].Runtime_Options__no_gui
         and not config[0].Runtime_Options__files
     ):
         parser.exit(message="Command requires at least one filename!\n", status=1)
 
-    if config[0].Commands__delete and not config[0].Runtime_Options__type:
+    if config[0].Commands__command == Action.delete and not config[0].Runtime_Options__type:
         parser.exit(message="Please specify the type to delete with -t\n", status=1)
 
-    if config[0].Commands__save and not config[0].Runtime_Options__type:
+    if config[0].Commands__command == Action.save and not config[0].Runtime_Options__type:
         parser.exit(message="Please specify the type to save with -t\n", status=1)
 
     if config[0].Commands__copy:
+        config[0].Commands__command = Action.copy
         if not config[0].Runtime_Options__type:
             parser.exit(message="Please specify the type to copy to with -t\n", status=1)
 
