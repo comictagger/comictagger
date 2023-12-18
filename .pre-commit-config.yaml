@@ -41,6 +41,6 @@ repos:
     rev: v1.5.1
     hooks:
     -   id: mypy
-        additional_dependencies: [types-setuptools, types-requests, settngs>=0.7.1]
+        additional_dependencies: [types-setuptools, types-requests, settngs>=0.9.1]
 ci:
     skip: [mypy]
