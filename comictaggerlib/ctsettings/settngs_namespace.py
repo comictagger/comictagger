@@ -96,6 +96,7 @@ class settngs_namespace(settngs.TypedNS):
     Auto_Tag__remove_archive_after_successful_match: bool
 
     General__check_for_new_version: bool
+    General__disable_cr: bool
 
     Dialog_Flags__show_disclaimer: bool
     Dialog_Flags__dont_notify_about_this_version: str

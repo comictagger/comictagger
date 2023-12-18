@@ -223,6 +223,10 @@ class App:
         # config already loaded
         error = None
 
+        if self.config[0].General__disable_cr:
+            if "cr" in comicapi.comicarchive.metadata_styles:
+                del comicapi.comicarchive.metadata_styles["cr"]
+
         if len(self.talkers) < 1:
             error = error = (
                 "Failed to load any talkers, please re-install and check the log located in '"

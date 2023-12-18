@@ -12,6 +12,12 @@ from comictaggerlib.defaults import DEFAULT_REPLACEMENTS, Replacement, Replaceme
 def general(parser: settngs.Manager) -> None:
     # General Settings
     parser.add_setting("check_for_new_version", default=False, cmdline=False)
+    parser.add_setting(
+        "--disable-cr",
+        default=False,
+        action=argparse.BooleanOptionalAction,
+        help="Disable the ComicRack metadata type",
+    )
 
 
 def internal(parser: settngs.Manager) -> None:
