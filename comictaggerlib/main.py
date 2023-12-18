@@ -24,6 +24,7 @@ import os
 import signal
 import subprocess
 import sys
+from collections.abc import Collection
 from typing import cast
 
 import settngs
@@ -126,7 +127,10 @@ class App:
         self.talkers = comictalker.get_talkers(version, opts.config.user_cache_dir)
 
     def list_plugins(
-        self, talkers: list[comictalker.ComicTalker], archivers: list[type[comicapi.comicarchive.Archiver]]
+        self,
+        talkers: Collection[comictalker.ComicTalker],
+        archivers: Collection[type[comicapi.comicarchive.Archiver]],
+        metadata_styles: Collection[comicapi.comicarchive.Metadata],
     ) -> None:
         if self.config[0].Runtime_Options__json:
             for talker in talkers:
@@ -167,15 +171,31 @@ class App:
                             }
                         )
                     )
+
+            for style in metadata_styles:
+                print(  # noqa: T201
+                    json.dumps(
+                        {
+                            "type": "metadata",
+                            "enabled": style.enabled,
+                            "name": style.name(),
+                            "short_name": style.short_name,
+                        }
+                    )
+                )
         else:
-            print("Metadata Sources: (ID: Name URL)")  # noqa: T201
+            print("Metadata Sources: (ID: Name, URL)")  # noqa: T201
             for talker in talkers:
-                print(f"{talker.id}: {talker.name} {talker.website}")  # noqa: T201
+                print(f"{talker.id:<10}: {talker.name:<21}, {talker.website}")  # noqa: T201
 
             print("\nComic Archive: (Name: extension, exe)")  # noqa: T201
             for archiver in archivers:
                 a = archiver()
-                print(f"{a.name()}: {a.extension()}, {a.exe}")  # noqa: T201
+                print(f"{a.name():<10}: {a.extension():<5}, {a.exe}")  # noqa: T201
+
+            print("\nMetadata Style: (Short Name: Name)")  # noqa: T201
+            for style in metadata_styles:
+                print(f"{style.short_name:<10}: {style.name()}")  # noqa: T201
 
     def initialize(self) -> argparse.Namespace:
         conf, _ = self.initial_arg_parser.parse_known_intermixed_args()
@@ -245,7 +265,11 @@ class App:
         update_publishers(self.config)
 
         if self.config[0].Commands__command == Action.list_plugins:
-            self.list_plugins(list(self.talkers.values()), comicapi.comicarchive.archivers)
+            self.list_plugins(
+                list(self.talkers.values()),
+                comicapi.comicarchive.archivers,
+                comicapi.comicarchive.metadata_styles.values(),
+            )
             return
 
         if self.config[0].Commands__command == Action.save_config:
