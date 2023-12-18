@@ -184,43 +184,43 @@ class CLI:
 
     def post_process_matches(self, match_results: OnlineMatchResults) -> None:
         def print_header(header: str) -> None:
-            self.output()
-            self.output(header)
-            self.output("------------------")
+            self.output("", force_output=True)
+            self.output(header, force_output=True)
+            self.output("------------------", force_output=True)
 
         # now go through the match results
         if self.config.Runtime_Options__summary:
             if len(match_results.good_matches) > 0:
                 print_header("Successful matches:")
                 for f in match_results.good_matches:
-                    self.output(f)
+                    self.output(f, force_output=True)
 
             if len(match_results.no_matches) > 0:
                 print_header("No matches:")
                 for f in match_results.no_matches:
-                    self.output(f)
+                    self.output(f, force_output=True)
 
             if len(match_results.write_failures) > 0:
                 print_header("File Write Failures:")
                 for f in match_results.write_failures:
-                    self.output(f)
+                    self.output(f, force_output=True)
 
             if len(match_results.fetch_data_failures) > 0:
                 print_header("Network Data Fetch Failures:")
                 for f in match_results.fetch_data_failures:
-                    self.output(f)
+                    self.output(f, force_output=True)
 
         if not self.config.Runtime_Options__summary and not self.config.Runtime_Options__interactive:
             # just quit if we're not interactive or showing the summary
             return
 
         if len(match_results.multiple_matches) > 0:
-            self.output("\nArchives with multiple high-confidence matches:\n------------------")
+            self.output("\nArchives with multiple high-confidence matches:\n------------------", force_output=True)
             for match_set in match_results.multiple_matches:
                 self.display_match_set_for_choice("Multiple high-confidence matches", match_set)
 
         if len(match_results.low_confidence_matches) > 0:
-            self.output("\nArchives with low-confidence matches:\n------------------")
+            self.output("\nArchives with low-confidence matches:\n------------------", force_output=True)
             for match_set in match_results.low_confidence_matches:
                 if len(match_set.online_results) == 1:
                     label = "Single low-confidence match"
