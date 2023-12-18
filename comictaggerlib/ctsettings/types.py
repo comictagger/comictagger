@@ -69,7 +69,6 @@ def metadata_type(types: str) -> list[str]:
     result = []
     types = types.casefold()
     for typ in utils.split(types, ","):
-        typ = typ.strip()
         if typ not in metadata_styles:
             choices = ", ".join(metadata_styles)
             raise argparse.ArgumentTypeError(f"invalid choice: {typ} (choose from {choices.upper()})")

@@ -92,7 +92,7 @@ class ComicRack(Metadata):
         return role.casefold() in self._get_parseable_credits()
 
     def supports_metadata(self, archive: Archiver) -> bool:
-        return True
+        return archive.supports_files()
 
     def has_metadata(self, archive: Archiver) -> bool:
         return (
@@ -178,22 +178,6 @@ class ComicRack(Metadata):
                 if et_entry is not None:
                     root.remove(et_entry)
 
-        assign("Title", md.title)
-        assign("Series", md.series)
-        assign("Number", md.issue)
-        assign("Count", md.issue_count)
-        assign("Volume", md.volume)
-        assign("AlternateSeries", md.alternate_series)
-        assign("AlternateNumber", md.alternate_number)
-        assign("StoryArc", md.story_arcs)
-        assign("SeriesGroup", md.series_groups)
-        assign("AlternateCount", md.alternate_count)
-        assign("Summary", md.description)
-        assign("Notes", md.notes)
-        assign("Year", md.year)
-        assign("Month", md.month)
-        assign("Day", md.day)
-
         # need to specially process the credits, since they are structured
         # differently than CIX
         credit_writer_list = []
@@ -228,7 +212,40 @@ class ComicRack(Metadata):
             if credit["role"].casefold() in set(self._editor_synonyms):
                 credit_editor_list.append(credit["person"].replace(",", ""))
 
-        # second, convert each list to string, and add to XML struct
+        assign("Series", md.series)
+        assign("Number", md.issue)
+        assign("Count", md.issue_count)
+        assign("Title", md.title)
+        assign("Volume", md.volume)
+        assign("Genre", md.genres)
+        assign("Summary", md.description)
+        assign("Notes", md.notes)
+
+        assign("AlternateSeries", md.alternate_series)
+        assign("AlternateNumber", md.alternate_number)
+        assign("AlternateCount", md.alternate_count)
+        assign("StoryArc", md.story_arcs)
+        assign("SeriesGroup", md.series_groups)
+
+        assign("Publisher", md.publisher)
+        assign("Imprint", md.imprint)
+        assign("Day", md.day)
+        assign("Month", md.month)
+        assign("Year", md.year)
+        assign("LanguageISO", md.language)
+        assign("Web", md.web_link)
+        assign("Format", md.format)
+        assign("Manga", md.manga)
+        assign("BlackAndWhite", "Yes" if md.black_and_white else None)
+        assign("AgeRating", md.maturity_rating)
+        assign("CommunityRating", md.critical_rating)
+        assign("ScanInformation", md.scan_info)
+
+        assign("PageCount", md.page_count)
+
+        assign("Characters", md.characters)
+        assign("Teams", md.teams)
+        assign("Locations", md.locations)
         assign("Writer", ", ".join(credit_writer_list))
         assign("Penciller", ", ".join(credit_penciller_list))
         assign("Inker", ", ".join(credit_inker_list))
@@ -236,22 +253,6 @@ class ComicRack(Metadata):
         assign("Letterer", ", ".join(credit_letterer_list))
         assign("CoverArtist", ", ".join(credit_cover_list))
         assign("Editor", ", ".join(credit_editor_list))
-
-        assign("Publisher", md.publisher)
-        assign("Imprint", md.imprint)
-        assign("Genre", md.genres)
-        assign("Web", md.web_link)
-        assign("PageCount", md.page_count)
-        assign("LanguageISO", md.language)
-        assign("Format", md.format)
-        assign("AgeRating", md.maturity_rating)
-        assign("CommunityRating", md.critical_rating)
-        assign("BlackAndWhite", "Yes" if md.black_and_white else None)
-        assign("Manga", md.manga)
-        assign("Characters", md.characters)
-        assign("Teams", md.teams)
-        assign("Locations", md.locations)
-        assign("ScanInformation", md.scan_info)
 
         #  loop and add the page entries under pages node
         pages_node = root.find("Pages")
@@ -296,38 +297,42 @@ class ComicRack(Metadata):
         md = GenericMetadata()
 
         md.series = utils.xlate(get("Series"))
-        md.title = utils.xlate(get("Title"))
         md.issue = utils.xlate(get("Number"))
         md.issue_count = utils.xlate_int(get("Count"))
+        md.title = utils.xlate(get("Title"))
         md.volume = utils.xlate_int(get("Volume"))
+        md.genres = set(utils.split(get("Genre"), ","))
+        md.description = utils.xlate(get("Summary"))
+        md.notes = utils.xlate(get("Notes"))
+
         md.alternate_series = utils.xlate(get("AlternateSeries"))
         md.alternate_number = utils.xlate(get("AlternateNumber"))
         md.alternate_count = utils.xlate_int(get("AlternateCount"))
-        md.description = utils.xlate(get("Summary"))
-        md.notes = utils.xlate(get("Notes"))
-        md.year = utils.xlate_int(get("Year"))
-        md.month = utils.xlate_int(get("Month"))
-        md.day = utils.xlate_int(get("Day"))
+        md.story_arcs = utils.split(get("StoryArc"), ",")
+        md.series_groups = utils.split(get("SeriesGroup"), ",")
+
         md.publisher = utils.xlate(get("Publisher"))
         md.imprint = utils.xlate(get("Imprint"))
-        md.genres = set(utils.split(get("Genre"), ","))
-        md.web_link = utils.xlate(get("Web"))
+        md.day = utils.xlate_int(get("Day"))
+        md.month = utils.xlate_int(get("Month"))
+        md.year = utils.xlate_int(get("Year"))
         md.language = utils.xlate(get("LanguageISO"))
+        md.web_link = utils.xlate(get("Web"))
         md.format = utils.xlate(get("Format"))
         md.manga = utils.xlate(get("Manga"))
+        md.maturity_rating = utils.xlate(get("AgeRating"))
+        md.critical_rating = utils.xlate_float(get("CommunityRating"))
+        md.scan_info = utils.xlate(get("ScanInformation"))
+
+        md.page_count = utils.xlate_int(get("PageCount"))
+
         md.characters = set(utils.split(get("Characters"), ","))
         md.teams = set(utils.split(get("Teams"), ","))
         md.locations = set(utils.split(get("Locations"), ","))
-        md.page_count = utils.xlate_int(get("PageCount"))
-        md.scan_info = utils.xlate(get("ScanInformation"))
-        md.story_arcs = utils.split(get("StoryArc"), ",")
-        md.series_groups = utils.split(get("SeriesGroup"), ",")
-        md.maturity_rating = utils.xlate(get("AgeRating"))
-        md.critical_rating = utils.xlate_float(get("CommunityRating"))
 
         tmp = utils.xlate(get("BlackAndWhite"))
-        if tmp is not None and tmp.casefold() in ["yes", "true", "1"]:
-            md.black_and_white = True
+        md.black_and_white = tmp is not None and tmp.casefold() in ["yes", "true", "1"]
+
         # Now extract the credit info
         for n in root:
             if any(

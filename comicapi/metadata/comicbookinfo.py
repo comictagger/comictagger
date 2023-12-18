@@ -21,7 +21,7 @@ from typing import Any, Literal, TypedDict
 
 from comicapi import utils
 from comicapi.archivers import Archiver
-from comicapi.genericmetadata import GenericMetadata
+from comicapi.genericmetadata import Credit, GenericMetadata
 from comicapi.metadata import Metadata
 
 logger = logging.getLogger(__name__)
@@ -46,12 +46,6 @@ _CBILiteralType = Literal[
 ]
 
 
-class _Credits(TypedDict):
-    person: str
-    role: str
-    primary: bool
-
-
 class _ComicBookInfoJson(TypedDict, total=False):
     series: str
     title: str
@@ -66,7 +60,7 @@ class _ComicBookInfoJson(TypedDict, total=False):
     genre: str
     language: str
     country: str
-    credits: list[_Credits]
+    credits: list[Credit]
     tags: list[str]
     comments: str
 
@@ -161,7 +155,7 @@ class ComicBookInfo(Metadata):
         metadata.critical_rating = utils.xlate_int(cbi.get("rating"))
 
         metadata.credits = [
-            _Credits(
+            Credit(
                 person=x["person"] if "person" in x else "",
                 role=x["role"] if "role" in x else "",
                 primary=x["primary"] if "primary" in x else False,

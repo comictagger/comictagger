@@ -165,9 +165,7 @@ class CoMet(Metadata):
                 ET.SubElement(root, comet_entry).text = str(md_entry)
 
         # title is manditory
-        if md.title is None:
-            md.title = ""
-        assign("title", md.title)
+        assign("title", md.title or "")
         assign("series", md.series)
         assign("issue", md.issue)  # must be int??
         assign("volume", md.volume)
@@ -184,10 +182,8 @@ class CoMet(Metadata):
         assign("lastMark", md.last_mark)
         assign("genre", ",".join(md.genres))  # TODO repeatable
 
-        if md.characters is not None:
-            char_list = [c.strip() for c in md.characters]
-            for c in char_list:
-                assign("character", c)
+        for c in md.characters:
+            assign("character", c.strip())
 
         if md.manga is not None and md.manga == "YesAndRightToLeft":
             assign("readingDirection", "rtl")
