@@ -104,6 +104,9 @@ class ComicBookInfo(Metadata):
             "year",
         }
 
+    def supports_credit_role(self, role: str) -> bool:
+        return True
+
     def supports_metadata(self, archive: Archiver) -> bool:
         return archive.supports_comment()
 

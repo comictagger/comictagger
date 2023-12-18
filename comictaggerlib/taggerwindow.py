@@ -1208,6 +1208,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
             for credit in credit_attributes:
                 widget_enabled = credit[0] in enabled
                 widget = self.twCredits.item(r, credit[1])
+                if credit[0] == "credits.role":
+                    widget_enabled = widget_enabled and style.supports_credit_role(str(widget.text()))
                 enable_widget(widget, widget_enabled)
 
     def update_metadata_style_tweaks(self) -> None:

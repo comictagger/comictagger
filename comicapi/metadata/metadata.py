@@ -66,6 +66,9 @@ class Metadata:
             "cover_image",
         }
 
+    def supports_credit_role(self, role: str) -> bool:
+        return False
+
     def supports_metadata(self, archive: Archiver) -> bool:
         """
         Checks the given archive for the ability to save this metadata style.

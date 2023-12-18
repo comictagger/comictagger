@@ -88,6 +88,9 @@ class ComicRack(Metadata):
             "year",
         }
 
+    def supports_credit_role(self, role: str) -> bool:
+        return role.casefold() in self._get_parseable_credits()
+
     def supports_metadata(self, archive: Archiver) -> bool:
         return True
 
@@ -122,6 +125,18 @@ class ComicRack(Metadata):
 
     def name(self) -> str:
         return "Comic Rack"
+
+    @classmethod
+    def _get_parseable_credits(cls) -> list[str]:
+        parsable_credits: list[str] = []
+        parsable_credits.extend(cls._writer_synonyms)
+        parsable_credits.extend(cls._penciller_synonyms)
+        parsable_credits.extend(cls._inker_synonyms)
+        parsable_credits.extend(cls._colorist_synonyms)
+        parsable_credits.extend(cls._letterer_synonyms)
+        parsable_credits.extend(cls._cover_synonyms)
+        parsable_credits.extend(cls._editor_synonyms)
+        return parsable_credits
 
     def _metadata_from_bytes(self, string: bytes) -> GenericMetadata:
         root = ET.fromstring(string)
