@@ -17,6 +17,7 @@
 from __future__ import annotations
 
 import dataclasses
+import functools
 import json
 import logging
 import os
@@ -68,7 +69,14 @@ class CLI:
         logger.error("Could not find the '%s' talker", self.config.Sources__source)
         raise SystemExit(2)
 
-    def output(self, *args: Any, file: TextIO | None = None, force_output: bool = False, **kwargs: Any) -> None:
+    def output(
+        self,
+        *args: Any,
+        file: TextIO | None = None,
+        force_output: bool = False,
+        already_logged: bool = False,
+        **kwargs: Any,
+    ) -> None:
         if file is None:
             file = self.output_file
         if not args:
@@ -77,7 +85,8 @@ class CLI:
             log_args = (args[0].strip("\n"), *args[1:])
         else:
             log_args = args
-        logger.info(*log_args, **kwargs)
+        if not already_logged:
+            logger.info(*log_args, **kwargs)
         if self.config.Runtime_Options__verbose > 0:
             return
         if not self.config.Runtime_Options__quiet or force_output:
@@ -487,7 +496,7 @@ class CLI:
                 # use our overlaid MD struct to search
                 ii.set_additional_metadata(md)
                 ii.only_use_additional_meta_data = True
-                # ii.set_output_function(myoutput)
+                ii.set_output_function(functools.partial(self.output, already_logged=True))
                 ii.cover_page_index = md.get_cover_page_index_list()[0]
                 matches = ii.search()
 
