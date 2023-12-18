@@ -70,6 +70,7 @@ class ImageFetcher:
         os.unlink(self.db_file)
         if os.path.isdir(self.cache_folder):
             shutil.rmtree(self.cache_folder)
+        self.cache_folder.mkdir(parents=True, exist_ok=True)
 
     def fetch(self, url: str, blocking: bool = False) -> bytes:
         """
@@ -93,7 +94,6 @@ class ImageFetcher:
                 except Exception as e:
                     logger.exception("Fetching url failed: %s")
                     raise ImageFetcherException("Network Error!") from e
-            ImageFetcher.image_fetch_complete(url, image_data)
             return image_data
 
         if self.qt_available:
@@ -130,18 +130,14 @@ class ImageFetcher:
             shutil.rmtree(self.cache_folder)
         os.makedirs(self.cache_folder)
 
-        con = lite.connect(self.db_file)
-
         # create tables
-        with con:
+        with lite.connect(self.db_file) as con:
             cur = con.cursor()
 
             cur.execute("CREATE TABLE Images(url TEXT,filename TEXT,timestamp TEXT,PRIMARY KEY (url))")
 
     def add_image_to_cache(self, url: str, image_data: bytes | QtCore.QByteArray) -> None:
-        con = lite.connect(self.db_file)
-
-        with con:
+        with lite.connect(self.db_file) as con:
             cur = con.cursor()
 
             timestamp = datetime.datetime.now()
@@ -153,8 +149,7 @@ class ImageFetcher:
             cur.execute("INSERT or REPLACE INTO Images VALUES(?, ?, ?)", (url, filename, timestamp))
 
     def get_image_from_cache(self, url: str) -> bytes:
-        con = lite.connect(self.db_file)
-        with con:
+        with lite.connect(self.db_file) as con:
             cur = con.cursor()
 
             cur.execute("SELECT filename FROM Images WHERE url=?", [url])

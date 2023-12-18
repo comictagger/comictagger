@@ -20,6 +20,7 @@ import logging
 import os
 import pathlib
 import platform
+import shutil
 from typing import Any, cast
 
 import settngs
@@ -30,11 +31,8 @@ from comicapi import utils
 from comicapi.genericmetadata import md_test
 from comictaggerlib import ctsettings
 from comictaggerlib.ctsettings import ct_ns
-from comictaggerlib.ctversion import version
 from comictaggerlib.filerenamer import FileRenamer, Replacement, Replacements
-from comictaggerlib.imagefetcher import ImageFetcher
 from comictaggerlib.ui import ui_path
-from comictalker.comiccacher import ComicCacher
 from comictalker.comictalker import ComicTalker
 
 logger = logging.getLogger(__name__)
@@ -552,8 +550,8 @@ class SettingsWindow(QtWidgets.QDialog):
         self.select_file(self.leRarExePath, "RAR")
 
     def clear_cache(self) -> None:
-        ImageFetcher(self.config[0].Runtime_Options__config.user_cache_dir).clear_cache()
-        ComicCacher(self.config[0].Runtime_Options__config.user_cache_dir, version).clear_cache()
+        shutil.rmtree(self.config[0].Runtime_Options__config.user_cache_dir, ignore_errors=True)
+        self.config[0].Runtime_Options__config.user_cache_dir.mkdir(parents=True, exist_ok=True)
         QtWidgets.QMessageBox.information(self, self.name, "Cache has been cleared.")
 
     def reset_settings(self) -> None:
