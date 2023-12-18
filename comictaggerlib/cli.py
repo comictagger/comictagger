@@ -68,7 +68,7 @@ class CLI:
         logger.error("Could not find the '%s' talker", self.config.Sources__source)
         raise SystemExit(2)
 
-    def output(self, *args: Any, file: TextIO | None = None, **kwargs: Any) -> None:
+    def output(self, *args: Any, file: TextIO | None = None, force_output: bool = False, **kwargs: Any) -> None:
         if file is None:
             file = self.output_file
         if not args:
@@ -80,7 +80,7 @@ class CLI:
         logger.info(*log_args, **kwargs)
         if self.config.Runtime_Options__verbose > 0:
             return
-        if not self.config.Runtime_Options__quiet:
+        if not self.config.Runtime_Options__quiet or force_output:
             print(*args, **kwargs, file=file)
 
     def run(self) -> None:
@@ -137,7 +137,7 @@ class CLI:
         return True
 
     def display_match_set_for_choice(self, label: str, match_set: Result) -> None:
-        self.output(f"{match_set.original_path} -- {label}:")
+        self.output(f"{match_set.original_path} -- {label}:", force_output=True)
 
         # sort match list by year
         match_set.online_results.sort(key=lambda k: k.year or 0)
@@ -152,7 +152,8 @@ class CLI:
                     m.month,
                     m.year,
                     m.issue_title,
-                )
+                ),
+                force_output=True,
             )
         if self.config.Runtime_Options__interactive:
             while True:

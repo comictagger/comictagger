@@ -113,7 +113,7 @@ def register_runtime(parser: settngs.Manager) -> None:
         "-i",
         "--interactive",
         action="store_true",
-        help="""Interactively query the user when there are\nmultiple matches for an online search.\n\n""",
+        help="""Interactively query the user when there are\nmultiple matches for an online search. Disabled json output\n\n""",
         file=False,
     )
     parser.add_setting(
@@ -160,7 +160,9 @@ def register_runtime(parser: settngs.Manager) -> None:
     parser.add_setting("--darkmode", action="store_true", help="Windows only. Force a dark pallet", file=False)
     parser.add_setting("-g", "--glob", action="store_true", help="Windows only. Enable globbing", file=False)
     parser.add_setting("--quiet", "-q", action="store_true", help="Don't say much (for print mode).", file=False)
-    parser.add_setting("--json", "-j", action="store_true", help="Output json on stdout", file=False)
+    parser.add_setting(
+        "--json", "-j", action="store_true", help="Output json on stdout. Ignored in interactive mode.", file=False
+    )
 
     parser.add_setting(
         "-t",
@@ -282,6 +284,9 @@ def validate_commandline_settings(config: settngs.Config[ct_ns], parser: settngs
         config[0].Runtime_Options__files = []
         for item in globs:
             config[0].Runtime_Options__files.extend(glob.glob(item))
+
+    if config[0].Runtime_Options__json and config[0].Runtime_Options__interactive:
+        config[0].Runtime_Options__json = False
 
     if (
         config[0].Commands__command != Action.save_config
