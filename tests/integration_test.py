@@ -85,9 +85,8 @@ def test_delete(
     # Read the CBZ
     md = tmp_comic.read_metadata("cr")
 
-    # Currently we set the default page list on load
+    # The default page list is set on load if the comic has the requested metadata style
     empty_md = comicapi.genericmetadata.GenericMetadata()
-    empty_md.apply_default_page_list(tmp_comic.get_page_name_list())
 
     # Validate that we got an empty metadata back
     assert md == empty_md

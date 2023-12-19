@@ -167,8 +167,10 @@ class ComicArchive:
     def read_metadata(self, style: str) -> GenericMetadata:
         if style in self.md:
             return self.md[style]
-        md = metadata_styles[style].get_metadata(self.archiver)
-        md.apply_default_page_list(self.get_page_name_list())
+        md = GenericMetadata()
+        if metadata_styles[style].has_metadata(self.archiver):
+            md = metadata_styles[style].get_metadata(self.archiver)
+            md.apply_default_page_list(self.get_page_name_list())
         return md
 
     def read_metadata_string(self, style: str) -> str:
