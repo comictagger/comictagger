@@ -108,6 +108,13 @@
          </property>
         </widget>
        </item>
+       <item row="0" column="3">
+        <widget class="QPushButton" name="btnAutoDouble">
+         <property name="text">
+          <string>Auto-Detect Double Pages</string>
+         </property>
+        </widget>
+       </item>
       </layout>
      </item>
      <item>
