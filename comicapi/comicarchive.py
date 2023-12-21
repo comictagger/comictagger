@@ -21,7 +21,6 @@ import pathlib
 import shutil
 import sys
 import traceback
-from typing import cast
 
 from comicapi import utils
 from comicapi.archivers import Archiver, UnknownArchiver, ZipArchiver
@@ -179,6 +178,7 @@ class ComicArchive:
     def write_metadata(self, metadata: GenericMetadata, style: str) -> bool:
         if style in self.md:
             del self.md[style]
+        metadata.apply_default_page_list(self.get_page_name_list())
         return metadata_styles[style].set_metadata(metadata, self.archiver)
 
     def has_metadata(self, style: str) -> bool:
@@ -270,19 +270,7 @@ class ComicArchive:
 
     def get_page_name_list(self) -> list[str]:
         if not self.page_list:
-            # get the list file names in the archive, and sort
-            files: list[str] = self.archiver.get_filename_list()
-
-            files = cast(list[str], utils.os_sorted(files))
-
-            # make a sub-list of image files
-            self.page_list = []
-            for name in files:
-                if (
-                    os.path.splitext(name)[1].casefold() in [".jpg", ".jpeg", ".png", ".gif", ".webp"]
-                    and os.path.basename(name)[0] != "."
-                ):
-                    self.page_list.append(name)
+            self.page_list = utils.get_page_name_list(self.archiver.get_filename_list())
 
         return self.page_list
 

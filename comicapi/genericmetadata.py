@@ -289,6 +289,7 @@ class GenericMetadata:
 
     def apply_default_page_list(self, page_list: Sequence[str]) -> None:
         # generate a default page list, with the first page marked as the cover
+
         # Create a dictionary of all pages in the metadata
         pages = {p["image_index"]: p for p in self.pages}
         cover_set = False
