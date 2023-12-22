@@ -203,7 +203,7 @@ def get_page_name_list(files: list[str]) -> list[str]:
     page_list = []
     for name in files:
         if (
-            os.path.splitext(name)[1].casefold() in [".jpg", ".jpeg", ".png", ".gif", ".webp"]
+            os.path.splitext(name)[1].casefold() in [".jpg", ".jpeg", ".png", ".gif", ".webp", ".avif"]
             and os.path.basename(name)[0] != "."
         ):
             page_list.append(name)
