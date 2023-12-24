@@ -49,7 +49,7 @@ def load_archive_plugins() -> None:
                 else:
                     archivers.append(archiver)
             except Exception:
-                logger.warning("Failed to load talker: %s", arch.name)
+                logger.exception("Failed to load archive plugin: %s", arch.name)
         archivers.extend(builtin)
 
 
@@ -68,9 +68,17 @@ def load_metadata_plugins(version: str = f"ComicAPI/{version}") -> None:
                     if arch.module.startswith("comicapi"):
                         builtin[style.short_name] = style(version)
                     else:
+                        if style.short_name in styles:
+                            logger.warning(
+                                "Plugin %s is overriding the existing metadata plugin for %s tags",
+                                arch.module,
+                                style.short_name,
+                            )
                         styles[style.short_name] = style(version)
             except Exception:
                 logger.exception("Failed to load metadata plugin: %s", arch.name)
+        for style_name in set(builtin.keys()).intersection(styles):
+            logger.warning("Builtin metadata for %s tags are being overridden by a plugin", style_name)
         metadata_styles.clear()
         metadata_styles.update(builtin)
         metadata_styles.update(styles)
