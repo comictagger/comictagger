@@ -121,7 +121,8 @@ class CoMet(Metadata):
             success = True
             if self.file != self.comet_filename:
                 success = self.remove_metadata(archive)
-            return archive.write_file(self.comet_filename, self._bytes_from_metadata(metadata)) and success
+            xml = self._bytes_from_metadata(metadata, archive.read_file(self.comet_filename))
+            return success and archive.write_file(self.comet_filename, xml)
         else:
             logger.warning(f"Archive ({archive.name()}) does not support {self.name()} metadata")
         return False
@@ -145,19 +146,22 @@ class CoMet(Metadata):
         tree = ET.ElementTree(ET.fromstring(string))
         return self._convert_xml_to_metadata(tree, archive)
 
-    def _bytes_from_metadata(self, metadata: GenericMetadata) -> bytes:
-        tree = self._convert_metadata_to_xml(metadata)
+    def _bytes_from_metadata(self, metadata: GenericMetadata, xml: bytes = b"") -> bytes:
+        tree = self._convert_metadata_to_xml(metadata, xml)
         return ET.tostring(tree.getroot(), encoding="utf-8", xml_declaration=True)
 
-    def _convert_metadata_to_xml(self, metadata: GenericMetadata) -> ET.ElementTree:
+    def _convert_metadata_to_xml(self, metadata: GenericMetadata, xml: bytes = b"") -> ET.ElementTree:
         # shorthand for the metadata
         md = metadata
 
-        # build a tree structure
-        root = ET.Element("comet")
-        root.attrib["xmlns:comet"] = "http://www.denvog.com/comet/"
-        root.attrib["xmlns:xsi"] = "http://www.w3.org/2001/XMLSchema-instance"
-        root.attrib["xsi:schemaLocation"] = "http://www.denvog.com http://www.denvog.com/comet/comet.xsd"
+        if xml:
+            root = ET.fromstring(xml)
+        else:
+            # build a tree structure
+            root = ET.Element("comet")
+            root.attrib["xmlns:comet"] = "http://www.denvog.com/comet/"
+            root.attrib["xmlns:xsi"] = "http://www.w3.org/2001/XMLSchema-instance"
+            root.attrib["xsi:schemaLocation"] = "http://www.denvog.com http://www.denvog.com/comet/comet.xsd"
 
         # helper func
         def assign(comet_entry: str, md_entry: Any) -> None:
