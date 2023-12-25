@@ -118,7 +118,10 @@ class ComicRack(Metadata):
 
     def set_metadata(self, metadata: GenericMetadata, archive: Archiver) -> bool:
         if self.supports_metadata(archive):
-            return archive.write_file(self.file, self._bytes_from_metadata(metadata, archive.read_file(self.file)))
+            xml = b""
+            if self.has_metadata(archive):
+                xml = archive.read_file(self.file)
+            return archive.write_file(self.file, self._bytes_from_metadata(metadata, xml))
         else:
             logger.warning(f"Archive ({archive.name()}) does not support {self.name()} metadata")
         return False

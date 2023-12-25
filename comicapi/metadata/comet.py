@@ -119,10 +119,13 @@ class CoMet(Metadata):
     def set_metadata(self, metadata: GenericMetadata, archive: Archiver) -> bool:
         if self.supports_metadata(archive):
             success = True
+            xml = b""
+            if self.has_metadata(archive):
+                xml = archive.read_file(self.file)
             if self.file != self.comet_filename:
                 success = self.remove_metadata(archive)
-            xml = self._bytes_from_metadata(metadata, archive.read_file(self.comet_filename))
-            return success and archive.write_file(self.comet_filename, xml)
+
+            return success and archive.write_file(self.comet_filename, self._bytes_from_metadata(metadata, xml))
         else:
             logger.warning(f"Archive ({archive.name()}) does not support {self.name()} metadata")
         return False
