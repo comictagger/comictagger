@@ -81,6 +81,14 @@ class Archiver(Protocol):
         """
         return []
 
+    def supports_files(self) -> bool:
+        """
+        Returns True if the current archive supports arbitrary non-picture files.
+        Should always return a boolean.
+        If arbitrary non-picture files are not supported in the archive False should be returned.
+        """
+        return False
+
     def copy_from_archive(self, other_archive: Archiver) -> bool:
         """
         Copies the contents of another achive to the current archive.

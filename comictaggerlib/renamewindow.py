@@ -21,7 +21,7 @@ import settngs
 from PyQt5 import QtCore, QtWidgets, uic
 
 from comicapi import utils
-from comicapi.comicarchive import ComicArchive, MetaDataStyle
+from comicapi.comicarchive import ComicArchive, metadata_styles
 from comicapi.genericmetadata import GenericMetadata
 from comictaggerlib.ctsettings import ct_ns
 from comictaggerlib.filerenamer import FileRenamer, get_rename_dir
@@ -38,7 +38,7 @@ class RenameWindow(QtWidgets.QDialog):
         self,
         parent: QtWidgets.QWidget,
         comic_archive_list: list[ComicArchive],
-        data_style: int,
+        data_style: str,
         config: settngs.Config[ct_ns],
         talkers: dict[str, ComicTalker],
     ) -> None:
@@ -46,7 +46,8 @@ class RenameWindow(QtWidgets.QDialog):
 
         with (ui_path / "renamewindow.ui").open(encoding="utf-8") as uifile:
             uic.loadUi(uifile, self)
-        self.label.setText(f"Preview (based on {MetaDataStyle.name[data_style]} tags):")
+
+        self.label.setText(f"Preview (based on {metadata_styles[data_style].name()} tags):")
 
         self.setWindowFlags(
             QtCore.Qt.WindowType(

@@ -50,21 +50,10 @@
      </column>
      <column>
       <property name="text">
-       <string>CR</string>
+       <string>MD</string>
       </property>
       <property name="toolTip">
-       <string>Has ComicRack Tags</string>
-      </property>
-      <property name="textAlignment">
-       <set>AlignCenter</set>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>CBL</string>
-      </property>
-      <property name="toolTip">
-       <string>Has ComicBookLover Tags</string>
+       <string>Metadata</string>
       </property>
       <property name="textAlignment">
        <set>AlignCenter</set>

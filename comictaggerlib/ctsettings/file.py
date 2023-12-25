@@ -12,13 +12,19 @@ from comictaggerlib.defaults import DEFAULT_REPLACEMENTS, Replacement, Replaceme
 def general(parser: settngs.Manager) -> None:
     # General Settings
     parser.add_setting("check_for_new_version", default=False, cmdline=False)
+    parser.add_setting(
+        "--disable-cr",
+        default=False,
+        action=argparse.BooleanOptionalAction,
+        help="Disable the ComicRack metadata type",
+    )
 
 
 def internal(parser: settngs.Manager) -> None:
     # automatic settings
     parser.add_setting("install_id", default=uuid.uuid4().hex, cmdline=False)
-    parser.add_setting("save_data_style", default=0, cmdline=False)
-    parser.add_setting("load_data_style", default=0, cmdline=False)
+    parser.add_setting("save_data_style", default="cbi", cmdline=False)
+    parser.add_setting("load_data_style", default="cbi", cmdline=False)
     parser.add_setting("last_opened_folder", default="", cmdline=False)
     parser.add_setting("window_width", default=0, cmdline=False)
     parser.add_setting("window_height", default=0, cmdline=False)
@@ -212,7 +218,6 @@ def autotag(parser: settngs.Manager) -> None:
     parser.add_setting(
         "-1",
         "--assume-issue-one",
-        dest="assume_1_if_no_issue_num",
         action=argparse.BooleanOptionalAction,
         help="Assume issue number is 1 if not found (relevant for -s).\n\n",
         default=False,

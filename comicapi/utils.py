@@ -23,7 +23,7 @@ import unicodedata
 from collections import defaultdict
 from collections.abc import Iterable, Mapping
 from shutil import which  # noqa: F401
-from typing import Any, TypeVar
+from typing import Any, TypeVar, cast
 
 import comicapi.data
 from comicapi import filenamelexer, filenameparser
@@ -193,6 +193,21 @@ def path_to_short_str(original_path: pathlib.Path, renamed_path: pathlib.Path | 
         path_str += rename_str
 
     return path_str
+
+
+def get_page_name_list(files: list[str]) -> list[str]:
+    # get the list file names in the archive, and sort
+    files = cast(list[str], os_sorted(files))
+
+    # make a sub-list of image files
+    page_list = []
+    for name in files:
+        if (
+            os.path.splitext(name)[1].casefold() in [".jpg", ".jpeg", ".png", ".gif", ".webp"]
+            and os.path.basename(name)[0] != "."
+        ):
+            page_list.append(name)
+    return page_list
 
 
 def get_recursive_filelist(pathlist: list[str]) -> list[str]:

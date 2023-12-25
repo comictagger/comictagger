@@ -23,6 +23,9 @@ class ZipArchiver(Archiver):
     def __init__(self) -> None:
         super().__init__()
 
+    def supports_comment(self) -> bool:
+        return True
+
     def get_comment(self) -> str:
         with zipfile.ZipFile(self.path, "r") as zf:
             encoding = chardet.detect(zf.comment, True)
@@ -78,6 +81,9 @@ class ZipArchiver(Archiver):
         except (zipfile.BadZipfile, OSError) as e:
             logger.error("Error listing files in zip archive [%s]: %s", e, self.path)
             return []
+
+    def supports_files(self) -> bool:
+        return True
 
     def rebuild(self, exclude_list: list[str]) -> bool:
         """Zip helper func

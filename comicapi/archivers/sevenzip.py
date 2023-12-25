@@ -75,6 +75,9 @@ class SevenZipArchiver(Archiver):
             logger.error("Error listing files in 7zip archive [%s]: %s", e, self.path)
             return []
 
+    def supports_files(self) -> bool:
+        return True
+
     def rebuild(self, exclude_list: list[str]) -> bool:
         """Zip helper func
 

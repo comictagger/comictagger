@@ -23,6 +23,7 @@ import platform
 import settngs
 
 from comicapi import utils
+from comicapi.comicarchive import metadata_styles
 from comicapi.genericmetadata import GenericMetadata
 from comictaggerlib import ctversion
 from comictaggerlib.ctsettings.settngs_namespace import settngs_namespace as ct_ns
@@ -167,7 +168,7 @@ def register_runtime(parser: settngs.Manager) -> None:
     parser.add_setting(
         "-t",
         "--type",
-        metavar="{CR,CBL,COMET}",
+        metavar=f"{{{','.join(metadata_styles).upper()}}}",
         default=[],
         type=metadata_type,
         help="""Specify TYPE as either CR, CBL or COMET\n(as either ComicRack, ComicBookLover,\nor CoMet style tags, respectively).\nUse commas for multiple types.\nFor searching the metadata will use the first listed:\neg '-t cbl,cr' with no CBL tags, CR will be used if they exist\n\n""",
@@ -210,7 +211,7 @@ def register_commands(parser: settngs.Manager) -> None:
         "-c",
         "--copy",
         type=metadata_type_single,
-        metavar="{CR,CBL,COMET}",
+        metavar=f"{{{','.join(metadata_styles).upper()}}}",
         help="Copy the specified source tag block to\ndestination style specified via -t\n(potentially lossy operation).\n\n",
         file=False,
     )

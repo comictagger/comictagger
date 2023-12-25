@@ -21,7 +21,7 @@ from typing import Callable
 
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
-from comicapi.comicarchive import ComicArchive, MetaDataStyle
+from comicapi.comicarchive import ComicArchive, metadata_styles
 from comicapi.genericmetadata import GenericMetadata
 from comictaggerlib.coverimagewidget import CoverImageWidget
 from comictaggerlib.ctsettings import ct_ns
@@ -38,7 +38,7 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
         self,
         parent: QtWidgets.QWidget,
         match_set_list: list[Result],
-        style: int,
+        style: str,
         fetch_func: Callable[[IssueResult], GenericMetadata],
         config: ct_ns,
         talker: ComicTalker,
@@ -247,7 +247,7 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
         QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
         md.overlay(ct_md)
         success = ca.write_metadata(md, self._style)
-        ca.load_cache([MetaDataStyle.CBI, MetaDataStyle.CIX])
+        ca.load_cache(list(metadata_styles))
 
         QtWidgets.QApplication.restoreOverrideCursor()
 

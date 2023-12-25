@@ -17,12 +17,13 @@ from __future__ import annotations
 
 import logging
 
-from PyQt5 import QtCore, QtGui, QtWidgets, uic
+from PyQt5 import QtCore, QtWidgets, uic
 
-from comicapi.comicarchive import ComicArchive, MetaDataStyle
+from comicapi.comicarchive import ComicArchive, metadata_styles
 from comicapi.genericmetadata import ImageMetadata, PageType
 from comictaggerlib.coverimagewidget import CoverImageWidget
 from comictaggerlib.ui import ui_path
+from comictaggerlib.ui.qtutils import enable_widget
 
 logger = logging.getLogger(__name__)
 
@@ -71,6 +72,14 @@ class PageListEditor(QtWidgets.QWidget):
         with (ui_path / "pagelisteditor.ui").open(encoding="utf-8") as uifile:
             uic.loadUi(uifile, self)
 
+        self.md_attributes = {
+            "pages.image_index": [self.btnDown, self.btnUp],
+            "pages.type": self.cbPageType,
+            "pages.double_page": self.chkDoublePage,
+            "pages.bookmark": self.leBookmark,
+            "pages": self,
+        }
+
         self.pageWidget = CoverImageWidget(self.pageContainer, CoverImageWidget.ArchiveMode, None, None)
         gridlayout = QtWidgets.QGridLayout(self.pageContainer)
         gridlayout.addWidget(self.pageWidget)
@@ -105,12 +114,14 @@ class PageListEditor(QtWidgets.QWidget):
 
         self.comic_archive: ComicArchive | None = None
         self.pages_list: list[ImageMetadata] = []
+        self.data_style = ""
 
     def reset_page(self) -> None:
         self.pageWidget.clear()
-        self.cbPageType.setDisabled(True)
-        self.chkDoublePage.setDisabled(True)
-        self.leBookmark.setDisabled(True)
+        self.cbPageType.setEnabled(False)
+        self.chkDoublePage.setEnabled(False)
+        self.leBookmark.setEnabled(False)
+        self.listWidget.clear()
         self.comic_archive = None
         self.pages_list = []
 
@@ -220,14 +231,14 @@ class PageListEditor(QtWidgets.QWidget):
         i = self.cbPageType.findData(pagetype)
         self.cbPageType.setCurrentIndex(i)
 
-        self.chkDoublePage.setChecked("DoublePage" in self.listWidget.item(row).data(QtCore.Qt.UserRole)[0])
+        self.chkDoublePage.setChecked("double_page" in self.listWidget.item(row).data(QtCore.Qt.UserRole)[0])
 
-        if "Bookmark" in self.listWidget.item(row).data(QtCore.Qt.UserRole)[0]:
-            self.leBookmark.setText(self.listWidget.item(row).data(QtCore.Qt.UserRole)[0]["Bookmark"])
+        if "bookmark" in self.listWidget.item(row).data(QtCore.Qt.UserRole)[0]:
+            self.leBookmark.setText(self.listWidget.item(row).data(QtCore.Qt.UserRole)[0]["bookmark"])
         else:
             self.leBookmark.setText("")
 
-        idx = int(self.listWidget.item(row).data(QtCore.Qt.ItemDataRole.UserRole)[0]["Image"])
+        idx = int(self.listWidget.item(row).data(QtCore.Qt.ItemDataRole.UserRole)[0]["image_index"])
 
         if self.comic_archive is not None:
             self.pageWidget.set_archive(self.comic_archive, idx)
@@ -237,16 +248,16 @@ class PageListEditor(QtWidgets.QWidget):
         for i in range(self.listWidget.count()):
             item = self.listWidget.item(i)
             page_dict: ImageMetadata = item.data(QtCore.Qt.ItemDataRole.UserRole)[0]
-            if "Type" in page_dict and page_dict["Type"] == PageType.FrontCover:
-                front_cover = int(page_dict["Image"])
+            if "type" in page_dict and page_dict["type"] == PageType.FrontCover:
+                front_cover = int(page_dict["image_index"])
                 break
         return front_cover
 
     def get_current_page_type(self) -> str:
         row = self.listWidget.currentRow()
         page_dict: ImageMetadata = self.listWidget.item(row).data(QtCore.Qt.ItemDataRole.UserRole)[0]
-        if "Type" in page_dict:
-            return page_dict["Type"]
+        if "type" in page_dict:
+            return page_dict["type"]
 
         return ""
 
@@ -255,10 +266,10 @@ class PageListEditor(QtWidgets.QWidget):
         page_dict: ImageMetadata = self.listWidget.item(row).data(QtCore.Qt.ItemDataRole.UserRole)[0]
 
         if t == "":
-            if "Type" in page_dict:
-                del page_dict["Type"]
+            if "type" in page_dict:
+                del page_dict["type"]
         else:
-            page_dict["Type"] = t
+            page_dict["type"] = t
 
         item = self.listWidget.item(row)
         # wrap the dict in a tuple to keep from being converted to QtWidgets.QStrings
@@ -272,11 +283,11 @@ class PageListEditor(QtWidgets.QWidget):
         cbx = self.sender()
 
         if isinstance(cbx, QtWidgets.QCheckBox) and cbx.isChecked():
-            if "DoublePage" not in page_dict:
-                page_dict["DoublePage"] = True
+            if "double_page" not in page_dict:
+                page_dict["double_page"] = True
                 self.modified.emit()
-        elif "DoublePage" in page_dict:
-            del page_dict["DoublePage"]
+        elif "double_page" in page_dict:
+            del page_dict["double_page"]
             self.modified.emit()
 
         item = self.listWidget.item(row)
@@ -291,16 +302,16 @@ class PageListEditor(QtWidgets.QWidget):
         page_dict: ImageMetadata = self.listWidget.item(row).data(QtCore.Qt.UserRole)[0]
 
         current_bookmark = ""
-        if "Bookmark" in page_dict:
-            current_bookmark = page_dict["Bookmark"]
+        if "bookmark" in page_dict:
+            current_bookmark = page_dict["bookmark"]
 
         if self.leBookmark.text().strip():
             new_bookmark = str(self.leBookmark.text().strip())
             if current_bookmark != new_bookmark:
-                page_dict["Bookmark"] = new_bookmark
+                page_dict["bookmark"] = new_bookmark
                 self.modified.emit()
         elif current_bookmark != "":
-            del page_dict["Bookmark"]
+            del page_dict["bookmark"]
             self.modified.emit()
 
         item = self.listWidget.item(row)
@@ -313,10 +324,12 @@ class PageListEditor(QtWidgets.QWidget):
     def set_data(self, comic_archive: ComicArchive, pages_list: list[ImageMetadata]) -> None:
         self.comic_archive = comic_archive
         self.pages_list = pages_list
-        if pages_list is not None and len(pages_list) > 0:
-            self.cbPageType.setDisabled(False)
-            self.chkDoublePage.setDisabled(False)
-            self.leBookmark.setDisabled(False)
+        if pages_list:
+            self.set_metadata_style(self.data_style)
+        else:
+            self.cbPageType.setEnabled(False)
+            self.chkDoublePage.setEnabled(False)
+            self.leBookmark.setEnabled(False)
 
         self.listWidget.itemSelectionChanged.disconnect(self.change_page)
 
@@ -332,15 +345,15 @@ class PageListEditor(QtWidgets.QWidget):
         self.listWidget.setCurrentRow(0)
 
     def list_entry_text(self, page_dict: ImageMetadata) -> str:
-        text = str(int(page_dict["Image"]) + 1)
-        if "Type" in page_dict:
-            if page_dict["Type"] in self.pageTypeNames:
-                text += " (" + self.pageTypeNames[page_dict["Type"]] + ")"
+        text = str(int(page_dict["image_index"]) + 1)
+        if "type" in page_dict:
+            if page_dict["type"] in self.pageTypeNames:
+                text += " (" + self.pageTypeNames[page_dict["type"]] + ")"
             else:
-                text += " (Error: " + page_dict["Type"] + ")"
-        if "DoublePage" in page_dict:
+                text += " (Error: " + page_dict["type"] + ")"
+        if "double_page" in page_dict:
             text += " ②"
-        if "Bookmark" in page_dict:
+        if "bookmark" in page_dict:
             text += " 🔖"
         return text
 
@@ -356,42 +369,11 @@ class PageListEditor(QtWidgets.QWidget):
             self.first_front_page = self.get_first_front_cover()
             self.firstFrontCoverChanged.emit(self.first_front_page)
 
-    def set_metadata_style(self, data_style: int) -> None:
+    def set_metadata_style(self, data_style: str) -> None:
         # depending on the current data style, certain fields are disabled
+        if data_style:
+            self.metadata_style = data_style
 
-        inactive_color = QtGui.QColor(255, 170, 150)
-        active_palette = self.cbPageType.palette()
-
-        inactive_palette3 = self.cbPageType.palette()
-        inactive_palette3.setColor(QtGui.QPalette.ColorRole.Base, inactive_color)
-
-        if data_style == MetaDataStyle.CIX:
-            self.btnUp.setEnabled(True)
-            self.btnDown.setEnabled(True)
-            self.cbPageType.setEnabled(True)
-            self.chkDoublePage.setEnabled(True)
-            self.leBookmark.setEnabled(True)
-            self.listWidget.setEnabled(True)
-
-            self.leBookmark.setPalette(active_palette)
-            self.listWidget.setPalette(active_palette)
-
-        elif data_style == MetaDataStyle.CBI:
-            self.btnUp.setEnabled(False)
-            self.btnDown.setEnabled(False)
-            self.cbPageType.setEnabled(False)
-            self.chkDoublePage.setEnabled(False)
-            self.leBookmark.setEnabled(False)
-            self.listWidget.setEnabled(False)
-
-            self.leBookmark.setPalette(inactive_palette3)
-            self.listWidget.setPalette(inactive_palette3)
-
-        elif data_style == MetaDataStyle.COMET:
-            pass
-
-        # make sure combo is disabled when no list
-        if self.comic_archive is None:
-            self.cbPageType.setEnabled(False)
-            self.chkDoublePage.setEnabled(False)
-            self.leBookmark.setEnabled(False)
+            enabled_widgets = metadata_styles[data_style].supported_attributes
+            for metadata, widget in self.md_attributes.items():
+                enable_widget(widget, metadata in enabled_widgets)

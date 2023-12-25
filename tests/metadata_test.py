@@ -1,64 +1,40 @@
 from __future__ import annotations
 
-import comicapi.comicbookinfo
-import comicapi.comicinfoxml
+import pytest
+from importlib_metadata import entry_points
+
 import comicapi.genericmetadata
 
+metadata_styles = []
 
-def test_cix(md_saved):
-    CIX = comicapi.comicinfoxml.ComicInfoXml()
-    string = CIX.string_from_metadata(comicapi.genericmetadata.md_test)
-    md = CIX.metadata_from_string(string)
-    assert md == md_saved
-
-
-def test_cbi(md_saved):
-    CBI = comicapi.comicbookinfo.ComicBookInfo()
-    string = CBI.string_from_metadata(comicapi.genericmetadata.md_test)
-    md = CBI.metadata_from_string(string)
-    md_test = md_saved.replace(
-        day=None,
-        page_count=None,
-        maturity_rating=None,
-        story_arcs=[],
-        series_groups=[],
-        scan_info=None,
-        characters=set(),
-        teams=set(),
-        locations=set(),
-        pages=[],
-        alternate_series=None,
-        alternate_number=None,
-        alternate_count=None,
-        imprint=None,
-        notes=None,
-        web_link=None,
-        format=None,
-        manga=None,
+for x in entry_points(group="comicapi.metadata"):
+    meetadata = x.load()
+    supported = meetadata.enabled
+    exe_found = True
+    metadata_styles.append(
+        pytest.param(meetadata, marks=pytest.mark.xfail(not supported, reason="metadata not enabled"))
     )
-    assert md == md_test
 
 
-def test_comet(md_saved):
-    CBI = comicapi.comet.CoMet()
-    string = CBI.string_from_metadata(comicapi.genericmetadata.md_test)
-    md = CBI.metadata_from_string(string)
-    md_test = md_saved.replace(
-        day=None,
-        story_arcs=[],
-        series_groups=[],
-        scan_info=None,
-        teams=set(),
-        locations=set(),
-        pages=[],
-        alternate_series=None,
-        alternate_number=None,
-        alternate_count=None,
-        imprint=None,
-        notes=None,
-        web_link=None,
-        manga=None,
-        critical_rating=None,
-        issue_count=None,
-    )
-    assert md == md_test
+@pytest.mark.parametrize("metadata", metadata_styles)
+def test_metadata(mock_version, tmp_comic, md_saved, metadata):
+    md_style = metadata(mock_version[0])
+    supported_attributes = md_style.supported_attributes
+    md_style.set_metadata(comicapi.genericmetadata.md_test, tmp_comic.archiver)
+    written_metadata = md_style.get_metadata(tmp_comic.archiver)
+    md = md_saved.get_clean_metadata(*supported_attributes)
+
+    # Hack back in the pages variable because CoMet supports identifying the cover by the filename
+    if md_style.short_name == "comet":
+        md.pages = [
+            comicapi.genericmetadata.ImageMetadata(
+                image_index=0, filename="!cover.jpg", type=comicapi.genericmetadata.PageType.FrontCover
+            )
+        ]
+        written_metadata = written_metadata.get_clean_metadata(*supported_attributes).replace(
+            pages=written_metadata.pages
+        )
+    else:
+        written_metadata = written_metadata.get_clean_metadata(*supported_attributes)
+
+    assert written_metadata == md
