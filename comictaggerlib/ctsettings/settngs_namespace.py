@@ -102,6 +102,8 @@ class settngs_namespace(settngs.TypedNS):
     Dialog_Flags__dont_notify_about_this_version: str
     Dialog_Flags__ask_about_usage_stats: bool
 
+    Archive__rar: str
+
     Source_comicvine__comicvine_key: str
     Source_comicvine__comicvine_url: str
     Source_comicvine__cv_use_series_start_as_volume: bool
