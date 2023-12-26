@@ -43,7 +43,7 @@ def addToTar(tf: tarfile.TarFile, path: str, zippath: str) -> None:
 
 def Tar(tar_file: pathlib.Path, path: pathlib.Path) -> None:
     tar_file.unlink(missing_ok=True)
-    with tarfile.TarFile(f"{tar_file}.tar.gz", "w:gz") as tf:  # type: ignore[arg-type]
+    with tarfile.open(f"{tar_file}.tar.gz", "w:gz") as tf:
         zippath = os.path.basename(path)
         if not zippath:
             zippath = os.path.basename(os.path.dirname(path))
