@@ -254,7 +254,9 @@ class CLI:
                 self.config.Filename_Parsing__remove_c2c,
                 self.config.Filename_Parsing__remove_fcbd,
                 self.config.Filename_Parsing__remove_publisher,
-                self.config.Runtime_Options__split_words,
+                self.config.Filename_Parsing__split_words,
+                self.config.Filename_Parsing__allow_issue_start_with_letter,
+                self.config.Filename_Parsing__protofolius_issue_number_scheme,
             )
 
             md.overlay(f_md)

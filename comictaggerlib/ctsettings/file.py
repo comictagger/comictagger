@@ -120,6 +120,12 @@ def filename(parser: settngs.Manager) -> None:
         help="Attempts to remove publisher names from filenames, currently limited to Marvel and DC. Requires --complicated-parser",
     )
     parser.add_setting(
+        "--split-words",
+        action="store_true",
+        help="""Splits words before parsing the filename.\ne.g. 'judgedredd' to 'judge dredd'\n\n""",
+        file=False,
+    )
+    parser.add_setting(
         "--protofolius-issue-number-scheme",
         default=False,
         action=argparse.BooleanOptionalAction,

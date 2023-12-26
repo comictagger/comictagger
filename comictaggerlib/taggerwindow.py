@@ -682,12 +682,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
     def update_ui_for_archive(self, parse_filename: bool = True) -> None:
         if self.comic_archive is not None:
             if self.metadata.is_empty and parse_filename:
-                self.metadata = self.comic_archive.metadata_from_filename(
-                    self.config[0].Filename_Parsing__complicated_parser,
-                    self.config[0].Filename_Parsing__remove_c2c,
-                    self.config[0].Filename_Parsing__remove_fcbd,
-                    self.config[0].Filename_Parsing__remove_publisher,
-                )
+                self.use_filename()
 
             self.metadata.apply_default_page_list(self.comic_archive.get_page_name_list())
 
@@ -1012,10 +1007,11 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 self.config[0].Filename_Parsing__remove_fcbd,
                 self.config[0].Filename_Parsing__remove_publisher,
                 split_words,
+                self.config[0].Filename_Parsing__allow_issue_start_with_letter,
+                self.config[0].Filename_Parsing__protofolius_issue_number_scheme,
             )
-            if new_metadata is not None:
-                self.metadata.overlay(new_metadata)
-                self.metadata_to_form()
+            self.metadata.overlay(new_metadata)
+            self.metadata_to_form()
 
     def use_filename_split(self) -> None:
         self._use_filename(True)
@@ -1666,6 +1662,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 self.config[0].Filename_Parsing__remove_fcbd,
                 self.config[0].Filename_Parsing__remove_publisher,
                 dlg.split_words,
+                self.config[0].Filename_Parsing__allow_issue_start_with_letter,
+                self.config[0].Filename_Parsing__protofolius_issue_number_scheme,
             )
             if dlg.ignore_leading_digits_in_filename and md.series is not None:
                 # remove all leading numbers

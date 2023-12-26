@@ -26,7 +26,6 @@ class settngs_namespace(settngs.TypedNS):
     Runtime_Options__summary: bool
     Runtime_Options__raw: bool
     Runtime_Options__recursive: bool
-    Runtime_Options__split_words: bool
     Runtime_Options__dryrun: bool
     Runtime_Options__darkmode: bool
     Runtime_Options__glob: bool
@@ -64,6 +63,7 @@ class settngs_namespace(settngs.TypedNS):
     Filename_Parsing__remove_c2c: bool
     Filename_Parsing__remove_fcbd: bool
     Filename_Parsing__remove_publisher: bool
+    Filename_Parsing__split_words: bool
     Filename_Parsing__protofolius_issue_number_scheme: bool
     Filename_Parsing__allow_issue_start_with_letter: bool
 

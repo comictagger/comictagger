@@ -146,12 +146,6 @@ def register_runtime(parser: settngs.Manager) -> None:
         file=False,
     )
     parser.add_setting(
-        "--split-words",
-        action="store_true",
-        help="""Splits words before parsing the filename.\ne.g. 'judgedredd' to 'judge dredd'\n\n""",
-        file=False,
-    )
-    parser.add_setting(
         "-n",
         "--dryrun",
         action="store_true",
