@@ -70,5 +70,7 @@ jobs:
           # upload the single application zip file for each OS and include the wheel built on linux
           files: |
             dist/*.zip
+            dist/*.tar.gz
+            dist/*.dmg
             dist/*${{ fromJSON('["never", ""]')[runner.os == 'Linux'] }}.whl
             dist/*.AppImage
