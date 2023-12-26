@@ -7,8 +7,6 @@ import sys
 import tarfile
 import zipfile
 
-from dmgbuild.__main__ import main as dmg_main
-
 from comictaggerlib.ctversion import __version__
 
 
@@ -74,6 +72,8 @@ if __name__ == "__main__":
     zip_file = pathlib.Path(f"dist/{final_name}")
 
     if platform.system() == "Darwin":
+        from dmgbuild.__main__ import main as dmg_main
+
         sys.argv = [
             "zip_artifacts",
             "-s",
