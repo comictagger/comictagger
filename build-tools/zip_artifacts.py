@@ -3,10 +3,11 @@ from __future__ import annotations
 import os
 import pathlib
 import platform
-import runpy
 import sys
 import tarfile
 import zipfile
+
+from dmgbuild.__main__ import main as dmg_main
 
 from comictaggerlib.ctversion import __version__
 
@@ -78,9 +79,9 @@ if __name__ == "__main__":
             "-s",
             str(pathlib.Path(__file__).parent / "dmgbuild.conf"),
             f"{app} {__version__}",
-            f"{final_name}.dmg",
+            f"dist/{final_name}.dmg",
         ]
-        runpy.run_module("dmgbuild", alter_sys=True)
+        dmg_main()
     elif platform.system() == "Windows":
         Zip(zip_file, path)
     else:
