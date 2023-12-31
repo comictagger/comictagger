@@ -19,6 +19,8 @@ import argparse
 import logging
 import os
 import platform
+import shlex
+import subprocess
 
 import settngs
 
@@ -308,12 +310,18 @@ def validate_commandline_settings(config: settngs.Config[ct_ns], parser: settngs
     if not utils.which("rar"):
         if platform.system() == "Windows":
             # look in some likely places for Windows machines
-            if os.path.exists(r"C:\Program Files\WinRAR\Rar.exe"):
-                utils.add_to_path(r"C:\Program Files\WinRAR")
-            elif os.path.exists(r"C:\Program Files (x86)\WinRAR\Rar.exe"):
-                utils.add_to_path(r"C:\Program Files (x86)\WinRAR")
+            utils.add_to_path(r"C:\Program Files\WinRAR")
+            utils.add_to_path(r"C:\Program Files (x86)\WinRAR")
         else:
-            if os.path.exists("/opt/homebrew/bin"):
-                utils.add_to_path("/opt/homebrew/bin")
+            if platform.system() == "Darwin":
+                result = subprocess.run(("/usr/libexec/path_helper", "-s"), capture_output=True)
+                for path in reversed(
+                    shlex.split(result.stdout.decode("utf-8", errors="ignore"))[0]
+                    .partition("=")[2]
+                    .rstrip(";")
+                    .split(os.pathsep)
+                ):
+                    utils.add_to_path(path)
+            utils.add_to_path("/opt/homebrew/bin")
 
     return config

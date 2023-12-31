@@ -60,7 +60,7 @@ macRarHelp = """
                 you will need the rar tool.  The easiest way to get this is
                 to install <span style=" text-decoration: underline; color:#0000ff;">
                 <a href="https://brew.sh/">homebrew</a></span>.
-                </p>Once homebrew is installed, run: <b>brew install caskroom/cask/rar</b></body></html>
+                </p>Once homebrew is installed, run: <b>brew install rar</b></body></html>
                 """
 
 

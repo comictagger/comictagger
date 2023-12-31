@@ -226,7 +226,7 @@ def get_recursive_filelist(pathlist: list[str]) -> list[str]:
 
 
 def add_to_path(dirname: str) -> None:
-    if dirname:
+    if dirname and os.path.isdir(dirname):
         dirname = os.path.abspath(dirname)
         paths = [os.path.normpath(x) for x in split(os.environ["PATH"], os.pathsep)]
 
