@@ -211,7 +211,10 @@ class GenericMetadata:
         def assign(cur: str, new: Any) -> None:
             if new is not None:
                 if isinstance(new, str) and len(new) == 0:
-                    setattr(self, cur, None)
+                    if isinstance(getattr(self, cur), (list, set)):
+                        getattr(self, cur).clear()
+                    else:
+                        setattr(self, cur, None)
                 elif isinstance(new, (list, set)) and len(new) == 0:
                     pass
                 else:
@@ -275,6 +278,8 @@ class GenericMetadata:
         assign("_alternate_images", new_md._alternate_images)
 
     def overlay_credits(self, new_credits: list[Credit]) -> None:
+        if isinstance(new_credits, str) and len(new_credits) == 0:
+            self.credits = []
         for c in new_credits:
             primary = bool("primary" in c and c["primary"])
 
