@@ -225,7 +225,7 @@ def register_commands(parser: settngs.Manager) -> None:
         "--rename",
         dest="command",
         action="store_const",
-        const=Action.print,
+        const=Action.rename,
         help="Rename the file based on specified tag style.",
         file=False,
     )

@@ -90,3 +90,45 @@ def test_delete(
 
     # Validate that we got an empty metadata back
     assert md == empty_md
+
+
+def test_rename(
+    plugin_config: tuple[settngs.Config[ctsettings.ct_ns], dict[str, ComicTalker]],
+    tmp_comic,
+    comicvine_api,
+    md_saved,
+    mock_now,
+) -> None:
+    md = tmp_comic.read_metadata("cr")
+
+    # Check that the metadata starts correct
+    assert md == md_saved
+
+    # Clear the cached metadata
+    tmp_comic.reset_cache()
+
+    # Setup the app
+    config = plugin_config[0]
+    talkers = plugin_config[1]
+
+    # Delete
+    config[0].Commands__command = comictaggerlib.resulttypes.Action.rename
+
+    # Use the temporary comic we created
+    config[0].Runtime_Options__files = [tmp_comic.path]
+
+    # Set the template
+    config[0].File_Rename__template = "{series}"
+    # Use the current directory
+    config[0].File_Rename__dir = ""
+    # Run ComicTagger
+    CLI(config[0], talkers).run()
+
+    # Update the comic path
+    tmp_comic.path = tmp_comic.path.parent / (md.series + ".cbz")
+
+    # Read the CBZ
+    md = tmp_comic.read_metadata("cr")
+
+    # Validate that we got the correct metadata back
+    assert md == md_saved
