@@ -94,13 +94,14 @@ class TagOrigin(NamedTuple):
 
 @dataclasses.dataclass
 class GenericMetadata:
-    writer_synonyms = ["writer", "plotter", "scripter"]
-    penciller_synonyms = ["artist", "penciller", "penciler", "breakdowns"]
-    inker_synonyms = ["inker", "artist", "finishes"]
-    colorist_synonyms = ["colorist", "colourist", "colorer", "colourer"]
-    letterer_synonyms = ["letterer"]
-    cover_synonyms = ["cover", "covers", "coverartist", "cover artist"]
-    editor_synonyms = ["editor"]
+    writer_synonyms = ("writer", "plotter", "scripter", "script")
+    penciller_synonyms = ("artist", "penciller", "penciler", "breakdowns", "pencils", "painting")
+    inker_synonyms = ("inker", "artist", "finishes", "inks", "painting")
+    colorist_synonyms = ("colorist", "colourist", "colorer", "colourer", "colors", "painting")
+    letterer_synonyms = ("letterer", "letters")
+    cover_synonyms = ("cover", "covers", "coverartist", "cover artist")
+    editor_synonyms = ("editor", "edits", "editing")
+    _translator_synonyms = ("translator", "translation")
 
     is_empty: bool = True
     tag_origin: TagOrigin | None = None

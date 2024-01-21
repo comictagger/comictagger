@@ -28,14 +28,6 @@ logger = logging.getLogger(__name__)
 
 
 class ComicRack(Metadata):
-    _writer_synonyms = ("writer", "plotter", "scripter")
-    _penciller_synonyms = ("artist", "penciller", "penciler", "breakdowns")
-    _inker_synonyms = ("inker", "artist", "finishes")
-    _colorist_synonyms = ("colorist", "colourist", "colorer", "colourer")
-    _letterer_synonyms = ("letterer",)
-    _cover_synonyms = ("cover", "covers", "coverartist", "cover artist")
-    _editor_synonyms = ("editor",)
-
     enabled = True
 
     short_name = "cr"
@@ -132,13 +124,13 @@ class ComicRack(Metadata):
     @classmethod
     def _get_parseable_credits(cls) -> list[str]:
         parsable_credits: list[str] = []
-        parsable_credits.extend(cls._writer_synonyms)
-        parsable_credits.extend(cls._penciller_synonyms)
-        parsable_credits.extend(cls._inker_synonyms)
-        parsable_credits.extend(cls._colorist_synonyms)
-        parsable_credits.extend(cls._letterer_synonyms)
-        parsable_credits.extend(cls._cover_synonyms)
-        parsable_credits.extend(cls._editor_synonyms)
+        parsable_credits.extend(GenericMetadata.writer_synonyms)
+        parsable_credits.extend(GenericMetadata.penciller_synonyms)
+        parsable_credits.extend(GenericMetadata.inker_synonyms)
+        parsable_credits.extend(GenericMetadata.colorist_synonyms)
+        parsable_credits.extend(GenericMetadata.letterer_synonyms)
+        parsable_credits.extend(GenericMetadata.cover_synonyms)
+        parsable_credits.extend(GenericMetadata.editor_synonyms)
         return parsable_credits
 
     def _metadata_from_bytes(self, string: bytes) -> GenericMetadata:
@@ -194,25 +186,25 @@ class ComicRack(Metadata):
         # first, loop thru credits, and build a list for each role that CIX
         # supports
         for credit in metadata.credits:
-            if credit["role"].casefold() in set(self._writer_synonyms):
+            if credit["role"].casefold() in set(GenericMetadata.writer_synonyms):
                 credit_writer_list.append(credit["person"].replace(",", ""))
 
-            if credit["role"].casefold() in set(self._penciller_synonyms):
+            if credit["role"].casefold() in set(GenericMetadata.penciller_synonyms):
                 credit_penciller_list.append(credit["person"].replace(",", ""))
 
-            if credit["role"].casefold() in set(self._inker_synonyms):
+            if credit["role"].casefold() in set(GenericMetadata.inker_synonyms):
                 credit_inker_list.append(credit["person"].replace(",", ""))
 
-            if credit["role"].casefold() in set(self._colorist_synonyms):
+            if credit["role"].casefold() in set(GenericMetadata.colorist_synonyms):
                 credit_colorist_list.append(credit["person"].replace(",", ""))
 
-            if credit["role"].casefold() in set(self._letterer_synonyms):
+            if credit["role"].casefold() in set(GenericMetadata.letterer_synonyms):
                 credit_letterer_list.append(credit["person"].replace(",", ""))
 
-            if credit["role"].casefold() in set(self._cover_synonyms):
+            if credit["role"].casefold() in set(GenericMetadata.cover_synonyms):
                 credit_cover_list.append(credit["person"].replace(",", ""))
 
-            if credit["role"].casefold() in set(self._editor_synonyms):
+            if credit["role"].casefold() in set(GenericMetadata.editor_synonyms):
                 credit_editor_list.append(credit["person"].replace(",", ""))
 
         assign("Series", md.series)
