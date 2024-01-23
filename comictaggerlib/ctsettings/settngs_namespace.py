@@ -16,7 +16,7 @@ class settngs_namespace(settngs.TypedNS):
     Runtime_Options__config: comictaggerlib.ctsettings.types.ComicTaggerPaths
     Runtime_Options__verbose: int
     Runtime_Options__abort_on_conflict: bool
-    Runtime_Options__delete_after_zip_export: bool
+    Runtime_Options__delete_original: bool
     Runtime_Options__parse_filename: bool
     Runtime_Options__issue_id: str
     Runtime_Options__online: bool
@@ -83,7 +83,7 @@ class settngs_namespace(settngs.TypedNS):
     File_Rename__template: str
     File_Rename__issue_number_padding: int
     File_Rename__use_smart_string_cleanup: bool
-    File_Rename__set_extension_based_on_archive: bool
+    File_Rename__auto_extension: bool
     File_Rename__dir: str
     File_Rename__move_to_dir: bool
     File_Rename__strict: bool

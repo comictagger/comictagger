@@ -599,7 +599,7 @@ class CLI:
             return Result(Action.rename, Status.read_failure, original_path)
 
         new_ext = ""  # default
-        if self.config.File_Rename__set_extension_based_on_archive:
+        if self.config.File_Rename__auto_extension:
             new_ext = ca.extension()
 
         renamer = FileRenamer(
@@ -674,7 +674,7 @@ class CLI:
         export_success = False
         if not self.config.Runtime_Options__dryrun:
             if export_success := ca.export_as_zip(new_file):
-                if self.config.Runtime_Options__delete_after_zip_export:
+                if self.config.Runtime_Options__delete_original:
                     try:
                         filename_path.unlink(missing_ok=True)
                         delete_success = True
@@ -685,7 +685,7 @@ class CLI:
                 new_file.unlink(missing_ok=True)
         else:
             msg = msg_hdr + f"Dry-run:  Would try to create {os.path.split(new_file)[1]}"
-            if self.config.Runtime_Options__delete_after_zip_export:
+            if self.config.Runtime_Options__delete_original:
                 msg += " and delete original."
             self.output(msg)
             return Result(Action.export, Status.success, ca.path, new_file)
@@ -693,7 +693,7 @@ class CLI:
         msg = msg_hdr
         if export_success:
             msg += f"Archive exported successfully to: {os.path.split(new_file)[1]}"
-            if self.config.Runtime_Options__delete_after_zip_export and delete_success:
+            if self.config.Runtime_Options__delete_original and delete_success:
                 msg += " (Original deleted) "
         else:
             msg += "Archive failed to export!"

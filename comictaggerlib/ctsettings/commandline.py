@@ -78,7 +78,6 @@ def register_runtime(parser: settngs.Manager) -> None:
     parser.add_setting(
         "--delete-original",
         action="store_true",
-        dest="delete_after_zip_export",
         help="""Delete original archive after successful\nexport to Zip. (only relevant for -e)""",
         file=False,
     )
@@ -172,7 +171,6 @@ def register_runtime(parser: settngs.Manager) -> None:
     )
     parser.add_setting(
         "--overwrite",
-        dest="overwrite",
         action=argparse.BooleanOptionalAction,
         default=True,
         help="""Apply metadata to already tagged archives (relevant for -s or -c).""",

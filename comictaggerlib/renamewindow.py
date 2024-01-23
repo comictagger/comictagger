@@ -76,7 +76,7 @@ class RenameWindow(QtWidgets.QDialog):
         self.renamer.replacements = self.config[0].File_Rename__replacements
 
         new_ext = ca.path.suffix  # default
-        if self.config[0].File_Rename__set_extension_based_on_archive:
+        if self.config[0].File_Rename__auto_extension:
             new_ext = ca.extension()
 
         if md is None:

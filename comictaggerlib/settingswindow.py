@@ -407,7 +407,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.leRenameTemplate.setText(self.config[0].File_Rename__template)
         self.leIssueNumPadding.setText(str(self.config[0].File_Rename__issue_number_padding))
         self.cbxSmartCleanup.setChecked(self.config[0].File_Rename__use_smart_string_cleanup)
-        self.cbxChangeExtension.setChecked(self.config[0].File_Rename__set_extension_based_on_archive)
+        self.cbxChangeExtension.setChecked(self.config[0].File_Rename__auto_extension)
         self.cbxMoveFiles.setChecked(self.config[0].File_Rename__move_to_dir)
         self.leDirectory.setText(self.config[0].File_Rename__dir)
         self.cbxRenameStrict.setChecked(self.config[0].File_Rename__strict)
@@ -525,7 +525,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.config[0].File_Rename__template = str(self.leRenameTemplate.text())
         self.config[0].File_Rename__issue_number_padding = int(self.leIssueNumPadding.text())
         self.config[0].File_Rename__use_smart_string_cleanup = self.cbxSmartCleanup.isChecked()
-        self.config[0].File_Rename__set_extension_based_on_archive = self.cbxChangeExtension.isChecked()
+        self.config[0].File_Rename__auto_extension = self.cbxChangeExtension.isChecked()
         self.config[0].File_Rename__move_to_dir = self.cbxMoveFiles.isChecked()
         self.config[0].File_Rename__dir = self.leDirectory.text()
 

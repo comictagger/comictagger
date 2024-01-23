@@ -184,7 +184,6 @@ def rename(parser: settngs.Manager) -> None:
     )
     parser.add_setting(
         "--auto-extension",
-        dest="set_extension_based_on_archive",
         default=True,
         action=argparse.BooleanOptionalAction,
         help="Automatically sets the extension based on the archive type e.g. cbr for rar, cbz for zip",
