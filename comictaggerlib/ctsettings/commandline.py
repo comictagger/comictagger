@@ -173,7 +173,7 @@ def register_runtime(parser: settngs.Manager) -> None:
         "--overwrite",
         action=argparse.BooleanOptionalAction,
         default=True,
-        help="""Apply metadata to already tagged archives (relevant for -s or -c).""",
+        help="""Apply metadata to already tagged archives, otherwise skips archives with existing metadata (relevant for -s or -c).""",
         file=False,
     )
     parser.add_setting("--no-gui", action="store_true", help="Do not open the GUI, force the commandline", file=False)
