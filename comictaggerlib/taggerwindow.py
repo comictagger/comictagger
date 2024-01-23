@@ -1118,7 +1118,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                     if self.config[0].Comic_Book_Lover__apply_transform_on_import:
                         new_metadata = CBLTransformer(new_metadata, self.config[0]).apply()
 
-                    if self.config[0].Issue_Identifier__clear_metadata_on_import:
+                    if self.config[0].Issue_Identifier__clear_metadata:
                         self.clear_form()
 
                     notes = (

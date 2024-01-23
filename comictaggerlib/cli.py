@@ -180,7 +180,7 @@ class CLI:
                 ca = ComicArchive(match_set.original_path)
                 md = self.create_local_metadata(ca)
                 ct_md = self.actual_issue_data_fetch(match_set.online_results[int(i) - 1].issue_id)
-                if self.config.Issue_Identifier__clear_metadata_on_import:
+                if self.config.Issue_Identifier__clear_metadata:
                     md = ct_md
                 else:
                     notes = (
@@ -552,7 +552,7 @@ class CLI:
                     match_results.fetch_data_failures.append(res)
                     return res
 
-            if self.config.Issue_Identifier__clear_metadata_on_import:
+            if self.config.Issue_Identifier__clear_metadata:
                 md = GenericMetadata()
 
             notes = (

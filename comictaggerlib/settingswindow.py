@@ -390,6 +390,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.cbxUseFilter.setChecked(self.config[0].Issue_Identifier__always_use_publisher_filter)
         self.cbxSortByYear.setChecked(self.config[0].Issue_Identifier__sort_series_by_year)
         self.cbxExactMatches.setChecked(self.config[0].Issue_Identifier__exact_series_matches_first)
+        self.cbxClearFormBeforePopulating.setChecked(self.config[0].Issue_Identifier__clear_metadata)
 
         self.cbxAssumeLoneCreditIsPrimary.setChecked(self.config[0].Comic_Book_Lover__assume_lone_credit_is_primary)
         self.cbxCopyCharactersToTags.setChecked(self.config[0].Comic_Book_Lover__copy_characters_to_tags)
@@ -507,6 +508,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.config[0].Issue_Identifier__always_use_publisher_filter = self.cbxUseFilter.isChecked()
         self.config[0].Issue_Identifier__sort_series_by_year = self.cbxSortByYear.isChecked()
         self.config[0].Issue_Identifier__exact_series_matches_first = self.cbxExactMatches.isChecked()
+        self.config[0].Issue_Identifier__clear_metadata = self.cbxClearFormBeforePopulating.isChecked()
 
         self.config[0].Comic_Book_Lover__assume_lone_credit_is_primary = self.cbxAssumeLoneCreditIsPrimary.isChecked()
         self.config[0].Comic_Book_Lover__copy_characters_to_tags = self.cbxCopyCharactersToTags.isChecked()

@@ -58,7 +58,6 @@ def identifier(parser: settngs.Manager) -> None:
         "--clear-metadata",
         default=False,
         help="Clears all existing metadata during import, default is to merge metadata.\nMay be used in conjunction with -o, -f and -m.\n\n",
-        dest="clear_metadata_on_import",
         action=argparse.BooleanOptionalAction,
     )
     parser.add_setting(

@@ -53,7 +53,7 @@ class settngs_namespace(settngs.TypedNS):
     Issue_Identifier__border_crop_percent: int
     Issue_Identifier__publisher_filter: list[str]
     Issue_Identifier__series_match_search_thresh: int
-    Issue_Identifier__clear_metadata_on_import: bool
+    Issue_Identifier__clear_metadata: bool
     Issue_Identifier__auto_imprint: bool
     Issue_Identifier__sort_series_by_year: bool
     Issue_Identifier__exact_series_matches_first: bool
