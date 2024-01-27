@@ -37,7 +37,7 @@ class settngs_namespace(settngs.TypedNS):
     Runtime_Options__files: list[str]
 
     internal__install_id: str
-    internal__save_data_style: str
+    internal__save_data_style: list[str]
     internal__load_data_style: str
     internal__last_opened_folder: str
     internal__window_width: int
