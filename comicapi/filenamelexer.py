@@ -88,8 +88,7 @@ class Item:
 
 
 class LexerFunc(Protocol):
-    def __call__(self, __origin: Lexer) -> LexerFunc | None:
-        ...
+    def __call__(self, __origin: Lexer) -> LexerFunc | None: ...
 
 
 class Lexer:

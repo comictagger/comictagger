@@ -89,8 +89,7 @@ if qt_available:
 
     except ImportError:
 
-        def new_web_view(parent: QWidget) -> QWebEngineView:
-            ...
+        def new_web_view(parent: QWidget) -> QWebEngineView: ...
 
     def reduce_widget_font_size(widget: QtWidgets.QWidget, delta: int = 2) -> None:
         f = widget.font()

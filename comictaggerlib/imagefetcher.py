@@ -1,4 +1,5 @@
 """A class to manage fetching and caching of images by URL"""
+
 #
 # Copyright 2012-2014 ComicTagger Authors
 #
@@ -34,12 +35,10 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class ImageFetcherException(Exception):
-    ...
+class ImageFetcherException(Exception): ...
 
 
-def fetch_complete(url: str, image_data: bytes | QtCore.QByteArray) -> None:
-    ...
+def fetch_complete(url: str, image_data: bytes | QtCore.QByteArray) -> None: ...
 
 
 class ImageFetcher:

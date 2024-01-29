@@ -84,8 +84,7 @@ try:
 
 except ImportError as e:
 
-    def show_exception_box(log_msg: str) -> None:
-        ...
+    def show_exception_box(log_msg: str) -> None: ...
 
     logger.exception("Qt unavailable")
     qt_available = False

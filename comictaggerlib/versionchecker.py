@@ -1,4 +1,5 @@
 """Version checker"""
+
 #
 # Copyright 2013 ComicTagger Authors
 #

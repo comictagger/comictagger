@@ -1,4 +1,5 @@
 """A PyQT4 dialog to a text file or log"""
+
 #
 # Copyright 2012-2014 ComicTagger Authors
 #

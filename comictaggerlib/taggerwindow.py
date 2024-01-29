@@ -1,4 +1,5 @@
 """The main window of the ComicTagger app"""
+
 #
 # Copyright 2012-2014 ComicTagger Authors
 #

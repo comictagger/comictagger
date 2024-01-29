@@ -1,4 +1,5 @@
 """A python app to (automatically) tag comic archives"""
+
 #
 # Copyright 2012-2014 ComicTagger Authors
 #

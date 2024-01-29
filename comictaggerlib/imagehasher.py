@@ -1,4 +1,5 @@
 """A class to manage creating image content hashes, and calculate hamming distances"""
+
 #
 # Copyright 2013 ComicTagger Authors
 #

@@ -1,4 +1,5 @@
 """Functions for renaming files based on metadata"""
+
 #
 # Copyright 2012-2014 ComicTagger Authors
 #

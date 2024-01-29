@@ -1,4 +1,5 @@
 """A class to encapsulate CoMet data"""
+
 #
 # Copyright 2012-2014 ComicTagger Authors
 #

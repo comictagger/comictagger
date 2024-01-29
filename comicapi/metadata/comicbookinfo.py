@@ -1,4 +1,5 @@
 """A class to encapsulate the ComicBookInfo data"""
+
 # Copyright 2012-2014 ComicTagger Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");

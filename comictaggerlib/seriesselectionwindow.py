@@ -1,4 +1,5 @@
 """A PyQT4 dialog to select specific series/volume from list"""
+
 #
 # Copyright 2012-2014 ComicTagger Authors
 #

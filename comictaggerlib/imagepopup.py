@@ -1,4 +1,5 @@
 """A PyQT4 widget to display a popup image"""
+
 #
 # Copyright 2012-2014 ComicTagger Authors
 #

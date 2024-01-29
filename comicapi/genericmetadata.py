@@ -5,6 +5,7 @@ tagging schemes and databases, such as ComicVine or GCD.  This makes conversion
 possible, however lossy it might be
 
 """
+
 # Copyright 2012-2014 ComicTagger Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,7 +35,6 @@ logger = logging.getLogger(__name__)
 
 
 class PageType:
-
     """
     These page info classes are exactly the same as the CIX scheme, since
     it's unique

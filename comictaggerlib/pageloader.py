@@ -1,4 +1,5 @@
 """A PyQT4 class to load a page image from a ComicArchive in a background thread"""
+
 #
 # Copyright 2012-2014 ComicTagger Authors
 #

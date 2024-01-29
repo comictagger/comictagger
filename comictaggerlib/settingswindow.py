@@ -1,4 +1,5 @@
 """A PyQT4 dialog to enter app settings"""
+
 #
 # Copyright 2012-2014 ComicTagger Authors
 #

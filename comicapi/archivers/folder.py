@@ -10,7 +10,6 @@ logger = logging.getLogger(__name__)
 
 
 class FolderArchiver(Archiver):
-
     """Folder implementation"""
 
     def __init__(self) -> None:
