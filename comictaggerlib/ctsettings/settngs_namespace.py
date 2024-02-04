@@ -206,6 +206,7 @@ class Metadata_Options(typing.TypedDict):
     cbl_copy_weblink_to_comments: bool
     cbl_apply_transform_on_import: bool
     cbl_apply_transform_on_bulk_operation: bool
+    metadata_overlay: OverlayMode
     use_short_metadata_names: bool
     disable_cr: bool
 
