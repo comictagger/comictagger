@@ -1042,7 +1042,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 self.config[0].Filename_Parsing__allow_issue_start_with_letter,
                 self.config[0].Filename_Parsing__protofolius_issue_number_scheme,
             )
-            self.metadata.overlay(new_metadata)
+            self.metadata.overlay(new_metadata)  # Should always be "overlay" mode?
             self.metadata_to_form()
 
     def use_filename_split(self) -> None:
@@ -1166,7 +1166,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
                             description=cleanup_html(
                                 new_metadata.description, self.config[0].Sources__remove_html_tables
                             ),
-                        )
+                        ),
+                        self.config[0].Comic_Book_Lover__metadata_overlay,
                     )
                     # Now push the new combined data into the edit controls
                     self.metadata_to_form()
@@ -1890,7 +1891,10 @@ class TaggerWindow(QtWidgets.QMainWindow):
                         f"Tagged with ComicTagger {ctversion.version} using info from {self.current_talker().name} on"
                         f" {datetime.now():%Y-%m-%d %H:%M:%S}. [Issue ID {ct_md.issue_id}]"
                     )
-                    md.overlay(ct_md.replace(notes=utils.combine_notes(md.notes, notes, "Tagged with ComicTagger")))
+                    md.overlay(
+                        ct_md.replace(notes=utils.combine_notes(md.notes, notes, "Tagged with ComicTagger")),
+                        self.config[0].Comic_Book_Lover__metadata_overlay,
+                    )
 
                 if self.config[0].Issue_Identifier__auto_imprint:
                     md.fix_publisher()

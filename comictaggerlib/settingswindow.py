@@ -30,7 +30,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets, uic
 import comictaggerlib.ui.talkeruigenerator
 from comicapi import utils
 from comicapi.archivers.archiver import Archiver
-from comicapi.genericmetadata import md_test
+from comicapi.genericmetadata import OverlayMode, md_test
 from comictaggerlib import ctsettings
 from comictaggerlib.ctsettings import ct_ns
 from comictaggerlib.ctsettings.plugin import group_for_plugin
@@ -194,6 +194,8 @@ class SettingsWindow(QtWidgets.QDialog):
         )
         self.cbFilenameParser.clear()
         self.cbFilenameParser.addItems(utils.Parser)
+        for mem in OverlayMode:
+            self.cbxOverlayStyle.addItem(mem.name.capitalize().replace("_", " "), mem.value)
         self.connect_signals()
         self.settings_to_form()
         self.rename_test()
@@ -413,6 +415,9 @@ class SettingsWindow(QtWidgets.QDialog):
         self.cbxApplyCBLTransformOnBatchOperation.setChecked(
             self.config[0].Comic_Book_Lover__apply_transform_on_bulk_operation
         )
+        self.cbxOverlayStyle.setCurrentIndex(
+            self.cbxOverlayStyle.findData(self.config[0].Comic_Book_Lover__metadata_overlay.value)
+        )
 
         self.leRenameTemplate.setText(self.config[0].File_Rename__template)
         self.leIssueNumPadding.setText(str(self.config[0].File_Rename__issue_number_padding))
@@ -538,6 +543,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.config.values.Comic_Book_Lover__apply_transform_on_bulk_operation = (
             self.cbxApplyCBLTransformOnBatchOperation.isChecked()
         )
+        self.config[0].Comic_Book_Lover__metadata_overlay = OverlayMode[self.cbxOverlayStyle.currentData()]
 
         self.config[0].File_Rename__template = str(self.leRenameTemplate.text())
         self.config[0].File_Rename__issue_number_padding = int(self.leIssueNumPadding.text())

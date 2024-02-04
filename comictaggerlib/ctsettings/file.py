@@ -5,6 +5,7 @@ import uuid
 
 import settngs
 
+from comicapi.genericmetadata import OverlayMode
 from comicapi import utils
 from comictaggerlib.ctsettings.settngs_namespace import SettngsNS as ct_ns
 from comictaggerlib.defaults import DEFAULT_REPLACEMENTS, Replacement, Replacements
@@ -175,6 +176,12 @@ def cbl(parser: settngs.Manager) -> None:
     parser.add_setting("--copy-weblink-to-comments", default=False, action=argparse.BooleanOptionalAction)
     parser.add_setting("--apply-transform-on-import", default=False, action=argparse.BooleanOptionalAction)
     parser.add_setting("--apply-transform-on-bulk-operation", default=False, action=argparse.BooleanOptionalAction)
+        parser.add_setting(
+        "--metadata-overlay",
+        default=OverlayMode.overlay,
+        type=OverlayMode,
+        help="How to overlay the current metadata with the new",
+    )
 
 
 def rename(parser: settngs.Manager) -> None:

@@ -9,6 +9,7 @@ import comicapi.utils
 import comictaggerlib.ctsettings.types
 import comictaggerlib.defaults
 import comictaggerlib.resulttypes
+from comicapi.genericmetadata import OverlayMode
 
 
 class SettngsNS(settngs.TypedNS):
@@ -82,6 +83,8 @@ class SettngsNS(settngs.TypedNS):
     Comic_Book_Lover__copy_weblink_to_comments: bool
     Comic_Book_Lover__apply_transform_on_import: bool
     Comic_Book_Lover__apply_transform_on_bulk_operation: bool
+    # TODO Rename to "Metadata_Options"
+    Comic_Book_Lover__metadata_overlay: OverlayMode
 
     File_Rename__template: str
     File_Rename__issue_number_padding: int

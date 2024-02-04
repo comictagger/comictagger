@@ -187,7 +187,10 @@ class CLI:
                         f"Tagged with ComicTagger {ctversion.version} using info from {self.current_talker().name} on"
                         f" {datetime.now():%Y-%m-%d %H:%M:%S}. [Issue ID {ct_md.issue_id}]"
                     )
-                    md.overlay(ct_md.replace(notes=utils.combine_notes(md.notes, notes, "Tagged with ComicTagger")))
+                    md.overlay(
+                        ct_md.replace(notes=utils.combine_notes(md.notes, notes, "Tagged with ComicTagger")),
+                        self.config.Comic_Book_Lover__metadata_overlay,
+                    )
 
                 if self.config.Issue_Identifier__auto_imprint:
                     md.fix_publisher()
@@ -558,7 +561,8 @@ class CLI:
                 ct_md.replace(
                     notes=utils.combine_notes(md.notes, notes, "Tagged with ComicTagger"),
                     description=cleanup_html(ct_md.description, self.config.Sources__remove_html_tables),
-                )
+                ),
+                self.config.Comic_Book_Lover__metadata_overlay,
             )
 
             if self.config.Issue_Identifier__auto_imprint:
