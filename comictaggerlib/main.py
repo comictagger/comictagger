@@ -252,7 +252,7 @@ class App:
         # config already loaded
         error = None
 
-        if self.config[0].General__disable_cr:
+        if self.config[0].Metadata_Options__disable_cr:
             if "cr" in comicapi.comicarchive.metadata_styles:
                 del comicapi.comicarchive.metadata_styles["cr"]
 

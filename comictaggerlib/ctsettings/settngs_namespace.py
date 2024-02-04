@@ -9,6 +9,7 @@ import comicapi.utils
 import comictaggerlib.ctsettings.types
 import comictaggerlib.defaults
 import comictaggerlib.resulttypes
+from comicapi.genericmetadata import OverlayMode
 
 
 class SettngsNS(settngs.TypedNS):
@@ -74,15 +75,19 @@ class SettngsNS(settngs.TypedNS):
     Sources__source: str
     Sources__remove_html_tables: bool
 
-    Comic_Book_Lover__assume_lone_credit_is_primary: bool
-    Comic_Book_Lover__copy_characters_to_tags: bool
-    Comic_Book_Lover__copy_teams_to_tags: bool
-    Comic_Book_Lover__copy_locations_to_tags: bool
-    Comic_Book_Lover__copy_storyarcs_to_tags: bool
-    Comic_Book_Lover__copy_notes_to_comments: bool
-    Comic_Book_Lover__copy_weblink_to_comments: bool
-    Comic_Book_Lover__apply_transform_on_import: bool
-    Comic_Book_Lover__apply_transform_on_bulk_operation: bool
+    Metadata_Options__cbl_assume_lone_credit_is_primary: bool
+    Metadata_Options__cbl_copy_characters_to_tags: bool
+    Metadata_Options__cbl_copy_teams_to_tags: bool
+    Metadata_Options__cbl_copy_locations_to_tags: bool
+    Metadata_Options__cbl_copy_storyarcs_to_tags: bool
+    Metadata_Options__cbl_copy_notes_to_comments: bool
+    Metadata_Options__cbl_copy_weblink_to_comments: bool
+    Metadata_Options__cbl_apply_transform_on_import: bool
+    Metadata_Options__cbl_apply_transform_on_bulk_operation: bool
+    Metadata_Options__read_style_overlay: OverlayMode
+    Metadata_Options__source_overlay: OverlayMode
+    Metadata_Options__use_short_metadata_names: bool
+    Metadata_Options__disable_cr: bool
 
     File_Rename__template: str
     File_Rename__issue_number_padding: int
@@ -101,8 +106,6 @@ class SettngsNS(settngs.TypedNS):
     Auto_Tag__remove_archive_after_successful_match: bool
 
     General__check_for_new_version: bool
-    General__disable_cr: bool
-    General__use_short_metadata_names: bool
     General__prompt_on_save: bool
 
     Dialog_Flags__show_disclaimer: bool
@@ -189,16 +192,19 @@ class Sources(typing.TypedDict):
     remove_html_tables: bool
 
 
-class Comic_Book_Lover(typing.TypedDict):
-    assume_lone_credit_is_primary: bool
-    copy_characters_to_tags: bool
-    copy_teams_to_tags: bool
-    copy_locations_to_tags: bool
-    copy_storyarcs_to_tags: bool
-    copy_notes_to_comments: bool
-    copy_weblink_to_comments: bool
-    apply_transform_on_import: bool
-    apply_transform_on_bulk_operation: bool
+class Metadata_Options(typing.TypedDict):
+    cbl_assume_lone_credit_is_primary: bool
+    cbl_copy_characters_to_tags: bool
+    cbl_copy_teams_to_tags: bool
+    cbl_copy_locations_to_tags: bool
+    cbl_copy_storyarcs_to_tags: bool
+    cbl_copy_notes_to_comments: bool
+    cbl_copy_weblink_to_comments: bool
+    cbl_apply_transform_on_import: bool
+    cbl_apply_transform_on_bulk_operation: bool
+    metadata_overlay: OverlayMode
+    use_short_metadata_names: bool
+    disable_cr: bool
 
 
 class File_Rename(typing.TypedDict):
@@ -223,8 +229,6 @@ class Auto_Tag(typing.TypedDict):
 
 class General(typing.TypedDict):
     check_for_new_version: bool
-    disable_cr: bool
-    use_short_metadata_names: bool
     prompt_on_save: bool
 
 
@@ -253,7 +257,7 @@ SettngsDict = typing.TypedDict(
         "Issue Identifier": Issue_Identifier,
         "Filename Parsing": Filename_Parsing,
         "Sources": Sources,
-        "Comic Book Lover": Comic_Book_Lover,
+        "Metadata Options": Metadata_Options,
         "File Rename": File_Rename,
         "Auto-Tag": Auto_Tag,
         "General": General,

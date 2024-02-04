@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import logging
 import pathlib
+from enum import Enum
 from typing import Any
 
 import settngs
@@ -55,7 +56,11 @@ def validate_types(config: settngs.Config[settngs.Values]) -> settngs.Config[set
                 if setting.type is not None:
                     # If it is not the default and the type attribute is not None
                     # use it to convert the loaded string into the expected value
-                    if isinstance(value, str):
+                    if (
+                        isinstance(value, str)
+                        or isinstance(default, Enum)
+                        or (isinstance(setting.type, type) and issubclass(setting.type, Enum))
+                    ):
                         config.values[setting.group][setting.dest] = setting.type(value)
     return config
 

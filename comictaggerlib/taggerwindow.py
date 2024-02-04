@@ -1431,7 +1431,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.cbLoadDataStyle.clear()
         # Add the entries to the tag style combobox
         for style in metadata_styles.values():
-            if self.config[0].General__use_short_metadata_names:
+            if self.config[0].Metadata_Options__use_short_metadata_names:
                 self.cbSaveDataStyle.addItem(style.short_name.upper(), style.short_name)
                 self.cbLoadDataStyle.addItem(style.short_name.upper(), style.short_name)
             else:
@@ -1701,7 +1701,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                             center_window_on_parent(prog_dialog)
                             QtCore.QCoreApplication.processEvents()
 
-                        if style == "cbi" and self.config[0].Comic_Book_Lover__apply_transform_on_bulk_operation:
+                        if style == "cbi" and self.config[0].Metadata_Options__cbl_apply_transform_on_bulk_operation:
                             md = CBLTransformer(md, self.config[0]).apply()
 
                         if ca.write_metadata(md, style):

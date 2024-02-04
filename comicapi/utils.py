@@ -223,6 +223,11 @@ def parse_filename(
     return fni
 
 
+def norm_fold(string: str) -> str:
+    """Normalise and casefold string"""
+    return unicodedata.normalize("NFKD", string).casefold()
+
+
 def combine_notes(existing_notes: str | None, new_notes: str | None, split: str) -> str:
     split_notes, split_str, untouched_notes = (existing_notes or "").rpartition(split)
     if split_notes or split_str:

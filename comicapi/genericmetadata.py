@@ -24,6 +24,7 @@ from __future__ import annotations
 import copy
 import dataclasses
 import logging
+import sys
 from collections.abc import Sequence
 from enum import Enum, auto
 from typing import TYPE_CHECKING, Any, TypedDict, Union
@@ -32,6 +33,7 @@ from typing_extensions import NamedTuple, Required
 
 from comicapi import utils
 from comicapi._url import Url, parse_url
+from comicapi.utils import norm_fold
 
 if TYPE_CHECKING:
     Union
@@ -44,6 +46,45 @@ class __remove(Enum):
 
 
 REMOVE = __remove.REMOVE
+
+
+if sys.version_info < (3, 11):
+
+    class StrEnum(str, Enum):
+        """
+        Enum where members are also (and must be) strings
+        """
+
+        def __new__(cls, *values: Any) -> Any:
+            "values must already be of type `str`"
+            if len(values) > 3:
+                raise TypeError(f"too many arguments for str(): {values!r}")
+            if len(values) == 1:
+                # it must be a string
+                if not isinstance(values[0], str):
+                    raise TypeError(f"{values[0]!r} is not a string")
+            if len(values) >= 2:
+                # check that encoding argument is a string
+                if not isinstance(values[1], str):
+                    raise TypeError(f"encoding must be a string, not {values[1]!r}")
+            if len(values) == 3:
+                # check that errors argument is a string
+                if not isinstance(values[2], str):
+                    raise TypeError("errors must be a string, not %r" % (values[2]))
+            value = str(*values)
+            member = str.__new__(cls, value)
+            member._value_ = value
+            return member
+
+        @staticmethod
+        def _generate_next_value_(name: str, start: int, count: int, last_values: Any) -> str:
+            """
+            Return the lower-cased version of the member name.
+            """
+            return name.lower()
+
+else:
+    from enum import StrEnum
 
 
 class PageType:
@@ -102,6 +143,12 @@ class ComicSeries:
 class TagOrigin(NamedTuple):
     id: str
     name: str
+
+
+class OverlayMode(StrEnum):
+    overlay = auto()
+    add_missing = auto()
+    combine = auto()
 
 
 @dataclasses.dataclass
@@ -214,101 +261,172 @@ class GenericMetadata:
         new_md.__post_init__()
         return new_md
 
-    def overlay(self, new_md: GenericMetadata) -> None:
-        """Overlay a metadata object on this one
+    def credit_dedupe(self, cur: list[Credit], new: list[Credit]) -> list[Credit]:
+        if len(new) == 0:
+            return cur
+        if len(cur) == 0:
+            return new
 
-        That is, when the new object has non-None values, over-write them
-        to this one.
-        """
+        # Create dict for deduplication
+        new_dict: dict[str, Credit] = {f"{norm_fold(n['person'])}_{n['role'].casefold()}": n for n in new}
+        cur_dict: dict[str, Credit] = {f"{norm_fold(c['person'])}_{c['role'].casefold()}": c for c in cur}
 
-        def assign(cur: str, new: Any) -> None:
-            if new is not None:
-                if new is REMOVE:
-                    if isinstance(getattr(self, cur), (list, set)):
-                        getattr(self, cur).clear()
-                    else:
-                        setattr(self, cur, None)
-                    return
+        # Any duplicates use the 'new' value
+        cur_dict.update(new_dict)
+        return list(cur_dict.values())
 
-                if isinstance(new, str) and len(new) == 0:
-                    setattr(self, cur, None)
-                elif isinstance(new, (list, set)) and len(new) == 0:
-                    pass
+    def assign_dedupe(self, new: list[str] | set[str], cur: list[str] | set[str]) -> list[str] | set[str]:
+        """Dedupes normalised (NFKD), casefolded values using 'new' values on collisions"""
+        if len(new) == 0:
+            return cur
+        if len(cur) == 0:
+            return new
+
+        # Create dict values for deduplication
+        new_dict: dict[str, str] = {norm_fold(n): n for n in new}
+        cur_dict: dict[str, str] = {norm_fold(c): c for c in cur}
+
+        if isinstance(cur, list):
+            cur_dict.update(new_dict)
+            return list(cur_dict.values())
+
+        if isinstance(cur, set):
+            cur_dict.update(new_dict)
+            return set(cur_dict.values())
+
+        # All else fails
+        return cur
+
+    def assign_overlay(self, cur: Any, new: Any) -> Any:
+        """Overlay - When the 'new' object has non-None values, overwrite 'cur'(rent) with 'new'."""
+        if new is None:
+            return cur
+        if isinstance(new, (list, set)) and len(new) == 0:
+            return cur
+        else:
+            return new
+
+    def assign_add_missing(self, cur: Any, new: Any) -> Any:
+        """Add Missing - Any 'cur(rent)' values that are None or an empty list/set, add 'new' non-None values"""
+        if new is None:
+            return cur
+        if cur is None:
+            return new
+        elif isinstance(cur, (list, set)) and len(cur) == 0:
+            return new
+        else:
+            return cur
+
+    def assign_combine(self, cur: Any, new: Any) -> Any:
+        """Combine - Combine lists and sets (checking for dupes). All non-None values from new replace cur(rent)"""
+        if new is None:
+            return cur
+        if isinstance(new, (list, set)) and isinstance(cur, (list, set)):
+            # Check for weblinks (Url is a tuple)
+            if len(new) > 0 and isinstance(new, list) and isinstance(new[0], Url):
+                return list(set(new).union(cur))
+            return self.assign_dedupe(new, cur)
+        else:
+            return new
+
+    def overlay(self, new_md: GenericMetadata, mode: OverlayMode = OverlayMode.overlay) -> None:
+        """Overlay a new metadata object on this one"""
+
+        assign_funcs = {
+            OverlayMode.overlay: self.assign_overlay,
+            OverlayMode.add_missing: self.assign_add_missing,
+            OverlayMode.combine: self.assign_combine,
+        }
+
+        def assign(cur: Any, new: Any) -> Any:
+            if new is REMOVE:
+                if isinstance(cur, (list, set)):
+                    cur.clear()
+                    return cur
                 else:
-                    setattr(self, cur, new)
+                    return None
+
+            assign_func = assign_funcs.get(mode, self.assign_overlay)
+            return assign_func(cur, new)
 
         if not new_md.is_empty:
             self.is_empty = False
 
-        assign("tag_origin", new_md.tag_origin)
-        assign("issue_id", new_md.issue_id)
-        assign("series_id", new_md.series_id)
+        self.tag_origin = assign(self.tag_origin, new_md.tag_origin)  # TODO use and purpose now?
+        self.issue_id = assign(self.issue_id, new_md.issue_id)
+        self.series_id = assign(self.series_id, new_md.series_id)
 
-        assign("series", new_md.series)
-        assign("series_aliases", new_md.series_aliases)
-        assign("issue", new_md.issue)
-        assign("issue_count", new_md.issue_count)
-        assign("title", new_md.title)
-        assign("title_aliases", new_md.title_aliases)
-        assign("volume", new_md.volume)
-        assign("volume_count", new_md.volume_count)
-        assign("genres", new_md.genres)
-        assign("description", new_md.description)
-        assign("notes", new_md.notes)
+        self.series = assign(self.series, new_md.series)
+        self.series_aliases = assign(self.series_aliases, new_md.series_aliases)
+        self.issue = assign(self.issue, new_md.issue)
+        self.issue_count = assign(self.issue_count, new_md.issue_count)
+        self.title = assign(self.title, new_md.title)
+        self.title_aliases = assign(self.title_aliases, new_md.title_aliases)
+        self.volume = assign(self.volume, new_md.volume)
+        self.volume_count = assign(self.volume_count, new_md.volume_count)
+        self.genres = assign(self.genres, new_md.genres)
+        self.description = assign(self.description, new_md.description)
+        self.notes = assign(self.notes, new_md.notes)
 
-        assign("alternate_series", new_md.alternate_series)
-        assign("alternate_number", new_md.alternate_number)
-        assign("alternate_count", new_md.alternate_count)
-        assign("story_arcs", new_md.story_arcs)
-        assign("series_groups", new_md.series_groups)
+        self.alternate_series = assign(self.alternate_series, new_md.alternate_series)
+        self.alternate_number = assign(self.alternate_number, new_md.alternate_number)
+        self.alternate_count = assign(self.alternate_count, new_md.alternate_count)
+        self.story_arcs = assign(self.story_arcs, new_md.story_arcs)
+        self.series_groups = assign(self.series_groups, new_md.series_groups)
 
-        assign("publisher", new_md.publisher)
-        assign("imprint", new_md.imprint)
-        assign("day", new_md.day)
-        assign("month", new_md.month)
-        assign("year", new_md.year)
-        assign("language", new_md.language)
-        assign("country", new_md.country)
-        assign("web_links", new_md.web_links)
-        assign("format", new_md.format)
-        assign("manga", new_md.manga)
-        assign("black_and_white", new_md.black_and_white)
-        assign("maturity_rating", new_md.maturity_rating)
-        assign("critical_rating", new_md.critical_rating)
-        assign("scan_info", new_md.scan_info)
+        self.publisher = assign(self.publisher, new_md.publisher)
+        self.imprint = assign(self.imprint, new_md.imprint)
+        self.day = assign(self.day, new_md.day)
+        self.month = assign(self.month, new_md.month)
+        self.year = assign(self.year, new_md.year)
+        self.language = assign(self.language, new_md.language)
+        self.country = assign(self.country, new_md.country)
+        self.web_links = assign(self.web_links, new_md.web_links)
+        self.format = assign(self.format, new_md.format)
+        self.manga = assign(self.manga, new_md.manga)
+        self.black_and_white = assign(self.black_and_white, new_md.black_and_white)
+        self.maturity_rating = assign(self.maturity_rating, new_md.maturity_rating)
+        self.critical_rating = assign(self.critical_rating, new_md.critical_rating)
+        self.scan_info = assign(self.scan_info, new_md.scan_info)
 
-        assign("tags", new_md.tags)
-        assign("pages", new_md.pages)
-        assign("page_count", new_md.page_count)
+        self.tags = assign(self.tags, new_md.tags)
+        self.pages = assign(self.pages, new_md.pages)
+        self.page_count = assign(self.page_count, new_md.page_count)
 
-        assign("characters", new_md.characters)
-        assign("teams", new_md.teams)
-        assign("locations", new_md.locations)
-        self.overlay_credits(new_md.credits)
+        self.characters = assign(self.characters, new_md.characters)
+        self.teams = assign(self.teams, new_md.teams)
+        self.locations = assign(self.locations, new_md.locations)
+        self.credits = self.assign_credits(self.credits, new_md.credits)
 
-        assign("price", new_md.price)
-        assign("is_version_of", new_md.is_version_of)
-        assign("rights", new_md.rights)
-        assign("identifier", new_md.identifier)
-        assign("last_mark", new_md.last_mark)
-        assign("_cover_image", new_md._cover_image)
-        assign("_alternate_images", new_md._alternate_images)
+        self.price = assign(self.price, new_md.price)
+        self.is_version_of = assign(self.is_version_of, new_md.is_version_of)
+        self.rights = assign(self.rights, new_md.rights)
+        self.identifier = assign(self.identifier, new_md.identifier)
+        self.last_mark = assign(self.last_mark, new_md.last_mark)
+        self._cover_image = assign(self._cover_image, new_md._cover_image)
+        self._alternate_images = assign(self._alternate_images, new_md._alternate_images)
 
-    def overlay_credits(self, new_credits: list[Credit]) -> None:
+    def assign_credits_overlay(self, cur_credits: list[Credit], new_credits: list[Credit]) -> list[Credit]:
+        return self.credit_dedupe(cur_credits, new_credits)
+
+    def assign_credits_add_missing(self, cur_credits: list[Credit], new_credits: list[Credit]) -> list[Credit]:
+        # Send new_credits as cur_credits and vis-versa to keep cur_credit on duplication
+        return self.credit_dedupe(new_credits, cur_credits)
+
+    def assign_credits(
+        self, cur_credits: list[Credit], new_credits: list[Credit], mode: OverlayMode = OverlayMode.overlay
+    ) -> list[Credit]:
         if new_credits is REMOVE:
-            self.credits = []
-            return
-        for c in new_credits:
-            primary = bool("primary" in c and c["primary"])
+            return []
 
-            # Remove credit role if person is blank
-            if c["person"] == "":
-                for r in reversed(self.credits):
-                    if r["role"].casefold() == c["role"].casefold():
-                        self.credits.remove(r)
-            # otherwise, add it!
-            else:
-                self.add_credit(c["person"], c["role"], primary)
+        assign_credit_funcs = {
+            OverlayMode.overlay: self.assign_credits_overlay,
+            OverlayMode.add_missing: self.assign_credits_add_missing,
+            OverlayMode.combine: self.assign_credits_overlay,
+        }
+
+        assign_credit_func = assign_credit_funcs.get(mode, self.assign_credits_overlay)
+        return assign_credit_func(cur_credits, new_credits)
 
     def apply_default_page_list(self, page_list: Sequence[str]) -> None:
         # generate a default page list, with the first page marked as the cover
@@ -354,12 +472,15 @@ class GenericMetadata:
         return coverlist
 
     def add_credit(self, person: str, role: str, primary: bool = False) -> None:
+        if person == "":
+            return
+
         credit = Credit(person=person, role=role, primary=primary)
 
         # look to see if it's not already there...
         found = False
         for c in self.credits:
-            if c["person"].casefold() == person.casefold() and c["role"].casefold() == role.casefold():
+            if norm_fold(c["person"]) == norm_fold(person) and norm_fold(c["role"]) == norm_fold(role):
                 # no need to add it. just adjust the "primary" flag as needed
                 c["primary"] = primary
                 found = True
