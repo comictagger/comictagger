@@ -114,7 +114,7 @@ class CLI:
 
         self.post_process_matches(match_results)
 
-        if self.config.Runtime_Options__online:
+        if self.config.Auto_Tag__online:
             self.output(
                 f"\nFiles tagged with metadata provided by {self.current_talker().name} {self.current_talker().website}",
             )
@@ -180,7 +180,7 @@ class CLI:
                 ca = ComicArchive(match_set.original_path)
                 md = self.create_local_metadata(ca)
                 ct_md = self.actual_issue_data_fetch(match_set.online_results[int(i) - 1].issue_id)
-                if self.config.Issue_Identifier__clear_metadata:
+                if self.config.Auto_Tag__clear_metadata:
                     md = ct_md
                 else:
                     notes = (
@@ -189,7 +189,7 @@ class CLI:
                     )
                     md.overlay(ct_md.replace(notes=utils.combine_notes(md.notes, notes, "Tagged with ComicTagger")))
 
-                if self.config.Issue_Identifier__auto_imprint:
+                if self.config.Auto_Tag__auto_imprint:
                     md.fix_publisher()
 
                 match_set.md = md
@@ -248,7 +248,7 @@ class CLI:
         md.apply_default_page_list(ca.get_page_name_list())
 
         # now, overlay the parsed filename info
-        if self.config.Runtime_Options__parse_filename:
+        if self.config.Auto_Tag__parse_filename:
             f_md = ca.metadata_from_filename(
                 self.config.Filename_Parsing__complicated_parser,
                 self.config.Filename_Parsing__remove_c2c,
@@ -271,7 +271,7 @@ class CLI:
                     logger.error("Failed to load metadata for %s: %s", ca.path, e)
 
         # finally, use explicit stuff
-        md.overlay(self.config.Runtime_Options__metadata)
+        md.overlay(self.config.Auto_Tag__metadata)
 
         return md
 
@@ -344,7 +344,7 @@ class CLI:
 
     def copy_style(self, ca: ComicArchive, md: GenericMetadata, style: str) -> Status:
         dst_style_name = md_styles[style].name()
-        if not self.config.Runtime_Options__overwrite and ca.has_metadata(style):
+        if not self.config.Runtime_Options__skip_existing_metadata and ca.has_metadata(style):
             self.output(f"{ca.path}: Already has {dst_style_name} tags. Not overwriting.")
             return Status.existing_tags
         if self.config.Commands__copy == style:
@@ -353,7 +353,7 @@ class CLI:
 
         src_style_name = md_styles[self.config.Commands__copy].name()
         if not self.config.Runtime_Options__dryrun:
-            if self.config.Comic_Book_Lover__apply_transform_on_bulk_operation == "cbi":
+            if self.config.Comic_Book_Lover__apply_transform_on_bulk_operation and style == "cbi":
                 md = CBLTransformer(md, self.config).apply()
 
             if ca.write_metadata(md, style):
@@ -388,7 +388,7 @@ class CLI:
         return res
 
     def save(self, ca: ComicArchive, match_results: OnlineMatchResults) -> Result:
-        if not self.config.Runtime_Options__overwrite:
+        if not self.config.Runtime_Options__skip_existing_metadata:
             for style in self.config.Runtime_Options__type:
                 if ca.has_metadata(style):
                     self.output(f"{ca.path}: Already has {md_styles[style].name()} tags. Not overwriting.")
@@ -409,11 +409,11 @@ class CLI:
 
         matches: list[IssueResult] = []
         # now, search online
-        if self.config.Runtime_Options__online:
-            if self.config.Runtime_Options__issue_id is not None:
+        if self.config.Auto_Tag__online:
+            if self.config.Auto_Tag__issue_id is not None:
                 # we were given the actual issue ID to search with
                 try:
-                    ct_md = self.current_talker().fetch_comic_data(self.config.Runtime_Options__issue_id)
+                    ct_md = self.current_talker().fetch_comic_data(self.config.Auto_Tag__issue_id)
                 except TalkerError as e:
                     logger.exception(f"Error retrieving issue details. Save aborted.\n{e}")
                     res = Result(
@@ -426,7 +426,7 @@ class CLI:
                     return res
 
                 if ct_md is None:
-                    logger.error("No match for ID %s was found.", self.config.Runtime_Options__issue_id)
+                    logger.error("No match for ID %s was found.", self.config.Auto_Tag__issue_id)
                     res = Result(
                         Action.save,
                         status=Status.match_failure,
@@ -552,7 +552,7 @@ class CLI:
                     match_results.fetch_data_failures.append(res)
                     return res
 
-            if self.config.Issue_Identifier__clear_metadata:
+            if self.config.Auto_Tag__clear_metadata:
                 md = GenericMetadata()
 
             notes = (
@@ -566,7 +566,7 @@ class CLI:
                 )
             )
 
-            if self.config.Issue_Identifier__auto_imprint:
+            if self.config.Auto_Tag__auto_imprint:
                 md.fix_publisher()
 
         res = Result(
@@ -604,7 +604,7 @@ class CLI:
 
         renamer = FileRenamer(
             md,
-            platform="universal" if self.config.File_Rename__strict else "auto",
+            platform="universal" if self.config.File_Rename__strict_filenames else "auto",
             replacements=self.config.File_Rename__replacements,
         )
         renamer.set_template(self.config.File_Rename__template)

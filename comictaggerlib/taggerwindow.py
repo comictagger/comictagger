@@ -1123,7 +1123,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                     if self.config[0].Comic_Book_Lover__apply_transform_on_import:
                         new_metadata = CBLTransformer(new_metadata, self.config[0]).apply()
 
-                    if self.config[0].Issue_Identifier__clear_metadata:
+                    if self.config[0].Auto_Tag__clear_metadata:
                         self.clear_form()
 
                     notes = (
@@ -1863,7 +1863,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                     )
                     md.overlay(ct_md.replace(notes=utils.combine_notes(md.notes, notes, "Tagged with ComicTagger")))
 
-                if self.config[0].Issue_Identifier__auto_imprint:
+                if self.config[0].Auto_Tag__auto_imprint:
                     md.fix_publisher()
 
                 res = Result(
