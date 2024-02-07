@@ -17,10 +17,10 @@
 from __future__ import annotations
 
 import io
+import itertools
 import logging
 import math
 from collections.abc import Sequence
-from functools import reduce
 from statistics import median
 from typing import TypeVar
 
@@ -61,17 +61,9 @@ class ImageHasher:
         pixels = list(image.getdata())
         avg = sum(pixels) / len(pixels)
 
-        def compare_value_to_avg(i: int) -> int:
-            return 1 if i > avg else 0
+        diff = "".join(str(int(p < avg)) for p in pixels)
 
-        bitlist = list(map(compare_value_to_avg, pixels))
-
-        # build up an int value from the bit list, one bit at a time
-        def set_bit(x: int, idx_val: tuple[int, int]) -> int:
-            (idx, val) = idx_val
-            return x | (val << idx)
-
-        result = reduce(set_bit, enumerate(bitlist), 0)
+        result = int(diff, 2)
 
         return result
 
@@ -160,10 +152,10 @@ class ImageHasher:
 
         pixels = convert_image_to_ndarray(image)
         dct = generate_dct2(generate_dct2(pixels, axis=0), axis=1)
-        dctlowfreq = [row[:8] for row in dct[:8]]
-        med = median([item for sublist in dctlowfreq for item in sublist])
+        dctlowfreq = list(itertools.chain.from_iterable(row[:8] for row in dct[:8]))
+        med = median(dctlowfreq)
         # Convert to a bit string
-        diff = "".join(str(int(item > med)) for row in dctlowfreq for item in row)
+        diff = "".join(str(int(item > med)) for item in dctlowfreq)
 
         result = int(diff, 2)
 
