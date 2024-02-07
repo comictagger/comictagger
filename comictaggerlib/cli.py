@@ -113,7 +113,7 @@ class CLI:
 
         self.post_process_matches(match_results)
 
-        if self.config.Runtime_Options__online:
+        if self.config.Auto_Tag__online:
             self.output(
                 f"\nFiles tagged with metadata provided by {self.current_talker().name} {self.current_talker().website}",
             )
@@ -127,7 +127,7 @@ class CLI:
             logger.exception(f"Error retrieving issue details. Save aborted.\n{e}")
             return GenericMetadata()
 
-        if self.config.Metadata_Options__cbl_apply_transform_on_import:
+        if self.config.Metadata_Options__apply_transform_on_import:
             ct_md = CBLTransformer(ct_md, self.config).apply()
 
         return ct_md
@@ -236,7 +236,7 @@ class CLI:
         md.apply_default_page_list(ca.get_page_name_list())
 
         # now, overlay the parsed filename info
-        if self.config.Runtime_Options__parse_filename:
+        if self.config.Auto_Tag__parse_filename:
             f_md = ca.metadata_from_filename(
                 self.config.Filename_Parsing__filename_parser,
                 self.config.Filename_Parsing__remove_c2c,
@@ -259,7 +259,7 @@ class CLI:
                     logger.error("Failed to load metadata for %s: %s", ca.path, e)
 
         # finally, use explicit stuff (always 'overlay' mode)
-        md.overlay(self.config.Runtime_Options__metadata, mode=merge.Mode.OVERLAY, merge_lists=True)
+        md.overlay(self.config.Auto_Tag__metadata, mode=merge.Mode.OVERLAY, merge_lists=True)
 
         return md
 
@@ -332,7 +332,7 @@ class CLI:
 
     def copy_style(self, ca: ComicArchive, md: GenericMetadata, style: str) -> Status:
         dst_style_name = md_styles[style].name()
-        if not self.config.Runtime_Options__overwrite and ca.has_metadata(style):
+        if not self.config.Runtime_Options__skip_existing_metadata and ca.has_metadata(style):
             self.output(f"{ca.path}: Already has {dst_style_name} tags. Not overwriting.")
             return Status.existing_tags
         if self.config.Commands__copy == style:
@@ -341,7 +341,7 @@ class CLI:
 
         src_style_name = md_styles[self.config.Commands__copy].name()
         if not self.config.Runtime_Options__dryrun:
-            if self.config.Metadata_Options__cbl_apply_transform_on_bulk_operation == "cbi":
+            if self.config.Metadata_Options__apply_transform_on_bulk_operation and style == "cbi":
                 md = CBLTransformer(md, self.config).apply()
 
             if ca.write_metadata(md, style):
@@ -378,7 +378,7 @@ class CLI:
         return res
 
     def save(self, ca: ComicArchive, match_results: OnlineMatchResults) -> tuple[Result, OnlineMatchResults]:
-        if not self.config.Runtime_Options__overwrite:
+        if not self.config.Runtime_Options__skip_existing_metadata:
             for style in self.config.Runtime_Options__type_modify:
                 if ca.has_metadata(style):
                     self.output(f"{ca.path}: Already has {md_styles[style].name()} tags. Not overwriting.")
@@ -404,11 +404,11 @@ class CLI:
         # now, search online
 
         ct_md = GenericMetadata()
-        if self.config.Runtime_Options__online:
-            if self.config.Runtime_Options__issue_id is not None:
+        if self.config.Auto_Tag__online:
+            if self.config.Auto_Tag__issue_id is not None:
                 # we were given the actual issue ID to search with
                 try:
-                    ct_md = self.current_talker().fetch_comic_data(self.config.Runtime_Options__issue_id)
+                    ct_md = self.current_talker().fetch_comic_data(self.config.Auto_Tag__issue_id)
                 except TalkerError as e:
                     logger.exception(f"Error retrieving issue details. Save aborted.\n{e}")
                     res = Result(
@@ -421,7 +421,7 @@ class CLI:
                     return res, match_results
 
                 if ct_md is None or ct_md.is_empty:
-                    logger.error("No match for ID %s was found.", self.config.Runtime_Options__issue_id)
+                    logger.error("No match for ID %s was found.", self.config.Auto_Tag__issue_id)
                     res = Result(
                         Action.save,
                         status=Status.match_failure,
@@ -576,7 +576,7 @@ class CLI:
 
         renamer = FileRenamer(
             None,
-            platform="universal" if self.config.File_Rename__strict else "auto",
+            platform="universal" if self.config.File_Rename__strict_filenames else "auto",
             replacements=self.config.File_Rename__replacements,
         )
         renamer.set_metadata(md, ca.path.name)

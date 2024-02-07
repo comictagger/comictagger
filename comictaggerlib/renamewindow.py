@@ -67,7 +67,7 @@ class RenameWindow(QtWidgets.QDialog):
         self.rename_list: list[str] = []
 
         self.btnSettings.clicked.connect(self.modify_settings)
-        platform = "universal" if self.config[0].File_Rename__strict else "auto"
+        platform = "universal" if self.config[0].File_Rename__strict_filenames else "auto"
         self.renamer = FileRenamer(None, platform=platform, replacements=self.config[0].File_Rename__replacements)
 
         self.do_preview()

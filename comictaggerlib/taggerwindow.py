@@ -1708,7 +1708,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                             center_window_on_parent(prog_dialog)
                             QtCore.QCoreApplication.processEvents()
 
-                        if style == "cbi" and self.config[0].Metadata_Options__cbl_apply_transform_on_bulk_operation:
+                        if style == "cbi" and self.config[0].Metadata_Options__apply_transform_on_bulk_operation:
                             md = CBLTransformer(md, self.config[0]).apply()
 
                         if ca.write_metadata(md, style):
@@ -1905,7 +1905,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             if ct_md is not None:
                 temp_opts = cast(ct_ns, settngs.get_namespace(self.config, True, True, True, False)[0])
                 if dlg.cbxRemoveMetadata.isChecked():
-                    temp_opts.Issue_Identifier__clear_metadata
+                    temp_opts.Auto_Tag__clear_metadata
 
                 md = prepare_metadata(md, ct_md, temp_opts)
 

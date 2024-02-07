@@ -32,7 +32,7 @@ def archiver(manager: settngs.Manager) -> None:
             manager.add_setting(
                 f"--{settngs.sanitize_name(archiver.exe)}",
                 default=archiver.exe,
-                help="Path to the %(default)s executable\n\n",
+                help="Path to the %(default)s executable",
             )
 
 

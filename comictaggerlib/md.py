@@ -11,11 +11,11 @@ from comictalker.talker_utils import cleanup_html
 
 
 def prepare_metadata(md: GenericMetadata, new_md: GenericMetadata, opts: SettngsNS) -> GenericMetadata:
-    if opts.Metadata_Options__cbl_apply_transform_on_import:
+    if opts.Metadata_Options__apply_transform_on_import:
         new_md = CBLTransformer(new_md, opts).apply()
 
     final_md = md.copy()
-    if opts.Issue_Identifier__clear_metadata:
+    if opts.Auto_Tag__clear_metadata:
         final_md = GenericMetadata()
 
     final_md.overlay(new_md)
@@ -31,7 +31,7 @@ def prepare_metadata(md: GenericMetadata, new_md: GenericMetadata, opts: Settngs
             + (f"[Issue ID {final_md.issue_id}]" if final_md.issue_id else "")
         )
 
-    if opts.Issue_Identifier__auto_imprint:
+    if opts.Auto_Tag__auto_imprint:
         final_md.fix_publisher()
 
     return final_md.replace(

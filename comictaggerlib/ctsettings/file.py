@@ -6,7 +6,9 @@ import uuid
 import settngs
 
 from comicapi import merge, utils
+from comicapi.genericmetadata import GenericMetadata
 from comictaggerlib.ctsettings.settngs_namespace import SettngsNS as ct_ns
+from comictaggerlib.ctsettings.types import parse_metadata_from_string
 from comictaggerlib.defaults import DEFAULT_REPLACEMENTS, Replacement, Replacements
 
 
@@ -41,7 +43,6 @@ def internal(parser: settngs.Manager) -> None:
 
 
 def identifier(parser: settngs.Manager) -> None:
-    # identifier settings
     parser.add_setting(
         "--series-match-identify-thresh",
         default=91,
@@ -59,27 +60,7 @@ def identifier(parser: settngs.Manager) -> None:
         "--border-crop-percent",
         default=10,
         type=int,
-        help="ComicTagger will automatically add an additional cover that has any black borders cropped. If the difference in height is less than %(default)s%% the cover will not be cropped.",
-    )
-    parser.add_setting(
-        "--publisher-filter",
-        default=["Panini Comics", "Abril", "Planeta DeAgostini", "Editorial Televisa", "Dino Comics"],
-        action="extend",
-        nargs="+",
-        help="When enabled, filters the listed publishers from all search results. Ending a publisher with a '-' removes a publisher from this list",
-    )
-    parser.add_setting(
-        "--clear-metadata",
-        default=False,
-        action=argparse.BooleanOptionalAction,
-        help="Clears all existing metadata during import, default is to merge metadata.\nMay be used in conjunction with -o, -f and -m.\n\n",
-    )
-    parser.add_setting(
-        "-a",
-        "--auto-imprint",
-        default=False,
-        action=argparse.BooleanOptionalAction,
-        help="Enables the auto imprint functionality.\ne.g. if the publisher is set to 'vertigo' it\nwill be updated to 'DC Comics' and the imprint\nproperty will be set to 'Vertigo'.\n\n",
+        help="ComicTagger will automatically add an additional cover that has any black borders cropped.\nIf the difference in height is less than %(default)s%% the cover will not be cropped.\n\n",
     )
 
     parser.add_setting(
@@ -94,23 +75,15 @@ def identifier(parser: settngs.Manager) -> None:
         action=argparse.BooleanOptionalAction,
         help="Puts series that are an exact match at the top of the list",
     )
-    parser.add_setting(
-        "--always-use-publisher-filter",
-        default=False,
-        action=argparse.BooleanOptionalAction,
-        help="Enables the publisher filter",
-    )
 
 
 def dialog(parser: settngs.Manager) -> None:
-    # Show/ask dialog flags
     parser.add_setting("show_disclaimer", default=True, cmdline=False)
     parser.add_setting("dont_notify_about_this_version", default="", cmdline=False)
     parser.add_setting("ask_about_usage_stats", default=True, cmdline=False)
 
 
 def filename(parser: settngs.Manager) -> None:
-    # filename parsing settings
     parser.add_setting(
         "--filename-parser",
         default=utils.Parser.ORIGINAL,
@@ -123,19 +96,19 @@ def filename(parser: settngs.Manager) -> None:
         "--remove-c2c",
         default=False,
         action=argparse.BooleanOptionalAction,
-        help="Removes c2c from filenames. Requires --complicated-parser",
+        help="Removes c2c from filenames.\nRequires --complicated-parser\n\n",
     )
     parser.add_setting(
         "--remove-fcbd",
         default=False,
         action=argparse.BooleanOptionalAction,
-        help="Removes FCBD/free comic book day from filenames. Requires --complicated-parser",
+        help="Removes FCBD/free comic book day from filenames.\nRequires --complicated-parser\n\n",
     )
     parser.add_setting(
         "--remove-publisher",
         default=False,
         action=argparse.BooleanOptionalAction,
-        help="Attempts to remove publisher names from filenames, currently limited to Marvel and DC. Requires --complicated-parser",
+        help="Attempts to remove publisher names from filenames, currently limited to Marvel and DC.\nRequires --complicated-parser\n\n",
     )
     parser.add_setting(
         "--split-words",
@@ -147,18 +120,17 @@ def filename(parser: settngs.Manager) -> None:
         "--protofolius-issue-number-scheme",
         default=False,
         action=argparse.BooleanOptionalAction,
-        help="Use an issue number scheme devised by protofolius for encoding format information as a letter in front of an issue number. Implies --allow-issue-start-with-letter.  Requires --complicated-parser",
+        help="Use an issue number scheme devised by protofolius for encoding format information as a letter in front of an issue number.\nImplies --allow-issue-start-with-letter.  Requires --complicated-parser\n\n",
     )
     parser.add_setting(
         "--allow-issue-start-with-letter",
         default=False,
         action=argparse.BooleanOptionalAction,
-        help="Allows an issue number to start with a single letter (e.g. '#X01'). Requires --complicated-parser",
+        help="Allows an issue number to start with a single letter (e.g. '#X01').\nRequires --complicated-parser\n\n",
     )
 
 
 def talker(parser: settngs.Manager) -> None:
-    # General settings for talkers
     parser.add_setting(
         "--source",
         default="comicvine",
@@ -175,27 +147,26 @@ def talker(parser: settngs.Manager) -> None:
 
 def md_options(parser: settngs.Manager) -> None:
     # CBL Transform settings
-    parser.add_setting("--cbl-assume-lone-credit-is-primary", default=False, action=argparse.BooleanOptionalAction)
-    parser.add_setting("--cbl-copy-characters-to-tags", default=False, action=argparse.BooleanOptionalAction)
-    parser.add_setting("--cbl-copy-teams-to-tags", default=False, action=argparse.BooleanOptionalAction)
-    parser.add_setting("--cbl-copy-locations-to-tags", default=False, action=argparse.BooleanOptionalAction)
-    parser.add_setting("--cbl-copy-storyarcs-to-tags", default=False, action=argparse.BooleanOptionalAction)
-    parser.add_setting("--cbl-copy-notes-to-comments", default=False, action=argparse.BooleanOptionalAction)
-    parser.add_setting("--cbl-copy-weblink-to-comments", default=False, action=argparse.BooleanOptionalAction)
-    parser.add_setting("--cbl-apply-transform-on-import", default=False, action=argparse.BooleanOptionalAction)
-    parser.add_setting("--cbl-apply-transform-on-bulk-operation", default=False, action=argparse.BooleanOptionalAction)
+    parser.add_setting("--assume-lone-credit-is-primary", default=False, action=argparse.BooleanOptionalAction)
+    parser.add_setting("--copy-characters-to-tags", default=False, action=argparse.BooleanOptionalAction)
+    parser.add_setting("--copy-teams-to-tags", default=False, action=argparse.BooleanOptionalAction)
+    parser.add_setting("--copy-locations-to-tags", default=False, action=argparse.BooleanOptionalAction)
+    parser.add_setting("--copy-storyarcs-to-tags", default=False, action=argparse.BooleanOptionalAction)
+    parser.add_setting("--copy-notes-to-comments", default=False, action=argparse.BooleanOptionalAction)
+    parser.add_setting("--copy-weblink-to-comments", default=False, action=argparse.BooleanOptionalAction)
+    parser.add_setting("--apply-transform-on-import", default=False, action=argparse.BooleanOptionalAction)
+    parser.add_setting("--apply-transform-on-bulk-operation", default=False, action=argparse.BooleanOptionalAction)
 
     parser.add_setting("use_short_metadata_names", default=False, action=argparse.BooleanOptionalAction, cmdline=False)
     parser.add_setting(
-        "--disable-cr",
-        default=False,
+        "--cr",
+        default=True,
         action=argparse.BooleanOptionalAction,
-        help="Disable the ComicRack metadata type",
+        help="Enable the ComicRack metadata type. Turn off to only use the CIX metadata type.",
     )
 
 
 def rename(parser: settngs.Manager) -> None:
-    # Rename settings
     parser.add_setting("--template", default="{series} #{issue} ({year})", help="The teplate to use when renaming")
     parser.add_setting(
         "--issue-number-padding",
@@ -229,7 +200,7 @@ def rename(parser: settngs.Manager) -> None:
         help="Ignores the filename when moving renamed files to a separate directory",
     )
     parser.add_setting(
-        "--strict",
+        "--strict-filenames",
         default=False,
         action=argparse.BooleanOptionalAction,
         help="Ensures that filenames are valid for all OSs",
@@ -238,7 +209,13 @@ def rename(parser: settngs.Manager) -> None:
 
 
 def autotag(parser: settngs.Manager) -> None:
-    # Auto-tag stickies
+    parser.add_setting(
+        "-o",
+        "--online",
+        action="store_true",
+        help="""Search online and attempt to identify file\nusing existing metadata and images in archive.\nMay be used in conjunction with -f and -m.\n\n""",
+        file=False,
+    )
     parser.add_setting(
         "--save-on-low-confidence",
         default=False,
@@ -246,10 +223,10 @@ def autotag(parser: settngs.Manager) -> None:
         help="Automatically save metadata on low-confidence matches",
     )
     parser.add_setting(
-        "--dont-use-year-when-identifying",
+        "--dont-use-year-when-auto-tagging",
         default=False,
         action=argparse.BooleanOptionalAction,
-        help="Ignore the year metadata attribute when identifying a comic",
+        help="Ignore the year metadata attribute when auto-tagging a comic",
     )
     parser.add_setting(
         "-1",
@@ -265,12 +242,60 @@ def autotag(parser: settngs.Manager) -> None:
         help="When searching ignore leading numbers in the filename",
     )
     parser.add_setting("remove_archive_after_successful_match", default=False, cmdline=False)
+    parser.add_setting(
+        "-f",
+        "--parse-filename",
+        action="store_true",
+        help="""Parse the filename to get some info,\nspecifically series name, issue number,\nvolume, and publication year.\n\n""",
+        file=False,
+    )
+    parser.add_setting(
+        "--id",
+        dest="issue_id",
+        type=str,
+        help="""Use the issue ID when searching online.\nOverrides all other metadata.\n\n""",
+        file=False,
+    )
+    parser.add_setting(
+        "-m",
+        "--metadata",
+        default=GenericMetadata(),
+        type=parse_metadata_from_string,
+        help="""Explicitly define some tags to be used in YAML syntax.  Use @file.yaml to read from a file.  e.g.:\n"series: Plastic Man, publisher: Quality Comics, year: "\n"series: 'Kickers, Inc.', issue: '1', year: 1986"\nIf you want to erase a tag leave the value blank.\nSome names that can be used: series, issue, issue_count, year,\npublisher, title\n\n""",
+        file=False,
+    )
+    parser.add_setting(
+        "--clear-metadata",
+        default=False,
+        action=argparse.BooleanOptionalAction,
+        help="Clears all existing metadata during import, default is to merge metadata.\nMay be used in conjunction with -o, -f and -m.\n\n",
+    )
+    parser.add_setting(
+        "--publisher-filter",
+        default=["Panini Comics", "Abril", "Planeta DeAgostini", "Editorial Televisa", "Dino Comics"],
+        action="extend",
+        nargs="+",
+        help="When enabled, filters the listed publishers from all search results.\nEnding a publisher with a '-' removes a publisher from this list\n\n",
+    )
+    parser.add_setting(
+        "--use-publisher-filter",
+        default=False,
+        action=argparse.BooleanOptionalAction,
+        help="Enables the publisher filter",
+    )
+    parser.add_setting(
+        "-a",
+        "--auto-imprint",
+        default=False,
+        action=argparse.BooleanOptionalAction,
+        help="Enables the auto imprint functionality.\ne.g. if the publisher is set to 'vertigo' it\nwill be updated to 'DC Comics' and the imprint\nproperty will be set to 'Vertigo'.\n\n",
+    )
 
 
 def parse_filter(config: settngs.Config[ct_ns]) -> settngs.Config[ct_ns]:
     new_filter = []
     remove = []
-    for x in config[0].Issue_Identifier__publisher_filter:
+    for x in config[0].Auto_Tag__publisher_filter:
         x = x.strip()
         if x:  # ignore empty arguments
             if x[-1] == "-":  # this publisher needs to be removed. We remove after all publishers have been enumerated
@@ -281,7 +306,7 @@ def parse_filter(config: settngs.Config[ct_ns]) -> settngs.Config[ct_ns]:
     for x in remove:  # remove publishers
         if x in new_filter:
             new_filter.remove(x)
-    config[0].Issue_Identifier__publisher_filter = new_filter
+    config[0].Auto_Tag__publisher_filter = new_filter
     return config
 
 

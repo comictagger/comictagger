@@ -36,14 +36,14 @@ def test_save(
     config[0].Commands__command = comictaggerlib.resulttypes.Action.save
 
     # Check online, should be intercepted by comicvine_api
-    config[0].Runtime_Options__online = True
+    config[0].Auto_Tag__online = True
     # Use the temporary comic we created
     config[0].Runtime_Options__files = [tmp_comic.path]
     # Read and save ComicRack tags
     config[0].Runtime_Options__type_read = ["cr"]
     config[0].Runtime_Options__type_modify = ["cr"]
     # Search using the correct series since we just put the wrong series name in the CBZ
-    config[0].Runtime_Options__metadata = comicapi.genericmetadata.GenericMetadata(series=md_saved.series)
+    config[0].Auto_Tag__metadata = comicapi.genericmetadata.GenericMetadata(series=md_saved.series)
     # Run ComicTagger
     CLI(config[0], talkers).run()
 
