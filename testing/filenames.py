@@ -9,6 +9,7 @@ format is
     bool(xfail: expected failure on the old parser)
 )
 """
+
 from __future__ import annotations
 
 import datetime

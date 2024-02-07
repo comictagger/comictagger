@@ -1,4 +1,5 @@
 """CLI settings for ComicTagger"""
+
 #
 # Copyright 2012-2014 ComicTagger Authors
 #

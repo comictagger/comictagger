@@ -2,6 +2,7 @@
 
 This should probably be re-written, but, well, it mostly works!
 """
+
 # Copyright 2012-2014 ComicTagger Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -344,8 +345,7 @@ protofolius_issue_number_scheme = {
 
 
 class ParserFunc(Protocol):
-    def __call__(self, __origin: Parser) -> ParserFunc | None:
-        ...
+    def __call__(self, __origin: Parser) -> ParserFunc | None: ...
 
 
 eof = filenamelexer.Item(filenamelexer.ItemType.EOF, -1, "")

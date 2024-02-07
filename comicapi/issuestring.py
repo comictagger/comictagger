@@ -4,6 +4,7 @@ Class for handling the odd permutations of an 'issue number' that the
 comics industry throws at us.
   e.g.: "12", "12.1", "0", "-1", "5AU", "100-2"
 """
+
 # Copyright 2012-2014 ComicTagger Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");

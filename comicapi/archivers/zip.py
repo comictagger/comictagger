@@ -17,7 +17,6 @@ logger = logging.getLogger(__name__)
 
 
 class ZipArchiver(Archiver):
-
     """ZIP implementation"""
 
     def __init__(self) -> None:

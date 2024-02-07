@@ -1,4 +1,5 @@
 """A class to manage modifying metadata specifically for CBL/CBI"""
+
 #
 # Copyright 2012-2014 ComicTagger Authors
 #

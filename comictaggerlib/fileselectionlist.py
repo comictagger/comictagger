@@ -1,4 +1,5 @@
 """A PyQt5 widget for managing list of comic archive files"""
+
 #
 # Copyright 2012-2014 ComicTagger Authors
 #

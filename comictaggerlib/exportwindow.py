@@ -1,4 +1,5 @@
 """A PyQT4 dialog to confirm and set options for export to zip"""
+
 #
 # Copyright 2012-2014 ComicTagger Authors
 #

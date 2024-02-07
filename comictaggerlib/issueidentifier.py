@@ -1,4 +1,5 @@
 """A class to automatically identify a comic archive"""
+
 #
 # Copyright 2012-2014 ComicTagger Authors
 #
@@ -56,12 +57,10 @@ class Score(TypedDict):
     hash: int
 
 
-class IssueIdentifierNetworkError(Exception):
-    ...
+class IssueIdentifierNetworkError(Exception): ...
 
 
-class IssueIdentifierCancelled(Exception):
-    ...
+class IssueIdentifierCancelled(Exception): ...
 
 
 class IssueIdentifier:

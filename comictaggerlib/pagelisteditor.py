@@ -1,4 +1,5 @@
 """A PyQt5 widget for editing the page list info"""
+
 #
 # Copyright 2012-2014 ComicTagger Authors
 #

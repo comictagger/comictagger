@@ -1,4 +1,5 @@
 """A PyQT4 dialog to edit credits"""
+
 #
 # Copyright 2012-2014 ComicTagger Authors
 #

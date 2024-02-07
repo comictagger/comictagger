@@ -10,6 +10,7 @@ said_yes, checked = OptionalMessageDialog.question(self, "QtWidgets.Question",
                             "Are you sure you wish to do this?",
                          )
 """
+
 #
 # Copyright 2012-2014 ComicTagger Authors
 #
