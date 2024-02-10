@@ -215,3 +215,26 @@ if qt_available:
                 widget.setPalette(inactive_palette[0])
             elif isinstance(widget, QtWidgets.QListWidget):
                 widget.setMovement(QtWidgets.QListWidget.Static)
+
+    def replaceWidget(
+        layout: QtWidgets.QLayout | QtWidgets.QSplitter, old_widget: QtWidgets.QWidget, new_widget: QtWidgets.QWidget
+    ) -> QtWidgets.QWidget:
+
+        if isinstance(layout, QtWidgets.QLayout):
+            layout.replaceWidget(old_widget, new_widget)
+        elif isinstance(layout, QtWidgets.QSplitter):
+            layout.refresh()
+            layout.replaceWidget(layout.indexOf(old_widget), new_widget)
+
+        new_widget.setBaseSize(old_widget.baseSize())
+        new_widget.setSizeIncrement(old_widget.sizeIncrement())
+        new_widget.setMinimumSize(old_widget.minimumSize())
+        new_widget.setMaximumSize(old_widget.maximumSize())
+        new_widget.setGeometry(old_widget.geometry())
+        new_widget.setSizePolicy(old_widget.sizePolicy())
+
+        old_widget.hide()
+        old_widget.deleteLater()
+        # QSplitter has issues with replacing a widget before it's been first shown. Assume it should be visible
+        new_widget.show()
+        return new_widget

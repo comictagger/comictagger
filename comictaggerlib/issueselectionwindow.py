@@ -24,7 +24,7 @@ from comicapi.genericmetadata import GenericMetadata
 from comicapi.issuestring import IssueString
 from comictaggerlib.coverimagewidget import CoverImageWidget
 from comictaggerlib.ctsettings import ct_ns
-from comictaggerlib.ui import ui_path
+from comictaggerlib.ui import qtutils, ui_path
 from comictaggerlib.ui.qtutils import new_web_view, reduce_widget_font_size
 from comictalker.comictalker import ComicTalker, TalkerError
 
@@ -66,12 +66,7 @@ class IssueSelectionWindow(QtWidgets.QDialog):
         self.teDescription: QtWidgets.QWidget
         webengine = new_web_view(self)
         if webengine:
-            self.teDescription.hide()
-            self.teDescription.deleteLater()
-            # I don't know how to replace teDescription, this is the result of teDescription.height() once rendered
-            webengine.resize(webengine.width(), 141)
-            self.splitter.addWidget(webengine)
-            self.teDescription = webengine
+            self.teDescription = qtutils.replaceWidget(self.splitter, self.teDescription, webengine)
             logger.info("successfully loaded QWebEngineView")
         else:
             logger.info("failed to open QWebEngineView")

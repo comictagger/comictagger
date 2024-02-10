@@ -33,7 +33,7 @@ from comictaggerlib.issueidentifier import IssueIdentifier
 from comictaggerlib.issueselectionwindow import IssueSelectionWindow
 from comictaggerlib.matchselectionwindow import MatchSelectionWindow
 from comictaggerlib.progresswindow import IDProgressWindow
-from comictaggerlib.ui import ui_path
+from comictaggerlib.ui import qtutils, ui_path
 from comictaggerlib.ui.qtutils import new_web_view, reduce_widget_font_size
 from comictalker.comictalker import ComicTalker, TalkerError
 
@@ -127,12 +127,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         self.teDetails: QtWidgets.QWidget
         webengine = new_web_view(self)
         if webengine:
-            self.teDetails.hide()
-            self.teDetails.deleteLater()
-            # I don't know how to replace teDetails, this is the result of teDetails.height() once rendered
-            webengine.resize(webengine.width(), 141)
-            self.splitter.addWidget(webengine)
-            self.teDetails = webengine
+            self.teDetails = qtutils.replaceWidget(self.splitter, self.teDetails, webengine)
 
         reduce_widget_font_size(self.teDetails, 1)
         reduce_widget_font_size(self.twList)
