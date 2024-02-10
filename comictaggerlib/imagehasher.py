@@ -61,7 +61,7 @@ class ImageHasher:
         pixels = list(image.getdata())
         avg = sum(pixels) / len(pixels)
 
-        diff = "".join(str(int(p < avg)) for p in pixels)
+        diff = "".join(str(int(p > avg)) for p in pixels)
 
         result = int(diff, 2)
 

@@ -41,7 +41,7 @@ def test_get_issue_cover_match_score(cbz, config, comicvine_api):
         [ii.calculate_hash(cbz.get_page(0))],
     )
     expected = {
-        "hash": 1747255366011518976,
+        "hash": 212201432349720,
         "score": 0,
         "url": "https://comicvine.gamespot.com/a/uploads/scale_large/0/574/585444-109004_20080707014047_large.jpg",
     }
@@ -66,7 +66,7 @@ def test_search(cbz, config, comicvine_api):
         publisher=testing.comicvine.cv_volume_result["results"]["publisher"]["name"],
         image_url=testing.comicvine.cv_issue_result["results"]["image"]["super_url"],
         description=testing.comicvine.cv_issue_result["results"]["description"],
-        url_image_hash=1747255366011518976,
+        url_image_hash=212201432349720,
     )
     for r, e in zip(results, [cv_expected]):
         assert r == e
