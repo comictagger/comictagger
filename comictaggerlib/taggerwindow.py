@@ -1694,6 +1694,16 @@ class TaggerWindow(QtWidgets.QMainWindow):
     def identify_and_tag_single_archive(
         self, ca: ComicArchive, match_results: OnlineMatchResults, dlg: AutoTagStartWindow
     ) -> tuple[bool, OnlineMatchResults]:
+        def metadata_save() -> bool:
+            for style in self.save_data_styles:
+                # write out the new data
+                if not ca.write_metadata(md, style):
+                    self.auto_tag_log(
+                        f"{metadata_styles[style].name()} save failed! Aborting any additional style saves.\n"
+                    )
+                    return False
+            return True
+
         success = False
         ii = IssueIdentifier(ca, self.config[0], self.current_talker())
 
@@ -1839,35 +1849,26 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 if self.config[0].Issue_Identifier__auto_imprint:
                     md.fix_publisher()
 
-                # Save each style
-                for style in self.save_data_styles:
-                    if not ca.write_metadata(md, style):
-                        match_results.write_failures.append(
-                            Result(
-                                Action.save,
-                                Status.write_failure,
-                                ca.path,
-                                online_results=matches,
-                                match_status=MatchStatus.good_match,
-                            )
-                        )
-                        self.auto_tag_log(
-                            f"{metadata_styles[style].name()} save failed! Aborting any additional style saves.\n"
-                        )
-                        break
-                    else:
-                        match_results.good_matches.append(
-                            Result(
-                                Action.save,
-                                Status.success,
-                                ca.path,
-                                online_results=matches,
-                                match_status=MatchStatus.good_match,
-                            )
-                        )
-                        success = True
-                        self.auto_tag_log(f"{metadata_styles[style].name()} save complete!\n")
+                res = Result(
+                    Action.save,
+                    status=Status.success,
+                    original_path=ca.path,
+                    online_results=matches,
+                    match_status=MatchStatus.good_match,
+                    md=md,
+                    tags_written=self.save_data_styles,
+                )
 
+                # Save styles
+                if metadata_save():
+                    match_results.good_matches.append(res)
+                    success = True
+                    self.auto_tag_log("Save complete!\n")
+                else:
+                    res.status = Status.write_failure
+                    match_results.write_failures.append(res)
+
+                ca.reset_cache()
                 ca.load_cache([self.load_data_style] + self.save_data_styles)
 
         return success, match_results
@@ -1951,7 +1952,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.atprogdialog = None
 
         summary = ""
-        summary += f"Successfully added {len(match_results.good_matches)} tags to archive(s)\n"
+        summary += f"Successfully added {', '.join([metadata_styles[style].name() for style in self.save_data_styles])} tags to {len(match_results.good_matches)} archive(s)\n"
 
         if len(match_results.multiple_matches) > 0:
             summary += f"Archives with multiple matches: {len(match_results.multiple_matches)}\n"
