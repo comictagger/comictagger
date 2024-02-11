@@ -125,7 +125,6 @@ class App:
     def load_plugins(self, opts: argparse.Namespace) -> None:
         local_plugins = plugin_finder.find_plugins(opts.config.user_plugin_dir)
         self._extend_plugin_paths(local_plugins)
-        logger.warning(sys.path)
 
         comicapi.comicarchive.load_archive_plugins(local_plugins=[p.entry_point for p in local_plugins.archivers])
         comicapi.comicarchive.load_metadata_plugins(

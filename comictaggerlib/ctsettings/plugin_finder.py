@@ -12,7 +12,7 @@ import re
 from collections.abc import Generator
 from typing import Any, NamedTuple
 
-LOG = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 NORMALIZE_PACKAGE_NAME_RE = re.compile(r"[-_.]+")
 PLUGIN_GROUPS = frozenset(("comictagger.talker", "comicapi.archiver", "comicapi.metadata"))
@@ -144,7 +144,7 @@ def _classify_plugins(plugins: list[Plugin]) -> Plugins:
         elif p.entry_point.group == "comicapi.archiver":
             archivers.append(p)
         else:
-            LOG.warning(NotImplementedError(f"what plugin type? {p}"))
+            logger.warning(NotImplementedError(f"what plugin type? {p}"))
 
     return Plugins(
         metadata=metadata,
