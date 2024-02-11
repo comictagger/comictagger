@@ -189,11 +189,10 @@ def config(tmp_path):
     app.register_settings()
 
     defaults = app.parse_settings(comictaggerlib.ctsettings.ComicTaggerPaths(tmp_path / "config"), "")
-    defaults[0].Runtime_Options__config.user_data_dir.mkdir(parents=True, exist_ok=True)
     defaults[0].Runtime_Options__config.user_config_dir.mkdir(parents=True, exist_ok=True)
     defaults[0].Runtime_Options__config.user_cache_dir.mkdir(parents=True, exist_ok=True)
-    defaults[0].Runtime_Options__config.user_state_dir.mkdir(parents=True, exist_ok=True)
     defaults[0].Runtime_Options__config.user_log_dir.mkdir(parents=True, exist_ok=True)
+    defaults[0].Runtime_Options__config.user_plugin_dir.mkdir(parents=True, exist_ok=True)
     yield defaults
 
 
@@ -207,11 +206,10 @@ def plugin_config(tmp_path):
     app.register_settings()
 
     defaults = app.parse_settings(ns.config, "")
-    defaults[0].Runtime_Options__config.user_data_dir.mkdir(parents=True, exist_ok=True)
     defaults[0].Runtime_Options__config.user_config_dir.mkdir(parents=True, exist_ok=True)
     defaults[0].Runtime_Options__config.user_cache_dir.mkdir(parents=True, exist_ok=True)
-    defaults[0].Runtime_Options__config.user_state_dir.mkdir(parents=True, exist_ok=True)
     defaults[0].Runtime_Options__config.user_log_dir.mkdir(parents=True, exist_ok=True)
+    defaults[0].Runtime_Options__config.user_plugin_dir.mkdir(parents=True, exist_ok=True)
     yield (defaults, app.talkers)
 
 

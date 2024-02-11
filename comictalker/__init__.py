@@ -1,15 +1,17 @@
 from __future__ import annotations
 
+import itertools
 import logging
 import pathlib
 import sys
+from collections.abc import Sequence
 
 from packaging.version import InvalidVersion, parse
 
 if sys.version_info < (3, 10):
-    from importlib_metadata import entry_points
+    from importlib_metadata import EntryPoint, entry_points
 else:
-    from importlib.metadata import entry_points
+    from importlib.metadata import entry_points, EntryPoint
 
 from comictalker.comictalker import ComicTalker, TalkerError
 
@@ -21,12 +23,15 @@ __all__ = [
 ]
 
 
-def get_talkers(version: str, cache: pathlib.Path) -> dict[str, ComicTalker]:
+def get_talkers(
+    version: str, cache: pathlib.Path, local_plugins: Sequence[EntryPoint] = tuple()
+) -> dict[str, ComicTalker]:
     """Returns all comic talker instances"""
     talkers: dict[str, ComicTalker] = {}
     ct_version = parse(version)
 
-    for talker in entry_points(group="comictagger.talker"):
+    # A dict is used, last plugin wins
+    for talker in itertools.chain(entry_points(group="comictagger.talker"), local_plugins):
         try:
             talker_cls = talker.load()
             obj = talker_cls(version, cache)

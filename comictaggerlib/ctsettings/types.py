@@ -50,6 +50,13 @@ class ComicTaggerPaths(AppDirs):
         return pathlib.Path(super().user_log_dir)
 
     @property
+    def user_plugin_dir(self) -> pathlib.Path:
+        if self.path:
+            path = self.path / "plugins"
+            return path
+        return pathlib.Path(super().user_config_dir)
+
+    @property
     def site_data_dir(self) -> pathlib.Path:
         return pathlib.Path(super().site_data_dir)
 

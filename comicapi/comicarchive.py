@@ -16,12 +16,15 @@
 from __future__ import annotations
 
 import io
+import itertools
 import logging
 import os
 import pathlib
 import shutil
 import sys
 import traceback
+from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 from comicapi import utils
 from comicapi.archivers import Archiver, UnknownArchiver, ZipArchiver
@@ -29,32 +32,37 @@ from comicapi.genericmetadata import GenericMetadata
 from comicapi.metadata import Metadata
 from comictaggerlib.ctversion import version
 
+if TYPE_CHECKING:
+    from importlib.metadata import EntryPoint
+
 logger = logging.getLogger(__name__)
 
 archivers: list[type[Archiver]] = []
 metadata_styles: dict[str, Metadata] = {}
 
 
-def load_archive_plugins() -> None:
+def load_archive_plugins(local_plugins: Sequence[EntryPoint] = tuple()) -> None:
     if not archivers:
         if sys.version_info < (3, 10):
             from importlib_metadata import entry_points
         else:
             from importlib.metadata import entry_points
         builtin: list[type[Archiver]] = []
-        for arch in entry_points(group="comicapi.archiver"):
+        # A list is used first matching plugin wins
+        for ep in itertools.chain(local_plugins, entry_points(group="comicapi.archiver")):
+            logger.warning(ep)
             try:
-                archiver: type[Archiver] = arch.load()
-                if arch.module.startswith("comicapi"):
+                archiver: type[Archiver] = ep.load()
+                if ep.module.startswith("comicapi"):
                     builtin.append(archiver)
                 else:
                     archivers.append(archiver)
             except Exception:
-                logger.exception("Failed to load archive plugin: %s", arch.name)
+                logger.exception("Failed to load archive plugin: %s", ep.name)
         archivers.extend(builtin)
 
 
-def load_metadata_plugins(version: str = f"ComicAPI/{version}") -> None:
+def load_metadata_plugins(version: str = f"ComicAPI/{version}", local_plugins: Sequence[EntryPoint] = tuple()) -> None:
     if not metadata_styles:
         if sys.version_info < (3, 10):
             from importlib_metadata import entry_points
@@ -62,22 +70,24 @@ def load_metadata_plugins(version: str = f"ComicAPI/{version}") -> None:
             from importlib.metadata import entry_points
         builtin: dict[str, Metadata] = {}
         styles: dict[str, Metadata] = {}
-        for arch in entry_points(group="comicapi.metadata"):
+        # A dict is used, last plugin wins
+        for ep in itertools.chain(entry_points(group="comicapi.metadata"), local_plugins):
+            logger.warning(ep)
             try:
-                style: type[Metadata] = arch.load()
+                style: type[Metadata] = ep.load()
                 if style.enabled:
-                    if arch.module.startswith("comicapi"):
+                    if ep.module.startswith("comicapi"):
                         builtin[style.short_name] = style(version)
                     else:
                         if style.short_name in styles:
                             logger.warning(
                                 "Plugin %s is overriding the existing metadata plugin for %s tags",
-                                arch.module,
+                                ep.module,
                                 style.short_name,
                             )
                         styles[style.short_name] = style(version)
             except Exception:
-                logger.exception("Failed to load metadata plugin: %s", arch.name)
+                logger.exception("Failed to load metadata plugin: %s", ep.name)
         for style_name in set(builtin.keys()).intersection(styles):
             logger.warning("Builtin metadata for %s tags are being overridden by a plugin", style_name)
         metadata_styles.clear()
