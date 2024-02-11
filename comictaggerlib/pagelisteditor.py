@@ -374,10 +374,9 @@ class PageListEditor(QtWidgets.QWidget):
         # depending on the current data style, certain fields are disabled
         if data_styles:
             styles = [metadata_styles[style] for style in data_styles]
-            enabled_widgets = []
+            enabled_widgets = set()
             for style in styles:
-                for attr in style.supported_attributes:
-                    enabled_widgets.append(attr)
+                enabled_widgets.update(style.supported_attributes)
 
             self.data_styles = data_styles
 

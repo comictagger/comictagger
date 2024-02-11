@@ -251,6 +251,11 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
             success = ca.write_metadata(md, style)
             QtWidgets.QApplication.restoreOverrideCursor()
             if not success:
-                QtWidgets.QMessageBox.warning(self, "Write Error", "Saving the tags to the archive seemed to fail!")
+                QtWidgets.QMessageBox.warning(
+                    self,
+                    "Write Error",
+                    f"Saving {metadata_styles[style].name()} the tags to the archive seemed to fail!",
+                )
+                break
 
         ca.load_cache(list(metadata_styles))

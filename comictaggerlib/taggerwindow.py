@@ -1170,21 +1170,22 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
                 self.form_to_metadata()
 
-                fail_list = []
+                failed_style: str = ""
                 # Save each style
                 for style in self.save_data_styles:
                     success = self.comic_archive.write_metadata(self.metadata, style)
                     if not success:
-                        fail_list.append(style)
+                        failed_style = metadata_styles[style].name()
+                        break
 
                 self.comic_archive.load_cache(list(metadata_styles))
                 QtWidgets.QApplication.restoreOverrideCursor()
 
-                if fail_list:
+                if failed_style:
                     QtWidgets.QMessageBox.warning(
                         self,
                         "Save failed",
-                        f"The tag save operation seemed to fail for:{', '.join([metadata_styles[style].name() for style in fail_list])}",
+                        f"The tag save operation seemed to fail for: {failed_style}",
                     )
                 else:
                     self.clear_dirty_flag()
@@ -1222,11 +1223,9 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
     def update_metadata_credit_colors(self) -> None:
         styles = [metadata_styles[style] for style in self.save_data_styles]
-        enabled = []
-
+        enabled = set()
         for style in styles:
-            for attr in style.supported_attributes:
-                enabled.append(attr)
+            enabled.update(style.supported_attributes)
 
         credit_attributes = [x for x in self.md_attributes.items() if "credits." in x[0]]
 
@@ -1242,10 +1241,9 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
     def update_metadata_style_tweaks(self) -> None:
         # depending on the current data style, certain fields are disabled
-        enabled_widgets = []
+        enabled_widgets = set()
         for style in self.save_data_styles:
-            for attr in metadata_styles[style].supported_attributes:
-                enabled_widgets.append(attr)
+            enabled_widgets.update(metadata_styles[style].supported_attributes)
 
         for metadata, widget in self.md_attributes.items():
             if widget is not None and not isinstance(widget, (int)):
@@ -1554,12 +1552,13 @@ class TaggerWindow(QtWidgets.QMainWindow):
                     QtCore.QCoreApplication.processEvents()
                     for style in styles:
                         if ca.has_metadata(style) and ca.is_writable():
-                            if not ca.remove_metadata(style):
+                            if ca.remove_metadata(style):
+                                success_count += 1
+                            else:
                                 failed_list.append(ca.path)
                                 # Abandon any further tag removals to prevent any greater damage to archive
                                 break
-                            else:
-                                success_count += 1
+                            ca.reset_cache()
                             ca.load_cache(list(metadata_styles))
 
                 progdialog.hide()
@@ -1585,7 +1584,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         has_src_count = 0
 
         src_style = self.load_data_style
-        dest_styles = list(self.save_data_styles)
+        dest_styles = self.save_data_styles
 
         # Remove the read style from the write style
         if src_style in dest_styles:
@@ -1635,6 +1634,10 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 success_count = 0
                 for prog_idx, ca in enumerate(ca_list, 1):
                     ca_saved = False
+
+                    if ca.has_metadata(src_style) and ca.is_writable():
+                        md = ca.read_metadata(src_style)
+
                     for style in dest_styles:
                         if ca.has_metadata(style):
                             QtCore.QCoreApplication.processEvents()
@@ -1646,20 +1649,18 @@ class TaggerWindow(QtWidgets.QMainWindow):
                             center_window_on_parent(prog_dialog)
                             QtCore.QCoreApplication.processEvents()
 
-                        if ca.has_metadata(src_style) and ca.is_writable():
-                            md = ca.read_metadata(src_style)
-
                         if style == "cbi" and self.config[0].Comic_Book_Lover__apply_transform_on_bulk_operation:
                             md = CBLTransformer(md, self.config[0]).apply()
 
-                            if not ca.write_metadata(md, style):
-                                failed_list.append(ca.path)
-                            else:
-                                if not ca_saved:
-                                    success_count += 1
-                                    ca_saved = True
+                        if ca.write_metadata(md, style):
+                            if not ca_saved:
+                                success_count += 1
+                                ca_saved = True
+                        else:
+                            failed_list.append(ca.path)
 
-                        ca.load_cache([self.load_data_style, self.save_data_style, src_style, style])
+                    ca.reset_cache()
+                    ca.load_cache([self.load_data_style, *self.save_data_styles])
 
                 prog_dialog.hide()
                 QtCore.QCoreApplication.processEvents()
