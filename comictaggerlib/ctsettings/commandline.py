@@ -285,7 +285,7 @@ def validate_commandline_settings(config: settngs.Config[ct_ns], parser: settngs
         config[0].Runtime_Options__json = False
 
     if (
-        config[0].Commands__command != Action.save_config
+        config[0].Commands__command not in (Action.save_config, Action.list_plugins)
         and config[0].Runtime_Options__no_gui
         and not config[0].Runtime_Options__files
     ):
