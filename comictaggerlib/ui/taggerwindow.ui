@@ -52,7 +52,7 @@
         <item>
          <layout class="QVBoxLayout" name="verticalLayout">
           <item>
-           <layout class="QFormLayout" name="source_style_formLayout">
+           <layout class="QFormLayout" name="style_layout">
             <property name="fieldGrowthPolicy">
              <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
             </property>
@@ -74,6 +74,26 @@
             </item>
             <item row="0" column="1">
              <widget class="QComboBox" name="cbx_sources"/>
+            </item>
+            <item row="1" column="1">
+             <widget class="QComboBox" name="cbLoadDataStyle"/>
+            </item>
+            <item row="2" column="1">
+             <widget class="CheckableComboBox" name="cbSaveDataStyle"/>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="lbl_read_style">
+              <property name="text">
+               <string>Read Style</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <widget class="QLabel" name="lbl_modify_style">
+              <property name="text">
+               <string>Modify Styles</string>
+              </property>
+             </widget>
             </item>
            </layout>
           </item>
@@ -1441,6 +1461,13 @@
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>CheckableComboBox</class>
+   <extends>QComboBox</extends>
+   <header>comictaggerlib.ui.customwidgets</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

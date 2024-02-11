@@ -61,7 +61,6 @@ from comictaggerlib.resulttypes import Action, IssueResult, MatchStatus, OnlineM
 from comictaggerlib.seriesselectionwindow import SeriesSelectionWindow
 from comictaggerlib.settingswindow import SettingsWindow
 from comictaggerlib.ui import ui_path
-from comictaggerlib.ui.customwidgets import CheckableComboBox
 from comictaggerlib.ui.qtutils import center_window_on_parent, enable_widget, reduce_widget_font_size
 from comictaggerlib.versionchecker import VersionChecker
 from comictalker.comictalker import ComicTalker, TalkerError
@@ -226,19 +225,6 @@ class TaggerWindow(QtWidgets.QMainWindow):
             config[0].internal__load_data_style = list(metadata_styles.keys())[0]
         self.save_data_styles: list[str] = config[0].internal__save_data_style
         self.load_data_style: str = config[0].internal__load_data_style
-
-        # Add multiselect combobox
-        self.cbSaveDataStyle = CheckableComboBox()
-        self.cbSaveDataStyle.setToolTip("At least 1 save style is required")
-        # Add normal combobox for read style (TODO support multiple read styles)
-        self.cbLoadDataStyle = QtWidgets.QComboBox()
-
-        # Need to set minimum or source_style_formLayout will resize larger than 230px which will affect the
-        # file info box and cover image width underneath
-        self.cbLoadDataStyle.setMinimumWidth(100)
-        self.cbSaveDataStyle.setMinimumWidth(100)
-        self.source_style_formLayout.addRow("Read Style", self.cbLoadDataStyle)
-        self.source_style_formLayout.addRow("Modify Styles", self.cbSaveDataStyle)
 
         self.setAcceptDrops(True)
         self.view_tag_actions, self.remove_tag_actions = self.tag_actions()
