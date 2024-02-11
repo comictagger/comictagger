@@ -1544,8 +1544,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
                                 failed_list.append(ca.path)
                                 # Abandon any further tag removals to prevent any greater damage to archive
                                 break
-                            ca.reset_cache()
-                            ca.load_cache(list(metadata_styles))
+                    ca.reset_cache()
+                    ca.load_cache(list(metadata_styles))
 
                 progdialog.hide()
                 QtCore.QCoreApplication.processEvents()
@@ -1623,6 +1623,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
                     if ca.has_metadata(src_style) and ca.is_writable():
                         md = ca.read_metadata(src_style)
+                    else:
+                        continue
 
                     for style in dest_styles:
                         if ca.has_metadata(style):
