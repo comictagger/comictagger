@@ -1377,11 +1377,19 @@ class TaggerWindow(QtWidgets.QMainWindow):
             self.cbSaveDataStyle.setItemChecked(self.cbLoadDataStyle.findData(style), False)
         self.update_metadata_style_tweaks()
 
-    def populate_combo_boxes(self) -> None:
+    def populate_style_names(self) -> None:
+        # First clear all entries (called from settingswindow.py)
+        self.cbSaveDataStyle.clear()
         # Add the entries to the tag style combobox
         for style in metadata_styles.values():
             self.cbLoadDataStyle.addItem(style.name(), style.short_name)
-            self.cbSaveDataStyle.addItem(style.name(), style.short_name)
+            if self.config[0].General__use_short_metadata_names:
+                self.cbSaveDataStyle.addItem(style.short_name.upper(), style.short_name)
+            else:
+                self.cbSaveDataStyle.addItem(style.name(), style.short_name)
+
+    def populate_combo_boxes(self) -> None:
+        self.populate_style_names()
 
         self.adjust_load_style_combo()
         self.adjust_save_style_combo()

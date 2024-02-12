@@ -18,6 +18,7 @@ def general(parser: settngs.Manager) -> None:
         action=argparse.BooleanOptionalAction,
         help="Disable the ComicRack metadata type",
     )
+    parser.add_setting("use_short_metadata_names", default=False, action=argparse.BooleanOptionalAction, cmdline=False)
 
 
 def internal(parser: settngs.Manager) -> None:

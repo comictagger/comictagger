@@ -97,6 +97,7 @@ class settngs_namespace(settngs.TypedNS):
 
     General__check_for_new_version: bool
     General__disable_cr: bool
+    General__use_short_metadata_names: bool
 
     Dialog_Flags__show_disclaimer: bool
     Dialog_Flags__dont_notify_about_this_version: str
