@@ -115,7 +115,7 @@ class PageListEditor(QtWidgets.QWidget):
 
         self.comic_archive: ComicArchive | None = None
         self.pages_list: list[ImageMetadata] = []
-        self.data_style = ""
+        self.data_styles: list[str] = []
 
     def reset_page(self) -> None:
         self.pageWidget.clear()
@@ -326,7 +326,7 @@ class PageListEditor(QtWidgets.QWidget):
         self.comic_archive = comic_archive
         self.pages_list = pages_list
         if pages_list:
-            self.set_metadata_style(self.data_style)
+            self.set_metadata_style(self.data_styles)
         else:
             self.cbPageType.setEnabled(False)
             self.chkDoublePage.setEnabled(False)
@@ -370,11 +370,15 @@ class PageListEditor(QtWidgets.QWidget):
             self.first_front_page = self.get_first_front_cover()
             self.firstFrontCoverChanged.emit(self.first_front_page)
 
-    def set_metadata_style(self, data_style: str) -> None:
+    def set_metadata_style(self, data_styles: list[str]) -> None:
         # depending on the current data style, certain fields are disabled
-        if data_style:
-            self.metadata_style = data_style
+        if data_styles:
+            styles = [metadata_styles[style] for style in data_styles]
+            enabled_widgets = set()
+            for style in styles:
+                enabled_widgets.update(style.supported_attributes)
 
-            enabled_widgets = metadata_styles[data_style].supported_attributes
+            self.data_styles = data_styles
+
             for metadata, widget in self.md_attributes.items():
                 enable_widget(widget, metadata in enabled_widgets)

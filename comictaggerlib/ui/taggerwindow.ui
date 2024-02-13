@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1096</width>
-    <height>621</height>
+    <height>658</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -52,42 +52,48 @@
         <item>
          <layout class="QVBoxLayout" name="verticalLayout">
           <item>
-           <layout class="QFormLayout" name="formLayout">
+           <layout class="QFormLayout" name="style_layout">
             <property name="fieldGrowthPolicy">
              <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
+            </property>
+            <property name="labelAlignment">
+             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
             </property>
             <property name="formAlignment">
              <set>Qt::AlignHCenter|Qt::AlignTop</set>
             </property>
-            <item row="1" column="0">
-             <widget class="QLabel" name="label">
-              <property name="text">
-               <string>Read Style</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="1">
-             <widget class="QComboBox" name="cbLoadDataStyle"/>
-            </item>
-            <item row="2" column="0">
-             <widget class="QLabel" name="saveStyleLabel">
-              <property name="text">
-               <string>Modify Style</string>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="1">
-             <widget class="QComboBox" name="cbSaveDataStyle"/>
-            </item>
             <item row="0" column="0">
              <widget class="QLabel" name="lbl_md_source">
               <property name="text">
-               <string>Metadata Source</string>
+               <string>Data Source</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
               </property>
              </widget>
             </item>
             <item row="0" column="1">
              <widget class="QComboBox" name="cbx_sources"/>
+            </item>
+            <item row="1" column="1">
+             <widget class="QComboBox" name="cbLoadDataStyle"/>
+            </item>
+            <item row="2" column="1">
+             <widget class="CheckableComboBox" name="cbSaveDataStyle"/>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="lbl_read_style">
+              <property name="text">
+               <string>Read Style</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <widget class="QLabel" name="lbl_modify_style">
+              <property name="text">
+               <string>Modify Styles</string>
+              </property>
+             </widget>
             </item>
            </layout>
           </item>
@@ -825,9 +831,6 @@
                      <property name="text">
                       <string>Primary</string>
                      </property>
-                     <property name="textAlignment">
-                      <set>AlignCenter</set>
-                     </property>
                     </column>
                     <column>
                      <property name="text">
@@ -1166,7 +1169,7 @@
      <x>0</x>
      <y>0</y>
      <width>1096</width>
-     <height>21</height>
+     <height>28</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuComicTagger">
@@ -1383,7 +1386,7 @@
   </action>
   <action name="actionRemoveAuto">
    <property name="text">
-    <string>Remove Current 'Modify' Tag Style</string>
+    <string>Remove Current 'Modify' Tag Style(s)</string>
    </property>
   </action>
   <action name="actionRename">
@@ -1458,6 +1461,13 @@
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>CheckableComboBox</class>
+   <extends>QComboBox</extends>
+   <header>comictaggerlib.ui.customwidgets</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

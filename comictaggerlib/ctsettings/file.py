@@ -18,12 +18,13 @@ def general(parser: settngs.Manager) -> None:
         action=argparse.BooleanOptionalAction,
         help="Disable the ComicRack metadata type",
     )
+    parser.add_setting("use_short_metadata_names", default=False, action=argparse.BooleanOptionalAction, cmdline=False)
 
 
 def internal(parser: settngs.Manager) -> None:
     # automatic settings
     parser.add_setting("install_id", default=uuid.uuid4().hex, cmdline=False)
-    parser.add_setting("save_data_style", default="cbi", cmdline=False)
+    parser.add_setting("save_data_style", default=["cbi"], cmdline=False)
     parser.add_setting("load_data_style", default="cbi", cmdline=False)
     parser.add_setting("last_opened_folder", default="", cmdline=False)
     parser.add_setting("window_width", default=0, cmdline=False)
@@ -255,6 +256,11 @@ def parse_filter(config: settngs.Config[ct_ns]) -> settngs.Config[ct_ns]:
 
 def validate_file_settings(config: settngs.Config[ct_ns]) -> settngs.Config[ct_ns]:
     config = parse_filter(config)
+
+    # TODO Remove this conversion check at a later date
+    if isinstance(config[0].internal__save_data_style, str):
+        config[0].internal__save_data_style = [config[0].internal__save_data_style]
+
     if config[0].Filename_Parsing__protofolius_issue_number_scheme:
         config[0].Filename_Parsing__allow_issue_start_with_letter = True
 

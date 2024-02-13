@@ -376,6 +376,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.tePublisherFilter.setPlainText("\n".join(self.config[0].Issue_Identifier__publisher_filter))
 
         self.cbxCheckForNewVersion.setChecked(self.config[0].General__check_for_new_version)
+        self.cbxShortMetadataNames.setChecked(self.config[0].General__use_short_metadata_names)
 
         self.cbxComplicatedParser.setChecked(self.config[0].Filename_Parsing__complicated_parser)
         self.cbxRemoveC2C.setChecked(self.config[0].Filename_Parsing__remove_c2c)
@@ -492,6 +493,12 @@ class SettingsWindow(QtWidgets.QDialog):
             self.leIssueNumPadding.setText("0")
 
         self.config[0].General__check_for_new_version = self.cbxCheckForNewVersion.isChecked()
+
+        # Update metadata style names if required
+        if self.cbxShortMetadataNames.isChecked() != self.config[0].General__use_short_metadata_names:
+            self.config[0].General__use_short_metadata_names = self.cbxShortMetadataNames.isChecked()
+            self.parent().populate_style_names()
+            self.parent().adjust_save_style_combo()
 
         self.config[0].Issue_Identifier__series_match_identify_thresh = self.sbNameMatchIdentifyThresh.value()
         self.config[0].Issue_Identifier__series_match_search_thresh = self.sbNameMatchSearchThresh.value()
