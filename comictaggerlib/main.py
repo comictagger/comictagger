@@ -34,7 +34,7 @@ import comicapi.comicarchive
 import comicapi.utils
 import comictalker
 from comictaggerlib import cli, ctsettings
-from comictaggerlib.ctsettings import ct_ns
+from comictaggerlib.ctsettings import ct_ns, plugin_finder
 from comictaggerlib.ctversion import version
 from comictaggerlib.log import setup_logging
 from comictaggerlib.resulttypes import Action
@@ -123,9 +123,19 @@ class App:
         self.main()
 
     def load_plugins(self, opts: argparse.Namespace) -> None:
-        comicapi.comicarchive.load_archive_plugins()
-        comicapi.comicarchive.load_metadata_plugins(version=version)
-        self.talkers = comictalker.get_talkers(version, opts.config.user_cache_dir)
+        local_plugins = plugin_finder.find_plugins(opts.config.user_plugin_dir)
+        self._extend_plugin_paths(local_plugins)
+
+        comicapi.comicarchive.load_archive_plugins(local_plugins=[p.entry_point for p in local_plugins.archivers])
+        comicapi.comicarchive.load_metadata_plugins(
+            version=version, local_plugins=[p.entry_point for p in local_plugins.metadata]
+        )
+        self.talkers = comictalker.get_talkers(
+            version, opts.config.user_cache_dir, local_plugins=[p.entry_point for p in local_plugins.talkers]
+        )
+
+    def _extend_plugin_paths(self, plugins: plugin_finder.Plugins) -> None:
+        sys.path.extend(str(p.path.absolute()) for p in plugins.all_plugins())
 
     def list_plugins(
         self,
@@ -228,16 +238,14 @@ class App:
         return config
 
     def initialize_dirs(self, paths: ctsettings.ComicTaggerPaths) -> None:
-        paths.user_data_dir.mkdir(parents=True, exist_ok=True)
         paths.user_config_dir.mkdir(parents=True, exist_ok=True)
         paths.user_cache_dir.mkdir(parents=True, exist_ok=True)
-        paths.user_state_dir.mkdir(parents=True, exist_ok=True)
         paths.user_log_dir.mkdir(parents=True, exist_ok=True)
-        logger.debug("user_data_dir: %s", paths.user_data_dir)
+        paths.user_plugin_dir.mkdir(parents=True, exist_ok=True)
         logger.debug("user_config_dir: %s", paths.user_config_dir)
         logger.debug("user_cache_dir: %s", paths.user_cache_dir)
-        logger.debug("user_state_dir: %s", paths.user_state_dir)
         logger.debug("user_log_dir: %s", paths.user_log_dir)
+        logger.debug("user_plugin_dir: %s", paths.user_plugin_dir)
 
     def main(self) -> None:
         assert self.config is not None
