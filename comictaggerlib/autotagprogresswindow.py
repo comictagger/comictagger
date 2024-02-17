@@ -35,6 +35,8 @@ class AutoTagProgressWindow(QtWidgets.QDialog):
         with (ui_path / "autotagprogresswindow.ui").open(encoding="utf-8") as uifile:
             uic.loadUi(uifile, self)
 
+        self.lblSourceName.setText(talker.attribution)
+
         self.archiveCoverWidget = CoverImageWidget(
             self.archiveCoverContainer, CoverImageWidget.DataMode, None, None, False
         )
