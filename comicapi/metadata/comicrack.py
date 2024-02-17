@@ -57,7 +57,7 @@ class ComicRack(Metadata):
             "month",
             "year",
             "language",
-            "web_link",
+            "web_links",
             "format",
             "manga",
             "black_and_white",
@@ -229,7 +229,7 @@ class ComicRack(Metadata):
         assign("Month", md.month)
         assign("Year", md.year)
         assign("LanguageISO", md.language)
-        assign("Web", md.web_link)
+        assign("Web", " ".join(u.url for u in md.web_links))
         assign("Format", md.format)
         assign("Manga", md.manga)
         assign("BlackAndWhite", "Yes" if md.black_and_white else None)
@@ -313,7 +313,7 @@ class ComicRack(Metadata):
         md.month = utils.xlate_int(get("Month"))
         md.year = utils.xlate_int(get("Year"))
         md.language = utils.xlate(get("LanguageISO"))
-        md.web_link = utils.xlate(get("Web"))
+        md.web_links = utils.split_urls(utils.xlate(get("Web")))
         md.format = utils.xlate(get("Format"))
         md.manga = utils.xlate(get("Manga"))
         md.maturity_rating = utils.xlate(get("AgeRating"))

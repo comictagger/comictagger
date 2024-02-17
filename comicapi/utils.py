@@ -29,6 +29,8 @@ from typing import Any, TypeVar, cast
 import comicapi.data
 from comicapi import filenamelexer, filenameparser
 
+from ._url import Url, parse_url
+
 try:
     import icu
 
@@ -273,6 +275,24 @@ def split(s: str | None, c: str) -> list[str]:
     if s:
         return [x.strip() for x in s.strip().split(c) if x.strip()]
     return []
+
+
+def split_urls(s: str | None) -> list[Url]:
+    if s is None:
+        return []
+    # Find occurences of ' http'
+    if s.count("http") > 1 and s.count(" http") >= 1:
+        urls = []
+        # Split urls out
+        url_strings = split(s, " http")
+        # Return the scheme 'http' and parse the url
+        for i, url_string in enumerate(url_strings):
+            if not url_string.startswith("http"):
+                url_string = "http" + url_string
+            urls.append(parse_url(url_string))
+        return urls
+    else:
+        return [parse_url(s)]
 
 
 def remove_articles(text: str) -> str:

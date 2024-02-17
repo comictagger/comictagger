@@ -31,6 +31,8 @@ from typing_extensions import NamedTuple, Required
 
 from comicapi import utils
 
+from ._url import Url, parse_url
+
 logger = logging.getLogger(__name__)
 
 
@@ -133,7 +135,7 @@ class GenericMetadata:
     year: int | None = None
     language: str | None = None  # 2 letter iso code
     country: str | None = None
-    web_link: str | None = None
+    web_links: list[Url] = dataclasses.field(default_factory=list)
     format: str | None = None
     manga: str | None = None
     black_and_white: bool | None = None
@@ -253,7 +255,7 @@ class GenericMetadata:
         assign("year", new_md.year)
         assign("language", new_md.language)
         assign("country", new_md.country)
-        assign("web_link", new_md.web_link)
+        assign("web_links", new_md.web_links)
         assign("format", new_md.format)
         assign("manga", new_md.manga)
         assign("black_and_white", new_md.black_and_white)
@@ -487,7 +489,9 @@ md_test: GenericMetadata = GenericMetadata(
     alternate_count=7,
     imprint="craphound.com",
     notes="Tagged with ComicTagger 1.3.2a5 using info from Comic Vine on 2022-04-16 15:52:26. [Issue ID 140529]",
-    web_link="https://comicvine.gamespot.com/cory-doctorows-futuristic-tales-of-the-here-and-no/4000-140529/",
+    web_links=[
+        parse_url("https://comicvine.gamespot.com/cory-doctorows-futuristic-tales-of-the-here-and-no/4000-140529/")
+    ],
     format="Series",
     manga="No",
     black_and_white=None,
@@ -550,4 +554,16 @@ md_test: GenericMetadata = GenericMetadata(
     identifier=None,
     last_mark=None,
     _cover_image=None,
+)
+
+
+__all__ = (
+    "Url",
+    "parse_url",
+    "PageType",
+    "ImageMetadata",
+    "Credit",
+    "ComicSeries",
+    "TagOrigin",
+    "GenericMetadata",
 )
