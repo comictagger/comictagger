@@ -45,11 +45,10 @@ class FileSelectionList(QtWidgets.QWidget):
     listCleared = QtCore.pyqtSignal()
 
     fileColNum = 0
-    CRFlagColNum = 1
-    CBLFlagColNum = 2
-    typeColNum = 3
-    readonlyColNum = 4
-    folderColNum = 5
+    MDFlagColNum = 1
+    typeColNum = 2
+    readonlyColNum = 3
+    folderColNum = 4
     dataColNum = fileColNum
 
     def __init__(
@@ -225,8 +224,7 @@ class FileSelectionList(QtWidgets.QWidget):
 
         # Adjust column size
         self.twList.resizeColumnsToContents()
-        self.twList.setColumnWidth(FileSelectionList.CRFlagColNum, 35)
-        self.twList.setColumnWidth(FileSelectionList.CBLFlagColNum, 35)
+        self.twList.setColumnWidth(FileSelectionList.MDFlagColNum, 35)
         self.twList.setColumnWidth(FileSelectionList.readonlyColNum, 35)
         self.twList.setColumnWidth(FileSelectionList.typeColNum, 45)
         if self.twList.columnWidth(FileSelectionList.fileColNum) > 250:
@@ -281,7 +279,6 @@ class FileSelectionList(QtWidgets.QWidget):
             filename_item = QtWidgets.QTableWidgetItem()
             folder_item = QtWidgets.QTableWidgetItem()
             md_item = FileTableWidgetItem()
-            cbi_item = FileTableWidgetItem()
             readonly_item = FileTableWidgetItem()
             type_item = QtWidgets.QTableWidgetItem()
 
@@ -297,11 +294,7 @@ class FileSelectionList(QtWidgets.QWidget):
 
             md_item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
             md_item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignHCenter)
-            self.twList.setItem(row, FileSelectionList.CRFlagColNum, md_item)
-
-            cbi_item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
-            cbi_item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignHCenter)
-            self.twList.setItem(row, FileSelectionList.CBLFlagColNum, cbi_item)
+            self.twList.setItem(row, FileSelectionList.MDFlagColNum, md_item)
 
             readonly_item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
             readonly_item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignHCenter)
@@ -318,7 +311,7 @@ class FileSelectionList(QtWidgets.QWidget):
 
             filename_item = self.twList.item(row, FileSelectionList.fileColNum)
             folder_item = self.twList.item(row, FileSelectionList.folderColNum)
-            md_item = self.twList.item(row, FileSelectionList.CRFlagColNum)
+            md_item = self.twList.item(row, FileSelectionList.MDFlagColNum)
             type_item = self.twList.item(row, FileSelectionList.typeColNum)
             readonly_item = self.twList.item(row, FileSelectionList.readonlyColNum)
 
