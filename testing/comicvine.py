@@ -69,7 +69,7 @@ cv_issue_result: dict[str, Any] = {
                 "id": 57222,
                 "name": "Esteve Polls",
                 "site_detail_url": "https://comicvine.gamespot.com/esteve-polls/4040-57222/",
-                "role": "artist",
+                "role": "artist, writer",
             },
             {
                 "api_detail_url": "https://comicvine.gamespot.com/api/person/4040-48472/",
@@ -226,8 +226,12 @@ cv_md = comicapi.genericmetadata.GenericMetadata(
     teams=set(),
     locations=set(),
     credits=[
-        comicapi.genericmetadata.Credit(person=x["name"], role=x["role"].title(), primary=False)
-        for x in cv_issue_result["results"]["person_credits"]
+        comicapi.genericmetadata.Credit(primary=False, person="Dara Naraghi", role="Writer"),
+        comicapi.genericmetadata.Credit(primary=False, person="Esteve Polls", role="Artist"),
+        comicapi.genericmetadata.Credit(primary=False, person="Esteve Polls", role="Writer"),
+        comicapi.genericmetadata.Credit(primary=False, person="Neil Uyetake", role="Letterer"),
+        comicapi.genericmetadata.Credit(primary=False, person="Sam Kieth", role="Cover"),
+        comicapi.genericmetadata.Credit(primary=False, person="Ted Adams", role="Editor"),
     ],
     tags=set(),
     pages=[],

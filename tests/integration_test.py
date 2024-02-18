@@ -49,6 +49,17 @@ def test_save(
     # Read the CBZ
     md = tmp_comic.read_metadata("cr")
 
+    # This is inserted here because otherwise several other tests
+    # unrelated to comicvine need to be re-worked
+    md_saved.credits.insert(
+        1,
+        {
+            "person": "Esteve Polls",
+            "primary": False,
+            "role": "Writer",
+        },
+    )
+
     # Validate that we got the correct metadata back
     assert md == md_saved
 
