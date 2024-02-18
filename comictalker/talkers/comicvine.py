@@ -668,7 +668,9 @@ class ComicVineTalker(ComicTalker):
             md.story_arcs.append(arc["name"])
 
         for person in issue.get("person_credits", []):
-            md.add_credit(person["name"], person["role"].title().strip(), False)
+            roles = utils.split(person.get("role", ""), ",")
+            for role in roles:
+                md.add_credit(person["name"], role.title(), False)
 
         md.volume = utils.xlate_int(issue.get("volume"))
         if self.use_series_start_as_volume:

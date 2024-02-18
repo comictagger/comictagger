@@ -42,6 +42,7 @@ def test_fetch_issues_in_series(comicvine_api, comic_cache):
 def test_fetch_issue_data_by_issue_id(comicvine_api):
     result = comicvine_api.fetch_comic_data(140529)
     result.notes = None
+
     assert result == testing.comicvine.cv_md
 
 
