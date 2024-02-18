@@ -260,7 +260,21 @@ class RarArchiver(Archiver):
             return True
 
     def is_writable(self) -> bool:
-        return bool(self.exe and (os.path.exists(self.exe) or shutil.which(self.exe)))
+        try:
+            if bool(self.exe and (os.path.exists(self.exe) or shutil.which(self.exe))):
+                return (
+                    subprocess.run(
+                        (self.exe,),
+                        startupinfo=self.startupinfo,
+                        capture_output=True,
+                        cwd=self.path.absolute().parent,
+                    )
+                    .stdout.strip()
+                    .startswith(b"RAR")
+                )
+        except OSError:
+            ...
+        return False
 
     def extension(self) -> str:
         return ".cbr"
@@ -271,7 +285,19 @@ class RarArchiver(Archiver):
     @classmethod
     def is_valid(cls, path: pathlib.Path) -> bool:
         if rar_support:
-            return rarfile.is_rarfile(str(path))
+            # Try using exe
+            orig = rarfile.UNRAR_TOOL
+            rarfile.UNRAR_TOOL = cls.exe
+            try:
+                return rarfile.is_rarfile(str(path)) and rarfile.tool_setup(sevenzip=False, sevenzip2=False, force=True)
+            except rarfile.RarCannotExec as e:
+                rarfile.UNRAR_TOOL = orig
+
+            # Fallback to standard
+            try:
+                return rarfile.is_rarfile(str(path)) and rarfile.tool_setup(sevenzip=False, sevenzip2=False, force=True)
+            except rarfile.RarCannotExec as e:
+                logger.info(e)
         return False
 
     def get_rar_obj(self) -> rarfile.RarFile | None:
