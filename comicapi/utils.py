@@ -236,6 +236,14 @@ def add_to_path(dirname: str) -> None:
             os.environ["PATH"] = os.pathsep.join(paths)
 
 
+def remove_from_path(dirname: str) -> None:
+    if dirname:
+        dirname = os.path.abspath(dirname)
+        paths = [os.path.normpath(x) for x in split(os.environ["PATH"], os.pathsep) if dirname != os.path.normpath(x)]
+
+        os.environ["PATH"] = os.pathsep.join(paths)
+
+
 def xlate_int(data: Any) -> int | None:
     data = xlate_float(data)
     if data is None:

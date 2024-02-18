@@ -62,16 +62,22 @@ def register_talker_settings(manager: settngs.Manager, talkers: dict[str, ComicT
 
 
 def validate_archive_settings(config: settngs.Config[ct_ns]) -> settngs.Config[ct_ns]:
-    if "archiver" not in config[1]:
-        return config
     cfg = settngs.normalize_config(config, file=True, cmdline=True, default=False)
     for archiver in comicapi.comicarchive.archivers:
+        group = group_for_plugin(archiver())
         exe_name = settngs.sanitize_name(archiver.exe)
-        if exe_name in cfg[0][group_for_plugin(archiver())] and cfg[0][group_for_plugin(archiver())][exe_name]:
-            if os.path.basename(cfg[0][group_for_plugin(archiver())][exe_name]) == archiver.exe:
-                comicapi.utils.add_to_path(os.path.dirname(cfg[0][group_for_plugin(archiver())][exe_name]))
-            else:
-                archiver.exe = cfg[0][group_for_plugin(archiver())][exe_name]
+        if not exe_name:
+            continue
+
+        if exe_name in cfg[0][group] and cfg[0][group][exe_name]:
+            path = cfg[0][group][exe_name]
+            name = os.path.basename(path)
+            # If the path is not the basename then this is a relative or absolute path.
+            # Ensure it is absolute
+            if path != name:
+                path = os.path.abspath(path)
+
+            archiver.exe = path
 
     return config
 
