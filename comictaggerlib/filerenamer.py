@@ -69,7 +69,7 @@ class MetadataFormatter(string.Formatter):
         if conversion == "t":
             return str(value).title()
         if conversion == "j":
-            return ", ".join(list(value))
+            return ", ".join(list(str(v) for v in value))
         return cast(str, super().convert_field(value, conversion))
 
     def handle_replacements(self, string: str, replacements: list[Replacement]) -> str:
@@ -218,6 +218,10 @@ class FileRenamer:
 
         fmt = MetadataFormatter(self.smart_cleanup, platform=self.platform, replacements=self.replacements)
         md_dict = vars(md)
+        md_dict["web_link"] = ""
+        if md.web_links:
+            md_dict["web_link"] = md.web_links[0]
+
         md_dict["issue"] = IssueString(md.issue).as_string(pad=self.issue_zero_padding)
         for role in ["writer", "penciller", "inker", "colorist", "letterer", "cover artist", "editor"]:
             md_dict[role] = md.get_primary_credit(role)

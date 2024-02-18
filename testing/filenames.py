@@ -1153,6 +1153,13 @@ rnames = [
         does_not_raise(),
     ),
     (
+        "{title} {web_links!j}",  # Test that join forces str conversion
+        False,
+        "Linux",
+        "Anda's Game https:--comicvine.gamespot.com-cory-doctorows-futuristic-tales-of-the-here-and-no-4000-140529-.cbz",
+        does_not_raise(),
+    ),
+    (
         "{series}:{title} #{issue} ({year})",  # on windows the ':' is replaced
         False,
         "universal",
