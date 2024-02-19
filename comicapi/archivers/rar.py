@@ -289,13 +289,17 @@ class RarArchiver(Archiver):
             orig = rarfile.UNRAR_TOOL
             rarfile.UNRAR_TOOL = cls.exe
             try:
-                return rarfile.is_rarfile(str(path)) and rarfile.tool_setup(sevenzip=False, sevenzip2=False, force=True)
+                return rarfile.is_rarfile(str(path)) and rarfile.tool_setup(
+                    sevenzip=platform.system() == "Windows", sevenzip2=platform.system() == "Windows", force=True
+                )
             except rarfile.RarCannotExec:
                 rarfile.UNRAR_TOOL = orig
 
             # Fallback to standard
             try:
-                return rarfile.is_rarfile(str(path)) and rarfile.tool_setup(sevenzip=False, sevenzip2=False, force=True)
+                return rarfile.is_rarfile(str(path)) and rarfile.tool_setup(
+                    sevenzip=platform.system() == "Windows", sevenzip2=platform.system() == "Windows", force=True
+                )
             except rarfile.RarCannotExec as e:
                 logger.info(e)
         return False
