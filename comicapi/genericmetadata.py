@@ -101,7 +101,7 @@ class GenericMetadata:
     letterer_synonyms = ("letterer", "letters")
     cover_synonyms = ("cover", "covers", "coverartist", "cover artist")
     editor_synonyms = ("editor", "edits", "editing")
-    _translator_synonyms = ("translator", "translation")
+    translator_synonyms = ("translator", "translation")
 
     is_empty: bool = True
     tag_origin: TagOrigin | None = None
