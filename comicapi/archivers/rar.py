@@ -290,7 +290,7 @@ class RarArchiver(Archiver):
             rarfile.UNRAR_TOOL = cls.exe
             try:
                 return rarfile.is_rarfile(str(path)) and rarfile.tool_setup(sevenzip=False, sevenzip2=False, force=True)
-            except rarfile.RarCannotExec as e:
+            except rarfile.RarCannotExec:
                 rarfile.UNRAR_TOOL = orig
 
             # Fallback to standard
