@@ -35,11 +35,6 @@ from comictaggerlib.ui.qtutils import center_window_on_parent, reduce_widget_fon
 logger = logging.getLogger(__name__)
 
 
-class FileTableWidgetItem(QtWidgets.QTableWidgetItem):
-    def __lt__(self, other: object) -> bool:
-        return self.data(QtCore.Qt.ItemDataRole.UserRole) < other.data(QtCore.Qt.ItemDataRole.UserRole)  # type: ignore
-
-
 class FileSelectionList(QtWidgets.QWidget):
     selectionChanged = QtCore.pyqtSignal(QtCore.QVariant)
     listCleared = QtCore.pyqtSignal()
@@ -63,7 +58,7 @@ class FileSelectionList(QtWidgets.QWidget):
 
         reduce_widget_font_size(self.twList)
 
-        self.twList.setColumnCount(6)
+        self.twList.horizontalHeader().setMinimumSectionSize(50)
         self.twList.currentItemChanged.connect(self.current_item_changed_cb)
 
         self.currentItem = None
@@ -278,8 +273,8 @@ class FileSelectionList(QtWidgets.QWidget):
 
             filename_item = QtWidgets.QTableWidgetItem()
             folder_item = QtWidgets.QTableWidgetItem()
-            md_item = FileTableWidgetItem()
-            readonly_item = FileTableWidgetItem()
+            md_item = QtWidgets.QTableWidgetItem()
+            readonly_item = QtWidgets.QTableWidgetItem()
             type_item = QtWidgets.QTableWidgetItem()
 
             filename_item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
@@ -333,9 +328,12 @@ class FileSelectionList(QtWidgets.QWidget):
             if not ca.is_writable():
                 readonly_item.setCheckState(QtCore.Qt.CheckState.Checked)
                 readonly_item.setData(QtCore.Qt.ItemDataRole.UserRole, True)
+                readonly_item.setText(" ")
             else:
                 readonly_item.setData(QtCore.Qt.ItemDataRole.UserRole, False)
                 readonly_item.setCheckState(QtCore.Qt.CheckState.Unchecked)
+                # This is a nbsp it sorts after a space ' '
+                readonly_item.setText("\xa0")
 
     def get_selected_archive_list(self) -> list[ComicArchive]:
         ca_list: list[ComicArchive] = []
