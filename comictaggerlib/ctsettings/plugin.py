@@ -16,10 +16,10 @@ from comictalker.comictalker import ComicTalker
 logger = logging.getLogger("comictagger")
 
 
-def group_for_plugin(plugin: Archiver | ComicTalker) -> str:
+def group_for_plugin(plugin: Archiver | ComicTalker | type[Archiver]) -> str:
     if isinstance(plugin, ComicTalker):
         return f"Source {plugin.id}"
-    if isinstance(plugin, Archiver):
+    if isinstance(plugin, Archiver) or plugin == Archiver:
         return "Archive"
     raise NotImplementedError(f"Invalid plugin received: {plugin=}")
 

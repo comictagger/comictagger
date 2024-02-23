@@ -29,9 +29,11 @@ from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
 import comictaggerlib.ui.talkeruigenerator
 from comicapi import utils
+from comicapi.archivers.archiver import Archiver
 from comicapi.genericmetadata import md_test
 from comictaggerlib import ctsettings
 from comictaggerlib.ctsettings import ct_ns
+from comictaggerlib.ctsettings.plugin import group_for_plugin
 from comictaggerlib.filerenamer import FileRenamer, Replacement, Replacements
 from comictaggerlib.ui import ui_path
 from comictalker.comictalker import ComicTalker
@@ -155,7 +157,6 @@ class SettingsWindow(QtWidgets.QDialog):
             self.lblRarHelp.setText(linuxRarHelp)
 
         elif platform.system() == "Darwin":
-            self.leRarExePath.setReadOnly(False)
 
             self.lblRarHelp.setText(macRarHelp)
             self.name = "Preferences"
@@ -367,8 +368,9 @@ class SettingsWindow(QtWidgets.QDialog):
     def settings_to_form(self) -> None:
         self.disconnect_signals()
         # Copy values from settings to form
-        if "archiver" in self.config[1] and "rar" in self.config[1]["archiver"].v:
-            self.leRarExePath.setText(getattr(self.config[0], self.config[1]["archiver"].v["rar"].internal_name))
+        archive_group = group_for_plugin(Archiver)
+        if archive_group in self.config[1] and "rar" in self.config[1][archive_group].v:
+            self.leRarExePath.setText(getattr(self.config[0], self.config[1][archive_group].v["rar"].internal_name))
         else:
             self.leRarExePath.setEnabled(False)
         self.sbNameMatchIdentifyThresh.setValue(self.config[0].Issue_Identifier__series_match_identify_thresh)
@@ -482,11 +484,12 @@ class SettingsWindow(QtWidgets.QDialog):
                 )
 
         # Copy values from form to settings and save
-        if "archiver" in self.config[1] and "rar" in self.config[1]["archiver"].v:
-            setattr(self.config[0], self.config[1]["archiver"].v["rar"].internal_name, str(self.leRarExePath.text()))
+        archive_group = group_for_plugin(Archiver)
+        if archive_group in self.config[1] and "rar" in self.config[1][archive_group].v:
+            setattr(self.config[0], self.config[1][archive_group].v["rar"].internal_name, str(self.leRarExePath.text()))
 
             # make sure rar program is now in the path for the rar class
-            if self.config[0].archiver_rar:  # type: ignore[attr-defined]
+            if self.config[0].Archive__rar:
                 utils.add_to_path(os.path.dirname(str(self.leRarExePath.text())))
 
         if not str(self.leIssueNumPadding.text()).isdigit():
