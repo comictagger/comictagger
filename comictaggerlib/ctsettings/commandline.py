@@ -308,9 +308,12 @@ def validate_commandline_settings(config: settngs.Config[ct_ns], parser: settngs
     # take a crack at finding rar exe if it's not in the path
     if not utils.which("rar"):
         if platform.system() == "Windows":
-            # look in some likely places for Windows machines
-            utils.add_to_path(r"C:\Program Files\WinRAR")
-            utils.add_to_path(r"C:\Program Files (x86)\WinRAR")
+            letters = ["C"]
+            letters.extend({f"{d}" for d in "ABCDEFGHIJKLMNOPQRSTUVWXYZ" if os.path.exists(f"{d}:\\")} - {"C"})
+            for letter in letters:
+                # look in some likely places for Windows machines
+                utils.add_to_path(rf"{letters}:\Program Files\WinRAR")
+                utils.add_to_path(rf"{letters}:\Program Files (x86)\WinRAR")
         else:
             if platform.system() == "Darwin":
                 result = subprocess.run(("/usr/libexec/path_helper", "-s"), capture_output=True)
