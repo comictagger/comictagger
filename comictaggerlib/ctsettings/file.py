@@ -254,12 +254,24 @@ def parse_filter(config: settngs.Config[ct_ns]) -> settngs.Config[ct_ns]:
     return config
 
 
+def migrate_settings(config: settngs.Config[ct_ns]) -> settngs.Config[ct_ns]:
+    original_types = ("cbi", "cr", "comet")
+    save_style = config[0].internal__save_data_style
+    if not isinstance(save_style, list):
+        if isinstance(save_style, int) and save_style in (0, 1, 2):
+            config[0].internal__save_data_style = [original_types[save_style]]
+        elif isinstance(save_style, str):
+            config[0].internal__save_data_style = [save_style]
+        else:
+            config[0].internal__save_data_style = ["cbi"]
+
+    return config
+
+
 def validate_file_settings(config: settngs.Config[ct_ns]) -> settngs.Config[ct_ns]:
     config = parse_filter(config)
 
-    # TODO Remove this conversion check at a later date
-    if isinstance(config[0].internal__save_data_style, str):
-        config[0].internal__save_data_style = [config[0].internal__save_data_style]
+    config = migrate_settings(config)
 
     if config[0].Filename_Parsing__protofolius_issue_number_scheme:
         config[0].Filename_Parsing__allow_issue_start_with_letter = True
