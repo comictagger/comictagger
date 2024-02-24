@@ -33,6 +33,7 @@ from comictaggerlib.issueidentifier import IssueIdentifier
 from comictaggerlib.issueselectionwindow import IssueSelectionWindow
 from comictaggerlib.matchselectionwindow import MatchSelectionWindow
 from comictaggerlib.progresswindow import IDProgressWindow
+from comictaggerlib.resulttypes import IssueResult
 from comictaggerlib.ui import qtutils, ui_path
 from comictaggerlib.ui.qtutils import new_web_view, reduce_widget_font_size
 from comictalker.comictalker import ComicTalker, TalkerError
@@ -76,15 +77,17 @@ class SearchThread(QtCore.QThread):
 
 
 class IdentifyThread(QtCore.QThread):
-    identifyComplete = pyqtSignal()
+    identifyComplete = pyqtSignal((int, list))
     identifyLogMsg = pyqtSignal(str)
     identifyProgress = pyqtSignal(int, int)
 
-    def __init__(self, identifier: IssueIdentifier) -> None:
+    def __init__(self, identifier: IssueIdentifier, ca: ComicArchive, md: GenericMetadata) -> None:
         QtCore.QThread.__init__(self)
         self.identifier = identifier
         self.identifier.set_output_function(self.log_output)
         self.identifier.set_progress_callback(self.progress_callback)
+        self.ca = ca
+        self.md = md
 
     def log_output(self, text: str) -> None:
         self.identifyLogMsg.emit(str(text))
@@ -93,8 +96,7 @@ class IdentifyThread(QtCore.QThread):
         self.identifyProgress.emit(cur, total)
 
     def run(self) -> None:
-        self.identifier.search()
-        self.identifyComplete.emit()
+        self.identifyComplete.emit(*self.identifier.identify(self.ca, self.md))
 
 
 class SeriesSelectionWindow(QtWidgets.QDialog):
@@ -245,12 +247,12 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         md.year = self.year
         md.issue_count = self.issue_count
 
-        self.ii.set_additional_metadata(md)
-        self.ii.only_use_additional_meta_data = True
+        # self.ii.set_additional_metadata(md)
+        # self.ii.only_use_additional_meta_data = True
 
-        self.ii.cover_page_index = int(self.cover_index_list[0])
+        # self.ii.cover_page_index = int(self.cover_index_list[0])
 
-        self.id_thread = IdentifyThread(self.ii)
+        self.id_thread = IdentifyThread(self.ii, self.comic_archive, md)
         self.id_thread.identifyComplete.connect(self.identify_complete)
         self.id_thread.identifyLogMsg.connect(self.log_id_output)
         self.id_thread.identifyProgress.connect(self.identify_progress)
@@ -276,35 +278,33 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         if self.ii is not None:
             self.ii.cancel = True
 
-    def identify_complete(self) -> None:
-        if self.ii is not None and self.iddialog is not None and self.comic_archive is not None:
-            matches = self.ii.match_list
-            result = self.ii.search_result
+    def identify_complete(self, result: int, issues: list[IssueResult]) -> None:
+        if self.iddialog is not None and self.comic_archive is not None:
 
             found_match = None
             choices = False
-            if result == self.ii.result_no_matches:
-                QtWidgets.QMessageBox.information(self, "Auto-Select Result", " No matches found :-(")
-            elif result == self.ii.result_found_match_but_bad_cover_score:
+            if result == IssueIdentifier.result_no_matches:
+                QtWidgets.QMessageBox.information(self, "Auto-Select Result", " No issues found :-(")
+            elif result == IssueIdentifier.result_found_match_but_bad_cover_score:
                 QtWidgets.QMessageBox.information(
                     self,
                     "Auto-Select Result",
                     " Found a match, but cover doesn't seem the same.  Verify before committing!",
                 )
-                found_match = matches[0]
-            elif result == self.ii.result_found_match_but_not_first_page:
+                found_match = issues[0]
+            elif result == IssueIdentifier.result_found_match_but_not_first_page:
                 QtWidgets.QMessageBox.information(
                     self, "Auto-Select Result", " Found a match, but not with the first page of the archive."
                 )
-                found_match = matches[0]
-            elif result == self.ii.result_multiple_matches_with_bad_image_scores:
+                found_match = issues[0]
+            elif result == IssueIdentifier.result_multiple_matches_with_bad_image_scores:
                 QtWidgets.QMessageBox.information(
                     self, "Auto-Select Result", " Found some possibilities, but no confidence. Proceed manually."
                 )
                 choices = True
-            elif result == self.ii.result_one_good_match:
-                found_match = matches[0]
-            elif result == self.ii.result_multiple_good_matches:
+            elif result == IssueIdentifier.result_one_good_match:
+                found_match = issues[0]
+            elif result == IssueIdentifier.result_multiple_good_matches:
                 QtWidgets.QMessageBox.information(
                     self, "Auto-Select Result", " Found multiple likely matches.  Please select."
                 )
@@ -312,7 +312,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
 
             if choices:
                 selector = MatchSelectionWindow(
-                    self, matches, self.comic_archive, talker=self.talker, config=self.config
+                    self, issues, self.comic_archive, talker=self.talker, config=self.config
                 )
                 selector.setModal(True)
                 selector.exec()

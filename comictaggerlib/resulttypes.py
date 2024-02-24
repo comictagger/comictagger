@@ -53,7 +53,7 @@ class IssueResult:
     series: str
     distance: int
     issue_number: str
-    cv_issue_count: int | None
+    issue_count: int | None
     url_image_hash: int
     issue_title: str
     issue_id: str
