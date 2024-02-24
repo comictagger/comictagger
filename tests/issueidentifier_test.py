@@ -14,7 +14,7 @@ from comictaggerlib.resulttypes import IssueResult
 def test_crop(cbz_double_cover, config, tmp_path, comicvine_api):
     config, definitions = config
     ii = comictaggerlib.issueidentifier.IssueIdentifier(cbz_double_cover, config, comicvine_api)
-    cropped = ii.crop_cover(cbz_double_cover.archiver.read_file("double_cover.jpg"))
+    cropped = ii.crop_double_page(cbz_double_cover.archiver.read_file("double_cover.jpg"))
     original_cover = cbz_double_cover.get_page(0)
 
     original_hash = ii.calculate_hash(original_cover)
@@ -41,7 +41,7 @@ def test_get_issue_cover_match_score(cbz, config, comicvine_api):
         [ii.calculate_hash(cbz.get_page(0))],
     )
     expected = {
-        "hash": 212201432349720,
+        "remote_hash": 212201432349720,
         "score": 0,
         "url": "https://comicvine.gamespot.com/a/uploads/scale_large/0/574/585444-109004_20080707014047_large.jpg",
     }
@@ -51,13 +51,13 @@ def test_get_issue_cover_match_score(cbz, config, comicvine_api):
 def test_search(cbz, config, comicvine_api):
     config, definitions = config
     ii = comictaggerlib.issueidentifier.IssueIdentifier(cbz, config, comicvine_api)
-    results = ii.search()
+    result, issues = ii.identify(cbz, cbz.read_metadata("cr"))
     cv_expected = IssueResult(
         series=f"{testing.comicvine.cv_volume_result['results']['name']} ({testing.comicvine.cv_volume_result['results']['start_year']})",
         distance=0,
         issue_number=testing.comicvine.cv_issue_result["results"]["issue_number"],
         alt_image_urls=[],
-        cv_issue_count=testing.comicvine.cv_volume_result["results"]["count_of_issues"],
+        issue_count=testing.comicvine.cv_volume_result["results"]["count_of_issues"],
         issue_title=testing.comicvine.cv_issue_result["results"]["name"],
         issue_id=str(testing.comicvine.cv_issue_result["results"]["id"]),
         series_id=str(testing.comicvine.cv_volume_result["results"]["id"]),
@@ -68,7 +68,7 @@ def test_search(cbz, config, comicvine_api):
         description=testing.comicvine.cv_issue_result["results"]["description"],
         url_image_hash=212201432349720,
     )
-    for r, e in zip(results, [cv_expected]):
+    for r, e in zip(issues, [cv_expected]):
         assert r == e
 
 
