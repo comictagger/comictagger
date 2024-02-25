@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import pathlib
 import typing
 
 import settngs
@@ -107,17 +106,6 @@ class SettngsNS(settngs.TypedNS):
     Dialog_Flags__ask_about_usage_stats: bool
 
     Archive__rar: str
-
-    Source_gcd__gcd_key: typing.Any
-    Source_gcd__gcd_url: str
-    Source_gcd__gcd_use_series_start_as_volume: bool
-    Source_gcd__gcd_use_ongoing: bool
-    Source_gcd__gcd_prefer_story_titles: bool
-    Source_gcd__gcd_combine_notes: bool
-    Source_gcd__gcd_gui_covers: bool
-    Source_gcd__gcd_tag_covers: bool
-    Source_gcd__gcd_currency: str
-    Source_gcd__gcd_filepath: pathlib.Path
 
     Source_comicvine__comicvine_key: str
     Source_comicvine__comicvine_url: str
@@ -244,19 +232,6 @@ class Archive(typing.TypedDict):
     rar: str
 
 
-class Source_gcd(typing.TypedDict):
-    gcd_key: typing.Any
-    gcd_url: str
-    gcd_use_series_start_as_volume: bool
-    gcd_use_ongoing: bool
-    gcd_prefer_story_titles: bool
-    gcd_combine_notes: bool
-    gcd_gui_covers: bool
-    gcd_tag_covers: bool
-    gcd_currency: str
-    gcd_filepath: pathlib.Path
-
-
 class Source_comicvine(typing.TypedDict):
     comicvine_key: str
     comicvine_url: str
@@ -278,7 +253,6 @@ SettngsDict = typing.TypedDict(
         "General": General,
         "Dialog Flags": Dialog_Flags,
         "Archive": Archive,
-        "Source gcd": Source_gcd,
         "Source comicvine": Source_comicvine,
     },
 )
