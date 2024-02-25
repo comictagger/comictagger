@@ -19,6 +19,12 @@ def general(parser: settngs.Manager) -> None:
         help="Disable the ComicRack metadata type",
     )
     parser.add_setting("use_short_metadata_names", default=False, action=argparse.BooleanOptionalAction, cmdline=False)
+    parser.add_setting(
+        "--prompt-on-save",
+        default=True,
+        action=argparse.BooleanOptionalAction,
+        help="Prompts the user to confirm saving tags when using the GUI.",
+    )
 
 
 def internal(parser: settngs.Manager) -> None:

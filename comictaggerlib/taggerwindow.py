@@ -1147,40 +1147,44 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
     def commit_metadata(self) -> None:
         if self.metadata is not None and self.comic_archive is not None:
-            reply = QtWidgets.QMessageBox.question(
-                self,
-                "Save Tags",
-                f"Are you sure you wish to save {', '.join([metadata_styles[style].name() for style in self.save_data_styles])} tags to this archive?",
-                QtWidgets.QMessageBox.StandardButton.Yes,
-                QtWidgets.QMessageBox.StandardButton.No,
-            )
+            if self.config[0].General__prompt_on_save:
+                reply = QtWidgets.QMessageBox.question(
+                    self,
+                    "Save Tags",
+                    f"Are you sure you wish to save {', '.join([metadata_styles[style].name() for style in self.save_data_styles])} tags to this archive?",
+                    QtWidgets.QMessageBox.StandardButton.Yes,
+                    QtWidgets.QMessageBox.StandardButton.No,
+                )
+            else:
+                reply = QtWidgets.QMessageBox.StandardButton.Yes
 
-            if reply == QtWidgets.QMessageBox.StandardButton.Yes:
-                QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
-                self.form_to_metadata()
+            if reply != QtWidgets.QMessageBox.StandardButton.Yes:
+                return
+            QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
+            self.form_to_metadata()
 
-                failed_style: str = ""
-                # Save each style
-                for style in self.save_data_styles:
-                    success = self.comic_archive.write_metadata(self.metadata, style)
-                    if not success:
-                        failed_style = metadata_styles[style].name()
-                        break
+            failed_style: str = ""
+            # Save each style
+            for style in self.save_data_styles:
+                success = self.comic_archive.write_metadata(self.metadata, style)
+                if not success:
+                    failed_style = metadata_styles[style].name()
+                    break
 
-                self.comic_archive.load_cache(list(metadata_styles))
-                QtWidgets.QApplication.restoreOverrideCursor()
+            self.comic_archive.load_cache(list(metadata_styles))
+            QtWidgets.QApplication.restoreOverrideCursor()
 
-                if failed_style:
-                    QtWidgets.QMessageBox.warning(
-                        self,
-                        "Save failed",
-                        f"The tag save operation seemed to fail for: {failed_style}",
-                    )
-                else:
-                    self.clear_dirty_flag()
-                    self.update_info_box()
-                    self.update_menus()
-                self.fileSelectionList.update_current_row()
+            if failed_style:
+                QtWidgets.QMessageBox.warning(
+                    self,
+                    "Save failed",
+                    f"The tag save operation seemed to fail for: {failed_style}",
+                )
+            else:
+                self.clear_dirty_flag()
+                self.update_info_box()
+                self.update_menus()
+            self.fileSelectionList.update_current_row()
 
             self.metadata = self.comic_archive.read_metadata(self.load_data_style)
             self.update_ui_for_archive()
