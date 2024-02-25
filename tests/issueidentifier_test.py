@@ -5,6 +5,7 @@ import io
 import pytest
 from PIL import Image
 
+import comictaggerlib.imagehasher
 import comictaggerlib.issueidentifier
 import testing.comicdata
 import testing.comicvine
@@ -13,12 +14,16 @@ from comictaggerlib.resulttypes import IssueResult
 
 def test_crop(cbz_double_cover, config, tmp_path, comicvine_api):
     config, definitions = config
-    ii = comictaggerlib.issueidentifier.IssueIdentifier(cbz_double_cover, config, comicvine_api)
-    cropped = ii.crop_double_page(cbz_double_cover.archiver.read_file("double_cover.jpg"))
-    original_cover = cbz_double_cover.get_page(0)
 
-    original_hash = ii.calculate_hash(original_cover)
-    cropped_hash = ii.calculate_hash(cropped)
+    ii = comictaggerlib.issueidentifier.IssueIdentifier(cbz_double_cover, config, comicvine_api)
+
+    im = Image.open(io.BytesIO(cbz_double_cover.archiver.read_file("double_cover.jpg")))
+
+    cropped = ii._crop_double_page(im)
+    original = cbz_double_cover.get_page(0)
+
+    original_hash = comictaggerlib.imagehasher.ImageHasher(data=original).average_hash()
+    cropped_hash = comictaggerlib.imagehasher.ImageHasher(image=cropped).average_hash()
 
     assert original_hash == cropped_hash
 
@@ -27,23 +32,24 @@ def test_crop(cbz_double_cover, config, tmp_path, comicvine_api):
 def test_get_search_keys(cbz, config, additional_md, expected, comicvine_api):
     config, definitions = config
     ii = comictaggerlib.issueidentifier.IssueIdentifier(cbz, config, comicvine_api)
-    ii.set_additional_metadata(additional_md)
 
-    assert expected == ii.get_search_keys()
+    assert expected == ii._get_search_keys(additional_md)
 
 
 def test_get_issue_cover_match_score(cbz, config, comicvine_api):
     config, definitions = config
     ii = comictaggerlib.issueidentifier.IssueIdentifier(cbz, config, comicvine_api)
-    score = ii.get_issue_cover_match_score(
+    score = ii._get_issue_cover_match_score(
         "https://comicvine.gamespot.com/a/uploads/scale_large/0/574/585444-109004_20080707014047_large.jpg",
         ["https://comicvine.gamespot.com/cory-doctorows-futuristic-tales-of-the-here-and-no/4000-140529/"],
-        [ii.calculate_hash(cbz.get_page(0))],
+        [("Cover 1", ii.calculate_hash(cbz.get_page(0)))],
     )
     expected = {
         "remote_hash": 212201432349720,
         "score": 0,
         "url": "https://comicvine.gamespot.com/a/uploads/scale_large/0/574/585444-109004_20080707014047_large.jpg",
+        "local_hash": 212201432349720,
+        "local_hash_name": "Cover 1",
     }
     assert expected == score
 
@@ -80,14 +86,10 @@ def test_crop_border(cbz, config, comicvine_api):
     bg = Image.new("RGBA", (100, 100), (0, 0, 0, 255))
     fg = Image.new("RGBA", (50, 50), (255, 255, 255, 255))
     bg.paste(fg, (bg.width // 2 - (fg.width // 2), bg.height // 2 - (fg.height // 2)))
-    output = io.BytesIO()
-    bg.save(output, format="PNG")
-    image_data = output.getvalue()
-    output.close()
 
-    cropped = ii.crop_border(image_data, 49)
+    cropped = ii._crop_border(bg, 49)
 
-    im = Image.open(io.BytesIO(cropped))
-    assert im.width == fg.width
-    assert im.height == fg.height
-    assert list(im.getdata()) == list(fg.getdata())
+    assert cropped
+    assert cropped.width == fg.width
+    assert cropped.height == fg.height
+    assert list(cropped.getdata()) == list(fg.getdata())
