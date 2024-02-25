@@ -1044,6 +1044,9 @@ class TaggerWindow(QtWidgets.QMainWindow):
             dialog.setNameFilters(filters)
             dialog.setFileMode(QtWidgets.QFileDialog.FileMode.ExistingFiles)
 
+        if os.environ.get("XDG_SESSION_DESKTOP", "") == "KDE":
+            dialog.setOption(QtWidgets.QFileDialog.Option.DontUseNativeDialog)
+
         if self.config[0].internal__last_opened_folder is not None:
             dialog.setDirectory(self.config[0].internal__last_opened_folder)
         return dialog

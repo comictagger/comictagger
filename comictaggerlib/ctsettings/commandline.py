@@ -29,7 +29,7 @@ from comicapi import utils
 from comicapi.comicarchive import metadata_styles
 from comicapi.genericmetadata import GenericMetadata
 from comictaggerlib import ctversion
-from comictaggerlib.ctsettings.settngs_namespace import settngs_namespace as ct_ns
+from comictaggerlib.ctsettings.settngs_namespace import SettngsNS as ct_ns
 from comictaggerlib.ctsettings.types import (
     ComicTaggerPaths,
     metadata_type,

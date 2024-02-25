@@ -10,7 +10,7 @@ import comicapi.comicarchive
 import comicapi.utils
 import comictaggerlib.ctsettings
 from comicapi.comicarchive import Archiver
-from comictaggerlib.ctsettings.settngs_namespace import settngs_namespace as ct_ns
+from comictaggerlib.ctsettings.settngs_namespace import SettngsNS as ct_ns
 from comictalker.comictalker import ComicTalker
 
 logger = logging.getLogger("comictagger")

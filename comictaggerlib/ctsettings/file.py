@@ -5,7 +5,7 @@ import uuid
 
 import settngs
 
-from comictaggerlib.ctsettings.settngs_namespace import settngs_namespace as ct_ns
+from comictaggerlib.ctsettings.settngs_namespace import SettngsNS as ct_ns
 from comictaggerlib.defaults import DEFAULT_REPLACEMENTS, Replacement, Replacements
 
 
