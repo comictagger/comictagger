@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import pathlib
+import typing
+
 import settngs
 
 import comicapi.genericmetadata
@@ -8,7 +11,7 @@ import comictaggerlib.defaults
 import comictaggerlib.resulttypes
 
 
-class settngs_namespace(settngs.TypedNS):
+class SettngsNS(settngs.TypedNS):
     Commands__version: bool
     Commands__command: comictaggerlib.resulttypes.Action
     Commands__copy: str
@@ -105,6 +108,177 @@ class settngs_namespace(settngs.TypedNS):
 
     Archive__rar: str
 
+    Source_gcd__gcd_key: typing.Any
+    Source_gcd__gcd_url: str
+    Source_gcd__gcd_use_series_start_as_volume: bool
+    Source_gcd__gcd_use_ongoing: bool
+    Source_gcd__gcd_prefer_story_titles: bool
+    Source_gcd__gcd_combine_notes: bool
+    Source_gcd__gcd_gui_covers: bool
+    Source_gcd__gcd_tag_covers: bool
+    Source_gcd__gcd_currency: str
+    Source_gcd__gcd_filepath: pathlib.Path
+
     Source_comicvine__comicvine_key: str
     Source_comicvine__comicvine_url: str
     Source_comicvine__cv_use_series_start_as_volume: bool
+
+
+class Commands(typing.TypedDict):
+    version: bool
+    command: comictaggerlib.resulttypes.Action
+    copy: str
+
+
+class Runtime_Options(typing.TypedDict):
+    config: comictaggerlib.ctsettings.types.ComicTaggerPaths
+    verbose: int
+    abort_on_conflict: bool
+    delete_original: bool
+    parse_filename: bool
+    issue_id: str
+    online: bool
+    metadata: comicapi.genericmetadata.GenericMetadata
+    interactive: bool
+    abort_on_low_confidence: bool
+    summary: bool
+    raw: bool
+    recursive: bool
+    dryrun: bool
+    darkmode: bool
+    glob: bool
+    quiet: bool
+    json: bool
+    type: list[str]
+    overwrite: bool
+    no_gui: bool
+    files: list[str]
+
+
+class internal(typing.TypedDict):
+    install_id: str
+    save_data_style: list[str]
+    load_data_style: str
+    last_opened_folder: str
+    window_width: int
+    window_height: int
+    window_x: int
+    window_y: int
+    form_width: int
+    list_width: int
+    sort_column: int
+    sort_direction: int
+
+
+class Issue_Identifier(typing.TypedDict):
+    series_match_identify_thresh: int
+    border_crop_percent: int
+    publisher_filter: list[str]
+    series_match_search_thresh: int
+    clear_metadata: bool
+    auto_imprint: bool
+    sort_series_by_year: bool
+    exact_series_matches_first: bool
+    always_use_publisher_filter: bool
+
+
+class Filename_Parsing(typing.TypedDict):
+    complicated_parser: bool
+    remove_c2c: bool
+    remove_fcbd: bool
+    remove_publisher: bool
+    split_words: bool
+    protofolius_issue_number_scheme: bool
+    allow_issue_start_with_letter: bool
+
+
+class Sources(typing.TypedDict):
+    source: str
+    remove_html_tables: bool
+
+
+class Comic_Book_Lover(typing.TypedDict):
+    assume_lone_credit_is_primary: bool
+    copy_characters_to_tags: bool
+    copy_teams_to_tags: bool
+    copy_locations_to_tags: bool
+    copy_storyarcs_to_tags: bool
+    copy_notes_to_comments: bool
+    copy_weblink_to_comments: bool
+    apply_transform_on_import: bool
+    apply_transform_on_bulk_operation: bool
+
+
+class File_Rename(typing.TypedDict):
+    template: str
+    issue_number_padding: int
+    use_smart_string_cleanup: bool
+    auto_extension: bool
+    dir: str
+    move_to_dir: bool
+    strict: bool
+    replacements: comictaggerlib.defaults.Replacements
+
+
+class Auto_Tag(typing.TypedDict):
+    save_on_low_confidence: bool
+    dont_use_year_when_identifying: bool
+    assume_issue_one: bool
+    ignore_leading_numbers_in_filename: bool
+    remove_archive_after_successful_match: bool
+
+
+class General(typing.TypedDict):
+    check_for_new_version: bool
+    disable_cr: bool
+    use_short_metadata_names: bool
+
+
+class Dialog_Flags(typing.TypedDict):
+    show_disclaimer: bool
+    dont_notify_about_this_version: str
+    ask_about_usage_stats: bool
+
+
+class Archive(typing.TypedDict):
+    rar: str
+
+
+class Source_gcd(typing.TypedDict):
+    gcd_key: typing.Any
+    gcd_url: str
+    gcd_use_series_start_as_volume: bool
+    gcd_use_ongoing: bool
+    gcd_prefer_story_titles: bool
+    gcd_combine_notes: bool
+    gcd_gui_covers: bool
+    gcd_tag_covers: bool
+    gcd_currency: str
+    gcd_filepath: pathlib.Path
+
+
+class Source_comicvine(typing.TypedDict):
+    comicvine_key: str
+    comicvine_url: str
+    cv_use_series_start_as_volume: bool
+
+
+SettngsDict = typing.TypedDict(
+    "SettngsDict",
+    {
+        "Commands": Commands,
+        "Runtime Options": Runtime_Options,
+        "internal": internal,
+        "Issue Identifier": Issue_Identifier,
+        "Filename Parsing": Filename_Parsing,
+        "Sources": Sources,
+        "Comic Book Lover": Comic_Book_Lover,
+        "File Rename": File_Rename,
+        "Auto-Tag": Auto_Tag,
+        "General": General,
+        "Dialog Flags": Dialog_Flags,
+        "Archive": Archive,
+        "Source gcd": Source_gcd,
+        "Source comicvine": Source_comicvine,
+    },
+)

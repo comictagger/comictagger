@@ -11,7 +11,11 @@ def generate() -> str:
     app = comictaggerlib.main.App()
     app.load_plugins(app.initial_arg_parser.parse_known_args()[0])
     app.register_settings()
-    return settngs.generate_ns(app.manager.definitions)
+    imports, types = settngs.generate_dict(app.manager.definitions)
+    imports2, types2 = settngs.generate_ns(app.manager.definitions)
+    i = imports.splitlines()
+    i.extend(set(imports2.splitlines()) - set(i))
+    return "\n\n".join((imports, types2, types))
 
 
 if __name__ == "__main__":
