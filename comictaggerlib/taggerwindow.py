@@ -550,6 +550,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             | QtCore.Qt.ItemFlag.ItemIsDragEnabled
             | QtCore.Qt.ItemFlag.ItemIsSelectable
         )
+        self.leWebLink.item(self.leWebLink.count() - 1).setSelected(True)
 
     def remove_weblink_item(self) -> None:
         item = self.leWebLink.takeItem(self.leWebLink.currentRow())
@@ -807,6 +808,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
             widget.currentIndexChanged.connect(self.set_dirty_flag)
         if isinstance(widget, QtWidgets.QCheckBox):
             widget.stateChanged.connect(self.set_dirty_flag)
+        if isinstance(widget, QtWidgets.QListWidget):
+            widget.itemChanged.connect(self.set_dirty_flag)
 
         # recursive call on children
         for child in widget.children():
@@ -867,7 +870,6 @@ class TaggerWindow(QtWidgets.QMainWindow):
         assign_text(self.leAltSeries, md.alternate_series)
         assign_text(self.leAltIssueNum, md.alternate_number)
         assign_text(self.leAltIssueCount, md.alternate_count)
-        self.leWebLink: QtWidgets.QListWidget
         self.leWebLink.clear()
         for u in md.web_links:
             self.add_weblink_item(u.url)
