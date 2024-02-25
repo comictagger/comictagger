@@ -41,7 +41,24 @@
             <string/>
            </property>
            <layout class="QGridLayout" name="gridLayout_4">
-            <item row="2" column="0">
+            <item row="0" column="0" colspan="2">
+             <widget class="QCheckBox" name="cbxCheckForNewVersion">
+              <property name="text">
+               <string>Check for new version on startup</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QCheckBox" name="cbxShortMetadataNames">
+              <property name="toolTip">
+               <string>Use the short name for the metadata styles (CBI, CR, etc.)</string>
+              </property>
+              <property name="text">
+               <string>Use &quot;short&quot; names for metadata styles</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="0">
              <widget class="QPushButton" name="btnResetSettings">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
@@ -54,7 +71,7 @@
               </property>
              </widget>
             </item>
-            <item row="3" column="0">
+            <item row="4" column="0">
              <widget class="QPushButton" name="btnClearCache">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
@@ -68,22 +85,6 @@
              </widget>
             </item>
             <item row="3" column="1">
-             <widget class="QLabel" name="label_2">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="text">
-               <string>If you need to free up the disk space, or the responses seems out of date, clear the online cache.</string>
-              </property>
-              <property name="wordWrap">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="1">
              <widget class="QLabel" name="lblDefaultSettings">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -99,20 +100,26 @@
               </property>
              </widget>
             </item>
-            <item row="0" column="0" colspan="2">
-             <widget class="QCheckBox" name="cbxCheckForNewVersion">
+            <item row="4" column="1">
+             <widget class="QLabel" name="label_2">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
               <property name="text">
-               <string>Check for new version on startup</string>
+               <string>If you need to free up the disk space, or the responses seems out of date, clear the online cache.</string>
+              </property>
+              <property name="wordWrap">
+               <bool>true</bool>
               </property>
              </widget>
             </item>
-            <item row="1" column="0">
-             <widget class="QCheckBox" name="cbxShortMetadataNames">
-              <property name="toolTip">
-               <string>Use the short name for the metadata styles (CBI, CR, etc.)</string>
-              </property>
+            <item row="2" column="0">
+             <widget class="QCheckBox" name="cbxPromptOnSave">
               <property name="text">
-               <string>Use &quot;short&quot; names for metadata styles</string>
+               <string>Prompts the user to confirm saving tags</string>
               </property>
              </widget>
             </item>
