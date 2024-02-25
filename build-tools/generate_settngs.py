@@ -15,7 +15,7 @@ def generate() -> str:
     imports2, types2 = settngs.generate_ns(app.manager.definitions)
     i = imports.splitlines()
     i.extend(set(imports2.splitlines()) - set(i))
-    return "\n\n".join((imports, types2, types))
+    return "\n\n".join(("\n".join(i), types2, types))
 
 
 if __name__ == "__main__":
