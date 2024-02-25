@@ -54,7 +54,7 @@ def identifier(parser: settngs.Manager) -> None:
         nargs="+",
         help="When enabled, filters the listed publishers from all search results. Ending a publisher with a '-' removes a publisher from this list",
     )
-    parser.add_setting("--series-match-search-thresh", default=90, type=int)
+    parser.add_setting("--series-match-search-thresh", default=90, type=int, help="")
     parser.add_setting(
         "--clear-metadata",
         default=False,
@@ -129,7 +129,7 @@ def filename(parser: settngs.Manager) -> None:
         "--protofolius-issue-number-scheme",
         default=False,
         action=argparse.BooleanOptionalAction,
-        help="Use an issue number scheme devised by protofolius for encoding format informatino as a letter in front of an issue number. Implies --allow-issue-start-with-letter.  Requires --complicated-parser",
+        help="Use an issue number scheme devised by protofolius for encoding format information as a letter in front of an issue number. Implies --allow-issue-start-with-letter.  Requires --complicated-parser",
     )
     parser.add_setting(
         "--allow-issue-start-with-letter",
