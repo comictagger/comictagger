@@ -927,6 +927,9 @@
                   <property name="acceptDrops">
                    <bool>false</bool>
                   </property>
+                  <property name="acceptRichText">
+                   <bool>false</bool>
+                  </property>
                  </widget>
                 </item>
                 <item row="1" column="0">
@@ -939,6 +942,9 @@
                 <item row="1" column="1">
                  <widget class="QTextEdit" name="teNotes">
                   <property name="acceptDrops">
+                   <bool>false</bool>
+                  </property>
+                  <property name="acceptRichText">
                    <bool>false</bool>
                   </property>
                  </widget>
@@ -1053,6 +1059,9 @@
                   <property name="acceptDrops">
                    <bool>false</bool>
                   </property>
+                  <property name="acceptRichText">
+                   <bool>false</bool>
+                  </property>
                  </widget>
                 </item>
                 <item row="2" column="0">
@@ -1079,6 +1088,9 @@
                   <property name="acceptDrops">
                    <bool>false</bool>
                   </property>
+                  <property name="acceptRichText">
+                   <bool>false</bool>
+                  </property>
                  </widget>
                 </item>
                 <item row="3" column="0">
@@ -1103,6 +1115,9 @@
                    </size>
                   </property>
                   <property name="acceptDrops">
+                   <bool>false</bool>
+                  </property>
+                  <property name="acceptRichText">
                    <bool>false</bool>
                   </property>
                  </widget>
@@ -1135,6 +1150,9 @@
                    </size>
                   </property>
                   <property name="acceptDrops">
+                   <bool>false</bool>
+                  </property>
+                  <property name="acceptRichText">
                    <bool>false</bool>
                   </property>
                  </widget>
