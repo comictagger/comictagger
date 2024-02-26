@@ -574,7 +574,6 @@ class IssueIdentifier:
 
         if len(cover_matching_1) == 0:
             self.log_msg(":-( no matches!")
-            self.search_result = self.result_no_matches
             return cover_matching_1
 
         # sort list by image match scores
@@ -598,28 +597,15 @@ class IssueIdentifier:
                 if score.distance < self.min_alternate_score_thresh:
                     cover_matching_2.append(score)
 
-            if len(cover_matching_2) == 0:
-                if len(cover_matching_1) == 1:
-                    self.log_msg("No matching pages in the issue.")
-                    self.log_msg("--------------------------------------------------------------------------")
-                    self._print_match(cover_matching_1[0])
-                    self.log_msg("--------------------------------------------------------------------------")
-                    self.search_result = self.result_found_match_but_bad_cover_score
-                else:
-                    self.log_msg("--------------------------------------------------------------------------")
-                    self.log_msg("Multiple bad cover matches!  Need to use other info...")
-                    self.log_msg("--------------------------------------------------------------------------")
-                    self.search_result = self.result_multiple_matches_with_bad_image_scores
-                return cover_matching_1
+            if len(cover_matching_2) > 0:
+                # We did good, found something!
+                self.log_msg("Success in secondary/alternate cover matching!")
 
-            # We did good, found something!
-            self.log_msg("Success in secondary/alternate cover matching!")
-
-            final_cover_matching = cover_matching_2
-            # sort new list by image match scores
-            final_cover_matching.sort(key=attrgetter("distance"))
-            self.log_msg("[Second round cover matching: best score = {best_score}]")
-            # now drop down into the rest of the processing
+                final_cover_matching = cover_matching_2
+                # sort new list by image match scores
+                final_cover_matching.sort(key=attrgetter("distance"))
+                self.log_msg("[Second round cover matching: best score = {best_score}]")
+                # now drop down into the rest of the processing
 
         best_score = final_cover_matching[0].distance
         # now pare down list, remove any item more than specified distant from the top scores
@@ -657,24 +643,38 @@ class IssueIdentifier:
                     )
                     final_cover_matching.remove(match)
 
-        if len(final_cover_matching) == 1:
-            self.log_msg("--------------------------------------------------------------------------")
-            self._print_match(final_cover_matching[0])
-            self.log_msg("--------------------------------------------------------------------------")
-            search_result = self.result_one_good_match
-
-        elif len(self.match_list) == 0:
-            self.log_msg("--------------------------------------------------------------------------")
-            self.log_msg("No matches found :(")
-            self.log_msg("--------------------------------------------------------------------------")
-            search_result = self.result_no_matches
+        best_score = final_cover_matching[0].distance
+        if best_score >= self.min_score_thresh:
+            if len(final_cover_matching) == 1:
+                self.log_msg("No matching pages in the issue.")
+                self.log_msg("--------------------------------------------------------------------------")
+                self._print_match(final_cover_matching[0])
+                self.log_msg("--------------------------------------------------------------------------")
+                search_result = self.result_found_match_but_bad_cover_score
+            else:
+                self.log_msg("--------------------------------------------------------------------------")
+                self.log_msg("Multiple bad cover matches!  Need to use other info...")
+                self.log_msg("--------------------------------------------------------------------------")
+                search_result = self.result_multiple_matches_with_bad_image_scores
         else:
-            # we've got multiple good matches:
-            self.log_msg("More than one likely candidate.")
-            search_result = self.result_multiple_good_matches
-            self.log_msg("--------------------------------------------------------------------------")
-            for match_item in final_cover_matching:
-                self._print_match(match_item)
-            self.log_msg("--------------------------------------------------------------------------")
+            if len(final_cover_matching) == 1:
+                self.log_msg("--------------------------------------------------------------------------")
+                self._print_match(final_cover_matching[0])
+                self.log_msg("--------------------------------------------------------------------------")
+                search_result = self.result_one_good_match
+
+            elif len(self.match_list) == 0:
+                self.log_msg("--------------------------------------------------------------------------")
+                self.log_msg("No matches found :(")
+                self.log_msg("--------------------------------------------------------------------------")
+                search_result = self.result_no_matches
+            else:
+                # we've got multiple good matches:
+                self.log_msg("More than one likely candidate.")
+                search_result = self.result_multiple_good_matches
+                self.log_msg("--------------------------------------------------------------------------")
+                for match_item in final_cover_matching:
+                    self._print_match(match_item)
+                self.log_msg("--------------------------------------------------------------------------")
 
         return search_result, final_cover_matching
