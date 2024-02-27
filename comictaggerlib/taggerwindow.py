@@ -551,6 +551,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
             | QtCore.Qt.ItemFlag.ItemIsSelectable
         )
         self.leWebLink.item(self.leWebLink.count() - 1).setSelected(True)
+        if not url:
+            self.leWebLink.editItem(self.leWebLink.item(self.leWebLink.count() - 1))
 
     def remove_weblink_item(self) -> None:
         item = self.leWebLink.takeItem(self.leWebLink.currentRow())
