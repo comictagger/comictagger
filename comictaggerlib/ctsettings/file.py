@@ -42,7 +42,18 @@ def internal(parser: settngs.Manager) -> None:
 
 def identifier(parser: settngs.Manager) -> None:
     # identifier settings
-    parser.add_setting("--series-match-identify-thresh", default=91, type=int, help="")
+    parser.add_setting(
+        "--series-match-identify-thresh",
+        default=91,
+        type=int,
+        help="The minimum Series name similarity needed to auto-identify an issue",
+    )
+    parser.add_setting(
+        "--series-match-search-thresh",
+        default=90,
+        type=int,
+        help="The minimum Series name similarity to return from a search result",
+    )
     parser.add_setting(
         "-b",
         "--border-crop-percent",
@@ -57,23 +68,25 @@ def identifier(parser: settngs.Manager) -> None:
         nargs="+",
         help="When enabled, filters the listed publishers from all search results. Ending a publisher with a '-' removes a publisher from this list",
     )
-    parser.add_setting("--series-match-search-thresh", default=90, type=int, help="")
     parser.add_setting(
         "--clear-metadata",
         default=False,
-        help="Clears all existing metadata during import, default is to merge metadata.\nMay be used in conjunction with -o, -f and -m.\n\n",
         action=argparse.BooleanOptionalAction,
+        help="Clears all existing metadata during import, default is to merge metadata.\nMay be used in conjunction with -o, -f and -m.\n\n",
     )
     parser.add_setting(
         "-a",
         "--auto-imprint",
-        action=argparse.BooleanOptionalAction,
         default=False,
+        action=argparse.BooleanOptionalAction,
         help="Enables the auto imprint functionality.\ne.g. if the publisher is set to 'vertigo' it\nwill be updated to 'DC Comics' and the imprint\nproperty will be set to 'Vertigo'.\n\n",
     )
 
     parser.add_setting(
-        "--sort-series-by-year", default=True, action=argparse.BooleanOptionalAction, help="Sorts series by year"
+        "--sort-series-by-year",
+        default=True,
+        action=argparse.BooleanOptionalAction,
+        help="Sorts series by year",
     )
     parser.add_setting(
         "--exact-series-matches-first",
