@@ -78,33 +78,17 @@ metadata = [
 
 metadata_keys = [
     (
-        comicapi.genericmetadata.GenericMetadata(),
+        comicapi.genericmetadata.md_test,
         {
             "issue_count": 6,
             "issue_number": "1",
             "month": 10,
             "series": "Cory Doctorow's Futuristic Tales of the Here and Now",
             "year": 2007,
-        },
-    ),
-    (
-        comicapi.genericmetadata.GenericMetadata(series="test"),
-        {
-            "issue_count": 6,
-            "issue_number": "1",
-            "month": 10,
-            "series": "test",
-            "year": 2007,
-        },
-    ),
-    (
-        comicapi.genericmetadata.GenericMetadata(series="test", issue="3"),
-        {
-            "issue_count": 6,
-            "issue_number": "3",
-            "month": 10,
-            "series": "test",
-            "year": 2007,
+            "alternate_count": 7,
+            "alternate_number": "2",
+            "imprint": "craphound.com",
+            "publisher": "IDW Publishing",
         },
     ),
 ]
