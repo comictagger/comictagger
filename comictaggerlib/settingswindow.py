@@ -192,6 +192,8 @@ class SettingsWindow(QtWidgets.QDialog):
         self.sources = comictaggerlib.ui.talkeruigenerator.generate_source_option_tabs(
             self.tComicTalkers, self.config, self.talkers
         )
+        self.cbFilenameParser.clear()
+        self.cbFilenameParser.addItems(utils.Parser)
         self.connect_signals()
         self.settings_to_form()
         self.rename_test()
@@ -209,7 +211,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.btnTemplateHelp.clicked.connect(self.show_template_help)
         self.cbxMoveFiles.clicked.connect(self.dir_test)
         self.leDirectory.textEdited.connect(self.dir_test)
-        self.cbxComplicatedParser.clicked.connect(self.switch_parser)
+        self.cbFilenameParser.currentIndexChanged.connect(self.switch_parser)
 
         self.btnAddLiteralReplacement.clicked.connect(self.addLiteralReplacement)
         self.btnAddValueReplacement.clicked.connect(self.addValueReplacement)
@@ -244,7 +246,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.btnResetSettings.clicked.disconnect()
         self.btnTemplateHelp.clicked.disconnect()
         self.cbxChangeExtension.clicked.disconnect()
-        self.cbxComplicatedParser.clicked.disconnect()
+        self.cbFilenameParser.currentIndexChanged.disconnect()
         self.cbxMoveFiles.clicked.disconnect()
         self.cbxRenameStrict.clicked.disconnect()
         self.cbxSmartCleanup.clicked.disconnect()
@@ -273,9 +275,10 @@ class SettingsWindow(QtWidgets.QDialog):
         self._filename_parser_test(self.leFilenameParserTest.text())
 
     def _filename_parser_test(self, filename: str) -> None:
+        self.cbFilenameParser: QtWidgets.QComboBox
         filename_info = utils.parse_filename(
             filename=filename,
-            complicated_parser=self.cbxComplicatedParser.isChecked(),
+            parser=utils.Parser(self.cbFilenameParser.currentText()),
             remove_c2c=self.cbxRemoveC2C.isChecked(),
             remove_fcbd=self.cbxRemoveFCBD.isChecked(),
             remove_publisher=self.cbxRemovePublisher.isChecked(),
@@ -358,8 +361,9 @@ class SettingsWindow(QtWidgets.QDialog):
             self.lblRenameTest.setText(str(e))
 
     def switch_parser(self) -> None:
-        complicated = self.cbxComplicatedParser.isChecked()
+        currentParser = utils.Parser(self.cbFilenameParser.currentText())
 
+        complicated = currentParser == utils.Parser.COMPLICATED
         self.cbxRemoveC2C.setEnabled(complicated)
         self.cbxRemoveFCBD.setEnabled(complicated)
         self.cbxRemovePublisher.setEnabled(complicated)
@@ -380,7 +384,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.cbxCheckForNewVersion.setChecked(self.config[0].General__check_for_new_version)
         self.cbxShortMetadataNames.setChecked(self.config[0].General__use_short_metadata_names)
 
-        self.cbxComplicatedParser.setChecked(self.config[0].Filename_Parsing__complicated_parser)
+        self.cbFilenameParser.setCurrentText(self.config[0].Filename_Parsing__filename_parser)
         self.cbxRemoveC2C.setChecked(self.config[0].Filename_Parsing__remove_c2c)
         self.cbxRemoveFCBD.setChecked(self.config[0].Filename_Parsing__remove_fcbd)
         self.cbxRemovePublisher.setChecked(self.config[0].Filename_Parsing__remove_publisher)
@@ -507,7 +511,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.config[0].Issue_Identifier__series_match_search_thresh = self.sbNameMatchSearchThresh.value()
         self.config[0].Issue_Identifier__publisher_filter = utils.split(self.tePublisherFilter.toPlainText(), "\n")
 
-        self.config[0].Filename_Parsing__complicated_parser = self.cbxComplicatedParser.isChecked()
+        self.config[0].Filename_Parsing__filename_parser = utils.Parser(self.cbFilenameParser.currentText())
         self.config[0].Filename_Parsing__remove_c2c = self.cbxRemoveC2C.isChecked()
         self.config[0].Filename_Parsing__remove_fcbd = self.cbxRemoveFCBD.isChecked()
         self.config[0].Filename_Parsing__remove_publisher = self.cbxRemovePublisher.isChecked()

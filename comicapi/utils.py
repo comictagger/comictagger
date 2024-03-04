@@ -20,11 +20,15 @@ import logging
 import os
 import pathlib
 import platform
+import sys
 import unicodedata
 from collections import defaultdict
 from collections.abc import Iterable, Mapping
+from enum import Enum, auto
 from shutil import which  # noqa: F401
 from typing import Any, TypeVar, cast
+
+from comicfn2dict import comicfn2dict
 
 import comicapi.data
 from comicapi import filenamelexer, filenameparser
@@ -37,7 +41,53 @@ try:
 except ImportError:
     icu_available = False
 
+
+if sys.version_info < (3, 11):
+
+    class StrEnum(str, Enum):
+        """
+        Enum where members are also (and must be) strings
+        """
+
+        def __new__(cls, *values: Any) -> Any:
+            "values must already be of type `str`"
+            if len(values) > 3:
+                raise TypeError(f"too many arguments for str(): {values!r}")
+            if len(values) == 1:
+                # it must be a string
+                if not isinstance(values[0], str):
+                    raise TypeError(f"{values[0]!r} is not a string")
+            if len(values) >= 2:
+                # check that encoding argument is a string
+                if not isinstance(values[1], str):
+                    raise TypeError(f"encoding must be a string, not {values[1]!r}")
+            if len(values) == 3:
+                # check that errors argument is a string
+                if not isinstance(values[2], str):
+                    raise TypeError("errors must be a string, not %r" % (values[2]))
+            value = str(*values)
+            member = str.__new__(cls, value)
+            member._value_ = value
+            return member
+
+        @staticmethod
+        def _generate_next_value_(name: str, start: int, count: int, last_values: Any) -> str:
+            """
+            Return the lower-cased version of the member name.
+            """
+            return name.lower()
+
+else:
+    from enum import StrEnum
+
+
 logger = logging.getLogger(__name__)
+
+
+class Parser(StrEnum):
+    ORIGINAL = auto()
+    COMPLICATED = auto()
+    COMICFN2DICT = auto()
 
 
 def _custom_key(tup: Any) -> Any:
@@ -67,7 +117,7 @@ def os_sorted(lst: Iterable[T]) -> Iterable[T]:
 
 def parse_filename(
     filename: str,
-    complicated_parser: bool = False,
+    parser: Parser = Parser.ORIGINAL,
     remove_c2c: bool = False,
     remove_fcbd: bool = False,
     remove_publisher: bool = False,
@@ -99,7 +149,25 @@ def parse_filename(
         filename, ext = os.path.splitext(filename)
         filename = " ".join(wordninja.split(filename)) + ext
 
-    if complicated_parser:
+    fni = filenameparser.FilenameInfo(
+        alternate="",
+        annual=False,
+        archive="",
+        c2c=False,
+        fcbd=False,
+        format="",
+        issue="",
+        issue_count="",
+        publisher="",
+        remainder="",
+        series="",
+        title="",
+        volume="",
+        volume_count="",
+        year="",
+    )
+
+    if parser == Parser.COMPLICATED:
         lex = filenamelexer.Lex(filename, allow_issue_start_with_letter)
         p = filenameparser.Parse(
             lex.items,
@@ -108,7 +176,26 @@ def parse_filename(
             remove_publisher=remove_publisher,
             protofolius_issue_number_scheme=protofolius_issue_number_scheme,
         )
-        return p.filename_info
+        fni = p.filename_info
+    elif parser == Parser.COMICFN2DICT:
+        fn2d = comicfn2dict(filename)
+        fni = filenameparser.FilenameInfo(
+            alternate="",
+            annual=False,
+            archive=fn2d.get("ext", ""),
+            c2c=False,
+            fcbd=False,
+            issue=fn2d.get("issue", ""),
+            issue_count=fn2d.get("issue_count", ""),
+            publisher=fn2d.get("publisher", ""),
+            remainder=fn2d.get("scan_info", ""),
+            series=fn2d.get("series", ""),
+            title=fn2d.get("title", ""),
+            volume=fn2d.get("volume", ""),
+            volume_count=fn2d.get("volume_count", ""),
+            year=fn2d.get("year", ""),
+            format=fn2d.get("original_format", ""),
+        )
     else:
         fnp = filenameparser.FileNameParser()
         fnp.parse_filename(filename)
@@ -129,7 +216,7 @@ def parse_filename(
             year=fnp.year,
             format="",
         )
-        return fni
+    return fni
 
 
 def combine_notes(existing_notes: str | None, new_notes: str | None, split: str) -> str:

@@ -364,7 +364,7 @@ class ComicArchive:
 
     def metadata_from_filename(
         self,
-        complicated_parser: bool = False,
+        parser: utils.Parser = utils.Parser.ORIGINAL,
         remove_c2c: bool = False,
         remove_fcbd: bool = False,
         remove_publisher: bool = False,
@@ -376,7 +376,7 @@ class ComicArchive:
 
         filename_info = utils.parse_filename(
             self.path.name,
-            complicated_parser=complicated_parser,
+            parser=parser,
             remove_c2c=remove_c2c,
             remove_fcbd=remove_fcbd,
             remove_publisher=remove_publisher,
