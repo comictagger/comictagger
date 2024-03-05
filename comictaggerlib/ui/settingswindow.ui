@@ -422,7 +422,179 @@
          <string>Metadata Options</string>
         </attribute>
         <layout class="QGridLayout" name="gridLayout_6">
-         <item row="5" column="0">
+         <item row="4" column="0" rowspan="2">
+          <widget class="QGroupBox" name="groupBox_4">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>80</height>
+            </size>
+           </property>
+           <property name="title">
+            <string>CBL Options</string>
+           </property>
+           <widget class="QWidget" name="verticalLayoutWidget">
+            <property name="geometry">
+             <rect>
+              <x>9</x>
+              <y>20</y>
+              <width>651</width>
+              <height>65</height>
+             </rect>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_3">
+             <property name="topMargin">
+              <number>6</number>
+             </property>
+             <property name="bottomMargin">
+              <number>3</number>
+             </property>
+             <item>
+              <widget class="QCheckBox" name="cbxApplyCBLTransformOnCVIMport">
+               <property name="text">
+                <string>Apply CBL Transforms on ComicVine Import</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QCheckBox" name="cbxApplyCBLTransformOnBatchOperation">
+               <property name="text">
+                <string>Apply CBL Transforms on Batch Copy Operations to CBL Tags</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </widget>
+         </item>
+         <item row="0" column="0" rowspan="3">
+          <widget class="QGroupBox" name="groupBox_5">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>111</height>
+            </size>
+           </property>
+           <property name="title">
+            <string>General</string>
+           </property>
+           <widget class="QWidget" name="gridLayoutWidget">
+            <property name="geometry">
+             <rect>
+              <x>9</x>
+              <y>19</y>
+              <width>1044</width>
+              <height>91</height>
+             </rect>
+            </property>
+            <layout class="QGridLayout" name="gridLayout_8" rowstretch="0,0,0,0" columnstretch="0,0,0,0">
+             <property name="sizeConstraint">
+              <enum>QLayout::SetDefaultConstraint</enum>
+             </property>
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>6</number>
+             </property>
+             <property name="spacing">
+              <number>0</number>
+             </property>
+             <item row="3" column="1" colspan="3">
+              <widget class="QCheckBox" name="cbxShortMetadataNames">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="toolTip">
+                <string>Use the short name for the metadata styles (CBI, CR, etc.)</string>
+               </property>
+               <property name="text">
+                <string>Use &quot;short&quot; names for metadata styles</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QLabel" name="lblOverlayStyle">
+               <property name="toolTip">
+                <string>The operation to perform when overlaying new source information onto the current</string>
+               </property>
+               <property name="text">
+                <string>Overlay Operation:</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+               <property name="margin">
+                <number>6</number>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="2">
+              <widget class="QComboBox" name="cbxOverlayStyle">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="toolTip">
+                <string>Overlay - When the new source metadata has non-empty values, overwrite the current metadata
+
+Add Missing - Any values that are empty in the current metadata that are in the new source metadata, add those values
+
+Combine - Combine lists and use the new (non-empty) source metadata for all other values</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="3">
+              <spacer name="horizontalSpacer">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeType">
+                <enum>QSizePolicy::MinimumExpanding</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>300</width>
+                 <height>0</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item row="2" column="1" colspan="3">
+              <widget class="QCheckBox" name="cbxDisableCR">
+               <property name="text">
+                <string>Disable ComicRack Metadata Type (useful if you use the CIX metadata type)</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </widget>
+         </item>
+         <item row="6" column="0">
           <widget class="QGroupBox" name="groupBox">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
@@ -498,178 +670,6 @@
               <widget class="QCheckBox" name="cbxCopyWebLinkToComments">
                <property name="text">
                 <string>Copy Web Link to Comments</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </widget>
-         </item>
-         <item row="0" column="0" rowspan="3">
-          <widget class="QGroupBox" name="groupBox_5">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>95</height>
-            </size>
-           </property>
-           <property name="title">
-            <string>General</string>
-           </property>
-           <widget class="QWidget" name="gridLayoutWidget">
-            <property name="geometry">
-             <rect>
-              <x>9</x>
-              <y>19</y>
-              <width>704</width>
-              <height>71</height>
-             </rect>
-            </property>
-            <layout class="QGridLayout" name="gridLayout_8" rowstretch="0,0,0" columnstretch="0,0,0,0">
-             <property name="sizeConstraint">
-              <enum>QLayout::SetDefaultConstraint</enum>
-             </property>
-             <property name="leftMargin">
-              <number>0</number>
-             </property>
-             <property name="topMargin">
-              <number>6</number>
-             </property>
-             <property name="spacing">
-              <number>0</number>
-             </property>
-             <item row="1" column="1">
-              <widget class="QLabel" name="lblOverlayStyle">
-               <property name="toolTip">
-                <string>The operation to perform when overlaying new source information onto the current</string>
-               </property>
-               <property name="text">
-                <string>Overlay Operation:</string>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-               </property>
-               <property name="margin">
-                <number>6</number>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="2">
-              <widget class="QComboBox" name="cbxOverlayStyle">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>16777215</width>
-                 <height>16777215</height>
-                </size>
-               </property>
-               <property name="toolTip">
-                <string>Overlay - When the new source metadata has non-empty values, overwrite the current metadata
-
-Add Missing - Any values that are empty in the current metadata that are in the new source metadata, add those values
-
-Combine - Combine lists and use the new (non-empty) source metadata for all other values</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="3">
-              <spacer name="horizontalSpacer">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeType">
-                <enum>QSizePolicy::MinimumExpanding</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>300</width>
-                 <height>0</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-             <item row="2" column="1" colspan="3">
-              <widget class="QCheckBox" name="cbxShortMetadataNames">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="toolTip">
-                <string>Use the short name for the metadata styles (CBI, CR, etc.)</string>
-               </property>
-               <property name="text">
-                <string>Use &quot;short&quot; names for metadata styles</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </widget>
-         </item>
-         <item row="3" column="0" rowspan="2">
-          <widget class="QGroupBox" name="groupBox_4">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>116</height>
-            </size>
-           </property>
-           <property name="title">
-            <string>CBL Options</string>
-           </property>
-           <widget class="QWidget" name="verticalLayoutWidget">
-            <property name="geometry">
-             <rect>
-              <x>9</x>
-              <y>20</y>
-              <width>651</width>
-              <height>93</height>
-             </rect>
-            </property>
-            <layout class="QVBoxLayout" name="verticalLayout_3">
-             <property name="topMargin">
-              <number>6</number>
-             </property>
-             <property name="bottomMargin">
-              <number>3</number>
-             </property>
-             <item>
-              <widget class="QCheckBox" name="cbxApplyCBLTransformOnCVIMport">
-               <property name="text">
-                <string>Apply CBL Transforms on ComicVine Import</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QCheckBox" name="cbxDisableCR">
-               <property name="text">
-                <string>Disable ComicRack Metadata Type (useful if you use the CIX metadata type)</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QCheckBox" name="cbxApplyCBLTransformOnBatchOperation">
-               <property name="text">
-                <string>Apply CBL Transforms on Batch Copy Operations to CBL Tags</string>
                </property>
               </widget>
              </item>

@@ -386,7 +386,6 @@ class SettingsWindow(QtWidgets.QDialog):
         self.tePublisherFilter.setPlainText("\n".join(self.config[0].Issue_Identifier__publisher_filter))
 
         self.cbxCheckForNewVersion.setChecked(self.config[0].General__check_for_new_version)
-        self.cbxShortMetadataNames.setChecked(self.config[0].General__use_short_metadata_names)
 
         self.cbFilenameParser.setCurrentText(self.config[0].Filename_Parsing__filename_parser)
         self.cbxRemoveC2C.setChecked(self.config[0].Filename_Parsing__remove_c2c)
@@ -404,20 +403,22 @@ class SettingsWindow(QtWidgets.QDialog):
         self.cbxExactMatches.setChecked(self.config[0].Issue_Identifier__exact_series_matches_first)
         self.cbxClearFormBeforePopulating.setChecked(self.config[0].Issue_Identifier__clear_metadata)
 
-        self.cbxAssumeLoneCreditIsPrimary.setChecked(self.config[0].Comic_Book_Lover__assume_lone_credit_is_primary)
-        self.cbxCopyCharactersToTags.setChecked(self.config[0].Comic_Book_Lover__copy_characters_to_tags)
-        self.cbxCopyTeamsToTags.setChecked(self.config[0].Comic_Book_Lover__copy_teams_to_tags)
-        self.cbxCopyLocationsToTags.setChecked(self.config[0].Comic_Book_Lover__copy_locations_to_tags)
-        self.cbxCopyStoryArcsToTags.setChecked(self.config[0].Comic_Book_Lover__copy_storyarcs_to_tags)
-        self.cbxCopyNotesToComments.setChecked(self.config[0].Comic_Book_Lover__copy_notes_to_comments)
-        self.cbxCopyWebLinkToComments.setChecked(self.config[0].Comic_Book_Lover__copy_weblink_to_comments)
-        self.cbxApplyCBLTransformOnCVIMport.setChecked(self.config[0].Comic_Book_Lover__apply_transform_on_import)
+        self.cbxAssumeLoneCreditIsPrimary.setChecked(self.config[0].Metadata_Options__cbl_assume_lone_credit_is_primary)
+        self.cbxCopyCharactersToTags.setChecked(self.config[0].Metadata_Options__cbl_copy_characters_to_tags)
+        self.cbxCopyTeamsToTags.setChecked(self.config[0].Metadata_Options__cbl_copy_teams_to_tags)
+        self.cbxCopyLocationsToTags.setChecked(self.config[0].Metadata_Options__cbl_copy_locations_to_tags)
+        self.cbxCopyStoryArcsToTags.setChecked(self.config[0].Metadata_Options__cbl_copy_storyarcs_to_tags)
+        self.cbxCopyNotesToComments.setChecked(self.config[0].Metadata_Options__cbl_copy_notes_to_comments)
+        self.cbxCopyWebLinkToComments.setChecked(self.config[0].Metadata_Options__cbl_copy_weblink_to_comments)
+        self.cbxApplyCBLTransformOnCVIMport.setChecked(self.config[0].Metadata_Options__cbl_apply_transform_on_import)
         self.cbxApplyCBLTransformOnBatchOperation.setChecked(
-            self.config[0].Comic_Book_Lover__apply_transform_on_bulk_operation
+            self.config[0].Metadata_Options__cbl_apply_transform_on_bulk_operation
         )
         self.cbxOverlayStyle.setCurrentIndex(
-            self.cbxOverlayStyle.findData(self.config[0].Comic_Book_Lover__metadata_overlay.value)
+            self.cbxOverlayStyle.findData(self.config[0].Metadata_Options__metadata_overlay.value)
         )
+        self.cbxShortMetadataNames.setChecked(self.config[0].Metadata_Options__use_short_metadata_names)
+        self.cbxDisableCR.setChecked(self.config[0].Metadata_Options__disable_cr)
 
         self.leRenameTemplate.setText(self.config[0].File_Rename__template)
         self.leIssueNumPadding.setText(str(self.config[0].File_Rename__issue_number_padding))
@@ -508,12 +509,6 @@ class SettingsWindow(QtWidgets.QDialog):
 
         self.config[0].General__check_for_new_version = self.cbxCheckForNewVersion.isChecked()
 
-        # Update metadata style names if required
-        if self.cbxShortMetadataNames.isChecked() != self.config[0].General__use_short_metadata_names:
-            self.config[0].General__use_short_metadata_names = self.cbxShortMetadataNames.isChecked()
-            self.parent().populate_style_names()
-            self.parent().adjust_save_style_combo()
-
         self.config[0].Issue_Identifier__series_match_identify_thresh = self.sbNameMatchIdentifyThresh.value()
         self.config[0].Issue_Identifier__series_match_search_thresh = self.sbNameMatchSearchThresh.value()
         self.config[0].Issue_Identifier__publisher_filter = utils.split(self.tePublisherFilter.toPlainText(), "\n")
@@ -532,18 +527,27 @@ class SettingsWindow(QtWidgets.QDialog):
         self.config[0].Issue_Identifier__exact_series_matches_first = self.cbxExactMatches.isChecked()
         self.config[0].Issue_Identifier__clear_metadata = self.cbxClearFormBeforePopulating.isChecked()
 
-        self.config[0].Comic_Book_Lover__assume_lone_credit_is_primary = self.cbxAssumeLoneCreditIsPrimary.isChecked()
-        self.config[0].Comic_Book_Lover__copy_characters_to_tags = self.cbxCopyCharactersToTags.isChecked()
-        self.config[0].Comic_Book_Lover__copy_teams_to_tags = self.cbxCopyTeamsToTags.isChecked()
-        self.config[0].Comic_Book_Lover__copy_locations_to_tags = self.cbxCopyLocationsToTags.isChecked()
-        self.config[0].Comic_Book_Lover__copy_storyarcs_to_tags = self.cbxCopyStoryArcsToTags.isChecked()
-        self.config[0].Comic_Book_Lover__copy_notes_to_comments = self.cbxCopyNotesToComments.isChecked()
-        self.config[0].Comic_Book_Lover__copy_weblink_to_comments = self.cbxCopyWebLinkToComments.isChecked()
-        self.config[0].Comic_Book_Lover__apply_transform_on_import = self.cbxApplyCBLTransformOnCVIMport.isChecked()
-        self.config.values.Comic_Book_Lover__apply_transform_on_bulk_operation = (
+        self.config[0].Metadata_Options__cbl_assume_lone_credit_is_primary = (
+            self.cbxAssumeLoneCreditIsPrimary.isChecked()
+        )
+        self.config[0].Metadata_Options__cbl_copy_characters_to_tags = self.cbxCopyCharactersToTags.isChecked()
+        self.config[0].Metadata_Options__cbl_copy_teams_to_tags = self.cbxCopyTeamsToTags.isChecked()
+        self.config[0].Metadata_Options__cbl_copy_locations_to_tags = self.cbxCopyLocationsToTags.isChecked()
+        self.config[0].Metadata_Options__cbl_copy_storyarcs_to_tags = self.cbxCopyStoryArcsToTags.isChecked()
+        self.config[0].Metadata_Options__cbl_copy_notes_to_comments = self.cbxCopyNotesToComments.isChecked()
+        self.config[0].Metadata_Options__cbl_copy_weblink_to_comments = self.cbxCopyWebLinkToComments.isChecked()
+        self.config[0].Metadata_Options__cbl_apply_transform_on_import = self.cbxApplyCBLTransformOnCVIMport.isChecked()
+        self.config.values.Metadata_Options__cbl_apply_transform_on_bulk_operation = (
             self.cbxApplyCBLTransformOnBatchOperation.isChecked()
         )
-        self.config[0].Comic_Book_Lover__metadata_overlay = OverlayMode[self.cbxOverlayStyle.currentData()]
+
+        self.config[0].Metadata_Options__metadata_overlay = OverlayMode[self.cbxOverlayStyle.currentData()]
+        self.config[0].Metadata_Options__disable_cr = self.cbxDisableCR.isChecked()
+        # Update metadata style names if required
+        if self.config[0].Metadata_Options__use_short_metadata_names != self.cbxShortMetadataNames.isChecked():
+            self.config[0].Metadata_Options__use_short_metadata_names = self.cbxShortMetadataNames.isChecked()
+            self.parent().populate_style_names()
+            self.parent().adjust_save_style_combo()
 
         self.config[0].File_Rename__template = str(self.leRenameTemplate.text())
         self.config[0].File_Rename__issue_number_padding = int(self.leIssueNumPadding.text())

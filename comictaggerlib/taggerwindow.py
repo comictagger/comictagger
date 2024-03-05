@@ -1150,7 +1150,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             else:
                 QtWidgets.QApplication.restoreOverrideCursor()
                 if new_metadata is not None:
-                    if self.config[0].Comic_Book_Lover__apply_transform_on_import:
+                    if self.config[0].Metadata_Options__cbl_apply_transform_on_import:
                         new_metadata = CBLTransformer(new_metadata, self.config[0]).apply()
 
                     if self.config[0].Issue_Identifier__clear_metadata:
@@ -1167,7 +1167,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                                 new_metadata.description, self.config[0].Sources__remove_html_tables
                             ),
                         ),
-                        self.config[0].Comic_Book_Lover__metadata_overlay,
+                        self.config[0].Metadata_Options__metadata_overlay,
                     )
                     # Now push the new combined data into the edit controls
                     self.metadata_to_form()
@@ -1424,7 +1424,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         # Add the entries to the tag style combobox
         for style in metadata_styles.values():
             self.cbLoadDataStyle.addItem(style.name(), style.short_name)
-            if self.config[0].General__use_short_metadata_names:
+            if self.config[0].Metadata_Options__use_short_metadata_names:
                 self.cbSaveDataStyle.addItem(style.short_name.upper(), style.short_name)
             else:
                 self.cbSaveDataStyle.addItem(style.name(), style.short_name)
@@ -1686,7 +1686,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                             center_window_on_parent(prog_dialog)
                             QtCore.QCoreApplication.processEvents()
 
-                        if style == "cbi" and self.config[0].Comic_Book_Lover__apply_transform_on_bulk_operation:
+                        if style == "cbi" and self.config[0].Metadata_Options__cbl_apply_transform_on_bulk_operation:
                             md = CBLTransformer(md, self.config[0]).apply()
 
                         if ca.write_metadata(md, style):
@@ -1727,7 +1727,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             logger.exception("Save aborted.")
 
         if not ct_md.is_empty:
-            if self.config[0].Comic_Book_Lover__apply_transform_on_import:
+            if self.config[0].Metadata_Options__cbl_apply_transform_on_import:
                 ct_md = CBLTransformer(ct_md, self.config[0]).apply()
 
         QtWidgets.QApplication.restoreOverrideCursor()
@@ -1893,7 +1893,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                     )
                     md.overlay(
                         ct_md.replace(notes=utils.combine_notes(md.notes, notes, "Tagged with ComicTagger")),
-                        self.config[0].Comic_Book_Lover__metadata_overlay,
+                        self.config[0].Metadata_Options__metadata_overlay,
                     )
 
                 if self.config[0].Issue_Identifier__auto_imprint:

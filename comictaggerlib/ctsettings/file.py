@@ -15,13 +15,6 @@ def general(parser: settngs.Manager) -> None:
     # General Settings
     parser.add_setting("check_for_new_version", default=False, cmdline=False)
     parser.add_setting(
-        "--disable-cr",
-        default=False,
-        action=argparse.BooleanOptionalAction,
-        help="Disable the ComicRack metadata type",
-    )
-    parser.add_setting("use_short_metadata_names", default=False, action=argparse.BooleanOptionalAction, cmdline=False)
-    parser.add_setting(
         "--prompt-on-save",
         default=True,
         action=argparse.BooleanOptionalAction,
@@ -165,22 +158,30 @@ def talker(parser: settngs.Manager) -> None:
     )
 
 
-def cbl(parser: settngs.Manager) -> None:
+def md_options(parser: settngs.Manager) -> None:
     # CBL Transform settings
-    parser.add_setting("--assume-lone-credit-is-primary", default=False, action=argparse.BooleanOptionalAction)
-    parser.add_setting("--copy-characters-to-tags", default=False, action=argparse.BooleanOptionalAction)
-    parser.add_setting("--copy-teams-to-tags", default=False, action=argparse.BooleanOptionalAction)
-    parser.add_setting("--copy-locations-to-tags", default=False, action=argparse.BooleanOptionalAction)
-    parser.add_setting("--copy-storyarcs-to-tags", default=False, action=argparse.BooleanOptionalAction)
-    parser.add_setting("--copy-notes-to-comments", default=False, action=argparse.BooleanOptionalAction)
-    parser.add_setting("--copy-weblink-to-comments", default=False, action=argparse.BooleanOptionalAction)
-    parser.add_setting("--apply-transform-on-import", default=False, action=argparse.BooleanOptionalAction)
-    parser.add_setting("--apply-transform-on-bulk-operation", default=False, action=argparse.BooleanOptionalAction)
-        parser.add_setting(
+    parser.add_setting("--cbl-assume-lone-credit-is-primary", default=False, action=argparse.BooleanOptionalAction)
+    parser.add_setting("--cbl-copy-characters-to-tags", default=False, action=argparse.BooleanOptionalAction)
+    parser.add_setting("--cbl-copy-teams-to-tags", default=False, action=argparse.BooleanOptionalAction)
+    parser.add_setting("--cbl-copy-locations-to-tags", default=False, action=argparse.BooleanOptionalAction)
+    parser.add_setting("--cbl-copy-storyarcs-to-tags", default=False, action=argparse.BooleanOptionalAction)
+    parser.add_setting("--cbl-copy-notes-to-comments", default=False, action=argparse.BooleanOptionalAction)
+    parser.add_setting("--cbl-copy-weblink-to-comments", default=False, action=argparse.BooleanOptionalAction)
+    parser.add_setting("--cbl-apply-transform-on-import", default=False, action=argparse.BooleanOptionalAction)
+    parser.add_setting("--cbl-apply-transform-on-bulk-operation", default=False, action=argparse.BooleanOptionalAction)
+
+    parser.add_setting(
         "--metadata-overlay",
         default=OverlayMode.overlay,
         type=OverlayMode,
         help="How to overlay the current metadata with the new",
+    )
+    parser.add_setting("use_short_metadata_names", default=False, action=argparse.BooleanOptionalAction, cmdline=False)
+    parser.add_setting(
+        "--disable-cr",
+        default=False,
+        action=argparse.BooleanOptionalAction,
+        help="Disable the ComicRack metadata type",
     )
 
 
@@ -304,7 +305,7 @@ def register_file_settings(parser: settngs.Manager) -> None:
     parser.add_group("Issue Identifier", identifier, False)
     parser.add_group("Filename Parsing", filename, False)
     parser.add_group("Sources", talker, False)
-    parser.add_group("Comic Book Lover", cbl, False)
+    parser.add_group("Metadata Options", md_options, False)
     parser.add_group("File Rename", rename, False)
     parser.add_group("Auto-Tag", autotag, False)
     parser.add_group("General", general, False)

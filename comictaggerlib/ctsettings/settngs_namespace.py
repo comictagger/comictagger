@@ -74,17 +74,19 @@ class SettngsNS(settngs.TypedNS):
     Sources__source: str
     Sources__remove_html_tables: bool
 
-    Comic_Book_Lover__assume_lone_credit_is_primary: bool
-    Comic_Book_Lover__copy_characters_to_tags: bool
-    Comic_Book_Lover__copy_teams_to_tags: bool
-    Comic_Book_Lover__copy_locations_to_tags: bool
-    Comic_Book_Lover__copy_storyarcs_to_tags: bool
-    Comic_Book_Lover__copy_notes_to_comments: bool
-    Comic_Book_Lover__copy_weblink_to_comments: bool
-    Comic_Book_Lover__apply_transform_on_import: bool
-    Comic_Book_Lover__apply_transform_on_bulk_operation: bool
-    # TODO Rename to "Metadata_Options"
-    Comic_Book_Lover__metadata_overlay: OverlayMode
+    Metadata_Options__cbl_assume_lone_credit_is_primary: bool
+    Metadata_Options__cbl_copy_characters_to_tags: bool
+    Metadata_Options__cbl_copy_teams_to_tags: bool
+    Metadata_Options__cbl_copy_locations_to_tags: bool
+    Metadata_Options__cbl_copy_storyarcs_to_tags: bool
+    Metadata_Options__cbl_copy_notes_to_comments: bool
+    Metadata_Options__cbl_copy_weblink_to_comments: bool
+    Metadata_Options__cbl_apply_transform_on_import: bool
+    Metadata_Options__cbl_apply_transform_on_bulk_operation: bool
+
+    Metadata_Options__use_short_metadata_names: bool
+    Metadata_Options__disable_cr: bool
+    Metadata_Options__metadata_overlay: OverlayMode
 
     File_Rename__template: str
     File_Rename__issue_number_padding: int
@@ -102,8 +104,6 @@ class SettngsNS(settngs.TypedNS):
     Auto_Tag__remove_archive_after_successful_match: bool
 
     General__check_for_new_version: bool
-    General__disable_cr: bool
-    General__use_short_metadata_names: bool
     General__prompt_on_save: bool
 
     Dialog_Flags__show_disclaimer: bool
@@ -193,13 +193,13 @@ class Sources(typing.TypedDict):
 class Comic_Book_Lover(typing.TypedDict):
     assume_lone_credit_is_primary: bool
     copy_characters_to_tags: bool
-    copy_teams_to_tags: bool
-    copy_locations_to_tags: bool
-    copy_storyarcs_to_tags: bool
-    copy_notes_to_comments: bool
-    copy_weblink_to_comments: bool
-    apply_transform_on_import: bool
-    apply_transform_on_bulk_operation: bool
+    __cbl_copy_teams_to_tags: bool
+    __cbl_copy_locations_to_tags: bool
+    cbl_copy_storyarcs_to_tags: bool
+    cbl_copy_notes_to_comments: bool
+    cbl_copy_weblink_to_comments: bool
+    cbl_apply_transform_on_import: bool
+    cbl_apply_transform_on_bulk_operation: bool
 
 
 class File_Rename(typing.TypedDict):

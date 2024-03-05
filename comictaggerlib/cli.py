@@ -128,7 +128,7 @@ class CLI:
             logger.exception(f"Error retrieving issue details. Save aborted.\n{e}")
             return GenericMetadata()
 
-        if self.config.Comic_Book_Lover__apply_transform_on_import:
+        if self.config.Metadata_Options__cbl_apply_transform_on_import:
             ct_md = CBLTransformer(ct_md, self.config).apply()
 
         return ct_md
@@ -189,7 +189,7 @@ class CLI:
                     )
                     md.overlay(
                         ct_md.replace(notes=utils.combine_notes(md.notes, notes, "Tagged with ComicTagger")),
-                        self.config.Comic_Book_Lover__metadata_overlay,
+                        self.config.Metadata_Options__metadata_overlay,
                     )
 
                 if self.config.Issue_Identifier__auto_imprint:
@@ -356,7 +356,7 @@ class CLI:
 
         src_style_name = md_styles[self.config.Commands__copy].name()
         if not self.config.Runtime_Options__dryrun:
-            if self.config.Comic_Book_Lover__apply_transform_on_bulk_operation == "cbi":
+            if self.config.Metadata_Options__cbl_apply_transform_on_bulk_operation == "cbi":
                 md = CBLTransformer(md, self.config).apply()
 
             if ca.write_metadata(md, style):
@@ -440,7 +440,7 @@ class CLI:
                     match_results.no_matches.append(res)
                     return res
 
-                if self.config.Comic_Book_Lover__apply_transform_on_import:
+                if self.config.Metadata_Options__cbl_apply_transform_on_import:
                     ct_md = CBLTransformer(ct_md, self.config).apply()
             else:
                 if md is None or md.is_empty:
@@ -562,7 +562,7 @@ class CLI:
                     notes=utils.combine_notes(md.notes, notes, "Tagged with ComicTagger"),
                     description=cleanup_html(ct_md.description, self.config.Sources__remove_html_tables),
                 ),
-                self.config.Comic_Book_Lover__metadata_overlay,
+                self.config.Metadata_Options__metadata_overlay,
             )
 
             if self.config.Issue_Identifier__auto_imprint:
