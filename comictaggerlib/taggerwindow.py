@@ -1042,7 +1042,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 self.config[0].Filename_Parsing__allow_issue_start_with_letter,
                 self.config[0].Filename_Parsing__protofolius_issue_number_scheme,
             )
-            self.metadata.overlay(new_metadata)  # Should always be "overlay" mode?
+            self.metadata.overlay(new_metadata)
             self.metadata_to_form()
 
     def use_filename_split(self) -> None:
