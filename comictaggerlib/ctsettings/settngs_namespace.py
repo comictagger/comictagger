@@ -190,11 +190,11 @@ class Sources(typing.TypedDict):
     remove_html_tables: bool
 
 
-class Comic_Book_Lover(typing.TypedDict):
+class Metadata_Options(typing.TypedDict):
     assume_lone_credit_is_primary: bool
     copy_characters_to_tags: bool
-    __cbl_copy_teams_to_tags: bool
-    __cbl_copy_locations_to_tags: bool
+    cbl_copy_teams_to_tags: bool
+    cbl_copy_locations_to_tags: bool
     cbl_copy_storyarcs_to_tags: bool
     cbl_copy_notes_to_comments: bool
     cbl_copy_weblink_to_comments: bool
@@ -253,7 +253,7 @@ SettngsDict = typing.TypedDict(
         "Issue Identifier": Issue_Identifier,
         "Filename Parsing": Filename_Parsing,
         "Sources": Sources,
-        "Comic Book Lover": Comic_Book_Lover,
+        "Metadata Options": Metadata_Options,
         "File Rename": File_Rename,
         "Auto-Tag": Auto_Tag,
         "General": General,
