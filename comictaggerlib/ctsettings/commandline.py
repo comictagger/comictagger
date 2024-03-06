@@ -27,15 +27,9 @@ import settngs
 
 from comicapi import utils
 from comicapi.comicarchive import metadata_styles
-from comicapi.genericmetadata import GenericMetadata
 from comictaggerlib import ctversion
 from comictaggerlib.ctsettings.settngs_namespace import SettngsNS as ct_ns
-from comictaggerlib.ctsettings.types import (
-    ComicTaggerPaths,
-    metadata_type,
-    metadata_type_single,
-    parse_metadata_from_string,
-)
+from comictaggerlib.ctsettings.types import ComicTaggerPaths, metadata_type, metadata_type_single
 from comictaggerlib.resulttypes import Action
 
 logger = logging.getLogger(__name__)
@@ -46,18 +40,24 @@ def initial_commandline_parser() -> argparse.ArgumentParser:
     # Ensure this stays up to date with register_runtime
     parser.add_argument(
         "--config",
-        help="Config directory defaults to ~/.ComicTagger\non Linux/Mac and %%APPDATA%% on Windows\n",
+        help="Config directory defaults to ~/.config/ComicTagger on Linux.\n~/Library/Application Support/ComicTagger on Mac.\n%%LOCALAPPDATA%%\\ComicTagger on Windows.\n\n",
         type=ComicTaggerPaths,
         default=ComicTaggerPaths(),
     )
-    parser.add_argument("-v", "--verbose", action="count", default=0, help="Be noisy when doing what it does.")
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        action="count",
+        default=0,
+        help="Be noisy when doing what it does. Use a second time to enable debug logs.\nShort option cannot be combined with other options.",
+    )
     return parser
 
 
 def register_runtime(parser: settngs.Manager) -> None:
     parser.add_setting(
         "--config",
-        help="Config directory defaults to ~/.Config/ComicTagger\non Linux, ~/Library/Application Support/ComicTagger on Mac and %%APPDATA%%\\ComicTagger on Windows\n",
+        help="Config directory defaults to ~/.config/ComicTagger on Linux.\n~/Library/Application Support/ComicTagger on Mac.\n%%LOCALAPPDATA%%\\ComicTagger on Windows.\n\n",
         type=ComicTaggerPaths,
         default=ComicTaggerPaths(),
         file=False,
@@ -67,49 +67,21 @@ def register_runtime(parser: settngs.Manager) -> None:
         "--verbose",
         action="count",
         default=0,
-        help="Be noisy when doing what it does.",
+        help="Be noisy when doing what it does. Use a second time to enable debug logs.\nShort option cannot be combined with other options.",
         file=False,
     )
+    parser.add_setting("-q", "--quiet", action="store_true", help="Don't say much (for print mode).", file=False)
     parser.add_setting(
-        "--abort-on-conflict",
+        "-j",
+        "--json",
         action="store_true",
-        help="""Don't export to zip if intended new filename\nexists (otherwise, creates a new unique filename).\n\n""",
+        help="Output json on stdout. Ignored in interactive mode.\n\n",
         file=False,
     )
     parser.add_setting(
-        "--delete-original",
+        "--raw",
         action="store_true",
-        help="""Delete original archive after successful\nexport to Zip. (only relevant for -e)""",
-        file=False,
-    )
-    parser.add_setting(
-        "-f",
-        "--parse-filename",
-        "--parsefilename",
-        action="store_true",
-        help="""Parse the filename to get some info,\nspecifically series name, issue number,\nvolume, and publication year.\n\n""",
-        file=False,
-    )
-    parser.add_setting(
-        "--id",
-        dest="issue_id",
-        type=str,
-        help="""Use the issue ID when searching online.\nOverrides all other metadata.\n\n""",
-        file=False,
-    )
-    parser.add_setting(
-        "-o",
-        "--online",
-        action="store_true",
-        help="""Search online and attempt to identify file\nusing existing metadata and images in archive.\nMay be used in conjunction with -f and -m.\n\n""",
-        file=False,
-    )
-    parser.add_setting(
-        "-m",
-        "--metadata",
-        default=GenericMetadata(),
-        type=parse_metadata_from_string,
-        help="""Explicitly define, as a list, some tags to be used.  e.g.:\n"series=Plastic Man, publisher=Quality Comics"\n"series=Kickers^, Inc., issue=1, year=1986"\nName-Value pairs are comma separated. Use a\n"^" to escape an "=" or a ",", as shown in\nthe example above.  Some names that can be\nused: series, issue, issue_count, year,\npublisher, title\n\n""",
+        help="""With -p, will print out the raw tag block(s) from the file.""",
         file=False,
     )
     parser.add_setting(
@@ -124,27 +96,7 @@ def register_runtime(parser: settngs.Manager) -> None:
         dest="abort_on_low_confidence",
         action=argparse.BooleanOptionalAction,
         default=True,
-        help="""Abort save operation when online match\nis of low confidence.\n\n""",
-        file=False,
-    )
-    parser.add_setting(
-        "--summary",
-        default=True,
-        action=argparse.BooleanOptionalAction,
-        help="Show the summary after a save operation.\n\n",
-        file=False,
-    )
-    parser.add_setting(
-        "--raw",
-        action="store_true",
-        help="""With -p, will print out the raw tag block(s)\nfrom the file.\n""",
-        file=False,
-    )
-    parser.add_setting(
-        "-R",
-        "--recursive",
-        action="store_true",
-        help="Recursively include files in sub-folders.",
+        help="""Abort save operation when online match is of low confidence.""",
         file=False,
     )
     parser.add_setting(
@@ -154,30 +106,52 @@ def register_runtime(parser: settngs.Manager) -> None:
         help="Don't actually modify file (only relevant for -d, -s, or -r).\n\n",
         file=False,
     )
-    parser.add_setting("--darkmode", action="store_true", help="Windows only. Force a dark pallet", file=False)
-    parser.add_setting("-g", "--glob", action="store_true", help="Windows only. Enable globbing", file=False)
-    parser.add_setting("--quiet", "-q", action="store_true", help="Don't say much (for print mode).", file=False)
     parser.add_setting(
-        "--json", "-j", action="store_true", help="Output json on stdout. Ignored in interactive mode.", file=False
+        "--summary",
+        default=True,
+        action=argparse.BooleanOptionalAction,
+        help="Show the summary after a save operation.",
+        file=False,
     )
+    parser.add_setting(
+        "-R",
+        "--recursive",
+        action="store_true",
+        help="Recursively include files in sub-folders.",
+        file=False,
+    )
+    parser.add_setting("-g", "--glob", action="store_true", help="Windows only. Enable globbing", file=False)
+    parser.add_setting("--darkmode", action="store_true", help="Windows only. Force a dark pallet", file=False)
+    parser.add_setting("--no-gui", action="store_true", help="Do not open the GUI, force the commandline", file=False)
 
+    parser.add_setting(
+        "--abort-on-conflict",
+        action="store_true",
+        help="""Don't export to zip if intended new filename exists\n(otherwise, creates a new unique filename).\n\n""",
+        file=False,
+    )
+    parser.add_setting(
+        "--delete-original",
+        action="store_true",
+        help="""Delete original archive after successful export to Zip.\n(only relevant for -e)\n\n""",
+        file=False,
+    )
     parser.add_setting(
         "-t",
         "--type",
         metavar=f"{{{','.join(metadata_styles).upper()}}}",
         default=[],
         type=metadata_type,
-        help="""Specify TYPE as either CR, CBL or COMET\n(as either ComicRack, ComicBookLover,\nor CoMet style tags, respectively).\nUse commas for multiple types.\nFor searching the metadata will use the first listed:\neg '-t cbl,cr' with no CBL tags, CR will be used if they exist\n\n""",
+        help="""Specify the type of tags to use.\nUse commas for multiple types.\nSee --list-plugins for the available types.\nFor searching the metadata will use the first listed:\neg '-t cbl,cr' with no CBL tags, CR will be used if they exist\n\n""",
         file=False,
     )
     parser.add_setting(
-        "--overwrite",
+        "--skip-existing-metadata",
         action=argparse.BooleanOptionalAction,
         default=True,
-        help="""Apply metadata to already tagged archives, otherwise skips archives with existing metadata (relevant for -s or -c).""",
+        help="""Skip archives that already have tags specified with -t,\notherwise merges new metadata with existing metadata (relevant for -s or -c).""",
         file=False,
     )
-    parser.add_setting("--no-gui", action="store_true", help="Do not open the GUI, force the commandline", file=False)
     parser.add_setting("files", nargs="*", file=False)
 
 
@@ -199,7 +173,7 @@ def register_commands(parser: settngs.Manager) -> None:
         dest="command",
         action="store_const",
         const=Action.delete,
-        help="Deletes the tag block of specified type (via -t).\n",
+        help="Deletes the tag block of specified type (via -t).",
         file=False,
     )
     parser.add_setting(
@@ -234,7 +208,7 @@ def register_commands(parser: settngs.Manager) -> None:
         dest="command",
         action="store_const",
         const=Action.export,
-        help="Export RAR archive to Zip format.",
+        help="Export archive to Zip format.",
         file=False,
     )
     parser.add_setting(

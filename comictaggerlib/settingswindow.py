@@ -375,7 +375,7 @@ class SettingsWindow(QtWidgets.QDialog):
             self.leRarExePath.setEnabled(False)
         self.sbNameMatchIdentifyThresh.setValue(self.config[0].Issue_Identifier__series_match_identify_thresh)
         self.sbNameMatchSearchThresh.setValue(self.config[0].Issue_Identifier__series_match_search_thresh)
-        self.tePublisherFilter.setPlainText("\n".join(self.config[0].Issue_Identifier__publisher_filter))
+        self.tePublisherFilter.setPlainText("\n".join(self.config[0].Auto_Tag__publisher_filter))
 
         self.cbxCheckForNewVersion.setChecked(self.config[0].General__check_for_new_version)
         self.cbxShortMetadataNames.setChecked(self.config[0].General__use_short_metadata_names)
@@ -391,10 +391,10 @@ class SettingsWindow(QtWidgets.QDialog):
 
         self.switch_parser()
 
-        self.cbxUseFilter.setChecked(self.config[0].Issue_Identifier__always_use_publisher_filter)
+        self.cbxUseFilter.setChecked(self.config[0].Auto_Tag__use_publisher_filter)
         self.cbxSortByYear.setChecked(self.config[0].Issue_Identifier__sort_series_by_year)
         self.cbxExactMatches.setChecked(self.config[0].Issue_Identifier__exact_series_matches_first)
-        self.cbxClearFormBeforePopulating.setChecked(self.config[0].Issue_Identifier__clear_metadata)
+        self.cbxClearFormBeforePopulating.setChecked(self.config[0].Auto_Tag__clear_metadata)
 
         self.cbxAssumeLoneCreditIsPrimary.setChecked(self.config[0].Comic_Book_Lover__assume_lone_credit_is_primary)
         self.cbxCopyCharactersToTags.setChecked(self.config[0].Comic_Book_Lover__copy_characters_to_tags)
@@ -414,7 +414,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.cbxChangeExtension.setChecked(self.config[0].File_Rename__auto_extension)
         self.cbxMoveFiles.setChecked(self.config[0].File_Rename__move_to_dir)
         self.leDirectory.setText(self.config[0].File_Rename__dir)
-        self.cbxRenameStrict.setChecked(self.config[0].File_Rename__strict)
+        self.cbxRenameStrict.setChecked(self.config[0].File_Rename__strict_filenames)
 
         for table, replacments in zip(
             (self.twLiteralReplacements, self.twValueReplacements), self.config[0].File_Rename__replacements
@@ -505,7 +505,7 @@ class SettingsWindow(QtWidgets.QDialog):
 
         self.config[0].Issue_Identifier__series_match_identify_thresh = self.sbNameMatchIdentifyThresh.value()
         self.config[0].Issue_Identifier__series_match_search_thresh = self.sbNameMatchSearchThresh.value()
-        self.config[0].Issue_Identifier__publisher_filter = utils.split(self.tePublisherFilter.toPlainText(), "\n")
+        self.config[0].Auto_Tag__publisher_filter = utils.split(self.tePublisherFilter.toPlainText(), "\n")
 
         self.config[0].Filename_Parsing__complicated_parser = self.cbxComplicatedParser.isChecked()
         self.config[0].Filename_Parsing__remove_c2c = self.cbxRemoveC2C.isChecked()
@@ -516,10 +516,10 @@ class SettingsWindow(QtWidgets.QDialog):
             self.cbxProtofoliusIssueNumberScheme.isChecked()
         )
 
-        self.config[0].Issue_Identifier__always_use_publisher_filter = self.cbxUseFilter.isChecked()
+        self.config[0].Auto_Tag__use_publisher_filter = self.cbxUseFilter.isChecked()
         self.config[0].Issue_Identifier__sort_series_by_year = self.cbxSortByYear.isChecked()
         self.config[0].Issue_Identifier__exact_series_matches_first = self.cbxExactMatches.isChecked()
-        self.config[0].Issue_Identifier__clear_metadata = self.cbxClearFormBeforePopulating.isChecked()
+        self.config[0].Auto_Tag__clear_metadata = self.cbxClearFormBeforePopulating.isChecked()
 
         self.config[0].Comic_Book_Lover__assume_lone_credit_is_primary = self.cbxAssumeLoneCreditIsPrimary.isChecked()
         self.config[0].Comic_Book_Lover__copy_characters_to_tags = self.cbxCopyCharactersToTags.isChecked()
@@ -540,7 +540,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.config[0].File_Rename__move_to_dir = self.cbxMoveFiles.isChecked()
         self.config[0].File_Rename__dir = self.leDirectory.text()
 
-        self.config[0].File_Rename__strict = self.cbxRenameStrict.isChecked()
+        self.config[0].File_Rename__strict_filenames = self.cbxRenameStrict.isChecked()
         self.config[0].File_Rename__replacements = self.get_replacements()
 
         # Read settings from talker tabs

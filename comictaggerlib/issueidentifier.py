@@ -111,7 +111,7 @@ class IssueIdentifier:
         self.series_match_thresh = config.Issue_Identifier__series_match_identify_thresh
 
         # used to eliminate unlikely publishers
-        self.publisher_filter = [s.strip().casefold() for s in config.Issue_Identifier__publisher_filter]
+        self.publisher_filter = [s.strip().casefold() for s in config.Auto_Tag__publisher_filter]
 
         self.additional_metadata = GenericMetadata()
         self.output_function: Callable[[str], None] = print
