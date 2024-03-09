@@ -1004,7 +1004,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             # copy the form onto metadata object
             self.form_to_metadata()
             new_metadata = self.comic_archive.metadata_from_filename(
-                self.config[0].Filename_Parsing__complicated_parser,
+                self.config[0].Filename_Parsing__filename_parser,
                 self.config[0].Filename_Parsing__remove_c2c,
                 self.config[0].Filename_Parsing__remove_fcbd,
                 self.config[0].Filename_Parsing__remove_publisher,
@@ -1732,7 +1732,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             logger.error("Failed to load metadata for %s: %s", ca.path, e)
         if md.is_empty:
             md = ca.metadata_from_filename(
-                self.config[0].Filename_Parsing__complicated_parser,
+                self.config[0].Filename_Parsing__filename_parser,
                 self.config[0].Filename_Parsing__remove_c2c,
                 self.config[0].Filename_Parsing__remove_fcbd,
                 self.config[0].Filename_Parsing__remove_publisher,

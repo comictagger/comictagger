@@ -233,7 +233,7 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
         md = ca.read_metadata(self.config.internal__load_data_style)
         if md.is_empty:
             md = ca.metadata_from_filename(
-                self.config.Filename_Parsing__complicated_parser,
+                self.config.Filename_Parsing__filename_parser,
                 self.config.Filename_Parsing__remove_c2c,
                 self.config.Filename_Parsing__remove_fcbd,
                 self.config.Filename_Parsing__remove_publisher,

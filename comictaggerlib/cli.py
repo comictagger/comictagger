@@ -250,7 +250,7 @@ class CLI:
         # now, overlay the parsed filename info
         if self.config.Runtime_Options__parse_filename:
             f_md = ca.metadata_from_filename(
-                self.config.Filename_Parsing__complicated_parser,
+                self.config.Filename_Parsing__filename_parser,
                 self.config.Filename_Parsing__remove_c2c,
                 self.config.Filename_Parsing__remove_fcbd,
                 self.config.Filename_Parsing__remove_publisher,
