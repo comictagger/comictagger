@@ -1,7 +1,7 @@
 name: CI
 
 env:
-  PKG_CONFIG_PATH: /usr/local/opt/icu4c/lib/pkgconfig
+  PKG_CONFIG_PATH: /usr/local/opt/icu4c/lib/pkgconfig:/opt/homebrew/opt/icu4c/lib/pkgconfig
   LC_COLLATE: en_US.UTF-8
 on:
   pull_request:
@@ -66,7 +66,7 @@ jobs:
 
       - name: Install macos dependencies
         run: |
-          brew install icu4c pkg-config
+          brew upgrade && brew install icu4c pkg-config
           # export PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig";
           # export PATH="/usr/local/opt/icu4c/bin:/usr/local/opt/icu4c/sbin:$PATH"
         if: runner.os == 'macOS'
