@@ -29,6 +29,8 @@ import requests
 import settngs
 from pyrate_limiter import Limiter, RequestRate
 from typing_extensions import Required, TypedDict
+from urllib3.exceptions import LocationParseError
+from urllib3.util import parse_url
 
 from comicapi import utils
 from comicapi.genericmetadata import ComicSeries, GenericMetadata, TagOrigin
@@ -643,10 +645,15 @@ class ComicVineTalker(ComicTalker):
             format=utils.xlate(series.format),
             volume_count=utils.xlate_int(series.count_of_volumes),
             title=utils.xlate(issue.get("name")),
-            web_link=utils.xlate(issue.get("site_detail_url")),
             series=utils.xlate(series.name),
             series_aliases=series.aliases,
         )
+        url = utils.xlate(issue.get("site_detail_url"))
+        if url:
+            try:
+                md.web_links = [parse_url(url)]
+            except LocationParseError:
+                ...
         if issue.get("image") is None:
             md._cover_image = ""
         else:

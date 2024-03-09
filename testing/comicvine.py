@@ -185,7 +185,7 @@ comic_issue_result = comicapi.genericmetadata.GenericMetadata(
     issue=cv_issue_result["results"]["issue_number"],
     volume=None,
     title=cv_issue_result["results"]["name"],
-    web_link=cv_issue_result["results"]["site_detail_url"],
+    web_links=[comicapi.genericmetadata.parse_url(cv_issue_result["results"]["site_detail_url"])],
 )
 
 cv_md = comicapi.genericmetadata.GenericMetadata(
@@ -213,7 +213,7 @@ cv_md = comicapi.genericmetadata.GenericMetadata(
     alternate_count=None,
     imprint=None,
     notes=None,
-    web_link=cv_issue_result["results"]["site_detail_url"],
+    web_links=[comicapi.genericmetadata.parse_url(cv_issue_result["results"]["site_detail_url"])],
     format=None,
     manga=None,
     black_and_white=None,

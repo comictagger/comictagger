@@ -78,12 +78,13 @@ class CBLTransformer:
                     self.metadata.description += self.metadata.notes
 
         if self.config.Comic_Book_Lover__copy_weblink_to_comments:
-            if self.metadata.web_link is not None:
-                if self.metadata.description is None:
-                    self.metadata.description = ""
+            for web_link in self.metadata.web_links:
+                temp_desc = self.metadata.description
+                if temp_desc is None:
+                    temp_desc = ""
                 else:
-                    self.metadata.description += "\n\n"
-                if self.metadata.web_link not in self.metadata.description:
-                    self.metadata.description += self.metadata.web_link
+                    temp_desc += "\n\n"
+                if web_link.url and web_link.url not in temp_desc:
+                    self.metadata.description = temp_desc + web_link.url
 
         return self.metadata

@@ -27,11 +27,12 @@ import sys
 import webbrowser
 from datetime import datetime
 from typing import Any, Callable
-from urllib.parse import urlparse
 
 import natsort
 import settngs
+import urllib3.util
 from PyQt5 import QtCore, QtGui, QtNetwork, QtWidgets, uic
+from urllib3.util.url import LocationParseError
 
 import comictaggerlib.ui
 from comicapi import utils
@@ -112,7 +113,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             "alternate_count": self.leAltIssueCount,
             "imprint": self.leImprint,
             "notes": self.teNotes,
-            "web_link": self.leWebLink,
+            "web_links": (self.leWebLink, self.btnOpenWebLink, self.btnAddWebLink, self.btnRemoveWebLink),
             "format": self.cbFormat,
             "manga": self.cbManga,
             "black_and_white": self.cbBW,
@@ -124,7 +125,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             "characters": self.teCharacters,
             "teams": self.teTeams,
             "locations": self.teLocations,
-            "credits": [self.twCredits, self.btnAddCredit, self.btnEditCredit, self.btnRemoveCredit],
+            "credits": (self.twCredits, self.btnAddCredit, self.btnEditCredit, self.btnRemoveCredit),
             "credits.person": 2,
             "credits.role": 1,
             "credits.primary": 0,
@@ -532,6 +533,31 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.toolBar.addAction(self.actionPageBrowser)
         self.toolBar.addAction(self.actionAutoImprint)
 
+        self.leWebLink.addAction(self.actionAddWebLink)
+        self.leWebLink.addAction(self.actionRemoveWebLink)
+
+        self.actionAddWebLink.triggered.connect(self.add_weblink_item)
+        self.actionRemoveWebLink.triggered.connect(self.remove_weblink_item)
+
+    def add_weblink_item(self, url: str = "") -> None:
+        item = ""
+        if isinstance(url, str):
+            item = url
+        self.leWebLink.addItem(item)
+        self.leWebLink.item(self.leWebLink.count() - 1).setFlags(
+            QtCore.Qt.ItemFlag.ItemIsEditable
+            | QtCore.Qt.ItemFlag.ItemIsEnabled
+            | QtCore.Qt.ItemFlag.ItemIsDragEnabled
+            | QtCore.Qt.ItemFlag.ItemIsSelectable
+        )
+        self.leWebLink.item(self.leWebLink.count() - 1).setSelected(True)
+        if not url:
+            self.leWebLink.editItem(self.leWebLink.item(self.leWebLink.count() - 1))
+
+    def remove_weblink_item(self) -> None:
+        item = self.leWebLink.takeItem(self.leWebLink.currentRow())
+        del item
+
     def repackage_archive(self) -> None:
         ca_list = self.fileSelectionList.get_selected_archive_list()
         non_zip_count = 0
@@ -784,6 +810,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
             widget.currentIndexChanged.connect(self.set_dirty_flag)
         if isinstance(widget, QtWidgets.QCheckBox):
             widget.stateChanged.connect(self.set_dirty_flag)
+        if isinstance(widget, QtWidgets.QListWidget):
+            widget.itemChanged.connect(self.set_dirty_flag)
 
         # recursive call on children
         for child in widget.children():
@@ -844,7 +872,9 @@ class TaggerWindow(QtWidgets.QMainWindow):
         assign_text(self.leAltSeries, md.alternate_series)
         assign_text(self.leAltIssueNum, md.alternate_number)
         assign_text(self.leAltIssueCount, md.alternate_count)
-        assign_text(self.leWebLink, md.web_link)
+        self.leWebLink.clear()
+        for u in md.web_links:
+            self.add_weblink_item(u.url)
         assign_text(self.teCharacters, "\n".join(md.characters))
         assign_text(self.teTeams, "\n".join(md.teams))
         assign_text(self.teLocations, "\n".join(md.locations))
@@ -967,7 +997,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         md.scan_info = utils.xlate(self.leScanInfo.text())
         md.series_groups = utils.split(self.leSeriesGroup.text(), ",")
         md.alternate_series = self.leAltSeries.text()
-        md.web_link = utils.xlate(self.leWebLink.text())
+        md.web_links = [urllib3.util.parse_url(self.leWebLink.item(i).text()) for i in range(self.leWebLink.count())]
         md.characters = set(utils.split(self.teCharacters.toPlainText(), "\n"))
         md.teams = set(utils.split(self.teTeams.toPlainText(), "\n"))
         md.locations = set(utils.split(self.teLocations.toPlainText(), "\n"))
@@ -1343,14 +1373,17 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.set_dirty_flag()
 
     def open_web_link(self) -> None:
-        if self.leWebLink is not None:
-            web_link = self.leWebLink.text().strip()
-            try:
-                result = urlparse(web_link)
-                all([result.scheme in ["http", "https"], result.netloc])
-                webbrowser.open_new_tab(web_link)
-            except ValueError:
-                QtWidgets.QMessageBox.warning(self, self.tr("Web Link"), self.tr("Web Link is invalid."))
+        row = self.leWebLink.currentRow()
+        if row < 0:
+            if self.leWebLink.count() < 1:
+                return
+            row = 0
+        web_link = self.leWebLink.item(row).text()
+        try:
+            urllib3.util.parse_url(web_link)
+            webbrowser.open_new_tab(web_link)
+        except LocationParseError:
+            QtWidgets.QMessageBox.warning(self, "Web Link", "Web Link is invalid.")
 
     def show_settings(self) -> None:
         settingswin = SettingsWindow(self, self.config, self.talkers)

@@ -958,10 +958,32 @@
                 </item>
                 <item row="2" column="1">
                  <layout class="QGridLayout" name="gridLayout_7">
-                  <item row="0" column="0">
-                   <widget class="QLineEdit" name="leWebLink">
-                    <property name="acceptDrops">
-                     <bool>false</bool>
+                  <item row="0" column="0" rowspan="3">
+                   <widget class="QListWidget" name="leWebLink">
+                    <property name="contextMenuPolicy">
+                     <enum>Qt::ActionsContextMenu</enum>
+                    </property>
+                    <property name="dragEnabled">
+                     <bool>true</bool>
+                    </property>
+                    <property name="dragDropMode">
+                     <enum>QAbstractItemView::DropOnly</enum>
+                    </property>
+                    <property name="defaultDropAction">
+                     <enum>Qt::MoveAction</enum>
+                    </property>
+                    <property name="alternatingRowColors">
+                     <bool>true</bool>
+                    </property>
+                    <property name="selectionMode">
+                     <enum>QAbstractItemView::SingleSelection</enum>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="2" column="1">
+                   <widget class="QPushButton" name="btnRemoveWebLink">
+                    <property name="text">
+                     <string>Delete Item</string>
                     </property>
                    </widget>
                   </item>
@@ -978,6 +1000,13 @@
                       <width>40</width>
                       <height>16777215</height>
                      </size>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="1">
+                   <widget class="QPushButton" name="btnAddWebLink">
+                    <property name="text">
+                     <string>Add Item</string>
                     </property>
                    </widget>
                   </item>
@@ -1187,7 +1216,7 @@
      <x>0</x>
      <y>0</y>
      <width>1096</width>
-     <height>28</height>
+     <height>30</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuComicTagger">
@@ -1477,6 +1506,16 @@
     <string>Open Folder as Comic</string>
    </property>
   </action>
+  <action name="actionAddWebLink">
+   <property name="text">
+    <string>Add Item</string>
+   </property>
+  </action>
+  <action name="actionRemoveWebLink">
+   <property name="text">
+    <string>Remove Web Link</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
@@ -1487,5 +1526,38 @@
   </customwidget>
  </customwidgets>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>btnAddWebLink</sender>
+   <signal>clicked()</signal>
+   <receiver>actionAddWebLink</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>900</x>
+     <y>536</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>btnRemoveWebLink</sender>
+   <signal>clicked()</signal>
+   <receiver>actionRemoveWebLink</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>900</x>
+     <y>576</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>
