@@ -99,6 +99,7 @@ Accepts the following variables:
 {page_count}       (integer)
 {maturity_rating}  (string)
 {story_arc}        (string)
+{story_arc_number} (string)
 {series_group}     (string)
 {scan_info}        (string)
 {characters}       (string)

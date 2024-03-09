@@ -120,6 +120,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             "page_count": None,
             "maturity_rating": self.cbMaturityRating,
             "story_arcs": self.leStoryArc,
+            "story_arcs_numbers": self.leStoryArcNumber,
             "series_groups": self.leSeriesGroup,
             "scan_info": self.leScanInfo,
             "characters": self.teCharacters,
@@ -867,6 +868,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         assign_text(self.teComments, md.description)
         assign_text(self.teNotes, md.notes)
         assign_text(self.leStoryArc, ",".join(md.story_arcs))
+        assign_text(self.leStoryArcNumber, ",".join(md.story_arcs_numbers))
         assign_text(self.leScanInfo, md.scan_info)
         assign_text(self.leSeriesGroup, ",".join(md.series_groups))
         assign_text(self.leAltSeries, md.alternate_series)
@@ -994,6 +996,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             md.critical_rating = None
 
         md.story_arcs = utils.split(self.leStoryArc.text(), ",")
+        md.story_arcs_numbers = utils.split(self.leStoryArcNumber.text(), ",")
         md.scan_info = utils.xlate(self.leScanInfo.text())
         md.series_groups = utils.split(self.leSeriesGroup.text(), ",")
         md.alternate_series = self.leAltSeries.text()

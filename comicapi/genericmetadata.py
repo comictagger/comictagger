@@ -126,6 +126,7 @@ class GenericMetadata:
     alternate_number: str | None = None
     alternate_count: int | None = None
     story_arcs: list[str] = dataclasses.field(default_factory=list)
+    story_arcs_numbers: list[str] = dataclasses.field(default_factory=list)
     series_groups: list[str] = dataclasses.field(default_factory=list)
 
     publisher: str | None = None
@@ -246,6 +247,7 @@ class GenericMetadata:
         assign("alternate_number", new_md.alternate_number)
         assign("alternate_count", new_md.alternate_count)
         assign("story_arcs", new_md.story_arcs)
+        assign("story_arcs_numbers", new_md.story_arcs_numbers)
         assign("series_groups", new_md.series_groups)
 
         assign("publisher", new_md.publisher)
@@ -411,6 +413,7 @@ class GenericMetadata:
             add_attr_string("black_and_white")
         add_attr_string("maturity_rating")
         add_attr_string("story_arcs")
+        add_attr_string("story_arcs_numbers")
         add_attr_string("series_groups")
         add_attr_string("scan_info")
         add_string("characters", ", ".join(self.characters))
@@ -498,6 +501,7 @@ md_test: GenericMetadata = GenericMetadata(
     page_count=24,
     maturity_rating="Everyone 10+",
     story_arcs=["Here and Now"],
+    story_arcs_numbers=["1"],
     series_groups=["Futuristic Tales"],
     scan_info="(CC BY-NC-SA 3.0)",
     characters={"Anda"},

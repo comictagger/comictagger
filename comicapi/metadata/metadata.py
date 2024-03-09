@@ -29,6 +29,7 @@ class Metadata:
             "alternate_number",
             "alternate_count",
             "story_arcs",
+            "story_arcs_numbers",
             "series_groups",
             "publisher",
             "imprint",
