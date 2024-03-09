@@ -458,11 +458,8 @@ class CLI:
                     if self.config.Runtime_Options__verbose:
                         self.output(text)
 
-                # use our overlaid MD struct to search
-                # ii.set_additional_metadata(md)
-                # ii.only_use_additional_meta_data = True
                 ii.set_output_function(functools.partial(self.output, already_logged=True))
-                # ii.cover_page_index = md.get_cover_page_index_list()[0]
+                # use our overlaid MD to search
                 result, matches = ii.identify(ca, md)
 
                 found_match = False

@@ -247,11 +247,6 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         md.year = self.year
         md.issue_count = self.issue_count
 
-        # self.ii.set_additional_metadata(md)
-        # self.ii.only_use_additional_meta_data = True
-
-        # self.ii.cover_page_index = int(self.cover_index_list[0])
-
         self.id_thread = IdentifyThread(self.ii, self.comic_archive, md)
         self.id_thread.identifyComplete.connect(self.identify_complete)
         self.id_thread.identifyLogMsg.connect(self.log_id_output)

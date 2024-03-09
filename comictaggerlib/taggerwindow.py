@@ -1792,10 +1792,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 md.issue = "1"
             else:
                 md.issue = utils.xlate(md.volume)
-        # ii.set_additional_metadata(md)
-        # ii.only_use_additional_meta_data = True
+
         ii.set_output_function(self.auto_tag_log)
-        # ii.cover_page_index = md.get_cover_page_index_list()[0]
         if self.atprogdialog is not None:
             ii.set_cover_url_callback(self.atprogdialog.set_test_image)
         ii.set_name_series_match_threshold(dlg.name_length_match_tolerance)
