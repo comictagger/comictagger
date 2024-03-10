@@ -1,7 +1,6 @@
 name: Package
 
 env:
-  PKG_CONFIG_PATH: /usr/local/opt/icu4c/lib/pkgconfig:/opt/homebrew/opt/icu4c/lib/pkgconfig
   LC_COLLATE: en_US.UTF-8
 on:
   push:
@@ -34,19 +33,17 @@ jobs:
       - name: Install macos dependencies
         run: |
           brew upgrade && brew install icu4c pkg-config
-          # export PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig";
-          # export PATH="/usr/local/opt/icu4c/bin:/usr/local/opt/icu4c/sbin:$PATH"
         if: runner.os == 'macOS'
 
       - name: Install linux dependencies
         run: |
           sudo apt-get update && sudo apt-get upgrade && sudo apt-get install pkg-config libicu-dev libqt5gui5 libfuse2
-          # export PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig";
-          # export PATH="/usr/local/opt/icu4c/bin:/usr/local/opt/icu4c/sbin:$PATH"
         if: runner.os == 'Linux'
 
       - name: Build, Install and Test PyPi packages
         run: |
+          export PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig:/opt/homebrew/opt/icu4c/lib/pkgconfig${PKG_CONFIG_PATH+:$PKG_CONFIG_PATH}";
+          export PATH="/usr/local/opt/icu4c/bin:/usr/local/opt/icu4c/sbin${PATH+:$PATH}"
           python -m tox r
           python -m tox r -m release
         env:
