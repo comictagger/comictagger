@@ -981,7 +981,7 @@
                    </widget>
                   </item>
                   <item row="2" column="1">
-                   <widget class="QPushButton" name="btnWebLinkRemove">
+                   <widget class="QPushButton" name="btnRemoveWebLink">
                     <property name="text">
                      <string>Delete Item</string>
                     </property>
@@ -1004,7 +1004,7 @@
                    </widget>
                   </item>
                   <item row="1" column="1">
-                   <widget class="QPushButton" name="btnWebLinkAdd">
+                   <widget class="QPushButton" name="btnAddWebLink">
                     <property name="text">
                      <string>Add Item</string>
                     </property>
@@ -1528,7 +1528,7 @@
  <resources/>
  <connections>
   <connection>
-   <sender>btnWebLinkAdd</sender>
+   <sender>btnAddWebLink</sender>
    <signal>clicked()</signal>
    <receiver>actionAddWebLink</receiver>
    <slot>trigger()</slot>
@@ -1544,7 +1544,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>btnWebLinkRemove</sender>
+   <sender>btnRemoveWebLink</sender>
    <signal>clicked()</signal>
    <receiver>actionRemoveWebLink</receiver>
    <slot>trigger()</slot>

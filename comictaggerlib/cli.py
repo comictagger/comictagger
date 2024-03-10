@@ -250,7 +250,7 @@ class CLI:
         # now, overlay the parsed filename info
         if self.config.Runtime_Options__parse_filename:
             f_md = ca.metadata_from_filename(
-                self.config.Filename_Parsing__complicated_parser,
+                self.config.Filename_Parsing__filename_parser,
                 self.config.Filename_Parsing__remove_c2c,
                 self.config.Filename_Parsing__remove_fcbd,
                 self.config.Filename_Parsing__remove_publisher,
@@ -458,32 +458,27 @@ class CLI:
                     if self.config.Runtime_Options__verbose:
                         self.output(text)
 
-                # use our overlaid MD struct to search
-                ii.set_additional_metadata(md)
-                ii.only_use_additional_meta_data = True
                 ii.set_output_function(functools.partial(self.output, already_logged=True))
-                ii.cover_page_index = md.get_cover_page_index_list()[0]
-                matches = ii.search()
-
-                result = ii.search_result
+                # use our overlaid MD to search
+                result, matches = ii.identify(ca, md)
 
                 found_match = False
                 choices = False
                 low_confidence = False
 
-                if result == ii.result_no_matches:
+                if result == IssueIdentifier.result_no_matches:
                     pass
-                elif result == ii.result_found_match_but_bad_cover_score:
+                elif result == IssueIdentifier.result_found_match_but_bad_cover_score:
                     low_confidence = True
                     found_match = True
-                elif result == ii.result_found_match_but_not_first_page:
+                elif result == IssueIdentifier.result_found_match_but_not_first_page:
                     found_match = True
-                elif result == ii.result_multiple_matches_with_bad_image_scores:
+                elif result == IssueIdentifier.result_multiple_matches_with_bad_image_scores:
                     low_confidence = True
                     choices = True
-                elif result == ii.result_one_good_match:
+                elif result == IssueIdentifier.result_one_good_match:
                     found_match = True
-                elif result == ii.result_multiple_good_matches:
+                elif result == IssueIdentifier.result_multiple_good_matches:
                     choices = True
 
                 if choices:

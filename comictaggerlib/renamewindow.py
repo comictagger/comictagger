@@ -84,7 +84,7 @@ class RenameWindow(QtWidgets.QDialog):
             md = ca.read_metadata(self.data_style)
             if md.is_empty:
                 md = ca.metadata_from_filename(
-                    self.config[0].Filename_Parsing__complicated_parser,
+                    self.config[0].Filename_Parsing__filename_parser,
                     self.config[0].Filename_Parsing__remove_c2c,
                     self.config[0].Filename_Parsing__remove_fcbd,
                     self.config[0].Filename_Parsing__remove_publisher,

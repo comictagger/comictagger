@@ -37,7 +37,7 @@ class SevenZipArchiver(Archiver):
         data = b""
         try:
             with py7zr.SevenZipFile(self.path, "r") as zf:
-                data = zf.read(archive_file)[archive_file].read()
+                data = zf.read([archive_file])[archive_file].read()
         except (py7zr.Bad7zFile, OSError) as e:
             logger.error("Error reading 7zip archive [%s]: %s :: %s", e, self.path, archive_file)
             raise

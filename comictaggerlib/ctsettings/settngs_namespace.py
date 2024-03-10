@@ -5,6 +5,7 @@ import typing
 import settngs
 
 import comicapi.genericmetadata
+import comicapi.utils
 import comictaggerlib.ctsettings.types
 import comictaggerlib.defaults
 import comictaggerlib.resulttypes
@@ -61,7 +62,7 @@ class SettngsNS(settngs.TypedNS):
     Issue_Identifier__exact_series_matches_first: bool
     Issue_Identifier__always_use_publisher_filter: bool
 
-    Filename_Parsing__complicated_parser: bool
+    Filename_Parsing__filename_parser: comicapi.utils.Parser
     Filename_Parsing__remove_c2c: bool
     Filename_Parsing__remove_fcbd: bool
     Filename_Parsing__remove_publisher: bool
@@ -172,7 +173,7 @@ class Issue_Identifier(typing.TypedDict):
 
 
 class Filename_Parsing(typing.TypedDict):
-    complicated_parser: bool
+    filename_parser: comicapi.utils.Parser
     remove_c2c: bool
     remove_fcbd: bool
     remove_publisher: bool

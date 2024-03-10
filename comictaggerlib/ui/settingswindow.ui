@@ -98,6 +98,9 @@
               <property name="wordWrap">
                <bool>true</bool>
               </property>
+              <property name="buddy">
+               <cstring>btnResetSettings</cstring>
+              </property>
              </widget>
             </item>
             <item row="4" column="1">
@@ -113,6 +116,9 @@
               </property>
               <property name="wordWrap">
                <bool>true</bool>
+              </property>
+              <property name="buddy">
+               <cstring>btnClearCache</cstring>
               </property>
              </widget>
             </item>
@@ -173,6 +179,9 @@
              <property name="text">
               <string>Default Name Match Ratio Threshold: Search:</string>
              </property>
+             <property name="buddy">
+              <cstring>sbNameMatchSearchThresh</cstring>
+             </property>
             </widget>
            </item>
            <item row="1" column="0">
@@ -183,12 +192,18 @@
              <property name="alignment">
               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
              </property>
+             <property name="buddy">
+              <cstring>sbNameMatchIdentifyThresh</cstring>
+             </property>
             </widget>
            </item>
            <item row="2" column="0">
             <widget class="QLabel" name="label_9">
              <property name="text">
               <string>Always use Publisher Filter on &quot;manual&quot; searches:</string>
+             </property>
+             <property name="buddy">
+              <cstring>cbxUseFilter</cstring>
              </property>
             </widget>
            </item>
@@ -206,6 +221,9 @@
             <widget class="QLabel" name="label_4">
              <property name="text">
               <string>Publisher Filter:</string>
+             </property>
+             <property name="buddy">
+              <cstring>tePublisherFilter</cstring>
              </property>
             </widget>
            </item>
@@ -308,9 +326,19 @@
           <widget class="QGroupBox" name="groupBox_2">
            <layout class="QVBoxLayout" name="verticalLayout_7">
             <item>
-             <widget class="QCheckBox" name="cbxComplicatedParser">
+             <widget class="QLabel" name="lblFilenamearser">
               <property name="text">
-               <string>Use &quot;Complicated&quot; Parser</string>
+               <string>Select the filename parser</string>
+              </property>
+              <property name="buddy">
+               <cstring>cbFilenameParser</cstring>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="cbFilenameParser">
+              <property name="insertPolicy">
+               <enum>QComboBox::NoInsert</enum>
               </property>
              </widget>
             </item>
@@ -546,6 +574,9 @@
              <property name="text">
               <string>Template:</string>
              </property>
+             <property name="buddy">
+              <cstring>leRenameTemplate</cstring>
+             </property>
             </widget>
            </item>
            <item row="1" column="1">
@@ -575,6 +606,9 @@
             <widget class="QLabel" name="lblPadding">
              <property name="text">
               <string>Issue # Zero Padding</string>
+             </property>
+             <property name="buddy">
+              <cstring>leIssueNumPadding</cstring>
              </property>
             </widget>
            </item>
@@ -628,6 +662,9 @@
             <widget class="QLabel" name="lblDirectory">
              <property name="text">
               <string>Destination Directory:</string>
+             </property>
+             <property name="buddy">
+              <cstring>leDirectory</cstring>
              </property>
             </widget>
            </item>
@@ -734,12 +771,18 @@
            <property name="text">
             <string>Value Text Replacements</string>
            </property>
+           <property name="buddy">
+            <cstring>twValueReplacements</cstring>
+           </property>
           </widget>
          </item>
          <item row="1" column="0" colspan="2">
           <widget class="QLabel" name="lblLiteralReplacements">
            <property name="text">
             <string>Literal Text Replacements</string>
+           </property>
+           <property name="buddy">
+            <cstring>twLiteralReplacements</cstring>
            </property>
           </widget>
          </item>
@@ -775,6 +818,9 @@
               </property>
               <property name="text">
                <string>RAR program</string>
+              </property>
+              <property name="buddy">
+               <cstring>leRarExePath</cstring>
               </property>
              </widget>
             </item>

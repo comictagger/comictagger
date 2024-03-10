@@ -113,7 +113,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             "alternate_count": self.leAltIssueCount,
             "imprint": self.leImprint,
             "notes": self.teNotes,
-            "web_links": self.leWebLink,
+            "web_links": (self.leWebLink, self.btnOpenWebLink, self.btnAddWebLink, self.btnRemoveWebLink),
             "format": self.cbFormat,
             "manga": self.cbManga,
             "black_and_white": self.cbBW,
@@ -125,7 +125,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             "characters": self.teCharacters,
             "teams": self.teTeams,
             "locations": self.teLocations,
-            "credits": [self.twCredits, self.btnAddCredit, self.btnEditCredit, self.btnRemoveCredit],
+            "credits": (self.twCredits, self.btnAddCredit, self.btnEditCredit, self.btnRemoveCredit),
             "credits.person": 2,
             "credits.role": 1,
             "credits.primary": 0,
@@ -1034,7 +1034,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             # copy the form onto metadata object
             self.form_to_metadata()
             new_metadata = self.comic_archive.metadata_from_filename(
-                self.config[0].Filename_Parsing__complicated_parser,
+                self.config[0].Filename_Parsing__filename_parser,
                 self.config[0].Filename_Parsing__remove_c2c,
                 self.config[0].Filename_Parsing__remove_fcbd,
                 self.config[0].Filename_Parsing__remove_publisher,
@@ -1765,7 +1765,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             logger.error("Failed to load metadata for %s: %s", ca.path, e)
         if md.is_empty:
             md = ca.metadata_from_filename(
-                self.config[0].Filename_Parsing__complicated_parser,
+                self.config[0].Filename_Parsing__filename_parser,
                 self.config[0].Filename_Parsing__remove_c2c,
                 self.config[0].Filename_Parsing__remove_fcbd,
                 self.config[0].Filename_Parsing__remove_publisher,
@@ -1792,17 +1792,13 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 md.issue = "1"
             else:
                 md.issue = utils.xlate(md.volume)
-        ii.set_additional_metadata(md)
-        ii.only_use_additional_meta_data = True
+
         ii.set_output_function(self.auto_tag_log)
-        ii.cover_page_index = md.get_cover_page_index_list()[0]
         if self.atprogdialog is not None:
             ii.set_cover_url_callback(self.atprogdialog.set_test_image)
         ii.set_name_series_match_threshold(dlg.name_length_match_tolerance)
 
-        matches: list[IssueResult] = ii.search()
-
-        result = ii.search_result
+        result, matches = ii.identify(ca, md)
 
         found_match = False
         choices = False

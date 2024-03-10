@@ -5,6 +5,7 @@ import uuid
 
 import settngs
 
+from comicapi import utils
 from comictaggerlib.ctsettings.settngs_namespace import SettngsNS as ct_ns
 from comictaggerlib.defaults import DEFAULT_REPLACEMENTS, Replacement, Replacements
 
@@ -102,10 +103,12 @@ def dialog(parser: settngs.Manager) -> None:
 def filename(parser: settngs.Manager) -> None:
     # filename parsing settings
     parser.add_setting(
-        "--complicated-parser",
-        default=False,
-        action=argparse.BooleanOptionalAction,
-        help="Enables the new parser which tries to extract more information from filenames",
+        "--filename-parser",
+        default=utils.Parser.ORIGINAL,
+        metavar=f"{{{','.join(utils.Parser)}}}",
+        type=utils.Parser,
+        choices=[p.value for p in utils.Parser],
+        help="Select the filename parser, defaults to original",
     )
     parser.add_setting(
         "--remove-c2c",
