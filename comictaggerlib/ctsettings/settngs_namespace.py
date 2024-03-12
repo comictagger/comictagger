@@ -83,10 +83,9 @@ class SettngsNS(settngs.TypedNS):
     Metadata_Options__cbl_copy_weblink_to_comments: bool
     Metadata_Options__cbl_apply_transform_on_import: bool
     Metadata_Options__cbl_apply_transform_on_bulk_operation: bool
-
+    Metadata_Options__metadata_overlay: OverlayMode
     Metadata_Options__use_short_metadata_names: bool
     Metadata_Options__disable_cr: bool
-    Metadata_Options__metadata_overlay: OverlayMode
 
     File_Rename__template: str
     File_Rename__issue_number_padding: int
@@ -191,8 +190,8 @@ class Sources(typing.TypedDict):
 
 
 class Metadata_Options(typing.TypedDict):
-    assume_lone_credit_is_primary: bool
-    copy_characters_to_tags: bool
+    cbl_assume_lone_credit_is_primary: bool
+    cbl_copy_characters_to_tags: bool
     cbl_copy_teams_to_tags: bool
     cbl_copy_locations_to_tags: bool
     cbl_copy_storyarcs_to_tags: bool
@@ -200,6 +199,9 @@ class Metadata_Options(typing.TypedDict):
     cbl_copy_weblink_to_comments: bool
     cbl_apply_transform_on_import: bool
     cbl_apply_transform_on_bulk_operation: bool
+    metadata_overlay: OverlayMode
+    use_short_metadata_names: bool
+    disable_cr: bool
 
 
 class File_Rename(typing.TypedDict):
@@ -223,8 +225,6 @@ class Auto_Tag(typing.TypedDict):
 
 class General(typing.TypedDict):
     check_for_new_version: bool
-    disable_cr: bool
-    use_short_metadata_names: bool
     prompt_on_save: bool
 
 

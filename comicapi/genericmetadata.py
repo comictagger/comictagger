@@ -32,6 +32,7 @@ from typing import Any, TypedDict
 from typing_extensions import NamedTuple, Required
 
 from comicapi import utils
+from comicapi.utils import norm_fold
 
 from ._url import Url, parse_url
 
@@ -251,10 +252,6 @@ class GenericMetadata:
         new_md.__post_init__()
         return new_md
 
-    def norm_fold(self, string: str) -> str:
-        """Normalise and casefold string"""
-        return unicodedata.normalize("NFKD", string).casefold()
-
     def assign_dedupe(self, new: list[str] | set[str], cur: list[str] | set[str]) -> list[str] | set[str]:
         """Dedupes normalised (NFKD), casefolded values using 'new' values on collisions"""
         if len(new) == 0:
@@ -263,8 +260,8 @@ class GenericMetadata:
             return new
 
         # Create dict values for deduplication
-        new_dict: dict[str, str] = {self.norm_fold(n): n for n in new}
-        cur_dict: dict[str, str] = {self.norm_fold(c): c for c in cur}
+        new_dict: dict[str, str] = {norm_fold(n): n for n in new}
+        cur_dict: dict[str, str] = {norm_fold(c): c for c in cur}
 
         if isinstance(new, list) and isinstance(cur, list):
             cur_dict.update(new_dict)
@@ -360,7 +357,7 @@ class GenericMetadata:
         self.year = assign(self.year, new_md.year)
         self.language = assign(self.language, new_md.language)
         self.country = assign(self.country, new_md.country)
-        self.web_link = assign(self.web_links, new_md.web_links)
+        self.web_links = assign(self.web_links, new_md.web_links)
         self.format = assign(self.format, new_md.format)
         self.manga = assign(self.manga, new_md.manga)
         self.black_and_white = assign(self.black_and_white, new_md.black_and_white)
@@ -410,9 +407,9 @@ class GenericMetadata:
             primary = bool("primary" in nc and nc["primary"])
 
             for cc in cur_credits:
-                if self.norm_fold(cc["person"]) == self.norm_fold(nc["person"]) and self.norm_fold(
-                    cc["role"]
-                ) == self.norm_fold(nc["role"]):
+                if norm_fold(cc["person"]) == norm_fold(nc["person"]) and norm_fold(cc["role"]) == norm_fold(
+                    nc["role"]
+                ):
                     found = True
                     break
             if not found:
@@ -420,7 +417,7 @@ class GenericMetadata:
         return cur_credits
 
     def assign_credits_combine(self, cur_credits: list[Credit], new_credits: list[Credit]) -> list[Credit]:
-        combined = {self.norm_fold(f"{cc['person']}_{cc['role']}"): cc for cc in cur_credits + new_credits}
+        combined = {norm_fold(f"{cc['person']}_{cc['role']}"): cc for cc in cur_credits + new_credits}
 
         return list(combined.values())
 

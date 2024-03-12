@@ -5,8 +5,8 @@ import uuid
 
 import settngs
 
-from comicapi.genericmetadata import OverlayMode
 from comicapi import utils
+from comicapi.genericmetadata import OverlayMode
 from comictaggerlib.ctsettings.settngs_namespace import SettngsNS as ct_ns
 from comictaggerlib.defaults import DEFAULT_REPLACEMENTS, Replacement, Replacements
 
