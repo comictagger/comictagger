@@ -848,7 +848,10 @@ class TaggerWindow(QtWidgets.QMainWindow):
     def metadata_to_form(self) -> None:
         def assign_text(field: QtWidgets.QLineEdit | QtWidgets.QTextEdit, value: Any) -> None:
             if value is not None:
-                field.setText(str(value))
+                if isinstance(field, QtWidgets.QTextEdit) and False:
+                    field.setPlainText(str(value))
+                else:
+                    field.setText(str(value))
 
         md = self.metadata
 
