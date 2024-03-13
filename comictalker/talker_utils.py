@@ -47,9 +47,10 @@ def cleanup_html(string: str | None, remove_html_tables: bool = False) -> str:
 
     # put in our own
     string = re.sub(r"<br>|</li>", "\n", string, flags=re.IGNORECASE)
+    string = re.sub(r"<li>", "* ", string, flags=re.IGNORECASE)
     string = re.sub(r"</p>", "\n\n", string, flags=re.IGNORECASE)
-    string = re.sub(r"<h([1-6])>", "*", string, flags=re.IGNORECASE)
-    string = re.sub(r"</h[1-6]>", "*\n", string, flags=re.IGNORECASE)
+    string = re.sub(r"<h([1-6])>", lambda m: '#'*int(m.group(1))+' ', string, flags=re.IGNORECASE)
+    string = re.sub(r"</h[1-6]>", "\n", string, flags=re.IGNORECASE)
 
     # remove the tables
     p = re.compile(r"<table[^<]*?>.*?</table>")
