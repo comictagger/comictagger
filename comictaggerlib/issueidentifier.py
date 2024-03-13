@@ -643,7 +643,10 @@ class IssueIdentifier:
                     )
                     final_cover_matching.remove(match)
 
-        best_score = final_cover_matching[0].distance
+        if final_cover_matching:
+            best_score = final_cover_matching[0].distance
+        else:
+            best_score = 0
         if best_score >= self.min_score_thresh:
             if len(final_cover_matching) == 1:
                 self.log_msg("No matching pages in the issue.")
