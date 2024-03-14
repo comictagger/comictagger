@@ -252,6 +252,18 @@ class GenericMetadata:
         new_md.__post_init__()
         return new_md
 
+    def weblinks_dedupe(self, new: list[Url], cur: list[Url]) -> list[Url]:
+        if len(new) == 0:
+            return cur
+        if len(cur) == 0:
+            return new
+
+        new_set: set[str] = {n.url for n in new}
+        cur_set: set[str] = {c.url for c in cur}
+        new_set.update(cur_set)
+
+        return [parse_url(url) for url in new_set]
+
     def assign_dedupe(self, new: list[str] | set[str], cur: list[str] | set[str]) -> list[str] | set[str]:
         """Dedupes normalised (NFKD), casefolded values using 'new' values on collisions"""
         if len(new) == 0:
@@ -263,11 +275,11 @@ class GenericMetadata:
         new_dict: dict[str, str] = {norm_fold(n): n for n in new}
         cur_dict: dict[str, str] = {norm_fold(c): c for c in cur}
 
-        if isinstance(new, list) and isinstance(cur, list):
+        if isinstance(cur, list):
             cur_dict.update(new_dict)
             return list(cur_dict.values())
 
-        if isinstance(new, set) and isinstance(cur, set):
+        if isinstance(cur, set):
             cur_dict.update(new_dict)
             return set(cur_dict.values())
 
@@ -308,6 +320,8 @@ class GenericMetadata:
         if new is None:
             return cur
         if isinstance(new, (list, set)) and isinstance(cur, (list, set)):
+            if len(new) > 0 and isinstance(new, list) and isinstance(new[0], Url):
+                return self.weblinks_dedupe(new, cur)  # type: ignore[arg-type]
             return self.assign_dedupe(new, cur)
         else:
             return new
