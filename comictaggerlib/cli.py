@@ -189,7 +189,7 @@ class CLI:
                     )
                     md.overlay(
                         ct_md.replace(notes=utils.combine_notes(md.notes, notes, "Tagged with ComicTagger")),
-                        self.config.Metadata_Options__metadata_overlay,
+                        self.config.Metadata_Options__source_overlay,
                     )
 
                 if self.config.Issue_Identifier__auto_imprint:
@@ -562,7 +562,7 @@ class CLI:
                     notes=utils.combine_notes(md.notes, notes, "Tagged with ComicTagger"),
                     description=cleanup_html(ct_md.description, self.config.Sources__remove_html_tables),
                 ),
-                self.config.Metadata_Options__metadata_overlay,
+                self.config.Metadata_Options__source_overlay,
             )
 
             if self.config.Issue_Identifier__auto_imprint:

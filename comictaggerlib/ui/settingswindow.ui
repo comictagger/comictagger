@@ -709,7 +709,7 @@
                <enum>QTabWidget::North</enum>
               </property>
               <property name="currentIndex">
-               <number>2</number>
+               <number>0</number>
               </property>
               <property name="documentMode">
                <bool>true</bool>
@@ -847,6 +847,9 @@ Example:
             </item>
             <item row="0" column="1">
              <widget class="QComboBox" name="cbxOverlayReadStyle">
+              <property name="enabled">
+               <bool>false</bool>
+              </property>
               <property name="sizePolicy">
                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -860,7 +863,7 @@ Example:
                </size>
               </property>
               <property name="toolTip">
-               <string>The operation to perform when overlaying read styles (ComicRack, ComicBookInfo, etc.)</string>
+               <string>Currently unavailable (will be enabled in a future release)</string>
               </property>
              </widget>
             </item>

@@ -1167,7 +1167,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                                 new_metadata.description, self.config[0].Sources__remove_html_tables
                             ),
                         ),
-                        self.config[0].Metadata_Options__metadata_overlay,
+                        self.config[0].Metadata_Options__source_overlay,
                     )
                     # Now push the new combined data into the edit controls
                     self.metadata_to_form()
@@ -1893,7 +1893,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                     )
                     md.overlay(
                         ct_md.replace(notes=utils.combine_notes(md.notes, notes, "Tagged with ComicTagger")),
-                        self.config[0].Metadata_Options__metadata_overlay,
+                        self.config[0].Metadata_Options__source_overlay,
                     )
 
                 if self.config[0].Issue_Identifier__auto_imprint:

@@ -196,6 +196,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.cbFilenameParser.addItems(utils.Parser)
         for mem in OverlayMode:
             self.cbxOverlayReadStyle.addItem(mem.name.capitalize().replace("_", " "), mem.value)
+            self.cbxOverlaySource.addItem(mem.name.capitalize().replace("_", " "), mem.value)
         self.connect_signals()
         self.settings_to_form()
         self.rename_test()
@@ -415,7 +416,10 @@ class SettingsWindow(QtWidgets.QDialog):
             self.config[0].Metadata_Options__cbl_apply_transform_on_bulk_operation
         )
         self.cbxOverlayReadStyle.setCurrentIndex(
-            self.cbxOverlayReadStyle.findData(self.config[0].Metadata_Options__metadata_overlay.value)
+            self.cbxOverlayReadStyle.findData(self.config[0].Metadata_Options__read_style_overlay.value)
+        )
+        self.cbxOverlaySource.setCurrentIndex(
+            self.cbxOverlaySource.findData(self.config[0].Metadata_Options__source_overlay.value)
         )
         self.cbxShortMetadataNames.setChecked(self.config[0].Metadata_Options__use_short_metadata_names)
         self.cbxDisableCR.setChecked(self.config[0].Metadata_Options__disable_cr)
@@ -541,7 +545,8 @@ class SettingsWindow(QtWidgets.QDialog):
             self.cbxApplyCBLTransformOnBatchOperation.isChecked()
         )
 
-        self.config[0].Metadata_Options__metadata_overlay = OverlayMode[self.cbxOverlayReadStyle.currentData()]
+        self.config[0].Metadata_Options__read_style_overlay = OverlayMode[self.cbxOverlayReadStyle.currentData()]
+        self.config[0].Metadata_Options__source_overlay = OverlayMode[self.cbxOverlaySource.currentData()]
         self.config[0].Metadata_Options__disable_cr = self.cbxDisableCR.isChecked()
         # Update metadata style names if required
         if self.config[0].Metadata_Options__use_short_metadata_names != self.cbxShortMetadataNames.isChecked():
