@@ -264,6 +264,20 @@ class GenericMetadata:
 
         return [parse_url(url) for url in new_set]
 
+    def credit_dedupe(self, cur: list[Credit], new: list[Credit]) -> list[Credit]:
+        if len(new) == 0:
+            return cur
+        if len(cur) == 0:
+            return new
+
+        # Create dict for deduplication
+        new_dict: dict[str, str] = {f"{norm_fold(n['person'])}_{n['role'].casefold()}": n for n in new}
+        cur_dict: dict[str, str] = {f"{norm_fold(c['person'])}_{c['role'].casefold()}": c for c in cur}
+
+        # Any duplicates use the 'new' value
+        cur_dict.update(new_dict)
+        return list(cur_dict.values())
+
     def assign_dedupe(self, new: list[str] | set[str], cur: list[str] | set[str]) -> list[str] | set[str]:
         """Dedupes normalised (NFKD), casefolded values using 'new' values on collisions"""
         if len(new) == 0:
@@ -398,42 +412,14 @@ class GenericMetadata:
 
     def assign_credits_overlay(self, cur_credits: list[Credit], new_credits: list[Credit]) -> list[Credit]:
         # Check for a clear from the commandline
-        if isinstance(new_credits, str) and len(new_credits) == 0:
+        if isinstance(new_credits, str):
             return []
 
-        for c in new_credits:
-            primary = bool("primary" in c and c["primary"])
-
-            # Remove credit role if person is blank
-            if c["person"] == "":
-                for r in reversed(cur_credits):
-                    if r["role"].casefold() == c["role"].casefold():
-                        cur_credits.remove(r)
-            # otherwise, add it!
-            else:
-                cur_credits.append(Credit(person=c["person"], role=c["role"], primary=primary))
-
-        return cur_credits
+        return self.credit_dedupe(cur_credits, new_credits)
 
     def assign_credits_add_missing(self, cur_credits: list[Credit], new_credits: list[Credit]) -> list[Credit]:
-        for nc in new_credits:
-            found = False
-            primary = bool("primary" in nc and nc["primary"])
-
-            for cc in cur_credits:
-                if norm_fold(cc["person"]) == norm_fold(nc["person"]) and norm_fold(cc["role"]) == norm_fold(
-                    nc["role"]
-                ):
-                    found = True
-                    break
-            if not found:
-                cur_credits.append(Credit(person=nc["person"], role=nc["role"], primary=primary))
-        return cur_credits
-
-    def assign_credits_combine(self, cur_credits: list[Credit], new_credits: list[Credit]) -> list[Credit]:
-        combined = {norm_fold(f"{cc['person']}_{cc['role']}"): cc for cc in cur_credits + new_credits}
-
-        return list(combined.values())
+        # Send new_credits as cur_credits and vis-versa to keep cur_credit on duplication
+        return self.credit_dedupe(new_credits, cur_credits)
 
     def assign_credits(
         self, cur_credits: list[Credit], new_credits: list[Credit], mode: OverlayMode = OverlayMode.overlay
@@ -441,7 +427,7 @@ class GenericMetadata:
         assign_credit_funcs = {
             OverlayMode.overlay: self.assign_credits_overlay,
             OverlayMode.add_missing: self.assign_credits_add_missing,
-            OverlayMode.combine: self.assign_credits_combine,
+            OverlayMode.combine: self.assign_credits_overlay,
         }
 
         assign_credit_func = assign_credit_funcs.get(mode, self.assign_credits_overlay)
@@ -491,19 +477,20 @@ class GenericMetadata:
         return coverlist
 
     def add_credit(self, person: str, role: str, primary: bool = False) -> None:
-        credit = Credit(person=person, role=role, primary=primary)
+        if person != "":
+            credit = Credit(person=person, role=role, primary=primary)
 
-        # look to see if it's not already there...
-        found = False
-        for c in self.credits:
-            if c["person"].casefold() == person.casefold() and c["role"].casefold() == role.casefold():
-                # no need to add it. just adjust the "primary" flag as needed
-                c["primary"] = primary
-                found = True
-                break
+            # look to see if it's not already there...
+            found = False
+            for c in self.credits:
+                if c["person"].casefold() == person.casefold() and c["role"].casefold() == role.casefold():
+                    # no need to add it. just adjust the "primary" flag as needed
+                    c["primary"] = primary
+                    found = True
+                    break
 
-        if not found:
-            self.credits.append(credit)
+            if not found:
+                self.credits.append(credit)
 
     def get_primary_credit(self, role: str) -> str:
         primary = ""
