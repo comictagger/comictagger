@@ -98,6 +98,7 @@ def test_assign_credits_overlay():
     md_new.add_credit(person="test2", role="inker")
 
     expected = comicapi.genericmetadata.GenericMetadata()
+    expected.add_credit(person="test", role="writer", primary=False)
     expected.add_credit(person="test", role="artist", primary=True)
     expected.add_credit(person="test2", role="inker")
 
