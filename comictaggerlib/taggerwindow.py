@@ -1167,7 +1167,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                                 new_metadata.description, self.config[0].Sources__remove_html_tables
                             ),
                         ),
-                        self.config[0].Metadata_Options__source_overlay,
+                        self.config[0].Metadata_Options__source_overlay,  # command line?
                     )
                     # Now push the new combined data into the edit controls
                     self.metadata_to_form()

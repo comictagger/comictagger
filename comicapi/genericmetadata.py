@@ -271,8 +271,8 @@ class GenericMetadata:
             return new
 
         # Create dict for deduplication
-        new_dict: dict[str, str] = {f"{norm_fold(n['person'])}_{n['role'].casefold()}": n for n in new}
-        cur_dict: dict[str, str] = {f"{norm_fold(c['person'])}_{c['role'].casefold()}": c for c in cur}
+        new_dict: dict[str, Credit] = {f"{norm_fold(n['person'])}_{n['role'].casefold()}": n for n in new}
+        cur_dict: dict[str, Credit] = {f"{norm_fold(c['person'])}_{c['role'].casefold()}": c for c in cur}
 
         # Any duplicates use the 'new' value
         cur_dict.update(new_dict)
