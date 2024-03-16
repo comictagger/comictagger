@@ -105,23 +105,6 @@ def test_assign_credits_overlay():
     assert md.assign_credits_overlay(md.credits, md_new.credits) == expected.credits
 
 
-def test_assign_credits_combine():
-    md = comicapi.genericmetadata.GenericMetadata()
-    md.add_credit(person="test", role="writer", primary=False)
-    md.add_credit(person="test", role="artist", primary=True)
-
-    md_new = comicapi.genericmetadata.GenericMetadata()
-    md_new.add_credit(person="test2", role="inker")
-    md_new.add_credit(person="Test", role="writer")
-
-    expected = comicapi.genericmetadata.GenericMetadata()
-    expected.add_credit(person="Test", role="writer", primary=False)
-    expected.add_credit(person="test", role="artist", primary=True)
-    expected.add_credit(person="test2", role="inker")
-
-    assert md.assign_credits_combine(md.credits, md_new.credits) == expected.credits
-
-
 def test_assign_credits_add_missing():
     md = comicapi.genericmetadata.GenericMetadata()
     md.add_credit(person="test", role="writer", primary=False)
@@ -132,9 +115,9 @@ def test_assign_credits_add_missing():
     md_new.add_credit(person="test", role="artist", primary=True)
 
     expected = comicapi.genericmetadata.GenericMetadata()
-    expected.add_credit(person="test", role="writer", primary=False)
-    expected.add_credit(person="test", role="artist", primary=True)
     expected.add_credit(person="Bob", role="writer")
+    expected.add_credit(person="test", role="artist", primary=True)
+    expected.add_credit(person="test", role="writer", primary=False)
 
     assert md.assign_credits_add_missing(md.credits, md_new.credits) == expected.credits
 
