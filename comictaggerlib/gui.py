@@ -24,7 +24,9 @@ try:
         """
         if QtWidgets.QApplication.instance() is not None:
             errorbox = QtWidgets.QMessageBox()
-            errorbox.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Abort|QtWidgets.QMessageBox.StandardButton.Ignore)
+            errorbox.setStandardButtons(
+                QtWidgets.QMessageBox.StandardButton.Abort | QtWidgets.QMessageBox.StandardButton.Ignore
+            )
             errorbox.setText(log_msg)
             if errorbox.exec() == QtWidgets.QMessageBox.StandardButton.Abort:
                 QtWidgets.QApplication.exit(1)
