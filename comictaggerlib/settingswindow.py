@@ -194,9 +194,9 @@ class SettingsWindow(QtWidgets.QDialog):
         )
         self.cbFilenameParser.clear()
         self.cbFilenameParser.addItems(utils.Parser)
-        for mem in OverlayMode:
-            self.cbxOverlayReadStyle.addItem(mem.name.capitalize().replace("_", " "), mem.value)
-            self.cbxOverlaySource.addItem(mem.name.capitalize().replace("_", " "), mem.value)
+        for mode in OverlayMode:
+            self.cbxOverlayReadStyle.addItem(mode.name.capitalize().replace("_", " "), mode.value)
+            self.cbxOverlaySource.addItem(mode.name.capitalize().replace("_", " "), mode.value)
         self.connect_signals()
         self.settings_to_form()
         self.rename_test()

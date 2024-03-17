@@ -252,18 +252,6 @@ class GenericMetadata:
         new_md.__post_init__()
         return new_md
 
-    def weblinks_dedupe(self, new: list[Url], cur: list[Url]) -> list[Url]:
-        if len(new) == 0:
-            return cur
-        if len(cur) == 0:
-            return new
-
-        new_set: set[str] = {n.url for n in new}
-        cur_set: set[str] = {c.url for c in cur}
-        new_set.update(cur_set)
-
-        return [parse_url(url) for url in new_set]
-
     def credit_dedupe(self, cur: list[Credit], new: list[Credit]) -> list[Credit]:
         if len(new) == 0:
             return cur
@@ -335,7 +323,7 @@ class GenericMetadata:
             return cur
         if isinstance(new, (list, set)) and isinstance(cur, (list, set)):
             if len(new) > 0 and isinstance(new, list) and isinstance(new[0], Url):
-                return self.weblinks_dedupe(new, cur)  # type: ignore[arg-type]
+                return list(set(new).union(cur))
             return self.assign_dedupe(new, cur)
         else:
             return new
@@ -477,20 +465,22 @@ class GenericMetadata:
         return coverlist
 
     def add_credit(self, person: str, role: str, primary: bool = False) -> None:
-        if person != "":
-            credit = Credit(person=person, role=role, primary=primary)
+        if person == "":
+            return
 
-            # look to see if it's not already there...
-            found = False
-            for c in self.credits:
-                if c["person"].casefold() == person.casefold() and c["role"].casefold() == role.casefold():
-                    # no need to add it. just adjust the "primary" flag as needed
-                    c["primary"] = primary
-                    found = True
-                    break
+        credit = Credit(person=person, role=role, primary=primary)
 
-            if not found:
-                self.credits.append(credit)
+        # look to see if it's not already there...
+        found = False
+        for c in self.credits:
+            if c["person"].casefold() == person.casefold() and c["role"].casefold() == role.casefold():
+                # no need to add it. just adjust the "primary" flag as needed
+                c["primary"] = primary
+                found = True
+                break
+
+        if not found:
+            self.credits.append(credit)
 
     def get_primary_credit(self, role: str) -> str:
         primary = ""

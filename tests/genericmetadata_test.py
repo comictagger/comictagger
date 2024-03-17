@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 
 import comicapi.genericmetadata
-from comicapi.genericmetadata import OverlayMode
+from comicapi.genericmetadata import OverlayMode, parse_url
 from testing.comicdata import credits, metadata
 
 
@@ -44,6 +44,7 @@ def test_metadata_overlay_combine():
         genres={"test", "test2"},
         story_arcs=["arc1"],
         characters={"Bob", "fred"},
+        web_links=[parse_url("https://my.comics.here.com")],
     )
     combine_new = comicapi.genericmetadata.GenericMetadata(
         series="test2",
@@ -59,6 +60,7 @@ def test_metadata_overlay_combine():
         genres={"test", "test2", "test3", "test4"},
         story_arcs=["arc1", "arc2"],
         characters={"bob", "fred"},
+        web_links=[parse_url("https://my.comics.here.com")],
     )
     md.overlay(combine_new, OverlayMode.combine)
 
