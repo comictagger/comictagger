@@ -756,7 +756,7 @@
                   </property>
                   <property name="plainText">
                    <string>Read Style: Overlays all the none empty values of the read style metadata on top of the current metadata (i.e. file name parsing, other read style(s)).
-Data Source: Overlays all the none empty values from the data source (e.g. Comic Vine) on top of the current metadata (i.e. file name parsing, other read style(s)).
+Data Source: Overlays all the none empty values from the data source (e.g. Comic Vine) on top of the current metadata (i.e. file name parsing, read style(s)).
 
 Example:
 (Series=batman, Issue=1, Tags=[batman,joker,robin])
