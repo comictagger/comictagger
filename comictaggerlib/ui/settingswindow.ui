@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>703</width>
-    <height>585</height>
+    <height>597</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -646,7 +646,7 @@
                <string>The operation to perform when overlaying source data (Comic Vine, Metron, GCD, etc.)</string>
               </property>
               <property name="text">
-               <string>Source Info</string>
+               <string>Data Source</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -717,7 +717,7 @@
               <property name="tabBarAutoHide">
                <bool>false</bool>
               </property>
-              <widget class="QWidget" name="tOverlay" native="true">
+              <widget class="QWidget" name="tOverlay">
                <property name="maximumSize">
                 <size>
                  <width>16777215</width>
@@ -755,7 +755,8 @@
                    <bool>false</bool>
                   </property>
                   <property name="plainText">
-                   <string>Overlays new metadata on top of the original.
+                   <string>Read Style: Overlays all the none empty values of the read style metadata on top of the current metadata (i.e. file name parsing, other read style(s)).
+Data Source: Overlays all the none empty values from the data source (e.g. Comic Vine) on top of the current metadata (i.e. file name parsing, other read style(s)).
 
 Example:
 (Series=batman, Issue=1, Tags=[batman,joker,robin])
@@ -769,7 +770,7 @@ Example:
                 </item>
                </layout>
               </widget>
-              <widget class="QWidget" name="tAdd" native="true">
+              <widget class="QWidget" name="tAdd">
                <attribute name="title">
                 <string>Add Missing</string>
                </attribute>
@@ -792,7 +793,8 @@ Example:
                 <item>
                  <widget class="QPlainTextEdit" name="addTextEdit">
                   <property name="plainText">
-                   <string>Metadata missing from the original is added from the the new metadata.
+                   <string>Read Style: Adds any metadata that is present in the read style but is missing in the current metadata (i.e. file name parsing, other read style(s)).
+Data Source: Add any metadata that is present in the data source (e.g. Comic Vine) but is missing in the current metadata (i.e. file name parsing, read style(s)).
 
 Example:
 (Series=batman, Issue=1, Tags=[batman,joker,robin])
@@ -829,7 +831,8 @@ Example:
                 <item>
                  <widget class="QPlainTextEdit" name="combineTextEdit">
                   <property name="plainText">
-                   <string>Same as Overlay except lists (tags, characters, genres, credits, etc.) are combined.
+                   <string>Read Style: Same as Overlay except lists (tags, characters, genres, credits, etc.) are combined with the current metadata (i.e. file name parsing, other read style(s)).
+Data Source: Same as Overlay except lists (tags, characters, genres, credits, etc.) are combined with the current metadata (i.e. file name parsing, read style(s)).
 
 Example:
 (Series=batman, Issue=1, Tags=[batman,joker,robin])
@@ -863,7 +866,7 @@ Example:
                </size>
               </property>
               <property name="toolTip">
-               <string>Currently unavailable (will be enabled in a future release)</string>
+               <string>The operation to perform when overlaying read styles (ComicRack, ComicBookInfo, etc.)</string>
               </property>
              </widget>
             </item>
