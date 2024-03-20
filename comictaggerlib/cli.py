@@ -128,7 +128,7 @@ class CLI:
             logger.exception(f"Error retrieving issue details. Save aborted.\n{e}")
             return GenericMetadata()
 
-        if self.config.Comic_Book_Lover__apply_transform_on_import:
+        if self.config.Metadata_Options__cbl_apply_transform_on_import:
             ct_md = CBLTransformer(ct_md, self.config).apply()
 
         return ct_md
@@ -187,7 +187,10 @@ class CLI:
                         f"Tagged with ComicTagger {ctversion.version} using info from {self.current_talker().name} on"
                         f" {datetime.now():%Y-%m-%d %H:%M:%S}. [Issue ID {ct_md.issue_id}]"
                     )
-                    md.overlay(ct_md.replace(notes=utils.combine_notes(md.notes, notes, "Tagged with ComicTagger")))
+                    md.overlay(
+                        ct_md.replace(notes=utils.combine_notes(md.notes, notes, "Tagged with ComicTagger")),
+                        self.config.Metadata_Options__source_overlay,
+                    )
 
                 if self.config.Issue_Identifier__auto_imprint:
                     md.fix_publisher()
@@ -265,12 +268,12 @@ class CLI:
             if ca.has_metadata(style):
                 try:
                     t_md = ca.read_metadata(style)
-                    md.overlay(t_md)
+                    md.overlay(t_md, self.config.Metadata_Options__read_style_overlay)
                     break
                 except Exception as e:
                     logger.error("Failed to load metadata for %s: %s", ca.path, e)
 
-        # finally, use explicit stuff
+        # finally, use explicit stuff (always 'overlay' mode)
         md.overlay(self.config.Runtime_Options__metadata)
 
         return md
@@ -353,7 +356,7 @@ class CLI:
 
         src_style_name = md_styles[self.config.Commands__copy].name()
         if not self.config.Runtime_Options__dryrun:
-            if self.config.Comic_Book_Lover__apply_transform_on_bulk_operation == "cbi":
+            if self.config.Metadata_Options__cbl_apply_transform_on_bulk_operation == "cbi":
                 md = CBLTransformer(md, self.config).apply()
 
             if ca.write_metadata(md, style):
@@ -437,7 +440,7 @@ class CLI:
                     match_results.no_matches.append(res)
                     return res
 
-                if self.config.Comic_Book_Lover__apply_transform_on_import:
+                if self.config.Metadata_Options__cbl_apply_transform_on_import:
                     ct_md = CBLTransformer(ct_md, self.config).apply()
             else:
                 if md is None or md.is_empty:
@@ -558,7 +561,8 @@ class CLI:
                 ct_md.replace(
                     notes=utils.combine_notes(md.notes, notes, "Tagged with ComicTagger"),
                     description=cleanup_html(ct_md.description, self.config.Sources__remove_html_tables),
-                )
+                ),
+                self.config.Metadata_Options__source_overlay,
             )
 
             if self.config.Issue_Identifier__auto_imprint:
