@@ -334,7 +334,7 @@ protofolius_issue_number_scheme = {
     "B": "biography/best of",
     "C": "compact edition",
     "E": "entrtainment/puzzle edition",
-    "F": "familiy book edition",
+    "F": "family book edition",
     "J": "jubileum (anniversary) edition",
     "P": "pocket edition",
     "N": "newly brought out/restyled edition",
@@ -758,7 +758,7 @@ def parse_series(p: Parser, i: filenamelexer.Item | None) -> ParserFunc:
                 current = p.series.pop()
         current.append(i)
     else:
-        # If we are splitting we don't want to sart with these
+        # If we are splitting we don't want to start with these
         while p.peek().typ in [
             filenamelexer.ItemType.Space,
             filenamelexer.ItemType.Operator,
@@ -1243,7 +1243,7 @@ def join_title(lst: list[filenamelexer.Item]) -> str:
             continue
         # No space if the next item is an operator or symbol
         if lst[i + 1].typ in [filenamelexer.ItemType.Operator, filenamelexer.ItemType.Symbol]:
-            # exept if followed by a dollarsign
+            # except if followed by a dollarsign
             if lst[i + 1].val != "&":
                 continue
 

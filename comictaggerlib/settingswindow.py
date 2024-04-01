@@ -422,13 +422,13 @@ class SettingsWindow(QtWidgets.QDialog):
         self.leDirectory.setText(self.config[0].File_Rename__dir)
         self.cbxRenameStrict.setChecked(self.config[0].File_Rename__strict)
 
-        for table, replacments in zip(
+        for table, replacements in zip(
             (self.twLiteralReplacements, self.twValueReplacements), self.config[0].File_Rename__replacements
         ):
             table.clearContents()
             for i in reversed(range(table.rowCount())):
                 table.removeRow(i)
-            for row, replacement in enumerate(replacments):
+            for row, replacement in enumerate(replacements):
                 self.insertRow(table, row, replacement)
 
         # Set talker values

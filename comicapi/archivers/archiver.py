@@ -90,14 +90,14 @@ class Archiver(Protocol):
 
     def copy_from_archive(self, other_archive: Archiver) -> bool:
         """
-        Copies the contents of another achive to the current archive.
+        Copies the contents of another archive to the current archive.
         Should always return a boolean. Failures should return False.
         """
         return False
 
     def is_writable(self) -> bool:
         """
-        Retuns True if the current archive is writeable
+        Returns True if the current archive is writeable
         Should always return a boolean. Failures should return False.
         """
         return False

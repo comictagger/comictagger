@@ -375,7 +375,7 @@ def split(s: str | None, c: str) -> list[str]:
 def split_urls(s: str | None) -> list[Url]:
     if s is None:
         return []
-    # Find occurences of ' http'
+    # Find occurrences of ' http'
     if s.count("http") > 1 and s.count(" http") >= 1:
         urls = []
         # Split urls out
