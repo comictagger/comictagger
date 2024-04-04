@@ -271,7 +271,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.cbMaturityRating.lineEdit().setAcceptDrops(False)
 
         # hook up the callbacks
-        self.cbLoadDataStyle.currentIndexChanged.connect(self.set_load_data_style)
+        self.cbLoadDataStyle.itemChecked.connect(self.set_load_data_style)
         self.cbSaveDataStyle.itemChecked.connect(self.set_save_data_style)
         self.cbx_sources.currentIndexChanged.connect(self.set_source)
         self.btnEditCredit.clicked.connect(self.edit_credit)
