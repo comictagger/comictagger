@@ -25,15 +25,25 @@ import copy
 import dataclasses
 import logging
 from collections.abc import Sequence
-from typing import Any, TypedDict
+from enum import Enum, auto
+from typing import TYPE_CHECKING, Any, TypedDict, Union
 
 from typing_extensions import NamedTuple, Required
 
 from comicapi import utils
+from comicapi._url import Url, parse_url
 
-from ._url import Url, parse_url
+if TYPE_CHECKING:
+    Union
 
 logger = logging.getLogger(__name__)
+
+
+class __remove(Enum):
+    REMOVE = auto()
+
+
+REMOVE = __remove.REMOVE
 
 
 class PageType:
@@ -213,11 +223,15 @@ class GenericMetadata:
 
         def assign(cur: str, new: Any) -> None:
             if new is not None:
-                if isinstance(new, str) and len(new) == 0:
+                if new is REMOVE:
                     if isinstance(getattr(self, cur), (list, set)):
                         getattr(self, cur).clear()
                     else:
                         setattr(self, cur, None)
+                    return
+
+                if isinstance(new, str) and len(new) == 0:
+                    setattr(self, cur, None)
                 elif isinstance(new, (list, set)) and len(new) == 0:
                     pass
                 else:
@@ -281,8 +295,9 @@ class GenericMetadata:
         assign("_alternate_images", new_md._alternate_images)
 
     def overlay_credits(self, new_credits: list[Credit]) -> None:
-        if isinstance(new_credits, str) and len(new_credits) == 0:
+        if new_credits is REMOVE:
             self.credits = []
+            return
         for c in new_credits:
             primary = bool("primary" in c and c["primary"])
 
