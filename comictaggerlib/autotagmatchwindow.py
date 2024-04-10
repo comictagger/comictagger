@@ -231,7 +231,7 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
         ca = ComicArchive(self.current_match_set.original_path)
 
         # TODO should this follow the same as CLI: filename (-f), read styles (-t), command line (-m)
-        # TODO Same is used for taggerwindow.py:~1734 Make a method?
+        # TODO Same is used for taggerwindow.py:~1734/renamewindow Make a method?
         md = GenericMetadata()
         try:
             for style in self.load_data_styles.keys():

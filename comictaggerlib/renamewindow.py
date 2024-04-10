@@ -39,7 +39,7 @@ class RenameWindow(QtWidgets.QDialog):
         self,
         parent: QtWidgets.QWidget,
         comic_archive_list: list[ComicArchive],
-        data_style: str,
+        data_styles: dict[str, int],
         config: settngs.Config[ct_ns],
         talkers: dict[str, ComicTalker],
     ) -> None:
@@ -48,7 +48,9 @@ class RenameWindow(QtWidgets.QDialog):
         with (ui_path / "renamewindow.ui").open(encoding="utf-8") as uifile:
             uic.loadUi(uifile, self)
 
-        self.label.setText(f"Preview (based on {metadata_styles[data_style].name()} tags):")
+        self.label.setText(
+            f"Preview (based on {', '.join([f'{metadata_styles[style].name()}' for style in data_styles.keys()])} tags):"
+        )
 
         self.setWindowFlags(
             QtCore.Qt.WindowType(
@@ -61,7 +63,7 @@ class RenameWindow(QtWidgets.QDialog):
         self.config = config
         self.talkers = talkers
         self.comic_archive_list = comic_archive_list
-        self.data_style = data_style
+        self.data_styles = data_styles
         self.rename_list: list[str] = []
 
         self.btnSettings.clicked.connect(self.modify_settings)
@@ -82,7 +84,7 @@ class RenameWindow(QtWidgets.QDialog):
             new_ext = ca.extension()
 
         if md is None or md.is_empty:
-            md = ca.read_metadata(self.data_style)
+            md, success = self.parent().overlay_ca_read_style(self.load_data_styles, ca)
             if md.is_empty:
                 md = ca.metadata_from_filename(
                     self.config[0].Filename_Parsing__filename_parser,

@@ -1744,6 +1744,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
         # read in metadata, and parse file name if not there
         # TODO should this follow the same as CLI: filename (-f), read styles (-t), command line (-m)
+        # Duplicated in autotagmatchwindow and renamewindow
         md = GenericMetadata()
         try:
             for style in self.load_data_styles.keys():
@@ -2151,8 +2152,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         if self.dirty_flag_verification(
             "File Rename", "If you rename files now, unsaved data in the form will be lost.  Are you sure?"
         ):
-            # dlg = RenameWindow(self, ca_list, self.load_data_styles, self.config, self.talkers)
-            dlg = RenameWindow(self, ca_list, "cr", self.config, self.talkers)
+            dlg = RenameWindow(self, ca_list, self.load_data_styles, self.config, self.talkers)
             dlg.setModal(True)
             if dlg.exec() and self.comic_archive is not None:
                 self.fileSelectionList.update_selected_rows()
