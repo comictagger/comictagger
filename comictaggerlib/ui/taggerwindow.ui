@@ -76,7 +76,11 @@
              <widget class="QComboBox" name="cbx_sources"/>
             </item>
             <item row="1" column="1">
-             <widget class="TableComboBox" name="cbLoadDataStyle"/>
+             <widget class="TableComboBox" name="cbLoadDataStyle">
+              <property name="toolTip">
+               <string>At least one read style must be selected</string>
+              </property>
+             </widget>
             </item>
             <item row="2" column="1">
              <widget class="CheckableComboBox" name="cbSaveDataStyle"/>

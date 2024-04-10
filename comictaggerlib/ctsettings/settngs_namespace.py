@@ -41,7 +41,7 @@ class SettngsNS(settngs.TypedNS):
 
     internal__install_id: str
     internal__save_data_style: list[str]
-    internal__load_data_style: str
+    internal__load_data_style: dict[str, int]
     internal__last_opened_folder: str
     internal__window_width: int
     internal__window_height: int

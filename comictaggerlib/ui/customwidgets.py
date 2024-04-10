@@ -7,6 +7,8 @@ from typing import Any
 from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import QEvent, QModelIndex, QRect, Qt, pyqtSignal
 
+from comictaggerlib.graphics import graphics_path
+
 
 # Multiselect combobox from: https://gis.stackexchange.com/a/351152 (with custom changes)
 class CheckableComboBox(QtWidgets.QComboBox):
@@ -114,6 +116,16 @@ class CheckableComboBox(QtWidgets.QComboBox):
             self.setItemChecked(index, True)
 
 
+class CheckBoxStyle(QtWidgets.QProxyStyle):
+    def subElementRect(
+        self, element: QtWidgets.QStyle.SubElement, option: QtWidgets.QStyleOption, widget: QtWidgets.QWidget = None
+    ) -> QRect:
+        r = super().subElementRect(element, option, widget)
+        if element == QtWidgets.QStyle.SE_ItemViewItemCheckIndicator:
+            r.moveCenter(option.rect.center())
+        return r
+
+
 class SortLabelTableWidgetItem(QtWidgets.QTableWidgetItem):
     """Custom QTableWidgetItem to sort with '-' below numbers"""
 
@@ -126,30 +138,30 @@ class SortLabelTableWidgetItem(QtWidgets.QTableWidgetItem):
 
 
 class HoverQLabel(QtWidgets.QLabel):
+    """A QLabel with two QButtons that appear on hover"""
+
     def __init__(self, text: str, parent: TableComboBox):
         super().__init__(text, parent=parent)
         self.combobox = parent
 
-        self.button_up = QtWidgets.QPushButton("Up", self)
+        self.button_up = QtWidgets.QPushButton(QtGui.QIcon(str(graphics_path / "up.png")), "", self)
         self.button_up.clicked.connect(self.button_up_clicked)
+        self.button_up.setToolTip("Move style up in order")
         self.button_up.hide()
 
-        self.button_down = QtWidgets.QPushButton("Down", self)
+        self.button_down = QtWidgets.QPushButton(QtGui.QIcon(str(graphics_path / "down.png")), "", self)
         self.button_down.clicked.connect(self.button_down_clicked)
+        self.button_down.setToolTip("Move style down in order")
         self.button_down.hide()
 
         # Place 'down' button on left side
-        self.button_down.move(self.width() - self.button_down.width(), 0)
         self.button_down.resize(self.button_down.sizeHint())
 
         # Place 'up' button on right side
-        self.button_up.move(self.width() - self.button_up.width() - self.button_down.width(), 0)
         self.button_up.resize(self.button_up.sizeHint())
 
-        # self.resizeEvent = self.adjustButton
-
     def _showHideButtons(self, index: QModelIndex) -> None:
-        # TODO Better to iterate over all?
+        # TODO Better to iterate over all? Send in check state too?
         item = self.combobox.tableWidget.item(index.row(), 1)
         item_checked = item.checkState()
         if index.row() != self.combobox.tableWidget.currentRow():
@@ -164,6 +176,7 @@ class HoverQLabel(QtWidgets.QLabel):
             self.button_down.hide()
 
     def enterEvent(self, event: QEvent | None) -> None:
+        # Need to manually set the rest of the row highlighted
         index: QModelIndex = self.combobox.tableWidget.indexAt(self.pos())
         self.combobox.tableWidget.selectRow(index.row())
 
@@ -193,22 +206,35 @@ class HoverQLabel(QtWidgets.QLabel):
 
 
 class TableComboBox(QtWidgets.QComboBox):
-    itemChecked = pyqtSignal(str, bool)
+    itemChanged = pyqtSignal()
 
     def __init__(self, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
+
+        # Longest width of read style label
+        self.longest = 0
+
         self.tableWidget = QtWidgets.QTableWidget()
         self.setModel(self.tableWidget.model())
         self.setView(self.tableWidget)
 
+        centered_checkbox_style = CheckBoxStyle()
+        self.tableWidget.setStyle(centered_checkbox_style)
+
         self.tableWidget.setColumnCount(3)
+        self.tableWidget.setHorizontalHeaderLabels([" # ", " Enabled ", "Read Style"])
+        self.tableWidget.horizontalHeaderItem(0).setToolTip("Order of overlay operations")
+        self.tableWidget.horizontalHeaderItem(1).setToolTip("Whether the style is enabled or not")
+        self.tableWidget.horizontalHeaderItem(2).setToolTip("Name of the read style")
+
+        self.tableWidget.horizontalHeader().setSectionResizeMode(2, QtWidgets.QHeaderView.Stretch)
+        self.tableWidget.resizeColumnsToContents()
+
         self.tableWidget.verticalHeader().setVisible(False)
-        self.tableWidget.setHorizontalHeaderLabels(["Order", "Enabled", "Read Style"])
+
         self.tableWidget.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.tableWidget.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
         self.tableWidget.setShowGrid(False)
-        self.tableWidget.horizontalHeader().setSectionResizeMode(2, QtWidgets.QHeaderView.Stretch)
-        self.tableWidget.resizeColumnsToContents()
 
         # Prevent popup from closing when clicking on an item
         self.tableWidget.viewport().installEventFilter(self)
@@ -219,6 +245,9 @@ class TableComboBox(QtWidgets.QComboBox):
         self.tableWidget.currentCellChanged.connect(self.current_cell_changed)
 
     def current_cell_changed(self, cur_row: int, cur_col: int, prev_row: int, prev_col: int) -> None:
+        # When rebuilding, cur_row -1 will occur and cause a crash
+        if cur_row == -1:
+            return
         if prev_row == -1:
             # First time open
             cur_index = self.tableWidget.indexFromItem(self.tableWidget.item(cur_row, 0))
@@ -230,6 +259,42 @@ class TableComboBox(QtWidgets.QComboBox):
             # Show current
             cur_index = self.tableWidget.indexFromItem(self.tableWidget.item(cur_row, 0))
             self.tableWidget.cellWidget(cur_row, 2)._showHideButtons(cur_index)
+
+    def _longest_label(self) -> None:
+        # Depending on "short" names for metadata, "Read Style" header or metadata name may be longer
+        style_header_width = 0
+        header_item = self.tableWidget.horizontalHeaderItem(2)
+        if header_item is not None:
+            font_metrics = QtGui.QFontMetrics(header_item.font())
+            style_header_width = font_metrics.width(header_item.text())
+
+        header_width = 0
+        for col in range(self.tableWidget.columnCount() - 1):  # Skip "read style" as already done above
+            header_item = self.tableWidget.horizontalHeaderItem(col)
+            if header_item is not None:
+                font_metrics = QtGui.QFontMetrics(header_item.font())
+                text_width = font_metrics.width(header_item.text())
+                header_width += text_width
+
+        # Now check items
+        for i in range(self.count()):
+            hlabel = self.tableWidget.cellWidget(i, 2)
+            hlabel_width = (
+                style_header_width if style_header_width > hlabel.sizeHint().width() else hlabel.sizeHint().width()
+            )
+            # Get sizeHint of one button and double it
+            total_width = hlabel_width + header_width + (hlabel.button_up.sizeHint().width() * 2)
+
+            if total_width > self.longest:
+                self.longest = total_width
+
+    def _resizeTable(self) -> None:
+        self._longest_label()
+        self.tableWidget.setMinimumWidth(self.longest)
+
+    def resizeEvent(self, event: Any | None = None) -> None:
+        super().resizeEvent(event)
+        self._updateText()
 
     def eventFilter(self, obj: Any, event: Any) -> bool:
         # Allow events before the combobox list is shown
@@ -258,7 +323,12 @@ class TableComboBox(QtWidgets.QComboBox):
                 return True
         return False
 
+    def emptyTable(self) -> None:
+        self.tableWidget.setRowCount(0)
+        self.longest = 0
+
     def _move_item(self, index: QModelIndex, up: bool) -> None:
+        """Move an item up or down in order"""
         adjust = -1 if up else 1
         cur_item = self.tableWidget.item(index.row(), 0)
         cur_item_data = cur_item.data(Qt.UserRole)
@@ -274,26 +344,40 @@ class TableComboBox(QtWidgets.QComboBox):
             swap_item.setData(Qt.UserRole, {swap_key: cur_value})
 
             self._updateLabels()
+            self.itemChanged.emit()
             # Selected (highlighted) row moves so is no longer under the mouse
             self.tableWidget.selectRow(index.row())
 
-    def addItem(self, label: str = "-", checked: bool = False, text: str = "", data: Any | None = None) -> None:
+    def addItem(self, text: str = "", data: Any | None = None) -> None:
         rowPosition = self.tableWidget.rowCount()
         self.tableWidget.insertRow(rowPosition)
 
-        self.tableWidget.setItem(rowPosition, 0, SortLabelTableWidgetItem(label))
+        sortTblItem = SortLabelTableWidgetItem()
+        sortTblItem.setTextAlignment(Qt.AlignCenter)
+        self.tableWidget.setItem(rowPosition, 0, sortTblItem)
 
         chkBoxItem = QtWidgets.QTableWidgetItem()
-        chkBoxItem.setCheckState(Qt.Checked if checked else Qt.Unchecked)
+        # Set to true to get around the "one item must be checked" check for setItemChecked
+        chkBoxItem.setCheckState(Qt.Checked)
+
         self.tableWidget.setItem(rowPosition, 1, chkBoxItem)
         self.tableWidget.setCellWidget(rowPosition, 2, HoverQLabel(text, parent=self))
         self.tableWidget.item(rowPosition, 0).setData(Qt.UserRole, data)
 
         self._updateLabels()
         self._updateText()
+        # Manual as resizeEvent doesn't trigger
+        self._resizeTable()
+
+    def findData(self, data: str, role: int = Qt.UserRole) -> QModelIndex | None:
+        for i in range(self.count()):
+            item = self.itemData(i)
+            k = list(item.keys())[0]
+            if k == data:
+                return self.tableWidget.indexFromItem(self.tableWidget.item(i, 0))
+        return None
 
     def currentData(self) -> dict[str, int]:
-        # Return the list of all checked items data
         res = {}
         for i in range(self.count()):
             item = self.tableWidget.item(i, 1)
@@ -332,7 +416,7 @@ class TableComboBox(QtWidgets.QComboBox):
             # Disable top up button and bottom down button
             if val == 1:
                 self.tableWidget.cellWidget(i, 2).button_up.setEnabled(False)
-                # Disable the down button if single item. Show buttons as a sign it is checked
+                # Disable the down button if single item. Show buttons even if disabled to indicate checked
                 if val == cur_data_len:
                     self.tableWidget.cellWidget(i, 2).button_down.setEnabled(False)
             elif val == cur_data_len:
@@ -369,33 +453,35 @@ class TableComboBox(QtWidgets.QComboBox):
         self.setCurrentIndex(-1)
         self.setPlaceholderText(elidedText)
 
-    def setItemChecked(self, index: QModelIndex, state: bool) -> None:
+    def setItemChecked(self, index: QModelIndex, state: bool, order: int = -1) -> None:
+        if index is None:
+            return
         qt_state = Qt.Checked if state else Qt.Unchecked
         item = self.tableWidget.item(index.row(), 1)
-        current = self.currentData()
-        # If we have at least one item checked emit itemChecked with the current check state and update text
+        current_len = len(self.currentData())
+
         # Require at least one item to be checked and provide a tooltip
-        if len(current) == 1 and not state and item.checkState() == Qt.Checked:
+        if current_len == 1 and not state and item.checkState() == Qt.Checked:
             QtWidgets.QToolTip.showText(QtGui.QCursor.pos(), self.toolTip(), self, QRect(), 3000)
             return
 
-        if len(current) > 0:
+        if current_len > 0:
             item.setCheckState(qt_state)
             item_data: dict[str, int] = self.itemData(index.row())
             key_name = list(item_data.keys())[0]
             if state:
-                next_num = self._nextOrderNumber()
-                data = {key_name: next_num}
-                self.tableWidget.item(index.row(), 0).setText(str(next_num + 1))
+                order_num = order if order != -1 else self._nextOrderNumber()
+                data = {key_name: order_num}
+                self.tableWidget.item(index.row(), 0).setText(str(order_num + 1))
                 self.tableWidget.item(index.row(), 0).setData(Qt.UserRole, data)
             else:
                 data = {key_name: -1}
                 self.tableWidget.item(index.row(), 0).setText("-")
                 self.tableWidget.item(index.row(), 0).setData(Qt.UserRole, data)
-                # We need to check the order numbers as any number could have been removed
+                # Any number may have been removed so reevaluate all
                 self._setOrderNumbers()
 
-            self.itemChecked.emit(key_name, state)
+            self.itemChanged.emit()
             self._updateText()
             self._updateLabels()
             # Check if buttons need to be shown or hidden

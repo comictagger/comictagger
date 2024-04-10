@@ -249,12 +249,11 @@ class CLI:
 
             md.overlay(f_md)
 
-        for style in self.config.Runtime_Options__type:
+        for style in reversed(self.config.Runtime_Options__type):
             if ca.has_metadata(style):
                 try:
                     t_md = ca.read_metadata(style)
                     md.overlay(t_md)
-                    break
                 except Exception as e:
                     logger.error("Failed to load metadata for %s: %s", ca.path, e)
 

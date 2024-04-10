@@ -160,14 +160,14 @@ def register_runtime(parser: settngs.Manager) -> None:
     parser.add_setting(
         "--json", "-j", action="store_true", help="Output json on stdout. Ignored in interactive mode.", file=False
     )
-
+    # TODO Break read and write apart?
     parser.add_setting(
         "-t",
         "--type",
         metavar=f"{{{','.join(metadata_styles).upper()}}}",
         default=[],
         type=metadata_type,
-        help="""Specify TYPE as either CR, CBL or COMET\n(as either ComicRack, ComicBookLover,\nor CoMet style tags, respectively).\nUse commas for multiple types.\nFor searching the metadata will use the first listed:\neg '-t cbl,cr' with no CBL tags, CR will be used if they exist\n\n""",
+        help="""Specify TYPE as either CR, CBL or COMET\n(as either ComicRack, ComicBookLover,\nor CoMet style tags, respectively).\nUse commas for multiple types.\nFor searching the metadata will be overlayed in reverse order (hierarchical):\ne.g. '-t cbl,cr' first CR tags are read, then CBL overlayed over the top.\n\n""",
         file=False,
     )
     parser.add_setting(
