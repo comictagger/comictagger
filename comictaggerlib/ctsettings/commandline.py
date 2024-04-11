@@ -109,7 +109,7 @@ def register_runtime(parser: settngs.Manager) -> None:
         "--metadata",
         default=GenericMetadata(),
         type=parse_metadata_from_string,
-        help="""Explicitly define, as a list, some tags to be used.  e.g.:\n"series=Plastic Man, publisher=Quality Comics"\n"series=Kickers^, Inc., issue=1, year=1986"\nName-Value pairs are comma separated. Use a\n"^" to escape an "=" or a ",", as shown in\nthe example above.  Some names that can be\nused: series, issue, issue_count, year,\npublisher, title\n\n""",
+        help="""Explicitly define some tags to be used in YAML syntax.  e.g.:\n"series: Plastic Man, publisher: Quality Comics, year: "\n"series: 'Kickers, Inc.', issue: '1', year: 1986"\nIf you want to erase a tag leave the value blank.\nSome names that can be used: series, issue, issue_count, year,\npublisher, title\n\n""",
         file=False,
     )
     parser.add_setting(
