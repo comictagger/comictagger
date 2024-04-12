@@ -109,7 +109,7 @@ def register_runtime(parser: settngs.Manager) -> None:
         "--metadata",
         default=GenericMetadata(),
         type=parse_metadata_from_string,
-        help="""Explicitly define some tags to be used in YAML syntax.  e.g.:\n"series: Plastic Man, publisher: Quality Comics, year: "\n"series: 'Kickers, Inc.', issue: '1', year: 1986"\nIf you want to erase a tag leave the value blank.\nSome names that can be used: series, issue, issue_count, year,\npublisher, title\n\n""",
+        help="""Explicitly define some tags to be used in YAML syntax.  Use @file.yaml to read from a file.  e.g.:\n"series: Plastic Man, publisher: Quality Comics, year: "\n"series: 'Kickers, Inc.', issue: '1', year: 1986"\nIf you want to erase a tag leave the value blank.\nSome names that can be used: series, issue, issue_count, year,\npublisher, title\n\n""",
         file=False,
     )
     parser.add_setting(

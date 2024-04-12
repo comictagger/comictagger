@@ -203,6 +203,11 @@ def parse_metadata_from_string(mdstr: str) -> GenericMetadata:
 
     if not mdstr:
         return md
+    if mdstr[0] == "@":
+        p = pathlib.Path(mdstr[1:])
+        if not p.is_file():
+            raise argparse.ArgumentTypeError("Invalid filepath")
+        mdstr = p.read_text()
     if mdstr[0] != "{":
         mdstr = "{" + mdstr + "}"
 
