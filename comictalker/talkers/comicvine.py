@@ -29,12 +29,11 @@ import requests
 import settngs
 from pyrate_limiter import Limiter, RequestRate
 from typing_extensions import Required, TypedDict
-from urllib3.exceptions import LocationParseError
-from urllib3.util import parse_url
 
 from comicapi import utils
 from comicapi.genericmetadata import ComicSeries, GenericMetadata, TagOrigin
 from comicapi.issuestring import IssueString
+from comicapi.utils import LocationParseError, parse_url
 from comictalker import talker_utils
 from comictalker.comiccacher import ComicCacher, Issue, Series
 from comictalker.comictalker import ComicTalker, TalkerDataError, TalkerNetworkError

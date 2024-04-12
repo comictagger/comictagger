@@ -30,9 +30,7 @@ from typing import Any, Callable
 
 import natsort
 import settngs
-import urllib3.util
 from PyQt5 import QtCore, QtGui, QtNetwork, QtWidgets, uic
-from urllib3.util.url import LocationParseError
 
 import comictaggerlib.ui
 from comicapi import utils
@@ -1000,7 +998,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         md.scan_info = utils.xlate(self.leScanInfo.text())
         md.series_groups = utils.split(self.leSeriesGroup.text(), ",")
         md.alternate_series = self.leAltSeries.text()
-        md.web_links = [urllib3.util.parse_url(self.leWebLink.item(i).text()) for i in range(self.leWebLink.count())]
+        md.web_links = [utils.parse_url(self.leWebLink.item(i).text()) for i in range(self.leWebLink.count())]
         md.characters = set(utils.split(self.teCharacters.toPlainText(), "\n"))
         md.teams = set(utils.split(self.teTeams.toPlainText(), "\n"))
         md.locations = set(utils.split(self.teLocations.toPlainText(), "\n"))
@@ -1383,9 +1381,9 @@ class TaggerWindow(QtWidgets.QMainWindow):
             row = 0
         web_link = self.leWebLink.item(row).text()
         try:
-            urllib3.util.parse_url(web_link)
+            utils.parse_url(web_link)
             webbrowser.open_new_tab(web_link)
-        except LocationParseError:
+        except utils.LocationParseError:
             QtWidgets.QMessageBox.warning(self, "Web Link", "Web Link is invalid.")
 
     def show_settings(self) -> None:
