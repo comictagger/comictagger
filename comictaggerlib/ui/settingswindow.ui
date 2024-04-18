@@ -755,8 +755,7 @@
                    <bool>false</bool>
                   </property>
                   <property name="plainText">
-                   <string>Read Style: Overlays all the none empty values of the read style metadata on top of the current metadata (i.e. file name parsing, other read style(s)).
-Data Source: Overlays all the none empty values from the data source (e.g. Comic Vine) on top of the current metadata (i.e. file name parsing, read style(s)).
+                   <string>Overlays all the none empty values of the read style/data source (e.g. Comic Vine) metadata on top of the current metadata (i.e. file name parsing, other read style(s)).
 
 Example:
 (Series=batman, Issue=1, Tags=[batman,joker,robin])
@@ -793,8 +792,7 @@ Example:
                 <item>
                  <widget class="QPlainTextEdit" name="addTextEdit">
                   <property name="plainText">
-                   <string>Read Style: Adds any metadata that is present in the read style but is missing in the current metadata (i.e. file name parsing, other read style(s)).
-Data Source: Add any metadata that is present in the data source (e.g. Comic Vine) but is missing in the current metadata (i.e. file name parsing, read style(s)).
+                   <string>Adds any metadata that is present in the read style/data source (e.g. Comic Vine) but is missing in the current metadata (i.e. file name parsing, other read style(s)).
 
 Example:
 (Series=batman, Issue=1, Tags=[batman,joker,robin])
@@ -831,8 +829,7 @@ Example:
                 <item>
                  <widget class="QPlainTextEdit" name="combineTextEdit">
                   <property name="plainText">
-                   <string>Read Style: Same as Overlay except lists (tags, characters, genres, credits, etc.) are combined with the current metadata (i.e. file name parsing, other read style(s)).
-Data Source: Same as Overlay except lists (tags, characters, genres, credits, etc.) are combined with the current metadata (i.e. file name parsing, read style(s)).
+                   <string>Combine lists (tags, characters, genres, credits, etc.) replacing duplicates with the &quot;new&quot; data and all other non-empty values are replaced by the &quot;new&quot; values.
 
 Example:
 (Series=batman, Issue=1, Tags=[batman,joker,robin])
