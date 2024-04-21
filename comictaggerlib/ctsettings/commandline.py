@@ -27,7 +27,7 @@ import settngs
 
 from comicapi import utils
 from comicapi.comicarchive import metadata_styles
-from comicapi.genericmetadata import GenericMetadata
+from comicapi.genericmetadata import GenericMetadata, OverlayMode
 from comictaggerlib import ctversion
 from comictaggerlib.ctsettings.settngs_namespace import SettngsNS as ct_ns
 from comictaggerlib.ctsettings.types import (
@@ -175,6 +175,18 @@ def register_runtime(parser: settngs.Manager) -> None:
         default=[],
         type=metadata_type,
         help="""Specify the type of tags to read.\nUse commas for multiple types.\nSee --list-plugins for the available types.\nThe tag use will be 'overlayed' in order:\ne.g. '-t cbl,cr' with no CBL tags, CR will be used if they exist and CR will overwrite any shared CBL tags.\n\n""",
+        file=False,
+    )
+    parser.add_setting(
+        "--read-style-overlay",
+        type=OverlayMode,
+        help="How to overlay new metadata on the current for enabled read styles (CR, CBL, etc.)",
+        file=False,
+    )
+    parser.add_setting(
+        "--source-overlay",
+        type=OverlayMode,
+        help="How to overlay new metadata from a data source (CV, Metron, GCD, etc.) on to the current",
         file=False,
     )
     parser.add_setting(

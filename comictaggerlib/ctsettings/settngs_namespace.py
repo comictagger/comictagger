@@ -37,6 +37,8 @@ class SettngsNS(settngs.TypedNS):
     Runtime_Options__json: bool
     Runtime_Options__type_modify: list[str]
     Runtime_Options__type_read: list[str]
+    Runtime_Options__read_style_overlay: OverlayMode
+    Runtime_Options__source_overlay: OverlayMode
     Runtime_Options__overwrite: bool
     Runtime_Options__no_gui: bool
     Runtime_Options__files: list[str]
@@ -44,6 +46,8 @@ class SettngsNS(settngs.TypedNS):
     internal__install_id: str
     internal__save_data_style: list[str]
     internal__load_data_style: list[str]
+    internal__load_data_overlay: OverlayMode
+    internal__source_data_overlay: OverlayMode
     internal__last_opened_folder: str
     internal__window_width: int
     internal__window_height: int
@@ -202,7 +206,6 @@ class Metadata_Options(typing.TypedDict):
     cbl_copy_weblink_to_comments: bool
     cbl_apply_transform_on_import: bool
     cbl_apply_transform_on_bulk_operation: bool
-    metadata_overlay: OverlayMode
     use_short_metadata_names: bool
     disable_cr: bool
 

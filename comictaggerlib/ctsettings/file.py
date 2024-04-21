@@ -27,6 +27,8 @@ def internal(parser: settngs.Manager) -> None:
     parser.add_setting("install_id", default=uuid.uuid4().hex, cmdline=False)
     parser.add_setting("save_data_style", default=["cbi"], cmdline=False)
     parser.add_setting("load_data_style", default=["cbi"], cmdline=False)
+    parser.add_setting("load_data_overlay", default=OverlayMode.overlay, cmdline=False, type=OverlayMode)
+    parser.add_setting("source_data_overlay", default=OverlayMode.overlay, cmdline=False, type=OverlayMode)
     parser.add_setting("last_opened_folder", default="", cmdline=False)
     parser.add_setting("window_width", default=0, cmdline=False)
     parser.add_setting("window_height", default=0, cmdline=False)

@@ -262,7 +262,7 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
             return
 
         QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
-        md.overlay(ct_md, self.config.Metadata_Options__source_overlay)
+        md.overlay(ct_md, self.config.internal__source_data_overlay)
         for style in self._styles:
             success = ca.write_metadata(md, style)
             QtWidgets.QApplication.restoreOverrideCursor()
