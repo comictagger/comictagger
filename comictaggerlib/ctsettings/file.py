@@ -172,19 +172,6 @@ def md_options(parser: settngs.Manager) -> None:
     parser.add_setting("--cbl-apply-transform-on-import", default=False, action=argparse.BooleanOptionalAction)
     parser.add_setting("--cbl-apply-transform-on-bulk-operation", default=False, action=argparse.BooleanOptionalAction)
 
-    parser.add_setting(
-        "--read-style-overlay",
-        default=OverlayMode.overlay,
-        type=OverlayMode,
-        help="How to overlay new metadata on the current for enabled read styles (CR, CBL, etc.)",
-    )
-    parser.add_setting(
-        "--source-overlay",
-        default=OverlayMode.overlay,
-        type=OverlayMode,
-        help="How to overlay the new metadata from a source (CV, Metron, GCD, etc.) on to the current",
-    )
-
     parser.add_setting("use_short_metadata_names", default=False, action=argparse.BooleanOptionalAction, cmdline=False)
     parser.add_setting(
         "--disable-cr",

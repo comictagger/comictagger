@@ -88,8 +88,6 @@ class SettngsNS(settngs.TypedNS):
     Metadata_Options__cbl_copy_weblink_to_comments: bool
     Metadata_Options__cbl_apply_transform_on_import: bool
     Metadata_Options__cbl_apply_transform_on_bulk_operation: bool
-    Metadata_Options__read_style_overlay: OverlayMode
-    Metadata_Options__source_overlay: OverlayMode
     Metadata_Options__use_short_metadata_names: bool
     Metadata_Options__disable_cr: bool
 
@@ -206,7 +204,6 @@ class Metadata_Options(typing.TypedDict):
     cbl_copy_weblink_to_comments: bool
     cbl_apply_transform_on_import: bool
     cbl_apply_transform_on_bulk_operation: bool
-    metadata_overlay: OverlayMode
     use_short_metadata_names: bool
     disable_cr: bool
 
