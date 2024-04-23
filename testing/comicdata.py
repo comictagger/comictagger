@@ -64,6 +64,66 @@ metadata = [
     ),
 ]
 
+metadata_add = [
+    (
+        comicapi.genericmetadata.GenericMetadata(series="test", issue="1", title="test", genres={"test", "test2"}),
+        comicapi.genericmetadata.GenericMetadata(
+            series="test2", issue="2", title="test2", genres={"test3", "test4"}, issue_count=5
+        ),
+        comicapi.genericmetadata.GenericMetadata(
+            series="test", issue="1", title="test", genres={"test", "test2"}, issue_count=5
+        ),
+    ),
+]
+
+metadata_combine = [
+    (
+        comicapi.genericmetadata.GenericMetadata(
+            series="test",
+            issue="1",
+            title="test",
+            genres={"test", "test2"},
+            story_arcs=["arc1"],
+            characters={"Bob", "fred"},
+            web_links=[comicapi.genericmetadata.parse_url("https://my.comics.here.com")],
+        ),
+        comicapi.genericmetadata.GenericMetadata(
+            series="test2",
+            title="test2",
+            genres={"test2", "test3", "test4"},
+            story_arcs=["arc1", "arc2"],
+            characters={"bob", "fred"},
+        ),
+        comicapi.genericmetadata.GenericMetadata(
+            series="test2",
+            issue="1",
+            title="test2",
+            genres={"test", "test2", "test3", "test4"},
+            story_arcs=["arc1", "arc2"],
+            characters={"bob", "fred"},
+            web_links=[comicapi.genericmetadata.parse_url("https://my.comics.here.com")],
+        ),
+    ),
+]
+
+metadata_dedupe_set = [
+    (
+        comicapi.genericmetadata.GenericMetadata(characters={"Macintosh", "Søren Kierkegaard", "Barry"}),
+        comicapi.genericmetadata.GenericMetadata(characters={"MacIntosh", "Soren Kierkegaard"}),
+        comicapi.genericmetadata.GenericMetadata(
+            characters={"MacIntosh", "Soren Kierkegaard", "Søren Kierkegaard", "Barry"}
+        ),
+    ),
+]
+
+metadata_dedupe_list = [
+    (
+        comicapi.genericmetadata.GenericMetadata(story_arcs=["arc 1", "arc2", "arc 3"]),
+        comicapi.genericmetadata.GenericMetadata(story_arcs=["Arc 1", "Arc2"]),
+        comicapi.genericmetadata.GenericMetadata(story_arcs=["Arc 1", "Arc2", "arc 3"]),
+    ),
+]
+
 metadata_keys = [
     (
         comicapi.genericmetadata.md_test,

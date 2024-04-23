@@ -5,8 +5,8 @@ import textwrap
 import pytest
 
 import comicapi.genericmetadata
-from comicapi.genericmetadata import OverlayMode, parse_url
-from testing.comicdata import credits, metadata
+import testing.comicdata as cd
+from comicapi.genericmetadata import OverlayMode
 
 
 def test_apply_default_page_list(tmp_path):
@@ -18,78 +18,35 @@ def test_apply_default_page_list(tmp_path):
     assert isinstance(md.pages[0]["image_index"], int)
 
 
-@pytest.mark.parametrize("replaced, expected", metadata)
+@pytest.mark.parametrize("replaced, expected", cd.metadata)
 def test_metadata_overlay(md: comicapi.genericmetadata.GenericMetadata, replaced, expected):
     md.overlay(replaced)
 
     assert md == expected
 
 
-def test_metadata_overlay_add_missing():
-    md = comicapi.genericmetadata.GenericMetadata(series="test", issue="1", title="test", genres={"test", "test2"})
-    add = comicapi.genericmetadata.GenericMetadata(
-        series="test2", issue="2", title="test2", genres={"test3", "test4"}, issue_count=5
-    )
-    expected = comicapi.genericmetadata.GenericMetadata(
-        series="test", issue="1", title="test", genres={"test", "test2"}, issue_count=5
-    )
-    md.overlay(add, OverlayMode.add_missing)
-
+@pytest.mark.parametrize("md, new, expected", cd.metadata_add)
+def test_metadata_overlay_add_missing(md, new, expected):
+    md.overlay(new, OverlayMode.add_missing)
     assert md == expected
 
 
-def test_metadata_overlay_combine():
-    md = comicapi.genericmetadata.GenericMetadata(
-        series="test",
-        issue="1",
-        title="test",
-        genres={"test", "test2"},
-        story_arcs=["arc1"],
-        characters={"Bob", "fred"},
-        web_links=[parse_url("https://my.comics.here.com")],
-    )
-    combine_new = comicapi.genericmetadata.GenericMetadata(
-        series="test2",
-        title="test2",
-        genres={"test2", "test3", "test4"},
-        story_arcs=["arc1", "arc2"],
-        characters={"bob", "fred"},
-    )
-    expected = comicapi.genericmetadata.GenericMetadata(
-        series="test2",
-        issue="1",
-        title="test2",
-        genres={"test", "test2", "test3", "test4"},
-        story_arcs=["arc1", "arc2"],
-        characters={"bob", "fred"},
-        web_links=[parse_url("https://my.comics.here.com")],
-    )
-    md.overlay(combine_new, OverlayMode.combine)
-
+@pytest.mark.parametrize("md, new, expected", cd.metadata_combine)
+def test_metadata_overlay_combine(md, new, expected):
+    md.overlay(new, OverlayMode.combine)
     assert md == expected
 
 
-def test_assign_dedupe_set():
-    md_cur = comicapi.genericmetadata.GenericMetadata(characters={"Macintosh", "Søren Kierkegaard", "Barry"})
-    md_new = comicapi.genericmetadata.GenericMetadata(characters={"MacIntosh", "Soren Kierkegaard"})
-    # Expect a failure to normalise with NFKD and 'ø'
-    expected = comicapi.genericmetadata.GenericMetadata(
-        characters={"MacIntosh", "Soren Kierkegaard", "Søren Kierkegaard", "Barry"}
-    )
-
-    md_cur.overlay(md_new, OverlayMode.combine)
-
-    assert md_cur == expected
+@pytest.mark.parametrize("md, new, expected", cd.metadata_dedupe_set)
+def test_assign_dedupe_set(md, new, expected):
+    md.overlay(new, OverlayMode.combine)
+    assert md == expected
 
 
-def test_assign_dedupe_list():
-    md_cur = comicapi.genericmetadata.GenericMetadata(story_arcs=["arc 1", "arc2", "arc 3"])
-    md_new = comicapi.genericmetadata.GenericMetadata(story_arcs=["Arc 1", "Arc2"])
-    expected = comicapi.genericmetadata.GenericMetadata(story_arcs=["Arc 1", "Arc2", "arc 3"])
-
-    md_cur.overlay(md_new, OverlayMode.combine)
-
-    assert md_cur == expected
+@pytest.mark.parametrize("md, new, expected", cd.metadata_dedupe_list)
+def test_assign_dedupe_list(md, new, expected):
+    md.overlay(new, OverlayMode.combine)
+    assert md == expected
 
 
 def test_assign_credits_overlay():
@@ -141,7 +98,7 @@ def test_add_credit_primary():
     assert md.credits == [comicapi.genericmetadata.Credit(person="test", role="writer", primary=True)]
 
 
-@pytest.mark.parametrize("md, role, expected", credits)
+@pytest.mark.parametrize("md, role, expected", cd.credits)
 def test_get_primary_credit(md, role, expected):
     assert md.get_primary_credit(role) == expected
 
