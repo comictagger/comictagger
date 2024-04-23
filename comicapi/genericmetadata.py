@@ -268,8 +268,8 @@ class GenericMetadata:
             return new
 
         # Create dict for deduplication
-        new_dict: dict[str, Credit] = {f"{norm_fold(n['person'])}_{n['role'].casefold()}": n for n in new}
-        cur_dict: dict[str, Credit] = {f"{norm_fold(c['person'])}_{c['role'].casefold()}": c for c in cur}
+        new_dict: dict[str, Credit] = {norm_fold(f"{n['person']}_{n['role']}"): n for n in new}
+        cur_dict: dict[str, Credit] = {norm_fold(f"{c['person']}_{c['role']}"): c for c in cur}
 
         # Any duplicates use the 'new' value
         cur_dict.update(new_dict)
@@ -477,10 +477,13 @@ class GenericMetadata:
 
         credit = Credit(person=person, role=role, primary=primary)
 
+        person = norm_fold(person)
+        role = norm_fold(role)
+
         # look to see if it's not already there...
         found = False
         for c in self.credits:
-            if norm_fold(c["person"]) == norm_fold(person) and norm_fold(c["role"]) == norm_fold(role):
+            if norm_fold(c["person"]) == person and norm_fold(c["role"]) == role:
                 # no need to add it. just adjust the "primary" flag as needed
                 c["primary"] = primary
                 found = True
