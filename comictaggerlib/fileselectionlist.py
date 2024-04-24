@@ -98,10 +98,14 @@ class FileSelectionList(QtWidgets.QWidget):
         self.dirty_flag = modified
 
     def select_all(self) -> None:
-        self.twList.setRangeSelected(QtWidgets.QTableWidgetSelectionRange(0, 0, self.twList.rowCount() - 1, 5), True)
+        self.twList.setRangeSelected(
+            QtWidgets.QTableWidgetSelectionRange(0, 0, self.twList.rowCount() - 1, self.twList.columnCount() - 1), True
+        )
 
     def deselect_all(self) -> None:
-        self.twList.setRangeSelected(QtWidgets.QTableWidgetSelectionRange(0, 0, self.twList.rowCount() - 1, 5), False)
+        self.twList.setRangeSelected(
+            QtWidgets.QTableWidgetSelectionRange(0, 0, self.twList.rowCount() - 1, self.twList.columnCount() - 1), False
+        )
 
     def remove_archive_list(self, ca_list: list[ComicArchive]) -> None:
         self.twList.setSortingEnabled(False)
