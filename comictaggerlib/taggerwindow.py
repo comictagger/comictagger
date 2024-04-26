@@ -223,11 +223,11 @@ class TaggerWindow(QtWidgets.QMainWindow):
         for style in config[0].internal__save_data_style:
             if style not in metadata_styles:
                 config[0].internal__save_data_style.remove(style)
-        for style in config[0].internal__load_data_style.keys():
+        for style in config[0].internal__load_data_style:
             if style not in metadata_styles:
-                del config[0].internal__load_data_style[style]
+                config[0].internal__load_data_style.remove(style)
         self.save_data_styles: list[str] = config[0].internal__save_data_style
-        self.load_data_styles: dict[str, int] = config[0].internal__load_data_style
+        self.load_data_styles: list[str] = config[0].internal__load_data_style
 
         self.setAcceptDrops(True)
         self.view_tag_actions, self.remove_tag_actions = self.tag_actions()
@@ -1399,9 +1399,12 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
     def adjust_load_style_combo(self) -> None:
         # select the enabled styles
-        unchecked = set(metadata_styles.keys()) - set(self.load_data_styles.keys())
-        for style, order in self.load_data_styles.items():
-            self.cbLoadDataStyle.setItemChecked(self.cbLoadDataStyle.findData(style), True, order)
+        unchecked = set(metadata_styles.keys()) - set(self.load_data_styles)
+        for i, style in enumerate(self.load_data_styles):
+            item_idx = self.cbLoadDataStyle.findData(style)
+            self.cbLoadDataStyle.setItemChecked(item_idx, True)
+            # Order matters so move it
+            self.cbLoadDataStyle.moveItem(item_idx, row=i)
         for style in unchecked:
             self.cbLoadDataStyle.setItemChecked(self.cbLoadDataStyle.findData(style), False)
 
@@ -1424,10 +1427,10 @@ class TaggerWindow(QtWidgets.QMainWindow):
         for style in metadata_styles.values():
             if self.config[0].General__use_short_metadata_names:
                 self.cbSaveDataStyle.addItem(style.short_name.upper(), style.short_name)
-                self.cbLoadDataStyle.addItem(style.short_name.upper(), {style.short_name: -1})
+                self.cbLoadDataStyle.addItem(style.short_name.upper(), style.short_name)
             else:
                 self.cbSaveDataStyle.addItem(style.name(), style.short_name)
-                self.cbLoadDataStyle.addItem(style.name(), {style.short_name: -1})
+                self.cbLoadDataStyle.addItem(style.name(), style.short_name)
 
     def populate_combo_boxes(self) -> None:
         self.populate_style_names()

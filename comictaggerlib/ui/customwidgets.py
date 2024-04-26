@@ -160,7 +160,11 @@ class HoverQLabel(QtWidgets.QLabel):
         # Place 'up' button on right side
         self.button_up.resize(self.button_up.sizeHint())
 
-    def _showHideButtons(self, index: QModelIndex) -> None:
+    def hideButtons(self) -> None:
+        self.button_up.hide()
+        self.button_down.hide()
+
+    def showHideButtons(self, index: QModelIndex) -> None:
         # TODO Better to iterate over all? Send in check state too?
         item = self.combobox.tableWidget.item(index.row(), 1)
         item_checked = item.checkState()
@@ -198,11 +202,11 @@ class HoverQLabel(QtWidgets.QLabel):
 
     def button_up_clicked(self) -> None:
         index: QModelIndex = self.combobox.tableWidget.indexAt(self.pos())
-        self.combobox._move_item(index, True)
+        self.combobox.moveItem(index, True)
 
     def button_down_clicked(self) -> None:
         index: QModelIndex = self.combobox.tableWidget.indexAt(self.pos())
-        self.combobox._move_item(index, False)
+        self.combobox.moveItem(index, False)
 
 
 class TableComboBox(QtWidgets.QComboBox):
@@ -251,14 +255,14 @@ class TableComboBox(QtWidgets.QComboBox):
         if prev_row == -1:
             # First time open
             cur_index = self.tableWidget.indexFromItem(self.tableWidget.item(cur_row, 0))
-            self.tableWidget.cellWidget(cur_row, 2)._showHideButtons(cur_index)
+            self.tableWidget.cellWidget(cur_row, 2).showHideButtons(cur_index)
         elif cur_row != prev_row:
             # Hide previous
             prev_index = self.tableWidget.indexFromItem(self.tableWidget.item(prev_row, 0))
-            self.tableWidget.cellWidget(prev_row, 2)._showHideButtons(prev_index)
+            self.tableWidget.cellWidget(prev_row, 2).showHideButtons(prev_index)
             # Show current
             cur_index = self.tableWidget.indexFromItem(self.tableWidget.item(cur_row, 0))
-            self.tableWidget.cellWidget(cur_row, 2)._showHideButtons(cur_index)
+            self.tableWidget.cellWidget(cur_row, 2).showHideButtons(cur_index)
 
     def _longest_label(self) -> None:
         # Depending on "short" names for metadata, "Read Style" header or metadata name may be longer
@@ -327,29 +331,35 @@ class TableComboBox(QtWidgets.QComboBox):
         self.tableWidget.setRowCount(0)
         self.longest = 0
 
-    def _move_item(self, index: QModelIndex, up: bool) -> None:
-        """Move an item up or down in order"""
-        adjust = -1 if up else 1
-        cur_item = self.tableWidget.item(index.row(), 0)
-        cur_item_data = cur_item.data(Qt.UserRole)
-        cur_key, cur_value = next(iter(cur_item_data.items()))
+    def moveItem(self, index: QModelIndex, up: bool = False, row: int | None = None) -> None:
+        """'Move' an item. Really swap the data and titles around on the two rows"""
+        if row is None:
+            adjust = -1 if up else 1
+            row = index.row() + adjust
 
-        swap_item = self.tableWidget.item(index.row() + adjust, 0)
-        swap_item_data = swap_item.data(Qt.UserRole)
-        swap_key, swap_value = next(iter(swap_item_data.items()))
+        # Grab values for the rows to swap
+        cur_data = self.tableWidget.item(index.row(), 0).data(Qt.UserRole)
+        cur_title = self.tableWidget.cellWidget(index.row(), 2).text()
+        swap_data = self.tableWidget.item(row, 0).data(Qt.UserRole)
+        swap_title = self.tableWidget.cellWidget(row, 2).text()
 
-        # While the buttons should not be enabled, check for valid numbers to swap anyway
-        if cur_value != -1 and swap_value != -1:
-            cur_item.setData(Qt.UserRole, {cur_key: swap_value})
-            swap_item.setData(Qt.UserRole, {swap_key: cur_value})
+        self.tableWidget.item(row, 0).setData(Qt.UserRole, cur_data)
+        self.tableWidget.cellWidget(row, 2).setText(cur_title)
+        self.tableWidget.item(index.row(), 0).setData(Qt.UserRole, swap_data)
+        self.tableWidget.cellWidget(index.row(), 2).setText(swap_title)
 
-            self._updateLabels()
-            self.itemChanged.emit()
-            # Selected (highlighted) row moves so is no longer under the mouse
-            self.tableWidget.selectRow(index.row())
+        # Hide buttons and clear selection to indicate to user an action has taken place
+        self.tableWidget.cellWidget(index.row(), 2).hideButtons()
+        self.tableWidget.clearSelection()
 
-    def addItem(self, text: str = "", data: Any | None = None) -> None:
-        rowPosition = self.tableWidget.rowCount()
+        self.itemChanged.emit()
+
+    def addItem(self, text: str = "", data: Any | None = None, rowPosition: int | None = None) -> None:
+        rowPosition = (
+            self.tableWidget.rowCount()
+            if rowPosition is None or rowPosition > self.tableWidget.rowCount()
+            else rowPosition
+        )
         self.tableWidget.insertRow(rowPosition)
 
         sortTblItem = SortLabelTableWidgetItem()
@@ -372,57 +382,62 @@ class TableComboBox(QtWidgets.QComboBox):
     def findData(self, data: str, role: int = Qt.UserRole) -> QModelIndex | None:
         for i in range(self.count()):
             item = self.itemData(i)
-            k = list(item.keys())[0]
-            if k == data:
+            if item == data:
                 return self.tableWidget.indexFromItem(self.tableWidget.item(i, 0))
         return None
 
-    def currentData(self) -> dict[str, int]:
-        res = {}
+    def currentData(self) -> list[str]:
+        res = []
         for i in range(self.count()):
             item = self.tableWidget.item(i, 1)
             if item.checkState() == Qt.Checked:
-                res.update(self.itemData(i))
+                res.append(self.itemData(i))
         return res
 
     def _setOrderNumbers(self) -> None:
-        """Recalculate the order numbers; 0,2 -> 0,1"""
+        """Recalculate the order numbers"""
         current_data = self.currentData()
-        # Convert dict to list of tuples
-        data = list(current_data.items())
-        # Sort the list by value (second element in the tuple)
-        sorted_data = sorted(data, key=lambda x: x[1])
-        for i, value in enumerate(sorted_data):
-            for j in range(self.count()):
-                item = self.itemData(j)
-                if list(item.keys())[0] == value[0]:
-                    self.tableWidget.item(j, 0).setData(Qt.UserRole, {value[0]: i})
+        text = "-"
+
+        for j in range(self.count()):
+            item = self.itemData(j)
+            for i, cur in enumerate(current_data):
+                if item == cur:
+                    text = str(i + 1)
+
+            self.tableWidget.item(j, 0).setText(text)
 
     def _updateLabels(self) -> None:
         """Update order label text and set button enablement"""
         cur_data_len = len(self.currentData())
         for i in range(self.count()):
             label = self.tableWidget.item(i, 0)
+            checked = self.tableWidget.item(i, 1).checkState()
             data = self.itemData(i)
-            k, val = next(iter(data.items()))
-            val += 1
-            text = "-" if val == 0 else str(val)
-            label.setText(text)
+            label_num = "-"
+            enable_up = True
+            enable_down = True
 
-            # Enable all buttons
-            self.tableWidget.cellWidget(i, 2).button_up.setEnabled(True)
-            self.tableWidget.cellWidget(i, 2).button_down.setEnabled(True)
+            # Go through currentData
+            for j, cur_data in enumerate(self.currentData()):
+                if cur_data == data:
+                    label_num = str(j + 1)
+                    if cur_data_len == 1:
+                        enable_up = False
+                        enable_down = False
+                    elif j == 0:
+                        enable_up = False
+                    elif j + 1 == cur_data_len:
+                        enable_down = False
 
-            # Disable top up button and bottom down button
-            if val == 1:
-                self.tableWidget.cellWidget(i, 2).button_up.setEnabled(False)
-                # Disable the down button if single item. Show buttons even if disabled to indicate checked
-                if val == cur_data_len:
-                    self.tableWidget.cellWidget(i, 2).button_down.setEnabled(False)
-            elif val == cur_data_len:
-                self.tableWidget.cellWidget(i, 2).button_down.setEnabled(False)
+            label.setText(label_num)
+
+            # Enable/disable hover buttons
+            self.tableWidget.cellWidget(i, 2).button_up.setEnabled(enable_up)
+            self.tableWidget.cellWidget(i, 2).button_down.setEnabled(enable_down)
 
         self.tableWidget.sortItems(0)
+        self.tableWidget.clearSelection()
 
     def _nextOrderNumber(self) -> int:
         return len(self.currentData()) - 1
@@ -453,7 +468,7 @@ class TableComboBox(QtWidgets.QComboBox):
         self.setCurrentIndex(-1)
         self.setPlaceholderText(elidedText)
 
-    def setItemChecked(self, index: QModelIndex, state: bool, order: int = -1) -> None:
+    def setItemChecked(self, index: QModelIndex, state: bool) -> None:
         if index is None:
             return
         qt_state = Qt.Checked if state else Qt.Unchecked
@@ -467,27 +482,13 @@ class TableComboBox(QtWidgets.QComboBox):
 
         if current_len > 0:
             item.setCheckState(qt_state)
-            item_data: dict[str, int] = self.itemData(index.row())
-            key_name = list(item_data.keys())[0]
-            if state:
-                order_num = order if order != -1 else self._nextOrderNumber()
-                data = {key_name: order_num}
-                self.tableWidget.item(index.row(), 0).setText(str(order_num + 1))
-                self.tableWidget.item(index.row(), 0).setData(Qt.UserRole, data)
-            else:
-                data = {key_name: -1}
-                self.tableWidget.item(index.row(), 0).setText("-")
-                self.tableWidget.item(index.row(), 0).setData(Qt.UserRole, data)
-                # Any number may have been removed so reevaluate all
-                self._setOrderNumbers()
-
-            self.itemChanged.emit()
-            self._updateText()
+            if not state:
+                # Hide hover buttons of shown row (before it changes row)
+                self.tableWidget.cellWidget(index.row(), 2).showHideButtons(index)
+            self._setOrderNumbers()
             self._updateLabels()
-            # Check if buttons need to be shown or hidden
-            self.tableWidget.cellWidget(index.row(), 2)._showHideButtons(index)
-            # As the sort may have moved the highlighted row, select what's under the mouse
-            self.tableWidget.selectRow(index.row())
+            self._updateText()
+            self.itemChanged.emit()
 
     def toggleItem(self, index: QModelIndex) -> None:
         cxb_index = self.model().index(index.row(), 1)
