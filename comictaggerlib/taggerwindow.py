@@ -214,11 +214,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
         if config[0].Runtime_Options__type and isinstance(config[0].Runtime_Options__type[0], str):
             # respect the command line option tag type
             config[0].internal__save_data_style = config[0].Runtime_Options__type
-            # TODO Should the command line have seperate options for read and write?
-            cmd_read_style = {}
-            for i, style in enumerate(config[0].Runtime_Options__type):
-                cmd_read_style.update({style: i})
-            config[0].internal__load_data_style = cmd_read_style
+            # TODO Separate options for read and write
+            config[0].internal__load_data_style = config[0].Runtime_Options__type
 
         for style in config[0].internal__save_data_style:
             if style not in metadata_styles:
@@ -1622,7 +1619,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         has_src_count = 0
 
         # TODO: Take first read style for now (make a better system later)
-        src_style, _ = next(iter(self.load_data_styles.items()))
+        src_style = self.load_data_styles[0]
         dest_styles = self.save_data_styles
 
         # Remove the read style from the write style

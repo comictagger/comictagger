@@ -39,7 +39,7 @@ class RenameWindow(QtWidgets.QDialog):
         self,
         parent: QtWidgets.QWidget,
         comic_archive_list: list[ComicArchive],
-        data_styles: dict[str, int],
+        data_styles: list[str],
         config: settngs.Config[ct_ns],
         talkers: dict[str, ComicTalker],
     ) -> None:
@@ -49,7 +49,7 @@ class RenameWindow(QtWidgets.QDialog):
             uic.loadUi(uifile, self)
 
         self.label.setText(
-            f"Preview (based on {', '.join([f'{metadata_styles[style].name()}' for style in data_styles.keys()])} tags):"
+            f"Preview (based on {', '.join([f'{metadata_styles[style].name()}' for style in data_styles])} tags):"
         )
 
         self.setWindowFlags(

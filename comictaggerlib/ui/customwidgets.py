@@ -399,7 +399,6 @@ class TableComboBox(QtWidgets.QComboBox):
         cur_data_len = len(self.currentData())
         for i in range(self.count()):
             label = self.tableWidget.item(i, 0)
-            checked = self.tableWidget.item(i, 1).checkState()
             data = self.itemData(i)
             label_num = "-"
             enable_up = True
