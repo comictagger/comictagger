@@ -25,8 +25,7 @@ import platform
 import re
 import sys
 import webbrowser
-from datetime import datetime
-from typing import Any, Callable
+from typing import Any, Callable, cast
 
 import natsort
 import settngs
@@ -52,18 +51,18 @@ from comictaggerlib.fileselectionlist import FileSelectionList
 from comictaggerlib.graphics import graphics_path
 from comictaggerlib.issueidentifier import IssueIdentifier
 from comictaggerlib.logwindow import LogWindow
+from comictaggerlib.md import prepare_metadata
 from comictaggerlib.optionalmsgdialog import OptionalMessageDialog
 from comictaggerlib.pagebrowser import PageBrowserWindow
 from comictaggerlib.pagelisteditor import PageListEditor
 from comictaggerlib.renamewindow import RenameWindow
-from comictaggerlib.resulttypes import Action, IssueResult, MatchStatus, OnlineMatchResults, Result, Status
+from comictaggerlib.resulttypes import Action, MatchStatus, OnlineMatchResults, Result, Status
 from comictaggerlib.seriesselectionwindow import SeriesSelectionWindow
 from comictaggerlib.settingswindow import SettingsWindow
 from comictaggerlib.ui import ui_path
 from comictaggerlib.ui.qtutils import center_window_on_parent, enable_widget, reduce_widget_font_size
 from comictaggerlib.versionchecker import VersionChecker
 from comictalker.comictalker import ComicTalker, TalkerError
-from comictalker.talker_utils import cleanup_html
 
 logger = logging.getLogger(__name__)
 
@@ -1148,33 +1147,18 @@ class TaggerWindow(QtWidgets.QMainWindow):
             except TalkerError as e:
                 QtWidgets.QApplication.restoreOverrideCursor()
                 QtWidgets.QMessageBox.critical(self, f"{e.source} {e.code_name} Error", f"{e}")
-            else:
-                QtWidgets.QApplication.restoreOverrideCursor()
-                if new_metadata is not None:
-                    if self.config[0].Comic_Book_Lover__apply_transform_on_import:
-                        new_metadata = CBLTransformer(new_metadata, self.config[0]).apply()
+                return
+            QtWidgets.QApplication.restoreOverrideCursor()
 
-                    if self.config[0].Issue_Identifier__clear_metadata:
-                        self.clear_form()
+            if new_metadata is None or new_metadata.is_empty:
+                QtWidgets.QMessageBox.critical(
+                    self, "Search", f"Could not find an issue {selector.issue_number} for that series"
+                )
+                return
 
-                    notes = (
-                        f"Tagged with ComicTagger {ctversion.version} using info from {self.current_talker().name} on"
-                        f" {datetime.now():%Y-%m-%d %H:%M:%S}. [Issue ID {new_metadata.issue_id}]"
-                    )
-                    self.metadata.overlay(
-                        new_metadata.replace(
-                            notes=utils.combine_notes(self.metadata.notes, notes, "Tagged with ComicTagger"),
-                            description=cleanup_html(
-                                new_metadata.description, self.config[0].Sources__remove_html_tables
-                            ),
-                        )
-                    )
-                    # Now push the new combined data into the edit controls
-                    self.metadata_to_form()
-                else:
-                    QtWidgets.QMessageBox.critical(
-                        self, "Search", f"Could not find an issue {selector.issue_number} for that series"
-                    )
+            self.metadata = prepare_metadata(self.metadata, new_metadata, self.config[0])
+            # Now push the new combined data into the edit controls
+            self.metadata_to_form()
 
     def commit_metadata(self) -> None:
         if self.metadata is not None and self.comic_archive is not None:
@@ -1716,24 +1700,6 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 dlg.setWindowTitle("Tag Copy Summary")
                 dlg.exec()
 
-    def actual_issue_data_fetch(self, match: IssueResult) -> GenericMetadata:
-        # now get the particular issue data OR series data
-        ct_md = GenericMetadata()
-        QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
-
-        try:
-            ct_md = self.current_talker().fetch_comic_data(match.issue_id)
-        except TalkerError:
-            logger.exception("Save aborted.")
-
-        if not ct_md.is_empty:
-            if self.config[0].Comic_Book_Lover__apply_transform_on_import:
-                ct_md = CBLTransformer(ct_md, self.config[0]).apply()
-
-        QtWidgets.QApplication.restoreOverrideCursor()
-
-        return ct_md
-
     def auto_tag_log(self, text: str) -> None:
         if self.atprogdialog is not None:
             self.atprogdialog.textEdit.append(text.rstrip())
@@ -1871,8 +1837,18 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 self.auto_tag_log("Online search: Low confidence match, but saving anyways, as indicated...\n")
 
             # now get the particular issue data
-            ct_md = self.actual_issue_data_fetch(matches[0])
-            if ct_md is None:
+            QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
+
+            try:
+
+                ct_md = self.current_talker().fetch_comic_data(matches[0].issue_id)
+            except TalkerError:
+                logger.exception("Save aborted.")
+                return False, match_results
+
+            QtWidgets.QApplication.restoreOverrideCursor()
+
+            if ct_md is None or ct_md.is_empty:
                 match_results.fetch_data_failures.append(
                     Result(
                         Action.save,
@@ -1884,17 +1860,11 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 )
 
             if ct_md is not None:
+                temp_opts = cast(ct_ns, settngs.get_namespace(self.config, True, True, True, False)[0])
                 if dlg.cbxRemoveMetadata.isChecked():
-                    md = ct_md
-                else:
-                    notes = (
-                        f"Tagged with ComicTagger {ctversion.version} using info from {self.current_talker().name} on"
-                        f" {datetime.now():%Y-%m-%d %H:%M:%S}. [Issue ID {ct_md.issue_id}]"
-                    )
-                    md.overlay(ct_md.replace(notes=utils.combine_notes(md.notes, notes, "Tagged with ComicTagger")))
+                    temp_opts.Issue_Identifier__clear_metadata
 
-                if self.config[0].Issue_Identifier__auto_imprint:
-                    md.fix_publisher()
+                md = prepare_metadata(md, ct_md, temp_opts)
 
                 res = Result(
                     Action.save,
@@ -2036,7 +2006,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                     self,
                     match_results.multiple_matches,
                     styles,
-                    self.actual_issue_data_fetch,
+                    lambda match: self.current_talker().fetch_comic_data(match.issue_id),
                     self.config[0],
                     self.current_talker(),
                 )

@@ -24,22 +24,20 @@ import os
 import pathlib
 import sys
 from collections.abc import Collection
-from datetime import datetime
 from typing import Any, TextIO
 
 from comicapi import utils
 from comicapi.comicarchive import ComicArchive
 from comicapi.comicarchive import metadata_styles as md_styles
 from comicapi.genericmetadata import GenericMetadata
-from comictaggerlib import ctversion
 from comictaggerlib.cbltransformer import CBLTransformer
 from comictaggerlib.ctsettings import ct_ns
 from comictaggerlib.filerenamer import FileRenamer, get_rename_dir
 from comictaggerlib.graphics import graphics_path
 from comictaggerlib.issueidentifier import IssueIdentifier
+from comictaggerlib.md import prepare_metadata
 from comictaggerlib.resulttypes import Action, IssueResult, MatchStatus, OnlineMatchResults, Result, Status
 from comictalker.comictalker import ComicTalker, TalkerError
-from comictalker.talker_utils import cleanup_html
 
 logger = logging.getLogger(__name__)
 
@@ -104,7 +102,8 @@ class CLI:
         self.batch_mode = len(self.config.Runtime_Options__files) > 1
 
         for f in self.config.Runtime_Options__files:
-            results.append(self.process_file_cli(self.config.Commands__command, f, match_results))
+            res, match_results = self.process_file_cli(self.config.Commands__command, f, match_results)
+            results.append(res)
             if results[-1].status != Status.success:
                 return_code = 3
             if self.config.Runtime_Options__json:
@@ -180,19 +179,8 @@ class CLI:
                 ca = ComicArchive(match_set.original_path)
                 md = self.create_local_metadata(ca)
                 ct_md = self.actual_issue_data_fetch(match_set.online_results[int(i) - 1].issue_id)
-                if self.config.Issue_Identifier__clear_metadata:
-                    md = ct_md
-                else:
-                    notes = (
-                        f"Tagged with ComicTagger {ctversion.version} using info from {self.current_talker().name} on"
-                        f" {datetime.now():%Y-%m-%d %H:%M:%S}. [Issue ID {ct_md.issue_id}]"
-                    )
-                    md.overlay(ct_md.replace(notes=utils.combine_notes(md.notes, notes, "Tagged with ComicTagger")))
 
-                if self.config.Issue_Identifier__auto_imprint:
-                    md.fix_publisher()
-
-                match_set.md = md
+                match_set.md = prepare_metadata(md, ct_md, self.config)
 
                 self.actual_metadata_save(ca, md)
 
@@ -387,16 +375,19 @@ class CLI:
                 res.status = status
         return res
 
-    def save(self, ca: ComicArchive, match_results: OnlineMatchResults) -> Result:
+    def save(self, ca: ComicArchive, match_results: OnlineMatchResults) -> tuple[Result, OnlineMatchResults]:
         if not self.config.Runtime_Options__overwrite:
             for style in self.config.Runtime_Options__type:
                 if ca.has_metadata(style):
                     self.output(f"{ca.path}: Already has {md_styles[style].name()} tags. Not overwriting.")
-                    return Result(
-                        Action.save,
-                        original_path=ca.path,
-                        status=Status.existing_tags,
-                        tags_written=self.config.Runtime_Options__type,
+                    return (
+                        Result(
+                            Action.save,
+                            original_path=ca.path,
+                            status=Status.existing_tags,
+                            tags_written=self.config.Runtime_Options__type,
+                        ),
+                        match_results,
                     )
 
         if self.batch_mode:
@@ -409,6 +400,8 @@ class CLI:
 
         matches: list[IssueResult] = []
         # now, search online
+
+        ct_md = GenericMetadata()
         if self.config.Runtime_Options__online:
             if self.config.Runtime_Options__issue_id is not None:
                 # we were given the actual issue ID to search with
@@ -423,9 +416,9 @@ class CLI:
                         tags_written=self.config.Runtime_Options__type,
                     )
                     match_results.fetch_data_failures.append(res)
-                    return res
+                    return res, match_results
 
-                if ct_md is None:
+                if ct_md is None or ct_md.is_empty:
                     logger.error("No match for ID %s was found.", self.config.Runtime_Options__issue_id)
                     res = Result(
                         Action.save,
@@ -435,10 +428,8 @@ class CLI:
                         tags_written=self.config.Runtime_Options__type,
                     )
                     match_results.no_matches.append(res)
-                    return res
+                    return res, match_results
 
-                if self.config.Comic_Book_Lover__apply_transform_on_import:
-                    ct_md = CBLTransformer(ct_md, self.config).apply()
             else:
                 if md is None or md.is_empty:
                     logger.error("No metadata given to search online with!")
@@ -450,7 +441,7 @@ class CLI:
                         tags_written=self.config.Runtime_Options__type,
                     )
                     match_results.no_matches.append(res)
-                    return res
+                    return res, match_results
 
                 ii = IssueIdentifier(ca, self.config, self.current_talker())
 
@@ -493,7 +484,7 @@ class CLI:
                             tags_written=self.config.Runtime_Options__type,
                         )
                         match_results.low_confidence_matches.append(res)
-                        return res
+                        return res, match_results
 
                     logger.error("Online search: Multiple good matches. Save aborted")
                     res = Result(
@@ -505,7 +496,7 @@ class CLI:
                         tags_written=self.config.Runtime_Options__type,
                     )
                     match_results.multiple_matches.append(res)
-                    return res
+                    return res, match_results
                 if low_confidence and self.config.Runtime_Options__abort_on_low_confidence:
                     logger.error("Online search: Low confidence match. Save aborted")
                     res = Result(
@@ -517,7 +508,7 @@ class CLI:
                         tags_written=self.config.Runtime_Options__type,
                     )
                     match_results.low_confidence_matches.append(res)
-                    return res
+                    return res, match_results
                 if not found_match:
                     logger.error("Online search: No match found. Save aborted")
                     res = Result(
@@ -529,7 +520,7 @@ class CLI:
                         tags_written=self.config.Runtime_Options__type,
                     )
                     match_results.no_matches.append(res)
-                    return res
+                    return res, match_results
 
                 # we got here, so we have a single match
 
@@ -545,24 +536,7 @@ class CLI:
                         tags_written=self.config.Runtime_Options__type,
                     )
                     match_results.fetch_data_failures.append(res)
-                    return res
-
-            if self.config.Issue_Identifier__clear_metadata:
-                md = GenericMetadata()
-
-            notes = (
-                f"Tagged with ComicTagger {ctversion.version} using info from {self.current_talker().name} on"
-                + f" {datetime.now():%Y-%m-%d %H:%M:%S}. [Issue ID {ct_md.issue_id}]"
-            )
-            md.overlay(
-                ct_md.replace(
-                    notes=utils.combine_notes(md.notes, notes, "Tagged with ComicTagger"),
-                    description=cleanup_html(ct_md.description, self.config.Sources__remove_html_tables),
-                )
-            )
-
-            if self.config.Issue_Identifier__auto_imprint:
-                md.fix_publisher()
+                    return res, match_results
 
         res = Result(
             Action.save,
@@ -570,7 +544,7 @@ class CLI:
             original_path=ca.path,
             online_results=matches,
             match_status=MatchStatus.good_match,
-            md=md,
+            md=prepare_metadata(md, ct_md, self.config),
             tags_written=self.config.Runtime_Options__type,
         )
         # ok, done building our metadata. time to save
@@ -579,7 +553,7 @@ class CLI:
         else:
             res.status = Status.write_failure
             match_results.write_failures.append(res)
-        return res
+        return res, match_results
 
     def rename(self, ca: ComicArchive) -> Result:
         original_path = ca.path
@@ -697,36 +671,38 @@ class CLI:
 
         return Result(Action.export, Status.success, ca.path, new_file)
 
-    def process_file_cli(self, command: Action, filename: str, match_results: OnlineMatchResults) -> Result:
+    def process_file_cli(
+        self, command: Action, filename: str, match_results: OnlineMatchResults
+    ) -> tuple[Result, OnlineMatchResults]:
         if not os.path.lexists(filename):
             logger.error("Cannot find %s", filename)
-            return Result(command, Status.read_failure, pathlib.Path(filename))
+            return Result(command, Status.read_failure, pathlib.Path(filename)), match_results
 
         ca = ComicArchive(filename, str(graphics_path / "nocover.png"))
 
         if not ca.seems_to_be_a_comic_archive():
             logger.error("Sorry, but %s is not a comic archive!", filename)
-            return Result(Action.rename, Status.read_failure, ca.path)
+            return Result(Action.rename, Status.read_failure, ca.path), match_results
 
         if not ca.is_writable() and (command in (Action.delete, Action.copy, Action.save, Action.rename)):
             logger.error("This archive is not writable")
-            return Result(command, Status.write_permission_failure, ca.path)
+            return Result(command, Status.write_permission_failure, ca.path), match_results
 
         if command == Action.print:
-            return self.print(ca)
+            return self.print(ca), match_results
 
         elif command == Action.delete:
-            return self.delete(ca)
+            return self.delete(ca), match_results
 
         elif command == Action.copy is not None:
-            return self.copy(ca)
+            return self.copy(ca), match_results
 
         elif command == Action.save:
             return self.save(ca, match_results)
 
         elif command == Action.rename:
-            return self.rename(ca)
+            return self.rename(ca), match_results
 
         elif command == Action.export:
-            return self.export(ca)
-        return Result(None, Status.read_failure, ca.path)  # type: ignore[arg-type]
+            return self.export(ca), match_results
+        return Result(None, Status.read_failure, ca.path), match_results  # type: ignore[arg-type]

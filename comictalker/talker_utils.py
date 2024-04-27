@@ -37,6 +37,8 @@ def cleanup_html(string: str | None, remove_html_tables: bool = False) -> str:
     """Cleans HTML code from any text. Will remove any HTML tables with remove_html_tables"""
     if string is None:
         return ""
+    if "<" not in string:
+        return string
     from bs4 import BeautifulSoup
 
     # find any tables

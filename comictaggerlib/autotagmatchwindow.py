@@ -29,7 +29,7 @@ from comictaggerlib.ctsettings import ct_ns
 from comictaggerlib.resulttypes import IssueResult, Result
 from comictaggerlib.ui import ui_path
 from comictaggerlib.ui.qtutils import reduce_widget_font_size
-from comictalker.comictalker import ComicTalker
+from comictalker.comictalker import ComicTalker, TalkerError
 
 logger = logging.getLogger(__name__)
 
@@ -240,8 +240,15 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
             )
 
         # now get the particular issue data
-        self.current_match_set.md = ct_md = self.fetch_func(match)
-        if ct_md is None:
+
+        try:
+            self.current_match_set.md = ct_md = self.fetch_func(match)
+        except TalkerError as e:
+            QtWidgets.QApplication.restoreOverrideCursor()
+            QtWidgets.QMessageBox.critical(self, f"{e.source} {e.code_name} Error", f"{e}")
+            return
+
+        if ct_md is None or ct_md.is_empty:
             QtWidgets.QMessageBox.critical(self, "Network Issue", "Could not retrieve issue details!")
             return
 

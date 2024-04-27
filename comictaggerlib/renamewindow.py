@@ -80,7 +80,7 @@ class RenameWindow(QtWidgets.QDialog):
         if self.config[0].File_Rename__auto_extension:
             new_ext = ca.extension()
 
-        if md is None:
+        if md is None or md.is_empty:
             md = ca.read_metadata(self.data_style)
             if md.is_empty:
                 md = ca.metadata_from_filename(

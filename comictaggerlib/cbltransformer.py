@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 class CBLTransformer:
     def __init__(self, metadata: GenericMetadata, config: ct_ns) -> None:
-        self.metadata = metadata
+        self.metadata = metadata.copy()
         self.config = config
 
     def apply(self) -> GenericMetadata:
