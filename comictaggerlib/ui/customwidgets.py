@@ -188,9 +188,7 @@ class HoverQLabel(QtWidgets.QLabel):
 
     def mouseReleaseEvent(self, event: Any) -> None:
         index: QModelIndex = self.combobox.tableWidget.indexAt(self.pos())
-        if self.combobox.justShown:
-            self.combobox.justShown = False
-        else:
+        if self.combobox.isShown:
             self.combobox.toggleItem(index)
 
     def resizeEvent(self, event: Any | None = None) -> None:
@@ -244,7 +242,7 @@ class TableComboBox(QtWidgets.QComboBox):
         self.tableWidget.viewport().installEventFilter(self)
 
         # Keeps track of when the combobox list is shown
-        self.justShown = False
+        self.isShown = False
 
         self.tableWidget.currentCellChanged.connect(self.current_cell_changed)
 
@@ -303,24 +301,13 @@ class TableComboBox(QtWidgets.QComboBox):
     def eventFilter(self, obj: Any, event: Any) -> bool:
         # Allow events before the combobox list is shown
         if obj == self.tableWidget.viewport():
-            # We record that the combobox list has been shown
-            if event.type() == QEvent.Show:
-                self.justShown = True
-            # We record that the combobox list has hidden,
-            # this will happen if the user does not make a selection
-            # but clicks outside of the combobox list or presses escape
             if event.type() == QEvent.Hide:
                 self._updateText()
-                self.justShown = False
-            # QEvent.MouseButtonPress is inconsistent on activation because double clicks are a thing
-            if event.type() == QEvent.MouseButtonRelease:
-                # If self.justShown is true it means that they clicked on the combobox to change the checked items
-                # This is standard behavior (on macos) but I think it is surprising when it has a multiple select
-                # TODO The first click in the table is currently consumed
-                if self.justShown:
-                    self.justShown = False
-                    return True
-
+                self.isShown = False
+            if event.type() == QEvent.Show:
+                self.isShown = True
+            # QEvent.MouseButtonRelease will 'click' the selected row even if clicking outside to hide dropdown
+            if self.isShown and event.type() == QEvent.MouseButtonRelease:
                 # Find the current index and item
                 index = self.tableWidget.indexAt(event.pos())
                 self.toggleItem(index)

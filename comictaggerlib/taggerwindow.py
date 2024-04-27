@@ -1403,7 +1403,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         for i, style in enumerate(self.load_data_styles):
             item_idx = self.cbLoadDataStyle.findData(style)
             self.cbLoadDataStyle.setItemChecked(item_idx, True)
-            # Order matters so move it
+            # Order matters, move items to list order
             self.cbLoadDataStyle.moveItem(item_idx, row=i)
         for style in unchecked:
             self.cbLoadDataStyle.setItemChecked(self.cbLoadDataStyle.findData(style), False)
