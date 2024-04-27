@@ -24,7 +24,7 @@ import pathlib
 import shutil
 import sys
 import traceback
-from collections.abc import Sequence
+from collections.abc import Iterable
 from typing import TYPE_CHECKING
 
 from comicapi import utils
@@ -43,7 +43,7 @@ archivers: list[type[Archiver]] = []
 metadata_styles: dict[str, Metadata] = {}
 
 
-def load_archive_plugins(local_plugins: Sequence[EntryPoint] = tuple()) -> None:
+def load_archive_plugins(local_plugins: Iterable[EntryPoint] = tuple()) -> None:
     if not archivers:
         if sys.version_info < (3, 10):
             from importlib_metadata import entry_points
@@ -70,7 +70,7 @@ def load_archive_plugins(local_plugins: Sequence[EntryPoint] = tuple()) -> None:
         archivers.extend(builtin)
 
 
-def load_metadata_plugins(version: str = f"ComicAPI/{version}", local_plugins: Sequence[EntryPoint] = tuple()) -> None:
+def load_metadata_plugins(version: str = f"ComicAPI/{version}", local_plugins: Iterable[EntryPoint] = tuple()) -> None:
     if not metadata_styles:
         if sys.version_info < (3, 10):
             from importlib_metadata import entry_points
@@ -162,7 +162,7 @@ class ComicArchive:
         self.page_list.clear()
         self.md.clear()
 
-    def load_cache(self, style_list: list[str]) -> None:
+    def load_cache(self, style_list: Iterable[str]) -> None:
         for style in style_list:
             if style in metadata_styles:
                 md = metadata_styles[style].get_metadata(self.archiver)
