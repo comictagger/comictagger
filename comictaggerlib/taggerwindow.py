@@ -211,11 +211,11 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
         self.setWindowIcon(QtGui.QIcon(str(graphics_path / "app.png")))
 
-        if config[0].Runtime_Options__type and isinstance(config[0].Runtime_Options__type[0], str):
-            # respect the command line option tag type
-            config[0].internal__save_data_style = config[0].Runtime_Options__type
-            # TODO Separate options for read and write
-            config[0].internal__load_data_style = config[0].Runtime_Options__type
+        # respect the command line option tag type
+        if config[0].Runtime_Options__type_modify:
+            config[0].internal__save_data_style = config[0].Runtime_Options__type_modify
+        if config[0].Runtime_Options__type_read:
+            config[0].internal__load_data_style = config[0].Runtime_Options__type_read
 
         for style in config[0].internal__save_data_style:
             if style not in metadata_styles:

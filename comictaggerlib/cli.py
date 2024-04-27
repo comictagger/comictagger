@@ -134,7 +134,7 @@ class CLI:
 
     def actual_metadata_save(self, ca: ComicArchive, md: GenericMetadata) -> bool:
         if not self.config.Runtime_Options__dryrun:
-            for style in self.config.Runtime_Options__type:
+            for style in self.config.Runtime_Options__type_modify:
                 # write out the new data
                 if not ca.write_metadata(md, style):
                     logger.error("The tag save seemed to fail for style: %s!", md_styles[style].name())
@@ -249,7 +249,7 @@ class CLI:
 
             md.overlay(f_md)
 
-        for style in reversed(self.config.Runtime_Options__type):
+        for style in self.config.Runtime_Options__type_read:
             if ca.has_metadata(style):
                 try:
                     t_md = ca.read_metadata(style)
@@ -263,7 +263,7 @@ class CLI:
         return md
 
     def print(self, ca: ComicArchive) -> Result:
-        if not self.config.Runtime_Options__type:
+        if not self.config.Runtime_Options__type_read:
             page_count = ca.get_number_of_pages()
 
             brief = ""
@@ -289,7 +289,7 @@ class CLI:
 
         md = None
         for style, style_obj in md_styles.items():
-            if not self.config.Runtime_Options__type or style in self.config.Runtime_Options__type:
+            if not self.config.Runtime_Options__type_read or style in self.config.Runtime_Options__type_read:
                 if ca.has_metadata(style):
                     self.output(f"--------- {style_obj.name()} tags ---------")
                     try:
@@ -321,7 +321,7 @@ class CLI:
 
     def delete(self, ca: ComicArchive) -> Result:
         res = Result(Action.delete, Status.success, ca.path)
-        for style in self.config.Runtime_Options__type:
+        for style in self.config.Runtime_Options__type_modify:
             status = self.delete_style(ca, style)
             if status == Status.success:
                 res.tags_deleted.append(style)
@@ -366,7 +366,9 @@ class CLI:
         except Exception as e:
             logger.error("Failed to load metadata for %s: %s", ca.path, e)
             return res
-        for style in self.config.Runtime_Options__type:
+        for style in self.config.Runtime_Options__type_modify:
+            if style == src_style_name:
+                continue
             status = self.copy_style(ca, res.md, style)
             if status == Status.success:
                 res.tags_written.append(style)
@@ -376,7 +378,7 @@ class CLI:
 
     def save(self, ca: ComicArchive, match_results: OnlineMatchResults) -> tuple[Result, OnlineMatchResults]:
         if not self.config.Runtime_Options__overwrite:
-            for style in self.config.Runtime_Options__type:
+            for style in self.config.Runtime_Options__type_modify:
                 if ca.has_metadata(style):
                     self.output(f"{ca.path}: Already has {md_styles[style].name()} tags. Not overwriting.")
                     return (
@@ -384,7 +386,7 @@ class CLI:
                             Action.save,
                             original_path=ca.path,
                             status=Status.existing_tags,
-                            tags_written=self.config.Runtime_Options__type,
+                            tags_written=self.config.Runtime_Options__type_modify,
                         ),
                         match_results,
                     )
@@ -412,7 +414,7 @@ class CLI:
                         Action.save,
                         original_path=ca.path,
                         status=Status.fetch_data_failure,
-                        tags_written=self.config.Runtime_Options__type,
+                        tags_written=self.config.Runtime_Options__type_modify,
                     )
                     match_results.fetch_data_failures.append(res)
                     return res, match_results
@@ -424,7 +426,7 @@ class CLI:
                         status=Status.match_failure,
                         original_path=ca.path,
                         match_status=MatchStatus.no_match,
-                        tags_written=self.config.Runtime_Options__type,
+                        tags_written=self.config.Runtime_Options__type_modify,
                     )
                     match_results.no_matches.append(res)
                     return res, match_results
@@ -437,7 +439,7 @@ class CLI:
                         status=Status.match_failure,
                         original_path=ca.path,
                         match_status=MatchStatus.no_match,
-                        tags_written=self.config.Runtime_Options__type,
+                        tags_written=self.config.Runtime_Options__type_modify,
                     )
                     match_results.no_matches.append(res)
                     return res, match_results
@@ -480,7 +482,7 @@ class CLI:
                             original_path=ca.path,
                             online_results=matches,
                             match_status=MatchStatus.low_confidence_match,
-                            tags_written=self.config.Runtime_Options__type,
+                            tags_written=self.config.Runtime_Options__type_modify,
                         )
                         match_results.low_confidence_matches.append(res)
                         return res, match_results
@@ -492,7 +494,7 @@ class CLI:
                         original_path=ca.path,
                         online_results=matches,
                         match_status=MatchStatus.multiple_match,
-                        tags_written=self.config.Runtime_Options__type,
+                        tags_written=self.config.Runtime_Options__type_modify,
                     )
                     match_results.multiple_matches.append(res)
                     return res, match_results
@@ -504,7 +506,7 @@ class CLI:
                         original_path=ca.path,
                         online_results=matches,
                         match_status=MatchStatus.low_confidence_match,
-                        tags_written=self.config.Runtime_Options__type,
+                        tags_written=self.config.Runtime_Options__type_modify,
                     )
                     match_results.low_confidence_matches.append(res)
                     return res, match_results
@@ -516,7 +518,7 @@ class CLI:
                         original_path=ca.path,
                         online_results=matches,
                         match_status=MatchStatus.no_match,
-                        tags_written=self.config.Runtime_Options__type,
+                        tags_written=self.config.Runtime_Options__type_modify,
                     )
                     match_results.no_matches.append(res)
                     return res, match_results
@@ -532,7 +534,7 @@ class CLI:
                         original_path=ca.path,
                         online_results=matches,
                         match_status=MatchStatus.good_match,
-                        tags_written=self.config.Runtime_Options__type,
+                        tags_written=self.config.Runtime_Options__type_modify,
                     )
                     match_results.fetch_data_failures.append(res)
                     return res, match_results
@@ -544,7 +546,7 @@ class CLI:
             online_results=matches,
             match_status=MatchStatus.good_match,
             md=prepare_metadata(md, ct_md, self.config),
-            tags_written=self.config.Runtime_Options__type,
+            tags_written=self.config.Runtime_Options__type_modify,
         )
         assert res.md
         # ok, done building our metadata. time to save

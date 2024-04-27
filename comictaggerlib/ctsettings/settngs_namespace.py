@@ -34,7 +34,8 @@ class SettngsNS(settngs.TypedNS):
     Runtime_Options__glob: bool
     Runtime_Options__quiet: bool
     Runtime_Options__json: bool
-    Runtime_Options__type: list[str]
+    Runtime_Options__type_modify: list[str]
+    Runtime_Options__type_read: list[str]
     Runtime_Options__overwrite: bool
     Runtime_Options__no_gui: bool
     Runtime_Options__files: list[str]
