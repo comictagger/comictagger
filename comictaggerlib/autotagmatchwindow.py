@@ -234,7 +234,7 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
         # TODO Same is used for taggerwindow.py:~1734/renamewindow Make a method?
         md = GenericMetadata()
         try:
-            for style in self.load_data_styles.keys():
+            for style in self.load_data_styles:
                 md.overlay(ca.read_metadata(style))
         except Exception as e:
             logger.error("Failed to load metadata for %s: %s", ca.path, e)

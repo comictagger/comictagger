@@ -1209,7 +1209,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             self.fileSelectionList.update_current_row()
 
             self.metadata = GenericMetadata()
-            for style in reversed(self.load_data_styles.keys()):
+            for style in reversed(self.load_data_styles):
                 self.metadata.overlay(self.comic_archive.read_metadata(style))
             self.update_ui_for_archive()
         else:
@@ -1702,7 +1702,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
                     ca.reset_cache()
                     # TODO Could result in dupes? Should only be read styles?
-                    ca.load_cache([*self.load_data_styles.keys(), *self.save_data_styles])
+                    ca.load_cache([*self.load_data_styles, *self.save_data_styles])
 
                 prog_dialog.hide()
                 QtCore.QCoreApplication.processEvents()
@@ -1750,7 +1750,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         # Duplicated in autotagmatchwindow and renamewindow
         md = GenericMetadata()
         try:
-            for style in self.load_data_styles.keys():
+            for style in self.load_data_styles:
                 md.overlay(ca.read_metadata(style))
         except Exception as e:
             logger.error("Failed to load metadata for %s: %s", ca.path, e)
@@ -1911,7 +1911,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
                 ca.reset_cache()
                 # TODO Only read styles required?
-                ca.load_cache([*self.load_data_styles.keys(), *self.save_data_styles])
+                ca.load_cache([*self.load_data_styles, *self.save_data_styles])
 
         return success, match_results
 
@@ -1960,7 +1960,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             self.auto_tag_log(f"Auto-Tagging {prog_idx} of {len(ca_list)}\n")
             self.auto_tag_log(f"{ca.path}\n")
             try:
-                cover_idx = ca.read_metadata(list(self.load_data_styles.keys())[0]).get_cover_page_index_list()[0]
+                cover_idx = ca.read_metadata(self.load_data_styles[0]).get_cover_page_index_list()[0]
             except Exception as e:
                 cover_idx = 0
                 logger.error("Failed to load metadata for %s: %s", ca.path, e)
@@ -2177,7 +2177,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
         self.metadata = GenericMetadata()
         try:
-            for style, order in reversed(self.load_data_styles.items()):
+            for style in reversed(self.load_data_styles):
                 metadata = self.comic_archive.read_metadata(style)
                 self.metadata.overlay(metadata)
         except Exception as e:
