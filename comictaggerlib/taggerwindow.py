@@ -435,7 +435,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.actionAutoTag.triggered.connect(self.auto_tag)
 
         self.actionCopyTags.setShortcut("Ctrl+C")
-        self.actionCopyTags.setStatusTip("Copy first read style tags to enabled modify style(s)")
+        self.actionCopyTags.setStatusTip("Copy one tag style tags to enabled modify style(s)")
         self.actionCopyTags.triggered.connect(self.copy_tags)
 
         self.actionRemoveAuto.setShortcut("Ctrl+D")
