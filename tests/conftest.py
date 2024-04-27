@@ -139,7 +139,7 @@ def mock_now(monkeypatch):
         def now(cls):
             return cls.time
 
-    monkeypatch.setattr(comictaggerlib.cli, "datetime", mydatetime)
+    monkeypatch.setattr(comictaggerlib.md, "datetime", mydatetime)
 
 
 @pytest.fixture

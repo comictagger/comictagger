@@ -547,8 +547,9 @@ class CLI:
             md=prepare_metadata(md, ct_md, self.config),
             tags_written=self.config.Runtime_Options__type,
         )
+        assert res.md
         # ok, done building our metadata. time to save
-        if self.actual_metadata_save(ca, md):
+        if self.actual_metadata_save(ca, res.md):
             match_results.good_matches.append(res)
         else:
             res.status = Status.write_failure

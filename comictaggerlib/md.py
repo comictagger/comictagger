@@ -24,11 +24,10 @@ def prepare_metadata(md: GenericMetadata, new_md: GenericMetadata, opts: Settngs
         f"Tagged with ComicTagger {ctversion.version} using info from {final_md.tag_origin.name} on"
         f" {datetime.now():%Y-%m-%d %H:%M:%S}. [Issue ID {final_md.issue_id}]"
     )
-    final_md.replace(
-        notes=utils.combine_notes(md.notes, notes, "Tagged with ComicTagger"),
-        description=cleanup_html(md.description, opts.Sources__remove_html_tables),
-    )
 
     if opts.Issue_Identifier__auto_imprint:
-        md.fix_publisher()
-    return final_md
+        final_md.fix_publisher()
+    return final_md.replace(
+        notes=utils.combine_notes(new_md.notes, notes, "Tagged with ComicTagger"),
+        description=cleanup_html(new_md.description, opts.Sources__remove_html_tables),
+    )
