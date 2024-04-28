@@ -273,4 +273,4 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
                 )
                 break
 
-        ca.load_cache(list(metadata_styles))  # TODO Should this be what the others do in taggerwindow.py etc.?
+        ca.reset_cache()
