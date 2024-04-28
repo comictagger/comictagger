@@ -1694,8 +1694,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                             failed_list.append(ca.path)
 
                     ca.reset_cache()
-                    # TODO Could result in dupes? Should only be read styles?
-                    ca.load_cache([*self.load_data_styles, *self.save_data_styles])
+                    ca.load_cache({*self.load_data_styles, *self.save_data_styles})
 
                 prog_dialog.hide()
                 QtCore.QCoreApplication.processEvents()
@@ -1897,8 +1896,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                     match_results.write_failures.append(res)
 
                 ca.reset_cache()
-                # TODO Only read styles required?
-                ca.load_cache([*self.load_data_styles, *self.save_data_styles])
+                ca.load_cache({*self.load_data_styles, *self.save_data_styles})
 
         return success, match_results
 
