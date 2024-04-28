@@ -1616,13 +1616,12 @@ class TaggerWindow(QtWidgets.QMainWindow):
         ca_list = self.fileSelectionList.get_selected_archive_list()
         has_src_count = 0
 
-        # TODO: Take first read style for now (make a better system later)
-        src_style = self.load_data_styles[0]
-        dest_styles = self.save_data_styles
+        src_styles: list[str] = self.load_data_style
+        dest_styles: list[str] = self.save_data_styles
 
-        # Remove the read style from the write style
-        if src_style in dest_styles:
-            dest_styles.remove(src_style)
+        if len(src_styles) == 1 and src_styles[0] in dest_styles:
+            # Remove the read style from the write style
+            dest_styles.remove(src_styles[0])
 
         if not dest_styles:
             QtWidgets.QMessageBox.information(
@@ -1631,12 +1630,16 @@ class TaggerWindow(QtWidgets.QMainWindow):
             return
 
         for ca in ca_list:
-            if ca.has_metadata(src_style):
-                has_src_count += 1
+            for style in src_styles:
+                if ca.has_metadata(style):
+                    has_src_count += 1
+                    continue
 
         if has_src_count == 0:
             QtWidgets.QMessageBox.information(
-                self, "Copy Tags", f"No archives with {metadata_styles[src_style].name()} tags selected!"
+                self,
+                "Copy Tags",
+                f"No archives with {', '.join([metadata_styles[style].name() for style in src_styles])} tags selected!",
             )
             return
 
@@ -1649,8 +1652,9 @@ class TaggerWindow(QtWidgets.QMainWindow):
             reply = QtWidgets.QMessageBox.question(
                 self,
                 "Copy Tags",
-                f"Are you sure you wish to copy the {metadata_styles[src_style].name()} "
-                f"tags to {', '.join([metadata_styles[style].name() for style in dest_styles])} tags in "
+                f"Are you sure you wish to copy the combined (with overlay order) tags of "
+                f"{', '.join([metadata_styles[style].name() for style in src_styles])} "
+                f"to {', '.join([metadata_styles[style].name() for style in dest_styles])} tags in "
                 f"{has_src_count} archive(s)?",
                 QtWidgets.QMessageBox.StandardButton.Yes,
                 QtWidgets.QMessageBox.StandardButton.No,
@@ -1668,10 +1672,14 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 success_count = 0
                 for prog_idx, ca in enumerate(ca_list, 1):
                     ca_saved = False
+                    md = GenericMetadata()
 
-                    if ca.has_metadata(src_style) and ca.is_writable():
-                        md = ca.read_metadata(src_style)
-                    else:
+                    for style in src_styles:
+                        if ca.is_writable() and ca.has_metadata(style):
+                            md.overlay(ca.read_metadata(style))
+                        else:
+                            continue
+                    if md.is_empty:
                         continue
 
                     for style in dest_styles:
