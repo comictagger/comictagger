@@ -1190,7 +1190,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                     failed_style = metadata_styles[style].name()
                     break
 
-            self.comic_archive.load_cache(list(metadata_styles))
+            self.comic_archive.load_cache(set(metadata_styles))
             QtWidgets.QApplication.restoreOverrideCursor()
 
             if failed_style:
@@ -1592,7 +1592,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                                 # Abandon any further tag removals to prevent any greater damage to archive
                                 break
                     ca.reset_cache()
-                    ca.load_cache(list(metadata_styles))
+                    ca.load_cache(set(metadata_styles))
 
                 progdialog.hide()
                 QtCore.QCoreApplication.processEvents()
