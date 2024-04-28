@@ -229,15 +229,7 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
     def save_match(self) -> None:
         match = self.current_match()
         ca = ComicArchive(self.current_match_set.original_path)
-
-        # TODO should this follow the same as CLI: filename (-f), read styles (-t), command line (-m)
-        # TODO Same is used for taggerwindow.py:~1734/renamewindow Make a method?
-        md = GenericMetadata()
-        try:
-            for style in self.load_data_styles:
-                md.overlay(ca.read_metadata(style))
-        except Exception as e:
-            logger.error("Failed to load metadata for %s: %s", ca.path, e)
+        md, success = self.parent().overlay_ca_read_style(self.load_data_styles, ca)
 
         if md.is_empty:
             md = ca.metadata_from_filename(

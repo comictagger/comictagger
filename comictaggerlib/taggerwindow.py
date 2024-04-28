@@ -1205,9 +1205,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 self.update_menus()
             self.fileSelectionList.update_current_row()
 
-            self.metadata = GenericMetadata()
-            for style in reversed(self.load_data_styles):
-                self.metadata.overlay(self.comic_archive.read_metadata(style))
+            self.metadata, success = self.overlay_ca_read_style(self.load_data_styles, self.comic_archive)
             self.update_ui_for_archive()
         else:
             QtWidgets.QMessageBox.information(self, "Whoops!", "No data to commit!")
@@ -1741,14 +1739,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
         ii = IssueIdentifier(ca, self.config[0], self.current_talker())
 
         # read in metadata, and parse file name if not there
-        # TODO should this follow the same as CLI: filename (-f), read styles (-t), command line (-m)
-        # Duplicated in autotagmatchwindow and renamewindow
-        md = GenericMetadata()
-        try:
-            for style in self.load_data_styles:
-                md.overlay(ca.read_metadata(style))
-        except Exception as e:
-            logger.error("Failed to load metadata for %s: %s", ca.path, e)
+        md, success = self.overlay_ca_read_style(self.load_data_styles, ca)
+
         if md.is_empty:
             md = ca.metadata_from_filename(
                 self.config[0].Filename_Parsing__filename_parser,
@@ -2170,16 +2162,24 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.config[0].internal__last_opened_folder = os.path.abspath(os.path.split(comic_archive.path)[0])
         self.comic_archive = comic_archive
 
-        self.metadata = GenericMetadata()
-        try:
-            for style in reversed(self.load_data_styles):
-                metadata = self.comic_archive.read_metadata(style)
-                self.metadata.overlay(metadata)
-        except Exception as e:
-            logger.error("Failed to load metadata for %s: %s", self.comic_archive.path, e)
-            self.exception(f"Failed to load metadata for {self.comic_archive.path}:\n\n{e}")
+        self.metadata, success = self.overlay_ca_read_style(self.load_data_styles, self.comic_archive)
+        if not success:
+            self.exception(f"Failed to load metadata for {self.comic_archive.path}, see log for details\n\n")
 
         self.update_ui_for_archive()
+
+    def overlay_ca_read_style(self, load_data_styles: list[str], ca: ComicArchive) -> tuple[GenericMetadata, bool]:
+        md = GenericMetadata()
+        success = True
+        try:
+            for style in load_data_styles:
+                metadata = ca.read_metadata(style)
+                md.overlay(metadata)
+        except Exception as e:
+            logger.error("Failed to load metadata for %s: %s", self.ca.path, e)
+            success = False
+
+        return md, success
 
     def file_list_cleared(self) -> None:
         self.reset_app()
