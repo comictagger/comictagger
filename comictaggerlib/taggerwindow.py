@@ -2180,7 +2180,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         md = GenericMetadata()
         success = True
         try:
-            for style in load_data_styles:
+            for style in reversed(load_data_styles):
                 metadata = ca.read_metadata(style)
                 md.overlay(metadata)
         except Exception as e:
