@@ -88,7 +88,8 @@ class SettngsNS(settngs.TypedNS):
     File_Rename__use_smart_string_cleanup: bool
     File_Rename__auto_extension: bool
     File_Rename__dir: str
-    File_Rename__move_to_dir: bool
+    File_Rename__move: bool
+    File_Rename__only_move: bool
     File_Rename__strict: bool
     File_Rename__replacements: comictaggerlib.defaults.Replacements
 
@@ -205,7 +206,8 @@ class File_Rename(typing.TypedDict):
     use_smart_string_cleanup: bool
     auto_extension: bool
     dir: str
-    move_to_dir: bool
+    move: bool
+    only_move: bool
     strict: bool
     replacements: comictaggerlib.defaults.Replacements
 

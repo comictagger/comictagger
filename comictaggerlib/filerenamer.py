@@ -38,8 +38,8 @@ def get_rename_dir(ca: ComicArchive, rename_dir: str | pathlib.Path | None) -> p
     folder = ca.path.parent.absolute()
     if rename_dir is not None:
         if isinstance(rename_dir, str):
-            rename_dir = rename_dir.strip()
-        folder = pathlib.Path(rename_dir).absolute()
+            rename_dir = pathlib.Path(rename_dir.strip())
+        folder = rename_dir.absolute()
     return folder
 
 
@@ -192,9 +192,12 @@ class FileRenamer:
         self.move = False
         self.platform = platform
         self.replacements = replacements
+        self.original_name = ""
+        self.move_only = False
 
-    def set_metadata(self, metadata: GenericMetadata) -> None:
+    def set_metadata(self, metadata: GenericMetadata, original_name: str) -> None:
         self.metadata = metadata
+        self.original_name = original_name
 
     def set_issue_zero_padding(self, count: int) -> None:
         self.issue_zero_padding = count
@@ -240,9 +243,9 @@ class FileRenamer:
             ).strip()
             new_name = os.path.join(new_name, new_basename)
 
-        new_name += ext
-        new_basename += ext
-
+        if self.move_only:
+            new_folder = os.path.join(new_name, os.path.splitext(self.original_name)[0])
+            return new_folder + ext
         if self.move:
-            return new_name.strip()
-        return new_basename.strip()
+            return new_name.strip() + ext
+        return new_basename.strip() + ext

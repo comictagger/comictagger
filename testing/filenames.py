@@ -1032,9 +1032,10 @@ for p in names:
             )
         )
 
-rnames = [
+file_renames = [
     (
         "{series!c} {price} {year}",  # Capitalize
+        False,
         False,
         "universal",
         "Cory doctorow's futuristic tales of the here and now 2007.cbz",
@@ -1043,12 +1044,14 @@ rnames = [
     (
         "{series!t} {price} {year}",  # Title Case
         False,
+        False,
         "universal",
         "Cory Doctorow'S Futuristic Tales Of The Here And Now 2007.cbz",
         does_not_raise(),
     ),
     (
         "{series!S} {price} {year}",  # Swap Case
+        False,
         False,
         "universal",
         "cORY dOCTOROW'S fUTURISTIC tALES OF THE hERE AND nOW 2007.cbz",
@@ -1057,12 +1060,14 @@ rnames = [
     (
         "{title!l} {price} {year}",  # Lowercase
         False,
+        False,
         "universal",
         "anda's game 2007.cbz",
         does_not_raise(),
     ),
     (
         "{title!u} {price} {year}",  # Upper Case
+        False,
         False,
         "universal",
         "ANDA'S GAME 2007.cbz",
@@ -1071,12 +1076,14 @@ rnames = [
     (
         "{title} {price} {year+}",  # Empty alternate value
         False,
+        False,
         "universal",
         "Anda's Game.cbz",
         does_not_raise(),
     ),
     (
         "{title} {price} {year+year!u}",  # Alternate value Upper Case
+        False,
         False,
         "universal",
         "Anda's Game YEAR.cbz",
@@ -1085,12 +1092,14 @@ rnames = [
     (
         "{title} {price} {year+year}",  # Alternate Value
         False,
+        False,
         "universal",
         "Anda's Game year.cbz",
         does_not_raise(),
     ),
     (
         "{title} {price-0} {year}",  # Default value
+        False,
         False,
         "universal",
         "Anda's Game 0 2007.cbz",
@@ -1099,12 +1108,14 @@ rnames = [
     (
         "{title} {price+0} {year}",  # Alternate Value
         False,
+        False,
         "universal",
         "Anda's Game 2007.cbz",
         does_not_raise(),
     ),
     (
         "{series} #{issue} - {title} ({year}) ({price})",  # price should be none
+        False,
         False,
         "universal",
         "Cory Doctorow's Futuristic Tales of the Here and Now #001 - Anda's Game (2007).cbz",
@@ -1113,12 +1124,14 @@ rnames = [
     (
         "{series} #{issue} - {title} {volume:02} ({year})",  # Ensure format specifier works
         False,
+        False,
         "universal",
         "Cory Doctorow's Futuristic Tales of the Here and Now #001 - Anda's Game 01 (2007).cbz",
         does_not_raise(),
     ),
     (
         "{series} #{issue} - {title} ({year})({price})",  # price should be none, test no  space between ')('
+        False,
         False,
         "universal",
         "Cory Doctorow's Futuristic Tales of the Here and Now #001 - Anda's Game (2007).cbz",
@@ -1127,12 +1140,14 @@ rnames = [
     (
         "{series} #{issue} - {title} ({year})  ({price})",  # price should be none, test double space ')  ('
         False,
+        False,
         "universal",
         "Cory Doctorow's Futuristic Tales of the Here and Now #001 - Anda's Game (2007).cbz",
         does_not_raise(),
     ),
     (
         "{series} #{issue} - {title} ({year})",
+        False,
         False,
         "universal",
         "Cory Doctorow's Futuristic Tales of the Here and Now #001 - Anda's Game (2007).cbz",
@@ -1141,12 +1156,14 @@ rnames = [
     (
         "{title} {web_link}",  # Ensure colon is replaced in metadata
         False,
+        False,
         "universal",
         "Anda's Game https---comicvine.gamespot.com-cory-doctorows-futuristic-tales-of-the-here-and-no-4000-140529-.cbz",
         does_not_raise(),
     ),
     (
         "{title} {web_link}",  # Ensure slashes are replaced in metadata on linux/macos
+        False,
         False,
         "Linux",
         "Anda's Game https:--comicvine.gamespot.com-cory-doctorows-futuristic-tales-of-the-here-and-no-4000-140529-.cbz",
@@ -1155,12 +1172,14 @@ rnames = [
     (
         "{title} {web_links!j}",  # Test that join forces str conversion
         False,
+        False,
         "Linux",
         "Anda's Game https:--comicvine.gamespot.com-cory-doctorows-futuristic-tales-of-the-here-and-no-4000-140529-.cbz",
         does_not_raise(),
     ),
     (
         "{series}:{title} #{issue} ({year})",  # on windows the ':' is replaced
+        False,
         False,
         "universal",
         "Cory Doctorow's Futuristic Tales of the Here and Now-Anda's Game #001 (2007).cbz",
@@ -1169,12 +1188,14 @@ rnames = [
     (
         "{series}: {title} #{issue} ({year})",  # on windows the ':' is replaced
         False,
+        False,
         "universal",
         "Cory Doctorow's Futuristic Tales of the Here and Now - Anda's Game #001 (2007).cbz",
         does_not_raise(),
     ),
     (
         "{series}: {title} #{issue} ({year})",  # on linux the ':' is preserved
+        False,
         False,
         "Linux",
         "Cory Doctorow's Futuristic Tales of the Here and Now: Anda's Game #001 (2007).cbz",
@@ -1183,12 +1204,14 @@ rnames = [
     (
         "{publisher}/  {series} #{issue} - {title} ({year})",  # leading whitespace is removed when moving
         True,
+        False,
         "universal",
         "IDW Publishing/Cory Doctorow's Futuristic Tales of the Here and Now #001 - Anda's Game (2007).cbz",
         does_not_raise(),
     ),
     (
         "{publisher}/  {series} #{issue} - {title} ({year})",  # leading whitespace is removed when only renaming
+        False,
         False,
         "universal",
         "Cory Doctorow's Futuristic Tales of the Here and Now #001 - Anda's Game (2007).cbz",
@@ -1197,12 +1220,14 @@ rnames = [
     (
         r"{publisher}\  {series} #{issue} - {title} ({year})",  # backslashes separate directories
         False,
+        False,
         "Linux",
         "Cory Doctorow's Futuristic Tales of the Here and Now #001 - Anda's Game (2007).cbz",
         does_not_raise(),
     ),
     (
         "{series} #  {issue} - {title} ({year})",  # double spaces are reduced to one
+        False,
         False,
         "universal",
         "Cory Doctorow's Futuristic Tales of the Here and Now # 001 - Anda's Game (2007).cbz",
@@ -1211,12 +1236,14 @@ rnames = [
     (
         "{series} #{issue} - {locations!j} ({year})",
         False,
+        False,
         "universal",
         "Cory Doctorow's Futuristic Tales of the Here and Now #001 - lonely cottage (2007).cbz",
         does_not_raise(),
     ),
     (
         "{series} #{issue} - {title} - {WriteR}, {EDITOR} ({year})",  # fields are case in-sensitive
+        False,
         False,
         "universal",
         "Cory Doctorow's Futuristic Tales of the Here and Now #001 - Anda's Game - Dara Naraghi, Ted Adams (2007).cbz",
@@ -1225,12 +1252,14 @@ rnames = [
     (
         "{series} v{price} #{issue} ({year})",  # Remove previous text if value is ""
         False,
+        False,
         "universal",
         "Cory Doctorow's Futuristic Tales of the Here and Now #001 (2007).cbz",
         does_not_raise(),
     ),
     (
         "{series} {price} #{issue} ({year})",  # Ensure that a single space remains
+        False,
         False,
         "universal",
         "Cory Doctorow's Futuristic Tales of the Here and Now #001 (2007).cbz",
@@ -1239,12 +1268,14 @@ rnames = [
     (
         "{series} - {title}{price} #{issue} ({year})",  # Ensure removal before None values only impacts literal text
         False,
+        False,
         "universal",
         "Cory Doctorow's Futuristic Tales of the Here and Now - Anda's Game #001 (2007).cbz",
         does_not_raise(),
     ),
     (
         "{series} - {title} {test} #{issue} ({year})",  # Test non-existent key
+        False,
         False,
         "universal",
         "Cory Doctorow's Futuristic Tales of the Here and Now - Anda's Game {test} #001 (2007).cbz",
@@ -1253,12 +1284,14 @@ rnames = [
     (
         "{series} - {title} #{issue} ({year} {price})",  # Test null value in parenthesis with a non-null value
         False,
+        False,
         "universal",
         "Cory Doctorow's Futuristic Tales of the Here and Now - Anda's Game #001 (2007).cbz",
         does_not_raise(),
     ),
     (
         "{series} - {title} #{issue} (of {price})",  # null value with literal text in parenthesis
+        False,
         False,
         "universal",
         "Cory Doctorow's Futuristic Tales of the Here and Now - Anda's Game #001.cbz",
@@ -1267,15 +1300,24 @@ rnames = [
     (
         "{series} - {title} {1} #{issue} ({year})",  # Test numeric key
         False,
+        False,
         "universal",
         "Cory Doctorow's Futuristic Tales of the Here and Now - Anda's Game {test} #001 (2007).cbz",
         pytest.raises(ValueError),
     ),
+    (
+        "{series} - {title} #{issue} ({year})",
+        False,
+        True,
+        "universal",
+        "Cory Doctorow's Futuristic Tales of the Here and Now - Anda's Game #001 (2007)/cory doctorow #1.cbz",
+        does_not_raise(),
+    ),
 ]
 
-rfnames = [
-    (None, lambda x: x.path.parent.absolute()),
-    ("", lambda x: pathlib.Path(os.getcwd())),
-    ("test", lambda x: (pathlib.Path(os.getcwd()) / "test")),
-    (pathlib.Path(os.getcwd()) / "test", lambda x: pathlib.Path(os.getcwd()) / "test"),
+folder_names = [
+    (None, lambda: pathlib.Path(str(cbz_path)).parent.absolute()),
+    ("", lambda: pathlib.Path(os.getcwd())),
+    ("test", lambda: (pathlib.Path(os.getcwd()) / "test")),
+    (pathlib.Path(os.getcwd()) / "test", lambda: pathlib.Path(os.getcwd()) / "test"),
 ]

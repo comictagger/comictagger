@@ -210,6 +210,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.btnResetSettings.clicked.connect(self.reset_settings)
         self.btnTemplateHelp.clicked.connect(self.show_template_help)
         self.cbxMoveFiles.clicked.connect(self.dir_test)
+        self.cbxMoveOnly.clicked.connect(self.move_only_clicked)
         self.leDirectory.textEdited.connect(self.dir_test)
         self.cbFilenameParser.currentIndexChanged.connect(self.switch_parser)
 
@@ -220,6 +221,7 @@ class SettingsWindow(QtWidgets.QDialog):
 
         self.leRenameTemplate.textEdited.connect(self.rename_test)
         self.cbxMoveFiles.clicked.connect(self.rename_test)
+        self.cbxMoveOnly.clicked.connect(self.rename_test)
         self.cbxRenameStrict.clicked.connect(self.rename_test)
         self.cbxSmartCleanup.clicked.connect(self.rename_test)
         self.cbxChangeExtension.clicked.connect(self.rename_test)
@@ -248,6 +250,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.cbxChangeExtension.clicked.disconnect()
         self.cbFilenameParser.currentIndexChanged.disconnect()
         self.cbxMoveFiles.clicked.disconnect()
+        self.cbxMoveOnly.clicked.disconnect()
         self.cbxRenameStrict.clicked.disconnect()
         self.cbxSmartCleanup.clicked.disconnect()
         self.leDirectory.textEdited.disconnect()
@@ -336,19 +339,31 @@ class SettingsWindow(QtWidgets.QDialog):
     def rename_test(self, *args: Any, **kwargs: Any) -> None:
         self._rename_test(self.leRenameTemplate.text())
 
+    def move_only_clicked(self, *args: Any, **kwargs: Any) -> None:
+        if self.cbxMoveOnly.isChecked():
+            self.cbxMoveFiles.setEnabled(False)
+            self.cbxMoveFiles.setChecked(True)
+        else:
+            self.cbxMoveFiles.setEnabled(True)
+        self.dir_test()
+
     def dir_test(self) -> None:
         self.lblDir.setText(
-            str(pathlib.Path(self.leDirectory.text().strip()).resolve()) if self.cbxMoveFiles.isChecked() else ""
+            str(pathlib.Path(self.leDirectory.text().strip()).resolve())
+            if self.cbxMoveFiles.isChecked() or self.cbxMoveOnly.isChecked()
+            else ""
         )
 
     def _rename_test(self, template: str) -> None:
         if not str(self.leIssueNumPadding.text()).isdigit():
             self.leIssueNumPadding.setText("0")
         fr = FileRenamer(
-            md_test,
+            None,
             platform="universal" if self.cbxRenameStrict.isChecked() else "auto",
             replacements=self.get_replacements(),
         )
+        fr.set_metadata(md_test, "cory doctorow #1.cbz")
+        fr.move_only = self.cbxMoveOnly.isChecked()
         fr.move = self.cbxMoveFiles.isChecked()
         fr.set_template(template)
         fr.set_issue_zero_padding(int(self.leIssueNumPadding.text()))
@@ -418,7 +433,8 @@ class SettingsWindow(QtWidgets.QDialog):
         self.leIssueNumPadding.setText(str(self.config[0].File_Rename__issue_number_padding))
         self.cbxSmartCleanup.setChecked(self.config[0].File_Rename__use_smart_string_cleanup)
         self.cbxChangeExtension.setChecked(self.config[0].File_Rename__auto_extension)
-        self.cbxMoveFiles.setChecked(self.config[0].File_Rename__move_to_dir)
+        self.cbxMoveFiles.setChecked(self.config[0].File_Rename__move)
+        self.cbxMoveOnly.setChecked(self.config[0].File_Rename__only_move)
         self.leDirectory.setText(self.config[0].File_Rename__dir)
         self.cbxRenameStrict.setChecked(self.config[0].File_Rename__strict)
 
@@ -543,7 +559,8 @@ class SettingsWindow(QtWidgets.QDialog):
         self.config[0].File_Rename__issue_number_padding = int(self.leIssueNumPadding.text())
         self.config[0].File_Rename__use_smart_string_cleanup = self.cbxSmartCleanup.isChecked()
         self.config[0].File_Rename__auto_extension = self.cbxChangeExtension.isChecked()
-        self.config[0].File_Rename__move_to_dir = self.cbxMoveFiles.isChecked()
+        self.config[0].File_Rename__move = self.cbxMoveFiles.isChecked()
+        self.config[0].File_Rename__only_move = self.cbxMoveOnly.isChecked()
         self.config[0].File_Rename__dir = self.leDirectory.text()
 
         self.config[0].File_Rename__strict = self.cbxRenameStrict.isChecked()

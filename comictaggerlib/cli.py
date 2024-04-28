@@ -573,14 +573,16 @@ class CLI:
             new_ext = ca.extension()
 
         renamer = FileRenamer(
-            md,
+            None,
             platform="universal" if self.config.File_Rename__strict else "auto",
             replacements=self.config.File_Rename__replacements,
         )
+        renamer.set_metadata(md, ca.path.name)
         renamer.set_template(self.config.File_Rename__template)
         renamer.set_issue_zero_padding(self.config.File_Rename__issue_number_padding)
         renamer.set_smart_cleanup(self.config.File_Rename__use_smart_string_cleanup)
-        renamer.move = self.config.File_Rename__move_to_dir
+        renamer.move = self.config.File_Rename__move
+        renamer.move_only = self.config.File_Rename__only_move
 
         try:
             new_name = renamer.determine_name(ext=new_ext)
@@ -600,7 +602,7 @@ class CLI:
             logger.exception("Formatter failure: %s metadata: %s", self.config.File_Rename__template, renamer.metadata)
             return Result(Action.rename, Status.rename_failure, original_path, md=md)
 
-        folder = get_rename_dir(ca, self.config.File_Rename__dir if self.config.File_Rename__move_to_dir else None)
+        folder = get_rename_dir(ca, self.config.File_Rename__dir if self.config.File_Rename__move else None)
 
         full_path = folder / new_name
 

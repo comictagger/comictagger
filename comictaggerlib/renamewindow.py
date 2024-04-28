@@ -75,6 +75,7 @@ class RenameWindow(QtWidgets.QDialog):
         self.renamer.set_issue_zero_padding(self.config[0].File_Rename__issue_number_padding)
         self.renamer.set_smart_cleanup(self.config[0].File_Rename__use_smart_string_cleanup)
         self.renamer.replacements = self.config[0].File_Rename__replacements
+        self.renamer.move_only = self.config[0].File_Rename__only_move
 
         new_ext = ca.path.suffix  # default
         if self.config[0].File_Rename__auto_extension:
@@ -89,8 +90,8 @@ class RenameWindow(QtWidgets.QDialog):
                     self.config[0].Filename_Parsing__remove_fcbd,
                     self.config[0].Filename_Parsing__remove_publisher,
                 )
-        self.renamer.set_metadata(md)
-        self.renamer.move = self.config[0].File_Rename__move_to_dir
+        self.renamer.set_metadata(md, ca.path.name)
+        self.renamer.move = self.config[0].File_Rename__move
         return new_ext
 
     def do_preview(self) -> None:
@@ -192,7 +193,7 @@ class RenameWindow(QtWidgets.QDialog):
 
                 folder = get_rename_dir(
                     comic[0],
-                    self.config[0].File_Rename__dir if self.config[0].File_Rename__move_to_dir else None,
+                    self.config[0].File_Rename__dir if self.config[0].File_Rename__move else None,
                 )
 
                 full_path = folder / comic[1]

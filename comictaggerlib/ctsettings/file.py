@@ -201,10 +201,15 @@ def rename(parser: settngs.Manager) -> None:
     parser.add_setting("--dir", default="", help="The directory to move renamed files to")
     parser.add_setting(
         "--move",
-        dest="move_to_dir",
         default=False,
         action=argparse.BooleanOptionalAction,
         help="Enables moving renamed files to a separate directory",
+    )
+    parser.add_setting(
+        "--only-move",
+        default=False,
+        action=argparse.BooleanOptionalAction,
+        help="Ignores the filename when moving renamed files to a separate directory",
     )
     parser.add_setting(
         "--strict",
