@@ -1211,8 +1211,6 @@ class TaggerWindow(QtWidgets.QMainWindow):
             QtWidgets.QMessageBox.information(self, "Whoops!", "No data to commit!")
 
     def set_load_data_style(self) -> None:
-        # TODO Should the message be changed? "manually entered data will be lost" Better desc for all 3 options?
-        # Save, Discard and Cancel - Cancel will keep the data in the form AND change the style. Explain each one?
         if self.dirty_flag_verification(
             "Change Tag Read Style",
             "If you change read tag style(s) now, data in the form will be lost.  Are you sure?",
@@ -1222,6 +1220,10 @@ class TaggerWindow(QtWidgets.QMainWindow):
             self.update_menus()
             if self.comic_archive is not None:
                 self.load_archive(self.comic_archive)
+        else:
+            self.cbLoadDataStyle.itemChanged.disconnect()
+            self.adjust_load_style_combo()
+            self.cbLoadDataStyle.itemChanged.connect(self.set_load_data_style)
 
     def set_save_data_style(self) -> None:
         self.save_data_styles = self.cbSaveDataStyle.currentData()
