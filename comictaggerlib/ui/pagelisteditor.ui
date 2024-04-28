@@ -28,6 +28,9 @@
        <height>16777215</height>
       </size>
      </property>
+     <property name="horizontalScrollBarPolicy">
+      <enum>Qt::ScrollBarAlwaysOff</enum>
+     </property>
      <property name="dragEnabled">
       <bool>true</bool>
      </property>
