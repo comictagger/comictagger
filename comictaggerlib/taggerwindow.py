@@ -835,6 +835,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
             widget.setChecked(False)
         if isinstance(widget, QtWidgets.QTableWidget):
             widget.setRowCount(0)
+        if isinstance(widget, QtWidgets.QListWidget):
+            widget.clear()
 
         # recursive call on children
         for child in widget.children():
@@ -2139,6 +2141,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
     def load_archive(self, comic_archive: ComicArchive) -> None:
         self.comic_archive = None
         self.clear_form()
+        self.metadata = GenericMetadata()
 
         if not os.path.exists(comic_archive.path):
             self.fileSelectionList.dirty_flag = False

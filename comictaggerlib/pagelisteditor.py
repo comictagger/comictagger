@@ -110,6 +110,7 @@ class PageListEditor(QtWidgets.QWidget):
         self.leBookmark.editingFinished.connect(self.save_bookmark)
         self.btnUp.clicked.connect(self.move_current_up)
         self.btnDown.clicked.connect(self.move_current_down)
+        self.btnIdentifyScannerPage.clicked.connect(self.identify_scanner_page)
         self.pre_move_row = -1
         self.first_front_page: int | None = None
 
@@ -134,6 +135,21 @@ class PageListEditor(QtWidgets.QWidget):
         action_item.triggered.connect(lambda: self.select_page_type_item(self.cbPageType.findData(user_data)))
         action_item.setShortcut(shortcut)
         self.addAction(action_item)
+
+    def identify_scanner_page(self) -> None:
+        if self.comic_archive is None:
+            return
+        row = self.comic_archive.get_scanner_page_index()
+        if row is None:
+            return
+        page_dict: ImageMetadata = self.listWidget.item(row).data(QtCore.Qt.ItemDataRole.UserRole)
+
+        page_dict["type"] = PageType.Deleted
+
+        item = self.listWidget.item(row)
+        item.setData(QtCore.Qt.ItemDataRole.UserRole, page_dict)
+        item.setText(self.list_entry_text(page_dict))
+        self.change_page()
 
     def select_page_type_item(self, idx: int) -> None:
         if self.cbPageType.isEnabled() and self.listWidget.count() > 0:
