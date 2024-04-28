@@ -1409,9 +1409,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         # select the current style
         unchecked = set(metadata_styles.keys()) - set(self.save_data_styles)
         for style in self.save_data_styles:
-            self.cbSaveDataStyle.setItemChecked(
-                self.cbSaveDataStyle.findData(style), True
-            )  # Why were these read style?
+            self.cbSaveDataStyle.setItemChecked(self.cbSaveDataStyle.findData(style), True)
         for style in unchecked:
             self.cbSaveDataStyle.setItemChecked(self.cbSaveDataStyle.findData(style), False)
         self.update_metadata_style_tweaks()
