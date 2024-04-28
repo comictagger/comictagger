@@ -1616,7 +1616,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         ca_list = self.fileSelectionList.get_selected_archive_list()
         has_src_count = 0
 
-        src_styles: list[str] = self.load_data_style
+        src_styles: list[str] = self.load_data_styles
         dest_styles: list[str] = self.save_data_styles
 
         if len(src_styles) == 1 and src_styles[0] in dest_styles:

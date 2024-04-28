@@ -39,7 +39,7 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
         self,
         parent: QtWidgets.QWidget,
         match_set_list: list[Result],
-        styles: list[str],
+        load_styles: list[str],
         fetch_func: Callable[[IssueResult], GenericMetadata],
         config: ct_ns,
         talker: ComicTalker,
@@ -81,7 +81,7 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
         self.buttonBox.button(QtWidgets.QDialogButtonBox.StandardButton.Ok).setText("Accept and Write Tags")
 
         self.match_set_list = match_set_list
-        self._styles = styles
+        self.load_data_styles = load_styles
         self.fetch_func = fetch_func
 
         self.current_match_set_idx = 0
@@ -254,7 +254,7 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
 
         QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
         md.overlay(ct_md)
-        for style in self._styles:
+        for style in self.load_data_styles:
             success = ca.write_metadata(md, style)
             QtWidgets.QApplication.restoreOverrideCursor()
             if not success:
