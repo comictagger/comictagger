@@ -19,15 +19,23 @@ def prepare_metadata(md: GenericMetadata, new_md: GenericMetadata, opts: Settngs
         final_md = GenericMetadata()
 
     final_md.overlay(new_md)
-    assert final_md.tag_origin
-    notes = (
-        f"Tagged with ComicTagger {ctversion.version} using info from {final_md.tag_origin.name} on"
-        f" {datetime.now():%Y-%m-%d %H:%M:%S}. [Issue ID {final_md.issue_id}]"
-    )
+    if final_md.tag_origin is not None:
+        notes = (
+            f"Tagged with ComicTagger {ctversion.version} using info from {final_md.tag_origin.name} on"
+            + f" {datetime.now():%Y-%m-%d %H:%M:%S}. [Issue ID {final_md.issue_id}]"
+        )
+    else:
+        notes = (
+            f"Tagged with ComicTagger {ctversion.version} on"
+            + f" {datetime.now():%Y-%m-%d %H:%M:%S}. "
+            + (f"[Issue ID {final_md.issue_id}]" if final_md.issue_id else "")
+        )
 
     if opts.Issue_Identifier__auto_imprint:
         final_md.fix_publisher()
+
     return final_md.replace(
-        notes=utils.combine_notes(new_md.notes, notes, "Tagged with ComicTagger"),
-        description=cleanup_html(new_md.description, opts.Sources__remove_html_tables),
+        is_empty=False,
+        notes=utils.combine_notes(final_md.notes, notes, "Tagged with ComicTagger"),
+        description=cleanup_html(final_md.description, opts.Sources__remove_html_tables) or None,
     )

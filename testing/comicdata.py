@@ -135,3 +135,30 @@ all_seed_imprints = {
 all_seed_imprints["Marvel"].update(additional_seed_imprints["Marvel"])
 
 conflicting_seed_imprints = {"Marvel": {"test": "Never"}}
+
+
+metadata_prepared = (
+    (
+        (comicapi.genericmetadata.GenericMetadata(), comicapi.genericmetadata.GenericMetadata()),
+        comicapi.genericmetadata.GenericMetadata(notes="Tagged with ComicTagger 1.3.2a5 on 2022-04-16 15:52:26."),
+    ),
+    (
+        (comicapi.genericmetadata.GenericMetadata(issue_id="123"), comicapi.genericmetadata.GenericMetadata()),
+        comicapi.genericmetadata.GenericMetadata(
+            issue_id="123", notes="Tagged with ComicTagger 1.3.2a5 on 2022-04-16 15:52:26. [Issue ID 123]"
+        ),
+    ),
+    (
+        (
+            comicapi.genericmetadata.GenericMetadata(
+                issue_id="123", tag_origin=comicapi.genericmetadata.TagOrigin("SOURCE", "Source")
+            ),
+            comicapi.genericmetadata.GenericMetadata(),
+        ),
+        comicapi.genericmetadata.GenericMetadata(
+            issue_id="123",
+            tag_origin=comicapi.genericmetadata.TagOrigin("SOURCE", "Source"),
+            notes="Tagged with ComicTagger 1.3.2a5 using info from Source on 2022-04-16 15:52:26. [Issue ID 123]",
+        ),
+    ),
+)

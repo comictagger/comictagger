@@ -4,6 +4,8 @@ import pytest
 from importlib_metadata import entry_points
 
 import comicapi.genericmetadata
+import testing.comicdata
+from comictaggerlib.md import prepare_metadata
 
 metadata_styles = []
 
@@ -38,3 +40,9 @@ def test_metadata(mock_version, tmp_comic, md_saved, metadata):
         written_metadata = written_metadata.get_clean_metadata(*supported_attributes)
 
     assert written_metadata == md
+
+
+@pytest.mark.parametrize("metadata, expected", testing.comicdata.metadata_prepared)
+def test_prepare_metadata(mock_version, mock_now, config, metadata, expected):
+    new_md = prepare_metadata(metadata[0], metadata[1], config[0])
+    assert new_md == expected
