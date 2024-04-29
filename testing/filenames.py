@@ -439,6 +439,21 @@ names: list[tuple[str, str, dict[str, str | bool], tuple[bool, bool]]] = [
         (False, False),
     ),
     (
+        "Blue Beetle #½.cbr",
+        "½",
+        {
+            "archive": "cbr",
+            "issue": "½",
+            "series": "Blue Beetle",
+            "title": "",
+            "volume": "",
+            "year": "",
+            "remainder": "",
+            "issue_count": "",
+        },
+        (False, True),
+    ),
+    (
         "Monster Island vol. 2 #2.cbz",
         "Example from userguide",
         {

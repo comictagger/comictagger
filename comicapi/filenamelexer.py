@@ -146,7 +146,8 @@ class Lexer:
         return False
 
     # AcceptRun consumes a run of runes from the valid set.
-    def accept_run(self, valid: str | Callable[[str], bool]) -> None:
+    def accept_run(self, valid: str | Callable[[str], bool]) -> bool:
+        initial = self.pos
         if isinstance(valid, str):
             while self.get() in valid:
                 continue
@@ -155,11 +156,13 @@ class Lexer:
                 continue
 
         self.backup()
+        return initial != self.pos
 
     def scan_number(self) -> bool:
         digits = "0123456789.,"
 
-        self.accept_run(digits)
+        if not self.accept_run(digits):
+            return False
         if self.input[self.pos] == ".":
             self.backup()
         self.accept_run(str.isalpha)
