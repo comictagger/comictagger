@@ -161,7 +161,7 @@ class Lexer:
     def scan_number(self) -> bool:
         digits = "0123456789.,"
 
-        if not self.accept_run(digits):
+        if not self.accept_run(lambda x: x.isnumeric() or x in digits):
             return False
         if self.input[self.pos] == ".":
             self.backup()
@@ -220,7 +220,7 @@ def lex_filename(lex: Lexer) -> LexerFunc | None:
     elif r == "#":
         if lex.allow_issue_start_with_letter and is_alpha_numeric(lex.peek()):
             return lex_issue_number
-        elif lex.peek().isdigit() or lex.peek() in "-+.":
+        elif lex.peek().isnumeric() or lex.peek() in "-+.":
             return lex_issue_number
         lex.emit(ItemType.Symbol)
     elif is_operator(r):
@@ -347,7 +347,7 @@ def lex_number(lex: Lexer) -> LexerFunc | None:
 
     if lex.input[lex.start] == "#":
         lex.emit(ItemType.IssueNumber)
-    elif not lex.input[lex.pos].isdigit():
+    elif not lex.input[lex.pos].isnumeric():
         # Assume that 80th is just text and not a number
         lex.emit(ItemType.Text)
     else:
