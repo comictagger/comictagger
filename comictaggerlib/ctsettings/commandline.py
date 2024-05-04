@@ -165,10 +165,11 @@ def register_runtime(parser: settngs.Manager) -> None:
         metavar=f"{{{','.join(metadata_styles).upper()}}}",
         default=[],
         type=metadata_type,
-        help="""Specify the type of tags to write.\nUse commas for multiple types.\nSee --list-plugins for the available types.\n\n""",
+        help="""Specify the type of tags to write.\nUse commas for multiple types.\nRead types will be used if unspecified\nSee --list-plugins for the available types.\n\n""",
         file=False,
     )
     parser.add_setting(
+        "-t",
         "--type-read",
         metavar=f"{{{','.join(metadata_styles).upper()}}}",
         default=[],
@@ -289,6 +290,9 @@ def validate_commandline_settings(config: settngs.Config[ct_ns], parser: settngs
 
     if config[0].Runtime_Options__json and config[0].Runtime_Options__interactive:
         config[0].Runtime_Options__json = False
+
+    if config[0].Runtime_Options__type_read and not config[0].Runtime_Options__type_modify:
+        config[0].Runtime_Options__type_modify = config[0].Runtime_Options__type_read
 
     if (
         config[0].Commands__command not in (Action.save_config, Action.list_plugins)
