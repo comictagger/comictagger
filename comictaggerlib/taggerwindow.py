@@ -224,7 +224,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             if style not in metadata_styles:
                 config[0].internal__load_data_style.remove(style)
         self.save_data_styles: list[str] = config[0].internal__save_data_style
-        self.load_data_styles: list[str] = config[0].internal__load_data_style
+        self.load_data_styles: list[str] = reversed(config[0].internal__load_data_style)
 
         self.setAcceptDrops(True)
         self.view_tag_actions, self.remove_tag_actions = self.tag_actions()
@@ -1215,8 +1215,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             "Change Tag Read Style",
             "If you change read tag style(s) now, data in the form will be lost.  Are you sure?",
         ):
-            self.load_data_styles = self.cbLoadDataStyle.currentData()
-            self.config[0].internal__load_data_style = self.load_data_styles
+            self.load_data_styles = reversed(self.cbLoadDataStyle.currentData())
             self.update_menus()
             if self.comic_archive is not None:
                 self.load_archive(self.comic_archive)
@@ -1672,13 +1671,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 success_count = 0
                 for prog_idx, ca in enumerate(ca_list, 1):
                     ca_saved = False
-                    md = GenericMetadata()
-
-                    for style in src_styles:
-                        if ca.is_writable() and ca.has_metadata(style):
-                            md.overlay(ca.read_metadata(style))
-                        else:
-                            continue
+                    md, success = self.overlay_ca_read_style(src_styles, ca)
                     if md.is_empty:
                         continue
 
@@ -2083,6 +2076,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 self.config[0].internal__sort_column,
                 self.config[0].internal__sort_direction,
             ) = self.fileSelectionList.get_sorting()
+            self.config[0].internal__load_data_style = self.cbLoadDataStyle.currentData()
             ctsettings.save_file(self.config, self.config[0].Runtime_Options__config.user_config_dir / "settings.json")
 
             event.accept()
@@ -2180,7 +2174,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         md = GenericMetadata()
         success = True
         try:
-            for style in reversed(load_data_styles):
+            for style in load_data_styles:
                 metadata = ca.read_metadata(style)
                 md.overlay(metadata)
         except Exception as e:

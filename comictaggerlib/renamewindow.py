@@ -49,7 +49,7 @@ class RenameWindow(QtWidgets.QDialog):
             uic.loadUi(uifile, self)
 
         self.label.setText(
-            f"Preview (based on {', '.join([f'{metadata_styles[style].name()}' for style in load_data_styles])} tags):"
+            f"Preview (based on {', '.join(metadata_styles[style].name() for style in load_data_styles)} tags):"
         )
 
         self.setWindowFlags(
