@@ -76,7 +76,7 @@
              <widget class="QComboBox" name="cbx_sources"/>
             </item>
             <item row="1" column="1">
-             <widget class="TableComboBox" name="cbLoadDataStyle">
+             <widget class="CheckableOrderComboBox" name="cbLoadDataStyle">
               <property name="toolTip">
                <string>At least one read style must be selected</string>
               </property>
@@ -1529,7 +1529,7 @@
    <header>comictaggerlib.ui.customwidgets</header>
   </customwidget>
   <customwidget>
-   <class>TableComboBox</class>
+   <class>CheckableOrderComboBox</class>
    <extends>QComboBox</extends>
    <header>comictaggerlib.ui.customwidgets</header>
   </customwidget>

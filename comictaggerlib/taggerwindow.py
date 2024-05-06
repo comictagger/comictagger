@@ -224,7 +224,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             if style not in metadata_styles:
                 config[0].internal__load_data_style.remove(style)
         self.save_data_styles: list[str] = config[0].internal__save_data_style
-        self.load_data_styles: list[str] = reversed(config[0].internal__load_data_style)
+        self.load_data_styles: list[str] = list(reversed(config[0].internal__load_data_style))
 
         self.setAcceptDrops(True)
         self.view_tag_actions, self.remove_tag_actions = self.tag_actions()
@@ -273,7 +273,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.cbMaturityRating.lineEdit().setAcceptDrops(False)
 
         # hook up the callbacks
-        self.cbLoadDataStyle.itemChanged.connect(self.set_load_data_style)
+        self.cbLoadDataStyle.dropdownClosed.connect(self.set_load_data_style)
         self.cbSaveDataStyle.itemChecked.connect(self.set_save_data_style)
         self.cbx_sources.currentIndexChanged.connect(self.set_source)
         self.btnEditCredit.clicked.connect(self.edit_credit)
@@ -1210,12 +1210,12 @@ class TaggerWindow(QtWidgets.QMainWindow):
         else:
             QtWidgets.QMessageBox.information(self, "Whoops!", "No data to commit!")
 
-    def set_load_data_style(self) -> None:
+    def set_load_data_style(self, load_data_styles: list[str]) -> None:
         if self.dirty_flag_verification(
             "Change Tag Read Style",
             "If you change read tag style(s) now, data in the form will be lost.  Are you sure?",
         ):
-            self.load_data_styles = reversed(self.cbLoadDataStyle.currentData())
+            self.load_data_styles = list(reversed(load_data_styles))
             self.update_menus()
             if self.comic_archive is not None:
                 self.load_archive(self.comic_archive)
@@ -1396,11 +1396,12 @@ class TaggerWindow(QtWidgets.QMainWindow):
     def adjust_load_style_combo(self) -> None:
         # select the enabled styles
         unchecked = set(metadata_styles.keys()) - set(self.load_data_styles)
-        for i, style in enumerate(self.load_data_styles):
+        for i, style in enumerate(reversed(self.load_data_styles)):
             item_idx = self.cbLoadDataStyle.findData(style)
             self.cbLoadDataStyle.setItemChecked(item_idx, True)
             # Order matters, move items to list order
-            self.cbLoadDataStyle.moveItem(item_idx, row=i)
+            if item_idx != i:
+                self.cbLoadDataStyle.moveItem(item_idx, row=i)
         for style in unchecked:
             self.cbLoadDataStyle.setItemChecked(self.cbLoadDataStyle.findData(style), False)
 
@@ -1416,7 +1417,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
     def populate_style_names(self) -> None:
         # First clear all entries (called from settingswindow.py)
         self.cbSaveDataStyle.clear()
-        self.cbLoadDataStyle.emptyTable()
+        self.cbLoadDataStyle.clear()
         # Add the entries to the tag style combobox
         for style in metadata_styles.values():
             if self.config[0].General__use_short_metadata_names:
