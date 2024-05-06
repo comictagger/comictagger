@@ -72,7 +72,7 @@ class RenameWindow(QtWidgets.QDialog):
 
         self.do_preview()
 
-    def config_renamer(self, ca: ComicArchive, md: GenericMetadata | None = None) -> str:
+    def config_renamer(self, ca: ComicArchive, md: GenericMetadata = GenericMetadata()) -> str:
         self.renamer.set_template(self.config[0].File_Rename__template)
         self.renamer.set_issue_zero_padding(self.config[0].File_Rename__issue_number_padding)
         self.renamer.set_smart_cleanup(self.config[0].File_Rename__use_smart_string_cleanup)
@@ -84,7 +84,11 @@ class RenameWindow(QtWidgets.QDialog):
             new_ext = ca.extension()
 
         if md is None or md.is_empty:
-            md, success = self.parent().overlay_ca_read_style(self.load_data_styles, ca)
+            md, error = self.parent().overlay_ca_read_style(self.load_data_styles, ca)
+            # How much should we care about this error? Notify user or not?
+            if error is not None:
+                logger.error("Failed to load metadata for %s: %s", ca.path, error)
+
             if md.is_empty:
                 md = ca.metadata_from_filename(
                     self.config[0].Filename_Parsing__filename_parser,

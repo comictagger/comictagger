@@ -1203,9 +1203,18 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 self.clear_dirty_flag()
                 self.update_info_box()
                 self.update_menus()
-            self.fileSelectionList.update_current_row()
 
-            self.metadata, success = self.overlay_ca_read_style(self.load_data_styles, self.comic_archive)
+                # Only try to read if write was successful
+                self.metadata, error = self.overlay_ca_read_style(self.load_data_styles, self.comic_archive)
+                if error is not None:
+                    QtWidgets.QMessageBox.warning(
+                        self,
+                        "Read Failed!",
+                        f"One or more of the read styles failed to load for {self.comic_archive.path}, check log for details",
+                    )
+                    logger.error("Failed to load metadata for %s: %s", self.ca.path, error)
+
+            self.fileSelectionList.update_current_row()
             self.update_ui_for_archive()
         else:
             QtWidgets.QMessageBox.information(self, "Whoops!", "No data to commit!")
@@ -1672,7 +1681,10 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 success_count = 0
                 for prog_idx, ca in enumerate(ca_list, 1):
                     ca_saved = False
-                    md, success = self.overlay_ca_read_style(src_styles, ca)
+                    md, error = self.overlay_ca_read_style(src_styles, ca)
+                    if error is not None:
+                        failed_list.append(ca.path)
+                        continue
                     if md.is_empty:
                         continue
 
@@ -1742,7 +1754,15 @@ class TaggerWindow(QtWidgets.QMainWindow):
         ii = IssueIdentifier(ca, self.config[0], self.current_talker())
 
         # read in metadata, and parse file name if not there
-        md, success = self.overlay_ca_read_style(self.load_data_styles, ca)
+        md, error = self.overlay_ca_read_style(self.load_data_styles, ca)
+        if error is not None:
+            QtWidgets.QMessageBox.warning(
+                self,
+                "Aborting...",
+                f"One or more of the read styles failed to load for {ca.path}. Aborting to prevent any possible further damage. Check log for details.",
+            )
+            logger.error("Failed to load metadata for %s: %s", self.ca.path, error)
+            return False, match_results
 
         if md.is_empty:
             md = ca.metadata_from_filename(
@@ -2165,24 +2185,26 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.config[0].internal__last_opened_folder = os.path.abspath(os.path.split(comic_archive.path)[0])
         self.comic_archive = comic_archive
 
-        self.metadata, success = self.overlay_ca_read_style(self.load_data_styles, self.comic_archive)
-        if not success:
+        self.metadata, error = self.overlay_ca_read_style(self.load_data_styles, self.comic_archive)
+        if error is not None:
+            logger.error("Failed to load metadata for %s: %s", self.comic_archive.path, error)
             self.exception(f"Failed to load metadata for {self.comic_archive.path}, see log for details\n\n")
 
         self.update_ui_for_archive()
 
-    def overlay_ca_read_style(self, load_data_styles: list[str], ca: ComicArchive) -> tuple[GenericMetadata, bool]:
+    def overlay_ca_read_style(
+        self, load_data_styles: list[str], ca: ComicArchive
+    ) -> tuple[GenericMetadata, Exception | None]:
         md = GenericMetadata()
-        success = True
+        error = None
         try:
             for style in load_data_styles:
                 metadata = ca.read_metadata(style)
                 md.overlay(metadata)
         except Exception as e:
-            logger.error("Failed to load metadata for %s: %s", self.ca.path, e)
-            success = False
+            error = e
 
-        return md, success
+        return md, error
 
     def file_list_cleared(self) -> None:
         self.reset_app()
