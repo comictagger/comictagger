@@ -85,9 +85,13 @@ class RenameWindow(QtWidgets.QDialog):
 
         if md is None or md.is_empty:
             md, error = self.parent().overlay_ca_read_style(self.load_data_styles, ca)
-            # How much should we care about this error? Notify user or not?
             if error is not None:
                 logger.error("Failed to load metadata for %s: %s", ca.path, error)
+                QtWidgets.QMessageBox.warning(
+                    self,
+                    "Read Failed!",
+                    f"One or more of the read styles failed to load for {ca.path}, check log for details",
+                )
 
             if md.is_empty:
                 md = ca.metadata_from_filename(
