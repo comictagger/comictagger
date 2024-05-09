@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from enum import auto
+from sys import platform
 from typing import Any
 
 from PyQt5 import QtGui, QtWidgets
@@ -154,7 +155,7 @@ class ReadStyleItemDelegate(QtWidgets.QStyledItemDelegate):
         # Draw background with the same color as other widgets
         palette = self.combobox.palette()
         background_color = palette.color(QtGui.QPalette.Window)
-        painter.fillRect(option.rect, background_color)
+        painter.fillRect(options.rect, background_color)
 
         style.drawPrimitive(QtWidgets.QStyle.PE_PanelItemViewItem, options, painter, self.combobox)
 
@@ -164,23 +165,27 @@ class ReadStyleItemDelegate(QtWidgets.QStyledItemDelegate):
         checked = index.data(Qt.CheckStateRole)
         opts = QtWidgets.QStyleOptionButton()
         opts.state |= QtWidgets.QStyle.State_Active
+        opts.rect = self.getCheckBoxRect(options)
         opts.state |= QtWidgets.QStyle.State_ReadOnly
         if checked:
             opts.state |= QtWidgets.QStyle.State_On
+            style.drawPrimitive(
+                QtWidgets.QStyle.PrimitiveElement.PE_IndicatorMenuCheckMark, opts, painter, self.combobox
+            )
         else:
             opts.state |= QtWidgets.QStyle.State_Off
-        opts.rect = self.getCheckBoxRect(option)
-        style.drawControl(QtWidgets.QStyle.CE_CheckBox, opts, painter)
+        if platform != "darwin":
+            style.drawControl(QtWidgets.QStyle.CE_CheckBox, opts, painter, self.combobox)
 
         label = index.data(Qt.DisplayRole)
-        rectangle = option.rect
+        rectangle = options.rect
         rectangle.setX(opts.rect.width() + 10)
         painter.drawText(rectangle, Qt.AlignVCenter, label)
 
         # Draw buttons
-        if checked and (option.state & QtWidgets.QStyle.State_Selected):
-            up_rect = self._button_up_rect(option.rect)
-            down_rect = self._button_down_rect(option.rect)
+        if checked and (options.state & QtWidgets.QStyle.State_Selected):
+            up_rect = self._button_up_rect(options.rect)
+            down_rect = self._button_down_rect(options.rect)
 
             painter.drawImage(up_rect, self.up_icon)
             painter.drawImage(down_rect, self.down_icon)
@@ -208,8 +213,7 @@ class ReadStyleItemDelegate(QtWidgets.QStyledItemDelegate):
         opts = QtWidgets.QStyleOptionButton()
         style = option.widget.style()
         checkBoxRect = style.subElementRect(QtWidgets.QStyle.SE_CheckBoxIndicator, opts, None)
-        # Comparing to a QCheckBox, it comes out 1 pixel too high
-        y = option.rect.y() + 1
+        y = option.rect.y()
         h = option.rect.height()
         checkBoxTopLeftCorner = QPoint(5, int(y + h / 2 - checkBoxRect.height() / 2))
 
