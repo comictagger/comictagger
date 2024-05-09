@@ -6,7 +6,7 @@ from enum import auto
 from typing import Any
 
 from PyQt5 import QtGui, QtWidgets
-from PyQt5.QtCore import QEvent, QModelIndex, QPoint, QRect, QSize, Qt, pyqtSignal
+from PyQt5.QtCore import QEvent, QModelIndex, QPoint, QRect, Qt, pyqtSignal
 
 from comicapi.utils import StrEnum
 from comictaggerlib.graphics import graphics_path
@@ -132,8 +132,16 @@ class ReadStyleItemDelegate(QtWidgets.QStyledItemDelegate):
         super().__init__()
         self.combobox = parent
 
-        self.button_width = 24
+        self.down_icon = QtGui.QImage(str(graphics_path / "down.png"))
+        self.up_icon = QtGui.QImage(str(graphics_path / "up.png"))
+
+        self.button_width = self.down_icon.width()
         self.button_padding = 5
+
+        # Tooltip messages
+        self.item_help: str = ""
+        self.up_help: str = ""
+        self.down_help: str = ""
 
         # Connect the signal to a slot in the delegate
         self.combobox.itemClicked.connect(self.itemClicked)
@@ -156,10 +164,7 @@ class ReadStyleItemDelegate(QtWidgets.QStyledItemDelegate):
         checked = index.data(Qt.CheckStateRole)
         opts = QtWidgets.QStyleOptionButton()
         opts.state |= QtWidgets.QStyle.State_Active
-        if index.flags() & Qt.ItemIsEditable:
-            opts.state |= QtWidgets.QStyle.State_Enabled
-        else:
-            opts.state |= QtWidgets.QStyle.State_ReadOnly
+        opts.state |= QtWidgets.QStyle.State_ReadOnly
         if checked:
             opts.state |= QtWidgets.QStyle.State_On
         else:
@@ -169,23 +174,22 @@ class ReadStyleItemDelegate(QtWidgets.QStyledItemDelegate):
 
         label = index.data(Qt.DisplayRole)
         rectangle = option.rect
-        rectangle.setX(opts.rect.width() + 5)
+        rectangle.setX(opts.rect.width() + 10)
         painter.drawText(rectangle, Qt.AlignVCenter, label)
 
         # Draw buttons
         if checked and (option.state & QtWidgets.QStyle.State_Selected):
-            # TODO Fill button rects or similar for better separation from text below?
             up_rect = self._button_up_rect(option.rect)
             down_rect = self._button_down_rect(option.rect)
 
-            painter.drawImage(up_rect, QtGui.QImage(str(graphics_path / "up.png")))
-            painter.drawImage(down_rect, QtGui.QImage(str(graphics_path / "down.png")))
+            painter.drawImage(up_rect, self.up_icon)
+            painter.drawImage(down_rect, self.down_icon)
 
         painter.restore()
 
     def _button_up_rect(self, rect: QRect = QRect(10, 1, 12, 12)) -> QRect:
         return QRect(
-            rect.right() - self.button_width - self.button_padding - 15,
+            rect.right() - (self.button_width * 2) - (self.button_padding * 2),
             rect.top() + (rect.height() - self.button_width) // 2,
             self.button_width,
             self.button_width,
@@ -193,7 +197,7 @@ class ReadStyleItemDelegate(QtWidgets.QStyledItemDelegate):
 
     def _button_down_rect(self, rect: QRect = QRect(10, 1, 12, 12)) -> QRect:
         return QRect(
-            rect.right() - self.button_padding - 15,
+            rect.right() - self.button_padding - self.button_width,
             rect.top() + (rect.height() - self.button_width) // 2,
             self.button_width,
             self.button_width,
@@ -204,9 +208,10 @@ class ReadStyleItemDelegate(QtWidgets.QStyledItemDelegate):
         opts = QtWidgets.QStyleOptionButton()
         style = option.widget.style()
         checkBoxRect = style.subElementRect(QtWidgets.QStyle.SE_CheckBoxIndicator, opts, None)
-        y = option.rect.y()
+        # Comparing to a QCheckBox, it comes out 1 pixel too high
+        y = option.rect.y() + 1
         h = option.rect.height()
-        checkBoxTopLeftCorner = QPoint(2, int(y + h / 2 - checkBoxRect.height() / 2))
+        checkBoxTopLeftCorner = QPoint(5, int(y + h / 2 - checkBoxRect.height() / 2))
 
         return QRect(checkBoxTopLeftCorner, checkBoxRect.size())
 
@@ -223,8 +228,32 @@ class ReadStyleItemDelegate(QtWidgets.QStyledItemDelegate):
         else:
             self.buttonClicked.emit(index, ClickedButtonEnum.main)
 
-    def sizeHint(self, option: QtWidgets.QStyleOptionViewItem, index: QModelIndex) -> QSize:
-        return QSize(10, 35)
+    def setToolTip(self, item: str = "", up: str = "", down: str = "") -> None:
+        if item:
+            self.item_help = item
+        if up:
+            self.up_help = up
+        if down:
+            self.down_help = down
+
+    def helpEvent(
+        self,
+        event: QtGui.QHelpEvent,
+        view: QtWidgets.QAbstractItemView,
+        option: QtWidgets.QStyleOptionViewItem,
+        index: QModelIndex,
+    ) -> bool:
+        item_rect = view.visualRect(index)
+        button_up_rect = self._button_up_rect(item_rect)
+        button_down_rect = self._button_down_rect(item_rect)
+
+        if button_up_rect.contains(event.pos()):
+            QtWidgets.QToolTip.showText(event.globalPos(), self.up_help, self.combobox, QRect(), 3000)
+        elif button_down_rect.contains(event.pos()):
+            QtWidgets.QToolTip.showText(event.globalPos(), self.down_help, self.combobox, QRect(), 3000)
+        else:
+            QtWidgets.QToolTip.showText(event.globalPos(), self.item_help, self.combobox, QRect(), 3000)
+        return True
 
 
 # Multiselect combobox from: https://gis.stackexchange.com/a/351152 (with custom changes)
@@ -234,7 +263,12 @@ class CheckableOrderComboBox(QtWidgets.QComboBox):
 
     def __init__(self, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)
-        self.setItemDelegate(ReadStyleItemDelegate(self))
+        itemDelegate = ReadStyleItemDelegate(self)
+        itemDelegate.setToolTip(
+            "Select which read style(s) to use", "Move item up in priority", "Move item down in priority"
+        )
+        self.setItemDelegate(itemDelegate)
+
         # Prevent popup from closing when clicking on an item
         self.view().viewport().installEventFilter(self)
 
