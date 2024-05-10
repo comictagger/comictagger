@@ -32,7 +32,7 @@ def internal(parser: settngs.Manager) -> None:
     # automatic settings
     parser.add_setting("install_id", default=uuid.uuid4().hex, cmdline=False)
     parser.add_setting("save_data_style", default=["cbi"], cmdline=False)
-    parser.add_setting("load_data_style", default="cbi", cmdline=False)
+    parser.add_setting("load_data_style", default=["cbi"], cmdline=False)
     parser.add_setting("last_opened_folder", default="", cmdline=False)
     parser.add_setting("window_width", default=0, cmdline=False)
     parser.add_setting("window_height", default=0, cmdline=False)
@@ -278,6 +278,15 @@ def migrate_settings(config: settngs.Config[ct_ns]) -> settngs.Config[ct_ns]:
             config[0].internal__save_data_style = [save_style]
         else:
             config[0].internal__save_data_style = ["cbi"]
+
+    load_style = config[0].internal__load_data_style
+    if not isinstance(load_style, list):
+        if isinstance(load_style, int) and load_style in (0, 1, 2):
+            config[0].internal__load_data_style = [original_types[load_style]]
+        elif isinstance(load_style, str):
+            config[0].internal__load_data_style = [load_style]
+        else:
+            config[0].internal__load_data_style = ["cbi"]
 
     return config
 

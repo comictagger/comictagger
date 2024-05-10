@@ -39,7 +39,7 @@ class RenameWindow(QtWidgets.QDialog):
         self,
         parent: QtWidgets.QWidget,
         comic_archive_list: list[ComicArchive],
-        data_style: str,
+        load_data_styles: list[str],
         config: settngs.Config[ct_ns],
         talkers: dict[str, ComicTalker],
     ) -> None:
@@ -48,7 +48,9 @@ class RenameWindow(QtWidgets.QDialog):
         with (ui_path / "renamewindow.ui").open(encoding="utf-8") as uifile:
             uic.loadUi(uifile, self)
 
-        self.label.setText(f"Preview (based on {metadata_styles[data_style].name()} tags):")
+        self.label.setText(
+            f"Preview (based on {', '.join(metadata_styles[style].name() for style in load_data_styles)} tags):"
+        )
 
         self.setWindowFlags(
             QtCore.Qt.WindowType(
@@ -61,7 +63,7 @@ class RenameWindow(QtWidgets.QDialog):
         self.config = config
         self.talkers = talkers
         self.comic_archive_list = comic_archive_list
-        self.data_style = data_style
+        self.load_data_styles = load_data_styles
         self.rename_list: list[str] = []
 
         self.btnSettings.clicked.connect(self.modify_settings)
@@ -70,7 +72,7 @@ class RenameWindow(QtWidgets.QDialog):
 
         self.do_preview()
 
-    def config_renamer(self, ca: ComicArchive, md: GenericMetadata | None = None) -> str:
+    def config_renamer(self, ca: ComicArchive, md: GenericMetadata = GenericMetadata()) -> str:
         self.renamer.set_template(self.config[0].File_Rename__template)
         self.renamer.set_issue_zero_padding(self.config[0].File_Rename__issue_number_padding)
         self.renamer.set_smart_cleanup(self.config[0].File_Rename__use_smart_string_cleanup)
@@ -82,7 +84,15 @@ class RenameWindow(QtWidgets.QDialog):
             new_ext = ca.extension()
 
         if md is None or md.is_empty:
-            md = ca.read_metadata(self.data_style)
+            md, error = self.parent().overlay_ca_read_style(self.load_data_styles, ca)
+            if error is not None:
+                logger.error("Failed to load metadata for %s: %s", ca.path, error)
+                QtWidgets.QMessageBox.warning(
+                    self,
+                    "Read Failed!",
+                    f"One or more of the read styles failed to load for {ca.path}, check log for details",
+                )
+
             if md.is_empty:
                 md = ca.metadata_from_filename(
                     self.config[0].Filename_Parsing__filename_parser,

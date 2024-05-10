@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1096</width>
-    <height>658</height>
+    <height>660</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -76,7 +76,11 @@
              <widget class="QComboBox" name="cbx_sources"/>
             </item>
             <item row="1" column="1">
-             <widget class="QComboBox" name="cbLoadDataStyle"/>
+             <widget class="CheckableOrderComboBox" name="cbLoadDataStyle">
+              <property name="toolTip">
+               <string>At least one read style must be selected</string>
+              </property>
+             </widget>
             </item>
             <item row="2" column="1">
              <widget class="CheckableComboBox" name="cbSaveDataStyle"/>
@@ -1521,6 +1525,11 @@
  <customwidgets>
   <customwidget>
    <class>CheckableComboBox</class>
+   <extends>QComboBox</extends>
+   <header>comictaggerlib.ui.customwidgets</header>
+  </customwidget>
+  <customwidget>
+   <class>CheckableOrderComboBox</class>
    <extends>QComboBox</extends>
    <header>comictaggerlib.ui.customwidgets</header>
   </customwidget>

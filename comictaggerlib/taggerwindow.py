@@ -211,18 +211,20 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
         self.setWindowIcon(QtGui.QIcon(str(graphics_path / "app.png")))
 
-        if config[0].Runtime_Options__type and isinstance(config[0].Runtime_Options__type[0], str):
-            # respect the command line option tag type
-            config[0].internal__save_data_style = config[0].Runtime_Options__type
-            config[0].internal__load_data_style = config[0].Runtime_Options__type[0]
+        # respect the command line option tag type
+        if config[0].Runtime_Options__type_modify:
+            config[0].internal__save_data_style = config[0].Runtime_Options__type_modify
+        if config[0].Runtime_Options__type_read:
+            config[0].internal__load_data_style = config[0].Runtime_Options__type_read
 
         for style in config[0].internal__save_data_style:
             if style not in metadata_styles:
                 config[0].internal__save_data_style.remove(style)
-        if config[0].internal__load_data_style not in metadata_styles:
-            config[0].internal__load_data_style = list(metadata_styles.keys())[0]
+        for style in config[0].internal__load_data_style:
+            if style not in metadata_styles:
+                config[0].internal__load_data_style.remove(style)
         self.save_data_styles: list[str] = config[0].internal__save_data_style
-        self.load_data_style: str = config[0].internal__load_data_style
+        self.load_data_styles: list[str] = config[0].internal__load_data_style
 
         self.setAcceptDrops(True)
         self.view_tag_actions, self.remove_tag_actions = self.tag_actions()
@@ -271,7 +273,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.cbMaturityRating.lineEdit().setAcceptDrops(False)
 
         # hook up the callbacks
-        self.cbLoadDataStyle.currentIndexChanged.connect(self.set_load_data_style)
+        self.cbLoadDataStyle.dropdownClosed.connect(self.set_load_data_style)
         self.cbSaveDataStyle.itemChecked.connect(self.set_save_data_style)
         self.cbx_sources.currentIndexChanged.connect(self.set_source)
         self.btnEditCredit.clicked.connect(self.edit_credit)
@@ -433,7 +435,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.actionAutoTag.triggered.connect(self.auto_tag)
 
         self.actionCopyTags.setShortcut("Ctrl+C")
-        self.actionCopyTags.setStatusTip("Copy one tag style to another")
+        self.actionCopyTags.setStatusTip("Copy one tag style tags to enabled modify style(s)")
         self.actionCopyTags.triggered.connect(self.copy_tags)
 
         self.actionRemoveAuto.setShortcut("Ctrl+D")
@@ -1188,7 +1190,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                     failed_style = metadata_styles[style].name()
                     break
 
-            self.comic_archive.load_cache(list(metadata_styles))
+            self.comic_archive.load_cache(set(metadata_styles))
             QtWidgets.QApplication.restoreOverrideCursor()
 
             if failed_style:
@@ -1201,26 +1203,37 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 self.clear_dirty_flag()
                 self.update_info_box()
                 self.update_menus()
-            self.fileSelectionList.update_current_row()
 
-            self.metadata = self.comic_archive.read_metadata(self.load_data_style)
+                # Only try to read if write was successful
+                self.metadata, error = self.overlay_ca_read_style(self.load_data_styles, self.comic_archive)
+                if error is not None:
+                    QtWidgets.QMessageBox.warning(
+                        self,
+                        "Read Failed!",
+                        f"One or more of the read styles failed to load for {self.comic_archive.path}, check log for details",
+                    )
+                    logger.error("Failed to load metadata for %s: %s", self.ca.path, error)
+
+            self.fileSelectionList.update_current_row()
             self.update_ui_for_archive()
         else:
             QtWidgets.QMessageBox.information(self, "Whoops!", "No data to commit!")
 
-    def set_load_data_style(self, s: str) -> None:
+    def set_load_data_style(self, load_data_styles: list[str]) -> None:
+        """Should only be called from the combobox signal"""
         if self.dirty_flag_verification(
-            "Change Tag Read Style", "If you change read tag style now, data in the form will be lost.  Are you sure?"
+            "Change Tag Read Style",
+            "If you change read tag style(s) now, data in the form will be lost.  Are you sure?",
         ):
-            self.load_data_style = self.cbLoadDataStyle.itemData(s)
-            self.config[0].internal__load_data_style = self.load_data_style
+            self.load_data_styles = list(reversed(load_data_styles))
+            self.config[0].internal__load_data_style = self.load_data_styles
             self.update_menus()
             if self.comic_archive is not None:
                 self.load_archive(self.comic_archive)
         else:
-            self.cbLoadDataStyle.currentIndexChanged.disconnect(self.set_load_data_style)
+            self.cbLoadDataStyle.itemChanged.disconnect()
             self.adjust_load_style_combo()
-            self.cbLoadDataStyle.currentIndexChanged.connect(self.set_load_data_style)
+            self.cbLoadDataStyle.itemChanged.connect(self.set_load_data_style)
 
     def set_save_data_style(self) -> None:
         self.save_data_styles = self.cbSaveDataStyle.currentData()
@@ -1392,28 +1405,38 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.cbx_sources.setCurrentIndex(self.cbx_sources.findData(self.config[0].Sources__source))
 
     def adjust_load_style_combo(self) -> None:
-        # select the current style
-        self.cbLoadDataStyle.setCurrentIndex(self.cbLoadDataStyle.findData(self.load_data_style))
+        """Select the enabled styles. Since metadata is merged in an overlay fashion the last item in the list takes priority. We reverse the order for display to the user"""
+        unchecked = set(metadata_styles.keys()) - set(self.load_data_styles)
+        for i, style in enumerate(reversed(self.load_data_styles)):
+            item_idx = self.cbLoadDataStyle.findData(style)
+            self.cbLoadDataStyle.setItemChecked(item_idx, True)
+            # Order matters, move items to list order
+            if item_idx != i:
+                self.cbLoadDataStyle.moveItem(item_idx, row=i)
+        for style in unchecked:
+            self.cbLoadDataStyle.setItemChecked(self.cbLoadDataStyle.findData(style), False)
 
     def adjust_save_style_combo(self) -> None:
         # select the current style
         unchecked = set(metadata_styles.keys()) - set(self.save_data_styles)
         for style in self.save_data_styles:
-            self.cbSaveDataStyle.setItemChecked(self.cbLoadDataStyle.findData(style), True)
+            self.cbSaveDataStyle.setItemChecked(self.cbSaveDataStyle.findData(style), True)
         for style in unchecked:
-            self.cbSaveDataStyle.setItemChecked(self.cbLoadDataStyle.findData(style), False)
+            self.cbSaveDataStyle.setItemChecked(self.cbSaveDataStyle.findData(style), False)
         self.update_metadata_style_tweaks()
 
     def populate_style_names(self) -> None:
         # First clear all entries (called from settingswindow.py)
         self.cbSaveDataStyle.clear()
+        self.cbLoadDataStyle.clear()
         # Add the entries to the tag style combobox
         for style in metadata_styles.values():
-            self.cbLoadDataStyle.addItem(style.name(), style.short_name)
             if self.config[0].General__use_short_metadata_names:
                 self.cbSaveDataStyle.addItem(style.short_name.upper(), style.short_name)
+                self.cbLoadDataStyle.addItem(style.short_name.upper(), style.short_name)
             else:
                 self.cbSaveDataStyle.addItem(style.name(), style.short_name)
+                self.cbLoadDataStyle.addItem(style.name(), style.short_name)
 
     def populate_combo_boxes(self) -> None:
         self.populate_style_names()
@@ -1580,7 +1603,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                                 # Abandon any further tag removals to prevent any greater damage to archive
                                 break
                     ca.reset_cache()
-                    ca.load_cache(list(metadata_styles))
+                    ca.load_cache(set(metadata_styles))
 
                 progdialog.hide()
                 QtCore.QCoreApplication.processEvents()
@@ -1604,12 +1627,12 @@ class TaggerWindow(QtWidgets.QMainWindow):
         ca_list = self.fileSelectionList.get_selected_archive_list()
         has_src_count = 0
 
-        src_style = self.load_data_style
-        dest_styles = self.save_data_styles
+        src_styles: list[str] = self.load_data_styles
+        dest_styles: list[str] = self.save_data_styles
 
-        # Remove the read style from the write style
-        if src_style in dest_styles:
-            dest_styles.remove(src_style)
+        if len(src_styles) == 1 and src_styles[0] in dest_styles:
+            # Remove the read style from the write style
+            dest_styles.remove(src_styles[0])
 
         if not dest_styles:
             QtWidgets.QMessageBox.information(
@@ -1618,12 +1641,16 @@ class TaggerWindow(QtWidgets.QMainWindow):
             return
 
         for ca in ca_list:
-            if ca.has_metadata(src_style):
-                has_src_count += 1
+            for style in src_styles:
+                if ca.has_metadata(style):
+                    has_src_count += 1
+                    continue
 
         if has_src_count == 0:
             QtWidgets.QMessageBox.information(
-                self, "Copy Tags", f"No archives with {metadata_styles[src_style].name()} tags selected!"
+                self,
+                "Copy Tags",
+                f"No archives with {', '.join([metadata_styles[style].name() for style in src_styles])} tags selected!",
             )
             return
 
@@ -1636,8 +1663,9 @@ class TaggerWindow(QtWidgets.QMainWindow):
             reply = QtWidgets.QMessageBox.question(
                 self,
                 "Copy Tags",
-                f"Are you sure you wish to copy the {metadata_styles[src_style].name()} "
-                f"tags to {', '.join([metadata_styles[style].name() for style in dest_styles])} tags in "
+                f"Are you sure you wish to copy the combined (with overlay order) tags of "
+                f"{', '.join([metadata_styles[style].name() for style in src_styles])} "
+                f"to {', '.join([metadata_styles[style].name() for style in dest_styles])} tags in "
                 f"{has_src_count} archive(s)?",
                 QtWidgets.QMessageBox.StandardButton.Yes,
                 QtWidgets.QMessageBox.StandardButton.No,
@@ -1655,10 +1683,11 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 success_count = 0
                 for prog_idx, ca in enumerate(ca_list, 1):
                     ca_saved = False
-
-                    if ca.has_metadata(src_style) and ca.is_writable():
-                        md = ca.read_metadata(src_style)
-                    else:
+                    md, error = self.overlay_ca_read_style(src_styles, ca)
+                    if error is not None:
+                        failed_list.append(ca.path)
+                        continue
+                    if md.is_empty:
                         continue
 
                     for style in dest_styles:
@@ -1683,7 +1712,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                             failed_list.append(ca.path)
 
                     ca.reset_cache()
-                    ca.load_cache([self.load_data_style, *self.save_data_styles])
+                    ca.load_cache({*self.load_data_styles, *self.save_data_styles})
 
                 prog_dialog.hide()
                 QtCore.QCoreApplication.processEvents()
@@ -1727,11 +1756,16 @@ class TaggerWindow(QtWidgets.QMainWindow):
         ii = IssueIdentifier(ca, self.config[0], self.current_talker())
 
         # read in metadata, and parse file name if not there
-        try:
-            md = ca.read_metadata(self.load_data_style)
-        except Exception as e:
-            md = GenericMetadata()
-            logger.error("Failed to load metadata for %s: %s", ca.path, e)
+        md, error = self.overlay_ca_read_style(self.load_data_styles, ca)
+        if error is not None:
+            QtWidgets.QMessageBox.warning(
+                self,
+                "Aborting...",
+                f"One or more of the read styles failed to load for {ca.path}. Aborting to prevent any possible further damage. Check log for details.",
+            )
+            logger.error("Failed to load metadata for %s: %s", self.ca.path, error)
+            return False, match_results
+
         if md.is_empty:
             md = ca.metadata_from_filename(
                 self.config[0].Filename_Parsing__filename_parser,
@@ -1888,7 +1922,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                     match_results.write_failures.append(res)
 
                 ca.reset_cache()
-                ca.load_cache([self.load_data_style] + self.save_data_styles)
+                ca.load_cache({*self.load_data_styles, *self.save_data_styles})
 
         return success, match_results
 
@@ -1937,7 +1971,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             self.auto_tag_log(f"Auto-Tagging {prog_idx} of {len(ca_list)}\n")
             self.auto_tag_log(f"{ca.path}\n")
             try:
-                cover_idx = ca.read_metadata(self.load_data_style).get_cover_page_index_list()[0]
+                cover_idx = ca.read_metadata(self.load_data_styles[0]).get_cover_page_index_list()[0]
             except Exception as e:
                 cover_idx = 0
                 logger.error("Failed to load metadata for %s: %s", ca.path, e)
@@ -2132,7 +2166,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         if self.dirty_flag_verification(
             "File Rename", "If you rename files now, unsaved data in the form will be lost.  Are you sure?"
         ):
-            dlg = RenameWindow(self, ca_list, self.load_data_style, self.config, self.talkers)
+            dlg = RenameWindow(self, ca_list, self.load_data_styles, self.config, self.talkers)
             dlg.setModal(True)
             if dlg.exec() and self.comic_archive is not None:
                 self.fileSelectionList.update_selected_rows()
@@ -2151,14 +2185,27 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
         self.config[0].internal__last_opened_folder = os.path.abspath(os.path.split(comic_archive.path)[0])
         self.comic_archive = comic_archive
-        try:
-            self.metadata = self.comic_archive.read_metadata(self.load_data_style)
-        except Exception as e:
-            logger.error("Failed to load metadata for %s: %s", self.comic_archive.path, e)
-            self.exception(f"Failed to load metadata for {self.comic_archive.path}:\n\n{e}")
-            self.metadata = GenericMetadata()
+
+        self.metadata, error = self.overlay_ca_read_style(self.load_data_styles, self.comic_archive)
+        if error is not None:
+            logger.error("Failed to load metadata for %s: %s", self.comic_archive.path, error)
+            self.exception(f"Failed to load metadata for {self.comic_archive.path}, see log for details\n\n")
 
         self.update_ui_for_archive()
+
+    def overlay_ca_read_style(
+        self, load_data_styles: list[str], ca: ComicArchive
+    ) -> tuple[GenericMetadata, Exception | None]:
+        md = GenericMetadata()
+        error = None
+        try:
+            for style in load_data_styles:
+                metadata = ca.read_metadata(style)
+                md.overlay(metadata)
+        except Exception as e:
+            error = e
+
+        return md, error
 
     def file_list_cleared(self) -> None:
         self.reset_app()

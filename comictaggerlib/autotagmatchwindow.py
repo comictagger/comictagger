@@ -39,7 +39,7 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
         self,
         parent: QtWidgets.QWidget,
         match_set_list: list[Result],
-        styles: list[str],
+        load_styles: list[str],
         fetch_func: Callable[[IssueResult], GenericMetadata],
         config: ct_ns,
         talker: ComicTalker,
@@ -81,7 +81,7 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
         self.buttonBox.button(QtWidgets.QDialogButtonBox.StandardButton.Ok).setText("Accept and Write Tags")
 
         self.match_set_list = match_set_list
-        self._styles = styles
+        self.load_data_styles = load_styles
         self.fetch_func = fetch_func
 
         self.current_match_set_idx = 0
@@ -229,8 +229,17 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
     def save_match(self) -> None:
         match = self.current_match()
         ca = ComicArchive(self.current_match_set.original_path)
+        md, error = self.parent().overlay_ca_read_style(self.load_data_styles, ca)
+        if error is not None:
+            logger.error("Failed to load metadata for %s: %s", ca.path, error)
+            QtWidgets.QApplication.restoreOverrideCursor()
+            QtWidgets.QMessageBox.critical(
+                self,
+                "Read Failed!",
+                f"One or more of the read styles failed to load for {ca.path}, check log for details",
+            )
+            return
 
-        md = ca.read_metadata(self.config.internal__load_data_style)
         if md.is_empty:
             md = ca.metadata_from_filename(
                 self.config.Filename_Parsing__filename_parser,
@@ -254,7 +263,7 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
 
         QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
         md.overlay(ct_md)
-        for style in self._styles:
+        for style in self.load_data_styles:
             success = ca.write_metadata(md, style)
             QtWidgets.QApplication.restoreOverrideCursor()
             if not success:
@@ -265,4 +274,4 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
                 )
                 break
 
-        ca.load_cache(list(metadata_styles))
+        ca.reset_cache()

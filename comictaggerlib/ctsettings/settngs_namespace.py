@@ -34,14 +34,15 @@ class SettngsNS(settngs.TypedNS):
     Runtime_Options__glob: bool
     Runtime_Options__quiet: bool
     Runtime_Options__json: bool
-    Runtime_Options__type: list[str]
+    Runtime_Options__type_modify: list[str]
+    Runtime_Options__type_read: list[str]
     Runtime_Options__overwrite: bool
     Runtime_Options__no_gui: bool
     Runtime_Options__files: list[str]
 
     internal__install_id: str
     internal__save_data_style: list[str]
-    internal__load_data_style: str
+    internal__load_data_style: list[str]
     internal__last_opened_folder: str
     internal__window_width: int
     internal__window_height: int
@@ -149,7 +150,7 @@ class Runtime_Options(typing.TypedDict):
 class internal(typing.TypedDict):
     install_id: str
     save_data_style: list[str]
-    load_data_style: str
+    load_data_style: list[str]
     last_opened_folder: str
     window_width: int
     window_height: int

@@ -523,6 +523,7 @@ class SettingsWindow(QtWidgets.QDialog):
         if self.cbxShortMetadataNames.isChecked() != self.config[0].General__use_short_metadata_names:
             self.config[0].General__use_short_metadata_names = self.cbxShortMetadataNames.isChecked()
             self.parent().populate_style_names()
+            self.parent().adjust_load_style_combo()
             self.parent().adjust_save_style_combo()
 
         self.config[0].Issue_Identifier__series_match_identify_thresh = self.sbNameMatchIdentifyThresh.value()

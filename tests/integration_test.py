@@ -39,8 +39,9 @@ def test_save(
     config[0].Runtime_Options__online = True
     # Use the temporary comic we created
     config[0].Runtime_Options__files = [tmp_comic.path]
-    # Save ComicRack tags
-    config[0].Runtime_Options__type = ["cr"]
+    # Read and save ComicRack tags
+    config[0].Runtime_Options__type_read = ["cr"]
+    config[0].Runtime_Options__type_modify = ["cr"]
     # Search using the correct series since we just put the wrong series name in the CBZ
     config[0].Runtime_Options__metadata = comicapi.genericmetadata.GenericMetadata(series=md_saved.series)
     # Run ComicTagger
@@ -89,7 +90,7 @@ def test_delete(
     # Use the temporary comic we created
     config[0].Runtime_Options__files = [tmp_comic.path]
     # Delete ComicRack tags
-    config[0].Runtime_Options__type = ["cr"]
+    config[0].Runtime_Options__type_modify = ["cr"]
     # Run ComicTagger
     CLI(config[0], talkers).run()
 
