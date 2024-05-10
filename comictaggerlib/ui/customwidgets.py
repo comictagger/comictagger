@@ -7,7 +7,7 @@ from sys import platform
 from typing import Any
 
 from PyQt5 import QtGui, QtWidgets
-from PyQt5.QtCore import QEvent, QModelIndex, QPoint, QRect, Qt, pyqtSignal
+from PyQt5.QtCore import QEvent, QModelIndex, QPoint, QRect, QSize, Qt, pyqtSignal
 
 from comicapi.utils import StrEnum
 from comictaggerlib.graphics import graphics_path
@@ -192,9 +192,9 @@ class ReadStyleItemDelegate(QtWidgets.QStyledItemDelegate):
 
         painter.restore()
 
-    def _button_up_rect(self, rect: QRect = QRect(10, 1, 12, 12)) -> QRect:
+    def _button_up_rect(self, rect: QRect) -> QRect:
         return QRect(
-            rect.right() - (self.button_width * 2) - (self.button_padding * 2),
+            self.combobox.view().width() - (self.button_width * 2) - (self.button_padding * 2),
             rect.top() + (rect.height() - self.button_width) // 2,
             self.button_width,
             self.button_width,
@@ -202,7 +202,7 @@ class ReadStyleItemDelegate(QtWidgets.QStyledItemDelegate):
 
     def _button_down_rect(self, rect: QRect = QRect(10, 1, 12, 12)) -> QRect:
         return QRect(
-            rect.right() - self.button_padding - self.button_width,
+            self.combobox.view().width() - self.button_padding - self.button_width,
             rect.top() + (rect.height() - self.button_width) // 2,
             self.button_width,
             self.button_width,
@@ -250,14 +250,22 @@ class ReadStyleItemDelegate(QtWidgets.QStyledItemDelegate):
         item_rect = view.visualRect(index)
         button_up_rect = self._button_up_rect(item_rect)
         button_down_rect = self._button_down_rect(item_rect)
+        checked = index.data(Qt.CheckStateRole)
 
-        if button_up_rect.contains(event.pos()):
+        if checked == Qt.Checked and button_up_rect.contains(event.pos()):
             QtWidgets.QToolTip.showText(event.globalPos(), self.up_help, self.combobox, QRect(), 3000)
-        elif button_down_rect.contains(event.pos()):
+        elif checked == Qt.Checked and button_down_rect.contains(event.pos()):
             QtWidgets.QToolTip.showText(event.globalPos(), self.down_help, self.combobox, QRect(), 3000)
         else:
             QtWidgets.QToolTip.showText(event.globalPos(), self.item_help, self.combobox, QRect(), 3000)
         return True
+
+    def sizeHint(self, option: QtWidgets.QStyleOptionViewItem, index: QModelIndex) -> QSize:
+        # Reimpliment standard combobox sizeHint. Only height is used by view, width is ignored
+        menu_option = QtWidgets.QStyleOptionMenuItem()
+        return self.combobox.style().sizeFromContents(
+            QtWidgets.QStyle.ContentsType.CT_MenuItem, menu_option, option.rect.size(), self.combobox
+        )
 
 
 # Multiselect combobox from: https://gis.stackexchange.com/a/351152 (with custom changes)
@@ -339,6 +347,13 @@ class CheckableOrderComboBox(QtWidgets.QComboBox):
         # Expected that state of *all* checkboxes will be set ('adjust_save_style_combo' in taggerwindow.py)
         if self.count() == 1:
             self.model().item(0).setCheckState(Qt.CheckState.Checked)
+
+        # Add room for "move" arrows
+        text_width = self.fontMetrics().width(text)
+        checkbox_width = 40
+        total_width = text_width + checkbox_width + (self.itemDelegate().button_width * 2)
+        if total_width > self.view().minimumWidth():
+            self.view().setMinimumWidth(total_width)
 
     def moveItem(self, index: int, up: bool = False, row: int | None = None) -> None:
         """'Move' an item. Really swap the data and titles around on the two items"""
