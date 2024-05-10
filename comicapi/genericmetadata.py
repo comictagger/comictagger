@@ -24,14 +24,12 @@ from __future__ import annotations
 import copy
 import dataclasses
 import logging
-import sys
 from collections.abc import Sequence
-from enum import Enum, auto
-from typing import TYPE_CHECKING, Any, TypedDict, Union
+from typing import TYPE_CHECKING, Any, TypedDict, Union, overload
 
 from typing_extensions import NamedTuple, Required
 
-from comicapi import utils
+from comicapi import merge, utils
 from comicapi._url import Url, parse_url
 from comicapi.utils import norm_fold
 
@@ -41,50 +39,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class __remove(Enum):
-    REMOVE = auto()
-
-
-REMOVE = __remove.REMOVE
-
-
-if sys.version_info < (3, 11):
-
-    class StrEnum(str, Enum):
-        """
-        Enum where members are also (and must be) strings
-        """
-
-        def __new__(cls, *values: Any) -> Any:
-            "values must already be of type `str`"
-            if len(values) > 3:
-                raise TypeError(f"too many arguments for str(): {values!r}")
-            if len(values) == 1:
-                # it must be a string
-                if not isinstance(values[0], str):
-                    raise TypeError(f"{values[0]!r} is not a string")
-            if len(values) >= 2:
-                # check that encoding argument is a string
-                if not isinstance(values[1], str):
-                    raise TypeError(f"encoding must be a string, not {values[1]!r}")
-            if len(values) == 3:
-                # check that errors argument is a string
-                if not isinstance(values[2], str):
-                    raise TypeError("errors must be a string, not %r" % (values[2]))
-            value = str(*values)
-            member = str.__new__(cls, value)
-            member._value_ = value
-            return member
-
-        @staticmethod
-        def _generate_next_value_(name: str, start: int, count: int, last_values: Any) -> str:
-            """
-            Return the lower-cased version of the member name.
-            """
-            return name.lower()
-
-else:
-    from enum import StrEnum
+REMOVE = object()
 
 
 class PageType:
@@ -117,10 +72,7 @@ class ImageMetadata(TypedDict, total=False):
     width: str
 
 
-class Credit(TypedDict):
-    person: str
-    role: str
-    primary: bool
+Credit = merge.Credit
 
 
 @dataclasses.dataclass
@@ -143,12 +95,6 @@ class ComicSeries:
 class TagOrigin(NamedTuple):
     id: str
     name: str
-
-
-class OverlayMode(StrEnum):
-    overlay = auto()
-    add_missing = auto()
-    combine = auto()
 
 
 @dataclasses.dataclass
@@ -261,93 +207,19 @@ class GenericMetadata:
         new_md.__post_init__()
         return new_md
 
-    def credit_dedupe(self, cur: list[Credit], new: list[Credit]) -> list[Credit]:
-        if len(new) == 0:
-            return cur
-        if len(cur) == 0:
-            return new
-
-        # Create dict for deduplication
-        new_dict: dict[str, Credit] = {norm_fold(f"{n['person']}_{n['role']}"): n for n in new}
-        cur_dict: dict[str, Credit] = {norm_fold(f"{c['person']}_{c['role']}"): c for c in cur}
-
-        # Any duplicates use the 'new' value
-        cur_dict.update(new_dict)
-        return list(cur_dict.values())
-
-    def assign_dedupe(self, new: list[str] | set[str], cur: list[str] | set[str]) -> list[str] | set[str]:
-        """Dedupes normalised (NFKD), casefolded values using 'new' values on collisions"""
-        if len(new) == 0:
-            return cur
-        if len(cur) == 0:
-            return new
-
-        # Create dict values for deduplication
-        new_dict: dict[str, str] = {norm_fold(n): n for n in new}
-        cur_dict: dict[str, str] = {norm_fold(c): c for c in cur}
-
-        if isinstance(cur, list):
-            cur_dict.update(new_dict)
-            return list(cur_dict.values())
-
-        if isinstance(cur, set):
-            cur_dict.update(new_dict)
-            return set(cur_dict.values())
-
-        # All else fails
-        return cur
-
-    def assign_overlay(self, cur: Any, new: Any) -> Any:
-        """Overlay - When the 'new' object has non-None values, overwrite 'cur'(rent) with 'new'."""
-        if new is None:
-            return cur
-        if isinstance(new, (list, set)) and len(new) == 0:
-            return cur
-        else:
-            return new
-
-    def assign_add_missing(self, cur: Any, new: Any) -> Any:
-        """Add Missing - Any 'cur(rent)' values that are None or an empty list/set, add 'new' non-None values"""
-        if new is None:
-            return cur
-        if cur is None:
-            return new
-        elif isinstance(cur, (list, set)) and len(cur) == 0:
-            return new
-        else:
-            return cur
-
-    def assign_combine(self, cur: Any, new: Any) -> Any:
-        """Combine - Combine lists and sets (checking for dupes). All non-None values from new replace cur(rent)"""
-        if new is None:
-            return cur
-        if isinstance(new, (list, set)) and isinstance(cur, (list, set)):
-            # Check for weblinks (Url is a tuple)
-            if len(new) > 0 and isinstance(new, list) and isinstance(new[0], Url):
-                return list(set(new).union(cur))
-            return self.assign_dedupe(new, cur)
-        else:
-            return new
-
-    def overlay(self, new_md: GenericMetadata, mode: OverlayMode = OverlayMode.overlay) -> None:
+    def overlay(self, new_md: GenericMetadata, mode: merge.Mode = merge.Mode.OVERLAY) -> None:
         """Overlay a new metadata object on this one"""
 
-        assign_funcs = {
-            OverlayMode.overlay: self.assign_overlay,
-            OverlayMode.add_missing: self.assign_add_missing,
-            OverlayMode.combine: self.assign_combine,
-        }
+        merge_function = merge.function[mode]
 
         def assign(cur: Any, new: Any) -> Any:
             if new is REMOVE:
                 if isinstance(cur, (list, set)):
                     cur.clear()
                     return cur
-                else:
-                    return None
+                return None
 
-            assign_func = assign_funcs.get(mode, self.assign_overlay)
-            return assign_func(cur, new)
+            return merge_function(cur, new)
 
         if not new_md.is_empty:
             self.is_empty = False
@@ -390,13 +262,11 @@ class GenericMetadata:
         self.scan_info = assign(self.scan_info, new_md.scan_info)
 
         self.tags = assign(self.tags, new_md.tags)
-        self.pages = assign(self.pages, new_md.pages)
-        self.page_count = assign(self.page_count, new_md.page_count)
 
         self.characters = assign(self.characters, new_md.characters)
         self.teams = assign(self.teams, new_md.teams)
         self.locations = assign(self.locations, new_md.locations)
-        self.credits = self.assign_credits(self.credits, new_md.credits)
+        [self.add_credit(c) for c in assign(self.credits, new_md.credits)]
 
         self.price = assign(self.price, new_md.price)
         self.is_version_of = assign(self.is_version_of, new_md.is_version_of)
@@ -406,27 +276,8 @@ class GenericMetadata:
         self._cover_image = assign(self._cover_image, new_md._cover_image)
         self._alternate_images = assign(self._alternate_images, new_md._alternate_images)
 
-    def assign_credits_overlay(self, cur_credits: list[Credit], new_credits: list[Credit]) -> list[Credit]:
-        return self.credit_dedupe(cur_credits, new_credits)
-
-    def assign_credits_add_missing(self, cur_credits: list[Credit], new_credits: list[Credit]) -> list[Credit]:
-        # Send new_credits as cur_credits and vis-versa to keep cur_credit on duplication
-        return self.credit_dedupe(new_credits, cur_credits)
-
-    def assign_credits(
-        self, cur_credits: list[Credit], new_credits: list[Credit], mode: OverlayMode = OverlayMode.overlay
-    ) -> list[Credit]:
-        if new_credits is REMOVE:
-            return []
-
-        assign_credit_funcs = {
-            OverlayMode.overlay: self.assign_credits_overlay,
-            OverlayMode.add_missing: self.assign_credits_add_missing,
-            OverlayMode.combine: self.assign_credits_overlay,
-        }
-
-        assign_credit_func = assign_credit_funcs.get(mode, self.assign_credits_overlay)
-        return assign_credit_func(cur_credits, new_credits)
+        self.pages = assign(self.pages, new_md.pages)
+        self.page_count = assign(self.page_count, new_md.page_count)
 
     def apply_default_page_list(self, page_list: Sequence[str]) -> None:
         # generate a default page list, with the first page marked as the cover
@@ -471,21 +322,35 @@ class GenericMetadata:
 
         return coverlist
 
-    def add_credit(self, person: str, role: str, primary: bool = False) -> None:
-        if person == "":
+    @overload
+    def add_credit(self, person: Credit) -> None: ...
+
+    @overload
+    def add_credit(self, person: str, role: str, primary: bool = False) -> None: ...
+
+    def add_credit(self, person: str | Credit, role: str | None = None, primary: bool = False) -> None:
+
+        credit: Credit
+        if isinstance(person, Credit):
+            credit = person
+        else:
+            assert role is not None
+            credit = Credit(person=person, role=role, primary=primary)
+
+        if credit.role is None:
+            raise TypeError("GenericMetadata.add_credit takes either a Credit object or a person name and role")
+        if credit.person == "":
             return
 
-        credit = Credit(person=person, role=role, primary=primary)
-
-        person = norm_fold(person)
-        role = norm_fold(role)
+        person = norm_fold(credit.person)
+        role = norm_fold(credit.role)
 
         # look to see if it's not already there...
         found = False
         for c in self.credits:
-            if norm_fold(c["person"]) == person and norm_fold(c["role"]) == role:
+            if norm_fold(c.person) == person and norm_fold(c.role) == role:
                 # no need to add it. just adjust the "primary" flag as needed
-                c["primary"] = primary
+                c.primary = c.primary or primary
                 found = True
                 break
 
@@ -495,12 +360,10 @@ class GenericMetadata:
     def get_primary_credit(self, role: str) -> str:
         primary = ""
         for credit in self.credits:
-            if "role" not in credit or "person" not in credit:
-                continue
-            if (primary == "" and credit["role"].casefold() == role.casefold()) or (
-                credit["role"].casefold() == role.casefold() and "primary" in credit and credit["primary"]
+            if (primary == "" and credit.role.casefold() == role.casefold()) or (
+                credit.role.casefold() == role.casefold() and credit.primary
             ):
-                primary = credit["person"]
+                primary = credit.person
         return primary
 
     def __str__(self) -> str:
@@ -559,9 +422,9 @@ class GenericMetadata:
 
         for c in self.credits:
             primary = ""
-            if "primary" in c and c["primary"]:
+            if c.primary:
                 primary = " [P]"
-            add_string("credit", c["role"] + ": " + c["person"] + primary)
+            add_string("credit", c.role + ": " + c.person + primary)
 
         # find the longest field name
         flen = 0

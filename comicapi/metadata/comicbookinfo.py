@@ -47,6 +47,12 @@ _CBILiteralType = Literal[
 ]
 
 
+class credit(TypedDict):
+    person: str
+    role: str
+    primary: bool
+
+
 class _ComicBookInfoJson(TypedDict, total=False):
     series: str
     title: str
@@ -61,7 +67,7 @@ class _ComicBookInfoJson(TypedDict, total=False):
     genre: str
     language: str
     country: str
-    credits: list[Credit]
+    credits: list[credit]
     tags: list[str]
     comments: str
 
@@ -217,7 +223,7 @@ class ComicBookInfo(Metadata):
         assign("language", utils.xlate(utils.get_language_from_iso(metadata.language)))
         assign("country", utils.xlate(metadata.country))
         assign("rating", utils.xlate_int(metadata.critical_rating))
-        assign("credits", metadata.credits)
+        assign("credits", [credit(person=c.person, role=c.role, primary=c.primary) for c in metadata.credits])
         assign("tags", list(metadata.tags))
 
         return cbi_container

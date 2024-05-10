@@ -55,23 +55,86 @@ select_details = [
 # Used to test GenericMetadata.overlay
 metadata = [
     (
+        comicapi.genericmetadata.md_test.copy(),
         comicapi.genericmetadata.GenericMetadata(series="test", issue="2", title="never"),
         comicapi.genericmetadata.md_test.replace(series="test", issue="2", title="never"),
     ),
     (
+        comicapi.genericmetadata.md_test.copy(),
         comicapi.genericmetadata.GenericMetadata(),
         comicapi.genericmetadata.md_test.copy(),
+    ),
+    (
+        comicapi.genericmetadata.GenericMetadata(
+            credits=[
+                comicapi.genericmetadata.Credit(person="test", role="writer", primary=False),
+                comicapi.genericmetadata.Credit(person="test", role="artist", primary=True),
+            ],
+        ),
+        comicapi.genericmetadata.GenericMetadata(
+            credits=[
+                comicapi.genericmetadata.Credit(person="", role="writer", primary=False),
+                comicapi.genericmetadata.Credit(person="test2", role="inker", primary=False),
+            ]
+        ),
+        comicapi.genericmetadata.GenericMetadata(
+            credits=[
+                comicapi.genericmetadata.Credit(person="test", role="writer", primary=False),
+                comicapi.genericmetadata.Credit(person="test", role="artist", primary=True),
+                comicapi.genericmetadata.Credit(person="test2", role="inker", primary=False),
+            ]
+        ),
     ),
 ]
 
 metadata_add = [
     (
-        comicapi.genericmetadata.GenericMetadata(series="test", issue="1", title="test", genres={"test", "test2"}),
         comicapi.genericmetadata.GenericMetadata(
-            series="test2", issue="2", title="test2", genres={"test3", "test4"}, issue_count=5
+            series="test",
+            title="test",
+            issue="1",
+            volume_count=1,
+            page_count=3,
+            day=3,
+            genres={"test", "test2"},
+            story_arcs=["arc"],
+            characters=set(),
+            credits=[
+                comicapi.genericmetadata.Credit(person="test", role="writer", primary=False),
+                comicapi.genericmetadata.Credit(person="test", role="artist", primary=True),
+            ],
         ),
         comicapi.genericmetadata.GenericMetadata(
-            series="test", issue="1", title="test", genres={"test", "test2"}, issue_count=5
+            series="test2",
+            title="",
+            issue_count=2,
+            page_count=2,
+            day=0,
+            genres={"fake"},
+            characters={"bob", "fred"},
+            scan_info="nothing",
+            credits=[
+                comicapi.genericmetadata.Credit(person="Bob", role="writer", primary=False),
+                comicapi.genericmetadata.Credit(person="test", role="artist", primary=True),
+            ],
+        ),
+        comicapi.genericmetadata.GenericMetadata(
+            series="test",
+            title="test",
+            issue="1",
+            issue_count=2,
+            volume_count=1,
+            day=3,
+            page_count=3,
+            genres={"test", "test2"},
+            story_arcs=["arc"],
+            characters={"bob", "fred"},
+            scan_info="nothing",
+            credits=[
+                comicapi.genericmetadata.Credit(person="test", role="writer", primary=False),
+                comicapi.genericmetadata.Credit(person="test", role="artist", primary=True),
+                comicapi.genericmetadata.Credit(person="Bob", role="writer", primary=False),
+            ],
         ),
     ),
 ]
@@ -80,33 +143,42 @@ metadata_combine = [
     (
         comicapi.genericmetadata.GenericMetadata(
             series="test",
-            issue="1",
             title="test",
+            issue="1",
+            volume_count=1,
+            page_count=3,
+            day=3,
             genres={"test", "test2"},
-            story_arcs=["arc1"],
-            characters={"Bob", "fred"},
+            story_arcs=["arc"],
+            characters=set(),
             web_links=[comicapi.genericmetadata.parse_url("https://my.comics.here.com")],
         ),
         comicapi.genericmetadata.GenericMetadata(
             series="test2",
-            title="test2",
-            genres={"test2", "test3", "test4"},
-            story_arcs=["arc1", "arc2"],
+            title="",
+            issue_count=2,
+            page_count=2,
+            day=0,
+            genres={"fake"},
             characters={"bob", "fred"},
+            scan_info="nothing",
+            web_links=[comicapi.genericmetadata.parse_url("https://my.comics.here.com")],
         ),
         comicapi.genericmetadata.GenericMetadata(
             series="test2",
+            title="test",
             issue="1",
-            title="test2",
-            genres={"test", "test2", "test3", "test4"},
-            story_arcs=["arc1", "arc2"],
+            issue_count=2,
+            volume_count=1,
+            day=0,
+            page_count=2,
+            genres={"fake", "test", "test2"},
+            story_arcs=["arc"],
             characters={"bob", "fred"},
+            scan_info="nothing",
             web_links=[comicapi.genericmetadata.parse_url("https://my.comics.here.com")],
         ),
     ),
-]
-
-metadata_dedupe_set = [
     (
         comicapi.genericmetadata.GenericMetadata(characters={"Macintosh", "Søren Kierkegaard", "Barry"}),
         comicapi.genericmetadata.GenericMetadata(characters={"MacIntosh", "Soren Kierkegaard"}),
@@ -114,9 +186,6 @@ metadata_dedupe_set = [
             characters={"MacIntosh", "Soren Kierkegaard", "Søren Kierkegaard", "Barry"}
         ),
     ),
-]
-
-metadata_dedupe_list = [
     (
         comicapi.genericmetadata.GenericMetadata(story_arcs=["arc 1", "arc2", "arc 3"]),
         comicapi.genericmetadata.GenericMetadata(story_arcs=["Arc 1", "Arc2"]),
@@ -146,7 +215,10 @@ credits = [
     (comicapi.genericmetadata.md_test, "writeR", "Dara Naraghi"),
     (
         comicapi.genericmetadata.md_test.replace(
-            credits=[{"person": "Dara Naraghi", "role": "writer"}, {"person": "Dara Naraghi", "role": "writer"}]
+            credits=[
+                comicapi.genericmetadata.Credit(person="Dara Naraghi", role="writer"),
+                comicapi.genericmetadata.Credit(person="Dara Naraghi", role="writer"),
+            ]
         ),
         "writeR",
         "Dara Naraghi",

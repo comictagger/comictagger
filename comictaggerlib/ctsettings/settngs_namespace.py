@@ -5,11 +5,11 @@ import typing
 import settngs
 
 import comicapi.genericmetadata
+import comicapi.merge
 import comicapi.utils
 import comictaggerlib.ctsettings.types
 import comictaggerlib.defaults
 import comictaggerlib.resulttypes
-from comicapi.genericmetadata import OverlayMode
 
 
 class SettngsNS(settngs.TypedNS):
@@ -37,8 +37,8 @@ class SettngsNS(settngs.TypedNS):
     Runtime_Options__json: bool
     Runtime_Options__type_modify: list[str]
     Runtime_Options__type_read: list[str]
-    Runtime_Options__read_style_overlay: OverlayMode
-    Runtime_Options__source_overlay: OverlayMode
+    Runtime_Options__read_style_overlay: comicapi.merge.Mode
+    Runtime_Options__source_overlay: comicapi.merge.Mode
     Runtime_Options__overwrite: bool
     Runtime_Options__no_gui: bool
     Runtime_Options__files: list[str]
@@ -46,8 +46,8 @@ class SettngsNS(settngs.TypedNS):
     internal__install_id: str
     internal__save_data_style: list[str]
     internal__load_data_style: list[str]
-    internal__load_data_overlay: OverlayMode
-    internal__source_data_overlay: OverlayMode
+    internal__load_data_overlay: comicapi.merge.Mode
+    internal__source_data_overlay: comicapi.merge.Mode
     internal__last_opened_folder: str
     internal__window_width: int
     internal__window_height: int
@@ -147,6 +147,8 @@ class Runtime_Options(typing.TypedDict):
     quiet: bool
     json: bool
     type: list[str]
+    read_style_overlay: comicapi.merge.Mode
+    source_overlay: comicapi.merge.Mode
     overwrite: bool
     no_gui: bool
     files: list[str]
@@ -156,6 +158,8 @@ class internal(typing.TypedDict):
     install_id: str
     save_data_style: list[str]
     load_data_style: list[str]
+    load_data_overlay: comicapi.merge.Mode
+    source_data_overlay: comicapi.merge.Mode
     last_opened_folder: str
     window_width: int
     window_height: int

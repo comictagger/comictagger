@@ -5,8 +5,7 @@ import uuid
 
 import settngs
 
-from comicapi import utils
-from comicapi.genericmetadata import OverlayMode
+from comicapi import merge, utils
 from comictaggerlib.ctsettings.settngs_namespace import SettngsNS as ct_ns
 from comictaggerlib.defaults import DEFAULT_REPLACEMENTS, Replacement, Replacements
 
@@ -27,8 +26,8 @@ def internal(parser: settngs.Manager) -> None:
     parser.add_setting("install_id", default=uuid.uuid4().hex, cmdline=False)
     parser.add_setting("save_data_style", default=["cbi"], cmdline=False)
     parser.add_setting("load_data_style", default=["cbi"], cmdline=False)
-    parser.add_setting("load_data_overlay", default=OverlayMode.overlay, cmdline=False, type=OverlayMode)
-    parser.add_setting("source_data_overlay", default=OverlayMode.overlay, cmdline=False, type=OverlayMode)
+    parser.add_setting("load_data_overlay", default=merge.Mode.OVERLAY, cmdline=False, type=merge.Mode)
+    parser.add_setting("source_data_overlay", default=merge.Mode.OVERLAY, cmdline=False, type=merge.Mode)
     parser.add_setting("last_opened_folder", default="", cmdline=False)
     parser.add_setting("window_width", default=0, cmdline=False)
     parser.add_setting("window_height", default=0, cmdline=False)

@@ -5,8 +5,8 @@ import textwrap
 import pytest
 
 import comicapi.genericmetadata
-import testing.comicdata as cd
-from comicapi.genericmetadata import OverlayMode
+import comicapi.merge
+import testing.comicdata
 
 
 def test_apply_default_page_list(tmp_path):
@@ -18,69 +18,23 @@ def test_apply_default_page_list(tmp_path):
     assert isinstance(md.pages[0]["image_index"], int)
 
 
-@pytest.mark.parametrize("replaced, expected", cd.metadata)
-def test_metadata_overlay(md: comicapi.genericmetadata.GenericMetadata, replaced, expected):
-    md.overlay(replaced)
+@pytest.mark.parametrize("md, new, expected", testing.comicdata.metadata)
+def test_metadata_overlay(md, new, expected):
+    md.overlay(new, comicapi.merge.Mode.OVERLAY)
 
     assert md == expected
 
 
-@pytest.mark.parametrize("md, new, expected", cd.metadata_add)
+@pytest.mark.parametrize("md, new, expected", testing.comicdata.metadata_add)
 def test_metadata_overlay_add_missing(md, new, expected):
-    md.overlay(new, OverlayMode.add_missing)
+    md.overlay(new, comicapi.merge.Mode.ADD_MISSING)
     assert md == expected
 
 
-@pytest.mark.parametrize("md, new, expected", cd.metadata_combine)
+@pytest.mark.parametrize("md, new, expected", testing.comicdata.metadata_combine)
 def test_metadata_overlay_combine(md, new, expected):
-    md.overlay(new, OverlayMode.combine)
+    md.overlay(new, comicapi.merge.Mode.COMBINE)
     assert md == expected
-
-
-@pytest.mark.parametrize("md, new, expected", cd.metadata_dedupe_set)
-def test_assign_dedupe_set(md, new, expected):
-    md.overlay(new, OverlayMode.combine)
-    assert md == expected
-
-
-@pytest.mark.parametrize("md, new, expected", cd.metadata_dedupe_list)
-def test_assign_dedupe_list(md, new, expected):
-    md.overlay(new, OverlayMode.combine)
-    assert md == expected
-
-
-def test_assign_credits_overlay():
-    md = comicapi.genericmetadata.GenericMetadata()
-    md.add_credit(person="test", role="writer", primary=False)
-    md.add_credit(person="test", role="artist", primary=True)
-
-    md_new = comicapi.genericmetadata.GenericMetadata()
-    md_new.add_credit(person="", role="writer")
-    md_new.add_credit(person="test2", role="inker")
-
-    expected = comicapi.genericmetadata.GenericMetadata()
-    expected.add_credit(person="test", role="writer", primary=False)
-    expected.add_credit(person="test", role="artist", primary=True)
-    expected.add_credit(person="test2", role="inker")
-
-    assert md.assign_credits_overlay(md.credits, md_new.credits) == expected.credits
-
-
-def test_assign_credits_add_missing():
-    md = comicapi.genericmetadata.GenericMetadata()
-    md.add_credit(person="test", role="writer", primary=False)
-    md.add_credit(person="test", role="artist", primary=True)
-
-    md_new = comicapi.genericmetadata.GenericMetadata()
-    md_new.add_credit(person="Bob", role="writer")
-    md_new.add_credit(person="test", role="artist", primary=True)
-
-    expected = comicapi.genericmetadata.GenericMetadata()
-    expected.add_credit(person="Bob", role="writer")
-    expected.add_credit(person="test", role="artist", primary=True)
-    expected.add_credit(person="test", role="writer", primary=False)
-
-    assert md.assign_credits_add_missing(md.credits, md_new.credits) == expected.credits
 
 
 def test_add_credit():
@@ -98,7 +52,7 @@ def test_add_credit_primary():
     assert md.credits == [comicapi.genericmetadata.Credit(person="test", role="writer", primary=True)]
 
 
-@pytest.mark.parametrize("md, role, expected", cd.credits)
+@pytest.mark.parametrize("md, role, expected", testing.comicdata.credits)
 def test_get_primary_credit(md, role, expected):
     assert md.get_primary_credit(role) == expected
 

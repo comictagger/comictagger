@@ -28,10 +28,9 @@ import settngs
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
 import comictaggerlib.ui.talkeruigenerator
-from comicapi import utils
+from comicapi import merge, utils
 from comicapi.archivers.archiver import Archiver
-# TODO OverlayMode changed to merge
-from comicapi.genericmetadata import OverlayMode, md_test
+from comicapi.genericmetadata import md_test
 from comictaggerlib import ctsettings
 from comictaggerlib.ctsettings import ct_ns
 from comictaggerlib.ctsettings.plugin import group_for_plugin
@@ -195,8 +194,7 @@ class SettingsWindow(QtWidgets.QDialog):
         )
         self.cbFilenameParser.clear()
         self.cbFilenameParser.addItems(utils.Parser)
-        # TODO check
-        for mode in OverlayMode:
+        for mode in merge.Mode:
             self.cbxOverlayReadStyle.addItem(mode.name.capitalize().replace("_", " "), mode.value)
             self.cbxOverlaySource.addItem(mode.name.capitalize().replace("_", " "), mode.value)
         self.connect_signals()
@@ -570,8 +568,8 @@ class SettingsWindow(QtWidgets.QDialog):
             self.cbxApplyCBLTransformOnBatchOperation.isChecked()
         )
 
-        self.config[0].internal__load_data_overlay = OverlayMode[self.cbxOverlayReadStyle.currentData()]
-        self.config[0].internal__source_data_overlay = OverlayMode[self.cbxOverlaySource.currentData()]
+        self.config[0].internal__load_data_overlay = merge.Mode[self.cbxOverlayReadStyle.currentData()]
+        self.config[0].internal__source_data_overlay = merge.Mode[self.cbxOverlaySource.currentData()]
         self.config[0].Metadata_Options__disable_cr = self.cbxDisableCR.isChecked()
         # Update metadata style names if required
         if self.config[0].Metadata_Options__use_short_metadata_names != self.cbxShortMetadataNames.isChecked():

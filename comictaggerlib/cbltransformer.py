@@ -36,14 +36,14 @@ class CBLTransformer:
                 lone_credit: Credit | None = None
                 count = 0
                 for c in self.metadata.credits:
-                    if c["role"].casefold() in role_list:
+                    if c.role.casefold() in role_list:
                         count += 1
                         lone_credit = c
                     if count > 1:
                         lone_credit = None
                         break
                 if lone_credit is not None:
-                    lone_credit["primary"] = True
+                    lone_credit.primary = True
                 return lone_credit, count
 
             # need to loop three times, once for 'writer', 'artist', and then
@@ -53,8 +53,8 @@ class CBLTransformer:
             if c is None and count == 0:
                 c, count = set_lone_primary(["penciler", "penciller"])
                 if c is not None:
-                    c["primary"] = False
-                    self.metadata.add_credit(c["person"], "Artist", True)
+                    c.primary = False
+                    self.metadata.add_credit(c.person, "Artist", True)
 
         if self.config.Metadata_Options__cbl_copy_characters_to_tags:
             self.metadata.tags.update(x for x in self.metadata.characters)

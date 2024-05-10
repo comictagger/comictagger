@@ -199,26 +199,26 @@ class CoMet(Metadata):
 
         # loop thru credits, and build a list for each role that CoMet supports
         for credit in metadata.credits:
-            if credit["role"].casefold() in set(GenericMetadata.writer_synonyms):
-                ET.SubElement(root, "writer").text = str(credit["person"])
+            if credit.role.casefold() in set(GenericMetadata.writer_synonyms):
+                ET.SubElement(root, "writer").text = str(credit.person)
 
-            if credit["role"].casefold() in set(GenericMetadata.penciller_synonyms):
-                ET.SubElement(root, "penciller").text = str(credit["person"])
+            if credit.role.casefold() in set(GenericMetadata.penciller_synonyms):
+                ET.SubElement(root, "penciller").text = str(credit.person)
 
-            if credit["role"].casefold() in set(GenericMetadata.inker_synonyms):
-                ET.SubElement(root, "inker").text = str(credit["person"])
+            if credit.role.casefold() in set(GenericMetadata.inker_synonyms):
+                ET.SubElement(root, "inker").text = str(credit.person)
 
-            if credit["role"].casefold() in set(GenericMetadata.colorist_synonyms):
-                ET.SubElement(root, "colorist").text = str(credit["person"])
+            if credit.role.casefold() in set(GenericMetadata.colorist_synonyms):
+                ET.SubElement(root, "colorist").text = str(credit.person)
 
-            if credit["role"].casefold() in set(GenericMetadata.letterer_synonyms):
-                ET.SubElement(root, "letterer").text = str(credit["person"])
+            if credit.role.casefold() in set(GenericMetadata.letterer_synonyms):
+                ET.SubElement(root, "letterer").text = str(credit.person)
 
-            if credit["role"].casefold() in set(GenericMetadata.cover_synonyms):
-                ET.SubElement(root, "coverDesigner").text = str(credit["person"])
+            if credit.role.casefold() in set(GenericMetadata.cover_synonyms):
+                ET.SubElement(root, "coverDesigner").text = str(credit.person)
 
-            if credit["role"].casefold() in set(GenericMetadata.editor_synonyms):
-                ET.SubElement(root, "editor").text = str(credit["person"])
+            if credit.role.casefold() in set(GenericMetadata.editor_synonyms):
+                ET.SubElement(root, "editor").text = str(credit.person)
 
         ET.indent(root)
 

@@ -26,10 +26,10 @@ import sys
 from collections.abc import Collection
 from typing import Any, TextIO
 
-from comicapi import utils
+from comicapi import merge, utils
 from comicapi.comicarchive import ComicArchive
 from comicapi.comicarchive import metadata_styles as md_styles
-from comicapi.genericmetadata import GenericMetadata, OverlayMode
+from comicapi.genericmetadata import GenericMetadata
 from comictaggerlib.cbltransformer import CBLTransformer
 from comictaggerlib.ctsettings import ct_ns
 from comictaggerlib.filerenamer import FileRenamer, get_rename_dir
@@ -259,7 +259,7 @@ class CLI:
                     logger.error("Failed to load metadata for %s: %s", ca.path, e)
 
         # finally, use explicit stuff (always 'overlay' mode)
-        md.overlay(self.config.Runtime_Options__metadata, mode=OverlayMode.overlay)
+        md.overlay(self.config.Runtime_Options__metadata, mode=merge.Mode.OVERLAY)
 
         return md
 

@@ -25,9 +25,9 @@ import subprocess
 
 import settngs
 
-from comicapi import utils
+from comicapi import merge, utils
 from comicapi.comicarchive import metadata_styles
-from comicapi.genericmetadata import GenericMetadata, OverlayMode
+from comicapi.genericmetadata import GenericMetadata
 from comictaggerlib import ctversion
 from comictaggerlib.ctsettings.settngs_namespace import SettngsNS as ct_ns
 from comictaggerlib.ctsettings.types import (
@@ -179,13 +179,13 @@ def register_runtime(parser: settngs.Manager) -> None:
     )
     parser.add_setting(
         "--read-style-overlay",
-        type=OverlayMode,
+        type=merge.Mode,
         help="How to overlay new metadata on the current for enabled read styles (CR, CBL, etc.)",
         file=False,
     )
     parser.add_setting(
         "--source-overlay",
-        type=OverlayMode,
+        type=merge.Mode,
         help="How to overlay new metadata from a data source (CV, Metron, GCD, etc.) on to the current",
         file=False,
     )

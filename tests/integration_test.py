@@ -54,11 +54,11 @@ def test_save(
     # unrelated to comicvine need to be re-worked
     md_saved.credits.insert(
         1,
-        {
-            "person": "Esteve Polls",
-            "primary": False,
-            "role": "Writer",
-        },
+        comicapi.genericmetadata.Credit(
+            person="Esteve Polls",
+            primary=False,
+            role="Writer",
+        ),
     )
 
     # Validate that we got the correct metadata back

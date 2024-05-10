@@ -939,12 +939,10 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
             for row, credit in enumerate(md.credits):
                 # if the role-person pair already exists, just skip adding it to the list
-                if self.is_dupe_credit(credit["role"].title(), credit["person"]):
+                if self.is_dupe_credit(credit.role.title(), credit.person):
                     continue
 
-                self.add_new_credit_entry(
-                    row, credit["role"].title(), credit["person"], (credit["primary"] if "primary" in credit else False)
-                )
+                self.add_new_credit_entry(row, credit.role.title(), credit.person, credit.primary)
 
         self.twCredits.setSortingEnabled(True)
         self.update_metadata_credit_colors()
