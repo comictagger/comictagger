@@ -1220,12 +1220,13 @@ class TaggerWindow(QtWidgets.QMainWindow):
             QtWidgets.QMessageBox.information(self, "Whoops!", "No data to commit!")
 
     def set_load_data_style(self, load_data_styles: list[str]) -> None:
+        """Should only be called from the combobox signal"""
         if self.dirty_flag_verification(
             "Change Tag Read Style",
             "If you change read tag style(s) now, data in the form will be lost.  Are you sure?",
         ):
-            self.load_data_styles = load_data_styles
-            self.config[0].internal__load_data_style = load_data_styles
+            self.load_data_styles = list(reversed(load_data_styles))
+            self.config[0].internal__load_data_style = self.load_data_styles
             self.update_menus()
             if self.comic_archive is not None:
                 self.load_archive(self.comic_archive)
@@ -1404,7 +1405,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.cbx_sources.setCurrentIndex(self.cbx_sources.findData(self.config[0].Sources__source))
 
     def adjust_load_style_combo(self) -> None:
-        # select the enabled styles
+        """Select the enabled styles. Since metadata is merged in an overlay fashion the last item in the list takes priority. We reverse the order for display to the user"""
         unchecked = set(metadata_styles.keys()) - set(self.load_data_styles)
         for i, style in enumerate(reversed(self.load_data_styles)):
             item_idx = self.cbLoadDataStyle.findData(style)

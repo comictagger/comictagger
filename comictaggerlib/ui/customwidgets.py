@@ -316,7 +316,7 @@ class CheckableOrderComboBox(QtWidgets.QComboBox):
                 self._updateText()
                 self.justShown = False
                 # Reverse as the display order is in "priority" order for the user whereas overlay requires reversed
-                self.dropdownClosed.emit(list(reversed(self.currentData())))
+                self.dropdownClosed.emit(self.currentData())
             # QEvent.MouseButtonPress is inconsistent on activation because double clicks are a thing
             if event.type() == QEvent.MouseButtonRelease:
                 # If self.justShown is true it means that they clicked on the combobox to change the checked items
