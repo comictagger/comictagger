@@ -224,7 +224,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             if style not in metadata_styles:
                 config[0].internal__load_data_style.remove(style)
         self.save_data_styles: list[str] = config[0].internal__save_data_style
-        self.load_data_styles: list[str] = list(reversed(config[0].internal__load_data_style))
+        self.load_data_styles: list[str] = config[0].internal__load_data_style
 
         self.setAcceptDrops(True)
         self.view_tag_actions, self.remove_tag_actions = self.tag_actions()
@@ -1224,7 +1224,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
             "Change Tag Read Style",
             "If you change read tag style(s) now, data in the form will be lost.  Are you sure?",
         ):
-            self.load_data_styles = list(reversed(load_data_styles))
+            self.load_data_styles = load_data_styles
+            self.config[0].internal__load_data_style = load_data_styles
             self.update_menus()
             if self.comic_archive is not None:
                 self.load_archive(self.comic_archive)
@@ -2097,7 +2098,6 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 self.config[0].internal__sort_column,
                 self.config[0].internal__sort_direction,
             ) = self.fileSelectionList.get_sorting()
-            self.config[0].internal__load_data_style = self.cbLoadDataStyle.currentData()
             ctsettings.save_file(self.config, self.config[0].Runtime_Options__config.user_config_dir / "settings.json")
 
             event.accept()
