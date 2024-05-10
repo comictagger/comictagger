@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from enum import auto
 from sys import platform
+import platform
 from typing import Any
 
 from PyQt5 import QtGui, QtWidgets
@@ -18,6 +19,68 @@ class ClickedButtonEnum(StrEnum):
     main = auto()
 
 
+class ModifyStyleItemDelegate(QtWidgets.QStyledItemDelegate):
+    def __init__(self, parent: QtWidgets.QWidget):
+        super().__init__()
+        self.combobox = parent
+
+    def paint(self, painter: QtGui.QPainter, option: QtWidgets.QStyleOptionViewItem, index: QModelIndex) -> None:
+        options = QtWidgets.QStyleOptionViewItem(option)
+        self.initStyleOption(options, index)
+        style = self.combobox.style()
+
+        # Draw background with the same color as other widgets
+        palette = self.combobox.palette()
+        background_color = palette.color(QtGui.QPalette.Window)
+        painter.fillRect(options.rect, background_color)
+
+        style.drawPrimitive(QtWidgets.QStyle.PE_PanelItemViewItem, options, painter, self.combobox)
+
+        painter.save()
+
+        # Checkbox drawing logic
+        checked = index.data(Qt.CheckStateRole)
+        opts = QtWidgets.QStyleOptionButton()
+        opts.state |= QtWidgets.QStyle.State_Active
+        opts.rect = self.getCheckBoxRect(options)
+        opts.state |= QtWidgets.QStyle.State_ReadOnly
+        if checked:
+            opts.state |= QtWidgets.QStyle.State_On
+            style.drawPrimitive(
+                QtWidgets.QStyle.PrimitiveElement.PE_IndicatorMenuCheckMark, opts, painter, self.combobox
+            )
+        else:
+            opts.state |= QtWidgets.QStyle.State_Off
+        if platform != "darwin":
+            style.drawControl(QtWidgets.QStyle.CE_CheckBox, opts, painter, self.combobox)
+
+        label = index.data(Qt.DisplayRole)
+        rectangle = options.rect
+        rectangle.setX(opts.rect.width() + 10)
+        painter.drawText(rectangle, Qt.AlignVCenter, label)
+
+        painter.restore()
+
+    def getCheckBoxRect(self, option: QtWidgets.QStyleOptionViewItem) -> QRect:
+        # Get size of a standard checkbox.
+        opts = QtWidgets.QStyleOptionButton()
+        style = option.widget.style()
+        checkBoxRect = style.subElementRect(QtWidgets.QStyle.SE_CheckBoxIndicator, opts, None)
+        y = option.rect.y()
+        h = option.rect.height()
+        checkBoxTopLeftCorner = QPoint(5, int(y + h / 2 - checkBoxRect.height() / 2))
+
+        return QRect(checkBoxTopLeftCorner, checkBoxRect.size())
+
+    def sizeHint(self, option: QtWidgets.QStyleOptionViewItem, index: QModelIndex) -> QSize:
+        # Reimpliment stock. Only height is used, width is ignored
+        menu_option = QtWidgets.QStyleOptionMenuItem()
+        size = self.combobox.style().sizeFromContents(
+            QtWidgets.QStyle.ContentsType.CT_MenuItem, menu_option, option.rect.size(), self.combobox
+        )
+        return size
+
+
 # Multiselect combobox from: https://gis.stackexchange.com/a/351152 (with custom changes)
 class CheckableComboBox(QtWidgets.QComboBox):
     itemChecked = pyqtSignal(str, bool)
@@ -26,6 +89,9 @@ class CheckableComboBox(QtWidgets.QComboBox):
         super().__init__(*args, **kwargs)
         # Prevent popup from closing when clicking on an item
         self.view().viewport().installEventFilter(self)
+
+        # Use a custom delegate to keep combo box styles consistent
+        self.setItemDelegate(ModifyStyleItemDelegate(self))
 
         # Keeps track of when the combobox list is shown
         self.justShown = False
