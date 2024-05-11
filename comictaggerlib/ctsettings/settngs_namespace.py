@@ -39,6 +39,7 @@ class SettngsNS(settngs.TypedNS):
     Runtime_Options__type_read: list[str]
     Runtime_Options__read_style_overlay: comicapi.merge.Mode
     Runtime_Options__source_overlay: comicapi.merge.Mode
+    Runtime_Options__overlay_merge_lists: bool
     Runtime_Options__overwrite: bool
     Runtime_Options__no_gui: bool
     Runtime_Options__files: list[str]
@@ -48,6 +49,7 @@ class SettngsNS(settngs.TypedNS):
     internal__load_data_style: list[str]
     internal__load_data_overlay: comicapi.merge.Mode
     internal__source_data_overlay: comicapi.merge.Mode
+    internal__overlay_merge_lists: bool
     internal__last_opened_folder: str
     internal__window_width: int
     internal__window_height: int

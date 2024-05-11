@@ -31,6 +31,7 @@ import natsort
 import settngs
 from PyQt5 import QtCore, QtGui, QtNetwork, QtWidgets, uic
 
+import comicapi.merge
 import comictaggerlib.ui
 from comicapi import utils
 from comicapi.comicarchive import ComicArchive, metadata_styles
@@ -222,6 +223,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
             config[0].internal__load_data_overlay = config[0].Runtime_Options__read_style_overlay
         if config[0].Runtime_Options__source_overlay:
             config[0].internal__source_data_overlay = config[0].Runtime_Options__source_overlay
+        if isinstance(config[0].Runtime_Options__overlay_merge_lists, bool):
+            config[0].internal__overlay_merge_lists = config[0].Runtime_Options__overlay_merge_lists
 
         for style in config[0].internal__save_data_style:
             if style not in metadata_styles:
@@ -1050,7 +1053,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 self.config[0].Filename_Parsing__allow_issue_start_with_letter,
                 self.config[0].Filename_Parsing__protofolius_issue_number_scheme,
             )
-            self.metadata.overlay(new_metadata)
+            self.metadata.overlay(new_metadata, mode=comicapi.merge.Mode.OVERLAY, merge_lists=False)
             self.metadata_to_form()
 
     def use_filename_split(self) -> None:
@@ -2205,7 +2208,11 @@ class TaggerWindow(QtWidgets.QMainWindow):
         try:
             for style in load_data_styles:
                 metadata = ca.read_metadata(style)
-                md.overlay(metadata)
+                md.overlay(
+                    metadata,
+                    mode=self.config[0].internal__load_data_overlay,
+                    merge_lists=self.config[0].internal__overlay_merge_lists,
+                )
         except Exception as e:
             error = e
 

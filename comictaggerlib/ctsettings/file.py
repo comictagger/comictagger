@@ -28,6 +28,7 @@ def internal(parser: settngs.Manager) -> None:
     parser.add_setting("load_data_style", default=["cbi"], cmdline=False)
     parser.add_setting("load_data_overlay", default=merge.Mode.OVERLAY, cmdline=False, type=merge.Mode)
     parser.add_setting("source_data_overlay", default=merge.Mode.OVERLAY, cmdline=False, type=merge.Mode)
+    parser.add_setting("overlay_merge_lists", default=True, cmdline=False, action=argparse.BooleanOptionalAction)
     parser.add_setting("last_opened_folder", default="", cmdline=False)
     parser.add_setting("window_width", default=0, cmdline=False)
     parser.add_setting("window_height", default=0, cmdline=False)

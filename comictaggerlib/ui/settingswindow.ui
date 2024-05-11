@@ -867,6 +867,13 @@ Example:
               </property>
              </widget>
             </item>
+            <item row="2" column="0" colspan="2">
+             <widget class="QCheckBox" name="cbxOverlayMergeLists">
+              <property name="text">
+               <string>Merge Lists</string>
+              </property>
+             </widget>
+            </item>
            </layout>
           </widget>
          </item>

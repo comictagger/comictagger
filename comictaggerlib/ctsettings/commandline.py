@@ -190,6 +190,13 @@ def register_runtime(parser: settngs.Manager) -> None:
         file=False,
     )
     parser.add_setting(
+        "--overlay-merge-lists",
+        action=argparse.BooleanOptionalAction,
+        default="",
+        help="When overlaying, merge or replace lists (genres, characters, etc.)",
+        file=False,
+    )
+    parser.add_setting(
         "--overwrite",
         action=argparse.BooleanOptionalAction,
         default=True,

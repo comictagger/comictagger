@@ -253,13 +253,13 @@ class CLI:
             if ca.has_metadata(style):
                 try:
                     t_md = ca.read_metadata(style)
-                    md.overlay(t_md, self.config.internal__load_data_overlay)
+                    md.overlay(t_md, self.config.internal__load_data_overlay, self.config.internal__overlay_merge_lists)
                     break
                 except Exception as e:
                     logger.error("Failed to load metadata for %s: %s", ca.path, e)
 
         # finally, use explicit stuff (always 'overlay' mode)
-        md.overlay(self.config.Runtime_Options__metadata, mode=merge.Mode.OVERLAY)
+        md.overlay(self.config.Runtime_Options__metadata, mode=merge.Mode.OVERLAY, merge_lists=True)
 
         return md
 

@@ -436,6 +436,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.cbxOverlaySource.setCurrentIndex(
             self.cbxOverlaySource.findData(self.config[0].internal__source_data_overlay.value)
         )
+        self.cbxOverlayMergeLists.setChecked(self.config[0].internal__overlay_merge_lists)
         self.cbxShortMetadataNames.setChecked(self.config[0].Metadata_Options__use_short_metadata_names)
         self.cbxDisableCR.setChecked(self.config[0].Metadata_Options__disable_cr)
 
@@ -561,8 +562,9 @@ class SettingsWindow(QtWidgets.QDialog):
             self.cbxApplyCBLTransformOnBatchOperation.isChecked()
         )
 
-        self.config[0].internal__load_data_overlay = merge.Mode[self.cbxOverlayReadStyle.currentData()]
-        self.config[0].internal__source_data_overlay = merge.Mode[self.cbxOverlaySource.currentData()]
+        self.config[0].internal__load_data_overlay = merge.Mode[self.cbxOverlayReadStyle.currentData().upper()]
+        self.config[0].internal__source_data_overlay = merge.Mode[self.cbxOverlaySource.currentData().upper()]
+        self.config[0].internal__overlay_merge_lists = self.cbxOverlayMergeLists.isChecked()
         self.config[0].Metadata_Options__disable_cr = self.cbxDisableCR.isChecked()
         # Update metadata style names if required
         if self.config[0].Metadata_Options__use_short_metadata_names != self.cbxShortMetadataNames.isChecked():
