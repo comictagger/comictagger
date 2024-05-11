@@ -27,13 +27,13 @@ def test_metadata_overlay(md, new, expected):
 
 @pytest.mark.parametrize("md, new, expected", testing.comicdata.metadata_add)
 def test_metadata_overlay_add_missing(md, new, expected):
-    md.overlay(new, comicapi.merge.Mode.ADD_MISSING)
+    md.overlay(new, comicapi.merge.Mode.ADD_MISSING, True)
     assert md == expected
 
 
 @pytest.mark.parametrize("md, new, expected", testing.comicdata.metadata_combine)
 def test_metadata_overlay_combine(md, new, expected):
-    md.overlay(new, comicapi.merge.Mode.COMBINE)
+    md.overlay(new, comicapi.merge.Mode.OVERLAY, True)
     assert md == expected
 
 

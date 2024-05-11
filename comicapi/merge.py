@@ -80,49 +80,27 @@ def merge_lists(old: Collection[Any], new: Collection[Any]) -> list[Any] | set[A
     return list(old_dict.values())
 
 
-def combine(old: Any, new: Any) -> Any:
-    """combine - Same as `overlay` except lists are merged"""
-    if new is None:
-        return old
-
-    if (
-        not (isinstance(new, str) or isinstance(old, str))
-        and isinstance(new, Collection)
-        and isinstance(old, Collection)
-    ):
-        return merge_lists(old, new)
-    if isinstance(new, str) and len(new) == 0:
-        return old
-    return new
-
-
 def overlay(old: Any, new: Any) -> Any:
     """overlay - When the `new` object is not empty, replace `old` with `new`."""
-    if new is None:
+    if new is None or (isinstance(new, Collection) and len(new) == 0):
         return old
-    if (
-        not (isinstance(new, str) or isinstance(old, str))
-        and isinstance(new, Collection)
-        and isinstance(old, Collection)
-    ):
-        if isinstance(new, list) and len(new) > 0 and isinstance(new[0], Credit):
-            return merge_lists(old, new)
-        if len(new) == 0:
-            return old
 
     return new
 
 
-def add_missing(old: Any, new: Any) -> Any:
-    """add_missing - When the `old` object is empty, replace `old` with `new`"""
-    return overlay(new, old)
-
-
-function = defaultdict(
+attribute = defaultdict(
     lambda: overlay,
     {
         Mode.OVERLAY: overlay,
-        Mode.ADD_MISSING: add_missing,
-        Mode.COMBINE: combine,
+        Mode.ADD_MISSING: lambda old, new: overlay(new, old),
+    },
+)
+
+
+lists = defaultdict(
+    lambda: overlay,
+    {
+        Mode.OVERLAY: merge_lists,
+        Mode.ADD_MISSING: lambda old, new: merge_lists(new, old),
     },
 )

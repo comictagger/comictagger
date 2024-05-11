@@ -207,19 +207,28 @@ class GenericMetadata:
         new_md.__post_init__()
         return new_md
 
-    def overlay(self, new_md: GenericMetadata, mode: merge.Mode = merge.Mode.OVERLAY) -> None:
+    def overlay(
+        self, new_md: GenericMetadata, mode: merge.Mode = merge.Mode.OVERLAY, merge_lists: bool = False
+    ) -> None:
         """Overlay a new metadata object on this one"""
 
-        merge_function = merge.function[mode]
+        attribute_merge = merge.attribute[mode]
+        list_merge = merge.lists[mode]
 
-        def assign(cur: Any, new: Any) -> Any:
+        def assign(old: Any, new: Any, attribute_merge: Any = attribute_merge) -> Any:
             if new is REMOVE:
-                if isinstance(cur, (list, set)):
-                    cur.clear()
-                    return cur
                 return None
 
-            return merge_function(cur, new)
+            return attribute_merge(old, new)
+
+        def assign_list(old: list[Any] | set[Any], new: list[Any] | set[Any], list_merge: Any = list_merge) -> Any:
+            if new is REMOVE:
+                old.clear()
+                return old
+            if merge_lists:
+                return list_merge(old, new)
+            else:
+                return assign(old, new)
 
         if not new_md.is_empty:
             self.is_empty = False
@@ -229,22 +238,23 @@ class GenericMetadata:
         self.series_id = assign(self.series_id, new_md.series_id)
 
         self.series = assign(self.series, new_md.series)
-        self.series_aliases = assign(self.series_aliases, new_md.series_aliases)
+
+        self.series_aliases = assign_list(self.series_aliases, new_md.series_aliases)
         self.issue = assign(self.issue, new_md.issue)
         self.issue_count = assign(self.issue_count, new_md.issue_count)
         self.title = assign(self.title, new_md.title)
-        self.title_aliases = assign(self.title_aliases, new_md.title_aliases)
+        self.title_aliases = assign_list(self.title_aliases, new_md.title_aliases)
         self.volume = assign(self.volume, new_md.volume)
         self.volume_count = assign(self.volume_count, new_md.volume_count)
-        self.genres = assign(self.genres, new_md.genres)
+        self.genres = assign_list(self.genres, new_md.genres)
         self.description = assign(self.description, new_md.description)
         self.notes = assign(self.notes, new_md.notes)
 
         self.alternate_series = assign(self.alternate_series, new_md.alternate_series)
         self.alternate_number = assign(self.alternate_number, new_md.alternate_number)
         self.alternate_count = assign(self.alternate_count, new_md.alternate_count)
-        self.story_arcs = assign(self.story_arcs, new_md.story_arcs)
-        self.series_groups = assign(self.series_groups, new_md.series_groups)
+        self.story_arcs = assign_list(self.story_arcs, new_md.story_arcs)
+        self.series_groups = assign_list(self.series_groups, new_md.series_groups)
 
         self.publisher = assign(self.publisher, new_md.publisher)
         self.imprint = assign(self.imprint, new_md.imprint)
@@ -253,7 +263,7 @@ class GenericMetadata:
         self.year = assign(self.year, new_md.year)
         self.language = assign(self.language, new_md.language)
         self.country = assign(self.country, new_md.country)
-        self.web_links = assign(self.web_links, new_md.web_links)
+        self.web_links = assign_list(self.web_links, new_md.web_links)
         self.format = assign(self.format, new_md.format)
         self.manga = assign(self.manga, new_md.manga)
         self.black_and_white = assign(self.black_and_white, new_md.black_and_white)
@@ -261,12 +271,12 @@ class GenericMetadata:
         self.critical_rating = assign(self.critical_rating, new_md.critical_rating)
         self.scan_info = assign(self.scan_info, new_md.scan_info)
 
-        self.tags = assign(self.tags, new_md.tags)
+        self.tags = assign_list(self.tags, new_md.tags)
 
-        self.characters = assign(self.characters, new_md.characters)
-        self.teams = assign(self.teams, new_md.teams)
-        self.locations = assign(self.locations, new_md.locations)
-        [self.add_credit(c) for c in assign(self.credits, new_md.credits)]
+        self.characters = assign_list(self.characters, new_md.characters)
+        self.teams = assign_list(self.teams, new_md.teams)
+        self.locations = assign_list(self.locations, new_md.locations)
+        [self.add_credit(c) for c in assign_list(self.credits, new_md.credits)]
 
         self.price = assign(self.price, new_md.price)
         self.is_version_of = assign(self.is_version_of, new_md.is_version_of)
@@ -274,9 +284,9 @@ class GenericMetadata:
         self.identifier = assign(self.identifier, new_md.identifier)
         self.last_mark = assign(self.last_mark, new_md.last_mark)
         self._cover_image = assign(self._cover_image, new_md._cover_image)
-        self._alternate_images = assign(self._alternate_images, new_md._alternate_images)
+        self._alternate_images = assign_list(self._alternate_images, new_md._alternate_images)
 
-        self.pages = assign(self.pages, new_md.pages)
+        self.pages = assign_list(self.pages, new_md.pages)
         self.page_count = assign(self.page_count, new_md.page_count)
 
     def apply_default_page_list(self, page_list: Sequence[str]) -> None:
