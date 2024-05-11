@@ -755,7 +755,7 @@
                    <bool>false</bool>
                   </property>
                   <property name="plainText">
-                   <string>Overlays all the non-empty values of the new metadata (e.g. Comic Vine) on top of the current metadata.
+                   <string>Overlays all the (non-list) non-empty values of the new metadata (e.g. Comic Vine) on top of the current metadata.
 
 Example:
 (Series=batman, Issue=1, Tags=[batman,joker,robin])
@@ -792,12 +792,12 @@ Example:
                 <item>
                  <widget class="QPlainTextEdit" name="addTextEdit">
                   <property name="plainText">
-                   <string>Adds any metadata that is present in the new metadata (e.g. Comic Vine) but is missing in the current metadata.
+                   <string>Adds any (non-list) metadata that is present in the new metadata (e.g. Comic Vine) but is missing in the current metadata.
 
 Example:
-(Series=batman, Issue=1, Tags=[batman,joker,robin])
-+ (Series=Superman, Issue=10, Publisher=DC Comics, Tags=[superman,lois lane,lex luthor])
-= (Series=batman, Issue=1, Publisher=DC Comics, Tags=[batman,joker,robin])</string>
+(Series=batman, Issue=1)
++ (Series=Superman, Issue=10, Publisher=DC Comics)
+= (Series=batman, Issue=1, Publisher=DC Comics)</string>
                   </property>
                   <property name="textInteractionFlags">
                    <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
@@ -808,7 +808,7 @@ Example:
               </widget>
               <widget class="QWidget" name="tCombine">
                <attribute name="title">
-                <string>Combine</string>
+                <string>Lists</string>
                </attribute>
                <layout class="QVBoxLayout" name="verticalLayout_10">
                 <property name="spacing">
@@ -829,12 +829,17 @@ Example:
                 <item>
                  <widget class="QPlainTextEdit" name="combineTextEdit">
                   <property name="plainText">
-                   <string>Same as Overlay except lists (tags, characters, genres, credits, etc.) are combined, replacing duplicates with the &quot;new&quot; data and all other non-empty values are replaced by the &quot;new&quot; values.
+                   <string>All lists (tags, characters, genres, credits, etc.) are merged or replaced via the &quot;Merge Lists&quot; check box. Merge will replace duplicates within the list with the &quot;new&quot; data.
 
-Example:
-(Series=batman, Issue=1, Tags=[batman,joker,robin])
-+ (Series=Batman, Publisher=DC Comics, Tags=[mystery,action])
-= (Series=Batman, Issue=1, Publisher=DC Comics, Tags=[batman,joker,robin,mystery,action])</string>
+Example Merge:
+(Tags=[batman,joker,robin])
++ (Tags=[mystery,action])
+= (Tags=[batman,joker,robin,mystery,action])
+
+Example Replace:
+(Tags=[batman,joker,robin])
++ (Tags=[mystery,action])
+= (Tags=[mystery,action])</string>
                   </property>
                   <property name="textInteractionFlags">
                    <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
@@ -869,6 +874,9 @@ Example:
             </item>
             <item row="2" column="0" colspan="2">
              <widget class="QCheckBox" name="cbxOverlayMergeLists">
+              <property name="toolTip">
+               <string>Merge lists (characters, tags, locations, etc.) together or the &quot;new&quot; list replaces the old</string>
+              </property>
               <property name="text">
                <string>Merge Lists</string>
               </property>

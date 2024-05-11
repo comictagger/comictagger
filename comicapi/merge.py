@@ -58,7 +58,6 @@ class Credit:
 class Mode(StrEnum):
     OVERLAY = auto()
     ADD_MISSING = auto()
-    COMBINE = auto()
 
 
 def merge_lists(old: Collection[Any], new: Collection[Any]) -> list[Any] | set[Any]:
