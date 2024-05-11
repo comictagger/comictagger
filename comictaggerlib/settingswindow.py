@@ -529,13 +529,6 @@ class SettingsWindow(QtWidgets.QDialog):
 
         self.config[0].General__check_for_new_version = self.cbxCheckForNewVersion.isChecked()
 
-        # Update metadata style names if required
-        if self.cbxShortMetadataNames.isChecked() != self.config[0].General__use_short_metadata_names:
-            self.config[0].General__use_short_metadata_names = self.cbxShortMetadataNames.isChecked()
-            self.parent().populate_style_names()
-            self.parent().adjust_load_style_combo()
-            self.parent().adjust_save_style_combo()
-
         self.config[0].Issue_Identifier__series_match_identify_thresh = self.sbNameMatchIdentifyThresh.value()
         self.config[0].Issue_Identifier__series_match_search_thresh = self.sbNameMatchSearchThresh.value()
         self.config[0].Issue_Identifier__publisher_filter = utils.split(self.tePublisherFilter.toPlainText(), "\n")

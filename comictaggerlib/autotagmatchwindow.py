@@ -81,7 +81,7 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
         self.buttonBox.button(QtWidgets.QDialogButtonBox.StandardButton.Ok).setText("Accept and Write Tags")
 
         self.match_set_list = match_set_list
-        self._styles = styles
+        self._styles = load_styles
         self.fetch_func = fetch_func
 
         self.current_match_set_idx = 0
