@@ -22,7 +22,7 @@ class SettngsNS(settngs.TypedNS):
     Runtime_Options__abort_on_conflict: bool
     Runtime_Options__delete_original: bool
     Runtime_Options__parse_filename: bool
-    Runtime_Options__issue_id: str
+    Runtime_Options__issue_id: str | None
     Runtime_Options__online: bool
     Runtime_Options__metadata: comicapi.genericmetadata.GenericMetadata
     Runtime_Options__interactive: bool
@@ -118,8 +118,8 @@ class SettngsNS(settngs.TypedNS):
 
     Archive__rar: str
 
-    Source_comicvine__comicvine_key: str
-    Source_comicvine__comicvine_url: str
+    Source_comicvine__comicvine_key: str | None
+    Source_comicvine__comicvine_url: str | None
     Source_comicvine__cv_use_series_start_as_volume: bool
 
 
@@ -135,7 +135,7 @@ class Runtime_Options(typing.TypedDict):
     abort_on_conflict: bool
     delete_original: bool
     parse_filename: bool
-    issue_id: str
+    issue_id: str | None
     online: bool
     metadata: comicapi.genericmetadata.GenericMetadata
     interactive: bool
@@ -148,9 +148,11 @@ class Runtime_Options(typing.TypedDict):
     glob: bool
     quiet: bool
     json: bool
-    type: list[str]
+    type_modify: list[str]
+    type_read: list[str]
     read_style_overlay: comicapi.merge.Mode
     source_overlay: comicapi.merge.Mode
+    overlay_merge_lists: bool
     overwrite: bool
     no_gui: bool
     files: list[str]
@@ -162,6 +164,7 @@ class internal(typing.TypedDict):
     load_data_style: list[str]
     load_data_overlay: comicapi.merge.Mode
     source_data_overlay: comicapi.merge.Mode
+    overlay_merge_lists: bool
     last_opened_folder: str
     window_width: int
     window_height: int
@@ -250,8 +253,8 @@ class Archive(typing.TypedDict):
 
 
 class Source_comicvine(typing.TypedDict):
-    comicvine_key: str
-    comicvine_url: str
+    comicvine_key: str | None
+    comicvine_url: str | None
     cv_use_series_start_as_volume: bool
 
 

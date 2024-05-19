@@ -180,19 +180,21 @@ def register_runtime(parser: settngs.Manager) -> None:
     parser.add_setting(
         "--read-style-overlay",
         type=merge.Mode,
+        default=merge.Mode.OVERLAY,
         help="How to overlay new metadata on the current for enabled read styles (CR, CBL, etc.)",
         file=False,
     )
     parser.add_setting(
         "--source-overlay",
         type=merge.Mode,
+        default=merge.Mode.OVERLAY,
         help="How to overlay new metadata from a data source (CV, Metron, GCD, etc.) on to the current",
         file=False,
     )
     parser.add_setting(
         "--overlay-merge-lists",
         action=argparse.BooleanOptionalAction,
-        default="",
+        default=True,
         help="When overlaying, merge or replace lists (genres, characters, etc.)",
         file=False,
     )
@@ -204,7 +206,7 @@ def register_runtime(parser: settngs.Manager) -> None:
         file=False,
     )
     parser.add_setting("--no-gui", action="store_true", help="Do not open the GUI, force the commandline", file=False)
-    parser.add_setting("files", nargs="*", file=False)
+    parser.add_setting("files", nargs="*", default=[], file=False)
 
 
 def register_commands(parser: settngs.Manager) -> None:
@@ -216,6 +218,7 @@ def register_commands(parser: settngs.Manager) -> None:
         dest="command",
         action="store_const",
         const=Action.print,
+        default=Action.gui,
         help="""Print out tag info from file. Specify type\n(via --type-read) to get only info of that tag type.\n\n""",
         file=False,
     )
@@ -232,6 +235,7 @@ def register_commands(parser: settngs.Manager) -> None:
         "-c",
         "--copy",
         type=metadata_type_single,
+        default=[],
         metavar=f"{{{','.join(metadata_styles).upper()}}}",
         help="Copy the specified source tag block to\ndestination style specified via --type-modify\n(potentially lossy operation).\n\n",
         file=False,
@@ -276,6 +280,7 @@ def register_commands(parser: settngs.Manager) -> None:
         dest="command",
         action="store_const",
         const=Action.list_plugins,
+        default=Action.gui,
         help="List the available plugins.\n\n",
         file=False,
     )

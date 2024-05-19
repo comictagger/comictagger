@@ -30,6 +30,7 @@ class IssueResult:
 
 
 class Action(utils.StrEnum):
+    gui = auto()
     print = auto()
     delete = auto()
     copy = auto()
