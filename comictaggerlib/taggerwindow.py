@@ -219,12 +219,12 @@ class TaggerWindow(QtWidgets.QMainWindow):
             config[0].internal__load_data_style = config[0].Runtime_Options__type_read
 
         # Respect command line overlay settings
-        if config[0].Runtime_Options__read_style_overlay:
-            config[0].internal__load_data_overlay = config[0].Runtime_Options__read_style_overlay
-        if config[0].Runtime_Options__source_overlay:
-            config[0].internal__source_data_overlay = config[0].Runtime_Options__source_overlay
-        if isinstance(config[0].Runtime_Options__overlay_merge_lists, bool):
-            config[0].internal__overlay_merge_lists = config[0].Runtime_Options__overlay_merge_lists
+        if config[0].Runtime_Options__read_style_merge:
+            config[0].internal__load_data_overlay = config[0].Runtime_Options__read_style_merge
+        if config[0].Runtime_Options__source_merge:
+            config[0].internal__source_data_overlay = config[0].Runtime_Options__source_merge
+        if isinstance(config[0].Runtime_Options__merge_lists, bool):
+            config[0].internal__overlay_merge_lists = config[0].Runtime_Options__merge_lists
 
         for style in config[0].internal__save_data_style:
             if style not in metadata_styles:

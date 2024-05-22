@@ -453,6 +453,9 @@ class CLI:
 
                 ii.set_output_function(functools.partial(self.output, already_logged=True))
                 # use our overlaid MD to search
+
+                if not self.config.Auto_Tag__use_year_when_identifying:
+                    md.year = None
                 result, matches = ii.identify(ca, md)
 
                 found_match = False

@@ -703,6 +703,12 @@ One Publisher per line</string>
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>150</height>
+               </size>
+              </property>
               <property name="maximumSize">
                <size>
                 <width>16777215</width>
@@ -714,12 +720,6 @@ One Publisher per line</string>
               </property>
               <property name="currentIndex">
                <number>0</number>
-              </property>
-              <property name="documentMode">
-               <bool>true</bool>
-              </property>
-              <property name="tabBarAutoHide">
-               <bool>false</bool>
               </property>
               <widget class="QWidget" name="tOverlay">
                <property name="maximumSize">

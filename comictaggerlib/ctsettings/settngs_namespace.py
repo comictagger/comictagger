@@ -34,9 +34,9 @@ class SettngsNS(settngs.TypedNS):
     Runtime_Options__delete_original: bool
     Runtime_Options__type_read: list[str]
     Runtime_Options__type_modify: list[str]
-    Runtime_Options__read_style_overlay: comicapi.merge.Mode
-    Runtime_Options__source_overlay: comicapi.merge.Mode
-    Runtime_Options__overlay_merge_lists: bool
+    Runtime_Options__read_style_merge: comicapi.merge.Mode
+    Runtime_Options__source_merge: comicapi.merge.Mode
+    Runtime_Options__merge_lists: bool
     Runtime_Options__skip_existing_metadata: bool
     Runtime_Options__files: list[str]
 
@@ -97,7 +97,7 @@ class SettngsNS(settngs.TypedNS):
 
     Auto_Tag__online: bool
     Auto_Tag__save_on_low_confidence: bool
-    Auto_Tag__dont_use_year_when_auto_tagging: bool
+    Auto_Tag__use_year_when_identifying: bool
     Auto_Tag__assume_issue_one: bool
     Auto_Tag__ignore_leading_numbers_in_filename: bool
     Auto_Tag__remove_archive_after_successful_match: bool
@@ -147,9 +147,9 @@ class Runtime_Options(typing.TypedDict):
     delete_original: bool
     type_read: list[str]
     type_modify: list[str]
-    read_style_overlay: comicapi.merge.Mode
-    source_overlay: comicapi.merge.Mode
-    overlay_merge_lists: bool
+    read_style_merge: comicapi.merge.Mode
+    source_merge: comicapi.merge.Mode
+    merge_lists: bool
     skip_existing_metadata: bool
     files: list[str]
 
@@ -224,7 +224,7 @@ class File_Rename(typing.TypedDict):
 class Auto_Tag(typing.TypedDict):
     online: bool
     save_on_low_confidence: bool
-    dont_use_year_when_auto_tagging: bool
+    use_year_when_identifying: bool
     assume_issue_one: bool
     ignore_leading_numbers_in_filename: bool
     remove_archive_after_successful_match: bool

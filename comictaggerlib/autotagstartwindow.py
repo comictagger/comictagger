@@ -46,7 +46,7 @@ class AutoTagStartWindow(QtWidgets.QDialog):
         self.leSearchString.setEnabled(False)
 
         self.cbxSaveOnLowConfidence.setChecked(self.config.Auto_Tag__save_on_low_confidence)
-        self.cbxDontUseYear.setChecked(self.config.Auto_Tag__dont_use_year_when_auto_tagging)
+        self.cbxDontUseYear.setChecked(not self.config.Auto_Tag__use_year_when_identifying)
         self.cbxAssumeIssueOne.setChecked(self.config.Auto_Tag__assume_issue_one)
         self.cbxIgnoreLeadingDigitsInFilename.setChecked(self.config.Auto_Tag__ignore_leading_numbers_in_filename)
         self.cbxRemoveAfterSuccess.setChecked(self.config.Auto_Tag__remove_archive_after_successful_match)
@@ -95,7 +95,7 @@ class AutoTagStartWindow(QtWidgets.QDialog):
 
         # persist some settings
         self.config.Auto_Tag__save_on_low_confidence = self.auto_save_on_low
-        self.config.Auto_Tag__dont_use_year_when_auto_tagging = self.dont_use_year
+        self.config.Auto_Tag__use_year_when_identifying = not self.dont_use_year
         self.config.Auto_Tag__assume_issue_one = self.assume_issue_one
         self.config.Auto_Tag__ignore_leading_numbers_in_filename = self.ignore_leading_digits_in_filename
         self.config.Auto_Tag__remove_archive_after_successful_match = self.remove_after_success

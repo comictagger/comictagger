@@ -40,7 +40,7 @@ def initial_commandline_parser() -> argparse.ArgumentParser:
     # Ensure this stays up to date with register_runtime
     parser.add_argument(
         "--config",
-        help="Config directory defaults to ~/.config/ComicTagger on Linux.\n~/Library/Application Support/ComicTagger on Mac.\n%%LOCALAPPDATA%%\\ComicTagger on Windows.\n\n",
+        help="Config directory for ComicTagger to use.\ndefault: %(default)s\n\n",
         type=ComicTaggerPaths,
         default=ComicTaggerPaths(),
     )
@@ -57,7 +57,7 @@ def initial_commandline_parser() -> argparse.ArgumentParser:
 def register_runtime(parser: settngs.Manager) -> None:
     parser.add_setting(
         "--config",
-        help="Config directory defaults to ~/.config/ComicTagger on Linux.\n~/Library/Application Support/ComicTagger on Mac.\n%%LOCALAPPDATA%%\\ComicTagger on Windows.\n\n",
+        help="Config directory for ComicTagger to use.\ndefault: %(default)s\n\n",
         type=ComicTaggerPaths,
         default=ComicTaggerPaths(),
         file=False,
@@ -96,7 +96,7 @@ def register_runtime(parser: settngs.Manager) -> None:
         dest="abort_on_low_confidence",
         action=argparse.BooleanOptionalAction,
         default=True,
-        help="""Abort save operation when online match is of low confidence.""",
+        help="""Abort save operation when online match is of low confidence.\ndefault: %(default)s""",
         file=False,
     )
     parser.add_setting(
@@ -110,7 +110,7 @@ def register_runtime(parser: settngs.Manager) -> None:
         "--summary",
         default=True,
         action=argparse.BooleanOptionalAction,
-        help="Show the summary after a save operation.",
+        help="Show the summary after a save operation.\ndefault: %(default)s",
         file=False,
     )
     parser.add_setting(
@@ -154,31 +154,35 @@ def register_runtime(parser: settngs.Manager) -> None:
         file=False,
     )
     parser.add_setting(
-        "--read-style-overlay",
-        type=merge.Mode,
+        "--read-style-merge",
+        metavar=f"{{{','.join(merge.Mode)}}}",
         default=merge.Mode.OVERLAY,
-        help="How to overlay new metadata on the current for enabled read styles (CR, CBL, etc.)",
+        choices=merge.Mode,
+        type=merge.Mode,
+        help="How to merge additional metadata for enabled read styles (CR, CBL, etc.) See -t, --type-read default: %(default)s",
         file=False,
     )
     parser.add_setting(
-        "--source-overlay",
-        type=merge.Mode,
+        "--source-merge",
+        metavar=f"{{{','.join(merge.Mode)}}}",
         default=merge.Mode.OVERLAY,
-        help="How to overlay new metadata from a data source (CV, Metron, GCD, etc.) on to the current",
+        choices=merge.Mode,
+        type=merge.Mode,
+        help="How to merge new metadata from a data source (CV, Metron, GCD, etc.) default: %(default)s",
         file=False,
     )
     parser.add_setting(
-        "--overlay-merge-lists",
+        "--merge-lists",
         action=argparse.BooleanOptionalAction,
         default=True,
-        help="When overlaying, merge or replace lists (genres, characters, etc.)",
+        help="Merge all items of lists when merging new metadata (genres, characters, etc.) default: %(default)s",
         file=False,
     )
     parser.add_setting(
         "--skip-existing-metadata",
         action=argparse.BooleanOptionalAction,
         default=True,
-        help="""Skip archives that already have tags specified with -t,\notherwise merges new metadata with existing metadata (relevant for -s or -c).""",
+        help="""Skip archives that already have tags specified with -t,\notherwise merges new metadata with existing metadata (relevant for -s or -c).\ndefault: %(default)s""",
         file=False,
     )
     parser.add_setting("files", nargs="*", default=[], file=False)

@@ -147,6 +147,9 @@ class ComicTaggerPaths(AppDirs):
     def site_config_dir(self) -> pathlib.Path:
         return pathlib.Path(super().site_config_dir)
 
+    def __str__(self) -> str:
+        return f"logs: {self.user_log_dir}, config: {self.user_config_dir}, cache: {self.user_cache_dir}"
+
 
 def metadata_type_single(types: str) -> str:
     result = metadata_type(types)
