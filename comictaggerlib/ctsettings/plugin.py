@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 import os
-from typing import cast
+from typing import Any, cast
 
 import settngs
 
@@ -84,7 +84,7 @@ def validate_archive_settings(config: settngs.Config[ct_ns]) -> settngs.Config[c
 
 def validate_talker_settings(config: settngs.Config[ct_ns], talkers: dict[str, ComicTalker]) -> settngs.Config[ct_ns]:
     # Apply talker settings from config file
-    cfg = settngs.normalize_config(config, True, True)
+    cfg = cast(settngs.Config[dict[str, Any]], settngs.normalize_config(config, True, True))
     for talker in list(talkers.values()):
         try:
             cfg[0][group_for_plugin(talker)] = talker.parse_settings(cfg[0][group_for_plugin(talker)])

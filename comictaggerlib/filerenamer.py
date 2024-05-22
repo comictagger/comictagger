@@ -57,7 +57,7 @@ class MetadataFormatter(string.Formatter):
             return ""
         return cast(str, super().format_field(value, format_spec))
 
-    def convert_field(self, value: Any, conversion: str) -> str:
+    def convert_field(self, value: Any, conversion: str | None) -> str:
         if conversion == "u":
             return str(value).upper()
         if conversion == "l":
@@ -146,7 +146,7 @@ class MetadataFormatter(string.Formatter):
                 obj = self.none_replacement(obj, replacement, r)
 
                 # do any conversion on the resulting object
-                obj = self.convert_field(obj, conversion)  # type: ignore
+                obj = self.convert_field(obj, conversion)
 
                 # expand the format spec, if needed
                 format_spec, _ = self._vformat(

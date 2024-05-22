@@ -300,7 +300,7 @@ def validate_commandline_settings(config: settngs.Config[ct_ns], parser: settngs
         )
 
     config[0].Runtime_Options__no_gui = any(
-        (config[0].Commands__command, config[0].Runtime_Options__no_gui, config[0].Commands__copy)
+        (config[0].Commands__command != Action.gui, config[0].Runtime_Options__no_gui, config[0].Commands__copy)
     )
 
     if platform.system() == "Windows" and config[0].Runtime_Options__glob:

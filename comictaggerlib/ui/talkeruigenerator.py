@@ -313,7 +313,7 @@ def get_config_from_tab(tab: TalkerTab, definitions: settngs.Group) -> dict[str,
             value = typ(value)
 
         # Warn if the resulting type isn't the guessed type
-        guessed_type = setting._guess_type()
+        guessed_type, _ = setting._guess_type()
         if (
             value is not None
             and guessed_type not in (None, "Any")
@@ -385,7 +385,7 @@ def generate_source_option_tabs(
 
         dest_created = set()
         for option in config.definitions[group_for_plugin(talker)].v.values():
-            guessed_type = option._guess_type()
+            guessed_type, _ = option._guess_type()
 
             # Skip destinations that have already been created
             if option.dest in dest_created:
