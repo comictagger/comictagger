@@ -626,7 +626,7 @@ One Publisher per line</string>
             </size>
            </property>
            <property name="title">
-            <string>Overlay</string>
+            <string>Merge Modes</string>
            </property>
            <layout class="QGridLayout" name="gridLayout_10">
             <property name="leftMargin">
@@ -647,32 +647,32 @@ One Publisher per line</string>
             <item row="1" column="0">
              <widget class="QLabel" name="lblOverlaySource">
               <property name="toolTip">
-               <string>The operation to perform when overlaying source data (Comic Vine, Metron, GCD, etc.)</string>
+               <string>The merge mode to use when fetching data from a Metadata Source (Comic Vine, Metron, GCD, etc.)</string>
               </property>
               <property name="text">
-               <string>Data Source</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               <string>Data Source:</string>
               </property>
               <property name="margin">
                <number>6</number>
+              </property>
+              <property name="buddy">
+               <cstring>cbxOverlaySource</cstring>
               </property>
              </widget>
             </item>
             <item row="0" column="0">
              <widget class="QLabel" name="lblOverlayReadStyle">
               <property name="toolTip">
-               <string>The operation to perform when overlaying read styles (ComicRack, ComicBookInfo, etc.)</string>
+               <string>The merge mode to use when reading multiple metadata styles from a comic archive (ComicRack, ComicBookInfo, etc.)</string>
               </property>
               <property name="text">
-               <string>Read Style</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               <string>Read Style:</string>
               </property>
               <property name="margin">
                <number>6</number>
+              </property>
+              <property name="buddy">
+               <cstring>cbxOverlayReadStyle</cstring>
               </property>
              </widget>
             </item>
@@ -684,14 +684,8 @@ One Publisher per line</string>
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
-              <property name="maximumSize">
-               <size>
-                <width>16777215</width>
-                <height>16777215</height>
-               </size>
-              </property>
               <property name="toolTip">
-               <string>The operation to perform when overlaying source data (Comic Vine, Metron, GCD, etc.)</string>
+               <string>The merge mode to use when fetching data from a Metadata Source (Comic Vine, Metron, GCD, etc.)</string>
               </property>
              </widget>
             </item>
@@ -719,7 +713,7 @@ One Publisher per line</string>
                <enum>QTabWidget::North</enum>
               </property>
               <property name="currentIndex">
-               <number>0</number>
+               <number>2</number>
               </property>
               <widget class="QWidget" name="tOverlay">
                <property name="maximumSize">
@@ -759,7 +753,9 @@ One Publisher per line</string>
                    <bool>false</bool>
                   </property>
                   <property name="plainText">
-                   <string>Overlays all the (non-list) non-empty values of the new metadata (e.g. Comic Vine) on top of the current metadata.
+                   <string>Overlays all the non-empty values of the new metadata (e.g. Comic Vine) on top of the current metadata.
+
+See the Lists tab for controlling how lists are handled.
 
 Example:
 (Series=batman, Issue=1, Tags=[batman,joker,robin])
@@ -796,7 +792,9 @@ Example:
                 <item>
                  <widget class="QPlainTextEdit" name="addTextEdit">
                   <property name="plainText">
-                   <string>Adds any (non-list) metadata that is present in the new metadata (e.g. Comic Vine) but is missing in the current metadata.
+                   <string>Adds any metadata that is is missing in the current metadata but present in the new metadata (e.g. Comic Vine).
+
+See the Lists tab for controlling how lists are handled.
 
 Example:
 (Series=batman, Issue=1)
@@ -833,7 +831,7 @@ Example:
                 <item>
                  <widget class="QPlainTextEdit" name="combineTextEdit">
                   <property name="plainText">
-                   <string>All lists (tags, characters, genres, credits, etc.) are merged or replaced via the &quot;Merge Lists&quot; check box. Merge will replace duplicates within the list with the &quot;new&quot; data.
+                   <string>Checking the &quot;Merge Lists&quot; check box will enable merging of list items, otherwise it will follow the merge mode, see the 'Overlay' and 'Add Missing' tabs.
 
 Example Merge:
 (Tags=[batman,joker,robin])
@@ -865,14 +863,8 @@ Example Replace:
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
-              <property name="maximumSize">
-               <size>
-                <width>16777215</width>
-                <height>16777215</height>
-               </size>
-              </property>
               <property name="toolTip">
-               <string>The operation to perform when overlaying read styles (ComicRack, ComicBookInfo, etc.)</string>
+               <string>The merge mode to use when reading multiple metadata styles from a comic archive (ComicRack, ComicBookInfo, etc.)</string>
               </property>
              </widget>
             </item>
