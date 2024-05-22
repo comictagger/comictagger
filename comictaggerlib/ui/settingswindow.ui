@@ -28,7 +28,7 @@
         </sizepolicy>
        </property>
        <property name="currentIndex">
-        <number>4</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="tGeneral">
         <attribute name="title">
@@ -89,7 +89,7 @@
             <item row="1" column="0">
              <widget class="QCheckBox" name="cbxPromptOnSave">
               <property name="text">
-               <string>Prompts the user to confirm saving tags</string>
+               <string>Prompt to confirm saving tags</string>
               </property>
              </widget>
             </item>

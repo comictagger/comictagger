@@ -83,7 +83,7 @@
         <string>Removes existing metadata before applying retrieved metadata</string>
        </property>
        <property name="text">
-        <string>Overwrite metadata</string>
+        <string>Clear Existing Metadata during import</string>
        </property>
       </widget>
      </item>
