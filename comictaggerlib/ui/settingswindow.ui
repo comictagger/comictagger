@@ -190,7 +190,7 @@
            <item row="2" column="0">
             <widget class="QLabel" name="label_9">
              <property name="text">
-              <string>Always use Publisher Filter on &quot;manual&quot; searches:</string>
+              <string>Always use Publisher Filter on manual searches:</string>
              </property>
              <property name="buddy">
               <cstring>cbxUseFilter</cstring>
@@ -210,7 +210,11 @@
            <item row="3" column="0">
             <widget class="QLabel" name="label_4">
              <property name="text">
-              <string>Publisher Filter:</string>
+              <string>Publisher Filter:
+One Publisher per line</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
              </property>
              <property name="buddy">
               <cstring>tePublisherFilter</cstring>

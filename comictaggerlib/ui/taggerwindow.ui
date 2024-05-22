@@ -150,7 +150,6 @@
                </property>
                <property name="font">
                 <font>
-                 <weight>75</weight>
                  <bold>true</bold>
                 </font>
                </property>
@@ -1065,7 +1064,11 @@
                 <item row="1" column="0">
                  <widget class="QLabel" name="label_29">
                   <property name="text">
-                   <string>Characters</string>
+                   <string>Characters:
+1 Per Line</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
                   </property>
                  </widget>
                 </item>
@@ -1103,7 +1106,11 @@
                 <item row="2" column="0">
                  <widget class="QLabel" name="label_30">
                   <property name="text">
-                   <string>Teams</string>
+                   <string>Teams:
+1 Per Line</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
                   </property>
                  </widget>
                 </item>
@@ -1132,7 +1139,11 @@
                 <item row="3" column="0">
                  <widget class="QLabel" name="label_27">
                   <property name="text">
-                   <string>Locations</string>
+                   <string>Locations:
+1 Per Line</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
                   </property>
                  </widget>
                 </item>
@@ -1161,7 +1172,11 @@
                 <item row="4" column="0">
                  <widget class="QLabel" name="label_28">
                   <property name="text">
-                   <string>Other Tags</string>
+                   <string>Other Tags:
+1 Per Line</string>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
                   </property>
                  </widget>
                 </item>
@@ -1223,7 +1238,7 @@
      <x>0</x>
      <y>0</y>
      <width>1096</width>
-     <height>30</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuComicTagger">
