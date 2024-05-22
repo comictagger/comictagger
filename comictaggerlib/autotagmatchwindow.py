@@ -229,7 +229,7 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
     def save_match(self) -> None:
         match = self.current_match()
         ca = ComicArchive(self.current_match_set.original_path)
-        md, error = self.parent().overlay_ca_read_style(self.load_data_styles, ca)
+        md, error = self.parent().overlay_ca_read_style(self._styles, ca)
         if error is not None:
             logger.error("Failed to load metadata for %s: %s", ca.path, error)
             QtWidgets.QApplication.restoreOverrideCursor()
