@@ -402,6 +402,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.tePublisherFilter.setPlainText("\n".join(self.config[0].Auto_Tag__publisher_filter))
 
         self.cbxCheckForNewVersion.setChecked(self.config[0].General__check_for_new_version)
+        self.cbxPromptOnSave.setChecked(self.config[0].General__prompt_on_save)
 
         self.cbFilenameParser.setCurrentText(self.config[0].Filename_Parsing__filename_parser)
         self.cbxRemoveC2C.setChecked(self.config[0].Filename_Parsing__remove_c2c)
@@ -529,6 +530,7 @@ class SettingsWindow(QtWidgets.QDialog):
             self.leIssueNumPadding.setText("0")
 
         self.config[0].General__check_for_new_version = self.cbxCheckForNewVersion.isChecked()
+        self.config[0].General__prompt_on_save = self.cbxPromptOnSave.isChecked()
 
         self.config[0].Issue_Identifier__series_match_identify_thresh = self.sbNameMatchIdentifyThresh.value()
         self.config[0].Issue_Identifier__series_match_search_thresh = self.sbNameMatchSearchThresh.value()
