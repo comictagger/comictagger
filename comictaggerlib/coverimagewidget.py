@@ -31,7 +31,7 @@ from comictaggerlib.imagefetcher import ImageFetcher
 from comictaggerlib.imagepopup import ImagePopup
 from comictaggerlib.pageloader import PageLoader
 from comictaggerlib.ui import ui_path
-from comictaggerlib.ui.qtutils import get_qimage_from_data, reduce_widget_font_size
+from comictaggerlib.ui.qtutils import get_qimage_from_data
 from comictalker.comictalker import ComicTalker
 
 logger = logging.getLogger(__name__)
@@ -81,8 +81,6 @@ class CoverImageWidget(QtWidgets.QWidget):
             self.talker = None
         with (ui_path / "coverimagewidget.ui").open(encoding="utf-8") as uifile:
             uic.loadUi(uifile, self)
-
-        reduce_widget_font_size(self.label)
 
         self.cache_folder = cache_folder
         self.mode: int = mode

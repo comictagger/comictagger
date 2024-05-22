@@ -25,7 +25,7 @@ from comicapi.issuestring import IssueString
 from comictaggerlib.coverimagewidget import CoverImageWidget
 from comictaggerlib.ctsettings import ct_ns
 from comictaggerlib.ui import qtutils, ui_path
-from comictaggerlib.ui.qtutils import new_web_view, reduce_widget_font_size
+from comictaggerlib.ui.qtutils import new_web_view
 from comictalker.comictalker import ComicTalker, TalkerError
 
 logger = logging.getLogger(__name__)
@@ -70,9 +70,6 @@ class IssueSelectionWindow(QtWidgets.QDialog):
             logger.info("successfully loaded QWebEngineView")
         else:
             logger.info("failed to open QWebEngineView")
-
-        reduce_widget_font_size(self.twList)
-        reduce_widget_font_size(self.teDescription, 1)
 
         self.setWindowFlags(
             QtCore.Qt.WindowType(

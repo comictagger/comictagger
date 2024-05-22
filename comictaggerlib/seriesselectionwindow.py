@@ -35,7 +35,6 @@ from comictaggerlib.matchselectionwindow import MatchSelectionWindow
 from comictaggerlib.progresswindow import IDProgressWindow
 from comictaggerlib.resulttypes import IssueResult
 from comictaggerlib.ui import qtutils, ui_path
-from comictaggerlib.ui.qtutils import new_web_view, reduce_widget_font_size
 from comictalker.comictalker import ComicTalker, TalkerError
 
 logger = logging.getLogger(__name__)
@@ -127,12 +126,9 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         gridlayout.setContentsMargins(0, 0, 0, 0)
 
         self.teDetails: QtWidgets.QWidget
-        webengine = new_web_view(self)
+        webengine = qtutils.new_web_view(self)
         if webengine:
             self.teDetails = qtutils.replaceWidget(self.splitter, self.teDetails, webengine)
-
-        reduce_widget_font_size(self.teDetails, 1)
-        reduce_widget_font_size(self.twList)
 
         self.setWindowFlags(
             QtCore.Qt.WindowType(

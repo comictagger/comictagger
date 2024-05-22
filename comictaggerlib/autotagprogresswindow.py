@@ -22,7 +22,6 @@ from PyQt5 import QtCore, QtWidgets, uic
 
 from comictaggerlib.coverimagewidget import CoverImageWidget
 from comictaggerlib.ui import ui_path
-from comictaggerlib.ui.qtutils import reduce_widget_font_size
 from comictalker.comictalker import ComicTalker
 
 logger = logging.getLogger(__name__)
@@ -58,8 +57,6 @@ class AutoTagProgressWindow(QtWidgets.QDialog):
                 | QtCore.Qt.WindowType.WindowMaximizeButtonHint
             )
         )
-
-        reduce_widget_font_size(self.textEdit)
 
     def set_archive_image(self, img_data: bytes) -> None:
         self.set_cover_image(img_data, self.archiveCoverWidget)

@@ -26,7 +26,6 @@ from comictaggerlib.coverimagewidget import CoverImageWidget
 from comictaggerlib.ctsettings import ct_ns
 from comictaggerlib.resulttypes import IssueResult
 from comictaggerlib.ui import ui_path
-from comictaggerlib.ui.qtutils import reduce_widget_font_size
 from comictalker.comictalker import ComicTalker
 
 logger = logging.getLogger(__name__)
@@ -57,9 +56,6 @@ class MatchSelectionWindow(QtWidgets.QDialog):
         gridlayout = QtWidgets.QGridLayout(self.archiveCoverContainer)
         gridlayout.addWidget(self.archiveCoverWidget)
         gridlayout.setContentsMargins(0, 0, 0, 0)
-
-        reduce_widget_font_size(self.twList)
-        reduce_widget_font_size(self.teDescription, 1)
 
         self.setWindowFlags(
             QtCore.Qt.WindowType(

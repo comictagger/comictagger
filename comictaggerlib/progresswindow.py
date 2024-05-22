@@ -21,7 +21,6 @@ import logging
 from PyQt5 import QtCore, QtWidgets, uic
 
 from comictaggerlib.ui import ui_path
-from comictaggerlib.ui.qtutils import reduce_widget_font_size
 
 logger = logging.getLogger(__name__)
 
@@ -40,5 +39,3 @@ class IDProgressWindow(QtWidgets.QDialog):
                 | QtCore.Qt.WindowType.WindowMaximizeButtonHint
             )
         )
-
-        reduce_widget_font_size(self.textEdit)

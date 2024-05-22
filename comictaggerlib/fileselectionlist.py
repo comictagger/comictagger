@@ -30,7 +30,7 @@ from comictaggerlib.graphics import graphics_path
 from comictaggerlib.optionalmsgdialog import OptionalMessageDialog
 from comictaggerlib.settingswindow import linuxRarHelp, macRarHelp, windowsRarHelp
 from comictaggerlib.ui import ui_path
-from comictaggerlib.ui.qtutils import center_window_on_parent, reduce_widget_font_size
+from comictaggerlib.ui.qtutils import center_window_on_parent
 
 logger = logging.getLogger(__name__)
 
@@ -55,8 +55,6 @@ class FileSelectionList(QtWidgets.QWidget):
             uic.loadUi(uifile, self)
 
         self.config = config
-
-        reduce_widget_font_size(self.twList)
 
         self.twList.horizontalHeader().setMinimumSectionSize(50)
         self.twList.currentItemChanged.connect(self.current_item_changed_cb)

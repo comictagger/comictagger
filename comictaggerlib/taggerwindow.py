@@ -61,7 +61,7 @@ from comictaggerlib.resulttypes import Action, MatchStatus, OnlineMatchResults, 
 from comictaggerlib.seriesselectionwindow import SeriesSelectionWindow
 from comictaggerlib.settingswindow import SettingsWindow
 from comictaggerlib.ui import ui_path
-from comictaggerlib.ui.qtutils import center_window_on_parent, enable_widget, reduce_widget_font_size
+from comictaggerlib.ui.qtutils import center_window_on_parent, enable_widget
 from comictaggerlib.versionchecker import VersionChecker
 from comictalker.comictalker import ComicTalker, TalkerError
 
@@ -268,14 +268,6 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.leVolumeCount.setValidator(validator)
         self.leAltIssueNum.setValidator(validator)
         self.leAltIssueCount.setValidator(validator)
-
-        # TODO set up an RE validator for issueNum that allows for all sorts of wacky things
-
-        # tweak some control fonts
-        reduce_widget_font_size(self.lblFilename, 1)
-        reduce_widget_font_size(self.lblArchiveType)
-        reduce_widget_font_size(self.lblTagList)
-        reduce_widget_font_size(self.lblPageCount)
 
         # make sure some editable comboboxes don't take drop actions
         self.cbFormat.lineEdit().setAcceptDrops(False)

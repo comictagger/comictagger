@@ -92,12 +92,6 @@ if qt_available:
 
         def new_web_view(parent: QWidget) -> QWebEngineView: ...
 
-    def reduce_widget_font_size(widget: QtWidgets.QWidget, delta: int = 2) -> None:
-        f = widget.font()
-        if f.pointSize() > 10:
-            f.setPointSize(f.pointSize() - delta)
-        widget.setFont(f)
-
     def center_window_on_screen(window: QtWidgets.QWidget) -> None:
         """Center the window on screen.
 
