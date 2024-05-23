@@ -192,10 +192,17 @@ def register_runtime(parser: settngs.Manager) -> None:
         file=False,
     )
     parser.add_setting(
-        "--overlay-merge-lists",
+        "--overlay-read-merge-lists",
         action=argparse.BooleanOptionalAction,
         default=True,
-        help="When overlaying, merge or replace lists (genres, characters, etc.)",
+        help="When overlaying read styles (CR, CBI, CBL), merge or replace lists (genres, characters, etc.)",
+        file=False,
+    )
+    parser.add_setting(
+        "--overlay-source-merge-lists",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="When overlaying source (CV, Metron, GCD), merge or replace lists (genres, characters, etc.)",
         file=False,
     )
     parser.add_setting(

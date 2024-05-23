@@ -436,7 +436,8 @@ class SettingsWindow(QtWidgets.QDialog):
         self.cbxOverlaySource.setCurrentIndex(
             self.cbxOverlaySource.findData(self.config[0].internal__source_data_overlay.value)
         )
-        self.cbxOverlayMergeLists.setChecked(self.config[0].internal__overlay_merge_lists)
+        self.cbxOverlayReadMergeLists.setChecked(self.config[0].internal__overlay_read_merge_lists)
+        self.cbxOverlaySourceMergeLists.setChecked(self.config[0].internal__overlay_source_merge_lists)
         self.cbxShortMetadataNames.setChecked(self.config[0].Metadata_Options__use_short_metadata_names)
         self.cbxDisableCR.setChecked(self.config[0].Metadata_Options__disable_cr)
 
@@ -564,7 +565,8 @@ class SettingsWindow(QtWidgets.QDialog):
 
         self.config[0].internal__load_data_overlay = merge.Mode[self.cbxOverlayReadStyle.currentData().upper()]
         self.config[0].internal__source_data_overlay = merge.Mode[self.cbxOverlaySource.currentData().upper()]
-        self.config[0].internal__overlay_merge_lists = self.cbxOverlayMergeLists.isChecked()
+        self.config[0].internal__overlay_read_merge_lists = self.cbxOverlayReadMergeLists.isChecked()
+        self.config[0].internal__overlay_source_merge_lists = self.cbxOverlaySourceMergeLists.isChecked()
         self.config[0].Metadata_Options__disable_cr = self.cbxDisableCR.isChecked()
         # Update metadata style names if required
         if self.config[0].Metadata_Options__use_short_metadata_names != self.cbxShortMetadataNames.isChecked():

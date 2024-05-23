@@ -223,8 +223,10 @@ class TaggerWindow(QtWidgets.QMainWindow):
             config[0].internal__load_data_overlay = config[0].Runtime_Options__read_style_overlay
         if config[0].Runtime_Options__source_overlay:
             config[0].internal__source_data_overlay = config[0].Runtime_Options__source_overlay
-        if isinstance(config[0].Runtime_Options__overlay_merge_lists, bool):
-            config[0].internal__overlay_merge_lists = config[0].Runtime_Options__overlay_merge_lists
+        if isinstance(config[0].Runtime_Options__overlay_read_merge_lists, bool):
+            config[0].internal__overlay_read_merge_lists = config[0].Runtime_Options__overlay_read_merge_lists
+        if isinstance(config[0].Runtime_Options__overlay_source_merge_lists, bool):
+            config[0].internal__overlay_source_merge_lists = config[0].Runtime_Options__overlay_source_merge_lists
 
         for style in config[0].internal__save_data_style:
             if style not in metadata_styles:
@@ -2203,7 +2205,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 md.overlay(
                     metadata,
                     mode=self.config[0].internal__load_data_overlay,
-                    merge_lists=self.config[0].internal__overlay_merge_lists,
+                    merge_lists=self.config[0].internal__overlay_read_merge_lists,
                 )
         except Exception as e:
             error = e
