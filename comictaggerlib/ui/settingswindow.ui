@@ -644,35 +644,35 @@ One Publisher per line</string>
             <property name="spacing">
              <number>6</number>
             </property>
-            <item row="1" column="0">
-             <widget class="QLabel" name="lblOverlaySource">
-              <property name="toolTip">
-               <string>The merge mode to use when fetching data from a Metadata Source (Comic Vine, Metron, GCD, etc.)</string>
-              </property>
-              <property name="text">
-               <string>Data Source:</string>
-              </property>
-              <property name="margin">
-               <number>6</number>
-              </property>
-              <property name="buddy">
-               <cstring>cbxOverlaySource</cstring>
-              </property>
-             </widget>
-            </item>
             <item row="0" column="0">
              <widget class="QLabel" name="lblOverlayReadStyle">
               <property name="toolTip">
-               <string>The merge mode to use when reading multiple metadata styles from a comic archive (ComicRack, ComicBookInfo, etc.)</string>
+               <string>The merge mode to use when reading multiple metadata styles from a single comic archive (ComicRack, ComicBookInfo, etc.)</string>
               </property>
               <property name="text">
-               <string>Read Style:</string>
+               <string>Comic Merge Mode:</string>
               </property>
               <property name="margin">
                <number>6</number>
               </property>
               <property name="buddy">
                <cstring>cbxOverlayReadStyle</cstring>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="lblOverlaySource">
+              <property name="toolTip">
+               <string>The merge mode to use when fetching metadata from a Metadata Source (Comic Vine, Metron, GCD, etc.)</string>
+              </property>
+              <property name="text">
+               <string>Metadata Merge Mode:</string>
+              </property>
+              <property name="margin">
+               <number>6</number>
+              </property>
+              <property name="buddy">
+               <cstring>cbxOverlaySource</cstring>
               </property>
              </widget>
             </item>
@@ -713,7 +713,7 @@ One Publisher per line</string>
                <enum>QTabWidget::North</enum>
               </property>
               <property name="currentIndex">
-               <number>2</number>
+               <number>0</number>
               </property>
               <widget class="QWidget" name="tOverlay">
                <property name="maximumSize">
@@ -758,8 +758,9 @@ One Publisher per line</string>
 See the Lists tab for controlling how lists are handled.
 
 Example:
-(Series=batman, Issue=1, Tags=[batman,joker,robin])
+(Series=the batman, Issue=1, Tags=[batman,joker,robin])
 + (Series=Batman, Publisher=DC Comics, Tags=[mystery,action])
+
 = (Series=Batman, Issue=1, Publisher=DC Comics, Tags=[mystery,action])</string>
                   </property>
                   <property name="textInteractionFlags">
@@ -797,9 +798,10 @@ Example:
 See the Lists tab for controlling how lists are handled.
 
 Example:
-(Series=batman, Issue=1)
-+ (Series=Superman, Issue=10, Publisher=DC Comics)
-= (Series=batman, Issue=1, Publisher=DC Comics)</string>
+(Series=batman, Issue=1, Tags=[batman,joker,robin])
++ (Series=Superman, Issue=10, Publisher=DC Comics, Tags=[mystery,action])
+
+= (Series=batman, Issue=1, Tags=[batman,joker,robin], Publisher=DC Comics)</string>
                   </property>
                   <property name="textInteractionFlags">
                    <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
@@ -836,12 +838,7 @@ Example:
 Example Merge:
 (Tags=[batman,joker,robin])
 + (Tags=[mystery,action])
-= (Tags=[batman,joker,robin,mystery,action])
-
-Example Replace:
-(Tags=[batman,joker,robin])
-+ (Tags=[mystery,action])
-= (Tags=[mystery,action])</string>
+= (Tags=[batman,joker,robin,mystery,action])</string>
                   </property>
                   <property name="textInteractionFlags">
                    <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
