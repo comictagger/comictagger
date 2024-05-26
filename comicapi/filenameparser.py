@@ -333,7 +333,7 @@ class FilenameInfo(TypedDict):
 protofolius_issue_number_scheme = {
     "B": "biography/best of",
     "C": "compact edition",
-    "E": "entrtainment/puzzle edition",
+    "E": "entertainment/puzzle edition",
     "F": "familiy book edition",
     "J": "jubileum (anniversary) edition",
     "P": "pocket edition",
