@@ -344,7 +344,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
             remove_raw_tags[style.short_name] = self.menuRemove.addAction(f"Remove Raw {style.name()} Tags")
             remove_raw_tags[style.short_name].setStatusTip(f"Remove {style.name()} tags from comic archive")
-            remove_raw_tags[style.short_name].triggered.connect(functools.partial(self.remove_tags, style.short_name))
+            remove_raw_tags[style.short_name].triggered.connect(functools.partial(self.remove_tags, [style.short_name]))
 
         return view_raw_tags, remove_raw_tags
 
