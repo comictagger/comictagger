@@ -151,13 +151,6 @@ def talker(parser: settngs.Manager) -> None:
         default="comicvine",
         help="Use a specified source by source ID (use --list-plugins to list all sources)",
     )
-    parser.add_setting(
-        "--remove-html-tables",
-        default=False,
-        action=argparse.BooleanOptionalAction,
-        display_name="Remove HTML tables",
-        help="Removes html tables instead of converting them to text",
-    )
 
 
 def md_options(parser: settngs.Manager) -> None:
@@ -171,6 +164,14 @@ def md_options(parser: settngs.Manager) -> None:
     parser.add_setting("--cbl-copy-weblink-to-comments", default=False, action=argparse.BooleanOptionalAction)
     parser.add_setting("--cbl-apply-transform-on-import", default=False, action=argparse.BooleanOptionalAction)
     parser.add_setting("--cbl-apply-transform-on-bulk-operation", default=False, action=argparse.BooleanOptionalAction)
+
+    parser.add_setting(
+        "--remove-html-tables",
+        default=False,
+        action=argparse.BooleanOptionalAction,
+        display_name="Remove HTML tables",
+        help="Removes html tables instead of converting them to text",
+    )
 
     parser.add_setting("use_short_metadata_names", default=False, action=argparse.BooleanOptionalAction, cmdline=False)
     parser.add_setting(

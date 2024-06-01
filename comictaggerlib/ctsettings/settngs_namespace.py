@@ -79,7 +79,6 @@ class SettngsNS(settngs.TypedNS):
     Filename_Parsing__allow_issue_start_with_letter: bool
 
     Sources__source: str
-    Sources__remove_html_tables: bool
 
     Metadata_Options__cbl_assume_lone_credit_is_primary: bool
     Metadata_Options__cbl_copy_characters_to_tags: bool
@@ -92,6 +91,7 @@ class SettngsNS(settngs.TypedNS):
     Metadata_Options__cbl_apply_transform_on_bulk_operation: bool
     Metadata_Options__use_short_metadata_names: bool
     Metadata_Options__disable_cr: bool
+    Metadata_Options__remove_html_tables: bool
 
     File_Rename__template: str
     File_Rename__issue_number_padding: int

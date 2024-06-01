@@ -430,6 +430,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.cbxApplyCBLTransformOnBatchOperation.setChecked(
             self.config[0].Metadata_Options__cbl_apply_transform_on_bulk_operation
         )
+        self.cbxRemoveHtmlTables.setChecked(self.config[0].Metadata_Options__remove_html_tables)
         self.cbxOverlayReadStyle.setCurrentIndex(
             self.cbxOverlayReadStyle.findData(self.config[0].internal__load_data_overlay.value)
         )
@@ -561,7 +562,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.config.values.Metadata_Options__cbl_apply_transform_on_bulk_operation = (
             self.cbxApplyCBLTransformOnBatchOperation.isChecked()
         )
-
+        self.config[0].Metadata_Options__remove_html_tables = self.cbxRemoveHtmlTables.isChecked()
         self.config[0].internal__load_data_overlay = merge.Mode[self.cbxOverlayReadStyle.currentData().upper()]
         self.config[0].internal__source_data_overlay = merge.Mode[self.cbxOverlaySource.currentData().upper()]
         self.config[0].internal__overlay_merge_lists = self.cbxOverlayMergeLists.isChecked()
