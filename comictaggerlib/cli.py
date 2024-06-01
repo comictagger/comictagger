@@ -182,7 +182,7 @@ class CLI:
 
                 match_set.md = prepare_metadata(md, ct_md, self.config)
 
-                self.actual_metadata_save(ca, md)
+                self.actual_metadata_save(ca, match_set.md)
 
     def post_process_matches(self, match_results: OnlineMatchResults) -> None:
         def print_header(header: str) -> None:
