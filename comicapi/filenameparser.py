@@ -891,7 +891,12 @@ def parse_series(p: Parser, i: filenamelexer.Item | None) -> ParserFunc:
                 break
 
         prev_space = False
-
+    if (
+        current
+        and current[-1].typ == filenamelexer.ItemType.Dot
+        and p.peek().typ in (filenamelexer.ItemType.ArchiveType,)
+    ):
+        current.pop()
     p.series.append(current)
     return parse
 

@@ -414,7 +414,7 @@ def is_operator(character: str) -> bool:
 
 
 def is_symbol(character: str) -> bool:
-    return unicodedata.category(character)[0] in "PS"
+    return unicodedata.category(character)[0] in "PS" and character != "."
 
 
 def Lex(filename: str, allow_issue_start_with_letter: bool = False) -> Lexer:

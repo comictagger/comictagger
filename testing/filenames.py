@@ -26,6 +26,38 @@ cbz_path = datadir.joinpath("Cory Doctorow's Futuristic Tales of the Here and No
 
 names: list[tuple[str, str, dict[str, str | bool], tuple[bool, bool]]] = [
     (
+        "Conceptions #1 Conceptions I.cbz",
+        "&",
+        {
+            "issue": "1",
+            "series": "Conceptions",
+            "title": "Conceptions I",
+            "volume": "",
+            "year": "",
+            "remainder": "",
+            "issue_count": "",
+            "alternate": "",
+            "archive": "cbz",
+        },
+        (False, True),
+    ),
+    (
+        "Series #1 Stop it!.cbz",
+        "&",
+        {
+            "issue": "1",
+            "series": "Series",
+            "title": "Stop it!",
+            "volume": "",
+            "year": "",
+            "remainder": "",
+            "issue_count": "",
+            "alternate": "",
+            "archive": "cbz",
+        },
+        (False, True),
+    ),
+    (
         "Drystan & Esyllt #3",
         "&",
         {
