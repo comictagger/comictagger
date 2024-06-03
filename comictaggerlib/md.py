@@ -37,5 +37,5 @@ def prepare_metadata(md: GenericMetadata, new_md: GenericMetadata, opts: Settngs
     return final_md.replace(
         is_empty=False,
         notes=utils.combine_notes(final_md.notes, notes, "Tagged with ComicTagger"),
-        description=cleanup_html(final_md.description, opts.Sources__remove_html_tables) or None,
+        description=cleanup_html(final_md.description, opts.Metadata_Options__remove_html_tables) or None,
     )
