@@ -45,7 +45,7 @@ windowsRarHelp = """
                 you will need to have the tools from
                 <span style=" text-decoration: underline; color:#0000ff;">
                 <a href="http://www.win-rar.com/download.html">WINRar</a></span>
-                installed. (ComicTagger only uses the command-line rar tool.)
+                installed. (ComicTagger only uses the command-line rar tool.)<br/>A restart is needed for a new path to take effect.
                 </p></body></html>
                 """
 
@@ -55,7 +55,7 @@ linuxRarHelp = """
                 Your package manager should have rar (e.g. "apt-get install rar"). If not, download it
                 <span style=" text-decoration: underline; color:#0000ff;">
                 <a href="https://www.rarlab.com/download.htm">here</a></span>,
-                and install in your path. </p></body></html>
+                and install in your path.<br/>A restart is needed for a new path to take effect.</p></body></html>
                 """
 
 macRarHelp = """
@@ -63,7 +63,7 @@ macRarHelp = """
                 you will need the rar tool.  The easiest way to get this is
                 to install <span style=" text-decoration: underline; color:#0000ff;">
                 <a href="https://brew.sh/">homebrew</a></span>.
-                </p>Once homebrew is installed, run: <b>brew install rar</b></body></html>
+                </p>Once homebrew is installed, run: <b>brew install rar</b><br/>A restart is needed for a new path to take effect.</body></html>
                 """
 
 
@@ -203,6 +203,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.dir_test()
         self.leFilenameParserTest.setText(self.lblRenameTest.text())
         self.filename_parser_test()
+        self.update_rar_path()
 
         # Set General as start tab
         self.tabWidget.setCurrentIndex(0)
@@ -216,6 +217,8 @@ class SettingsWindow(QtWidgets.QDialog):
         self.cbxMoveOnly.clicked.connect(self.move_only_clicked)
         self.leDirectory.textEdited.connect(self.dir_test)
         self.cbFilenameParser.currentIndexChanged.connect(self.switch_parser)
+
+        self.leRarExePath.textEdited.connect(self.update_rar_path)
 
         self.btnAddLiteralReplacement.clicked.connect(self.addLiteralReplacement)
         self.btnAddValueReplacement.clicked.connect(self.addValueReplacement)
@@ -377,6 +380,16 @@ class SettingsWindow(QtWidgets.QDialog):
         except Exception as e:
             self.rename_error = e
             self.lblRenameTest.setText(str(e))
+
+    def update_rar_path(self, *args: Any, **kwargs: Any) -> None:
+        rar_path: Any = pathlib.Path(self.leRarExePath.text())
+        found_rar = "RAR not found"
+        if rar_path and rar_path.is_absolute() and rar_path.is_file():
+            found_rar = str(rar_path)
+        elif utils.which("rar"):
+            found_rar = str(utils.which("rar"))
+
+        self.lblRarFound.setText(f"RAR path: {found_rar}")
 
     def switch_parser(self) -> None:
         currentParser = utils.Parser(self.cbFilenameParser.currentText())
@@ -597,6 +610,7 @@ class SettingsWindow(QtWidgets.QDialog):
 
     def select_rar(self) -> None:
         self.select_file(self.leRarExePath, "RAR")
+        self.update_rar_path()
 
     def clear_cache(self) -> None:
         shutil.rmtree(self.config[0].Runtime_Options__config.user_cache_dir, ignore_errors=True)

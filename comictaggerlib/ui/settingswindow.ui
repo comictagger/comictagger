@@ -28,7 +28,7 @@
         </sizepolicy>
        </property>
        <property name="currentIndex">
-        <number>4</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="tGeneral">
         <attribute name="title">
@@ -1158,6 +1158,31 @@ Example Replace:
          <item>
           <widget class="QGroupBox" name="grpBoxRar">
            <layout class="QGridLayout" name="gridLayout">
+            <item row="0" column="0" colspan="3">
+             <widget class="QLabel" name="lblRarHelp">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="textFormat">
+               <enum>Qt::RichText</enum>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
+              </property>
+              <property name="wordWrap">
+               <bool>true</bool>
+              </property>
+              <property name="openExternalLinks">
+               <bool>true</bool>
+              </property>
+              <property name="textInteractionFlags">
+               <set>Qt::LinksAccessibleByKeyboard|Qt::LinksAccessibleByMouse</set>
+              </property>
+             </widget>
+            </item>
             <item row="1" column="0">
              <widget class="QLabel" name="label_7">
               <property name="sizePolicy">
@@ -1186,19 +1211,6 @@ Example Replace:
               </property>
              </widget>
             </item>
-            <item row="1" column="1">
-             <widget class="QLineEdit" name="leRarExePath">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="readOnly">
-               <bool>false</bool>
-              </property>
-             </widget>
-            </item>
             <item row="1" column="2">
              <widget class="QPushButton" name="btnBrowseRar">
               <property name="sizePolicy">
@@ -1212,31 +1224,20 @@ Example Replace:
               </property>
              </widget>
             </item>
-            <item row="0" column="0" colspan="3">
-             <widget class="QLabel" name="lblRarHelp">
+            <item row="1" column="1">
+             <widget class="QLineEdit" name="leRarExePath">
               <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+               <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QLabel" name="lblRarFound">
               <property name="text">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;In order to write to CBR/RAR archives, you will need to have the shareware tools from &lt;a href=&quot;www.win-rar.com/download.html&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;WinRAR&lt;/span&gt;&lt;/a&gt; installed. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-              </property>
-              <property name="textFormat">
-               <enum>Qt::RichText</enum>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignBottom|Qt::AlignLeading|Qt::AlignLeft</set>
-              </property>
-              <property name="wordWrap">
-               <bool>true</bool>
-              </property>
-              <property name="openExternalLinks">
-               <bool>true</bool>
-              </property>
-              <property name="textInteractionFlags">
-               <set>Qt::LinksAccessibleByKeyboard|Qt::LinksAccessibleByMouse</set>
+               <string>RAR not found</string>
               </property>
              </widget>
             </item>
