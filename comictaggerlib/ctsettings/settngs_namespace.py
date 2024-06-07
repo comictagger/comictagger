@@ -34,18 +34,12 @@ class SettngsNS(settngs.TypedNS):
     Runtime_Options__delete_original: bool
     Runtime_Options__type_read: list[str]
     Runtime_Options__type_modify: list[str]
-    Runtime_Options__read_style_merge: comicapi.merge.Mode
-    Runtime_Options__source_merge: comicapi.merge.Mode
-    Runtime_Options__merge_lists: bool
     Runtime_Options__skip_existing_metadata: bool
     Runtime_Options__files: list[str]
 
     internal__install_id: str
     internal__save_data_style: list[str]
     internal__load_data_style: list[str]
-    internal__load_data_overlay: comicapi.merge.Mode
-    internal__source_data_overlay: comicapi.merge.Mode
-    internal__overlay_merge_lists: bool
     internal__last_opened_folder: str
     internal__window_width: int
     internal__window_height: int
@@ -84,6 +78,10 @@ class SettngsNS(settngs.TypedNS):
     Metadata_Options__apply_transform_on_bulk_operation: bool
     Metadata_Options__use_short_metadata_names: bool
     Metadata_Options__cr: bool
+    Metadata_Options__comic_merge: comicapi.merge.Mode
+    Metadata_Options__metadata_merge: comicapi.merge.Mode
+    Metadata_Options__comic_merge_lists: bool
+    Metadata_Options__metadata_merge_lists: bool
 
     File_Rename__template: str
     File_Rename__issue_number_padding: int
@@ -147,9 +145,6 @@ class Runtime_Options(typing.TypedDict):
     delete_original: bool
     type_read: list[str]
     type_modify: list[str]
-    read_style_merge: comicapi.merge.Mode
-    source_merge: comicapi.merge.Mode
-    merge_lists: bool
     skip_existing_metadata: bool
     files: list[str]
 
@@ -158,9 +153,6 @@ class internal(typing.TypedDict):
     install_id: str
     save_data_style: list[str]
     load_data_style: list[str]
-    load_data_overlay: comicapi.merge.Mode
-    source_data_overlay: comicapi.merge.Mode
-    overlay_merge_lists: bool
     last_opened_folder: str
     window_width: int
     window_height: int
@@ -207,6 +199,10 @@ class Metadata_Options(typing.TypedDict):
     apply_transform_on_bulk_operation: bool
     use_short_metadata_names: bool
     cr: bool
+    comic_merge: comicapi.merge.Mode
+    metadata_merge: comicapi.merge.Mode
+    comic_merge_lists: bool
+    metadata_merge_lists: bool
 
 
 class File_Rename(typing.TypedDict):

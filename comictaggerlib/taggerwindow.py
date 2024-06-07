@@ -218,20 +218,13 @@ class TaggerWindow(QtWidgets.QMainWindow):
         if config[0].Runtime_Options__type_read:
             config[0].internal__load_data_style = config[0].Runtime_Options__type_read
 
-        # Respect command line overlay settings
-        if config[0].Runtime_Options__read_style_merge:
-            config[0].internal__load_data_overlay = config[0].Runtime_Options__read_style_merge
-        if config[0].Runtime_Options__source_merge:
-            config[0].internal__source_data_overlay = config[0].Runtime_Options__source_merge
-        if isinstance(config[0].Runtime_Options__merge_lists, bool):
-            config[0].internal__overlay_merge_lists = config[0].Runtime_Options__merge_lists
-
         for style in config[0].internal__save_data_style:
             if style not in metadata_styles:
                 config[0].internal__save_data_style.remove(style)
         for style in config[0].internal__load_data_style:
             if style not in metadata_styles:
                 config[0].internal__load_data_style.remove(style)
+
         self.save_data_styles: list[str] = config[0].internal__save_data_style
         self.load_data_styles: list[str] = config[0].internal__load_data_style
 
@@ -2210,8 +2203,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 metadata = ca.read_metadata(style)
                 md.overlay(
                     metadata,
-                    mode=self.config[0].internal__load_data_overlay,
-                    merge_lists=self.config[0].internal__overlay_merge_lists,
+                    mode=self.config[0].Metadata_Options__comic_merge,
+                    merge_lists=self.config[0].Metadata_Options__comic_merge_lists,
                 )
         except Exception as e:
             error = e

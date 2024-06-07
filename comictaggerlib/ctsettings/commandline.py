@@ -25,7 +25,7 @@ import subprocess
 
 import settngs
 
-from comicapi import merge, utils
+from comicapi import utils
 from comicapi.comicarchive import metadata_styles
 from comictaggerlib import ctversion
 from comictaggerlib.ctsettings.settngs_namespace import SettngsNS as ct_ns
@@ -151,31 +151,6 @@ def register_runtime(parser: settngs.Manager) -> None:
         default=[],
         type=metadata_type,
         help="""Specify the type of tags to write.\nUse commas for multiple types.\nRead types will be used if unspecified\nSee --list-plugins for the available types.\n\n""",
-        file=False,
-    )
-    parser.add_setting(
-        "--read-style-merge",
-        metavar=f"{{{','.join(merge.Mode)}}}",
-        default=merge.Mode.OVERLAY,
-        choices=merge.Mode,
-        type=merge.Mode,
-        help="How to merge additional metadata for enabled read styles (CR, CBL, etc.) See -t, --type-read default: %(default)s",
-        file=False,
-    )
-    parser.add_setting(
-        "--source-merge",
-        metavar=f"{{{','.join(merge.Mode)}}}",
-        default=merge.Mode.OVERLAY,
-        choices=merge.Mode,
-        type=merge.Mode,
-        help="How to merge new metadata from a data source (CV, Metron, GCD, etc.) default: %(default)s",
-        file=False,
-    )
-    parser.add_setting(
-        "--merge-lists",
-        action=argparse.BooleanOptionalAction,
-        default=True,
-        help="Merge all items of lists when merging new metadata (genres, characters, etc.) default: %(default)s",
         file=False,
     )
     parser.add_setting(

@@ -195,8 +195,8 @@ class SettingsWindow(QtWidgets.QDialog):
         self.cbFilenameParser.clear()
         self.cbFilenameParser.addItems(utils.Parser)
         for mode in merge.Mode:
-            self.cbxOverlayReadStyle.addItem(mode.name.capitalize().replace("_", " "), mode.value)
-            self.cbxOverlaySource.addItem(mode.name.capitalize().replace("_", " "), mode.value)
+            self.cbMergeModeComic.addItem(mode.name.capitalize().replace("_", " "), mode)
+            self.cbMergeModeMetadata.addItem(mode.name.capitalize().replace("_", " "), mode)
         self.connect_signals()
         self.settings_to_form()
         self.rename_test()
@@ -431,13 +431,15 @@ class SettingsWindow(QtWidgets.QDialog):
         self.cbxApplyCBLTransformOnBatchOperation.setChecked(
             self.config[0].Metadata_Options__apply_transform_on_bulk_operation
         )
-        self.cbxOverlayReadStyle.setCurrentIndex(
-            self.cbxOverlayReadStyle.findData(self.config[0].internal__load_data_overlay.value)
+
+        self.cbMergeModeComic.setCurrentIndex(
+            self.cbMergeModeComic.findData(self.config[0].Metadata_Options__comic_merge)
         )
-        self.cbxOverlaySource.setCurrentIndex(
-            self.cbxOverlaySource.findData(self.config[0].internal__source_data_overlay.value)
+        self.cbMergeModeMetadata.setCurrentIndex(
+            self.cbMergeModeMetadata.findData(self.config[0].Metadata_Options__metadata_merge)
         )
-        self.cbxOverlayMergeLists.setChecked(self.config[0].internal__overlay_merge_lists)
+        self.cbxMergeListsComic.setChecked(self.config[0].Metadata_Options__comic_merge_lists)
+        self.cbxMergeListsMetadata.setChecked(self.config[0].Metadata_Options__metadata_merge_lists)
         self.cbxShortMetadataNames.setChecked(self.config[0].Metadata_Options__use_short_metadata_names)
         self.cbxEnableCR.setChecked(self.config[0].Metadata_Options__cr)
 
@@ -562,10 +564,12 @@ class SettingsWindow(QtWidgets.QDialog):
             self.cbxApplyCBLTransformOnBatchOperation.isChecked()
         )
 
-        self.config[0].internal__load_data_overlay = merge.Mode[self.cbxOverlayReadStyle.currentData().upper()]
-        self.config[0].internal__source_data_overlay = merge.Mode[self.cbxOverlaySource.currentData().upper()]
-        self.config[0].internal__overlay_merge_lists = self.cbxOverlayMergeLists.isChecked()
+        self.config[0].Metadata_Options__comic_merge = merge.Mode(self.cbMergeModeComic.currentData())
+        self.config[0].Metadata_Options__metadata_merge = merge.Mode(self.cbMergeModeMetadata.currentData())
+        self.config[0].Metadata_Options__comic_merge_lists = self.cbxMergeListsComic.isChecked()
+        self.config[0].Metadata_Options__metadata_merge_lists = self.cbxMergeListsMetadata.isChecked()
         self.config[0].Metadata_Options__cr = self.cbxEnableCR.isChecked()
+
         # Update metadata style names if required
         if self.config[0].Metadata_Options__use_short_metadata_names != self.cbxShortMetadataNames.isChecked():
             self.config[0].Metadata_Options__use_short_metadata_names = self.cbxShortMetadataNames.isChecked()

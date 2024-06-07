@@ -18,7 +18,7 @@ def prepare_metadata(md: GenericMetadata, new_md: GenericMetadata, opts: Settngs
     if opts.Auto_Tag__clear_metadata:
         final_md = GenericMetadata()
 
-    final_md.overlay(new_md)
+    final_md.overlay(new_md, opts.Metadata_Options__metadata_merge, opts.Metadata_Options__metadata_merge_lists)
     if final_md.tag_origin is not None:
         notes = (
             f"Tagged with ComicTagger {ctversion.version} using info from {final_md.tag_origin.name} on"

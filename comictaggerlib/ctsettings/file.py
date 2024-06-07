@@ -28,9 +28,6 @@ def internal(parser: settngs.Manager) -> None:
     parser.add_setting("install_id", default=uuid.uuid4().hex, cmdline=False)
     parser.add_setting("save_data_style", default=["cbi"], cmdline=False)
     parser.add_setting("load_data_style", default=["cbi"], cmdline=False)
-    parser.add_setting("load_data_overlay", default=merge.Mode.OVERLAY, cmdline=False, type=merge.Mode)
-    parser.add_setting("source_data_overlay", default=merge.Mode.OVERLAY, cmdline=False, type=merge.Mode)
-    parser.add_setting("overlay_merge_lists", default=True, cmdline=False, action=argparse.BooleanOptionalAction)
     parser.add_setting("last_opened_folder", default="", cmdline=False)
     parser.add_setting("window_width", default=0, cmdline=False)
     parser.add_setting("window_height", default=0, cmdline=False)
@@ -163,6 +160,34 @@ def md_options(parser: settngs.Manager) -> None:
         default=True,
         action=argparse.BooleanOptionalAction,
         help="Enable the ComicRack metadata type. Turn off to only use the CIX metadata type.\ndefault: %(default)s",
+    )
+    parser.add_setting(
+        "--comic-merge",
+        metavar=f"{{{','.join(merge.Mode)}}}",
+        default=merge.Mode.OVERLAY,
+        choices=merge.Mode,
+        type=merge.Mode,
+        help="How to merge additional metadata for enabled read styles (CR, CBL, etc.) See -t, --type-read default: %(default)s",
+    )
+    parser.add_setting(
+        "--metadata-merge",
+        metavar=f"{{{','.join(merge.Mode)}}}",
+        default=merge.Mode.OVERLAY,
+        choices=merge.Mode,
+        type=merge.Mode,
+        help="How to merge new metadata from a data source (CV, Metron, GCD, etc.) default: %(default)s",
+    )
+    parser.add_setting(
+        "--comic-merge-lists",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Merge all items of lists when merging new metadata (genres, characters, etc.) default: %(default)s",
+    )
+    parser.add_setting(
+        "--metadata-merge-lists",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Merge all items of lists when merging new metadata (genres, characters, etc.) default: %(default)s",
     )
 
 

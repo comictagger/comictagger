@@ -26,6 +26,7 @@ from comicapi.comicarchive import ComicArchive, metadata_styles
 from comicapi.genericmetadata import GenericMetadata
 from comictaggerlib.coverimagewidget import CoverImageWidget
 from comictaggerlib.ctsettings import ct_ns
+from comictaggerlib.md import prepare_metadata
 from comictaggerlib.resulttypes import IssueResult, Result
 from comictaggerlib.ui import ui_path
 from comictaggerlib.ui.qtutils import reduce_widget_font_size
@@ -262,7 +263,7 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
             return
 
         QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
-        md.overlay(ct_md, self.config.internal__source_data_overlay, self.config.internal__overlay_merge_lists)
+        md = prepare_metadata(md, ct_md, self.config)
         for style in self._styles:
             success = ca.write_metadata(md, style)
             QtWidgets.QApplication.restoreOverrideCursor()
