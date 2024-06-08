@@ -141,9 +141,10 @@ class RarArchiver(Archiver):
 
     def remove_file(self, archive_file: str) -> bool:
         if self.exe:
+            working_dir = os.path.dirname(os.path.abspath(self.path))
             # use external program to remove file from Rar archive
             result = subprocess.run(
-                [self.exe, "d", "-c-", self.path, archive_file],
+                [self.exe, "d", f"-w{working_dir}", "-c-", self.path, archive_file],
                 startupinfo=self.startupinfo,
                 stdin=subprocess.DEVNULL,
                 capture_output=True,
@@ -170,10 +171,20 @@ class RarArchiver(Archiver):
             archive_path = pathlib.PurePosixPath(archive_file)
             archive_name = archive_path.name
             archive_parent = str(archive_path.parent).lstrip("./")
+            working_dir = os.path.dirname(os.path.abspath(self.path))
 
             # use external program to write file to Rar archive
             result = subprocess.run(
-                [self.exe, "a", f"-si{archive_name}", f"-ap{archive_parent}", "-c-", "-ep", self.path],
+                [
+                    self.exe,
+                    "a",
+                    f"-w{working_dir}",
+                    f"-si{archive_name}",
+                    f"-ap{archive_parent}",
+                    "-c-",
+                    "-ep",
+                    self.path,
+                ],
                 input=data,
                 startupinfo=self.startupinfo,
                 capture_output=True,
@@ -227,6 +238,7 @@ class RarArchiver(Archiver):
                 rar_cwd = tmp_path / "rar"
                 rar_cwd.mkdir(exist_ok=True)
                 rar_path = (tmp_path / self.path.name).with_suffix(".rar")
+                working_dir = os.path.dirname(os.path.abspath(self.path))
 
                 for filename in other_archive.get_filename_list():
                     (rar_cwd / filename).parent.mkdir(exist_ok=True, parents=True)
@@ -235,7 +247,7 @@ class RarArchiver(Archiver):
                         with open(rar_cwd / filename, mode="w+b") as tmp_file:
                             tmp_file.write(data)
                 result = subprocess.run(
-                    [self.exe, "a", "-r", "-c-", str(rar_path.absolute()), "."],
+                    [self.exe, "a", f"-w{working_dir}", "-r", "-c-", str(rar_path.absolute()), "."],
                     cwd=rar_cwd.absolute(),
                     startupinfo=self.startupinfo,
                     stdin=subprocess.DEVNULL,
