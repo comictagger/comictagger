@@ -371,7 +371,7 @@ class ComicVineTalker(ComicTalker):
 
         int_year = utils.xlate_int(year)
         if int_year is not None:
-            flt += f",cover_date:{int_year}-1-1|{int_year + 1}-1-1"
+            flt += f",cover_date:{int_year}-1-1|{int_year + 1}-12-31"
 
         params: dict[str, str | int] = {  # CV uses volume to mean series
             "api_key": self.api_key,

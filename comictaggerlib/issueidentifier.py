@@ -413,7 +413,7 @@ class IssueIdentifier:
 
             # remove any series that starts after the issue year
             if terms["year"] is not None and item.start_year is not None:
-                if terms["year"] < item.start_year:
+                if item.start_year > terms["year"] + 1:
                     date_approved = False
 
             for name in [item.name, *item.aliases]:
