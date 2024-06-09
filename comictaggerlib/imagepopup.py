@@ -17,6 +17,7 @@
 from __future__ import annotations
 
 import logging
+import platform
 
 from PyQt5 import QtCore, QtGui, QtWidgets, sip, uic
 
@@ -24,6 +25,24 @@ from comictaggerlib.graphics import graphics_path
 from comictaggerlib.ui import ui_path
 
 logger = logging.getLogger(__name__)
+
+
+def clickable(widget: QtWidgets.QWidget) -> QtCore.pyqtBoundSignal:
+    """Allow a label to be clickable"""
+
+    class Filter(QtCore.QObject):
+        clicked = QtCore.pyqtSignal()
+
+        def eventFilter(self, obj: QtCore.QObject, event: QtCore.QEvent) -> bool:
+            if obj == widget:
+                if event.type() == QtCore.QEvent.Type.MouseButtonPress:
+                    self.clicked.emit()
+                    return True
+            return False
+
+    flt = Filter(widget)
+    widget.installEventFilter(flt)
+    return flt.clicked
 
 
 class ImagePopup(QtWidgets.QDialog):
@@ -40,28 +59,36 @@ class ImagePopup(QtWidgets.QDialog):
 
         self.imagePixmap = image_pixmap
 
-        screen_size = QtGui.QGuiApplication.primaryScreen().geometry()
+        screen = QtWidgets.QApplication.primaryScreen()
+        screen_size = screen.geometry()
+        if platform.system() == "Darwin":
+            screen_size = screen.availableGeometry()
         QtWidgets.QApplication.primaryScreen()
         self.resize(screen_size.width(), screen_size.height())
         self.move(0, 0)
 
-        # This is a total hack.  Uses a snapshot of the desktop, and overlays a
-        # translucent screen over it.  Probably can do it better by setting opacity of a widget
-        # TODO: macOS denies this
-        screen = QtWidgets.QApplication.primaryScreen()
-        self.desktopBg = screen.grabWindow(sip.voidptr(0), 0, 0, screen_size.width(), screen_size.height())
-        bg = QtGui.QPixmap(str(graphics_path / "popup_bg.png"))
-        self.clientBgPixmap = bg.scaled(
-            screen_size.width(),
-            screen_size.height(),
-            QtCore.Qt.AspectRatioMode.IgnoreAspectRatio,
-            QtCore.Qt.SmoothTransformation,
-        )
-        self.setMask(self.clientBgPixmap.mask())
-
         self.apply_image_pixmap()
-        self.showFullScreen()
-        self.raise_()
+        if platform.system() == "Darwin":
+            self.lblImage: QtWidgets.QLabel
+            splash = QtWidgets.QSplashScreen(self.lblImage.pixmap())
+            clickable(splash).connect(lambda *x: splash.close())
+            splash.show()
+        else:
+            # This is a total hack.  Uses a snapshot of the desktop, and overlays a
+            # translucent screen over it.  Probably can do it better by setting opacity of a widget
+            # TODO: macOS denies this
+            self.desktopBg = screen.grabWindow(sip.voidptr(0), 0, 0, screen_size.width(), screen_size.height())
+            bg = QtGui.QPixmap(str(graphics_path / "popup_bg.png"))
+            self.clientBgPixmap = bg.scaled(
+                screen_size.width(),
+                screen_size.height(),
+                QtCore.Qt.AspectRatioMode.IgnoreAspectRatio,
+                QtCore.Qt.SmoothTransformation,
+            )
+            self.setMask(self.clientBgPixmap.mask())
+
+            self.showFullScreen()
+            self.raise_()
         QtWidgets.QApplication.restoreOverrideCursor()
 
     def paintEvent(self, event: QtGui.QPaintEvent) -> None:
