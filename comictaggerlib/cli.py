@@ -234,10 +234,11 @@ class CLI:
     def create_local_metadata(self, ca: ComicArchive) -> GenericMetadata:
         md = GenericMetadata()
         md.apply_default_page_list(ca.get_page_name_list())
+        filename_md = GenericMetadata()
 
         # now, overlay the parsed filename info
         if self.config.Runtime_Options__parse_filename:
-            f_md = ca.metadata_from_filename(
+            filename_md = ca.metadata_from_filename(
                 self.config.Filename_Parsing__filename_parser,
                 self.config.Filename_Parsing__remove_c2c,
                 self.config.Filename_Parsing__remove_fcbd,
@@ -247,17 +248,24 @@ class CLI:
                 self.config.Filename_Parsing__protofolius_issue_number_scheme,
             )
 
-            md.overlay(f_md)
-
+        file_md = GenericMetadata()
         for style in self.config.Runtime_Options__type_read:
             if ca.has_metadata(style):
                 try:
                     t_md = ca.read_metadata(style)
-                    md.overlay(t_md, self.config.internal__load_data_overlay, self.config.internal__overlay_merge_lists)
+                    file_md.overlay(
+                        t_md, self.config.internal__load_data_overlay, self.config.internal__overlay_merge_lists
+                    )
                     break
                 except Exception as e:
                     logger.error("Failed to load metadata for %s: %s", ca.path, e)
 
+        filename_merge = merge.Mode.ADD_MISSING
+        if self.config.Runtime_Options__prefer_filename:
+            filename_merge = merge.Mode.OVERLAY
+
+        md.overlay(file_md, mode=merge.Mode.OVERLAY, merge_lists=False)
+        md.overlay(filename_md, mode=filename_merge, merge_lists=False)
         # finally, use explicit stuff (always 'overlay' mode)
         md.overlay(self.config.Runtime_Options__metadata, mode=merge.Mode.OVERLAY, merge_lists=True)
 

@@ -91,6 +91,12 @@ def register_runtime(parser: settngs.Manager) -> None:
         file=False,
     )
     parser.add_setting(
+        "--prefer-filename",
+        action="store_true",
+        help="""Prefer metadata parsed from the filename. CLI only.\n\n""",
+        file=False,
+    )
+    parser.add_setting(
         "--id",
         dest="issue_id",
         type=str,
