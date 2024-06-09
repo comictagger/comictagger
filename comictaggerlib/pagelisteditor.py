@@ -87,6 +87,7 @@ class PageListEditor(QtWidgets.QWidget):
         gridlayout.setContentsMargins(0, 0, 0, 0)
         self.pageWidget.showControls = False
 
+        self.blur = False
         self.reset_page()
 
         # Add the entries to the page type combobox
@@ -107,6 +108,7 @@ class PageListEditor(QtWidgets.QWidget):
         item_move_events(self.listWidget).connect(self.item_move_event)
         self.cbPageType.activated.connect(self.change_page_type)
         self.chkDoublePage.clicked.connect(self.toggle_double_page)
+        self.cbxBlur.clicked.connect(self._toggle_blur)
         self.leBookmark.editingFinished.connect(self.save_bookmark)
         self.btnUp.clicked.connect(self.move_current_up)
         self.btnDown.clicked.connect(self.move_current_down)
@@ -118,6 +120,16 @@ class PageListEditor(QtWidgets.QWidget):
         self.pages_list: list[ImageMetadata] = []
         self.data_styles: list[str] = []
 
+    def set_blur(self, blur: bool) -> None:
+        self.pageWidget.blur = self.blur = blur
+        self.cbxBlur.setChecked(blur)
+        self.pageWidget.update_content()
+
+    def _toggle_blur(self) -> None:
+        self.pageWidget.blur = self.blur = not self.blur
+        self.cbxBlur.setChecked(self.blur)
+        self.pageWidget.update_content()
+
     def reset_page(self) -> None:
         self.pageWidget.clear()
         self.cbPageType.setEnabled(False)
@@ -126,6 +138,7 @@ class PageListEditor(QtWidgets.QWidget):
         self.listWidget.clear()
         self.comic_archive = None
         self.pages_list = []
+        self.cbxBlur.setChecked(self.blur)
 
     def add_page_type_item(self, text: str, user_data: str, shortcut: str, show_shortcut: bool = True) -> None:
         if show_shortcut:
@@ -340,6 +353,7 @@ class PageListEditor(QtWidgets.QWidget):
         self.listWidget.setFocus()
 
     def set_data(self, comic_archive: ComicArchive, pages_list: list[ImageMetadata]) -> None:
+        self.cbxBlur.setChecked(self.blur)
         self.comic_archive = comic_archive
         self.pages_list = pages_list
         if pages_list:

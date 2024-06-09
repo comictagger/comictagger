@@ -107,20 +107,22 @@
      <property name="frameShadow">
       <enum>QFrame::Raised</enum>
      </property>
-     <widget class="QLabel" name="lblImage">
+     <widget class="QGraphicsView" name="graphicsView">
       <property name="geometry">
        <rect>
-        <x>60</x>
-        <y>50</y>
-        <width>91</width>
-        <height>61</height>
        </rect>
       </property>
       <property name="toolTip">
        <string>Double-click to expand</string>
       </property>
-      <property name="text">
-       <string>TextLabel</string>
+      <property name="verticalScrollBarPolicy">
+       <enum>Qt::ScrollBarAlwaysOff</enum>
+      </property>
+      <property name="horizontalScrollBarPolicy">
+       <enum>Qt::ScrollBarAlwaysOff</enum>
+      </property>
+      <property name="sizeAdjustPolicy">
+       <enum>QAbstractScrollArea::AdjustToContents</enum>
       </property>
      </widget>
     </widget>

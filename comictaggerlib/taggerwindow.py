@@ -288,6 +288,13 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.page_list_editor.listOrderChanged.connect(self.page_list_order_changed)
         self.tabWidget.currentChanged.connect(self.tab_changed)
 
+        self.page_list_editor.set_blur(self.config[0].General__blur)
+
+        def _sync_blur(*args: Any) -> None:
+            self.config[0].General__blur = self.page_list_editor.blur
+
+        self.page_list_editor.cbxBlur.clicked.connect(_sync_blur)
+
         self.update_metadata_style_tweaks()
 
         self.show()

@@ -69,6 +69,7 @@ class CoverImageWidget(QtWidgets.QWidget):
         mode: int,
         cache_folder: pathlib.Path | None,
         talker: ComicTalker | None,
+        blur: bool = False,
         expand_on_click: bool = True,
     ) -> None:
         super().__init__(parent)
@@ -86,6 +87,8 @@ class CoverImageWidget(QtWidgets.QWidget):
         self.mode: int = mode
         self.page_loader: PageLoader | None = None
         self.showControls = True
+        self.blur = blur
+        self.scene = QtWidgets.QGraphicsScene(parent=self)
 
         self.current_pixmap = QtGui.QPixmap()
 
@@ -107,9 +110,10 @@ class CoverImageWidget(QtWidgets.QWidget):
         self.btnRight.clicked.connect(self.increment_image)
         self.image_fetch_complete.connect(self.cover_remote_fetch_complete)
         if expand_on_click:
-            clickable(self.lblImage).connect(self.show_popup)
+            clickable(self.graphicsView).connect(self.show_popup)
         else:
-            self.lblImage.setToolTip("")
+            self.graphicsView.setToolTip("")
+        self.graphicsView.setScene(self.scene)
 
         self.update_content()
 
@@ -271,28 +275,36 @@ class CoverImageWidget(QtWidgets.QWidget):
     def set_display_pixmap(self) -> None:
         """The deltas let us know what the new width and height of the label will be"""
 
-        new_h = self.frame.height()
         new_w = self.frame.width()
+        new_h = self.frame.height()
         frame_w = self.frame.width()
         frame_h = self.frame.height()
 
-        new_h -= 4
-        new_w -= 4
+        new_h -= 8
+        new_w -= 8
 
         new_h = max(new_h, 0)
         new_w = max(new_w, 0)
 
         # scale the pixmap to fit in the frame
         scaled_pixmap = self.current_pixmap.scaled(
-            new_w, new_h, QtCore.Qt.AspectRatioMode.KeepAspectRatio, QtCore.Qt.SmoothTransformation
+            new_w, new_h, QtCore.Qt.AspectRatioMode.KeepAspectRatio, QtCore.Qt.TransformationMode.SmoothTransformation
         )
-        self.lblImage.setPixmap(scaled_pixmap)
+        self.scene.clear()
+        qpix = self.scene.addPixmap(scaled_pixmap)
+        assert qpix
+        if self.blur:
+            blur = QtWidgets.QGraphicsBlurEffect(parent=self)
+            blur.setBlurHints(QtWidgets.QGraphicsBlurEffect.BlurHint.PerformanceHint)
+            blur.setBlurRadius(30)
+            qpix.setGraphicsEffect(blur)
 
         # move and resize the label to be centered in the fame
         img_w = scaled_pixmap.width()
         img_h = scaled_pixmap.height()
-        self.lblImage.resize(img_w, img_h)
-        self.lblImage.move(int((frame_w - img_w) / 2), int((frame_h - img_h) / 2))
+        self.scene.setSceneRect(0, 0, img_w, img_h)
+        self.graphicsView.resize(img_w + 2, img_h + 2)
+        self.graphicsView.move(int((frame_w - img_w) / 2), int((frame_h - img_h) / 2))
 
     def show_popup(self) -> None:
         ImagePopup(self, self.current_pixmap)
