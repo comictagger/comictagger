@@ -22,6 +22,7 @@ class SettngsNS(settngs.TypedNS):
     Runtime_Options__abort_on_conflict: bool
     Runtime_Options__delete_original: bool
     Runtime_Options__parse_filename: bool
+    Runtime_Options__prefer_filename: bool
     Runtime_Options__issue_id: str | None
     Runtime_Options__online: bool
     Runtime_Options__metadata: comicapi.genericmetadata.GenericMetadata
@@ -89,9 +90,9 @@ class SettngsNS(settngs.TypedNS):
     Metadata_Options__cbl_copy_weblink_to_comments: bool
     Metadata_Options__cbl_apply_transform_on_import: bool
     Metadata_Options__cbl_apply_transform_on_bulk_operation: bool
+    Metadata_Options__remove_html_tables: bool
     Metadata_Options__use_short_metadata_names: bool
     Metadata_Options__disable_cr: bool
-    Metadata_Options__remove_html_tables: bool
 
     File_Rename__template: str
     File_Rename__issue_number_padding: int
@@ -110,6 +111,7 @@ class SettngsNS(settngs.TypedNS):
     Auto_Tag__remove_archive_after_successful_match: bool
 
     General__check_for_new_version: bool
+    General__blur: bool
     General__prompt_on_save: bool
 
     Dialog_Flags__show_disclaimer: bool
@@ -135,6 +137,7 @@ class Runtime_Options(typing.TypedDict):
     abort_on_conflict: bool
     delete_original: bool
     parse_filename: bool
+    prefer_filename: bool
     issue_id: str | None
     online: bool
     metadata: comicapi.genericmetadata.GenericMetadata
@@ -200,7 +203,6 @@ class Filename_Parsing(typing.TypedDict):
 
 class Sources(typing.TypedDict):
     source: str
-    remove_html_tables: bool
 
 
 class Metadata_Options(typing.TypedDict):
@@ -213,6 +215,7 @@ class Metadata_Options(typing.TypedDict):
     cbl_copy_weblink_to_comments: bool
     cbl_apply_transform_on_import: bool
     cbl_apply_transform_on_bulk_operation: bool
+    remove_html_tables: bool
     use_short_metadata_names: bool
     disable_cr: bool
 
@@ -239,6 +242,7 @@ class Auto_Tag(typing.TypedDict):
 
 class General(typing.TypedDict):
     check_for_new_version: bool
+    blur: bool
     prompt_on_save: bool
 
 
