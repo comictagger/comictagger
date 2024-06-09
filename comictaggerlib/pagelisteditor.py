@@ -275,6 +275,8 @@ class PageListEditor(QtWidgets.QWidget):
 
     def get_first_front_cover(self) -> int:
         front_cover = 0
+        if self.listWidget.count() > 0:
+            front_cover = int(self.listWidget.item(0).data(QtCore.Qt.ItemDataRole.UserRole).get("image_index", 0))
         for i in range(self.listWidget.count()):
             item = self.listWidget.item(i)
             page_dict: ImageMetadata = item.data(QtCore.Qt.ItemDataRole.UserRole)

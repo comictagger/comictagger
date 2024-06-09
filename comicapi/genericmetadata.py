@@ -293,21 +293,19 @@ class GenericMetadata:
         # generate a default page list, with the first page marked as the cover
 
         # Create a dictionary of all pages in the metadata
-        pages = {p["image_index"]: p for p in self.pages}
+        pages = self.pages
         cover_set = False
         # Go through each page in the archive
         # The indexes should always match up
         # It might be a good idea to validate that each page in `pages` is found
         for i, filename in enumerate(page_list):
-            if i not in pages:
-                pages[i] = ImageMetadata(image_index=i, filename=filename)
-            else:
+            if i < len(pages):
                 pages[i]["filename"] = filename
+            else:
+                pages.append(ImageMetadata(image_index=i, filename=filename))
 
             # Check if we know what the cover is
             cover_set = pages[i].get("type", None) == PageType.FrontCover or cover_set
-
-        self.pages = [p[1] for p in sorted(pages.items())]
 
         # Set the cover to the first image if we don't know what the cover is
         if not cover_set:
@@ -322,13 +320,15 @@ class GenericMetadata:
 
     def get_cover_page_index_list(self) -> list[int]:
         # return a list of archive page indices of cover pages
+        if not self.pages:
+            return [0]
         coverlist = []
         for p in self.pages:
             if "type" in p and p["type"] == PageType.FrontCover:
                 coverlist.append(int(p["image_index"]))
 
         if len(coverlist) == 0:
-            coverlist.append(0)
+            coverlist.append(self.pages[0].get("image_index", 0))
 
         return coverlist
 
