@@ -10,7 +10,6 @@ from collections.abc import Generator
 from typing import Any
 
 import pytest
-import requests
 import settngs
 from PIL import Image
 from pyrate_limiter import Limiter, RequestRate
@@ -25,6 +24,11 @@ import comictalker.talkers.comicvine
 from comicapi import utils
 from testing import comicvine, filenames
 from testing.comicdata import all_seed_imprints, seed_imprints
+
+try:
+    import niquests as requests
+except ImportError:
+    import requests
 
 
 @pytest.fixture
@@ -55,7 +59,14 @@ def cbz_double_cover(tmp_path, tmp_comic):
 @pytest.fixture(autouse=True)
 def no_requests(monkeypatch) -> None:
     """Remove requests.sessions.Session.request for all tests."""
-    monkeypatch.delattr("requests.sessions.Session.request")
+    try:
+        monkeypatch.delattr("niquests.sessions.Session.request")
+    except Exception:
+        ...
+    try:
+        monkeypatch.delattr("requests.sessions.Session.request")
+    except Exception:
+        ...
 
 
 @pytest.fixture

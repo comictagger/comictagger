@@ -25,7 +25,10 @@ import sqlite3 as lite
 import tempfile
 from typing import TYPE_CHECKING
 
-import requests
+try:
+    import niquests as requests
+except ImportError:
+    import requests
 
 from comictaggerlib import ctversion
 

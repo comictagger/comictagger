@@ -5,7 +5,10 @@ import os
 import pathlib
 import stat
 
-import requests
+try:
+    import niquests as requests
+except ImportError:
+    import requests
 
 parser = argparse.ArgumentParser()
 parser.add_argument("APPIMAGETOOL", default="build/appimagetool-x86_64.AppImage", type=pathlib.Path, nargs="?")

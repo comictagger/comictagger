@@ -25,7 +25,6 @@ import time
 from typing import Any, Callable, Generic, TypeVar
 from urllib.parse import urljoin
 
-import requests
 import settngs
 from pyrate_limiter import Limiter, RequestRate
 from typing_extensions import Required, TypedDict
@@ -38,6 +37,10 @@ from comictalker import talker_utils
 from comictalker.comiccacher import ComicCacher, Issue, Series
 from comictalker.comictalker import ComicTalker, TalkerDataError, TalkerNetworkError
 
+try:
+    import niquests as requests
+except ImportError:
+    import requests
 logger = logging.getLogger(__name__)
 
 
