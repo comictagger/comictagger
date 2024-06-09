@@ -188,9 +188,7 @@ if qt_available:
 
             widget.setAutoFillBackground(False)
             widget.setPalette(active_palette)
-            if isinstance(widget, (QtWidgets.QCheckBox, QtWidgets.QComboBox, QtWidgets.QPushButton)):
-                widget.setEnabled(True)
-            elif isinstance(widget, (QtWidgets.QTextEdit, QtWidgets.QLineEdit, QtWidgets.QAbstractSpinBox)):
+            if isinstance(widget, (QtWidgets.QTextEdit, QtWidgets.QLineEdit, QtWidgets.QAbstractSpinBox)):
                 widget.setReadOnly(False)
             elif isinstance(widget, QtWidgets.QListWidget):
                 widget.setMovement(QtWidgets.QListWidget.Free)
@@ -203,7 +201,6 @@ if qt_available:
             if isinstance(widget, (QtWidgets.QCheckBox, QtWidgets.QComboBox, QtWidgets.QPushButton)):
                 inactive_palette = palettes()
                 widget.setPalette(inactive_palette[1])
-                widget.setEnabled(False)
             elif isinstance(widget, (QtWidgets.QTextEdit, QtWidgets.QLineEdit, QtWidgets.QAbstractSpinBox)):
                 inactive_palette = palettes()
                 widget.setReadOnly(True)
