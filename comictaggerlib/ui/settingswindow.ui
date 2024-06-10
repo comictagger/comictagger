@@ -531,7 +531,7 @@ One Publisher per line</string>
             <item>
              <widget class="QCheckBox" name="cbxApplyCBLTransformOnBatchOperation">
               <property name="text">
-               <string>Apply CBL Transforms on Batch Copy Operations to CBL Tags</string>
+               <string>Apply CBL Transforms when Copying to CBL Tags</string>
               </property>
              </widget>
             </item>

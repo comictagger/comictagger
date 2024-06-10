@@ -41,11 +41,22 @@
       <property name="enabled">
        <bool>true</bool>
       </property>
-      <property name="acceptDrops">
-       <bool>true</bool>
+      <property name="styleSheet">
+       <string notr="true">QSplitter::handle:horizontal {
+background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #eee, stop:1 #ccc);
+border: 1px solid #777;
+width: 13px;
+margin-top: 2px;
+margin-bottom: 2px;
+border-radius: 4px;
+}
+</string>
       </property>
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="handleWidth">
+       <number>8</number>
       </property>
       <widget class="QWidget" name="layoutWidget">
        <layout class="QHBoxLayout" name="horizontalLayout_2">
