@@ -11,8 +11,6 @@ from collections.abc import Sequence
 from PyQt5.QtCore import QUrl
 from PyQt5.QtWidgets import QWidget
 
-from comictaggerlib.graphics import graphics_path
-
 logger = logging.getLogger(__name__)
 
 try:
@@ -143,7 +141,7 @@ if qt_available:
                 pass
         # if still nothing, go with default image
         if not success:
-            img.load(str(graphics_path / "nocover.png"))
+            img.load(":/graphics/nocover.png")
         return img
 
     def qt_error(msg: str, e: Exception | None = None) -> None:

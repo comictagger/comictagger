@@ -17,14 +17,12 @@
 from __future__ import annotations
 
 import logging
-import platform
 
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
 from comicapi.comicarchive import ComicArchive
 from comicapi.genericmetadata import GenericMetadata
 from comictaggerlib.coverimagewidget import CoverImageWidget
-from comictaggerlib.graphics import graphics_path
 from comictaggerlib.ui import ui_path
 
 logger = logging.getLogger(__name__)
@@ -57,12 +55,8 @@ class PageBrowserWindow(QtWidgets.QDialog):
         self.metadata = metadata
 
         self.buttonBox.button(QtWidgets.QDialogButtonBox.StandardButton.Close).setDefault(True)
-        if platform.system() == "Darwin":
-            self.btnPrev.setText("<<")
-            self.btnNext.setText(">>")
-        else:
-            self.btnPrev.setIcon(QtGui.QIcon(str(graphics_path / "left.png")))
-            self.btnNext.setIcon(QtGui.QIcon(str(graphics_path / "right.png")))
+        self.btnPrev.setIcon(QtGui.QIcon(":/graphics/left.png"))
+        self.btnNext.setIcon(QtGui.QIcon(":/graphics/right.png"))
 
         self.btnNext.clicked.connect(self.next_page)
         self.btnPrev.clicked.connect(self.prev_page)

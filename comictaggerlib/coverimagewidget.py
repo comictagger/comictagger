@@ -26,7 +26,6 @@ import pathlib
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
 from comicapi.comicarchive import ComicArchive
-from comictaggerlib.graphics import graphics_path
 from comictaggerlib.imagefetcher import ImageFetcher
 from comictaggerlib.imagepopup import ImagePopup
 from comictaggerlib.pageloader import PageLoader
@@ -102,8 +101,8 @@ class CoverImageWidget(QtWidgets.QWidget):
         self.imageCount = 1
         self.imageData = b""
 
-        self.btnLeft.setIcon(QtGui.QIcon(str(graphics_path / "left.png")))
-        self.btnRight.setIcon(QtGui.QIcon(str(graphics_path / "right.png")))
+        self.btnLeft.setIcon(QtGui.QIcon(":/graphics/left.png"))
+        self.btnRight.setIcon(QtGui.QIcon(":/graphics/right.png"))
 
         self.btnLeft.clicked.connect(self.decrement_image)
         self.btnRight.clicked.connect(self.increment_image)
@@ -263,7 +262,7 @@ class CoverImageWidget(QtWidgets.QWidget):
         self.page_loader = None
 
     def load_default(self) -> None:
-        self.current_pixmap = QtGui.QPixmap(str(graphics_path / "nocover.png"))
+        self.current_pixmap = QtGui.QPixmap(":/graphics/nocover.png")
         self.set_display_pixmap()
 
     def resizeEvent(self, resize_event: QtGui.QResizeEvent) -> None:

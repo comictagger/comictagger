@@ -10,7 +10,6 @@ from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import QEvent, QModelIndex, QPoint, QRect, QSize, Qt, pyqtSignal
 
 from comicapi.utils import StrEnum
-from comictaggerlib.graphics import graphics_path
 
 
 class ClickedButtonEnum(StrEnum):
@@ -133,8 +132,8 @@ class ReadStyleItemDelegate(QtWidgets.QStyledItemDelegate):
         super().__init__()
         self.combobox = parent
 
-        self.down_icon = QtGui.QImage(str(graphics_path / "down.png"))
-        self.up_icon = QtGui.QImage(str(graphics_path / "up.png"))
+        self.down_icon = QtGui.QImage(":/graphics/down.png")
+        self.up_icon = QtGui.QImage(":/graphics/up.png")
 
         self.button_width = self.down_icon.width()
         self.button_padding = 5

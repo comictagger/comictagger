@@ -32,6 +32,7 @@ import settngs
 from PyQt5 import QtCore, QtGui, QtNetwork, QtWidgets, uic
 
 import comicapi.merge
+import comictaggerlib.graphics.resources
 import comictaggerlib.ui
 from comicapi import utils
 from comicapi.comicarchive import ComicArchive, metadata_styles
@@ -412,133 +413,41 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
     def config_menus(self) -> None:
         # File Menu
-        self.actionExit.setShortcut("Ctrl+Q")
-        self.actionExit.setStatusTip("Exit application")
-        self.actionExit.triggered.connect(self.close)
-
-        self.actionLoad.setShortcut("Ctrl+O")
-        self.actionLoad.setStatusTip("Load comic archive")
-        self.actionLoad.triggered.connect(self.select_file)
-
-        self.actionLoadFolder.setShortcut("Ctrl+Shift+O")
-        self.actionLoadFolder.setStatusTip("Load folder with comic archives")
-        self.actionLoadFolder.triggered.connect(self.select_folder)
-
-        self.actionOpenFolderAsComic.setShortcut("Ctrl+Shift+Alt+O")
-        self.actionOpenFolderAsComic.setStatusTip("Load folder as a comic archives")
-        self.actionOpenFolderAsComic.triggered.connect(self.select_folder_archive)
-
-        self.actionWrite_Tags.setShortcut("Ctrl+S")
-        self.actionWrite_Tags.setStatusTip("Save tags to comic archive")
-        self.actionWrite_Tags.triggered.connect(self.commit_metadata)
-
-        self.actionAutoTag.setShortcut("Ctrl+T")
-        self.actionAutoTag.setStatusTip("Auto-tag multiple archives")
         self.actionAutoTag.triggered.connect(self.auto_tag)
-
-        self.actionCopyTags.setShortcut("Ctrl+C")
-        self.actionCopyTags.setStatusTip("Copy one tag style tags to enabled modify style(s)")
         self.actionCopyTags.triggered.connect(self.copy_tags)
-
-        self.actionRemoveAuto.setShortcut("Ctrl+D")
-        self.actionRemoveAuto.setStatusTip("Remove currently selected modify tag style(s) from the archive")
+        self.actionExit.triggered.connect(self.close)
+        self.actionLoad.triggered.connect(self.select_file)
+        self.actionLoadFolder.triggered.connect(self.select_folder)
+        self.actionOpenFolderAsComic.triggered.connect(self.select_folder_archive)
         self.actionRemoveAuto.triggered.connect(self.remove_auto)
-
-        self.actionRepackage.setShortcut("Ctrl+E")
-        self.actionRepackage.setStatusTip("Re-create archive as CBZ")
-        self.actionRepackage.triggered.connect(self.repackage_archive)
-
-        self.actionRename.setShortcut("Ctrl+N")
-        self.actionRename.setStatusTip("Rename archive based on tags")
         self.actionRename.triggered.connect(self.rename_archive)
-
-        self.actionSettings.setShortcut("Ctrl+Shift+S")
-        self.actionSettings.setStatusTip("Configure ComicTagger")
+        self.actionRepackage.triggered.connect(self.repackage_archive)
         self.actionSettings.triggered.connect(self.show_settings)
-
+        self.actionWrite_Tags.triggered.connect(self.commit_metadata)
         # Tag Menu
-        self.actionParse_Filename.setShortcut("Ctrl+F")
-        self.actionParse_Filename.setStatusTip("Try to extract tags from filename")
-        self.actionParse_Filename.triggered.connect(self.use_filename)
-
-        self.actionParse_Filename_split_words.setShortcut("Ctrl+Shift+F")
-        self.actionParse_Filename_split_words.setStatusTip("Try to extract tags from filename and split words")
-        self.actionParse_Filename_split_words.triggered.connect(self.use_filename_split)
-
-        self.actionSearchOnline.setShortcut("Ctrl+W")
-        self.actionSearchOnline.setStatusTip("Search online for tags")
-        self.actionSearchOnline.triggered.connect(self.query_online)
-
-        self.actionAutoImprint.triggered.connect(self.auto_imprint)
-
-        self.actionAutoIdentify.setShortcut("Ctrl+I")
-        self.actionAutoIdentify.triggered.connect(self.auto_identify_search)
-
-        self.actionLiteralSearch.triggered.connect(self.literal_search)
-
-        self.actionApplyCBLTransform.setShortcut("Ctrl+L")
-        self.actionApplyCBLTransform.setStatusTip("Modify tags specifically for CBL format")
         self.actionApplyCBLTransform.triggered.connect(self.apply_cbl_transform)
-
-        self.actionReCalcPageDims.setShortcut("Ctrl+R")
-        self.actionReCalcPageDims.setStatusTip(
-            "Trigger re-calculating image size, height and width for all pages on the next save"
-        )
-        self.actionReCalcPageDims.triggered.connect(self.recalc_page_dimensions)
-
-        self.actionClearEntryForm.setShortcut("Ctrl+Shift+C")
-        self.actionClearEntryForm.setStatusTip("Clear all the data on the screen")
+        self.actionAutoIdentify.triggered.connect(self.auto_identify_search)
+        self.actionAutoImprint.triggered.connect(self.auto_imprint)
         self.actionClearEntryForm.triggered.connect(self.clear_form)
-
+        self.actionLiteralSearch.triggered.connect(self.literal_search)
+        self.actionParse_Filename.triggered.connect(self.use_filename)
+        self.actionParse_Filename_split_words.triggered.connect(self.use_filename_split)
+        self.actionReCalcPageDims.triggered.connect(self.recalc_page_dimensions)
+        self.actionSearchOnline.triggered.connect(self.query_online)
         # Window Menu
-        self.actionPageBrowser.setShortcut("Ctrl+P")
-        self.actionPageBrowser.setStatusTip("Show the page browser")
-        self.actionPageBrowser.triggered.connect(self.show_page_browser)
-        self.actionLogWindow.setShortcut("Ctrl+Shift+L")
-        self.actionLogWindow.setStatusTip("Show the log window")
         self.actionLogWindow.triggered.connect(self.log_window.show)
-
+        self.actionPageBrowser.triggered.connect(self.show_page_browser)
         # Help Menu
-        self.actionAbout.setStatusTip("Show the " + self.appName + " info")
         self.actionAbout.triggered.connect(self.about_app)
-        self.actionWiki.triggered.connect(self.show_wiki)
-        self.actionReportBug.triggered.connect(self.report_bug)
         self.actionComicTaggerForum.triggered.connect(self.show_forum)
-
-        # Notes Menu
-        self.btnOpenWebLink.setIcon(QtGui.QIcon(str(graphics_path / "open.png")))
-
-        # ToolBar
-        self.actionLoad.setIcon(QtGui.QIcon(str(graphics_path / "open.png")))
-        self.actionLoadFolder.setIcon(QtGui.QIcon(str(graphics_path / "longbox.png")))
-        self.actionOpenFolderAsComic.setIcon(QtGui.QIcon(str(graphics_path / "open.png")))
-        self.actionWrite_Tags.setIcon(QtGui.QIcon(str(graphics_path / "save.png")))
-        self.actionParse_Filename.setIcon(QtGui.QIcon(str(graphics_path / "parse.png")))
-        self.actionParse_Filename_split_words.setIcon(QtGui.QIcon(str(graphics_path / "parse.png")))
-        self.actionSearchOnline.setIcon(QtGui.QIcon(str(graphics_path / "search.png")))
-        self.actionLiteralSearch.setIcon(QtGui.QIcon(str(graphics_path / "search.png")))
-        self.actionAutoIdentify.setIcon(QtGui.QIcon(str(graphics_path / "auto.png")))
-        self.actionAutoTag.setIcon(QtGui.QIcon(str(graphics_path / "autotag.png")))
-        self.actionAutoImprint.setIcon(QtGui.QIcon(str(graphics_path / "autotag.png")))
-        self.actionClearEntryForm.setIcon(QtGui.QIcon(str(graphics_path / "clear.png")))
-        self.actionPageBrowser.setIcon(QtGui.QIcon(str(graphics_path / "browse.png")))
-
-        self.toolBar.addAction(self.actionLoad)
-        self.toolBar.addAction(self.actionLoadFolder)
-        self.toolBar.addAction(self.actionWrite_Tags)
-        self.toolBar.addAction(self.actionSearchOnline)
-        self.toolBar.addAction(self.actionLiteralSearch)
-        self.toolBar.addAction(self.actionAutoIdentify)
-        self.toolBar.addAction(self.actionAutoTag)
-        self.toolBar.addAction(self.actionClearEntryForm)
-        self.toolBar.addAction(self.actionPageBrowser)
-        self.toolBar.addAction(self.actionAutoImprint)
-
-        self.leWebLink.addAction(self.actionAddWebLink)
-        self.leWebLink.addAction(self.actionRemoveWebLink)
+        self.actionReportBug.triggered.connect(self.report_bug)
+        self.actionWiki.triggered.connect(self.show_wiki)
 
         self.actionAddWebLink.triggered.connect(self.add_weblink_item)
         self.actionRemoveWebLink.triggered.connect(self.remove_weblink_item)
+
+        self.leWebLink.addAction(self.actionAddWebLink)
+        self.leWebLink.addAction(self.actionRemoveWebLink)
 
     def add_weblink_item(self, url: str = "") -> None:
         item = ""
@@ -678,7 +587,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         msg_box = QtWidgets.QMessageBox()
         msg_box.setWindowTitle("About " + self.appName)
         msg_box.setTextFormat(QtCore.Qt.TextFormat.RichText)
-        msg_box.setIconPixmap(QtGui.QPixmap(str(graphics_path / "about.png")))
+        msg_box.setIconPixmap(QtGui.QPixmap(":/graphics/about.png"))
         msg_box.setText(
             "<br><br><br>"
             + self.appName
