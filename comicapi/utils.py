@@ -32,10 +32,9 @@ from comicfn2dict import comicfn2dict
 
 import comicapi.data
 from comicapi import filenamelexer, filenameparser
-
-from ._url import LocationParseError as LocationParseError  # noqa: F401
-from ._url import Url as Url
-from ._url import parse_url as parse_url
+from comicapi._url import LocationParseError as LocationParseError  # noqa: F401
+from comicapi._url import Url as Url
+from comicapi._url import parse_url as parse_url
 
 try:
     import icu

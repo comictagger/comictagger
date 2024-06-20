@@ -57,7 +57,7 @@ def test_get_issue_cover_match_score(cbz, config, comicvine_api):
 def test_search(cbz, config, comicvine_api):
     config, definitions = config
     ii = comictaggerlib.issueidentifier.IssueIdentifier(cbz, config, comicvine_api)
-    result, issues = ii.identify(cbz, cbz.read_metadata("cr"))
+    result, issues = ii.identify(cbz, cbz.read_tags("cr"))
     cv_expected = IssueResult(
         series=f"{testing.comicvine.cv_volume_result['results']['name']} ({testing.comicvine.cv_volume_result['results']['start_year']})",
         distance=0,

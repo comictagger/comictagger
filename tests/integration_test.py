@@ -18,14 +18,14 @@ def test_save(
     mock_now,
 ) -> None:
     # Overwrite the series so it has definitely changed
-    tmp_comic.write_metadata(md_saved.replace(series="nothing"), "cr")
+    tmp_comic.write_tags(md_saved.replace(series="nothing"), "cr")
 
-    md = tmp_comic.read_metadata("cr")
+    md = tmp_comic.read_tags("cr")
 
     # Check that it changed
     assert md != md_saved
 
-    # Clear the cached metadata
+    # Clear the cached tags
     tmp_comic.reset_cache()
 
     # Setup the app
@@ -40,15 +40,15 @@ def test_save(
     # Use the temporary comic we created
     config[0].Runtime_Options__files = [tmp_comic.path]
     # Read and save ComicRack tags
-    config[0].Runtime_Options__type_read = ["cr"]
-    config[0].Runtime_Options__type_modify = ["cr"]
+    config[0].Runtime_Options__tags_read = ["cr"]
+    config[0].Runtime_Options__tags_write = ["cr"]
     # Search using the correct series since we just put the wrong series name in the CBZ
     config[0].Auto_Tag__metadata = comicapi.genericmetadata.GenericMetadata(series=md_saved.series)
     # Run ComicTagger
     CLI(config[0], talkers).run()
 
     # Read the CBZ
-    md = tmp_comic.read_metadata("cr")
+    md = tmp_comic.read_tags("cr")
 
     # This is inserted here because otherwise several other tests
     # unrelated to comicvine need to be re-worked
@@ -72,7 +72,7 @@ def test_delete(
     md_saved,
     mock_now,
 ) -> None:
-    md = tmp_comic.read_metadata("cr")
+    md = tmp_comic.read_tags("cr")
 
     # Check that the metadata starts correct
     assert md == md_saved
@@ -90,14 +90,14 @@ def test_delete(
     # Use the temporary comic we created
     config[0].Runtime_Options__files = [tmp_comic.path]
     # Delete ComicRack tags
-    config[0].Runtime_Options__type_modify = ["cr"]
+    config[0].Runtime_Options__tags_write = ["cr"]
     # Run ComicTagger
     CLI(config[0], talkers).run()
 
     # Read the CBZ
-    md = tmp_comic.read_metadata("cr")
+    md = tmp_comic.read_tags("cr")
 
-    # The default page list is set on load if the comic has the requested metadata style
+    # The default page list is set on load if the comic has the requested tags
     empty_md = comicapi.genericmetadata.GenericMetadata()
 
     # Validate that we got an empty metadata back
@@ -111,7 +111,7 @@ def test_rename(
     md_saved,
     mock_now,
 ) -> None:
-    md = tmp_comic.read_metadata("cr")
+    md = tmp_comic.read_tags("cr")
 
     # Check that the metadata starts correct
     assert md == md_saved
@@ -140,7 +140,7 @@ def test_rename(
     tmp_comic.path = tmp_comic.path.parent / (md.series + ".cbz")
 
     # Read the CBZ
-    md = tmp_comic.read_metadata("cr")
+    md = tmp_comic.read_tags("cr")
 
     # Validate that we got the correct metadata back
     assert md == md_saved

@@ -71,7 +71,7 @@ class FileSelectionList(QtWidgets.QWidget):
         self.separator.setSeparator(True)
 
         select_all_action.setShortcut("Ctrl+A")
-        remove_action.setShortcut("Ctrl+X")
+        remove_action.setShortcut("Backspace" if platform.system() == "Darwin" else "Delete")
 
         select_all_action.triggered.connect(self.select_all)
         remove_action.triggered.connect(self.remove_selection)
@@ -246,7 +246,7 @@ class FileSelectionList(QtWidgets.QWidget):
                 self,
                 "RAR Files are Read-Only",
                 "It looks like you have opened a RAR/CBR archive,\n"
-                "however ComicTagger cannot currently write to them without the rar program and are marked read only!\n\n"
+                "however ComicTagger cannot write to them without the rar program and are marked read only!\n\n"
                 f"{rar_help}",
             )
             self.rar_ro_shown = True
@@ -326,8 +326,7 @@ class FileSelectionList(QtWidgets.QWidget):
             type_item.setText(item_text)
             type_item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
 
-            styles = ", ".join(x for x in ca.get_supported_metadata() if ca.has_metadata(x))
-            md_item.setText(styles)
+            md_item.setText(", ".join(x for x in ca.get_supported_tags() if ca.has_tags(x)))
 
             if not ca.is_writable():
                 readonly_item.setCheckState(QtCore.Qt.CheckState.Checked)

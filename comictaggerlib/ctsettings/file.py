@@ -26,8 +26,8 @@ def general(parser: settngs.Manager) -> None:
 def internal(parser: settngs.Manager) -> None:
     # automatic settings
     parser.add_setting("install_id", default=uuid.uuid4().hex, cmdline=False)
-    parser.add_setting("save_data_style", default=["cbi"], cmdline=False)
-    parser.add_setting("load_data_style", default=["cbi"], cmdline=False)
+    parser.add_setting("write_tags", default=["cbi"], cmdline=False)
+    parser.add_setting("read_tags", default=["cbi"], cmdline=False)
     parser.add_setting("last_opened_folder", default="", cmdline=False)
     parser.add_setting("window_width", default=0, cmdline=False)
     parser.add_setting("window_height", default=0, cmdline=False)
@@ -154,20 +154,20 @@ def md_options(parser: settngs.Manager) -> None:
     parser.add_setting("--apply-transform-on-import", default=False, action=argparse.BooleanOptionalAction)
     parser.add_setting("--apply-transform-on-bulk-operation", default=False, action=argparse.BooleanOptionalAction)
 
-    parser.add_setting("use_short_metadata_names", default=False, action=argparse.BooleanOptionalAction, cmdline=False)
+    parser.add_setting("use_short_tag_names", default=False, action=argparse.BooleanOptionalAction, cmdline=False)
     parser.add_setting(
         "--cr",
         default=True,
         action=argparse.BooleanOptionalAction,
-        help="Enable the ComicRack metadata type. Turn off to only use the CIX metadata type.\ndefault: %(default)s",
+        help="Enable ComicRack tags. Turn off to only use CIX tags.\ndefault: %(default)s",
     )
     parser.add_setting(
-        "--comic-merge",
+        "--tag-merge",
         metavar=f"{{{','.join(merge.Mode)}}}",
         default=merge.Mode.OVERLAY,
         choices=merge.Mode,
         type=merge.Mode,
-        help="How to merge additional metadata for enabled read styles (CR, CBL, etc.) See -t, --type-read default: %(default)s",
+        help="How to merge fields when reading enabled tags (CR, CBL, etc.) See -t, --tags-read default: %(default)s",
     )
     parser.add_setting(
         "--metadata-merge",
@@ -175,19 +175,19 @@ def md_options(parser: settngs.Manager) -> None:
         default=merge.Mode.OVERLAY,
         choices=merge.Mode,
         type=merge.Mode,
-        help="How to merge new metadata from a data source (CV, Metron, GCD, etc.) default: %(default)s",
+        help="How to merge fields when downloading new metadata (CV, Metron, GCD, etc.) default: %(default)s",
     )
     parser.add_setting(
-        "--comic-merge-lists",
+        "--tag-merge-lists",
         action=argparse.BooleanOptionalAction,
         default=True,
-        help="Merge all items of lists when merging new metadata (genres, characters, etc.) default: %(default)s",
+        help="Merge lists when reading enabled tags (genres, characters, etc.) default: %(default)s",
     )
     parser.add_setting(
         "--metadata-merge-lists",
         action=argparse.BooleanOptionalAction,
         default=True,
-        help="Merge all items of lists when merging new metadata (genres, characters, etc.) default: %(default)s",
+        help="Merge lists when downloading new metadata (genres, characters, etc.) default: %(default)s",
     )
 
 
@@ -242,14 +242,15 @@ def autotag(parser: settngs.Manager) -> None:
         "-o",
         "--online",
         action="store_true",
-        help="""Search online and attempt to identify file\nusing existing metadata and images in archive.\nMay be used in conjunction with -f and -m.\n\n""",
+        help="""Search online and attempt to identify file\nusing existing tags and images in archive.\nMay be used in conjunction with -f and -m.\n\n""",
         file=False,
     )
     parser.add_setting(
         "--save-on-low-confidence",
         default=False,
         action=argparse.BooleanOptionalAction,
-        help="Automatically save metadata on low-confidence matches.\ndefault: %(default)s",
+        help="Automatically save tags on low-confidence matches.\ndefault: %(default)s",
+        cmdline=False,
     )
     parser.add_setting(
         "--use-year-when-identifying",
@@ -290,14 +291,14 @@ def autotag(parser: settngs.Manager) -> None:
         "--metadata",
         default=GenericMetadata(),
         type=parse_metadata_from_string,
-        help="""Explicitly define some tags to be used in YAML syntax.  Use @file.yaml to read from a file.  e.g.:\n"series: Plastic Man, publisher: Quality Comics, year: "\n"series: 'Kickers, Inc.', issue: '1', year: 1986"\nIf you want to erase a tag leave the value blank.\nSome names that can be used: series, issue, issue_count, year,\npublisher, title\n\n""",
+        help="""Explicitly define some metadata to be used in YAML syntax.  Use @file.yaml to read from a file.  e.g.:\n"series: Plastic Man, publisher: Quality Comics, year: "\n"series: 'Kickers, Inc.', issue: '1', year: 1986"\nIf you want to erase a tag leave the value blank.\nSome names that can be used: series, issue, issue_count, year,\npublisher, title\n\n""",
         file=False,
     )
     parser.add_setting(
-        "--clear-metadata",
+        "--clear-tags",
         default=False,
         action=argparse.BooleanOptionalAction,
-        help="Clears all existing metadata during import, default is to merge metadata.\nMay be used in conjunction with -o, -f and -m.\ndefault: %(default)s\n\n",
+        help="Clears all existing tags during import, default is to merge tags.\nMay be used in conjunction with -o, -f and -m.\ndefault: %(default)s\n\n",
     )
     parser.add_setting(
         "--publisher-filter",
@@ -341,23 +342,23 @@ def parse_filter(config: settngs.Config[ct_ns]) -> settngs.Config[ct_ns]:
 
 def migrate_settings(config: settngs.Config[ct_ns]) -> settngs.Config[ct_ns]:
     original_types = ("cbi", "cr", "comet")
-    save_style = config[0].internal__save_data_style
-    if not isinstance(save_style, list):
-        if isinstance(save_style, int) and save_style in (0, 1, 2):
-            config[0].internal__save_data_style = [original_types[save_style]]
-        elif isinstance(save_style, str):
-            config[0].internal__save_data_style = [save_style]
+    write_Tags = config[0].internal__write_tags
+    if not isinstance(write_Tags, list):
+        if isinstance(write_Tags, int) and write_Tags in (0, 1, 2):
+            config[0].internal__write_tags = [original_types[write_Tags]]
+        elif isinstance(write_Tags, str):
+            config[0].internal__write_tags = [write_Tags]
         else:
-            config[0].internal__save_data_style = ["cbi"]
+            config[0].internal__write_tags = ["cbi"]
 
-    load_style = config[0].internal__load_data_style
-    if not isinstance(load_style, list):
-        if isinstance(load_style, int) and load_style in (0, 1, 2):
-            config[0].internal__load_data_style = [original_types[load_style]]
-        elif isinstance(load_style, str):
-            config[0].internal__load_data_style = [load_style]
+    read_tags = config[0].internal__read_tags
+    if not isinstance(read_tags, list):
+        if isinstance(read_tags, int) and read_tags in (0, 1, 2):
+            config[0].internal__read_tags = [original_types[read_tags]]
+        elif isinstance(read_tags, str):
+            config[0].internal__read_tags = [read_tags]
         else:
-            config[0].internal__load_data_style = ["cbi"]
+            config[0].internal__read_tags = ["cbi"]
 
     return config
 

@@ -73,7 +73,7 @@ class CheckableComboBox(QtWidgets.QComboBox):
     def addItem(self, text: str, data: Any = None) -> None:
         super().addItem(text, data)
         # Need to enable the checkboxes and require one checked item
-        # Expected that state of *all* checkboxes will be set ('adjust_save_style_combo' in taggerwindow.py)
+        # Expected that state of *all* checkboxes will be set ('adjust_tags_combo' in taggerwindow.py)
         if self.count() == 1:
             self.model().item(0).setCheckState(Qt.CheckState.Checked)
 
@@ -276,7 +276,7 @@ class CheckableOrderComboBox(QtWidgets.QComboBox):
         super().__init__(*args, **kwargs)
         itemDelegate = ReadStyleItemDelegate(self)
         itemDelegate.setToolTip(
-            "Select which read style(s) to use", "Move item up in priority", "Move item down in priority"
+            "Select which read tag(s) to use", "Move item up in priority", "Move item down in priority"
         )
         self.setItemDelegate(itemDelegate)
 
@@ -344,7 +344,7 @@ class CheckableOrderComboBox(QtWidgets.QComboBox):
     def addItem(self, text: str, data: Any = None) -> None:
         super().addItem(text, data)
         # Need to enable the checkboxes and require one checked item
-        # Expected that state of *all* checkboxes will be set ('adjust_save_style_combo' in taggerwindow.py)
+        # Expected that state of *all* checkboxes will be set ('adjust_tags_combo' in taggerwindow.py)
         if self.count() == 1:
             self.model().item(0).setCheckState(Qt.CheckState.Checked)
 

@@ -15,7 +15,7 @@ import comictaggerlib.resulttypes
 class SettngsNS(settngs.TypedNS):
     Commands__version: bool
     Commands__command: comictaggerlib.resulttypes.Action
-    Commands__copy: str
+    Commands__copy: list[str]
 
     Runtime_Options__config: comictaggerlib.ctsettings.types.ComicTaggerPaths
     Runtime_Options__verbose: int
@@ -32,14 +32,14 @@ class SettngsNS(settngs.TypedNS):
     Runtime_Options__no_gui: bool
     Runtime_Options__abort_on_conflict: bool
     Runtime_Options__delete_original: bool
-    Runtime_Options__type_read: list[str]
-    Runtime_Options__type_modify: list[str]
-    Runtime_Options__skip_existing_metadata: bool
+    Runtime_Options__tags_read: list[str]
+    Runtime_Options__tags_write: list[str]
+    Runtime_Options__skip_existing_tags: bool
     Runtime_Options__files: list[str]
 
     internal__install_id: str
-    internal__save_data_style: list[str]
-    internal__load_data_style: list[str]
+    internal__write_tags: list[str]
+    internal__read_tags: list[str]
     internal__last_opened_folder: str
     internal__window_width: int
     internal__window_height: int
@@ -76,11 +76,11 @@ class SettngsNS(settngs.TypedNS):
     Metadata_Options__copy_weblink_to_comments: bool
     Metadata_Options__apply_transform_on_import: bool
     Metadata_Options__apply_transform_on_bulk_operation: bool
-    Metadata_Options__use_short_metadata_names: bool
+    Metadata_Options__use_short_tag_names: bool
     Metadata_Options__cr: bool
-    Metadata_Options__comic_merge: comicapi.merge.Mode
+    Metadata_Options__tag_merge: comicapi.merge.Mode
     Metadata_Options__metadata_merge: comicapi.merge.Mode
-    Metadata_Options__comic_merge_lists: bool
+    Metadata_Options__tag_merge_lists: bool
     Metadata_Options__metadata_merge_lists: bool
 
     File_Rename__template: str
@@ -102,7 +102,7 @@ class SettngsNS(settngs.TypedNS):
     Auto_Tag__parse_filename: bool
     Auto_Tag__issue_id: str | None
     Auto_Tag__metadata: comicapi.genericmetadata.GenericMetadata
-    Auto_Tag__clear_metadata: bool
+    Auto_Tag__clear_tags: bool
     Auto_Tag__publisher_filter: list[str]
     Auto_Tag__use_publisher_filter: bool
     Auto_Tag__auto_imprint: bool
@@ -124,7 +124,7 @@ class SettngsNS(settngs.TypedNS):
 class Commands(typing.TypedDict):
     version: bool
     command: comictaggerlib.resulttypes.Action
-    copy: str
+    copy: list[str]
 
 
 class Runtime_Options(typing.TypedDict):
@@ -143,16 +143,16 @@ class Runtime_Options(typing.TypedDict):
     no_gui: bool
     abort_on_conflict: bool
     delete_original: bool
-    type_read: list[str]
-    type_modify: list[str]
-    skip_existing_metadata: bool
+    tags_read: list[str]
+    tags_write: list[str]
+    skip_existing_tags: bool
     files: list[str]
 
 
 class internal(typing.TypedDict):
     install_id: str
-    save_data_style: list[str]
-    load_data_style: list[str]
+    write_tags: list[str]
+    read_tags: list[str]
     last_opened_folder: str
     window_width: int
     window_height: int
@@ -197,11 +197,11 @@ class Metadata_Options(typing.TypedDict):
     copy_weblink_to_comments: bool
     apply_transform_on_import: bool
     apply_transform_on_bulk_operation: bool
-    use_short_metadata_names: bool
+    use_short_tag_names: bool
     cr: bool
-    comic_merge: comicapi.merge.Mode
+    tag_merge: comicapi.merge.Mode
     metadata_merge: comicapi.merge.Mode
-    comic_merge_lists: bool
+    tag_merge_lists: bool
     metadata_merge_lists: bool
 
 
@@ -227,7 +227,7 @@ class Auto_Tag(typing.TypedDict):
     parse_filename: bool
     issue_id: str | None
     metadata: comicapi.genericmetadata.GenericMetadata
-    clear_metadata: bool
+    clear_tags: bool
     publisher_filter: list[str]
     use_publisher_filter: bool
     auto_imprint: bool

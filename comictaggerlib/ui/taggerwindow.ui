@@ -79,11 +79,12 @@ border-radius: 4px;
             </property>
             <item row="0" column="0">
              <widget class="QLabel" name="lbl_md_source">
-              <property name="text">
-               <string>Data Source</string>
-              </property>
               <property name="alignment">
-               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+               <set>Qt::AlignRight|Qt::AlignVCenter</set>
+              </property>
+              <property name="text">
+               <string>Metadata
+Source</string>
               </property>
              </widget>
             </item>
@@ -91,26 +92,32 @@ border-radius: 4px;
              <widget class="QComboBox" name="cbx_sources"/>
             </item>
             <item row="1" column="1">
-             <widget class="CheckableOrderComboBox" name="cbLoadDataStyle">
+             <widget class="CheckableOrderComboBox" name="cbSelectedReadTags">
               <property name="toolTip">
                <string>At least one read style must be selected</string>
               </property>
              </widget>
             </item>
             <item row="2" column="1">
-             <widget class="CheckableComboBox" name="cbSaveDataStyle"/>
+             <widget class="CheckableComboBox" name="cbSelectedWriteTags"/>
             </item>
             <item row="1" column="0">
              <widget class="QLabel" name="lbl_read_style">
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignVCenter</set>
+              </property>
               <property name="text">
-               <string>Read Style</string>
+               <string>Read Tags</string>
               </property>
              </widget>
             </item>
             <item row="2" column="0">
              <widget class="QLabel" name="lbl_modify_style">
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignVCenter</set>
+              </property>
               <property name="text">
-               <string>Modify Styles</string>
+               <string>Write Tags</string>
               </property>
              </widget>
             </item>
@@ -1300,7 +1307,7 @@ border-radius: 4px;
    </widget>
    <widget class="QMenu" name="menuTags">
     <property name="title">
-     <string>Tags</string>
+     <string>Metadata</string>
     </property>
     <addaction name="actionClearEntryForm"/>
     <addaction name="actionParse_Filename"/>
@@ -1442,7 +1449,7 @@ border-radius: 4px;
     <string>Clear Form</string>
    </property>
    <property name="toolTip">
-    <string>Clear all metadata for the current comic</string>
+    <string>Clear all the data on the screen</string>
    </property>
    <property name="statusTip">
     <string>Clear all the data on the screen</string>
@@ -1461,10 +1468,10 @@ border-radius: 4px;
     <string>Copy Tags</string>
    </property>
    <property name="toolTip">
-    <string>Copy metadata from the selected 'read' tags to the selected 'modify' tags</string>
+    <string>Copy the selected 'read' tags to the selected 'write' tags</string>
    </property>
    <property name="statusTip">
-    <string>Copy metadata from one type of tag to another</string>
+    <string>Copy the selected 'read' tags to the selected 'write' tags</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+C</string>
@@ -1721,8 +1728,8 @@ border-radius: 4px;
    <slot>trigger()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>900</x>
-     <y>536</y>
+     <x>359</x>
+     <y>108</y>
     </hint>
     <hint type="destinationlabel">
      <x>-1</x>
@@ -1737,8 +1744,8 @@ border-radius: 4px;
    <slot>trigger()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>900</x>
-     <y>576</y>
+     <x>359</x>
+     <y>108</y>
     </hint>
     <hint type="destinationlabel">
      <x>-1</x>

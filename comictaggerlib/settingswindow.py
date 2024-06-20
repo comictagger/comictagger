@@ -71,7 +71,7 @@ template_tooltip = """
 The template for the new filename. Uses python format strings https://docs.python.org/3/library/string.html#format-string-syntax
 Accepts the following variables:
 {is_empty}         (boolean)
-{tag_origin}       (string)
+{data_origin}       (string)
 {series}           (string)
 {issue}            (string)
 {title}            (string)
@@ -195,8 +195,8 @@ class SettingsWindow(QtWidgets.QDialog):
         self.cbFilenameParser.clear()
         self.cbFilenameParser.addItems(utils.Parser)
         for mode in merge.Mode:
-            self.cbMergeModeComic.addItem(mode.name.capitalize().replace("_", " "), mode)
-            self.cbMergeModeMetadata.addItem(mode.name.capitalize().replace("_", " "), mode)
+            self.cbTagsMergeMode.addItem(mode.name.capitalize().replace("_", " "), mode)
+            self.cbDownloadMergeMode.addItem(mode.name.capitalize().replace("_", " "), mode)
         self.connect_signals()
         self.settings_to_form()
         self.rename_test()
@@ -418,7 +418,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.cbxUseFilter.setChecked(self.config[0].Auto_Tag__use_publisher_filter)
         self.cbxSortByYear.setChecked(self.config[0].Issue_Identifier__sort_series_by_year)
         self.cbxExactMatches.setChecked(self.config[0].Issue_Identifier__exact_series_matches_first)
-        self.cbxClearFormBeforePopulating.setChecked(self.config[0].Auto_Tag__clear_metadata)
+        self.cbxClearFormBeforePopulating.setChecked(self.config[0].Auto_Tag__clear_tags)
 
         self.cbxAssumeLoneCreditIsPrimary.setChecked(self.config[0].Metadata_Options__assume_lone_credit_is_primary)
         self.cbxCopyCharactersToTags.setChecked(self.config[0].Metadata_Options__copy_characters_to_tags)
@@ -432,15 +432,13 @@ class SettingsWindow(QtWidgets.QDialog):
             self.config[0].Metadata_Options__apply_transform_on_bulk_operation
         )
 
-        self.cbMergeModeComic.setCurrentIndex(
-            self.cbMergeModeComic.findData(self.config[0].Metadata_Options__comic_merge)
+        self.cbTagsMergeMode.setCurrentIndex(self.cbTagsMergeMode.findData(self.config[0].Metadata_Options__tag_merge))
+        self.cbDownloadMergeMode.setCurrentIndex(
+            self.cbDownloadMergeMode.findData(self.config[0].Metadata_Options__metadata_merge)
         )
-        self.cbMergeModeMetadata.setCurrentIndex(
-            self.cbMergeModeMetadata.findData(self.config[0].Metadata_Options__metadata_merge)
-        )
-        self.cbxMergeListsComic.setChecked(self.config[0].Metadata_Options__comic_merge_lists)
+        self.cbxTagsMergeLists.setChecked(self.config[0].Metadata_Options__tag_merge_lists)
         self.cbxMergeListsMetadata.setChecked(self.config[0].Metadata_Options__metadata_merge_lists)
-        self.cbxShortMetadataNames.setChecked(self.config[0].Metadata_Options__use_short_metadata_names)
+        self.cbxShortTagNames.setChecked(self.config[0].Metadata_Options__use_short_tag_names)
         self.cbxEnableCR.setChecked(self.config[0].Metadata_Options__cr)
 
         self.leRenameTemplate.setText(self.config[0].File_Rename__template)
@@ -550,7 +548,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.config[0].Auto_Tag__use_publisher_filter = self.cbxUseFilter.isChecked()
         self.config[0].Issue_Identifier__sort_series_by_year = self.cbxSortByYear.isChecked()
         self.config[0].Issue_Identifier__exact_series_matches_first = self.cbxExactMatches.isChecked()
-        self.config[0].Auto_Tag__clear_metadata = self.cbxClearFormBeforePopulating.isChecked()
+        self.config[0].Auto_Tag__clear_tags = self.cbxClearFormBeforePopulating.isChecked()
 
         self.config[0].Metadata_Options__assume_lone_credit_is_primary = self.cbxAssumeLoneCreditIsPrimary.isChecked()
         self.config[0].Metadata_Options__copy_characters_to_tags = self.cbxCopyCharactersToTags.isChecked()
@@ -564,17 +562,17 @@ class SettingsWindow(QtWidgets.QDialog):
             self.cbxApplyCBLTransformOnBatchOperation.isChecked()
         )
 
-        self.config[0].Metadata_Options__comic_merge = merge.Mode(self.cbMergeModeComic.currentData())
-        self.config[0].Metadata_Options__metadata_merge = merge.Mode(self.cbMergeModeMetadata.currentData())
-        self.config[0].Metadata_Options__comic_merge_lists = self.cbxMergeListsComic.isChecked()
+        self.config[0].Metadata_Options__tag_merge = merge.Mode(self.cbTagsMergeMode.currentData())
+        self.config[0].Metadata_Options__metadata_merge = merge.Mode(self.cbDownloadMergeMode.currentData())
+        self.config[0].Metadata_Options__tag_merge_lists = self.cbxTagsMergeLists.isChecked()
         self.config[0].Metadata_Options__metadata_merge_lists = self.cbxMergeListsMetadata.isChecked()
         self.config[0].Metadata_Options__cr = self.cbxEnableCR.isChecked()
 
-        # Update metadata style names if required
-        if self.config[0].Metadata_Options__use_short_metadata_names != self.cbxShortMetadataNames.isChecked():
-            self.config[0].Metadata_Options__use_short_metadata_names = self.cbxShortMetadataNames.isChecked()
-            self.parent().populate_style_names()
-            self.parent().adjust_save_style_combo()
+        # Update tag names if required
+        if self.config[0].Metadata_Options__use_short_tag_names != self.cbxShortTagNames.isChecked():
+            self.config[0].Metadata_Options__use_short_tag_names = self.cbxShortTagNames.isChecked()
+            self.parent().populate_tag_names()
+            self.parent().adjust_tags_combo()
 
         self.config[0].File_Rename__template = str(self.leRenameTemplate.text())
         self.config[0].File_Rename__issue_number_padding = int(self.leIssueNumPadding.text())

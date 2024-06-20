@@ -20,7 +20,7 @@ import logging
 
 from PyQt5 import QtCore, QtWidgets, uic
 
-from comicapi.comicarchive import ComicArchive, metadata_styles
+from comicapi.comicarchive import ComicArchive, tags
 from comicapi.genericmetadata import ImageMetadata, PageType
 from comictaggerlib.coverimagewidget import CoverImageWidget
 from comictaggerlib.ui import ui_path
@@ -116,7 +116,7 @@ class PageListEditor(QtWidgets.QWidget):
 
         self.comic_archive: ComicArchive | None = None
         self.pages_list: list[ImageMetadata] = []
-        self.data_styles: list[str] = []
+        self.tag_ids: list[str] = []
 
     def reset_page(self) -> None:
         self.pageWidget.clear()
@@ -343,7 +343,7 @@ class PageListEditor(QtWidgets.QWidget):
         self.comic_archive = comic_archive
         self.pages_list = pages_list
         if pages_list:
-            self.set_metadata_style(self.data_styles)
+            self.select_read_tags(self.tag_ids)
         else:
             self.cbPageType.setEnabled(False)
             self.chkDoublePage.setEnabled(False)
@@ -386,15 +386,16 @@ class PageListEditor(QtWidgets.QWidget):
             self.first_front_page = self.get_first_front_cover()
             self.firstFrontCoverChanged.emit(self.first_front_page)
 
-    def set_metadata_style(self, data_styles: list[str]) -> None:
-        # depending on the current data style, certain fields are disabled
-        if data_styles:
-            styles = [metadata_styles[style] for style in data_styles]
-            enabled_widgets = set()
-            for style in styles:
-                enabled_widgets.update(style.supported_attributes)
+    def select_read_tags(self, tag_ids: list[str]) -> None:
+        # depending on the current tags, certain fields are disabled
+        if not tag_ids:
+            return
 
-            self.data_styles = data_styles
+        enabled_widgets = set()
+        for tag_id in tag_ids:
+            enabled_widgets.update(tags[tag_id].supported_attributes)
 
-            for metadata, widget in self.md_attributes.items():
-                enable_widget(widget, metadata in enabled_widgets)
+        self.tag_ids = tag_ids
+
+        for md_field, widget in self.md_attributes.items():
+            enable_widget(widget, md_field in enabled_widgets)

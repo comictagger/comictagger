@@ -127,8 +127,8 @@ class App:
         self._extend_plugin_paths(local_plugins)
 
         comicapi.comicarchive.load_archive_plugins(local_plugins=[p.entry_point for p in local_plugins.archivers])
-        comicapi.comicarchive.load_metadata_plugins(
-            version=version, local_plugins=[p.entry_point for p in local_plugins.metadata]
+        comicapi.comicarchive.load_tag_plugins(
+            version=version, local_plugins=[p.entry_point for p in local_plugins.tags]
         )
         self.talkers = comictalker.get_talkers(
             version, opts.config.user_cache_dir, local_plugins=[p.entry_point for p in local_plugins.talkers]
@@ -141,7 +141,7 @@ class App:
         self,
         talkers: Collection[comictalker.ComicTalker],
         archivers: Collection[type[comicapi.comicarchive.Archiver]],
-        metadata_styles: Collection[comicapi.comicarchive.Metadata],
+        tags: Collection[comicapi.comicarchive.Tag],
     ) -> None:
         if self.config[0].Runtime_Options__json:
             for talker in talkers:
@@ -183,14 +183,14 @@ class App:
                         )
                     )
 
-            for style in metadata_styles:
+            for tag in tags:
                 print(  # noqa: T201
                     json.dumps(
                         {
-                            "type": "metadata",
-                            "enabled": style.enabled,
-                            "name": style.name(),
-                            "short_name": style.short_name,
+                            "type": "tag",
+                            "enabled": tag.enabled,
+                            "name": tag.name(),
+                            "id": tag.id,
                         }
                     )
                 )
@@ -199,14 +199,14 @@ class App:
             for talker in talkers:
                 print(f"{talker.id:<10}: {talker.name:<21}, {talker.website}")  # noqa: T201
 
-            print("\nComic Archive: (Name: extension, exe)")  # noqa: T201
+            print("\nComic Archive: (Enabled, Name: extension, exe)")  # noqa: T201
             for archiver in archivers:
                 a = archiver()
-                print(f"{a.name():<10}: {a.extension():<5}, {a.exe}")  # noqa: T201
+                print(f"{a.enabled!s:<5}, {a.name():<10}: {a.extension():<5}, {a.exe}")  # noqa: T201
 
-            print("\nMetadata Style: (Short Name: Name)")  # noqa: T201
-            for style in metadata_styles:
-                print(f"{style.short_name:<10}: {style.name()}")  # noqa: T201
+            print("\nTags: (Enabled, ID: Name)")  # noqa: T201
+            for tag in tags:
+                print(f"{tag.enabled!s:<5}, {tag.id:<10}: {tag.name()}")  # noqa: T201
 
     def initialize(self) -> argparse.Namespace:
         conf, _ = self.initial_arg_parser.parse_known_intermixed_args()
@@ -252,9 +252,12 @@ class App:
         # config already loaded
         error = None
 
-        if not self.config[0].Metadata_Options__cr:
-            if "cr" in comicapi.comicarchive.metadata_styles:
-                del comicapi.comicarchive.metadata_styles["cr"]
+        if (
+            not self.config[0].Metadata_Options__cr
+            and "cr" in comicapi.comicarchive.tags
+            and comicapi.comicarchive.tags["cr"].enabled
+        ):
+            comicapi.comicarchive.tags["cr"].enabled = False
 
         if len(self.talkers) < 1:
             error = error = (
@@ -277,7 +280,7 @@ class App:
             self.list_plugins(
                 list(self.talkers.values()),
                 comicapi.comicarchive.archivers,
-                comicapi.comicarchive.metadata_styles.values(),
+                comicapi.comicarchive.tags.values(),
             )
             return
 

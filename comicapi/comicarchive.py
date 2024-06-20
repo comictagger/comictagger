@@ -30,97 +30,94 @@ from typing import TYPE_CHECKING
 from comicapi import utils
 from comicapi.archivers import Archiver, UnknownArchiver, ZipArchiver
 from comicapi.genericmetadata import GenericMetadata
-from comicapi.metadata import Metadata
+from comicapi.tags import Tag
 from comictaggerlib.ctversion import version
 
 if TYPE_CHECKING:
-    from importlib.machinery import ModuleSpec
     from importlib.metadata import EntryPoint
 
 logger = logging.getLogger(__name__)
 
 archivers: list[type[Archiver]] = []
-metadata_styles: dict[str, Metadata] = {}
+tags: dict[str, Tag] = {}
 
 
 def load_archive_plugins(local_plugins: Iterable[EntryPoint] = tuple()) -> None:
-    if not archivers:
-        if sys.version_info < (3, 10):
-            from importlib_metadata import entry_points
-        else:
-            from importlib.metadata import entry_points
-        builtin: list[type[Archiver]] = []
-        # A list is used first matching plugin wins
-        for ep in itertools.chain(local_plugins, entry_points(group="comicapi.archiver")):
-            try:
-                archiver: type[Archiver] = ep.load()
-                if ep.module.startswith("comicapi"):
-                    builtin.append(archiver)
-                else:
-                    archivers.append(archiver)
-            except Exception:
-                try:
-                    spec = importlib.util.find_spec(ep.module)
-                except ValueError:
-                    spec = None
-                if spec and spec.has_location:
-                    logger.exception("Failed to load archive plugin: %s from %s", ep.name, spec.origin)
-                else:
-                    logger.exception("Failed to load archive plugin: %s", ep.name)
-        archivers.extend(builtin)
+    if archivers:
+        return
+    if sys.version_info < (3, 10):
+        from importlib_metadata import entry_points
+    else:
+        from importlib.metadata import entry_points
+    builtin: list[type[Archiver]] = []
+    archive_plugins: list[type[Archiver]] = []
+    # A list is used first matching plugin wins
 
+    for ep in itertools.chain(local_plugins, entry_points(group="comicapi.archiver")):
+        try:
+            spec = importlib.util.find_spec(ep.module)
+        except ValueError:
+            spec = None
+        try:
+            archiver: type[Archiver] = ep.load()
 
-def load_metadata_plugins(version: str = f"ComicAPI/{version}", local_plugins: Iterable[EntryPoint] = tuple()) -> None:
-    if not metadata_styles:
-        if sys.version_info < (3, 10):
-            from importlib_metadata import entry_points
-        else:
-            from importlib.metadata import entry_points
-        builtin: dict[str, Metadata] = {}
-        styles: dict[str, tuple[Metadata, ModuleSpec | None]] = {}
-        # A dict is used, last plugin wins
-        for ep in itertools.chain(entry_points(group="comicapi.metadata"), local_plugins):
-            try:
-                spec = importlib.util.find_spec(ep.module)
-            except ValueError:
-                spec = None
-            try:
-                style: type[Metadata] = ep.load()
-                if style.enabled:
-                    if ep.module.startswith("comicapi"):
-                        builtin[style.short_name] = style(version)
-                    else:
-                        if style.short_name in styles:
-                            if spec and spec.has_location:
-                                logger.warning(
-                                    "Plugin %s from %s is overriding the existing metadata plugin for %s tags",
-                                    ep.module,
-                                    spec.origin,
-                                    style.short_name,
-                                )
-                            else:
-                                logger.warning(
-                                    "Plugin %s is overriding the existing metadata plugin for %s tags",
-                                    ep.module,
-                                    style.short_name,
-                                )
-                        styles[style.short_name] = (style(version), spec)
-            except Exception:
-                if spec and spec.has_location:
-                    logger.exception("Failed to load metadata plugin: %s from %s", ep.name, spec.origin)
-                else:
-                    logger.exception("Failed to load metadata plugin: %s", ep.name)
-        for style_name in set(builtin.keys()).intersection(styles):
-            spec = styles[style_name][1]
-            if spec and spec.has_location:
-                logger.warning(
-                    "Builtin metadata for %s tags are being overridden by a plugin from %s", style_name, spec.origin
-                )
+            if ep.module.startswith("comicapi"):
+                builtin.append(archiver)
             else:
-                logger.warning("Builtin metadata for %s tags are being overridden by a plugin", style_name)
-        metadata_styles.clear()
-        metadata_styles.update(builtin)
-        metadata_styles.update({s[0]: s[1][0] for s in styles.items()})
+                archive_plugins.append(archiver)
+        except Exception:
+            if spec and spec.has_location:
+                logger.exception("Failed to load archive plugin: %s from %s", ep.name, spec.origin)
+            else:
+                logger.exception("Failed to load archive plugin: %s", ep.name)
+    archivers.clear()
+    archivers.extend(archive_plugins)
+    archivers.extend(builtin)
+
+
+def load_tag_plugins(version: str = f"ComicAPI/{version}", local_plugins: Iterable[EntryPoint] = tuple()) -> None:
+    if tags:
+        return
+    if sys.version_info < (3, 10):
+        from importlib_metadata import entry_points
+    else:
+        from importlib.metadata import entry_points
+    builtin: dict[str, Tag] = {}
+    tag_plugins: dict[str, tuple[Tag, str]] = {}
+    # A dict is used, last plugin wins
+    for ep in itertools.chain(entry_points(group="comicapi.tags"), local_plugins):
+        location = "Unknown"
+        try:
+            _spec = importlib.util.find_spec(ep.module)
+            if _spec and _spec.has_location and _spec.origin:
+                location = _spec.origin
+        except ValueError:
+            location = "Unknown"
+
+        try:
+            tag: type[Tag] = ep.load()
+
+            if ep.module.startswith("comicapi"):
+                builtin[tag.id] = tag(version)
+            else:
+                if tag.id in tag_plugins:
+                    logger.warning(
+                        "Plugin %s from %s is overriding the existing plugin for %s tags",
+                        ep.module,
+                        location,
+                        tag.id,
+                    )
+                tag_plugins[tag.id] = (tag(version), location)
+        except Exception:
+            logger.exception("Failed to load tag plugin: %s from %s", ep.name, location)
+
+    for tag_id in set(builtin.keys()).intersection(tag_plugins):
+        location = tag_plugins[tag_id][1]
+        logger.warning("Builtin plugin for %s tags are being overridden by a plugin from %s", tag_id, location)
+
+    tags.clear()
+    tags.update(builtin)
+    tags.update({s[0]: s[1][0] for s in tag_plugins.items()})
 
 
 class ComicArchive:
@@ -145,7 +142,7 @@ class ComicArchive:
             self.archiver = UnknownArchiver.open(self.path)
 
         load_archive_plugins()
-        load_metadata_plugins()
+        load_tag_plugins()
         for archiver in archivers:
             if archiver.enabled and archiver.is_valid(self.path):
                 self.archiver = archiver.open(self.path)
@@ -162,15 +159,19 @@ class ComicArchive:
         self.page_list.clear()
         self.md.clear()
 
-    def load_cache(self, style_list: Iterable[str]) -> None:
-        for style in style_list:
-            if style in metadata_styles:
-                md = metadata_styles[style].get_metadata(self.archiver)
-                if not md.is_empty:
-                    self.md[style] = md
+    def load_cache(self, tag_ids: Iterable[str]) -> None:
+        for tag_id in tag_ids:
+            if tag_id not in tags:
+                continue
+            tag = tags[tag_id]
+            if not tag.enabled:
+                continue
+            md = tag.read_tags(self.archiver)
+            if not md.is_empty:
+                self.md[tag_id] = md
 
-    def get_supported_metadata(self) -> list[str]:
-        return [style[0] for style in metadata_styles.items() if style[1].supports_metadata(self.archiver)]
+    def get_supported_tags(self) -> list[str]:
+        return [tag_id for tag_id, tag in tags.items() if tag.enabled and tag.supports_tags(self.archiver)]
 
     def rename(self, path: pathlib.Path | str) -> None:
         new_path = pathlib.Path(path).absolute()
@@ -193,11 +194,6 @@ class ComicArchive:
 
         return True
 
-    def is_writable_for_style(self, style: str) -> bool:
-        if style in metadata_styles:
-            return self.archiver.is_writable() and metadata_styles[style].supports_metadata(self.archiver)
-        return False
-
     def is_zip(self) -> bool:
         return self.archiver.name() == "ZIP"
 
@@ -210,33 +206,42 @@ class ComicArchive:
     def extension(self) -> str:
         return self.archiver.extension()
 
-    def read_metadata(self, style: str) -> GenericMetadata:
-        if style in self.md:
-            return self.md[style]
+    def read_tags(self, tag_id: str) -> GenericMetadata:
+        if tag_id in self.md:
+            return self.md[tag_id]
         md = GenericMetadata()
-        if metadata_styles[style].has_metadata(self.archiver):
-            md = metadata_styles[style].get_metadata(self.archiver)
+        tag = tags[tag_id]
+        if tag.enabled and tag.has_tags(self.archiver):
+            md = tag.read_tags(self.archiver)
             md.apply_default_page_list(self.get_page_name_list())
         return md
 
-    def read_metadata_string(self, style: str) -> str:
-        return metadata_styles[style].get_metadata_string(self.archiver)
+    def read_raw_tags(self, tag_id: str) -> str:
+        if not tags[tag_id].enabled:
+            return ""
+        return tags[tag_id].read_raw_tags(self.archiver)
 
-    def write_metadata(self, metadata: GenericMetadata, style: str) -> bool:
-        if style in self.md:
-            del self.md[style]
+    def write_tags(self, metadata: GenericMetadata, tag_id: str) -> bool:
+        if tag_id in self.md:
+            del self.md[tag_id]
+        if not tags[tag_id].enabled:
+            return False
         metadata.apply_default_page_list(self.get_page_name_list())
-        return metadata_styles[style].set_metadata(metadata, self.archiver)
+        return tags[tag_id].write_tags(metadata, self.archiver)
 
-    def has_metadata(self, style: str) -> bool:
-        if style in self.md:
+    def has_tags(self, tag_id: str) -> bool:
+        if tag_id in self.md:
             return True
-        return metadata_styles[style].has_metadata(self.archiver)
+        if not tags[tag_id].enabled:
+            return False
+        return tags[tag_id].has_tags(self.archiver)
 
-    def remove_metadata(self, style: str) -> bool:
-        if style in self.md:
-            del self.md[style]
-        return metadata_styles[style].remove_metadata(self.archiver)
+    def remove_tags(self, tag_id: str) -> bool:
+        if tag_id in self.md:
+            del self.md[tag_id]
+        if not tags[tag_id].enabled:
+            return False
+        return tags[tag_id].remove_tags(self.archiver)
 
     def get_page(self, index: int) -> bytes:
         image_data = b""

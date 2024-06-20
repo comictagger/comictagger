@@ -15,7 +15,7 @@ from typing import Any, NamedTuple
 logger = logging.getLogger(__name__)
 
 NORMALIZE_PACKAGE_NAME_RE = re.compile(r"[-_.]+")
-PLUGIN_GROUPS = frozenset(("comictagger.talker", "comicapi.archiver", "comicapi.metadata"))
+PLUGIN_GROUPS = frozenset(("comictagger.talker", "comicapi.archiver", "comicapi.tags"))
 
 
 class FailedToLoadPlugin(Exception):
@@ -72,13 +72,13 @@ class Plugins(NamedTuple):
     """Classified plugins."""
 
     archivers: list[Plugin]
-    metadata: list[Plugin]
+    tags: list[Plugin]
     talkers: list[Plugin]
 
     def all_plugins(self) -> Generator[Plugin, None, None]:
         """Return an iterator over all :class:`LoadedPlugin`s."""
         yield from self.archivers
-        yield from self.metadata
+        yield from self.tags
         yield from self.talkers
 
     def versions_str(self) -> str:
@@ -133,21 +133,21 @@ def find_plugins(plugin_folder: pathlib.Path) -> Plugins:
 
 def _classify_plugins(plugins: list[Plugin]) -> Plugins:
     archivers = []
-    metadata = []
+    tags = []
     talkers = []
 
     for p in plugins:
         if p.entry_point.group == "comictagger.talker":
             talkers.append(p)
-        elif p.entry_point.group == "comicapi.metadata":
-            metadata.append(p)
+        elif p.entry_point.group == "comicapi.tags":
+            tags.append(p)
         elif p.entry_point.group == "comicapi.archiver":
             archivers.append(p)
         else:
             logger.warning(NotImplementedError(f"what plugin type? {p}"))
 
     return Plugins(
-        metadata=metadata,
+        tags=tags,
         archivers=archivers,
         talkers=talkers,
     )

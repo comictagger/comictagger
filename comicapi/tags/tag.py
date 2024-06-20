@@ -4,14 +4,14 @@ from comicapi.archivers import Archiver
 from comicapi.genericmetadata import GenericMetadata
 
 
-class Metadata:
+class Tag:
     enabled: bool = False
-    short_name: str = ""
+    id: str = ""
 
     def __init__(self, version: str) -> None:
         self.version: str = version
         self.supported_attributes = {
-            "tag_origin",
+            "data_origin",
             "issue_id",
             "series_id",
             "series",
@@ -71,44 +71,44 @@ class Metadata:
     def supports_credit_role(self, role: str) -> bool:
         return False
 
-    def supports_metadata(self, archive: Archiver) -> bool:
+    def supports_tags(self, archive: Archiver) -> bool:
         """
-        Checks the given archive for the ability to save this metadata style.
+        Checks the given archive for the ability to save these tags.
         Should always return a bool. Failures should return False.
         Typically consists of a call to either `archive.supports_comment` or `archive.supports_file`
         """
         return False
 
-    def has_metadata(self, archive: Archiver) -> bool:
+    def has_tags(self, archive: Archiver) -> bool:
         """
-        Checks the given archive for metadata.
+        Checks the given archive for tags.
         Should always return a bool. Failures should return False.
         """
         return False
 
-    def remove_metadata(self, archive: Archiver) -> bool:
+    def remove_tags(self, archive: Archiver) -> bool:
         """
-        Removes the metadata from the given archive.
+        Removes the tags from the given archive.
         Should always return a bool. Failures should return False.
         """
         return False
 
-    def get_metadata(self, archive: Archiver) -> GenericMetadata:
+    def read_tags(self, archive: Archiver) -> GenericMetadata:
         """
-        Returns a GenericMetadata representing the data saved in the given archive.
+        Returns a GenericMetadata representing the tags saved in the given archive.
         Should always return a GenericMetadata. Failures should return an empty metadata object.
         """
         return GenericMetadata()
 
-    def get_metadata_string(self, archive: Archiver) -> str:
+    def read_raw_tags(self, archive: Archiver) -> str:
         """
-        Returns the raw metadata as a string.
-        If the metadata is a binary format a roughly similar text format should be used.
+        Returns the raw tags as a string.
+        If the tags are a binary format a roughly similar text format should be used.
         Should always return a string. Failures should return the empty string.
         """
         return ""
 
-    def set_metadata(self, metadata: GenericMetadata, archive: Archiver) -> bool:
+    def write_tags(self, metadata: GenericMetadata, archive: Archiver) -> bool:
         """
         Saves the given metadata to the given archive.
         Should always return a bool. Failures should return False.
@@ -117,7 +117,7 @@ class Metadata:
 
     def name(self) -> str:
         """
-        Returns the name of this metadata for display purposes eg "Comic Rack".
+        Returns the name of these tags for display purposes eg "Comic Rack".
         Should always return a string. Failures should return the empty string.
         """
         return ""

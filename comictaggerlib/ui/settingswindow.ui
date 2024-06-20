@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>703</width>
-    <height>615</height>
+    <width>1095</width>
+    <height>642</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -190,7 +190,7 @@
            <item row="2" column="0">
             <widget class="QLabel" name="label_9">
              <property name="text">
-              <string>Always use Publisher Filter on manual searches:</string>
+              <string>Enable the publisher filter:</string>
              </property>
              <property name="buddy">
               <cstring>cbxUseFilter</cstring>
@@ -211,7 +211,7 @@
             <widget class="QLabel" name="label_4">
              <property name="text">
               <string>Publisher Filter:
-One Publisher per line</string>
+1 Publisher per line</string>
              </property>
              <property name="alignment">
               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
@@ -274,7 +274,8 @@ One Publisher per line</string>
          <item row="4" column="0">
           <widget class="QLabel" name="label_5">
            <property name="text">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;These settings are for the automatic issue identifier which searches online for matches. &lt;/p&gt;&lt;p&gt;Hover the mouse over an entry field for more info.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>These settings are for the automatic issue identifier which searches online for matches.
+Hover the mouse over an option for more info.</string>
            </property>
            <property name="wordWrap">
             <bool>true</bool>
@@ -299,13 +300,6 @@ One Publisher per line</string>
           <widget class="QCheckBox" name="cbxSortByYear">
            <property name="text">
             <string>Initially sort Series search results by Starting Year instead of No. Issues</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0">
-          <widget class="QCheckBox" name="cbxClearFormBeforePopulating">
-           <property name="text">
-            <string>Clear all existing metadata during import, default is to merge metadata.</string>
            </property>
           </widget>
          </item>
@@ -417,7 +411,7 @@ One Publisher per line</string>
        </widget>
        <widget class="QWidget" name="tComicTalkers">
         <attribute name="title">
-         <string>Metadata Sources</string>
+         <string>Metadata Download</string>
         </attribute>
         <layout class="QVBoxLayout" name="verticalLayout_4"/>
        </widget>
@@ -460,7 +454,7 @@ One Publisher per line</string>
              <number>6</number>
             </property>
             <item row="0" column="0">
-             <widget class="QCheckBox" name="cbxShortMetadataNames">
+             <widget class="QCheckBox" name="cbxShortTagNames">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -468,20 +462,27 @@ One Publisher per line</string>
                </sizepolicy>
               </property>
               <property name="toolTip">
-               <string>Use the short name for the metadata styles (CBI, CR, etc.)</string>
+               <string>Use the short name for tags (CBI, CR, etc.)</string>
               </property>
               <property name="text">
-               <string>Use &quot;short&quot; names for metadata styles</string>
+               <string>Use &quot;short&quot; names for tags</string>
               </property>
              </widget>
             </item>
             <item row="0" column="1">
              <widget class="QCheckBox" name="cbxEnableCR">
               <property name="toolTip">
-               <string>Turn off to only use the CIX metadata type</string>
+               <string>Turn off to only use the CIX tags</string>
               </property>
               <property name="text">
-               <string>Enable ComicRack Metadata Type (needs a restart)</string>
+               <string>Enable the ComicRack metadata tags (needs a restart)</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QCheckBox" name="cbxClearFormBeforePopulating">
+              <property name="text">
+               <string>Clear all existing tags during metadata download, default is to merge downloaded metadata with existing tags.</string>
               </property>
              </widget>
             </item>
@@ -524,7 +525,7 @@ One Publisher per line</string>
             <item>
              <widget class="QCheckBox" name="cbxApplyCBLTransformOnCVIMport">
               <property name="text">
-               <string>Apply CBL Transforms on ComicVine Import</string>
+               <string>Apply CBL Transforms on metadata download</string>
               </property>
              </widget>
             </item>
@@ -640,14 +641,17 @@ One Publisher per line</string>
             </property>
             <item row="0" column="0">
              <widget class="QGroupBox" name="groupBox_7">
+              <property name="toolTip">
+               <string>The merge mode to use when reading multiple tags from a single comic book archive. ComicRack, ComicBookInfo, etc...</string>
+              </property>
               <property name="title">
-               <string>Comic Merge</string>
+               <string>Tags Merge</string>
               </property>
               <layout class="QFormLayout" name="formLayout">
                <item row="0" column="0">
-                <widget class="QLabel" name="lblOverlayComic">
+                <widget class="QLabel" name="lblTagsMergeMode">
                  <property name="toolTip">
-                  <string>The merge mode to use when reading multiple metadata styles from a single comic archive (ComicRack, ComicBookInfo, etc.)</string>
+                  <string>The merge mode to use when reading multiple tags from a single comic book archive. ComicRack, ComicBookInfo, etc...</string>
                  </property>
                  <property name="text">
                   <string>Merge Mode:</string>
@@ -656,12 +660,12 @@ One Publisher per line</string>
                   <number>6</number>
                  </property>
                  <property name="buddy">
-                  <cstring>cbxOverlayReadStyle</cstring>
+                  <cstring>cbTagsMergeMode</cstring>
                  </property>
                 </widget>
                </item>
                <item row="0" column="1">
-                <widget class="QComboBox" name="cbMergeModeComic">
+                <widget class="QComboBox" name="cbTagsMergeMode">
                  <property name="enabled">
                   <bool>true</bool>
                  </property>
@@ -672,14 +676,14 @@ One Publisher per line</string>
                   </sizepolicy>
                  </property>
                  <property name="toolTip">
-                  <string>The merge mode to use when reading multiple metadata styles from a comic archive (ComicRack, ComicBookInfo, etc.)</string>
+                  <string>The merge mode to use when reading multiple metadata types from a single comic book archive. ComicRack, ComicBookInfo, etc...</string>
                  </property>
                 </widget>
                </item>
                <item row="1" column="1">
-                <widget class="QCheckBox" name="cbxMergeListsComic">
+                <widget class="QCheckBox" name="cbxTagsMergeLists">
                  <property name="toolTip">
-                  <string>Merge lists (characters, tags, locations, etc.) together or the &quot;new&quot; list replaces the old</string>
+                  <string>Merge lists (characters, tags, locations, etc.) together or follow the Merge Mode</string>
                  </property>
                  <property name="text">
                   <string>Merge Lists</string>
@@ -691,14 +695,17 @@ One Publisher per line</string>
             </item>
             <item row="1" column="0">
              <widget class="QGroupBox" name="groupBox_8">
+              <property name="toolTip">
+               <string>The merge mode to use when downloading metadata from Comic Vine, Metron, GCD, etc...</string>
+              </property>
               <property name="title">
-               <string>Metadata Merge</string>
+               <string>Download Merge</string>
               </property>
               <layout class="QFormLayout" name="formLayout_4">
                <item row="0" column="0">
-                <widget class="QLabel" name="lblOverlayMetadata">
+                <widget class="QLabel" name="lblDownloadMergeMode">
                  <property name="toolTip">
-                  <string>The merge mode to use when fetching metadata from a Metadata Source (Comic Vine, Metron, GCD, etc.)</string>
+                  <string>The merge mode to use when downloading metadata from Comic Vine, Metron, GCD, etc...</string>
                  </property>
                  <property name="text">
                   <string>Merge Mode:</string>
@@ -707,12 +714,12 @@ One Publisher per line</string>
                   <number>6</number>
                  </property>
                  <property name="buddy">
-                  <cstring>cbxOverlaySource</cstring>
+                  <cstring>cbDownloadMergeMode</cstring>
                  </property>
                 </widget>
                </item>
                <item row="0" column="1">
-                <widget class="QComboBox" name="cbMergeModeMetadata">
+                <widget class="QComboBox" name="cbDownloadMergeMode">
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                    <horstretch>0</horstretch>
@@ -720,14 +727,14 @@ One Publisher per line</string>
                   </sizepolicy>
                  </property>
                  <property name="toolTip">
-                  <string>The merge mode to use when fetching data from a Metadata Source (Comic Vine, Metron, GCD, etc.)</string>
+                  <string>The merge mode to use when downloading metadata from Comic Vine, Metron, GCD, etc...</string>
                  </property>
                 </widget>
                </item>
                <item row="1" column="1">
                 <widget class="QCheckBox" name="cbxMergeListsMetadata">
                  <property name="toolTip">
-                  <string>Merge lists (characters, tags, locations, etc.) together or the &quot;new&quot; list replaces the old</string>
+                  <string>Merge lists (characters, tags, locations, etc.) together or follow the Merge Mode</string>
                  </property>
                  <property name="text">
                   <string>Merge Lists</string>
@@ -795,13 +802,13 @@ One Publisher per line</string>
                    <bool>false</bool>
                   </property>
                   <property name="plainText">
-                   <string>Overlays all the non-empty values of the new metadata (e.g. Comic Vine) on top of the current metadata.
+                   <string>Overlays all non-empty values of the new metadata (e.g. Comic Vine) on top of the existing metadata.
 
 See the Lists tab for controlling how lists are handled.
 
 Example:
-(Series=the batman, Issue=1, Tags=[batman,joker,robin])
-+ (Series=Batman, Publisher=DC Comics, Tags=[mystery,action])
+existing(Series=the batman, Issue=1, Tags=[batman,joker,robin])
++ new(Series=Batman, Publisher=DC Comics, Tags=[mystery,action])
 
 = (Series=Batman, Issue=1, Publisher=DC Comics, Tags=[mystery,action])</string>
                   </property>
@@ -835,13 +842,13 @@ Example:
                 <item>
                  <widget class="QPlainTextEdit" name="addTextEdit">
                   <property name="plainText">
-                   <string>Adds any metadata that is is missing in the current metadata but present in the new metadata (e.g. Comic Vine).
+                   <string>Adds any metadata that is is missing in the existing metadata but present in the new metadata.
 
 See the Lists tab for controlling how lists are handled.
 
 Example:
-(Series=batman, Issue=1, Tags=[batman,joker,robin])
-+ (Series=Superman, Issue=10, Publisher=DC Comics, Tags=[mystery,action])
+existing(Series=batman, Issue=1, Tags=[batman,joker,robin])
++ new(Series=Superman, Issue=10, Publisher=DC Comics, Tags=[mystery,action])
 
 = (Series=batman, Issue=1, Tags=[batman,joker,robin], Publisher=DC Comics)</string>
                   </property>
@@ -880,6 +887,7 @@ Example:
 Example Merge:
 (Tags=[batman,joker,robin])
 + (Tags=[mystery,action])
+
 = (Tags=[batman,joker,robin,mystery,action])</string>
                   </property>
                   <property name="textInteractionFlags">

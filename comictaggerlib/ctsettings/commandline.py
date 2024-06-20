@@ -26,10 +26,10 @@ import subprocess
 import settngs
 
 from comicapi import utils
-from comicapi.comicarchive import metadata_styles
+from comicapi.comicarchive import tags
 from comictaggerlib import ctversion
 from comictaggerlib.ctsettings.settngs_namespace import SettngsNS as ct_ns
-from comictaggerlib.ctsettings.types import ComicTaggerPaths, metadata_type, metadata_type_single
+from comictaggerlib.ctsettings.types import ComicTaggerPaths, tag
 from comictaggerlib.resulttypes import Action
 
 logger = logging.getLogger(__name__)
@@ -138,26 +138,26 @@ def register_runtime(parser: settngs.Manager) -> None:
     )
     parser.add_setting(
         "-t",
-        "--type-read",
-        metavar=f"{{{','.join(metadata_styles).upper()}}}",
+        "--tags-read",
+        metavar=f"{{{','.join(tags).upper()}}}",
         default=[],
-        type=metadata_type,
-        help="""Specify the type of tags to read.\nUse commas for multiple types.\nSee --list-plugins for the available types.\nThe tag use will be 'overlayed' in order:\ne.g. '-t cbl,cr' with no CBL tags, CR will be used if they exist and CR will overwrite any shared CBL tags.\n\n""",
+        type=tag,
+        help="""Specify the tags to read.\nUse commas for multiple tags.\nSee --list-plugins for the available tags.\nThe tags used will be 'overlaid' in order:\ne.g. '-t cbl,cr' with no CBL tags, CR will be used if they exist and CR will overwrite any shared CBL tags.\n\n""",
         file=False,
     )
     parser.add_setting(
-        "--type-modify",
-        metavar=f"{{{','.join(metadata_styles).upper()}}}",
+        "--tags-write",
+        metavar=f"{{{','.join(tags).upper()}}}",
         default=[],
-        type=metadata_type,
-        help="""Specify the type of tags to write.\nUse commas for multiple types.\nRead types will be used if unspecified\nSee --list-plugins for the available types.\n\n""",
+        type=tag,
+        help="""Specify the tags to write.\nUse commas for multiple tags.\nRead tags will be used if unspecified\nSee --list-plugins for the available tags.\n\n""",
         file=False,
     )
     parser.add_setting(
-        "--skip-existing-metadata",
+        "--skip-existing-tags",
         action=argparse.BooleanOptionalAction,
         default=True,
-        help="""Skip archives that already have tags specified with -t,\notherwise merges new metadata with existing metadata (relevant for -s or -c).\ndefault: %(default)s""",
+        help="""Skip archives that already have tags specified with -t,\notherwise merges new tags with existing tags (relevant for -s or -c).\ndefault: %(default)s""",
         file=False,
     )
     parser.add_setting("files", nargs="*", default=[], file=False)
@@ -173,7 +173,7 @@ def register_commands(parser: settngs.Manager) -> None:
         action="store_const",
         const=Action.print,
         default=Action.gui,
-        help="""Print out tag info from file. Specify type\n(via --type-read) to get only info of that tag type.\n\n""",
+        help="""Print out tag info from file. Specify via -t to only print specific tags.\n\n""",
         file=False,
     )
     parser.add_setting(
@@ -182,16 +182,16 @@ def register_commands(parser: settngs.Manager) -> None:
         dest="command",
         action="store_const",
         const=Action.delete,
-        help="Deletes the tag block of specified type (via -t).",
+        help="Deletes the tags specified via -t.",
         file=False,
     )
     parser.add_setting(
         "-c",
         "--copy",
-        type=metadata_type_single,
+        type=tag,
         default=[],
-        metavar=f"{{{','.join(metadata_styles).upper()}}}",
-        help="Copy the specified source tag block to\ndestination style specified via --type-modify\n(potentially lossy operation).\n\n",
+        metavar=f"{{{','.join(tags).upper()}}}",
+        help="Copy the specified source tags to\ndestination tags specified via --tags-write\n(potentially lossy operation).\n\n",
         file=False,
     )
     parser.add_setting(
@@ -200,7 +200,7 @@ def register_commands(parser: settngs.Manager) -> None:
         dest="command",
         action="store_const",
         const=Action.save,
-        help="Save out tags as specified type (via --type-modify).\nMust specify also at least -o, -f, or -m.\n\n",
+        help="Save out tags as specified tags (via --tags-write).\nMust specify also at least -o, -f, or -m.\n\n",
         file=False,
     )
     parser.add_setting(
@@ -209,7 +209,7 @@ def register_commands(parser: settngs.Manager) -> None:
         dest="command",
         action="store_const",
         const=Action.rename,
-        help="Rename the file based on specified tag style.",
+        help="Rename the file based on specified tags.",
         file=False,
     )
     parser.add_setting(
@@ -269,8 +269,8 @@ def validate_commandline_settings(config: settngs.Config[ct_ns], parser: settngs
     if config[0].Runtime_Options__json and config[0].Runtime_Options__interactive:
         config[0].Runtime_Options__json = False
 
-    if config[0].Runtime_Options__type_read and not config[0].Runtime_Options__type_modify:
-        config[0].Runtime_Options__type_modify = config[0].Runtime_Options__type_read
+    if config[0].Runtime_Options__tags_read and not config[0].Runtime_Options__tags_write:
+        config[0].Runtime_Options__tags_write = config[0].Runtime_Options__tags_read
 
     if (
         config[0].Commands__command not in (Action.save_config, Action.list_plugins)
@@ -279,16 +279,16 @@ def validate_commandline_settings(config: settngs.Config[ct_ns], parser: settngs
     ):
         parser.exit(message="Command requires at least one filename!\n", status=1)
 
-    if config[0].Commands__command == Action.delete and not config[0].Runtime_Options__type_modify:
-        parser.exit(message="Please specify the type to delete with --type-modify\n", status=1)
+    if config[0].Commands__command == Action.delete and not config[0].Runtime_Options__tags_write:
+        parser.exit(message="Please specify the tags to delete with --tags-write\n", status=1)
 
-    if config[0].Commands__command == Action.save and not config[0].Runtime_Options__type_modify:
-        parser.exit(message="Please specify the type to save with --type-modify\n", status=1)
+    if config[0].Commands__command == Action.save and not config[0].Runtime_Options__tags_write:
+        parser.exit(message="Please specify the tags to save with --tags-write\n", status=1)
 
     if config[0].Commands__copy:
         config[0].Commands__command = Action.copy
-        if not config[0].Runtime_Options__type_modify:
-            parser.exit(message="Please specify the type to copy to with --type-modify\n", status=1)
+        if not config[0].Runtime_Options__tags_write:
+            parser.exit(message="Please specify the tags to copy to with --tags-write\n", status=1)
 
     if config[0].Runtime_Options__recursive:
         config[0].Runtime_Options__files = utils.get_recursive_filelist(config[0].Runtime_Options__files)

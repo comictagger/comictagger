@@ -271,13 +271,13 @@ metadata_prepared = (
     (
         (
             comicapi.genericmetadata.GenericMetadata(
-                issue_id="123", tag_origin=comicapi.genericmetadata.TagOrigin("SOURCE", "Source")
+                issue_id="123", data_origin=comicapi.genericmetadata.MetadataOrigin("SOURCE", "Source")
             ),
             comicapi.genericmetadata.GenericMetadata(),
         ),
         comicapi.genericmetadata.GenericMetadata(
             issue_id="123",
-            tag_origin=comicapi.genericmetadata.TagOrigin("SOURCE", "Source"),
+            data_origin=comicapi.genericmetadata.MetadataOrigin("SOURCE", "Source"),
             notes="Tagged with ComicTagger 1.3.2a5 using info from Source on 2022-04-16 15:52:26. [Issue ID 123]",
         ),
     ),
