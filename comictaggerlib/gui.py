@@ -111,10 +111,8 @@ def open_tagger_window(
 
     # needed to catch initial open file events (macOS)
     app.openFileRequest.connect(lambda x: config[0].Runtime_Options__files.append(x.toLocalFile()))
-
-    if platform.system() == "Darwin":
-        # Set the MacOS dock icon
-        app.setWindowIcon(QtGui.QIcon(str(graphics_path / "app.png")))
+    # The window Icon needs to be set here. It's also set in taggerwindow.ui but it doesn't seem to matter
+    app.setWindowIcon(QtGui.QIcon(":/graphics/app.png"))
 
     if platform.system() == "Windows":
         # For pure python, tell windows that we're not python,
@@ -139,7 +137,6 @@ def open_tagger_window(
 
     try:
         tagger_window = TaggerWindow(config[0].Runtime_Options__files, config, talkers)
-        tagger_window.setWindowIcon(QtGui.QIcon(str(graphics_path / "app.png")))
         tagger_window.show()
 
         # Catch open file events (macOS)

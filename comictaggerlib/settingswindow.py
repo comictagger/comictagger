@@ -71,7 +71,7 @@ template_tooltip = """
 The template for the new filename. Uses python format strings https://docs.python.org/3/library/string.html#format-string-syntax
 Accepts the following variables:
 {is_empty}         (boolean)
-{tag_origin}       (string)
+{data_origin}       (string)
 {series}           (string)
 {issue}            (string)
 {title}            (string)
@@ -195,8 +195,8 @@ class SettingsWindow(QtWidgets.QDialog):
         self.cbFilenameParser.clear()
         self.cbFilenameParser.addItems(utils.Parser)
         for mode in merge.Mode:
-            self.cbxOverlayReadStyle.addItem(mode.name.capitalize().replace("_", " "), mode.value)
-            self.cbxOverlaySource.addItem(mode.name.capitalize().replace("_", " "), mode.value)
+            self.cbTagsMergeMode.addItem(mode.name.capitalize().replace("_", " "), mode)
+            self.cbDownloadMergeMode.addItem(mode.name.capitalize().replace("_", " "), mode)
         self.connect_signals()
         self.settings_to_form()
         self.rename_test()
@@ -337,9 +337,9 @@ class SettingsWindow(QtWidgets.QDialog):
         table.setItem(row, 1, QtWidgets.QTableWidgetItem(replace))
         tmp = QtWidgets.QTableWidgetItem()
         if strict_only:
-            tmp.setCheckState(QtCore.Qt.Checked)
+            tmp.setCheckState(QtCore.Qt.CheckState.Checked)
         else:
-            tmp.setCheckState(QtCore.Qt.Unchecked)
+            tmp.setCheckState(QtCore.Qt.CheckState.Unchecked)
         table.setItem(row, 2, tmp)
 
     def rename_test(self, *args: Any, **kwargs: Any) -> None:
@@ -412,9 +412,10 @@ class SettingsWindow(QtWidgets.QDialog):
             self.leRarExePath.setEnabled(False)
         self.sbNameMatchIdentifyThresh.setValue(self.config[0].Issue_Identifier__series_match_identify_thresh)
         self.sbNameMatchSearchThresh.setValue(self.config[0].Issue_Identifier__series_match_search_thresh)
-        self.tePublisherFilter.setPlainText("\n".join(self.config[0].Issue_Identifier__publisher_filter))
+        self.tePublisherFilter.setPlainText("\n".join(self.config[0].Auto_Tag__publisher_filter))
 
         self.cbxCheckForNewVersion.setChecked(self.config[0].General__check_for_new_version)
+        self.cbxPromptOnSave.setChecked(self.config[0].General__prompt_on_save)
 
         self.cbFilenameParser.setCurrentText(self.config[0].Filename_Parsing__filename_parser)
         self.cbxRemoveC2C.setChecked(self.config[0].Filename_Parsing__remove_c2c)
@@ -427,32 +428,32 @@ class SettingsWindow(QtWidgets.QDialog):
 
         self.switch_parser()
 
-        self.cbxUseFilter.setChecked(self.config[0].Issue_Identifier__always_use_publisher_filter)
+        self.cbxUseFilter.setChecked(self.config[0].Auto_Tag__use_publisher_filter)
         self.cbxSortByYear.setChecked(self.config[0].Issue_Identifier__sort_series_by_year)
         self.cbxExactMatches.setChecked(self.config[0].Issue_Identifier__exact_series_matches_first)
-        self.cbxClearFormBeforePopulating.setChecked(self.config[0].Issue_Identifier__clear_metadata)
+        self.cbxClearFormBeforePopulating.setChecked(self.config[0].Auto_Tag__clear_tags)
 
-        self.cbxAssumeLoneCreditIsPrimary.setChecked(self.config[0].Metadata_Options__cbl_assume_lone_credit_is_primary)
-        self.cbxCopyCharactersToTags.setChecked(self.config[0].Metadata_Options__cbl_copy_characters_to_tags)
-        self.cbxCopyTeamsToTags.setChecked(self.config[0].Metadata_Options__cbl_copy_teams_to_tags)
-        self.cbxCopyLocationsToTags.setChecked(self.config[0].Metadata_Options__cbl_copy_locations_to_tags)
-        self.cbxCopyStoryArcsToTags.setChecked(self.config[0].Metadata_Options__cbl_copy_storyarcs_to_tags)
-        self.cbxCopyNotesToComments.setChecked(self.config[0].Metadata_Options__cbl_copy_notes_to_comments)
-        self.cbxCopyWebLinkToComments.setChecked(self.config[0].Metadata_Options__cbl_copy_weblink_to_comments)
-        self.cbxApplyCBLTransformOnCVIMport.setChecked(self.config[0].Metadata_Options__cbl_apply_transform_on_import)
+        self.cbxAssumeLoneCreditIsPrimary.setChecked(self.config[0].Metadata_Options__assume_lone_credit_is_primary)
+        self.cbxCopyCharactersToTags.setChecked(self.config[0].Metadata_Options__copy_characters_to_tags)
+        self.cbxCopyTeamsToTags.setChecked(self.config[0].Metadata_Options__copy_teams_to_tags)
+        self.cbxCopyLocationsToTags.setChecked(self.config[0].Metadata_Options__copy_locations_to_tags)
+        self.cbxCopyStoryArcsToTags.setChecked(self.config[0].Metadata_Options__copy_storyarcs_to_tags)
+        self.cbxCopyNotesToComments.setChecked(self.config[0].Metadata_Options__copy_notes_to_comments)
+        self.cbxCopyWebLinkToComments.setChecked(self.config[0].Metadata_Options__copy_weblink_to_comments)
+        self.cbxApplyCBLTransformOnCVIMport.setChecked(self.config[0].Metadata_Options__apply_transform_on_import)
         self.cbxApplyCBLTransformOnBatchOperation.setChecked(
-            self.config[0].Metadata_Options__cbl_apply_transform_on_bulk_operation
+            self.config[0].Metadata_Options__apply_transform_on_bulk_operation
         )
         self.cbxRemoveHtmlTables.setChecked(self.config[0].Metadata_Options__remove_html_tables)
-        self.cbxOverlayReadStyle.setCurrentIndex(
-            self.cbxOverlayReadStyle.findData(self.config[0].internal__load_data_overlay.value)
+
+        self.cbTagsMergeMode.setCurrentIndex(self.cbTagsMergeMode.findData(self.config[0].Metadata_Options__tag_merge))
+        self.cbDownloadMergeMode.setCurrentIndex(
+            self.cbDownloadMergeMode.findData(self.config[0].Metadata_Options__metadata_merge)
         )
-        self.cbxOverlaySource.setCurrentIndex(
-            self.cbxOverlaySource.findData(self.config[0].internal__source_data_overlay.value)
-        )
-        self.cbxOverlayMergeLists.setChecked(self.config[0].internal__overlay_merge_lists)
-        self.cbxShortMetadataNames.setChecked(self.config[0].Metadata_Options__use_short_metadata_names)
-        self.cbxDisableCR.setChecked(self.config[0].Metadata_Options__disable_cr)
+        self.cbxTagsMergeLists.setChecked(self.config[0].Metadata_Options__tag_merge_lists)
+        self.cbxMergeListsMetadata.setChecked(self.config[0].Metadata_Options__metadata_merge_lists)
+        self.cbxShortTagNames.setChecked(self.config[0].Metadata_Options__use_short_tag_names)
+        self.cbxEnableCR.setChecked(self.config[0].Metadata_Options__cr)
 
         self.leRenameTemplate.setText(self.config[0].File_Rename__template)
         self.leIssueNumPadding.setText(str(self.config[0].File_Rename__issue_number_padding))
@@ -461,7 +462,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.cbxMoveFiles.setChecked(self.config[0].File_Rename__move)
         self.cbxMoveOnly.setChecked(self.config[0].File_Rename__only_move)
         self.leDirectory.setText(self.config[0].File_Rename__dir)
-        self.cbxRenameStrict.setChecked(self.config[0].File_Rename__strict)
+        self.cbxRenameStrict.setChecked(self.config[0].File_Rename__strict_filenames)
 
         for table, replacments in zip(
             (self.twLiteralReplacements, self.twValueReplacements), self.config[0].File_Rename__replacements
@@ -486,7 +487,7 @@ class SettingsWindow(QtWidgets.QDialog):
                     Replacement(
                         self.twLiteralReplacements.item(row, 0).text(),
                         self.twLiteralReplacements.item(row, 1).text(),
-                        self.twLiteralReplacements.item(row, 2).checkState() == QtCore.Qt.Checked,
+                        self.twLiteralReplacements.item(row, 2).checkState() == QtCore.Qt.CheckState.Checked,
                     )
                 )
         for row in range(self.twValueReplacements.rowCount()):
@@ -495,7 +496,7 @@ class SettingsWindow(QtWidgets.QDialog):
                     Replacement(
                         self.twValueReplacements.item(row, 0).text(),
                         self.twValueReplacements.item(row, 1).text(),
-                        self.twValueReplacements.item(row, 2).checkState() == QtCore.Qt.Checked,
+                        self.twValueReplacements.item(row, 2).checkState() == QtCore.Qt.CheckState.Checked,
                     )
                 )
         return Replacements(literal_replacements, value_replacements)
@@ -543,10 +544,11 @@ class SettingsWindow(QtWidgets.QDialog):
             self.leIssueNumPadding.setText("0")
 
         self.config[0].General__check_for_new_version = self.cbxCheckForNewVersion.isChecked()
+        self.config[0].General__prompt_on_save = self.cbxPromptOnSave.isChecked()
 
         self.config[0].Issue_Identifier__series_match_identify_thresh = self.sbNameMatchIdentifyThresh.value()
         self.config[0].Issue_Identifier__series_match_search_thresh = self.sbNameMatchSearchThresh.value()
-        self.config[0].Issue_Identifier__publisher_filter = utils.split(self.tePublisherFilter.toPlainText(), "\n")
+        self.config[0].Auto_Tag__publisher_filter = utils.split(self.tePublisherFilter.toPlainText(), "\n")
 
         self.config[0].Filename_Parsing__filename_parser = utils.Parser(self.cbFilenameParser.currentText())
         self.config[0].Filename_Parsing__remove_c2c = self.cbxRemoveC2C.isChecked()
@@ -557,34 +559,35 @@ class SettingsWindow(QtWidgets.QDialog):
             self.cbxProtofoliusIssueNumberScheme.isChecked()
         )
 
-        self.config[0].Issue_Identifier__always_use_publisher_filter = self.cbxUseFilter.isChecked()
+        self.config[0].Auto_Tag__use_publisher_filter = self.cbxUseFilter.isChecked()
         self.config[0].Issue_Identifier__sort_series_by_year = self.cbxSortByYear.isChecked()
         self.config[0].Issue_Identifier__exact_series_matches_first = self.cbxExactMatches.isChecked()
-        self.config[0].Issue_Identifier__clear_metadata = self.cbxClearFormBeforePopulating.isChecked()
+        self.config[0].Auto_Tag__clear_tags = self.cbxClearFormBeforePopulating.isChecked()
 
-        self.config[0].Metadata_Options__cbl_assume_lone_credit_is_primary = (
-            self.cbxAssumeLoneCreditIsPrimary.isChecked()
-        )
-        self.config[0].Metadata_Options__cbl_copy_characters_to_tags = self.cbxCopyCharactersToTags.isChecked()
-        self.config[0].Metadata_Options__cbl_copy_teams_to_tags = self.cbxCopyTeamsToTags.isChecked()
-        self.config[0].Metadata_Options__cbl_copy_locations_to_tags = self.cbxCopyLocationsToTags.isChecked()
-        self.config[0].Metadata_Options__cbl_copy_storyarcs_to_tags = self.cbxCopyStoryArcsToTags.isChecked()
-        self.config[0].Metadata_Options__cbl_copy_notes_to_comments = self.cbxCopyNotesToComments.isChecked()
-        self.config[0].Metadata_Options__cbl_copy_weblink_to_comments = self.cbxCopyWebLinkToComments.isChecked()
-        self.config[0].Metadata_Options__cbl_apply_transform_on_import = self.cbxApplyCBLTransformOnCVIMport.isChecked()
-        self.config.values.Metadata_Options__cbl_apply_transform_on_bulk_operation = (
+        self.config[0].Metadata_Options__assume_lone_credit_is_primary = self.cbxAssumeLoneCreditIsPrimary.isChecked()
+        self.config[0].Metadata_Options__copy_characters_to_tags = self.cbxCopyCharactersToTags.isChecked()
+        self.config[0].Metadata_Options__copy_teams_to_tags = self.cbxCopyTeamsToTags.isChecked()
+        self.config[0].Metadata_Options__copy_locations_to_tags = self.cbxCopyLocationsToTags.isChecked()
+        self.config[0].Metadata_Options__copy_storyarcs_to_tags = self.cbxCopyStoryArcsToTags.isChecked()
+        self.config[0].Metadata_Options__copy_notes_to_comments = self.cbxCopyNotesToComments.isChecked()
+        self.config[0].Metadata_Options__copy_weblink_to_comments = self.cbxCopyWebLinkToComments.isChecked()
+        self.config[0].Metadata_Options__apply_transform_on_import = self.cbxApplyCBLTransformOnCVIMport.isChecked()
+        self.config.values.Metadata_Options__apply_transform_on_bulk_operation = (
             self.cbxApplyCBLTransformOnBatchOperation.isChecked()
         )
         self.config[0].Metadata_Options__remove_html_tables = self.cbxRemoveHtmlTables.isChecked()
-        self.config[0].internal__load_data_overlay = merge.Mode[self.cbxOverlayReadStyle.currentData().upper()]
-        self.config[0].internal__source_data_overlay = merge.Mode[self.cbxOverlaySource.currentData().upper()]
-        self.config[0].internal__overlay_merge_lists = self.cbxOverlayMergeLists.isChecked()
-        self.config[0].Metadata_Options__disable_cr = self.cbxDisableCR.isChecked()
-        # Update metadata style names if required
-        if self.config[0].Metadata_Options__use_short_metadata_names != self.cbxShortMetadataNames.isChecked():
-            self.config[0].Metadata_Options__use_short_metadata_names = self.cbxShortMetadataNames.isChecked()
-            self.parent().populate_style_names()
-            self.parent().adjust_save_style_combo()
+
+        self.config[0].Metadata_Options__tag_merge = merge.Mode(self.cbTagsMergeMode.currentData())
+        self.config[0].Metadata_Options__metadata_merge = merge.Mode(self.cbDownloadMergeMode.currentData())
+        self.config[0].Metadata_Options__tag_merge_lists = self.cbxTagsMergeLists.isChecked()
+        self.config[0].Metadata_Options__metadata_merge_lists = self.cbxMergeListsMetadata.isChecked()
+        self.config[0].Metadata_Options__cr = self.cbxEnableCR.isChecked()
+
+        # Update tag names if required
+        if self.config[0].Metadata_Options__use_short_tag_names != self.cbxShortTagNames.isChecked():
+            self.config[0].Metadata_Options__use_short_tag_names = self.cbxShortTagNames.isChecked()
+            self.parent().populate_tag_names()
+            self.parent().adjust_tags_combo()
 
         self.config[0].File_Rename__template = str(self.leRenameTemplate.text())
         self.config[0].File_Rename__issue_number_padding = int(self.leIssueNumPadding.text())
@@ -594,7 +597,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.config[0].File_Rename__only_move = self.cbxMoveOnly.isChecked()
         self.config[0].File_Rename__dir = self.leDirectory.text()
 
-        self.config[0].File_Rename__strict = self.cbxRenameStrict.isChecked()
+        self.config[0].File_Rename__strict_filenames = self.cbxRenameStrict.isChecked()
         self.config[0].File_Rename__replacements = self.get_replacements()
 
         # Read settings from talker tabs

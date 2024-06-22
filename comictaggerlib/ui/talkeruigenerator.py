@@ -10,7 +10,6 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 from comictaggerlib.coverimagewidget import CoverImageWidget
 from comictaggerlib.ctsettings import ct_ns, group_for_plugin
-from comictaggerlib.graphics import graphics_path
 from comictalker.comictalker import ComicTalker
 
 logger = logging.getLogger(__name__)
@@ -37,8 +36,8 @@ class PasswordEdit(QtWidgets.QLineEdit):
     def __init__(self, show_visibility: bool = True, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
 
-        self.visibleIcon = QtGui.QIcon(str(graphics_path / "eye.svg"))
-        self.hiddenIcon = QtGui.QIcon(str(graphics_path / "hidden.svg"))
+        self.visibleIcon = QtGui.QIcon(":/graphics/eye.svg")
+        self.hiddenIcon = QtGui.QIcon(":/graphics/hidden.svg")
 
         self.setEchoMode(QtWidgets.QLineEdit.Password)
 

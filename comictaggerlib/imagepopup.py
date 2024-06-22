@@ -21,7 +21,6 @@ import platform
 
 from PyQt5 import QtCore, QtGui, QtWidgets, sip, uic
 
-from comictaggerlib.graphics import graphics_path
 from comictaggerlib.ui import ui_path
 
 logger = logging.getLogger(__name__)
@@ -78,7 +77,7 @@ class ImagePopup(QtWidgets.QDialog):
             # translucent screen over it.  Probably can do it better by setting opacity of a widget
             # TODO: macOS denies this
             self.desktopBg = screen.grabWindow(sip.voidptr(0), 0, 0, screen_size.width(), screen_size.height())
-            bg = QtGui.QPixmap(str(graphics_path / "popup_bg.png"))
+            bg = QtGui.QPixmap(":/graphics/popup_bg.png")
             self.clientBgPixmap = bg.scaled(
                 screen_size.width(),
                 screen_size.height(),

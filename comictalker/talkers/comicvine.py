@@ -30,7 +30,7 @@ from pyrate_limiter import Limiter, RequestRate
 from typing_extensions import Required, TypedDict
 
 from comicapi import utils
-from comicapi.genericmetadata import ComicSeries, GenericMetadata, TagOrigin
+from comicapi.genericmetadata import ComicSeries, GenericMetadata, MetadataOrigin
 from comicapi.issuestring import IssueString
 from comicapi.utils import LocationParseError, parse_url
 from comictalker import talker_utils
@@ -636,7 +636,7 @@ class ComicVineTalker(ComicTalker):
 
     def _map_comic_issue_to_metadata(self, issue: CVIssue, series: ComicSeries) -> GenericMetadata:
         md = GenericMetadata(
-            tag_origin=TagOrigin(self.id, self.name),
+            data_origin=MetadataOrigin(self.id, self.name),
             issue_id=utils.xlate(issue.get("id")),
             series_id=series.id,
             title_aliases=set(utils.split(issue.get("aliases"), "\n")),

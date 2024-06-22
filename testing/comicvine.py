@@ -170,7 +170,7 @@ comic_series_result = comicapi.genericmetadata.ComicSeries(
 )
 date = utils.parse_date_str(cv_issue_result["results"]["cover_date"])
 comic_issue_result = comicapi.genericmetadata.GenericMetadata(
-    tag_origin=comicapi.genericmetadata.TagOrigin("comicvine", "Comic Vine"),
+    data_origin=comicapi.genericmetadata.MetadataOrigin("comicvine", "Comic Vine"),
     title_aliases=set(),
     month=date[1],
     year=date[2],
@@ -190,7 +190,7 @@ comic_issue_result = comicapi.genericmetadata.GenericMetadata(
 
 cv_md = comicapi.genericmetadata.GenericMetadata(
     is_empty=False,
-    tag_origin=comicapi.genericmetadata.TagOrigin("comicvine", "Comic Vine"),
+    data_origin=comicapi.genericmetadata.MetadataOrigin("comicvine", "Comic Vine"),
     issue_id=str(cv_issue_result["results"]["id"]),
     series=cv_issue_result["results"]["volume"]["name"],
     series_id=str(cv_issue_result["results"]["volume"]["id"]),

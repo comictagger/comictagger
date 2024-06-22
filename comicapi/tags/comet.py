@@ -25,15 +25,15 @@ from comicapi import utils
 from comicapi.archivers import Archiver
 from comicapi.comicarchive import ComicArchive
 from comicapi.genericmetadata import GenericMetadata, ImageMetadata, PageType
-from comicapi.metadata import Metadata
+from comicapi.tags import Tag
 
 logger = logging.getLogger(__name__)
 
 
-class CoMet(Metadata):
+class CoMet(Tag):
     enabled = True
 
-    short_name = "comet"
+    id = "comet"
 
     def __init__(self, version: str) -> None:
         super().__init__(version)
@@ -71,13 +71,13 @@ class CoMet(Metadata):
     def supports_credit_role(self, role: str) -> bool:
         return role.casefold() in self._get_parseable_credits()
 
-    def supports_metadata(self, archive: Archiver) -> bool:
+    def supports_tags(self, archive: Archiver) -> bool:
         return archive.supports_files()
 
-    def has_metadata(self, archive: Archiver) -> bool:
-        if not self.supports_metadata(archive):
+    def has_tags(self, archive: Archiver) -> bool:
+        if not self.supports_tags(archive):
             return False
-        has_metadata = False
+        has_tags = False
         # look at all xml files in root, and search for CoMet data, get first
         for n in archive.get_filename_list():
             if os.path.dirname(n) == "" and os.path.splitext(n)[1].casefold() == ".xml":
@@ -90,33 +90,33 @@ class CoMet(Metadata):
                 if self._validate_bytes(data):
                     # since we found it, save it!
                     self.file = n
-                    has_metadata = True
+                    has_tags = True
                     break
-        return has_metadata
+        return has_tags
 
-    def remove_metadata(self, archive: Archiver) -> bool:
-        return self.has_metadata(archive) and archive.remove_file(self.file)
+    def remove_tags(self, archive: Archiver) -> bool:
+        return self.has_tags(archive) and archive.remove_file(self.file)
 
-    def get_metadata(self, archive: Archiver) -> GenericMetadata:
-        if self.has_metadata(archive):
+    def read_tags(self, archive: Archiver) -> GenericMetadata:
+        if self.has_tags(archive):
             metadata = archive.read_file(self.file) or b""
             if self._validate_bytes(metadata):
                 return self._metadata_from_bytes(metadata, archive)
         return GenericMetadata()
 
-    def get_metadata_string(self, archive: Archiver) -> str:
-        if self.has_metadata(archive):
+    def read_raw_tags(self, archive: Archiver) -> str:
+        if self.has_tags(archive):
             return ET.tostring(ET.fromstring(archive.read_file(self.file)), encoding="unicode", xml_declaration=True)
         return ""
 
-    def set_metadata(self, metadata: GenericMetadata, archive: Archiver) -> bool:
-        if self.supports_metadata(archive):
+    def write_tags(self, metadata: GenericMetadata, archive: Archiver) -> bool:
+        if self.supports_tags(archive):
             success = True
             xml = b""
-            if self.has_metadata(archive):
+            if self.has_tags(archive):
                 xml = archive.read_file(self.file)
             if self.file != self.comet_filename:
-                success = self.remove_metadata(archive)
+                success = self.remove_tags(archive)
 
             return success and archive.write_file(self.comet_filename, self._bytes_from_metadata(metadata, xml))
         else:

@@ -82,6 +82,7 @@ class Result:
 
     md: GenericMetadata | None = None
 
+    tags_read: list[str] = dataclasses.field(default_factory=list)
     tags_deleted: list[str] = dataclasses.field(default_factory=list)
     tags_written: list[str] = dataclasses.field(default_factory=list)
 

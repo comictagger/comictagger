@@ -7,27 +7,25 @@ import comicapi.genericmetadata
 import testing.comicdata
 from comictaggerlib.md import prepare_metadata
 
-metadata_styles = []
+tags = []
 
-for x in entry_points(group="comicapi.metadata"):
-    meetadata = x.load()
-    supported = meetadata.enabled
+for x in entry_points(group="comicapi.tag"):
+    tag = x.load()
+    supported = tag.enabled
     exe_found = True
-    metadata_styles.append(
-        pytest.param(meetadata, marks=pytest.mark.xfail(not supported, reason="metadata not enabled"))
-    )
+    tags.append(pytest.param(tag, marks=pytest.mark.xfail(not supported, reason="tags not enabled")))
 
 
-@pytest.mark.parametrize("metadata", metadata_styles)
-def test_metadata(mock_version, tmp_comic, md_saved, metadata):
-    md_style = metadata(mock_version[0])
-    supported_attributes = md_style.supported_attributes
-    md_style.set_metadata(comicapi.genericmetadata.md_test, tmp_comic.archiver)
-    written_metadata = md_style.get_metadata(tmp_comic.archiver)
+@pytest.mark.parametrize("tag_type", tags)
+def test_metadata(mock_version, tmp_comic, md_saved, tag_type):
+    tag = tag_type(mock_version[0])
+    supported_attributes = tag.supported_attributes
+    tag.write_tags(comicapi.genericmetadata.md_test, tmp_comic.archiver)
+    written_metadata = tag.read_tags(tmp_comic.archiver)
     md = md_saved.get_clean_metadata(*supported_attributes)
 
     # Hack back in the pages variable because CoMet supports identifying the cover by the filename
-    if md_style.short_name == "comet":
+    if tag.id == "comet":
         md.pages = [
             comicapi.genericmetadata.ImageMetadata(
                 image_index=0, filename="!cover.jpg", type=comicapi.genericmetadata.PageType.FrontCover

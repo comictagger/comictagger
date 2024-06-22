@@ -1,0 +1,24 @@
+<RCC>
+  <qresource prefix="graphics">
+    <file>about.png</file>
+    <file>app.png</file>
+    <file>auto.png</file>
+    <file>autotag.png</file>
+    <file>browse.png</file>
+    <file>clear.png</file>
+    <file>down.png</file>
+    <file>eye.svg</file>
+    <file>hidden.svg</file>
+    <file>left.png</file>
+    <file>longbox.png</file>
+    <file>nocover.png</file>
+    <file>open.png</file>
+    <file>parse.png</file>
+    <file>popup_bg.png</file>
+    <file>right.png</file>
+    <file>save.png</file>
+    <file>search.png</file>
+    <file>tags.png</file>
+    <file>up.png</file>
+  </qresource>
+</RCC>

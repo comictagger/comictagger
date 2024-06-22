@@ -10,7 +10,6 @@ from PyQt5 import QtGui, QtWidgets
 from PyQt5.QtCore import QEvent, QModelIndex, QPoint, QRect, QSize, Qt, pyqtSignal
 
 from comicapi.utils import StrEnum
-from comictaggerlib.graphics import graphics_path
 
 
 class ClickedButtonEnum(StrEnum):
@@ -74,7 +73,7 @@ class CheckableComboBox(QtWidgets.QComboBox):
     def addItem(self, text: str, data: Any = None) -> None:
         super().addItem(text, data)
         # Need to enable the checkboxes and require one checked item
-        # Expected that state of *all* checkboxes will be set ('adjust_save_style_combo' in taggerwindow.py)
+        # Expected that state of *all* checkboxes will be set ('adjust_tags_combo' in taggerwindow.py)
         if self.count() == 1:
             self.model().item(0).setCheckState(Qt.CheckState.Checked)
 
@@ -133,8 +132,8 @@ class ReadStyleItemDelegate(QtWidgets.QStyledItemDelegate):
         super().__init__()
         self.combobox = parent
 
-        self.down_icon = QtGui.QImage(str(graphics_path / "down.png"))
-        self.up_icon = QtGui.QImage(str(graphics_path / "up.png"))
+        self.down_icon = QtGui.QImage(":/graphics/down.png")
+        self.up_icon = QtGui.QImage(":/graphics/up.png")
 
         self.button_width = self.down_icon.width()
         self.button_padding = 5
@@ -277,7 +276,7 @@ class CheckableOrderComboBox(QtWidgets.QComboBox):
         super().__init__(*args, **kwargs)
         itemDelegate = ReadStyleItemDelegate(self)
         itemDelegate.setToolTip(
-            "Select which read style(s) to use", "Move item up in priority", "Move item down in priority"
+            "Select which read tag(s) to use", "Move item up in priority", "Move item down in priority"
         )
         self.setItemDelegate(itemDelegate)
 
@@ -345,7 +344,7 @@ class CheckableOrderComboBox(QtWidgets.QComboBox):
     def addItem(self, text: str, data: Any = None) -> None:
         super().addItem(text, data)
         # Need to enable the checkboxes and require one checked item
-        # Expected that state of *all* checkboxes will be set ('adjust_save_style_combo' in taggerwindow.py)
+        # Expected that state of *all* checkboxes will be set ('adjust_tags_combo' in taggerwindow.py)
         if self.count() == 1:
             self.model().item(0).setCheckState(Qt.CheckState.Checked)
 

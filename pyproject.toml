@@ -1,10 +1,11 @@
 [tool.black]
 line-length = 120
 force-exclude = "scripts"
+extend-exclude = "comictaggerlib/graphics/resources.py"
 
 [tool.isort]
 line_length = 120
-extend_skip = ["scripts"]
+extend_skip = ["scripts", "comictaggerlib/graphics/resources.py"]
 profile = "black"
 
 [build-system]

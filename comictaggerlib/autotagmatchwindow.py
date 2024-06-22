@@ -22,10 +22,11 @@ from typing import Callable
 
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
-from comicapi.comicarchive import ComicArchive, metadata_styles
+from comicapi.comicarchive import ComicArchive, tags
 from comicapi.genericmetadata import GenericMetadata
 from comictaggerlib.coverimagewidget import CoverImageWidget
 from comictaggerlib.ctsettings import ct_ns
+from comictaggerlib.md import prepare_metadata
 from comictaggerlib.resulttypes import IssueResult, Result
 from comictaggerlib.ui import ui_path
 from comictalker.comictalker import ComicTalker, TalkerError
@@ -38,7 +39,7 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
         self,
         parent: QtWidgets.QWidget,
         match_set_list: list[Result],
-        load_styles: list[str],
+        read_tags: list[str],
         fetch_func: Callable[[IssueResult], GenericMetadata],
         config: ct_ns,
         talker: ComicTalker,
@@ -77,7 +78,7 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
         self.buttonBox.button(QtWidgets.QDialogButtonBox.StandardButton.Ok).setText("Accept and Write Tags")
 
         self.match_set_list = match_set_list
-        self._styles = load_styles
+        self._tags = read_tags
         self.fetch_func = fetch_func
 
         self.current_match_set_idx = 0
@@ -225,14 +226,14 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
     def save_match(self) -> None:
         match = self.current_match()
         ca = ComicArchive(self.current_match_set.original_path)
-        md, error = self.parent().overlay_ca_read_style(self._styles, ca)
+        md, error = self.parent().read_all_tags(self._tags, ca)
         if error is not None:
-            logger.error("Failed to load metadata for %s: %s", ca.path, error)
+            logger.error("Failed to load tags for %s: %s", ca.path, error)
             QtWidgets.QApplication.restoreOverrideCursor()
             QtWidgets.QMessageBox.critical(
                 self,
                 "Read Failed!",
-                f"One or more of the read styles failed to load for {ca.path}, check log for details",
+                f"One or more of the read tags failed to load for {ca.path}, check log for details",
             )
             return
 
@@ -258,15 +259,15 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
             return
 
         QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
-        md.overlay(ct_md, self.config.internal__source_data_overlay, self.config.internal__overlay_merge_lists)
-        for style in self._styles:
-            success = ca.write_metadata(md, style)
+        md = prepare_metadata(md, ct_md, self.config)
+        for tag_id in self._tags:
+            success = ca.write_tags(md, tag_id)
             QtWidgets.QApplication.restoreOverrideCursor()
             if not success:
                 QtWidgets.QMessageBox.warning(
                     self,
                     "Write Error",
-                    f"Saving {metadata_styles[style].name()} the tags to the archive seemed to fail!",
+                    f"Saving {tags[tag_id].name()} the tags to the archive seemed to fail!",
                 )
                 break
 

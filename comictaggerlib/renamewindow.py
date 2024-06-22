@@ -22,7 +22,7 @@ import settngs
 from PyQt5 import QtCore, QtWidgets, uic
 
 from comicapi import utils
-from comicapi.comicarchive import ComicArchive, metadata_styles
+from comicapi.comicarchive import ComicArchive, tags
 from comicapi.genericmetadata import GenericMetadata
 from comictaggerlib.ctsettings import ct_ns
 from comictaggerlib.filerenamer import FileRenamer, get_rename_dir
@@ -39,7 +39,7 @@ class RenameWindow(QtWidgets.QDialog):
         self,
         parent: QtWidgets.QWidget,
         comic_archive_list: list[ComicArchive],
-        load_data_styles: list[str],
+        read_tag_ids: list[str],
         config: settngs.Config[ct_ns],
         talkers: dict[str, ComicTalker],
     ) -> None:
@@ -48,9 +48,7 @@ class RenameWindow(QtWidgets.QDialog):
         with (ui_path / "renamewindow.ui").open(encoding="utf-8") as uifile:
             uic.loadUi(uifile, self)
 
-        self.label.setText(
-            f"Preview (based on {', '.join(metadata_styles[style].name() for style in load_data_styles)} tags):"
-        )
+        self.label.setText(f"Preview (based on {', '.join(tags[tag].name() for tag in read_tag_ids)} tags):")
 
         self.setWindowFlags(
             QtCore.Qt.WindowType(
@@ -63,11 +61,11 @@ class RenameWindow(QtWidgets.QDialog):
         self.config = config
         self.talkers = talkers
         self.comic_archive_list = comic_archive_list
-        self.load_data_styles = load_data_styles
+        self.read_tag_ids = read_tag_ids
         self.rename_list: list[str] = []
 
         self.btnSettings.clicked.connect(self.modify_settings)
-        platform = "universal" if self.config[0].File_Rename__strict else "auto"
+        platform = "universal" if self.config[0].File_Rename__strict_filenames else "auto"
         self.renamer = FileRenamer(None, platform=platform, replacements=self.config[0].File_Rename__replacements)
 
         self.do_preview()
@@ -84,13 +82,13 @@ class RenameWindow(QtWidgets.QDialog):
             new_ext = ca.extension()
 
         if md is None or md.is_empty:
-            md, error = self.parent().overlay_ca_read_style(self.load_data_styles, ca)
+            md, error = self.parent().read_all_tags(self.read_tag_ids, ca)
             if error is not None:
-                logger.error("Failed to load metadata for %s: %s", ca.path, error)
+                logger.error("Failed to load tags from %s: %s", ca.path, error)
                 QtWidgets.QMessageBox.warning(
                     self,
                     "Read Failed!",
-                    f"One or more of the read styles failed to load for {ca.path}, check log for details",
+                    f"One or more of the read tags failed to load for {ca.path}, check log for details",
                 )
 
             if md.is_empty:

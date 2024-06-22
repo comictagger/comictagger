@@ -22,13 +22,13 @@ import json
 import logging
 import os
 import pathlib
+import re
 import sys
 from collections.abc import Collection
 from typing import Any, TextIO
 
 from comicapi import merge, utils
-from comicapi.comicarchive import ComicArchive
-from comicapi.comicarchive import metadata_styles as md_styles
+from comicapi.comicarchive import ComicArchive, tags
 from comicapi.genericmetadata import GenericMetadata
 from comictaggerlib.cbltransformer import CBLTransformer
 from comictaggerlib.ctsettings import ct_ns
@@ -113,13 +113,13 @@ class CLI:
 
         self.post_process_matches(match_results)
 
-        if self.config.Runtime_Options__online:
+        if self.config.Auto_Tag__online:
             self.output(
                 f"\nFiles tagged with metadata provided by {self.current_talker().name} {self.current_talker().website}",
             )
         return return_code
 
-    def actual_issue_data_fetch(self, issue_id: str) -> GenericMetadata:
+    def fetch_metadata(self, issue_id: str) -> GenericMetadata:
         # now get the particular issue data
         try:
             ct_md = self.current_talker().fetch_comic_data(issue_id)
@@ -127,17 +127,17 @@ class CLI:
             logger.exception(f"Error retrieving issue details. Save aborted.\n{e}")
             return GenericMetadata()
 
-        if self.config.Metadata_Options__cbl_apply_transform_on_import:
+        if self.config.Metadata_Options__apply_transform_on_import:
             ct_md = CBLTransformer(ct_md, self.config).apply()
 
         return ct_md
 
-    def actual_metadata_save(self, ca: ComicArchive, md: GenericMetadata) -> bool:
+    def write_tags(self, ca: ComicArchive, md: GenericMetadata) -> bool:
         if not self.config.Runtime_Options__dryrun:
-            for style in self.config.Runtime_Options__type_modify:
+            for tag_id in self.config.Runtime_Options__tags_write:
                 # write out the new data
-                if not ca.write_metadata(md, style):
-                    logger.error("The tag save seemed to fail for style: %s!", md_styles[style].name())
+                if not ca.write_tags(md, tag_id):
+                    logger.error("The tag save seemed to fail for: %s!", tags[tag_id].name())
                     return False
 
             self.output("Save complete.")
@@ -177,12 +177,12 @@ class CLI:
                 # save the data!
                 # we know at this point, that the file is all good to go
                 ca = ComicArchive(match_set.original_path)
-                md = self.create_local_metadata(ca)
-                ct_md = self.actual_issue_data_fetch(match_set.online_results[int(i) - 1].issue_id)
+                md, match_set.tags_read = self.create_local_metadata(ca, self.config.Runtime_Options__tags_read)
+                ct_md = self.fetch_metadata(match_set.online_results[int(i) - 1].issue_id)
 
                 match_set.md = prepare_metadata(md, ct_md, self.config)
 
-                self.actual_metadata_save(ca, match_set.md)
+                self.write_tags(ca, match_set.md)
 
     def post_process_matches(self, match_results: OnlineMatchResults) -> None:
         def print_header(header: str) -> None:
@@ -231,13 +231,15 @@ class CLI:
 
                 self.display_match_set_for_choice(label, match_set)
 
-    def create_local_metadata(self, ca: ComicArchive) -> GenericMetadata:
+    def create_local_metadata(
+        self, ca: ComicArchive, tags_to_read: list[str], /, tags_only: bool = False
+    ) -> tuple[GenericMetadata, list[str]]:
         md = GenericMetadata()
         md.apply_default_page_list(ca.get_page_name_list())
         filename_md = GenericMetadata()
 
         # now, overlay the parsed filename info
-        if self.config.Runtime_Options__parse_filename:
+        if self.config.Auto_Tag__parse_filename and not tags_only:
             filename_md = ca.metadata_from_filename(
                 self.config.Filename_Parsing__filename_parser,
                 self.config.Filename_Parsing__remove_c2c,
@@ -249,30 +251,35 @@ class CLI:
             )
 
         file_md = GenericMetadata()
-        for style in self.config.Runtime_Options__type_read:
-            if ca.has_metadata(style):
+        tags_used = []
+        for tag_id in tags_to_read:
+            if ca.has_tags(tag_id):
                 try:
-                    t_md = ca.read_metadata(style)
-                    file_md.overlay(
-                        t_md, self.config.internal__load_data_overlay, self.config.internal__overlay_merge_lists
-                    )
-                    break
+                    t_md = ca.read_tags(tag_id)
+                    if not t_md.is_empty:
+                        file_md.overlay(
+                            t_md,
+                            self.config.Metadata_Options__tag_merge,
+                            self.config.Metadata_Options__tag_merge_lists,
+                        )
+                        tags_used.append(tag_id)
                 except Exception as e:
                     logger.error("Failed to load metadata for %s: %s", ca.path, e)
 
         filename_merge = merge.Mode.ADD_MISSING
-        if self.config.Runtime_Options__prefer_filename:
+        if self.config.Auto_Tag__prefer_filename:
             filename_merge = merge.Mode.OVERLAY
 
         md.overlay(file_md, mode=merge.Mode.OVERLAY, merge_lists=False)
-        md.overlay(filename_md, mode=filename_merge, merge_lists=False)
-        # finally, use explicit stuff (always 'overlay' mode)
-        md.overlay(self.config.Runtime_Options__metadata, mode=merge.Mode.OVERLAY, merge_lists=True)
+        if not tags_only:
+            md.overlay(filename_md, mode=filename_merge, merge_lists=False)
+            # finally, use explicit stuff (always 'overlay' mode)
+            md.overlay(self.config.Auto_Tag__metadata, mode=merge.Mode.OVERLAY, merge_lists=True)
 
-        return md
+        return (md, tags_used)
 
     def print(self, ca: ComicArchive) -> Result:
-        if not self.config.Runtime_Options__type_read:
+        if not self.config.Runtime_Options__tags_read:
             page_count = ca.get_number_of_pages()
 
             brief = ""
@@ -285,8 +292,8 @@ class CLI:
             brief += f"({page_count: >3} pages)"
             brief += "  tags:[ "
 
-            metadata_styles = [md_styles[style].name() for style in md_styles if ca.has_metadata(style)]
-            brief += " ".join(metadata_styles)
+            tag_names = [tags[tag_id].name() for tag_id in tags if ca.has_tags(tag_id)]
+            brief += " ".join(tag_names)
             brief += " ]"
 
             self.output(brief)
@@ -297,105 +304,110 @@ class CLI:
         self.output()
 
         md = None
-        for style, style_obj in md_styles.items():
-            if not self.config.Runtime_Options__type_read or style in self.config.Runtime_Options__type_read:
-                if ca.has_metadata(style):
-                    self.output(f"--------- {style_obj.name()} tags ---------")
+        for tag_id, tag in tags.items():
+            if not self.config.Runtime_Options__tags_read or tag_id in self.config.Runtime_Options__tags_read:
+                if ca.has_tags(tag_id):
+                    self.output(f"--------- {tag.name()} tags ---------")
                     try:
                         if self.config.Runtime_Options__raw:
-                            self.output(ca.read_metadata_string(style))
+                            self.output(ca.read_raw_tags(tag_id))
                         else:
-                            md = ca.read_metadata(style)
+                            md = ca.read_tags(tag_id)
                             self.output(md)
                     except Exception as e:
-                        logger.error("Failed to load metadata for %s: %s", ca.path, e)
+                        logger.error("Failed to read tags from %s: %s", ca.path, e)
         return Result(Action.print, Status.success, ca.path, md=md)
 
-    def delete_style(self, ca: ComicArchive, style: str) -> Status:
-        style_name = md_styles[style].name()
+    def delete_tags(self, ca: ComicArchive, tag_id: str) -> Status:
+        tag_name = tags[tag_id].name()
 
-        if ca.has_metadata(style):
+        if ca.has_tags(tag_id):
             if not self.config.Runtime_Options__dryrun:
-                if ca.remove_metadata(style):
-                    self.output(f"{ca.path}: Removed {style_name} tags.")
+                if ca.remove_tags(tag_id):
+                    self.output(f"{ca.path}: Removed {tag_name} tags.")
                     return Status.success
                 else:
                     self.output(f"{ca.path}: Tag removal seemed to fail!")
                     return Status.write_failure
             else:
-                self.output(f"{ca.path}: dry-run. {style_name} tags not removed")
+                self.output(f"{ca.path}: dry-run. {tag_name} tags not removed")
                 return Status.success
-        self.output(f"{ca.path}: This archive doesn't have {style_name} tags to remove.")
+        self.output(f"{ca.path}: This archive doesn't have {tag_name} tags to remove.")
         return Status.success
 
     def delete(self, ca: ComicArchive) -> Result:
         res = Result(Action.delete, Status.success, ca.path)
-        for style in self.config.Runtime_Options__type_modify:
-            status = self.delete_style(ca, style)
+        for tag_id in self.config.Runtime_Options__tags_write:
+            status = self.delete_tags(ca, tag_id)
             if status == Status.success:
-                res.tags_deleted.append(style)
+                res.tags_deleted.append(tag_id)
             else:
                 res.status = status
         return res
 
-    def copy_style(self, ca: ComicArchive, md: GenericMetadata, style: str) -> Status:
-        dst_style_name = md_styles[style].name()
-        if not self.config.Runtime_Options__overwrite and ca.has_metadata(style):
-            self.output(f"{ca.path}: Already has {dst_style_name} tags. Not overwriting.")
-            return Status.existing_tags
-        if self.config.Commands__copy == style:
-            self.output(f"{ca.path}: Destination and source are same: {dst_style_name}. Nothing to do.")
+    def _copy_tags(self, ca: ComicArchive, md: GenericMetadata, source_names: str, dst_tag_id: str) -> Status:
+        dst_tag_name = tags[dst_tag_id].name()
+        if not self.config.Runtime_Options__skip_existing_tags and ca.has_tags(dst_tag_id):
+            self.output(f"{ca.path}: Already has {dst_tag_name} tags. Not overwriting.")
             return Status.existing_tags
 
-        src_style_name = md_styles[self.config.Commands__copy].name()
+        if len(self.config.Commands__copy) == 1 and dst_tag_id in self.config.Commands__copy:
+            self.output(f"{ca.path}: Destination and source are same: {dst_tag_name}. Nothing to do.")
+            return Status.existing_tags
+
         if not self.config.Runtime_Options__dryrun:
-            if self.config.Metadata_Options__cbl_apply_transform_on_bulk_operation == "cbi":
+            if self.config.Metadata_Options__apply_transform_on_bulk_operation and dst_tag_id == "cbi":
                 md = CBLTransformer(md, self.config).apply()
 
-            if ca.write_metadata(md, style):
-                self.output(f"{ca.path}: Copied {src_style_name} tags to {dst_style_name}.")
-                return Status.success
+            if ca.write_tags(md, dst_tag_id):
+                self.output(f"{ca.path}: Copied {source_names} tags to {dst_tag_name}.")
             else:
                 self.output(f"{ca.path}: Tag copy seemed to fail!")
                 return Status.write_failure
         else:
-            self.output(f"{ca.path}: dry-run.  {src_style_name} tags not copied")
-            return Status.success
-        return Status.read_failure
+            self.output(f"{ca.path}: dry-run.  {source_names} tags not copied")
+        return Status.success
 
     def copy(self, ca: ComicArchive) -> Result:
-        src_style_name = md_styles[self.config.Commands__copy].name()
         res = Result(Action.copy, Status.success, ca.path)
-        if not ca.has_metadata(self.config.Commands__copy):
-            self.output(f"{ca.path}: This archive doesn't have {src_style_name} tags to copy.")
+        src_tag_names = []
+        for src_tag_id in self.config.Commands__copy:
+            src_tag_names.append(tags[src_tag_id].name())
+            if ca.has_tags(src_tag_id):
+                res.tags_read.append(src_tag_id)
+
+        if not res.tags_read:
+            self.output(f"{ca.path}: This archive doesn't have any {', '.join(src_tag_names)} tags to copy.")
             res.status = Status.read_failure
             return res
         try:
-            res.md = ca.read_metadata(self.config.Commands__copy)
+            res.md, res.tags_read = self.create_local_metadata(ca, res.tags_read, tags_only=True)
         except Exception as e:
-            logger.error("Failed to load metadata for %s: %s", ca.path, e)
+            logger.error("Failed to read tags from %s: %s", ca.path, e)
             return res
-        for style in self.config.Runtime_Options__type_modify:
-            if style == src_style_name:
+
+        for dst_tag_id in self.config.Runtime_Options__tags_write:
+            if dst_tag_id in self.config.Commands__copy:
                 continue
-            status = self.copy_style(ca, res.md, style)
+
+            status = self._copy_tags(ca, res.md, ", ".join(src_tag_names), dst_tag_id)
             if status == Status.success:
-                res.tags_written.append(style)
+                res.tags_written.append(dst_tag_id)
             else:
                 res.status = status
         return res
 
     def save(self, ca: ComicArchive, match_results: OnlineMatchResults) -> tuple[Result, OnlineMatchResults]:
-        if not self.config.Runtime_Options__overwrite:
-            for style in self.config.Runtime_Options__type_modify:
-                if ca.has_metadata(style):
-                    self.output(f"{ca.path}: Already has {md_styles[style].name()} tags. Not overwriting.")
+        if not self.config.Runtime_Options__skip_existing_tags:
+            for tag_id in self.config.Runtime_Options__tags_write:
+                if ca.has_tags(tag_id):
+                    self.output(f"{ca.path}: Already has {tags[tag_id].name()} tags. Not overwriting.")
                     return (
                         Result(
                             Action.save,
                             original_path=ca.path,
                             status=Status.existing_tags,
-                            tags_written=self.config.Runtime_Options__type_modify,
+                            tags_written=self.config.Runtime_Options__tags_write,
                         ),
                         match_results,
                     )
@@ -403,7 +415,7 @@ class CLI:
         if self.batch_mode:
             self.output(f"Processing {utils.path_to_short_str(ca.path)}...")
 
-        md = self.create_local_metadata(ca)
+        md, tags_read = self.create_local_metadata(ca, self.config.Runtime_Options__tags_read)
         if md.issue is None or md.issue == "":
             if self.config.Auto_Tag__assume_issue_one:
                 md.issue = "1"
@@ -412,30 +424,32 @@ class CLI:
         # now, search online
 
         ct_md = GenericMetadata()
-        if self.config.Runtime_Options__online:
-            if self.config.Runtime_Options__issue_id is not None:
+        if self.config.Auto_Tag__online:
+            if self.config.Auto_Tag__issue_id is not None:
                 # we were given the actual issue ID to search with
                 try:
-                    ct_md = self.current_talker().fetch_comic_data(self.config.Runtime_Options__issue_id)
+                    ct_md = self.current_talker().fetch_comic_data(self.config.Auto_Tag__issue_id)
                 except TalkerError as e:
                     logger.exception(f"Error retrieving issue details. Save aborted.\n{e}")
                     res = Result(
                         Action.save,
                         original_path=ca.path,
                         status=Status.fetch_data_failure,
-                        tags_written=self.config.Runtime_Options__type_modify,
+                        tags_written=self.config.Runtime_Options__tags_write,
+                        tags_read=tags_read,
                     )
                     match_results.fetch_data_failures.append(res)
                     return res, match_results
 
                 if ct_md is None or ct_md.is_empty:
-                    logger.error("No match for ID %s was found.", self.config.Runtime_Options__issue_id)
+                    logger.error("No match for ID %s was found.", self.config.Auto_Tag__issue_id)
                     res = Result(
                         Action.save,
                         status=Status.match_failure,
                         original_path=ca.path,
                         match_status=MatchStatus.no_match,
-                        tags_written=self.config.Runtime_Options__type_modify,
+                        tags_written=self.config.Runtime_Options__tags_write,
+                        tags_read=tags_read,
                     )
                     match_results.no_matches.append(res)
                     return res, match_results
@@ -448,7 +462,8 @@ class CLI:
                         status=Status.match_failure,
                         original_path=ca.path,
                         match_status=MatchStatus.no_match,
-                        tags_written=self.config.Runtime_Options__type_modify,
+                        tags_written=self.config.Runtime_Options__tags_write,
+                        tags_read=tags_read,
                     )
                     match_results.no_matches.append(res)
                     return res, match_results
@@ -460,7 +475,10 @@ class CLI:
                         self.output(text)
 
                 ii.set_output_function(functools.partial(self.output, already_logged=True))
-                # use our overlaid MD to search
+                if not self.config.Auto_Tag__use_year_when_identifying:
+                    md.year = None
+                if self.config.Auto_Tag__ignore_leading_numbers_in_filename and md.series is not None:
+                    md.series = re.sub(r"^([\d.]+)(.*)", r"\2", md.series)
                 result, matches = ii.identify(ca, md)
 
                 found_match = False
@@ -491,7 +509,8 @@ class CLI:
                             original_path=ca.path,
                             online_results=matches,
                             match_status=MatchStatus.low_confidence_match,
-                            tags_written=self.config.Runtime_Options__type_modify,
+                            tags_written=self.config.Runtime_Options__tags_write,
+                            tags_read=tags_read,
                         )
                         match_results.low_confidence_matches.append(res)
                         return res, match_results
@@ -503,7 +522,8 @@ class CLI:
                         original_path=ca.path,
                         online_results=matches,
                         match_status=MatchStatus.multiple_match,
-                        tags_written=self.config.Runtime_Options__type_modify,
+                        tags_written=self.config.Runtime_Options__tags_write,
+                        tags_read=tags_read,
                     )
                     match_results.multiple_matches.append(res)
                     return res, match_results
@@ -515,7 +535,8 @@ class CLI:
                         original_path=ca.path,
                         online_results=matches,
                         match_status=MatchStatus.low_confidence_match,
-                        tags_written=self.config.Runtime_Options__type_modify,
+                        tags_written=self.config.Runtime_Options__tags_write,
+                        tags_read=tags_read,
                     )
                     match_results.low_confidence_matches.append(res)
                     return res, match_results
@@ -527,7 +548,8 @@ class CLI:
                         original_path=ca.path,
                         online_results=matches,
                         match_status=MatchStatus.no_match,
-                        tags_written=self.config.Runtime_Options__type_modify,
+                        tags_written=self.config.Runtime_Options__tags_write,
+                        tags_read=tags_read,
                     )
                     match_results.no_matches.append(res)
                     return res, match_results
@@ -535,7 +557,7 @@ class CLI:
                 # we got here, so we have a single match
 
                 # now get the particular issue data
-                ct_md = self.actual_issue_data_fetch(matches[0].issue_id)
+                ct_md = self.fetch_metadata(matches[0].issue_id)
                 if ct_md.is_empty:
                     res = Result(
                         Action.save,
@@ -543,7 +565,8 @@ class CLI:
                         original_path=ca.path,
                         online_results=matches,
                         match_status=MatchStatus.good_match,
-                        tags_written=self.config.Runtime_Options__type_modify,
+                        tags_written=self.config.Runtime_Options__tags_write,
+                        tags_read=tags_read,
                     )
                     match_results.fetch_data_failures.append(res)
                     return res, match_results
@@ -555,11 +578,12 @@ class CLI:
             online_results=matches,
             match_status=MatchStatus.good_match,
             md=prepare_metadata(md, ct_md, self.config),
-            tags_written=self.config.Runtime_Options__type_modify,
+            tags_written=self.config.Runtime_Options__tags_write,
+            tags_read=tags_read,
         )
         assert res.md
         # ok, done building our metadata. time to save
-        if self.actual_metadata_save(ca, res.md):
+        if self.write_tags(ca, res.md):
             match_results.good_matches.append(res)
         else:
             res.status = Status.write_failure
@@ -572,7 +596,7 @@ class CLI:
         if self.batch_mode:
             msg_hdr = f"{ca.path}: "
 
-        md = self.create_local_metadata(ca)
+        md, tags_read = self.create_local_metadata(ca, self.config.Runtime_Options__tags_read)
 
         if md.series is None:
             logger.error(msg_hdr + "Can't rename without series name")
@@ -584,7 +608,7 @@ class CLI:
 
         renamer = FileRenamer(
             None,
-            platform="universal" if self.config.File_Rename__strict else "auto",
+            platform="universal" if self.config.File_Rename__strict_filenames else "auto",
             replacements=self.config.File_Rename__replacements,
         )
         renamer.set_metadata(md, ca.path.name)
@@ -632,7 +656,7 @@ class CLI:
             suffix = " (dry-run, no change)"
 
         self.output(f"renamed '{original_path.name}' -> '{new_name}' {suffix}")
-        return Result(Action.rename, Status.success, original_path, md=md)
+        return Result(Action.rename, Status.success, original_path, tags_read=tags_read, md=md)
 
     def export(self, ca: ComicArchive) -> Result:
         msg_hdr = ""

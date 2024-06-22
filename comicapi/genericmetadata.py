@@ -92,7 +92,7 @@ class ComicSeries:
         return copy.deepcopy(self)
 
 
-class TagOrigin(NamedTuple):
+class MetadataOrigin(NamedTuple):
     id: str
     name: str
 
@@ -109,7 +109,7 @@ class GenericMetadata:
     translator_synonyms = ("translator", "translation")
 
     is_empty: bool = True
-    tag_origin: TagOrigin | None = None
+    data_origin: MetadataOrigin | None = None
     issue_id: str | None = None
     series_id: str | None = None
 
@@ -233,7 +233,7 @@ class GenericMetadata:
         if not new_md.is_empty:
             self.is_empty = False
 
-        self.tag_origin = assign(self.tag_origin, new_md.tag_origin)  # TODO use and purpose now?
+        self.data_origin = assign(self.data_origin, new_md.data_origin)  # TODO use and purpose now?
         self.issue_id = assign(self.issue_id, new_md.issue_id)
         self.series_id = assign(self.series_id, new_md.series_id)
 
@@ -471,7 +471,7 @@ class GenericMetadata:
 
 md_test: GenericMetadata = GenericMetadata(
     is_empty=False,
-    tag_origin=TagOrigin("comicvine", "Comic Vine"),
+    data_origin=MetadataOrigin("comicvine", "Comic Vine"),
     series="Cory Doctorow's Futuristic Tales of the Here and Now",
     series_id="23437",
     issue="1",
@@ -573,6 +573,6 @@ __all__ = (
     "ImageMetadata",
     "Credit",
     "ComicSeries",
-    "TagOrigin",
+    "MetadataOrigin",
     "GenericMetadata",
 )

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>703</width>
-    <height>597</height>
+    <width>1095</width>
+    <height>642</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -89,7 +89,7 @@
             <item row="1" column="0">
              <widget class="QCheckBox" name="cbxPromptOnSave">
               <property name="text">
-               <string>Prompts the user to confirm saving tags</string>
+               <string>Prompt to confirm saving tags</string>
               </property>
              </widget>
             </item>
@@ -190,7 +190,7 @@
            <item row="2" column="0">
             <widget class="QLabel" name="label_9">
              <property name="text">
-              <string>Always use Publisher Filter on &quot;manual&quot; searches:</string>
+              <string>Enable the publisher filter:</string>
              </property>
              <property name="buddy">
               <cstring>cbxUseFilter</cstring>
@@ -210,7 +210,11 @@
            <item row="3" column="0">
             <widget class="QLabel" name="label_4">
              <property name="text">
-              <string>Publisher Filter:</string>
+              <string>Publisher Filter:
+1 Publisher per line</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
              </property>
              <property name="buddy">
               <cstring>tePublisherFilter</cstring>
@@ -270,7 +274,8 @@
          <item row="4" column="0">
           <widget class="QLabel" name="label_5">
            <property name="text">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;These settings are for the automatic issue identifier which searches online for matches. &lt;/p&gt;&lt;p&gt;Hover the mouse over an entry field for more info.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>These settings are for the automatic issue identifier which searches online for matches.
+Hover the mouse over an option for more info.</string>
            </property>
            <property name="wordWrap">
             <bool>true</bool>
@@ -295,13 +300,6 @@
           <widget class="QCheckBox" name="cbxSortByYear">
            <property name="text">
             <string>Initially sort Series search results by Starting Year instead of No. Issues</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0">
-          <widget class="QCheckBox" name="cbxClearFormBeforePopulating">
-           <property name="text">
-            <string>Clear all existing metadata during import, default is to merge metadata.</string>
            </property>
           </widget>
          </item>
@@ -413,7 +411,7 @@
        </widget>
        <widget class="QWidget" name="tComicTalkers">
         <attribute name="title">
-         <string>Metadata Sources</string>
+         <string>Metadata Download</string>
         </attribute>
         <layout class="QVBoxLayout" name="verticalLayout_4"/>
        </widget>
@@ -456,7 +454,7 @@
              <number>6</number>
             </property>
             <item row="0" column="0">
-             <widget class="QCheckBox" name="cbxShortMetadataNames">
+             <widget class="QCheckBox" name="cbxShortTagNames">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                 <horstretch>0</horstretch>
@@ -464,20 +462,30 @@
                </sizepolicy>
               </property>
               <property name="toolTip">
-               <string>Use the short name for the metadata styles (CBI, CR, etc.)</string>
+               <string>Use the short name for tags (CBI, CR, etc.)</string>
               </property>
               <property name="text">
-               <string>Use &quot;short&quot; names for metadata styles</string>
+               <string>Use &quot;short&quot; names for tags</string>
               </property>
              </widget>
             </item>
             <item row="0" column="1">
-             <widget class="QCheckBox" name="cbxDisableCR">
+             <widget class="QCheckBox" name="cbxEnableCR">
               <property name="toolTip">
-               <string>Useful if you use the CIX metadata type</string>
+               <string>Turn off to only use the CIX tags</string>
               </property>
               <property name="text">
-               <string>Disable ComicRack Metadata Type</string>
+               <string>Enable the ComicRack metadata tags (needs a restart)</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QCheckBox" name="cbxClearFormBeforePopulating">
+              <property name="toolTip">
+               <string>Default is to merge downloaded metadata with existing tags</string>
+              </property>
+              <property name="text">
+               <string>Clear all existing tags during metadata download</string>
               </property>
              </widget>
             </item>
@@ -526,15 +534,18 @@
             </property>
             <item>
              <widget class="QCheckBox" name="cbxApplyCBLTransformOnCVIMport">
+              <property name="toolTip">
+               <string>Applies to all tags, not just CBL tags</string>
+              </property>
               <property name="text">
-               <string>Apply CBL Transforms on ComicVine Import</string>
+               <string>Apply CBL Transforms on metadata download</string>
               </property>
              </widget>
             </item>
             <item>
              <widget class="QCheckBox" name="cbxApplyCBLTransformOnBatchOperation">
               <property name="text">
-               <string>Apply CBL Transforms on Batch Copy Operations to CBL Tags</string>
+               <string>Apply CBL Transforms when Copying to CBL Tags</string>
               </property>
              </widget>
             </item>
@@ -622,14 +633,8 @@
          </item>
          <item row="4" column="0">
           <widget class="QGroupBox" name="groupBox_6">
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>165</height>
-            </size>
-           </property>
            <property name="title">
-            <string>Overlay</string>
+            <string>Merge Modes</string>
            </property>
            <layout class="QGridLayout" name="gridLayout_10">
             <property name="leftMargin">
@@ -647,58 +652,112 @@
             <property name="spacing">
              <number>6</number>
             </property>
-            <item row="1" column="0">
-             <widget class="QLabel" name="lblOverlaySource">
-              <property name="toolTip">
-               <string>The operation to perform when overlaying source data (Comic Vine, Metron, GCD, etc.)</string>
-              </property>
-              <property name="text">
-               <string>Data Source</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-              </property>
-              <property name="margin">
-               <number>6</number>
-              </property>
-             </widget>
-            </item>
             <item row="0" column="0">
-             <widget class="QLabel" name="lblOverlayReadStyle">
+             <widget class="QGroupBox" name="groupBox_7">
               <property name="toolTip">
-               <string>The operation to perform when overlaying read styles (ComicRack, ComicBookInfo, etc.)</string>
+               <string>The merge mode to use when reading multiple tags from a single comic book archive. ComicRack, ComicBookInfo, etc...</string>
               </property>
-              <property name="text">
-               <string>Read Style</string>
+              <property name="title">
+               <string>Tags Merge</string>
               </property>
-              <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-              </property>
-              <property name="margin">
-               <number>6</number>
-              </property>
+              <layout class="QFormLayout" name="formLayout">
+               <item row="0" column="0">
+                <widget class="QLabel" name="lblTagsMergeMode">
+                 <property name="toolTip">
+                  <string>The merge mode to use when reading multiple tags from a single comic book archive. ComicRack, ComicBookInfo, etc...</string>
+                 </property>
+                 <property name="text">
+                  <string>Merge Mode:</string>
+                 </property>
+                 <property name="margin">
+                  <number>6</number>
+                 </property>
+                 <property name="buddy">
+                  <cstring>cbTagsMergeMode</cstring>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1">
+                <widget class="QComboBox" name="cbTagsMergeMode">
+                 <property name="enabled">
+                  <bool>true</bool>
+                 </property>
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="toolTip">
+                  <string>The merge mode to use when reading multiple metadata types from a single comic book archive. ComicRack, ComicBookInfo, etc...</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="1">
+                <widget class="QCheckBox" name="cbxTagsMergeLists">
+                 <property name="toolTip">
+                  <string>Merge lists (characters, tags, locations, etc.) together or follow the Merge Mode</string>
+                 </property>
+                 <property name="text">
+                  <string>Merge Lists</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
              </widget>
             </item>
-            <item row="1" column="1">
-             <widget class="QComboBox" name="cbxOverlaySource">
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>16777215</width>
-                <height>16777215</height>
-               </size>
-              </property>
+            <item row="1" column="0">
+             <widget class="QGroupBox" name="groupBox_8">
               <property name="toolTip">
-               <string>The operation to perform when overlaying source data (Comic Vine, Metron, GCD, etc.)</string>
+               <string>The merge mode to use when downloading metadata from Comic Vine, Metron, GCD, etc...</string>
               </property>
+              <property name="title">
+               <string>Download Merge</string>
+              </property>
+              <layout class="QFormLayout" name="formLayout_4">
+               <item row="0" column="0">
+                <widget class="QLabel" name="lblDownloadMergeMode">
+                 <property name="toolTip">
+                  <string>The merge mode to use when downloading metadata from Comic Vine, Metron, GCD, etc...</string>
+                 </property>
+                 <property name="text">
+                  <string>Merge Mode:</string>
+                 </property>
+                 <property name="margin">
+                  <number>6</number>
+                 </property>
+                 <property name="buddy">
+                  <cstring>cbDownloadMergeMode</cstring>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1">
+                <widget class="QComboBox" name="cbDownloadMergeMode">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="toolTip">
+                  <string>The merge mode to use when downloading metadata from Comic Vine, Metron, GCD, etc...</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="1">
+                <widget class="QCheckBox" name="cbxMergeListsMetadata">
+                 <property name="toolTip">
+                  <string>Merge lists (characters, tags, locations, etc.) together or follow the Merge Mode</string>
+                 </property>
+                 <property name="text">
+                  <string>Merge Lists</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
              </widget>
             </item>
-            <item row="0" column="2" rowspan="3">
+            <item row="0" column="2" rowspan="2">
              <widget class="QTabWidget" name="tabWidgetOverlay">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
@@ -706,23 +765,17 @@
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>150</height>
+               </size>
+              </property>
               <property name="maximumSize">
                <size>
                 <width>16777215</width>
                 <height>200</height>
                </size>
-              </property>
-              <property name="tabPosition">
-               <enum>QTabWidget::North</enum>
-              </property>
-              <property name="currentIndex">
-               <number>0</number>
-              </property>
-              <property name="documentMode">
-               <bool>true</bool>
-              </property>
-              <property name="tabBarAutoHide">
-               <bool>false</bool>
               </property>
               <widget class="QWidget" name="tOverlay">
                <property name="maximumSize">
@@ -762,11 +815,14 @@
                    <bool>false</bool>
                   </property>
                   <property name="plainText">
-                   <string>Overlays all the (non-list) non-empty values of the new metadata (e.g. Comic Vine) on top of the current metadata.
+                   <string>Overlays all non-empty values of the new metadata (e.g. Comic Vine) on top of the existing metadata.
+
+See the Lists tab for controlling how lists are handled.
 
 Example:
-(Series=batman, Issue=1, Tags=[batman,joker,robin])
-+ (Series=Batman, Publisher=DC Comics, Tags=[mystery,action])
+existing(Series=the batman, Issue=1, Tags=[batman,joker,robin])
++ new(Series=Batman, Publisher=DC Comics, Tags=[mystery,action])
+
 = (Series=Batman, Issue=1, Publisher=DC Comics, Tags=[mystery,action])</string>
                   </property>
                   <property name="textInteractionFlags">
@@ -799,12 +855,15 @@ Example:
                 <item>
                  <widget class="QPlainTextEdit" name="addTextEdit">
                   <property name="plainText">
-                   <string>Adds any (non-list) metadata that is present in the new metadata (e.g. Comic Vine) but is missing in the current metadata.
+                   <string>Adds any metadata that is is missing in the existing metadata but present in the new metadata.
+
+See the Lists tab for controlling how lists are handled.
 
 Example:
-(Series=batman, Issue=1)
-+ (Series=Superman, Issue=10, Publisher=DC Comics)
-= (Series=batman, Issue=1, Publisher=DC Comics)</string>
+existing(Series=batman, Issue=1, Tags=[batman,joker,robin])
++ new(Series=Superman, Issue=10, Publisher=DC Comics, Tags=[mystery,action])
+
+= (Series=batman, Issue=1, Tags=[batman,joker,robin], Publisher=DC Comics)</string>
                   </property>
                   <property name="textInteractionFlags">
                    <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
@@ -836,17 +895,13 @@ Example:
                 <item>
                  <widget class="QPlainTextEdit" name="combineTextEdit">
                   <property name="plainText">
-                   <string>All lists (tags, characters, genres, credits, etc.) are merged or replaced via the &quot;Merge Lists&quot; check box. Merge will replace duplicates within the list with the &quot;new&quot; data.
+                   <string>Checking the &quot;Merge Lists&quot; check box will enable merging of list items, otherwise it will follow the merge mode, see the 'Overlay' and 'Add Missing' tabs.
 
 Example Merge:
 (Tags=[batman,joker,robin])
 + (Tags=[mystery,action])
-= (Tags=[batman,joker,robin,mystery,action])
 
-Example Replace:
-(Tags=[batman,joker,robin])
-+ (Tags=[mystery,action])
-= (Tags=[mystery,action])</string>
+= (Tags=[batman,joker,robin,mystery,action])</string>
                   </property>
                   <property name="textInteractionFlags">
                    <set>Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
@@ -855,38 +910,6 @@ Example Replace:
                 </item>
                </layout>
               </widget>
-             </widget>
-            </item>
-            <item row="0" column="1">
-             <widget class="QComboBox" name="cbxOverlayReadStyle">
-              <property name="enabled">
-               <bool>true</bool>
-              </property>
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>16777215</width>
-                <height>16777215</height>
-               </size>
-              </property>
-              <property name="toolTip">
-               <string>The operation to perform when overlaying read styles (ComicRack, ComicBookInfo, etc.)</string>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="0" colspan="2">
-             <widget class="QCheckBox" name="cbxOverlayMergeLists">
-              <property name="toolTip">
-               <string>Merge lists (characters, tags, locations, etc.) together or the &quot;new&quot; list replaces the old</string>
-              </property>
-              <property name="text">
-               <string>Merge Lists</string>
-              </property>
              </widget>
             </item>
            </layout>
@@ -999,7 +1022,7 @@ Example Replace:
               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;&amp;quot;Smart Text Cleanup&amp;quot; &lt;/span&gt;will attempt to clean up the new filename if there are missing fields from the template.  For example, removing empty braces, repeated spaces and dashes, and more.  Experimental feature.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="text">
-              <string>Use Smart Text Cleanup (Experimental)</string>
+              <string>Use Smart Text Cleanup</string>
              </property>
             </widget>
            </item>

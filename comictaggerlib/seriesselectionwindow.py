@@ -156,7 +156,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         self.progdialog: QtWidgets.QProgressDialog | None = None
         self.search_thread: SearchThread | None = None
 
-        self.use_filter = self.config.Issue_Identifier__always_use_publisher_filter
+        self.use_filter = self.config.Auto_Tag__use_publisher_filter
 
         # Load to retrieve settings
         self.talker = talker
@@ -403,7 +403,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         # filter the publishers if enabled set
         if self.use_filter:
             try:
-                publisher_filter = {s.strip().casefold() for s in self.config.Issue_Identifier__publisher_filter}
+                publisher_filter = {s.strip().casefold() for s in self.config.Auto_Tag__publisher_filter}
                 # use '' as publisher name if None
                 self.series_list = dict(
                     filter(

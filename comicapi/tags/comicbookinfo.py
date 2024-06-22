@@ -23,7 +23,7 @@ from typing import Any, Literal, TypedDict
 from comicapi import utils
 from comicapi.archivers import Archiver
 from comicapi.genericmetadata import Credit, GenericMetadata
-from comicapi.metadata import Metadata
+from comicapi.tags import Tag
 
 logger = logging.getLogger(__name__)
 
@@ -75,10 +75,10 @@ class _ComicBookInfoJson(TypedDict, total=False):
 _CBIContainer = TypedDict("_CBIContainer", {"appID": str, "lastModified": str, "ComicBookInfo/1.0": _ComicBookInfoJson})
 
 
-class ComicBookInfo(Metadata):
+class ComicBookInfo(Tag):
     enabled = True
 
-    short_name = "cbi"
+    id = "cbi"
 
     def __init__(self, version: str) -> None:
         super().__init__(version)
@@ -108,29 +108,29 @@ class ComicBookInfo(Metadata):
     def supports_credit_role(self, role: str) -> bool:
         return True
 
-    def supports_metadata(self, archive: Archiver) -> bool:
+    def supports_tags(self, archive: Archiver) -> bool:
         return archive.supports_comment()
 
-    def has_metadata(self, archive: Archiver) -> bool:
-        return self.supports_metadata(archive) and self._validate_string(archive.get_comment())
+    def has_tags(self, archive: Archiver) -> bool:
+        return self.supports_tags(archive) and self._validate_string(archive.get_comment())
 
-    def remove_metadata(self, archive: Archiver) -> bool:
+    def remove_tags(self, archive: Archiver) -> bool:
         return archive.set_comment("")
 
-    def get_metadata(self, archive: Archiver) -> GenericMetadata:
-        if self.has_metadata(archive):
+    def read_tags(self, archive: Archiver) -> GenericMetadata:
+        if self.has_tags(archive):
             comment = archive.get_comment()
             if self._validate_string(comment):
                 return self._metadata_from_string(comment)
         return GenericMetadata()
 
-    def get_metadata_string(self, archive: Archiver) -> str:
-        if self.has_metadata(archive):
+    def read_raw_tags(self, archive: Archiver) -> str:
+        if self.has_tags(archive):
             return json.dumps(json.loads(archive.get_comment()), indent=2)
         return ""
 
-    def set_metadata(self, metadata: GenericMetadata, archive: Archiver) -> bool:
-        if self.supports_metadata(archive):
+    def write_tags(self, metadata: GenericMetadata, archive: Archiver) -> bool:
+        if self.supports_tags(archive):
             return archive.set_comment(self._string_from_metadata(metadata))
         else:
             logger.warning(f"Archive ({archive.name()}) does not support {self.name()} metadata")

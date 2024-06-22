@@ -12,7 +12,7 @@ import yaml
 from appdirs import AppDirs
 
 from comicapi import utils
-from comicapi.comicarchive import metadata_styles
+from comicapi.comicarchive import tags
 from comicapi.genericmetadata import REMOVE, GenericMetadata
 
 if sys.version_info < (3, 10):
@@ -147,22 +147,18 @@ class ComicTaggerPaths(AppDirs):
     def site_config_dir(self) -> pathlib.Path:
         return pathlib.Path(super().site_config_dir)
 
-
-def metadata_type_single(types: str) -> str:
-    result = metadata_type(types)
-    if len(result) > 1:
-        raise argparse.ArgumentTypeError(f"invalid choice: {result} (only one metadata style allowed)")
-    return result[0]
+    def __str__(self) -> str:
+        return f"logs: {self.user_log_dir}, config: {self.user_config_dir}, cache: {self.user_cache_dir}"
 
 
-def metadata_type(types: str) -> list[str]:
+def tag(types: str) -> list[str]:
     result = []
     types = types.casefold()
     for typ in utils.split(types, ","):
-        if typ not in metadata_styles:
-            choices = ", ".join(metadata_styles)
+        if typ not in tags:
+            choices = ", ".join(tags)
             raise argparse.ArgumentTypeError(f"invalid choice: {typ} (choose from {choices.upper()})")
-        result.append(metadata_styles[typ].short_name)
+        result.append(tags[typ].id)
     return result
 
 

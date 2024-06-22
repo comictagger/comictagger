@@ -50,10 +50,10 @@
      </column>
      <column>
       <property name="text">
-       <string>MD</string>
+       <string>Tags</string>
       </property>
       <property name="toolTip">
-       <string>Metadata</string>
+       <string>Tags</string>
       </property>
       <property name="textAlignment">
        <set>AlignCenter</set>
