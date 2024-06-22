@@ -102,6 +102,9 @@
          <property name="alignment">
           <set>Qt::AlignRight</set>
          </property>
+         <property name="buddy">
+          <cstring>cbPageType</cstring>
+         </property>
         </widget>
        </item>
        <item row="1" column="2">

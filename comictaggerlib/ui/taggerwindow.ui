@@ -79,12 +79,15 @@ border-radius: 4px;
             </property>
             <item row="0" column="0">
              <widget class="QLabel" name="lbl_md_source">
-              <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignVCenter</set>
-              </property>
               <property name="text">
                <string>Metadata
 Source</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+              <property name="buddy">
+               <cstring>cbx_sources</cstring>
               </property>
              </widget>
             </item>
@@ -103,21 +106,27 @@ Source</string>
             </item>
             <item row="1" column="0">
              <widget class="QLabel" name="lbl_read_style">
-              <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignVCenter</set>
-              </property>
               <property name="text">
                <string>Read Tags</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+              <property name="buddy">
+               <cstring>cbSelectedReadTags</cstring>
               </property>
              </widget>
             </item>
             <item row="2" column="0">
              <widget class="QLabel" name="lbl_modify_style">
-              <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignVCenter</set>
-              </property>
               <property name="text">
                <string>Write Tags</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+              <property name="buddy">
+               <cstring>cbSelectedWriteTags</cstring>
               </property>
              </widget>
             </item>
@@ -384,6 +393,9 @@ Source</string>
                         <property name="text">
                          <string>Issue</string>
                         </property>
+                        <property name="buddy">
+                         <cstring>leIssueNum</cstring>
+                        </property>
                        </widget>
                       </item>
                       <item row="0" column="1">
@@ -397,6 +409,9 @@ Source</string>
                        <widget class="QLabel" name="label_6">
                         <property name="text">
                          <string>Year</string>
+                        </property>
+                        <property name="buddy">
+                         <cstring>lePubYear</cstring>
                         </property>
                        </widget>
                       </item>
@@ -427,6 +442,9 @@ Source</string>
                         <property name="text">
                          <string>Month</string>
                         </property>
+                        <property name="buddy">
+                         <cstring>lePubMonth</cstring>
+                        </property>
                        </widget>
                       </item>
                       <item row="2" column="1">
@@ -455,6 +473,9 @@ Source</string>
                        <widget class="QLabel" name="lblDay">
                         <property name="text">
                          <string>Day</string>
+                        </property>
+                        <property name="buddy">
+                         <cstring>lePubDay</cstring>
                         </property>
                        </widget>
                       </item>
@@ -485,6 +506,9 @@ Source</string>
                         <property name="text">
                          <string># Issues</string>
                         </property>
+                        <property name="buddy">
+                         <cstring>leIssueCount</cstring>
+                        </property>
                        </widget>
                       </item>
                       <item row="4" column="1">
@@ -502,6 +526,9 @@ Source</string>
                         <property name="text">
                          <string>Volume</string>
                         </property>
+                        <property name="buddy">
+                         <cstring>leVolumeNum</cstring>
+                        </property>
                        </widget>
                       </item>
                       <item row="5" column="1">
@@ -515,6 +542,9 @@ Source</string>
                        <widget class="QLabel" name="label_12">
                         <property name="text">
                          <string># Volumes</string>
+                        </property>
+                        <property name="buddy">
+                         <cstring>leVolumeCount</cstring>
                         </property>
                        </widget>
                       </item>
@@ -532,6 +562,9 @@ Source</string>
                        <widget class="QLabel" name="label_22">
                         <property name="text">
                          <string>Alt.Issue</string>
+                        </property>
+                        <property name="buddy">
+                         <cstring>leAltIssueNum</cstring>
                         </property>
                        </widget>
                       </item>
@@ -552,6 +585,9 @@ Source</string>
                        <widget class="QLabel" name="label_23">
                         <property name="text">
                          <string>Alt. # Issues</string>
+                        </property>
+                        <property name="buddy">
+                         <cstring>leAltIssueCount</cstring>
                         </property>
                        </widget>
                       </item>
@@ -592,6 +628,9 @@ Source</string>
                         <property name="text">
                          <string>Series</string>
                         </property>
+                        <property name="buddy">
+                         <cstring>leSeries</cstring>
+                        </property>
                        </widget>
                       </item>
                       <item row="0" column="1">
@@ -605,6 +644,9 @@ Source</string>
                        <widget class="QLabel" name="label_3">
                         <property name="text">
                          <string>Title</string>
+                        </property>
+                        <property name="buddy">
+                         <cstring>leTitle</cstring>
                         </property>
                        </widget>
                       </item>
@@ -620,6 +662,9 @@ Source</string>
                         <property name="text">
                          <string>Publisher</string>
                         </property>
+                        <property name="buddy">
+                         <cstring>lePublisher</cstring>
+                        </property>
                        </widget>
                       </item>
                       <item row="2" column="1">
@@ -633,6 +678,9 @@ Source</string>
                        <widget class="QLabel" name="label_10">
                         <property name="text">
                          <string>Imprint</string>
+                        </property>
+                        <property name="buddy">
+                         <cstring>leImprint</cstring>
                         </property>
                        </widget>
                       </item>
@@ -654,6 +702,9 @@ Source</string>
                         <property name="text">
                          <string>Series Group</string>
                         </property>
+                        <property name="buddy">
+                         <cstring>leSeriesGroup</cstring>
+                        </property>
                        </widget>
                       </item>
                       <item row="4" column="1">
@@ -667,6 +718,9 @@ Source</string>
                        <widget class="QLabel" name="label_25">
                         <property name="text">
                          <string>Story Arc</string>
+                        </property>
+                        <property name="buddy">
+                         <cstring>leStoryArc</cstring>
                         </property>
                        </widget>
                       </item>
@@ -682,6 +736,9 @@ Source</string>
                         <property name="text">
                          <string>Genre</string>
                         </property>
+                        <property name="buddy">
+                         <cstring>leGenre</cstring>
+                        </property>
                        </widget>
                       </item>
                       <item row="6" column="1">
@@ -695,6 +752,9 @@ Source</string>
                        <widget class="QLabel" name="label_18">
                         <property name="text">
                          <string>Maturity Rating</string>
+                        </property>
+                        <property name="buddy">
+                         <cstring>cbMaturityRating</cstring>
                         </property>
                        </widget>
                       </item>
@@ -713,6 +773,9 @@ Source</string>
                         <property name="text">
                          <string>Manga</string>
                         </property>
+                        <property name="buddy">
+                         <cstring>cbManga</cstring>
+                        </property>
                        </widget>
                       </item>
                       <item row="8" column="1">
@@ -726,6 +789,9 @@ Source</string>
                        <widget class="QLabel" name="label_26">
                         <property name="text">
                          <string>Format</string>
+                        </property>
+                        <property name="buddy">
+                         <cstring>cbFormat</cstring>
                         </property>
                        </widget>
                       </item>
@@ -747,6 +813,9 @@ Source</string>
                         <property name="text">
                          <string>Black &amp; White</string>
                         </property>
+                        <property name="buddy">
+                         <cstring>cbBW</cstring>
+                        </property>
                        </widget>
                       </item>
                       <item row="10" column="1">
@@ -767,6 +836,9 @@ Source</string>
                         <property name="text">
                          <string>Language</string>
                         </property>
+                        <property name="buddy">
+                         <cstring>cbLanguage</cstring>
+                        </property>
                        </widget>
                       </item>
                       <item row="11" column="1">
@@ -784,6 +856,9 @@ Source</string>
                         <property name="text">
                          <string>Country</string>
                         </property>
+                        <property name="buddy">
+                         <cstring>cbCountry</cstring>
+                        </property>
                        </widget>
                       </item>
                       <item row="12" column="1">
@@ -800,6 +875,9 @@ Source</string>
                        <widget class="QLabel" name="label_21">
                         <property name="text">
                          <string>Alt. Series</string>
+                        </property>
+                        <property name="buddy">
+                         <cstring>leAltSeries</cstring>
                         </property>
                        </widget>
                       </item>
@@ -879,6 +957,9 @@ Source</string>
                       <property name="text">
                        <string>Scan Info</string>
                       </property>
+                      <property name="buddy">
+                       <cstring>leScanInfo</cstring>
+                      </property>
                      </widget>
                     </item>
                     <item row="0" column="1">
@@ -945,6 +1026,9 @@ Source</string>
                   <property name="text">
                    <string>Comments</string>
                   </property>
+                  <property name="buddy">
+                   <cstring>teComments</cstring>
+                  </property>
                  </widget>
                 </item>
                 <item row="0" column="1">
@@ -962,6 +1046,9 @@ Source</string>
                   <property name="text">
                    <string>Notes</string>
                   </property>
+                  <property name="buddy">
+                   <cstring>teNotes</cstring>
+                  </property>
                  </widget>
                 </item>
                 <item row="1" column="1">
@@ -978,6 +1065,9 @@ Source</string>
                  <widget class="QLabel" name="label_19">
                   <property name="text">
                    <string>Web</string>
+                  </property>
+                  <property name="buddy">
+                   <cstring>leWebLink</cstring>
                   </property>
                  </widget>
                 </item>
@@ -1046,6 +1136,9 @@ Source</string>
                   <property name="text">
                    <string>Critical Rating</string>
                   </property>
+                  <property name="buddy">
+                   <cstring>dsbCriticalRating</cstring>
+                  </property>
                  </widget>
                 </item>
                 <item row="4" column="1">
@@ -1096,6 +1189,9 @@ Source</string>
                   <property name="alignment">
                    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
                   </property>
+                  <property name="buddy">
+                   <cstring>teCharacters</cstring>
+                  </property>
                  </widget>
                 </item>
                 <item row="1" column="1">
@@ -1138,6 +1234,9 @@ Source</string>
                   <property name="alignment">
                    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
                   </property>
+                  <property name="buddy">
+                   <cstring>teTeams</cstring>
+                  </property>
                  </widget>
                 </item>
                 <item row="2" column="1">
@@ -1171,6 +1270,9 @@ Source</string>
                   <property name="alignment">
                    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
                   </property>
+                  <property name="buddy">
+                   <cstring>teLocations</cstring>
+                  </property>
                  </widget>
                 </item>
                 <item row="3" column="1">
@@ -1203,6 +1305,9 @@ Source</string>
                   </property>
                   <property name="alignment">
                    <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+                  </property>
+                  <property name="buddy">
+                   <cstring>teTags</cstring>
                   </property>
                  </widget>
                 </item>
@@ -1728,8 +1833,8 @@ Source</string>
    <slot>trigger()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>359</x>
-     <y>108</y>
+     <x>935</x>
+     <y>554</y>
     </hint>
     <hint type="destinationlabel">
      <x>-1</x>
@@ -1744,8 +1849,8 @@ Source</string>
    <slot>trigger()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>359</x>
-     <y>108</y>
+     <x>935</x>
+     <y>586</y>
     </hint>
     <hint type="destinationlabel">
      <x>-1</x>

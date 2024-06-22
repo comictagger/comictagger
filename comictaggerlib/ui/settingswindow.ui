@@ -1009,7 +1009,7 @@ Example Merge:
               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;&amp;quot;Smart Text Cleanup&amp;quot; &lt;/span&gt;will attempt to clean up the new filename if there are missing fields from the template.  For example, removing empty braces, repeated spaces and dashes, and more.  Experimental feature.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
              <property name="text">
-              <string>Use Smart Text Cleanup (Experimental)</string>
+              <string>Use Smart Text Cleanup</string>
              </property>
             </widget>
            </item>
