@@ -111,6 +111,7 @@ class IssueIdentifier:
         self.series_match_thresh = config.Issue_Identifier__series_match_identify_thresh
 
         # used to eliminate unlikely publishers
+        self.use_publisher_filter = config.Auto_Tag__use_publisher_filter
         self.publisher_filter = [s.strip().casefold() for s in config.Auto_Tag__publisher_filter]
 
         self.additional_metadata = GenericMetadata()
@@ -123,26 +124,14 @@ class IssueIdentifier:
 
         self.match_list: list[IssueResult] = []
 
-    def set_score_min_threshold(self, thresh: int) -> None:
-        self.min_score_thresh = thresh
-
-    def set_score_min_distance(self, distance: int) -> None:
-        self.min_score_distance = distance
-
-    def set_additional_metadata(self, md: GenericMetadata) -> None:
-        self.additional_metadata = md
-
-    def set_name_series_match_threshold(self, delta: int) -> None:
-        self.series_match_thresh = delta
-
-    def set_publisher_filter(self, flt: list[str]) -> None:
-        self.publisher_filter = flt
-
-    def set_hasher_algorithm(self, algo: int) -> None:
-        self.image_hasher = algo
-
     def set_output_function(self, func: Callable[[str], None]) -> None:
         self.output_function = func
+
+    def set_progress_callback(self, cb_func: Callable[[int, int], None]) -> None:
+        self.progress_callback = cb_func
+
+    def set_cover_url_callback(self, cb_func: Callable[[bytes], None]) -> None:
+        self.cover_url_callback = cb_func
 
     def calculate_hash(self, image_data: bytes) -> int:
         if self.image_hasher == 3:
@@ -151,6 +140,102 @@ class IssueIdentifier:
             return -1  # ImageHasher(data=image_data).average_hash2()
 
         return ImageHasher(data=image_data).average_hash()
+
+    def log_msg(self, msg: Any) -> None:
+        msg = str(msg)
+        for handler in logging.getLogger().handlers:
+            handler.flush()
+        self.output(msg)
+
+    def output(self, *args: Any, file: Any = None, **kwargs: Any) -> None:
+        # We intercept and discard the file argument otherwise everything is passed to self.output_function
+
+        # Ensure args[0] is defined and is a string for logger.info
+        if not args:
+            log_args: tuple[Any, ...] = ("",)
+        elif isinstance(args[0], str):
+            log_args = (args[0].strip("\n"), *args[1:])
+        else:
+            log_args = args
+        log_msg = " ".join([str(x) for x in log_args])
+
+        # Always send to logger so that we have a record for troubleshooting
+        logger.info(log_msg, **kwargs)
+
+        # If we are verbose or quiet we don't need to call the output function
+        if self.config.Runtime_Options__verbose > 0 or self.config.Runtime_Options__quiet:
+            return
+
+        # default output is stdout
+        self.output_function(*args, **kwargs)
+
+    def identify(self, ca: ComicArchive, md: GenericMetadata) -> tuple[int, list[IssueResult]]:
+        if not self._check_requirements(ca):
+            return self.result_no_matches, []
+
+        terms, images, extra_images = self._get_search_terms(ca, md)
+
+        # we need, at minimum, a series and issue number
+        if not (terms["series"] and terms["issue_number"]):
+            self.log_msg("Not enough info for a search!")
+            return self.result_no_matches, []
+
+        self._print_terms(terms, images)
+
+        issues = self._search_for_issues(terms)
+
+        self.log_msg(f"Found {len(issues)} series that have an issue #{terms['issue_number']}")
+
+        final_cover_matching = self._cover_matching(terms, images, extra_images, issues)
+
+        # One more test for the case choosing limited series first issue vs a trade with the same cover:
+        # if we have a given issue count > 1 and the series from CV has count==1, remove it from match list
+        if len(final_cover_matching) > 1 and terms["issue_count"] is not None and terms["issue_count"] != 1:
+            for match in final_cover_matching.copy():
+                if match.issue_count == 1:
+                    self.log_msg(
+                        f"Removing series {match.series} [{match.series_id}] from consideration (only 1 issue)"
+                    )
+                    final_cover_matching.remove(match)
+
+        if final_cover_matching:
+            best_score = final_cover_matching[0].distance
+        else:
+            best_score = 0
+        if best_score >= self.min_score_thresh:
+            if len(final_cover_matching) == 1:
+                self.log_msg("No matching pages in the issue.")
+                self.log_msg("--------------------------------------------------------------------------")
+                self._print_match(final_cover_matching[0])
+                self.log_msg("--------------------------------------------------------------------------")
+                search_result = self.result_found_match_but_bad_cover_score
+            else:
+                self.log_msg("--------------------------------------------------------------------------")
+                self.log_msg("Multiple bad cover matches!  Need to use other info...")
+                self.log_msg("--------------------------------------------------------------------------")
+                search_result = self.result_multiple_matches_with_bad_image_scores
+        else:
+            if len(final_cover_matching) == 1:
+                self.log_msg("--------------------------------------------------------------------------")
+                self._print_match(final_cover_matching[0])
+                self.log_msg("--------------------------------------------------------------------------")
+                search_result = self.result_one_good_match
+
+            elif len(self.match_list) == 0:
+                self.log_msg("--------------------------------------------------------------------------")
+                self.log_msg("No matches found :(")
+                self.log_msg("--------------------------------------------------------------------------")
+                search_result = self.result_no_matches
+            else:
+                # we've got multiple good matches:
+                self.log_msg("More than one likely candidate.")
+                search_result = self.result_multiple_good_matches
+                self.log_msg("--------------------------------------------------------------------------")
+                for match_item in final_cover_matching:
+                    self._print_match(match_item)
+                self.log_msg("--------------------------------------------------------------------------")
+
+        return search_result, final_cover_matching
 
     def _crop_double_page(self, im: Image.Image) -> Image.Image | None:
         w, h = im.size
@@ -200,40 +285,6 @@ class IssueIdentifier:
         if width_percent > ratio or height_percent > ratio:
             return im.crop(bbox)
         return None
-
-    def set_progress_callback(self, cb_func: Callable[[int, int], None]) -> None:
-        self.progress_callback = cb_func
-
-    def set_cover_url_callback(self, cb_func: Callable[[bytes], None]) -> None:
-        self.cover_url_callback = cb_func
-
-    def log_msg(self, msg: Any) -> None:
-        msg = str(msg)
-        for handler in logging.getLogger().handlers:
-            handler.flush()
-        self.output(msg)
-
-    def output(self, *args: Any, file: Any = None, **kwargs: Any) -> None:
-        # We intercept and discard the file argument otherwise everything is passed to self.output_function
-
-        # Ensure args[0] is defined and is a string for logger.info
-        if not args:
-            log_args: tuple[Any, ...] = ("",)
-        elif isinstance(args[0], str):
-            log_args = (args[0].strip("\n"), *args[1:])
-        else:
-            log_args = args
-        log_msg = " ".join([str(x) for x in log_args])
-
-        # Always send to logger so that we have a record for troubleshooting
-        logger.info(log_msg, **kwargs)
-
-        # If we are verbose or quiet we don't need to call the output function
-        if self.config.Runtime_Options__verbose > 0 or self.config.Runtime_Options__quiet:
-            return
-
-        # default output is stdout
-        self.output_function(*args, **kwargs)
 
     def _get_remote_hashes(self, urls: list[str]) -> list[tuple[str, int]]:
         remote_hashes: list[tuple[str, int]] = []
@@ -421,8 +472,8 @@ class IssueIdentifier:
                     length_approved = True
                     break
             # remove any series from publishers on the filter
-            if item.publisher is not None:
-                if item.publisher is not None and item.publisher.casefold() in self.publisher_filter:
+            if self.use_publisher_filter and item.publisher:
+                if item.publisher.casefold() in self.publisher_filter:
                     publisher_approved = False
 
             if length_approved and publisher_approved and date_approved:
@@ -613,71 +664,3 @@ class IssueIdentifier:
             if match_item.distance > (best_score + self.min_score_distance):
                 final_cover_matching.remove(match_item)
         return final_cover_matching
-
-    def identify(self, ca: ComicArchive, md: GenericMetadata) -> tuple[int, list[IssueResult]]:
-        if not self._check_requirements(ca):
-            return self.result_no_matches, []
-
-        terms, images, extra_images = self._get_search_terms(ca, md)
-
-        # we need, at minimum, a series and issue number
-        if not (terms["series"] and terms["issue_number"]):
-            self.log_msg("Not enough info for a search!")
-            return self.result_no_matches, []
-
-        self._print_terms(terms, images)
-
-        issues = self._search_for_issues(terms)
-
-        self.log_msg(f"Found {len(issues)} series that have an issue #{terms['issue_number']}")
-
-        final_cover_matching = self._cover_matching(terms, images, extra_images, issues)
-
-        # One more test for the case choosing limited series first issue vs a trade with the same cover:
-        # if we have a given issue count > 1 and the series from CV has count==1, remove it from match list
-        if len(final_cover_matching) > 1 and terms["issue_count"] is not None and terms["issue_count"] != 1:
-            for match in final_cover_matching.copy():
-                if match.issue_count == 1:
-                    self.log_msg(
-                        f"Removing series {match.series} [{match.series_id}] from consideration (only 1 issue)"
-                    )
-                    final_cover_matching.remove(match)
-
-        if final_cover_matching:
-            best_score = final_cover_matching[0].distance
-        else:
-            best_score = 0
-        if best_score >= self.min_score_thresh:
-            if len(final_cover_matching) == 1:
-                self.log_msg("No matching pages in the issue.")
-                self.log_msg("--------------------------------------------------------------------------")
-                self._print_match(final_cover_matching[0])
-                self.log_msg("--------------------------------------------------------------------------")
-                search_result = self.result_found_match_but_bad_cover_score
-            else:
-                self.log_msg("--------------------------------------------------------------------------")
-                self.log_msg("Multiple bad cover matches!  Need to use other info...")
-                self.log_msg("--------------------------------------------------------------------------")
-                search_result = self.result_multiple_matches_with_bad_image_scores
-        else:
-            if len(final_cover_matching) == 1:
-                self.log_msg("--------------------------------------------------------------------------")
-                self._print_match(final_cover_matching[0])
-                self.log_msg("--------------------------------------------------------------------------")
-                search_result = self.result_one_good_match
-
-            elif len(self.match_list) == 0:
-                self.log_msg("--------------------------------------------------------------------------")
-                self.log_msg("No matches found :(")
-                self.log_msg("--------------------------------------------------------------------------")
-                search_result = self.result_no_matches
-            else:
-                # we've got multiple good matches:
-                self.log_msg("More than one likely candidate.")
-                search_result = self.result_multiple_good_matches
-                self.log_msg("--------------------------------------------------------------------------")
-                for match_item in final_cover_matching:
-                    self._print_match(match_item)
-                self.log_msg("--------------------------------------------------------------------------")
-
-        return search_result, final_cover_matching

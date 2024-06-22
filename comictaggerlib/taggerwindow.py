@@ -1698,7 +1698,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         ii.set_output_function(self.auto_tag_log)
         if self.atprogdialog is not None:
             ii.set_cover_url_callback(self.atprogdialog.set_test_image)
-        ii.set_name_series_match_threshold(dlg.name_length_match_tolerance)
+        ii.series_match_thresh = dlg.name_length_match_tolerance
 
         result, matches = ii.identify(ca, md)
 
