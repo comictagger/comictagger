@@ -481,8 +481,11 @@ Hover the mouse over an option for more info.</string>
             </item>
             <item row="1" column="0">
              <widget class="QCheckBox" name="cbxClearFormBeforePopulating">
+              <property name="toolTip">
+               <string>Default is to merge downloaded metadata with existing tags</string>
+              </property>
               <property name="text">
-               <string>Clear all existing tags during metadata download, default is to merge downloaded metadata with existing tags.</string>
+               <string>Clear all existing tags during metadata download</string>
               </property>
              </widget>
             </item>
@@ -524,6 +527,9 @@ Hover the mouse over an option for more info.</string>
             </property>
             <item>
              <widget class="QCheckBox" name="cbxApplyCBLTransformOnCVIMport">
+              <property name="toolTip">
+               <string>Applies to all tags, not just CBL tags</string>
+              </property>
               <property name="text">
                <string>Apply CBL Transforms on metadata download</string>
               </property>
