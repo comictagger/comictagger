@@ -400,9 +400,17 @@ class ComicArchive:
         metadata.year = utils.xlate_int(filename_info.get("year", None))
 
         metadata.scan_info = utils.xlate(filename_info.get("remainder", None))
-        metadata.format = "FCBD" if filename_info.get("fcbd", None) else None
+
+        if filename_info.get("fcbd", None):
+            metadata.format = "FCBD"
+            metadata.tags.add("FCBD")
+
+        if filename_info.get("c2c", None):
+            metadata.tags.add("c2c")
+
         if filename_info.get("annual", None):
             metadata.format = "Annual"
+
         if filename_info.get("format", None):
             metadata.format = filename_info["format"]
 

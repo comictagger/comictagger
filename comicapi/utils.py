@@ -128,30 +128,6 @@ def parse_filename(
     allow_issue_start_with_letter: bool = False,
     protofolius_issue_number_scheme: bool = False,
 ) -> filenameparser.FilenameInfo:
-    if not filename:
-        return filenameparser.FilenameInfo(
-            alternate="",
-            annual=False,
-            archive="",
-            c2c=False,
-            fcbd=False,
-            issue="",
-            issue_count="",
-            publisher="",
-            remainder="",
-            series="",
-            title="",
-            volume="",
-            volume_count="",
-            year="",
-            format="",
-        )
-    if split_words:
-        import wordninja
-
-        filename, ext = os.path.splitext(filename)
-        filename = " ".join(wordninja.split(filename)) + ext
-
     fni = filenameparser.FilenameInfo(
         alternate="",
         annual=False,
@@ -169,6 +145,13 @@ def parse_filename(
         volume_count="",
         year="",
     )
+    if not filename:
+        return fni
+    if split_words:
+        import wordninja
+
+        filename, ext = os.path.splitext(filename)
+        filename = " ".join(wordninja.split(filename)) + ext
 
     if parser == Parser.COMPLICATED:
         lex = filenamelexer.Lex(filename, allow_issue_start_with_letter)

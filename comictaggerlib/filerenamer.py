@@ -17,11 +17,12 @@
 from __future__ import annotations
 
 import calendar
+import datetime
 import logging
 import os
 import pathlib
 import string
-from collections.abc import Mapping, Sequence
+from collections.abc import Collection, Iterable, Mapping, Sequence, Sized
 from typing import Any, cast
 
 from pathvalidate import Platform, normalize_platform, sanitize_filename
@@ -43,6 +44,20 @@ def get_rename_dir(ca: ComicArchive, rename_dir: str | pathlib.Path | None) -> p
     return folder
 
 
+def _isnamedtupleinstance(x: Any) -> bool:  # pragma: no cover
+    t = type(x)
+    b = t.__bases__
+
+    if len(b) != 1 or b[0] != tuple:
+        return False
+
+    f = getattr(t, "_fields", None)
+    if not isinstance(f, tuple):
+        return False
+
+    return all(isinstance(n, str) for n in f)
+
+
 class MetadataFormatter(string.Formatter):
     def __init__(
         self, smart_cleanup: bool = False, platform: str = "auto", replacements: Replacements = DEFAULT_REPLACEMENTS
@@ -58,6 +73,31 @@ class MetadataFormatter(string.Formatter):
         return cast(str, super().format_field(value, format_spec))
 
     def convert_field(self, value: Any, conversion: str | None) -> str:
+        if isinstance(value, Iterable) and not isinstance(value, str) and not _isnamedtupleinstance(value):
+            if conversion == "C":
+                if isinstance(value, Sized):
+                    return str(len(value))
+                return ""
+            if conversion and conversion.isdecimal():
+                if not isinstance(value, Collection):
+                    return ""
+                i = int(conversion) - 1
+                if i < 0:
+                    i = 0
+                if i < len(value):
+                    try:
+                        return sorted(value)[i]
+                    except Exception:
+                        ...
+                    return list(value)[i]
+                return ""
+            try:
+                return ", ".join(list(self.convert_field(v, conversion) for v in sorted(value)))
+            except Exception:
+                ...
+            return ", ".join(list(self.convert_field(v, conversion) for v in value))
+        if not conversion:
+            return cast(str, super().convert_field(value, conversion))
         if conversion == "u":
             return str(value).upper()
         if conversion == "l":
@@ -68,8 +108,8 @@ class MetadataFormatter(string.Formatter):
             return str(value).swapcase()
         if conversion == "t":
             return str(value).title()
-        if conversion == "j":
-            return ", ".join(list(str(v) for v in value))
+        if conversion.isdecimal():
+            return ""
         return cast(str, super().convert_field(value, conversion))
 
     def handle_replacements(self, string: str, replacements: list[Replacement]) -> str:
@@ -144,9 +184,9 @@ class MetadataFormatter(string.Formatter):
                 used_args.add(arg_used)
 
                 obj = self.none_replacement(obj, replacement, r)
-
                 # do any conversion on the resulting object
                 obj = self.convert_field(obj, conversion)
+                obj = self.none_replacement(obj, replacement, r)
 
                 # expand the format spec, if needed
                 format_spec, _ = self._vformat(
@@ -221,20 +261,46 @@ class FileRenamer:
 
         fmt = MetadataFormatter(self.smart_cleanup, platform=self.platform, replacements=self.replacements)
         md_dict = vars(md)
-        md_dict["web_link"] = ""
-        if md.web_links:
-            md_dict["web_link"] = md.web_links[0]
+        md_dict.update(
+            dict(
+                month_name=None,
+                month_abbr=None,
+                date=None,
+                genre=None,
+                story_arc=None,
+                series_group=None,
+                web_link=None,
+                character=None,
+                team=None,
+                location=None,
+            )
+        )
 
         md_dict["issue"] = IssueString(md.issue).as_string(pad=self.issue_zero_padding)
-        for role in ["writer", "penciller", "inker", "colorist", "letterer", "cover artist", "editor"]:
+        for role in ["writer", "penciller", "inker", "colorist", "letterer", "cover artist", "editor", "translator"]:
             md_dict[role] = md.get_primary_credit(role)
 
         if (isinstance(md.month, int) or isinstance(md.month, str) and md.month.isdigit()) and 0 < int(md.month) < 13:
             md_dict["month_name"] = calendar.month_name[int(md.month)]
             md_dict["month_abbr"] = calendar.month_abbr[int(md.month)]
-        else:
-            md_dict["month_name"] = ""
-            md_dict["month_abbr"] = ""
+
+        if md.year is not None and datetime.MINYEAR <= md.year <= datetime.MAXYEAR:
+            md_dict["date"] = datetime.datetime(year=md.year, month=md.month or 1, day=md.day or 1)
+
+        if md.genres:
+            md_dict["genre"] = sorted(md.genres)[0]
+        if md.story_arcs:
+            md_dict["story_arc"] = md.story_arcs[0]
+        if md.series_groups:
+            md_dict["series_group"] = md.series_groups[0]
+        if md.web_links:
+            md_dict["web_link"] = md.web_links[0]
+        if md.characters:
+            md_dict["character"] = sorted(md.characters)[0]
+        if md.teams:
+            md_dict["team"] = sorted(md.teams)[0]
+        if md.locations:
+            md_dict["location"] = sorted(md.locations)[0]
 
         new_basename = ""
         for component in pathlib.PureWindowsPath(template).parts:

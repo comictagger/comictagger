@@ -54,6 +54,9 @@ class Credit:
     role: str = ""
     primary: bool = False
 
+    def __str__(self) -> str:
+        return f"{self.role}: {self.person}"
+
 
 class Mode(StrEnum):
     OVERLAY = auto()

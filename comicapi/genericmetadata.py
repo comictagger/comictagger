@@ -96,6 +96,9 @@ class MetadataOrigin(NamedTuple):
     id: str
     name: str
 
+    def __str__(self) -> str:
+        return self.name
+
 
 @dataclasses.dataclass
 class GenericMetadata:
@@ -434,7 +437,7 @@ class GenericMetadata:
             primary = ""
             if c.primary:
                 primary = " [P]"
-            add_string("credit", c.role + ": " + c.person + primary)
+            add_string("credit", f"{c}{primary}")
 
         # find the longest field name
         flen = 0
