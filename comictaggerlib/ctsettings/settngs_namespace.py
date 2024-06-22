@@ -99,6 +99,7 @@ class SettngsNS(settngs.TypedNS):
     Auto_Tag__use_year_when_identifying: bool
     Auto_Tag__assume_issue_one: bool
     Auto_Tag__ignore_leading_numbers_in_filename: bool
+    Auto_Tag__parse_filename: bool
     Auto_Tag__prefer_filename: bool
     Auto_Tag__issue_id: str | None
     Auto_Tag__metadata: comicapi.genericmetadata.GenericMetadata
@@ -225,6 +226,7 @@ class Auto_Tag(typing.TypedDict):
     use_year_when_identifying: bool
     assume_issue_one: bool
     ignore_leading_numbers_in_filename: bool
+    parse_filename: bool
     prefer_filename: bool
     issue_id: str | None
     metadata: comicapi.genericmetadata.GenericMetadata

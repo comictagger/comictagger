@@ -274,6 +274,13 @@ def autotag(parser: settngs.Manager) -> None:
         help="When searching ignore leading numbers in the filename.\ndefault: %(default)s",
     )
     parser.add_setting(
+        "-f",
+        "--parse-filename",
+        action="store_true",
+        help="""Parse the filename to get some info,\nspecifically series name, issue number,\nvolume, and publication year.\n\n""",
+        file=False,
+    )
+    parser.add_setting(
         "--prefer-filename",
         action="store_true",
         help="""Prefer metadata parsed from the filename. CLI only.\n\n""",

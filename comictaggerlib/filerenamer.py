@@ -73,7 +73,7 @@ class MetadataFormatter(string.Formatter):
         return cast(str, super().format_field(value, format_spec))
 
     def convert_field(self, value: Any, conversion: str | None) -> str:
-        if isinstance(value, Iterable) and not isinstance(value, str) and not _isnamedtupleinstance(value):
+        if isinstance(value, Iterable) and not isinstance(value, (str, tuple)):
             if conversion == "C":
                 if isinstance(value, Sized):
                     return str(len(value))
@@ -91,11 +91,13 @@ class MetadataFormatter(string.Formatter):
                         ...
                     return list(value)[i]
                 return ""
+            if conversion == "j":
+                conversion = "s"
             try:
-                return ", ".join(list(self.convert_field(v, conversion) for v in sorted(value)))
+                return ", ".join(list(self.convert_field(v, conversion) for v in sorted(value) if v is not None))
             except Exception:
                 ...
-            return ", ".join(list(self.convert_field(v, conversion) for v in value))
+            return ", ".join(list(self.convert_field(v, conversion) for v in value if v is not None))
         if not conversion:
             return cast(str, super().convert_field(value, conversion))
         if conversion == "u":
@@ -186,7 +188,8 @@ class MetadataFormatter(string.Formatter):
                 obj = self.none_replacement(obj, replacement, r)
                 # do any conversion on the resulting object
                 obj = self.convert_field(obj, conversion)
-                obj = self.none_replacement(obj, replacement, r)
+                if r == "-":
+                    obj = self.none_replacement(obj, replacement, r)
 
                 # expand the format spec, if needed
                 format_spec, _ = self._vformat(

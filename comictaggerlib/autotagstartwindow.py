@@ -49,7 +49,7 @@ class AutoTagStartWindow(QtWidgets.QDialog):
         self.cbxDontUseYear.setChecked(not self.config.Auto_Tag__use_year_when_identifying)
         self.cbxAssumeIssueOne.setChecked(self.config.Auto_Tag__assume_issue_one)
         self.cbxIgnoreLeadingDigitsInFilename.setChecked(self.config.Auto_Tag__ignore_leading_numbers_in_filename)
-        self.cbxRemoveAfterSuccess.setChecked(self.config.Auto_Tag__remove_archive_after_successful_match)
+        self.cbxRemoveAfterSuccess.setChecked(self.config.internal__remove_archive_after_successful_match)
         self.cbxAutoImprint.setChecked(self.config.Auto_Tag__auto_imprint)
 
         nlmt_tip = """<html>The <b>Name Match Ratio Threshold: Auto-Identify</b> is for eliminating automatic
@@ -98,7 +98,7 @@ class AutoTagStartWindow(QtWidgets.QDialog):
         self.config.Auto_Tag__use_year_when_identifying = not self.dont_use_year
         self.config.Auto_Tag__assume_issue_one = self.assume_issue_one
         self.config.Auto_Tag__ignore_leading_numbers_in_filename = self.ignore_leading_digits_in_filename
-        self.config.Auto_Tag__remove_archive_after_successful_match = self.remove_after_success
+        self.config.internal__remove_archive_after_successful_match = self.remove_after_success
 
         if self.cbxSpecifySearchString.isChecked():
             self.search_string = self.leSearchString.text()
