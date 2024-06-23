@@ -32,7 +32,7 @@ jobs:
 
       - name: Install macos dependencies
         run: |
-          brew upgrade && brew install icu4c pkg-config
+          brew upgrade icu4c pkg-config || brew install icu4c pkg-config
         if: runner.os == 'macOS'
 
       - name: Install linux dependencies
