@@ -30,6 +30,28 @@ class CheckableComboBox(QtWidgets.QComboBox):
         # Keeps track of when the combobox list is shown
         self.justShown = False
 
+    # Longstanding bug that is fixed almost everywhere but in Linux/Windows pip wheels
+    # https://stackoverflow.com/questions/65826378/how-do-i-use-qcombobox-setplaceholdertext/65830989#65830989
+    def paintEvent(self, event: QEvent) -> None:
+        painter = QtWidgets.QStylePainter(self)
+        painter.setPen(self.palette().color(QtGui.QPalette.Text))
+
+        # draw the combobox frame, focusrect and selected etc.
+        opt = QtWidgets.QStyleOptionComboBox()
+        self.initStyleOption(opt)
+        painter.drawComplexControl(QtWidgets.QStyle.CC_ComboBox, opt)
+
+        if self.currentIndex() < 0:
+            opt.palette.setBrush(
+                QtGui.QPalette.ButtonText,
+                opt.palette.brush(QtGui.QPalette.ButtonText).color(),
+            )
+            if self.placeholderText():
+                opt.currentText = self.placeholderText()
+
+        # draw the icon and text
+        painter.drawControl(QtWidgets.QStyle.CE_ComboBoxLabel, opt)
+
     def resizeEvent(self, event: Any) -> None:
         # Recompute text to elide as needed
         super().resizeEvent(event)
@@ -288,6 +310,28 @@ class CheckableOrderComboBox(QtWidgets.QComboBox):
 
         # Keeps track of when the combobox list is shown
         self.justShown = False
+
+    # Longstanding bug that is fixed almost everywhere but in Linux/Windows pip wheels
+    # https://stackoverflow.com/questions/65826378/how-do-i-use-qcombobox-setplaceholdertext/65830989#65830989
+    def paintEvent(self, event: QEvent) -> None:
+        painter = QtWidgets.QStylePainter(self)
+        painter.setPen(self.palette().color(QtGui.QPalette.Text))
+
+        # draw the combobox frame, focusrect and selected etc.
+        opt = QtWidgets.QStyleOptionComboBox()
+        self.initStyleOption(opt)
+        painter.drawComplexControl(QtWidgets.QStyle.CC_ComboBox, opt)
+
+        if self.currentIndex() < 0:
+            opt.palette.setBrush(
+                QtGui.QPalette.ButtonText,
+                opt.palette.brush(QtGui.QPalette.ButtonText).color(),
+            )
+            if self.placeholderText():
+                opt.currentText = self.placeholderText()
+
+        # draw the icon and text
+        painter.drawControl(QtWidgets.QStyle.CE_ComboBoxLabel, opt)
 
     def buttonClicked(self, index: QModelIndex, button: ClickedButtonEnum) -> None:
         if button == ClickedButtonEnum.up:
