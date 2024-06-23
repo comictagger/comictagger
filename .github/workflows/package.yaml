@@ -9,6 +9,8 @@ on:
 jobs:
   package:
     permissions:
+      # IMPORTANT: this permission is mandatory for trusted publishing
+      id-token: write
       contents: write
     runs-on: ${{ matrix.os }}
     strategy:
@@ -45,11 +47,11 @@ jobs:
           export PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig:/opt/homebrew/opt/icu4c/lib/pkgconfig${PKG_CONFIG_PATH+:$PKG_CONFIG_PATH}";
           export PATH="/usr/local/opt/icu4c/bin:/usr/local/opt/icu4c/sbin${PATH+:$PATH}"
           python -m tox r
-          python -m tox r -m release
         shell: bash
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+
+      - name: "Publish distribution 📦 to PyPI"
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: pypa/gh-action-pypi-publish@release/v1
 
       - name: Get release name
         if: startsWith(github.ref, 'refs/tags/')
