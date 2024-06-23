@@ -180,19 +180,20 @@ def parse_metadata_from_string(mdstr: str) -> GenericMetadata:
         return t
 
     def convert_value(t: type, value: Any) -> Any:
-        if not isinstance(value, t):
+        if isinstance(value, t):
+            return value
+        try:
             if isinstance(value, (Mapping)):
                 value = t(**value)
             elif not isinstance(value, str) and isinstance(value, (Collection)):
                 value = t(*value)
             else:
-                try:
-                    if t is utils.Url and isinstance(value, str):
-                        value = utils.parse_url(value)
-                    else:
-                        value = t(value)
-                except (ValueError, TypeError):
-                    raise argparse.ArgumentTypeError(f"Invalid syntax for tag '{key}'")
+                if t is utils.Url and isinstance(value, str):
+                    value = utils.parse_url(value)
+                else:
+                    value = t(value)
+        except (ValueError, TypeError):
+            raise argparse.ArgumentTypeError(f"Invalid syntax for tag '{key}': {value}")
         return value
 
     md = GenericMetadata()
@@ -217,11 +218,11 @@ def parse_metadata_from_string(mdstr: str) -> GenericMetadata:
             if value is None:
                 value = REMOVE
             elif isinstance(t, tuple):
-                if value == "" or value is None:
+                if value == "":
                     value = t[0]()
                 else:
                     if isinstance(value, str):
-                        values: list[Any] = value.split("::")
+                        value = [value]
                     if not isinstance(value, Collection):
                         raise argparse.ArgumentTypeError(f"Invalid syntax for tag '{key}'")
                     values = list(value)
@@ -229,7 +230,7 @@ def parse_metadata_from_string(mdstr: str) -> GenericMetadata:
                         if not isinstance(v, t[1]):
                             values[idx] = convert_value(t[1], v)
                     value = t[0](values)
-            elif value is not None:
+            else:
                 value = convert_value(t, value)
 
             empty = False

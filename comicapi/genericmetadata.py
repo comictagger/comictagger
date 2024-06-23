@@ -385,16 +385,19 @@ class GenericMetadata:
             return "No metadata"
 
         def add_string(tag: str, val: Any) -> None:
-            if isinstance(val, Sequence):
+            if isinstance(val, (Sequence, set)):
                 if val:
                     vals.append((tag, val))
             elif val is not None:
                 vals.append((tag, val))
 
+        add_string("data_origin", self.data_origin)
         add_string("series", self.series)
+        add_string("series_aliases", ",".join(self.series_aliases))
         add_string("issue", self.issue)
         add_string("issue_count", self.issue_count)
         add_string("title", self.title)
+        add_string("title_aliases", ",".join(self.title_aliases))
         add_string("publisher", self.publisher)
         add_string("year", self.year)
         add_string("month", self.month)
