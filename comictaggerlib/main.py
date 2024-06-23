@@ -260,7 +260,7 @@ class App:
             comicapi.comicarchive.tags["cr"].enabled = False
 
         if len(self.talkers) < 1:
-            error = error = (
+            error = (
                 "Failed to load any talkers, please re-install and check the log located in '"
                 + str(self.config[0].Runtime_Options__config.user_log_dir)
                 + "' for more details",

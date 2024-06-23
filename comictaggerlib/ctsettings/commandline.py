@@ -300,8 +300,8 @@ def validate_commandline_settings(config: settngs.Config[ct_ns], parser: settngs
             letters.extend({f"{d}" for d in "ABCDEFGHIJKLMNOPQRSTUVWXYZ" if os.path.exists(f"{d}:\\")} - {"C"})
             for letter in letters:
                 # look in some likely places for Windows machines
-                utils.add_to_path(rf"{letters}:\Program Files\WinRAR")
-                utils.add_to_path(rf"{letters}:\Program Files (x86)\WinRAR")
+                utils.add_to_path(rf"{letter}:\Program Files\WinRAR")
+                utils.add_to_path(rf"{letter}:\Program Files (x86)\WinRAR")
         else:
             if platform.system() == "Darwin":
                 result = subprocess.run(("/usr/libexec/path_helper", "-s"), capture_output=True)

@@ -80,8 +80,6 @@ def generate_api_widgets(
 
     # get the actual config objects in case they have overwritten the default
     btn_test_row = None
-    le_key = None
-    le_url = None
 
     # only file settings are saved
     if key_option.file:

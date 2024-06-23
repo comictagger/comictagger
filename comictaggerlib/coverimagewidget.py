@@ -238,7 +238,8 @@ class CoverImageWidget(QtWidgets.QWidget):
         self.load_default()
         self.cover_fetcher = ImageFetcher(self.cache_folder)
         ImageFetcher.image_fetch_complete = self.image_fetch_complete.emit
-        if data := self.cover_fetcher.fetch(self.url_list[self.imageIndex]):
+        data = self.cover_fetcher.fetch(self.url_list[self.imageIndex])
+        if data:
             self.cover_remote_fetch_complete(self.url_list[self.imageIndex], data)
 
     # called when the image is done loading from internet

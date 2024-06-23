@@ -1810,8 +1810,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
             if ct_md is not None:
                 temp_opts = cast(ct_ns, settngs.get_namespace(self.config, True, True, True, False)[0])
-                if dlg.cbxClearMetadata.isChecked():
-                    temp_opts.Auto_Tag__clear_tags
+                temp_opts.Auto_Tag__clear_tags = dlg.cbxClearMetadata.isChecked()
 
                 md = prepare_metadata(md, ct_md, temp_opts)
 

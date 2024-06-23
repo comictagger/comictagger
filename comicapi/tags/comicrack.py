@@ -157,13 +157,9 @@ class ComicRack(Tag):
 
         def assign(cr_entry: str, md_entry: Any) -> None:
             if md_entry:
-                text = ""
-                if isinstance(md_entry, str):
-                    text = md_entry
-                elif isinstance(md_entry, (list, set)):
+                text = str(md_entry)
+                if isinstance(md_entry, (list, set)):
                     text = ",".join(md_entry)
-                else:
-                    text = str(md_entry)
                 et_entry = root.find(cr_entry)
                 if et_entry is not None:
                     et_entry.text = text

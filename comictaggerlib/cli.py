@@ -470,10 +470,6 @@ class CLI:
 
                 ii = IssueIdentifier(ca, self.config, self.current_talker())
 
-                def myoutput(text: str) -> None:
-                    if self.config.Runtime_Options__verbose:
-                        self.output(text)
-
                 ii.set_output_function(functools.partial(self.output, already_logged=True))
                 if not self.config.Auto_Tag__use_year_when_identifying:
                     md.year = None
@@ -679,7 +675,8 @@ class CLI:
         delete_success = False
         export_success = False
         if not self.config.Runtime_Options__dryrun:
-            if export_success := ca.export_as_zip(new_file):
+            if ca.export_as_zip(new_file):
+                export_success = True
                 if self.config.Runtime_Options__delete_original:
                     try:
                         filename_path.unlink(missing_ok=True)

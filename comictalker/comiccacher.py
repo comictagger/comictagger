@@ -202,8 +202,6 @@ class ComicCacher:
         return results
 
     def get_series_info(self, series_id: str, source: str, expire_stale: bool = True) -> tuple[Series, bool] | None:
-        result: Series | None = None
-
         with sqlite3.connect(self.db_file) as con:
             con.row_factory = sqlite3.Row
             cur = con.cursor()
