@@ -1721,10 +1721,10 @@ Source</string>
   </action>
   <action name="actionRemoveAuto">
    <property name="text">
-    <string>Remove Current 'Modify' tag(s)</string>
+    <string>Remove Current 'Write' tag(s)</string>
    </property>
    <property name="statusTip">
-    <string>Remove currently selected modify tag(s) from the archive</string>
+    <string>Remove currently selected write tag(s) from the archive</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+D</string>

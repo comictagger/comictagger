@@ -409,6 +409,8 @@ class PageListEditor(QtWidgets.QWidget):
 
         enabled_widgets = set()
         for tag_id in tag_ids:
+            if not tags[tag_id].enabled:
+                continue
             enabled_widgets.update(tags[tag_id].supported_attributes)
 
         self.tag_ids = tag_ids

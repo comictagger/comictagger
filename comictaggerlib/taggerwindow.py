@@ -337,15 +337,17 @@ class TaggerWindow(QtWidgets.QMainWindow):
         if self.config[0].General__check_for_new_version:
             self.check_latest_version_online()
 
-    def tag_actions(self) -> tuple[dict[str, QtGui.QAction], dict[str, QtGui.QAction]]:
-        view_raw_tags = {}
-        remove_raw_tags = {}
+    def tag_actions(self) -> tuple[dict[str, QtWidgets.QAction], dict[str, QtWidgets.QAction]]:
+        view_raw_tags: dict[str, QtWidgets.QAction] = {}
+        remove_raw_tags: dict[str, QtWidgets.QAction] = {}
         for tag in tags.values():
             view_raw_tags[tag.id] = self.menuViewRawTags.addAction(f"View Raw {tag.name()} Tags")
+            view_raw_tags[tag.id].setEnabled(tag.enabled)
             view_raw_tags[tag.id].setStatusTip(f"View raw {tag.name()} tag block from file")
             view_raw_tags[tag.id].triggered.connect(functools.partial(self.view_raw_tags, tag.id))
 
             remove_raw_tags[tag.id] = self.menuRemove.addAction(f"Remove Raw {tag.name()} Tags")
+            remove_raw_tags[tag.id].setEnabled(tag.enabled)
             remove_raw_tags[tag.id].setStatusTip(f"Remove {tag.name()} tags from comic archive")
             remove_raw_tags[tag.id].triggered.connect(functools.partial(self.remove_tags, [tag.id]))
 
@@ -662,8 +664,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.menuViewRawTags.setEnabled(enabled)
         if self.comic_archive is not None:
             for tag_id in tags:
-                self.view_tag_actions[tag_id].setEnabled(self.comic_archive.has_tags(tag_id))
-                self.remove_tag_actions[tag_id].setEnabled(self.comic_archive.has_tags(tag_id))
+                self.view_tag_actions[tag_id].setEnabled(tags[tag_id].enabled and self.comic_archive.has_tags(tag_id))
+                self.remove_tag_actions[tag_id].setEnabled(tags[tag_id].enabled and self.comic_archive.has_tags(tag_id))
 
         self.actionWrite_Tags.setEnabled(writeable)
 
@@ -1176,6 +1178,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
         # depending on the current data tag, certain fields are disabled
         enabled_widgets = set()
         for tag_id in self.selected_write_tags:
+            if not tags[tag_id].enabled:
+                continue
             enabled_widgets.update(tags[tag_id].supported_attributes)
 
         for md_field, widget in self.md_attributes.items():
@@ -1318,19 +1322,27 @@ class TaggerWindow(QtWidgets.QMainWindow):
         """Select the enabled tags. Since tags are merged in an overlay fashion the last item in the list takes priority. We reverse the order for display to the user"""
         unchecked = set(tags.keys()) - set(self.selected_read_tags)
         for i, tag_id in enumerate(reversed(self.selected_read_tags)):
+            if not tags[tag_id].enabled:
+                continue
             item_idx = self.cbSelectedReadTags.findData(tag_id)
             self.cbSelectedReadTags.setItemChecked(item_idx, True)
             # Order matters, move items to list order
             if item_idx != i:
                 self.cbSelectedReadTags.moveItem(item_idx, row=i)
         for tag_id in unchecked:
+            if not tags[tag_id].enabled:
+                continue
             self.cbSelectedReadTags.setItemChecked(self.cbSelectedReadTags.findData(tag_id), False)
 
         # select the current tag_id
         unchecked = set(tags.keys()) - set(self.selected_write_tags)
         for tag_id in self.selected_write_tags:
+            if not tags[tag_id].enabled:
+                continue
             self.cbSelectedWriteTags.setItemChecked(self.cbSelectedWriteTags.findData(tag_id), True)
         for tag_id in unchecked:
+            if not tags[tag_id].enabled:
+                continue
             self.cbSelectedWriteTags.setItemChecked(self.cbSelectedWriteTags.findData(tag_id), False)
         self.update_tag_tweaks()
 
@@ -1340,6 +1352,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.cbSelectedReadTags.clear()
         # Add the entries to the tag comboboxes
         for tag in tags.values():
+            if not tag.enabled:
+                continue
             if self.config[0].Metadata_Options__use_short_tag_names:
                 self.cbSelectedWriteTags.addItem(tag.id.upper(), tag.id)
                 self.cbSelectedReadTags.addItem(tag.id.upper(), tag.id)
@@ -2074,7 +2088,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         if self.dirty_flag_verification(
             "File Rename", "If you rename files now, unsaved data in the form will be lost.  Are you sure?"
         ):
-            dlg = RenameWindow(self, ca_list, self.selected_write_tags, self.config, self.talkers)
+            dlg = RenameWindow(self, ca_list, self.selected_read_tags, self.config, self.talkers)
             dlg.setModal(True)
             if dlg.exec() and self.comic_archive is not None:
                 self.fileSelectionList.update_selected_rows()
@@ -2094,7 +2108,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.config[0].internal__last_opened_folder = os.path.abspath(os.path.split(comic_archive.path)[0])
         self.comic_archive = comic_archive
 
-        self.metadata, error = self.read_selected_tags(self.selected_write_tags, self.comic_archive)
+        self.metadata, error = self.read_selected_tags(self.selected_read_tags, self.comic_archive)
         if error is not None:
             logger.error("Failed to load tags from %s: %s", self.comic_archive.path, error)
             self.exception(f"Failed to load tags from {self.comic_archive.path}, see log for details\n\n")
