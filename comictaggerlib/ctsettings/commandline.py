@@ -156,7 +156,7 @@ def register_runtime(parser: settngs.Manager) -> None:
     parser.add_setting(
         "--skip-existing-tags",
         action=argparse.BooleanOptionalAction,
-        default=True,
+        default=False,
         help="""Skip archives that already have tags specified with -t,\notherwise merges new tags with existing tags (relevant for -s or -c).\ndefault: %(default)s""",
         file=False,
     )
