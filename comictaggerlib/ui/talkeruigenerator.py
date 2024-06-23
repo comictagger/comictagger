@@ -316,7 +316,7 @@ def get_config_from_tab(tab: TalkerTab, definitions: settngs.Group) -> dict[str,
             and guessed_type not in (None, "Any")
             and (isinstance(guessed_type, type) and not isinstance(value, guessed_type))
         ):
-            logger.warn(
+            logger.warning(
                 "Guessed type is wrong on for '%s': expected: %s got: %s",
                 setting_name,
                 guessed_type,

@@ -74,7 +74,7 @@ class FileNameParser:
         # replace any name separators with spaces
         tmpstr = self.fix_spaces(filename)
 
-        match = re.search(r"(?:\s\(?of\s)(\d+)(?: |\))", tmpstr, re.IGNORECASE)
+        match = re.search(r"\s\(?of\s(\d+)[ )]", tmpstr, re.IGNORECASE)
         if match:
             count = match.group(1)
 
@@ -264,7 +264,7 @@ class FileNameParser:
 
         remainder = self.fix_spaces(remainder, remove_dashes=False)
         if volume != "":
-            remainder = re.sub(r"(?i)(.+)((?:v(?:|ol|olume))\.?\s?)" + volume, "", remainder, count=1)
+            remainder = re.sub(r"(?i)(.+)(v(?:|ol|olume)\.?\s?)" + volume, "", remainder, count=1)
         if year != "":
             remainder = remainder.replace(year, "", 1)
         if count != "":
