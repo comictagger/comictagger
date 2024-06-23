@@ -82,7 +82,7 @@ class RenameWindow(QtWidgets.QDialog):
             new_ext = ca.extension()
 
         if md is None or md.is_empty:
-            md, error = self.parent().read_all_tags(self.read_tag_ids, ca)
+            md, error = self.parent().read_selected_tags(self.read_tag_ids, ca)
             if error is not None:
                 logger.error("Failed to load tags from %s: %s", ca.path, error)
                 QtWidgets.QMessageBox.warning(

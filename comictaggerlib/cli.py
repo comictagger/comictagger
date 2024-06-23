@@ -347,7 +347,7 @@ class CLI:
 
     def _copy_tags(self, ca: ComicArchive, md: GenericMetadata, source_names: str, dst_tag_id: str) -> Status:
         dst_tag_name = tags[dst_tag_id].name()
-        if not self.config.Runtime_Options__skip_existing_tags and ca.has_tags(dst_tag_id):
+        if self.config.Runtime_Options__skip_existing_tags and ca.has_tags(dst_tag_id):
             self.output(f"{ca.path}: Already has {dst_tag_name} tags. Not overwriting.")
             return Status.existing_tags
 
@@ -398,7 +398,7 @@ class CLI:
         return res
 
     def save(self, ca: ComicArchive, match_results: OnlineMatchResults) -> tuple[Result, OnlineMatchResults]:
-        if not self.config.Runtime_Options__skip_existing_tags:
+        if self.config.Runtime_Options__skip_existing_tags:
             for tag_id in self.config.Runtime_Options__tags_write:
                 if ca.has_tags(tag_id):
                     self.output(f"{ca.path}: Already has {tags[tag_id].name()} tags. Not overwriting.")
