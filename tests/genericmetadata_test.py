@@ -60,6 +60,7 @@ def test_get_primary_credit(md, role, expected):
 def test_str(md):
     expected = textwrap.dedent(
         """\
+        data_origin:      Comic Vine
         series:           Cory Doctorow's Futuristic Tales of the Here and Now
         issue:            1
         issue_count:      6
