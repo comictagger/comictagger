@@ -47,6 +47,7 @@ jobs:
           export PKG_CONFIG_PATH="/usr/local/opt/icu4c/lib/pkgconfig:/opt/homebrew/opt/icu4c/lib/pkgconfig${PKG_CONFIG_PATH+:$PKG_CONFIG_PATH}";
           export PATH="/usr/local/opt/icu4c/bin:/usr/local/opt/icu4c/sbin${PATH+:$PATH}"
           python -m tox r
+          python -m tox r -m release
         shell: bash
 
       - name: "Publish distribution 📦 to PyPI"
