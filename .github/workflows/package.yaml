@@ -50,7 +50,7 @@ jobs:
         shell: bash
 
       - name: "Publish distribution 📦 to PyPI"
-        if: startsWith(github.ref, 'refs/tags/')
+        if: startsWith(github.ref, 'refs/tags/') && runner.os == 'Linux'
         uses: pypa/gh-action-pypi-publish@release/v1
 
       - name: Get release name
