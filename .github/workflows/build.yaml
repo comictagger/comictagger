@@ -85,10 +85,11 @@ jobs:
         with:
           name: "${{ format('ComicTagger-{0}', runner.os) }}"
           path: |
-            dist/*.zip
-            dist/*.tar.gz
-            dist/*.dmg
-            dist/*.AppImage
+            dist/*.whl
+            dist/binary/*.zip
+            dist/binary/*.tar.gz
+            dist/binary/*.dmg
+            dist/binary/*.AppImage
 
       - name: PyTest
         run: |

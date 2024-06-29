@@ -50,10 +50,6 @@ jobs:
           python -m tox r -m release
         shell: bash
 
-      - name: "Publish distribution 📦 to PyPI"
-        if: startsWith(github.ref, 'refs/tags/') && runner.os == 'Linux'
-        uses: pypa/gh-action-pypi-publish@release/v1
-
       - name: Get release name
         if: startsWith(github.ref, 'refs/tags/')
         shell: bash
@@ -70,8 +66,13 @@ jobs:
           draft: false
           # upload the single application zip file for each OS and include the wheel built on linux
           files: |
-            dist/*.zip
-            dist/*.tar.gz
-            dist/*.dmg
+            dist/binary/*.zip
+            dist/binary/*.tar.gz
+            dist/binary/*.dmg
+            dist/binary*.AppImage
             dist/*${{ fromJSON('["never", ""]')[runner.os == 'Linux'] }}.whl
-            dist/*.AppImage
+            dist/*.tar.gz
+
+      - name: "Publish distribution 📦 to PyPI"
+        if: startsWith(github.ref, 'refs/tags/') && runner.os == 'Linux'
+        uses: pypa/gh-action-pypi-publish@release/v1

@@ -69,7 +69,9 @@ if __name__ == "__main__":
         final_name = f"ComicTagger-{__version__}-{platform.system()}"
 
     path = pathlib.Path(f"dist/{app_name}")
-    zip_file = pathlib.Path(f"dist/{final_name}")
+    binary_path = pathlib.Path("dist/binary")
+    binary_path.mkdir(parents=True, exist_ok=True)
+    zip_file = binary_path / final_name
 
     if platform.system() == "Darwin":
         from dmgbuild.__main__ import main as dmg_main
@@ -79,7 +81,7 @@ if __name__ == "__main__":
             "-s",
             str(pathlib.Path(__file__).parent / "dmgbuild.conf"),
             f"{app} {__version__}",
-            f"dist/{final_name}.dmg",
+            f"{binary_path}.dmg",
         ]
         dmg_main()
     elif platform.system() == "Windows":
