@@ -6,6 +6,7 @@ import calendar
 import os
 import unicodedata
 from enum import Enum, auto
+from itertools import chain
 from typing import Any, Callable, Protocol
 
 
@@ -307,21 +308,20 @@ def lex_text(lex: Lexer) -> LexerFunc:
         if is_alpha_numeric(r):
             if r.isnumeric():  # E.g. v1
                 word = lex.input[lex.start : lex.pos]
-                if word.casefold() in key and key[word.casefold()] == ItemType.InfoSpecifier:
+                if key.get(word.casefold(), None) == ItemType.InfoSpecifier:
                     lex.backup()
                     lex.emit(key[word.casefold()])
                     return lex_filename
         else:
-            if r == "'" and lex.peek() == "s":
+            if r == "'" and lex.peek().casefold() == "s":
                 lex.get()
             else:
                 lex.backup()
             word = lex.input[lex.start : lex.pos + 1]
-            if word.casefold() == "vol" and lex.peek() == ".":
-                lex.get()
-            word = lex.input[lex.start : lex.pos + 1]
 
             if word.casefold() in key:
+                if key[word.casefold()] in (ItemType.Honorific, ItemType.InfoSpecifier):
+                    lex.accept(".")
                 lex.emit(key[word.casefold()])
             elif cal(word):
                 lex.emit(ItemType.Calendar)
@@ -332,12 +332,8 @@ def lex_text(lex: Lexer) -> LexerFunc:
     return lex_filename
 
 
-def cal(value: str) -> set[Any]:
-    month_abbr = [i for i, x in enumerate(calendar.month_abbr) if x == value.title()]
-    month_name = [i for i, x in enumerate(calendar.month_name) if x == value.title()]
-    day_abbr = [i for i, x in enumerate(calendar.day_abbr) if x == value.title()]
-    day_name = [i for i, x in enumerate(calendar.day_name) if x == value.title()]
-    return set(month_abbr + month_name + day_abbr + day_name)
+def cal(value: str) -> bool:
+    return value.title() in set(chain(calendar.month_abbr, calendar.month_name, calendar.day_abbr, calendar.day_name))
 
 
 def lex_number(lex: Lexer) -> LexerFunc | None:

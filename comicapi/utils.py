@@ -162,6 +162,8 @@ def parse_filename(
             remove_publisher=remove_publisher,
             protofolius_issue_number_scheme=protofolius_issue_number_scheme,
         )
+        if p.error:
+            logger.info("Issue parsing filename: '%s': %s ", filename, p.error.val)
         fni = p.filename_info
     elif parser == Parser.COMICFN2DICT:
         fn2d = comicfn2dict(filename)

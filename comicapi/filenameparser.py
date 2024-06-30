@@ -417,10 +417,14 @@ class Parser:
             self.remove_from_remainder.append(filenamelexer.ItemType.FCBD)
 
         self.input = lexer_result
-        for i, item in enumerate(self.input):
+        self.error = None
+        for i, item in list(enumerate(self.input)):
             if item.typ == filenamelexer.ItemType.IssueNumber:
                 self.issue_number_at = i
                 self.issue_number_marked = True
+            if item.typ == filenamelexer.ItemType.Error:
+                self.error = item
+                self.input.remove(self.error)
 
     # Get returns the next Item in the input.
     def get(self) -> filenamelexer.Item:
@@ -1043,10 +1047,9 @@ def parse_finish(p: Parser) -> None:
             if item in p.title_parts:
                 p.title_parts.remove(item)
 
+    p.filename_info["series"] = p.filename_info.get("issue", "")
     if p.series_parts:
         p.filename_info["series"] = join_title(p.series_parts)
-    else:
-        p.filename_info["series"] = p.filename_info.get("issue", "")
 
     if "free comic book" in p.filename_info["series"].casefold():
         p.filename_info["fcbd"] = True
@@ -1092,7 +1095,6 @@ def get_remainder(p: Parser) -> str:
         elif (
             item.typ
             in [
-                filenamelexer.ItemType.Space,
                 filenamelexer.ItemType.RightBrace,
                 filenamelexer.ItemType.RightParen,
                 filenamelexer.ItemType.RightSBrace,
@@ -1111,7 +1113,7 @@ def get_remainder(p: Parser) -> str:
 
     # Remove empty parentheses
     remainder = re.sub(r"[\[{(]+[]})]+", "", remainder)
-    return remainder.strip()
+    return remainder.strip().rstrip("[{(")
 
 
 def parse_info_specifier(p: Parser) -> ParserFunc:

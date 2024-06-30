@@ -74,7 +74,7 @@ names: list[tuple[str, str, dict[str, str | bool], tuple[bool, bool]]] = [
     ),
     (
         "Michel Vaillant #5 Nr. 13 aan de start",
-        "Shortened word followed by a number eg No. 13, Mr. 13",
+        "Shortened word followed by a number eg No. 13, Nr. 13",
         {
             "issue": "5",
             "series": "Michel Vaillant",
@@ -277,6 +277,23 @@ names: list[tuple[str, str, dict[str, str | bool], tuple[bool, bool]]] = [
         (False, True),
     ),
     (
+        "batman #3 title (DC.cbz",
+        "publisher in title",
+        {
+            "archive": "cbz",
+            "issue": "3",
+            "series": "batman",
+            "title": "title",
+            "publisher": "DC",
+            "volume": "",
+            "year": "",
+            "remainder": "",
+            "issue_count": "",
+            "alternate": "",
+        },
+        (False, True),
+    ),
+    (
         "ms. Marvel #3.cbz",
         "honorific and publisher in series",
         {
@@ -287,6 +304,23 @@ names: list[tuple[str, str, dict[str, str | bool], tuple[bool, bool]]] = [
             "publisher": "Marvel",
             "volume": "",
             "year": "",
+            "remainder": "",
+            "issue_count": "",
+            "alternate": "",
+        },
+        (False, False),
+    ),
+    (
+        "Dr. Doom And The Masters Of Evil #1 (2009).cbz",
+        "honorific and publisher in series",
+        {
+            "archive": "cbz",
+            "issue": "1",
+            "series": "Dr. Doom And The Masters Of Evil",
+            "title": "",
+            "publisher": "",
+            "volume": "",
+            "year": "2009",
             "remainder": "",
             "issue_count": "",
             "alternate": "",
