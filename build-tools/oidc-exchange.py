@@ -133,26 +133,25 @@ def assert_successful_audience_call(resp: requests.Response, domain: str) -> Non
     if resp.ok:
         return
 
-    match resp.status_code:
-        case HTTPStatus.FORBIDDEN:
-            # This index supports OIDC, but forbids the client from using
-            # it (either because it's disabled, ratelimited, etc.)
-            die(
-                f"audience retrieval failed: repository at {domain} has trusted publishing disabled",
-            )
-        case HTTPStatus.NOT_FOUND:
-            # This index does not support OIDC.
-            die(
-                f"audience retrieval failed: repository at {domain} does not indicate trusted publishing support",
-            )
-        case other:
-            status = HTTPStatus(other)
-            # Unknown: the index may or may not support OIDC, but didn't respond with
-            # something we expect. This can happen if the index is broken, in maintenance mode,
-            # misconfigured, etc.
-            die(
-                f"audience retrieval failed: repository at {domain} responded with unexpected {other}: {status.phrase}",
-            )
+    if resp.status_code == HTTPStatus.FORBIDDEN:
+        # This index supports OIDC, but forbids the client from using
+        # it (either because it's disabled, ratelimited, etc.)
+        die(
+            f"audience retrieval failed: repository at {domain} has trusted publishing disabled",
+        )
+    elif resp.status_code == HTTPStatus.NOT_FOUND:
+        # This index does not support OIDC.
+        die(
+            f"audience retrieval failed: repository at {domain} does not indicate trusted publishing support",
+        )
+    else:
+        status = HTTPStatus(resp.status_code)
+        # Unknown: the index may or may not support OIDC, but didn't respond with
+        # something we expect. This can happen if the index is broken, in maintenance mode,
+        # misconfigured, etc.
+        die(
+            f"audience retrieval failed: repository at {domain} responded with unexpected {resp.status_code}: {status.phrase}",
+        )
 
 
 def render_claims(token: str) -> str:
