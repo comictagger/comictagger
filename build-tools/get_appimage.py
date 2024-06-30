@@ -3,7 +3,6 @@ from __future__ import annotations
 import argparse
 import os
 import pathlib
-import stat
 
 try:
     import niquests as requests
@@ -30,7 +29,7 @@ if opts.APPIMAGETOOL.exists():
 urlretrieve(
     "https://github.com/AppImage/AppImageKit/releases/latest/download/appimagetool-x86_64.AppImage", opts.APPIMAGETOOL
 )
-os.chmod(opts.APPIMAGETOOL, stat.S_IRWXU)
+os.chmod(opts.APPIMAGETOOL, 0o0700)
 
 if not opts.APPIMAGETOOL.exists():
     raise SystemExit(1)
