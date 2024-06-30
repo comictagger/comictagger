@@ -71,7 +71,7 @@ if __name__ == "__main__":
     path = pathlib.Path(f"dist/{app_name}")
     binary_path = pathlib.Path("dist/binary")
     binary_path.mkdir(parents=True, exist_ok=True)
-    zip_file = binary_path / final_name
+    archive_destination = binary_path / final_name
 
     if platform.system() == "Darwin":
         from dmgbuild.__main__ import main as dmg_main
@@ -81,10 +81,10 @@ if __name__ == "__main__":
             "-s",
             str(pathlib.Path(__file__).parent / "dmgbuild.conf"),
             f"{app} {__version__}",
-            f"{binary_path}.dmg",
+            f"{archive_destination}.dmg",
         ]
         dmg_main()
     elif platform.system() == "Windows":
-        Zip(zip_file, path)
+        Zip(archive_destination, path)
     else:
-        Tar(zip_file, path)
+        Tar(archive_destination, path)
