@@ -69,5 +69,5 @@ jobs:
             dist/binary/*.zip
             dist/binary/*.tar.gz
             dist/binary/*.dmg
-            dist/binary*.AppImage
+            dist/binary/*.AppImage
             dist/*${{ fromJSON('["never", ""]')[runner.os == 'Linux'] }}.whl
