@@ -82,8 +82,28 @@ if sys.version_info < (3, 11):
             """
             return name.lower()
 
+        @classmethod
+        def _missing_(cls, value: Any) -> str | None:
+            if not isinstance(value, str):
+                return None
+            if not hasattr(cls, "_lower_members"):
+                cls._lower_members = {x.casefold(): x for x in cls}  # type: ignore[attr-defined]
+            return cls._lower_members.get(value.casefold(), None)  # type: ignore[attr-defined]
+
+        def __str__(self):
+            return self.value
+
 else:
-    from enum import StrEnum
+    from enum import StrEnum as s
+
+    class StrEnum(s):
+        @classmethod
+        def _missing_(cls, value: Any) -> str | None:
+            if not isinstance(value, str):
+                return None
+            if not hasattr(cls, "_lower_members"):
+                cls._lower_members = {x.casefold(): x for x in cls}  # type: ignore[attr-defined]
+            return cls._lower_members.get(value.casefold(), None)  # type: ignore[attr-defined]
 
 
 logger = logging.getLogger(__name__)
