@@ -24,7 +24,7 @@ from typing import Any
 from comicapi import utils
 from comicapi.archivers import Archiver
 from comicapi.comicarchive import ComicArchive
-from comicapi.genericmetadata import GenericMetadata, ImageMetadata, PageType
+from comicapi.genericmetadata import GenericMetadata, PageMetadata, PageType
 from comicapi.tags import Tag
 
 logger = logging.getLogger(__name__)
@@ -194,8 +194,8 @@ class CoMet(Tag):
                 date_str += f"-{md.month:02}"
             assign("date", date_str)
 
-        page = md.get_cover_page_index_list()[0]
-        assign("coverImage", md.pages[page]["filename"])
+        cover_index = md.get_cover_page_index_list()[0]
+        assign("coverImage", md.pages[cover_index].filename)
 
         # loop thru credits, and build a list for each role that CoMet supports
         for credit in metadata.credits:
@@ -265,7 +265,15 @@ class CoMet(Tag):
         page_list = ca.get_page_name_list()
         if cover_filename in page_list:
             cover_index = page_list.index(cover_filename)
-            md.pages = [ImageMetadata(image_index=cover_index, filename=cover_filename, type=PageType.FrontCover)]
+            md.pages = [
+                PageMetadata(
+                    archive_index=cover_index,
+                    display_index=0,
+                    filename=cover_filename,
+                    type=PageType.FrontCover,
+                    bookmark="",
+                )
+            ]
 
         reading_direction = utils.xlate(get("readingDirection"))
         if reading_direction is not None and reading_direction == "rtl":

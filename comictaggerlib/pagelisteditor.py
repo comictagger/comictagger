@@ -21,7 +21,7 @@ import logging
 from PyQt5 import QtCore, QtWidgets, uic
 
 from comicapi.comicarchive import ComicArchive, tags
-from comicapi.genericmetadata import GenericMetadata, ImageMetadata, PageType
+from comicapi.genericmetadata import GenericMetadata, PageMetadata, PageType
 from comictaggerlib.coverimagewidget import CoverImageWidget
 from comictaggerlib.ui import ui_path
 from comictaggerlib.ui.qtutils import enable_widget
@@ -118,7 +118,7 @@ class PageListEditor(QtWidgets.QWidget):
         self.first_front_page: int | None = None
 
         self.comic_archive: ComicArchive | None = None
-        self.pages_list: list[ImageMetadata] = []
+        self.pages_list: list[PageMetadata] = []
         self.tag_ids: list[str] = []
 
     def set_blur(self, blur: bool) -> None:
@@ -156,23 +156,23 @@ class PageListEditor(QtWidgets.QWidget):
         row = self.comic_archive.get_scanner_page_index()
         if row is None:
             return
-        page_dict: ImageMetadata = self.listWidget.item(row).data(QtCore.Qt.ItemDataRole.UserRole)
+        page: PageMetadata = self.listWidget.item(row).data(QtCore.Qt.ItemDataRole.UserRole)
 
-        page_dict["type"] = PageType.Deleted
+        page.type = PageType.Deleted
 
         item = self.listWidget.item(row)
-        item.setData(QtCore.Qt.ItemDataRole.UserRole, page_dict)
-        item.setText(self.list_entry_text(page_dict))
+        item.setData(QtCore.Qt.ItemDataRole.UserRole, page)
+        item.setText(self.list_entry_text(page))
         self.change_page()
 
     def identify_double_page(self) -> None:
         if self.comic_archive is None:
             return
         md = GenericMetadata(pages=self.get_page_list())
-        double_pages = [x.get("double_page", False) for x in md.pages]
+        double_pages = [bool(x.double_page) for x in md.pages]
         self.comic_archive.apply_archive_info_to_metadata(md, True, True)
         self.set_data(self.comic_archive, pages_list=md.pages)
-        if double_pages != [x.get("double_page", False) for x in md.pages]:
+        if double_pages != [bool(x.double_page) for x in md.pages]:
             self.modified.emit()
 
     def select_page_type_item(self, idx: int) -> None:
@@ -272,93 +272,81 @@ class PageListEditor(QtWidgets.QWidget):
         i = self.cbPageType.findData(pagetype)
         self.cbPageType.setCurrentIndex(i)
 
-        page = self.listWidget.item(row).data(QtCore.Qt.ItemDataRole.UserRole)
-        self.chkDoublePage.setChecked(page.get("double_page", False))
+        page: PageMetadata = self.listWidget.item(row).data(QtCore.Qt.ItemDataRole.UserRole)
+        self.chkDoublePage.setChecked(bool(page.double_page))
 
-        self.leBookmark.setText(page.get("bookmark", ""))
-
-        idx = int(page["image_index"])
+        self.leBookmark.setText(page.bookmark)
 
         if self.comic_archive is not None:
-            self.pageWidget.set_archive(self.comic_archive, idx)
+            self.pageWidget.set_archive(self.comic_archive, page.archive_index)
 
     def get_first_front_cover(self) -> int:
         front_cover = 0
         if self.listWidget.count() > 0:
-            front_cover = int(self.listWidget.item(0).data(QtCore.Qt.ItemDataRole.UserRole).get("image_index", 0))
+            page: PageMetadata = self.listWidget.item(0).data(QtCore.Qt.ItemDataRole.UserRole)
+            front_cover = page.archive_index
         for i in range(self.listWidget.count()):
             item = self.listWidget.item(i)
-            page_dict: ImageMetadata = item.data(QtCore.Qt.ItemDataRole.UserRole)
-            if page_dict.get("type", "") == PageType.FrontCover:
-                front_cover = int(page_dict["image_index"])
+            page = item.data(QtCore.Qt.ItemDataRole.UserRole)
+            if page.type == PageType.FrontCover:
+                front_cover = page.archive_index
                 break
         return front_cover
 
     def get_current_page_type(self) -> str:
         row = self.listWidget.currentRow()
-        page_dict: ImageMetadata = self.listWidget.item(row).data(QtCore.Qt.ItemDataRole.UserRole)
-        return page_dict.get("type", "")
+        page: PageMetadata = self.listWidget.item(row).data(QtCore.Qt.ItemDataRole.UserRole)
+        return page.type
 
     def set_current_page_type(self, t: str) -> None:
         rows = self.listWidget.selectionModel().selectedRows()
         for index in rows:
             row = index.row()
-            page_dict: ImageMetadata = self.listWidget.item(row).data(QtCore.Qt.ItemDataRole.UserRole)
+            page: PageMetadata = self.listWidget.item(row).data(QtCore.Qt.ItemDataRole.UserRole)
 
-            if t == "":
-                if "type" in page_dict:
-                    del page_dict["type"]
-            else:
-                page_dict["type"] = t
+            page.type = t
 
             item = self.listWidget.item(row)
-            item.setData(QtCore.Qt.ItemDataRole.UserRole, page_dict)
-            item.setText(self.list_entry_text(page_dict))
+            item.setData(QtCore.Qt.ItemDataRole.UserRole, page)
+            item.setText(self.list_entry_text(page))
 
     def toggle_double_page(self) -> None:
         rows = self.listWidget.selectionModel().selectedRows()
         for index in rows:
             row = index.row()
-            page_dict: ImageMetadata = self.listWidget.item(row).data(QtCore.Qt.ItemDataRole.UserRole)
+            page: PageMetadata = self.listWidget.item(row).data(QtCore.Qt.ItemDataRole.UserRole)
 
             cbx = self.sender()
 
-            if isinstance(cbx, QtWidgets.QCheckBox) and cbx.isChecked():
-                if not page_dict.get("double_page", False):
-                    page_dict["double_page"] = True
-                    self.modified.emit()
-            elif "double_page" in page_dict:
-                del page_dict["double_page"]
+            if isinstance(cbx, QtWidgets.QCheckBox):
+                page.double_page = cbx.isChecked()
                 self.modified.emit()
 
             item = self.listWidget.item(row)
-            item.setData(QtCore.Qt.ItemDataRole.UserRole, page_dict)
-            item.setText(self.list_entry_text(page_dict))
+            item.setData(QtCore.Qt.ItemDataRole.UserRole, page)
+            item.setText(self.list_entry_text(page))
 
         self.listWidget.setFocus()
 
     def save_bookmark(self) -> None:
         row = self.listWidget.currentRow()
-        page_dict: ImageMetadata = self.listWidget.item(row).data(QtCore.Qt.ItemDataRole.UserRole)
+        page: PageMetadata = self.listWidget.item(row).data(QtCore.Qt.ItemDataRole.UserRole)
 
-        current_bookmark = page_dict.get("bookmark", "")
+        previous_bookmark = page.bookmark
+        new_bookmark = self.leBookmark.text().strip()
 
-        if self.leBookmark.text().strip():
-            new_bookmark = str(self.leBookmark.text().strip())
-            if current_bookmark != new_bookmark:
-                page_dict["bookmark"] = new_bookmark
-                self.modified.emit()
-        elif current_bookmark != "":
-            del page_dict["bookmark"]
-            self.modified.emit()
+        if previous_bookmark == new_bookmark:
+            return
 
+        page.bookmark = new_bookmark
+        self.modified.emit()
         item = self.listWidget.item(row)
-        item.setData(QtCore.Qt.ItemDataRole.UserRole, page_dict)
-        item.setText(self.list_entry_text(page_dict))
+        item.setData(QtCore.Qt.ItemDataRole.UserRole, page)
+        item.setText(self.list_entry_text(page))
 
         self.listWidget.setFocus()
 
-    def set_data(self, comic_archive: ComicArchive, pages_list: list[ImageMetadata]) -> None:
+    def set_data(self, comic_archive: ComicArchive, pages_list: list[PageMetadata]) -> None:
         self.cbxBlur.setChecked(self.blur)
         self.comic_archive = comic_archive
         self.pages_list = pages_list
@@ -372,7 +360,7 @@ class PageListEditor(QtWidgets.QWidget):
         self.listWidget.itemSelectionChanged.disconnect(self.change_page)
 
         self.listWidget.clear()
-        for p in pages_list:
+        for p in sorted(pages_list, key=lambda p: p.display_index):
             item = QtWidgets.QListWidgetItem(self.list_entry_text(p))
             item.setData(QtCore.Qt.ItemDataRole.UserRole, p)
 
@@ -381,24 +369,26 @@ class PageListEditor(QtWidgets.QWidget):
         self.listWidget.itemSelectionChanged.connect(self.change_page)
         self.listWidget.setCurrentRow(0)
 
-    def list_entry_text(self, page_dict: ImageMetadata) -> str:
-        text = str(int(page_dict["image_index"]) + 1)
-        if page_type := page_dict.get("type", ""):
-            if page_type in self.pageTypeNames:
-                text += " (" + self.pageTypeNames[page_type] + ")"
+    def list_entry_text(self, page: PageMetadata) -> str:
+        # indexes start at 0 but we display starting at 1. This should be consistent for all indexes in ComicTagger
+        text = str(int(page.archive_index) + 1)
+        if page.type:
+            if page.type.casefold() in {x.casefold() for x in PageType}:
+                text += " (" + self.pageTypeNames[PageType(page.type)] + ")"
             else:
-                text += " (Error: " + page_type + ")"
-        if page_dict.get("double_page", False):
+                text += f" (Unknown: {page.type})"
+        if page.double_page:
             text += " ②"
-        if page_dict.get("bookmark", ""):
+        if page.bookmark:
             text += " 🔖"
         return text
 
-    def get_page_list(self) -> list[ImageMetadata]:
-        page_list = []
+    def get_page_list(self) -> list[PageMetadata]:
+        page_list: list[PageMetadata] = []
         for i in range(self.listWidget.count()):
             item = self.listWidget.item(i)
             page_list.append(item.data(QtCore.Qt.ItemDataRole.UserRole))
+            page_list[i].display_index = i
         return page_list
 
     def emit_front_cover_change(self) -> None:

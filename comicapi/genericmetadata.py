@@ -25,9 +25,9 @@ import copy
 import dataclasses
 import logging
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, Any, TypedDict, Union, overload
+from typing import TYPE_CHECKING, Any, Union, overload
 
-from typing_extensions import NamedTuple, Required
+from typing_extensions import NamedTuple
 
 from comicapi import merge, utils
 from comicapi._url import Url, parse_url
@@ -42,7 +42,7 @@ logger = logging.getLogger(__name__)
 REMOVE = object()
 
 
-class PageType:
+class PageType(merge.StrEnum):
     """
     These page info classes are exactly the same as the CIX scheme, since
     it's unique
@@ -61,15 +61,37 @@ class PageType:
     Deleted = "Deleted"
 
 
-class ImageMetadata(TypedDict, total=False):
+@dataclasses.dataclass
+class PageMetadata:
     filename: str
     type: str
     bookmark: str
-    double_page: bool
-    image_index: Required[int]
-    size: str
-    height: str
-    width: str
+    display_index: int
+    archive_index: int
+    # These are optional because getting this info requires reading in each page
+    double_page: bool | None = None
+    byte_size: int | None = None
+    height: int | None = None
+    width: int | None = None
+
+    def set_type(self, value: str) -> None:
+        values = {x.casefold(): x for x in PageType}
+        self.type = values.get(value.casefold(), value)
+
+    def is_double_page(self) -> bool:
+        w = self.width or 0
+        h = self.height or 0
+        return self.double_page or (w >= h and w > 0 and h > 0)
+
+    def __lt__(self, other: Any) -> bool:
+        if not isinstance(other, PageMetadata):
+            return False
+        return self.archive_index < other.archive_index
+
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, PageMetadata):
+            return False
+        return self.archive_index == other.archive_index
 
 
 Credit = merge.Credit
@@ -150,13 +172,13 @@ class GenericMetadata:
     scan_info: str | None = None
 
     tags: set[str] = dataclasses.field(default_factory=set)
-    pages: list[ImageMetadata] = dataclasses.field(default_factory=list)
+    pages: list[PageMetadata] = dataclasses.field(default_factory=list)
     page_count: int | None = None
 
     characters: set[str] = dataclasses.field(default_factory=set)
     teams: set[str] = dataclasses.field(default_factory=set)
     locations: set[str] = dataclasses.field(default_factory=set)
-    credits: list[Credit] = dataclasses.field(default_factory=list)
+    credits: list[merge.Credit] = dataclasses.field(default_factory=list)
 
     # Some CoMet-only items
     price: float | None = None
@@ -300,31 +322,34 @@ class GenericMetadata:
         self.page_count = assign(self.page_count, new_md.page_count)
 
     def apply_default_page_list(self, page_list: Sequence[str]) -> None:
-        # generate a default page list, with the first page marked as the cover
+        """apply a default page list, with the first page marked as the cover"""
 
-        # Create a dictionary of all pages in the metadata
-        pages = self.pages
+        # Create a dictionary in the weird case that the metadata doesn't match the archive
+        pages = {p.archive_index: p for p in self.pages}
         cover_set = False
-        # Go through each page in the archive
-        # The indexes should always match up
-        # It might be a good idea to validate that each page in `pages` is found
+
+        # It might be a good idea to validate that each page in `pages` is found in page_list
         for i, filename in enumerate(page_list):
-            if i < len(pages):
-                pages[i]["filename"] = filename
-            else:
-                pages.append(ImageMetadata(image_index=i, filename=filename))
+            page = pages.get(i, PageMetadata(archive_index=i, display_index=i, filename="", type="", bookmark=""))
+            page.filename = filename
+            pages[i] = page
 
             # Check if we know what the cover is
-            cover_set = pages[i].get("type", None) == PageType.FrontCover or cover_set
+            cover_set = page.type == PageType.FrontCover or cover_set
+        self.pages = sorted(pages.values())
 
-        # Set the cover to the first image if we don't know what the cover is
+        self.page_count = len(self.pages)
+        if self.page_count != len(page_list):
+            logger.warning("Wrong count of pages: expected %d got %d", len(self.pages), len(page_list))
+        # Set the cover to the first image acording to hte display index if we don't know what the cover is
         if not cover_set:
-            self.pages[0]["type"] = PageType.FrontCover
+            first_page = self.get_archive_page_index(0)
+            self.pages[first_page].type = PageType.FrontCover
 
     def get_archive_page_index(self, pagenum: int) -> int:
-        # convert the displayed page number to the page index of the file in the archive
+        """convert the displayed page number to the page index of the file in the archive"""
         if pagenum < len(self.pages):
-            return int(self.pages[pagenum]["image_index"])
+            return int(sorted(self.pages, key=lambda p: p.display_index)[pagenum].archive_index)
 
         return 0
 
@@ -334,28 +359,28 @@ class GenericMetadata:
             return [0]
         coverlist = []
         for p in self.pages:
-            if p.get("type", "") == PageType.FrontCover:
-                coverlist.append(int(p["image_index"]))
+            if p.type == PageType.FrontCover:
+                coverlist.append(p.archive_index)
 
         if len(coverlist) == 0:
-            coverlist.append(self.pages[0].get("image_index", 0))
+            coverlist.append(self.get_archive_page_index(0))
 
         return coverlist
 
     @overload
-    def add_credit(self, person: Credit) -> None: ...
+    def add_credit(self, person: merge.Credit) -> None: ...
 
     @overload
     def add_credit(self, person: str, role: str, primary: bool = False) -> None: ...
 
-    def add_credit(self, person: str | Credit, role: str | None = None, primary: bool = False) -> None:
+    def add_credit(self, person: str | merge.Credit, role: str | None = None, primary: bool = False) -> None:
 
-        credit: Credit
-        if isinstance(person, Credit):
+        credit: merge.Credit
+        if isinstance(person, merge.Credit):
             credit = person
         else:
             assert role is not None
-            credit = Credit(person=person, role=role, primary=primary)
+            credit = merge.Credit(person=person, role=role, primary=primary)
 
         if credit.role is None:
             raise TypeError("GenericMetadata.add_credit takes either a Credit object or a person name and role")
@@ -526,46 +551,252 @@ md_test: GenericMetadata = GenericMetadata(
     teams={"Fahrenheit"},
     locations=set(utils.split("lonely  cottage ", ",")),
     credits=[
-        Credit(primary=False, person="Dara Naraghi", role="Writer"),
-        Credit(primary=False, person="Esteve Polls", role="Penciller"),
-        Credit(primary=False, person="Esteve Polls", role="Inker"),
-        Credit(primary=False, person="Neil Uyetake", role="Letterer"),
-        Credit(primary=False, person="Sam Kieth", role="Cover"),
-        Credit(primary=False, person="Ted Adams", role="Editor"),
+        merge.Credit(primary=False, person="Dara Naraghi", role="Writer"),
+        merge.Credit(primary=False, person="Esteve Polls", role="Penciller"),
+        merge.Credit(primary=False, person="Esteve Polls", role="Inker"),
+        merge.Credit(primary=False, person="Neil Uyetake", role="Letterer"),
+        merge.Credit(primary=False, person="Sam Kieth", role="Cover"),
+        merge.Credit(primary=False, person="Ted Adams", role="Editor"),
     ],
     tags=set(),
     pages=[
-        ImageMetadata(
-            image_index=0, height="1280", size="195977", width="800", type=PageType.FrontCover, filename="!cover.jpg"
+        PageMetadata(
+            archive_index=0,
+            display_index=0,
+            height=1280,
+            byte_size=195977,
+            width=800,
+            type=PageType.FrontCover,
+            filename="!cover.jpg",
+            bookmark="",
         ),
-        ImageMetadata(image_index=1, height="2039", size="611993", width="1327", filename="01.jpg"),
-        ImageMetadata(image_index=2, height="2039", size="783726", width="1327", filename="02.jpg"),
-        ImageMetadata(image_index=3, height="2039", size="679584", width="1327", filename="03.jpg"),
-        ImageMetadata(image_index=4, height="2039", size="788179", width="1327", filename="04.jpg"),
-        ImageMetadata(image_index=5, height="2039", size="864433", width="1327", filename="05.jpg"),
-        ImageMetadata(image_index=6, height="2039", size="765606", width="1327", filename="06.jpg"),
-        ImageMetadata(image_index=7, height="2039", size="876427", width="1327", filename="07.jpg"),
-        ImageMetadata(image_index=8, height="2039", size="852622", width="1327", filename="08.jpg"),
-        ImageMetadata(image_index=9, height="2039", size="800205", width="1327", filename="09.jpg"),
-        ImageMetadata(image_index=10, height="2039", size="746243", width="1326", filename="10.jpg"),
-        ImageMetadata(image_index=11, height="2039", size="718062", width="1327", filename="11.jpg"),
-        ImageMetadata(image_index=12, height="2039", size="532179", width="1326", filename="12.jpg"),
-        ImageMetadata(image_index=13, height="2039", size="686708", width="1327", filename="13.jpg"),
-        ImageMetadata(image_index=14, height="2039", size="641907", width="1327", filename="14.jpg"),
-        ImageMetadata(image_index=15, height="2039", size="805388", width="1327", filename="15.jpg"),
-        ImageMetadata(image_index=16, height="2039", size="668927", width="1326", filename="16.jpg"),
-        ImageMetadata(image_index=17, height="2039", size="710605", width="1327", filename="17.jpg"),
-        ImageMetadata(image_index=18, height="2039", size="761398", width="1326", filename="18.jpg"),
-        ImageMetadata(image_index=19, height="2039", size="743807", width="1327", filename="19.jpg"),
-        ImageMetadata(image_index=20, height="2039", size="552911", width="1326", filename="20.jpg"),
-        ImageMetadata(image_index=21, height="2039", size="556827", width="1327", filename="21.jpg"),
-        ImageMetadata(image_index=22, height="2039", size="675078", width="1326", filename="22.jpg"),
-        ImageMetadata(
+        PageMetadata(
+            archive_index=1,
+            display_index=1,
+            height=2039,
+            byte_size=611993,
+            width=1327,
+            filename="01.jpg",
+            bookmark="",
+            type="",
+        ),
+        PageMetadata(
+            archive_index=2,
+            display_index=2,
+            height=2039,
+            byte_size=783726,
+            width=1327,
+            filename="02.jpg",
+            bookmark="",
+            type="",
+        ),
+        PageMetadata(
+            archive_index=3,
+            display_index=3,
+            height=2039,
+            byte_size=679584,
+            width=1327,
+            filename="03.jpg",
+            bookmark="",
+            type="",
+        ),
+        PageMetadata(
+            archive_index=4,
+            display_index=4,
+            height=2039,
+            byte_size=788179,
+            width=1327,
+            filename="04.jpg",
+            bookmark="",
+            type="",
+        ),
+        PageMetadata(
+            archive_index=5,
+            display_index=5,
+            height=2039,
+            byte_size=864433,
+            width=1327,
+            filename="05.jpg",
+            bookmark="",
+            type="",
+        ),
+        PageMetadata(
+            archive_index=6,
+            display_index=6,
+            height=2039,
+            byte_size=765606,
+            width=1327,
+            filename="06.jpg",
+            bookmark="",
+            type="",
+        ),
+        PageMetadata(
+            archive_index=7,
+            display_index=7,
+            height=2039,
+            byte_size=876427,
+            width=1327,
+            filename="07.jpg",
+            bookmark="",
+            type="",
+        ),
+        PageMetadata(
+            archive_index=8,
+            display_index=8,
+            height=2039,
+            byte_size=852622,
+            width=1327,
+            filename="08.jpg",
+            bookmark="",
+            type="",
+        ),
+        PageMetadata(
+            archive_index=9,
+            display_index=9,
+            height=2039,
+            byte_size=800205,
+            width=1327,
+            filename="09.jpg",
+            bookmark="",
+            type="",
+        ),
+        PageMetadata(
+            archive_index=10,
+            display_index=10,
+            height=2039,
+            byte_size=746243,
+            width=1326,
+            filename="10.jpg",
+            bookmark="",
+            type="",
+        ),
+        PageMetadata(
+            archive_index=11,
+            display_index=11,
+            height=2039,
+            byte_size=718062,
+            width=1327,
+            filename="11.jpg",
+            bookmark="",
+            type="",
+        ),
+        PageMetadata(
+            archive_index=12,
+            display_index=12,
+            height=2039,
+            byte_size=532179,
+            width=1326,
+            filename="12.jpg",
+            bookmark="",
+            type="",
+        ),
+        PageMetadata(
+            archive_index=13,
+            display_index=13,
+            height=2039,
+            byte_size=686708,
+            width=1327,
+            filename="13.jpg",
+            bookmark="",
+            type="",
+        ),
+        PageMetadata(
+            archive_index=14,
+            display_index=14,
+            height=2039,
+            byte_size=641907,
+            width=1327,
+            filename="14.jpg",
+            bookmark="",
+            type="",
+        ),
+        PageMetadata(
+            archive_index=15,
+            display_index=15,
+            height=2039,
+            byte_size=805388,
+            width=1327,
+            filename="15.jpg",
+            bookmark="",
+            type="",
+        ),
+        PageMetadata(
+            archive_index=16,
+            display_index=16,
+            height=2039,
+            byte_size=668927,
+            width=1326,
+            filename="16.jpg",
+            bookmark="",
+            type="",
+        ),
+        PageMetadata(
+            archive_index=17,
+            display_index=17,
+            height=2039,
+            byte_size=710605,
+            width=1327,
+            filename="17.jpg",
+            bookmark="",
+            type="",
+        ),
+        PageMetadata(
+            archive_index=18,
+            display_index=18,
+            height=2039,
+            byte_size=761398,
+            width=1326,
+            filename="18.jpg",
+            bookmark="",
+            type="",
+        ),
+        PageMetadata(
+            archive_index=19,
+            display_index=19,
+            height=2039,
+            byte_size=743807,
+            width=1327,
+            filename="19.jpg",
+            bookmark="",
+            type="",
+        ),
+        PageMetadata(
+            archive_index=20,
+            display_index=20,
+            height=2039,
+            byte_size=552911,
+            width=1326,
+            filename="20.jpg",
+            bookmark="",
+            type="",
+        ),
+        PageMetadata(
+            archive_index=21,
+            display_index=21,
+            height=2039,
+            byte_size=556827,
+            width=1327,
+            filename="21.jpg",
+            bookmark="",
+            type="",
+        ),
+        PageMetadata(
+            archive_index=22,
+            display_index=22,
+            height=2039,
+            byte_size=675078,
+            width=1326,
+            filename="22.jpg",
+            bookmark="",
+            type="",
+        ),
+        PageMetadata(
             bookmark="Interview",
-            image_index=23,
-            height="2032",
-            size="800965",
-            width="1338",
+            archive_index=23,
+            display_index=23,
+            height=2032,
+            byte_size=800965,
+            width=1338,
             type=PageType.Letters,
             filename="23.jpg",
         ),
@@ -583,7 +814,7 @@ __all__ = (
     "Url",
     "parse_url",
     "PageType",
-    "ImageMetadata",
+    "PageMetadata",
     "Credit",
     "ComicSeries",
     "MetadataOrigin",

@@ -2068,12 +2068,9 @@ class TaggerWindow(QtWidgets.QMainWindow):
     def recalc_page_dimensions(self) -> None:
         QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
         for p in self.metadata.pages:
-            if "size" in p:
-                del p["size"]
-            if "height" in p:
-                del p["height"]
-            if "width" in p:
-                del p["width"]
+            p.byte_size = None
+            p.height = None
+            p.width = None
         self.set_dirty_flag()
         QtWidgets.QApplication.restoreOverrideCursor()
 

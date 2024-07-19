@@ -34,7 +34,7 @@ def test_getPageNameList():
 def test_page_type_read(cbz):
     md = cbz.read_tags("cr")
 
-    assert isinstance(md.pages[0]["type"], str)
+    assert md.pages[0].type == comicapi.genericmetadata.PageType.FrontCover
 
 
 def test_read_tags(cbz, md_saved):
@@ -94,7 +94,7 @@ def test_save_cbi_rar(tmp_path, md_saved):
 def test_page_type_write(tmp_comic):
     md = tmp_comic.read_tags("cr")
     t = md.pages[0]
-    t["type"] = ""
+    t.type = ""
 
     assert tmp_comic.write_tags(md, "cr")
 

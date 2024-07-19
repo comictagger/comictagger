@@ -399,7 +399,7 @@ class IssueIdentifier:
         assert md
         covers: list[tuple[str, Image.Image]] = []
         for cover_index in range(1, min(3, ca.get_number_of_pages())):
-            image_data = ca.get_page(cover_index)
+            image_data = ca.get_page(md.get_archive_page_index(cover_index))
             covers.extend(self._process_cover(f"{cover_index}", image_data))
         return covers
 

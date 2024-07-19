@@ -15,7 +15,8 @@ def test_apply_default_page_list(tmp_path):
     md.pages = []
     md.apply_default_page_list(["testing"])
 
-    assert isinstance(md.pages[0]["image_index"], int)
+    assert md.pages[0].display_index == 0
+    assert md.pages[0].archive_index == 0
 
 
 @pytest.mark.parametrize("md, new, expected", testing.comicdata.metadata)

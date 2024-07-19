@@ -26,7 +26,7 @@ from collections import defaultdict
 from collections.abc import Iterable, Mapping
 from enum import Enum, auto
 from shutil import which  # noqa: F401
-from typing import TYPE_CHECKING, Any, TypeVar, cast
+from typing import Any, TypeVar, cast
 
 from comicfn2dict import comicfn2dict
 
@@ -36,8 +36,6 @@ from comicapi._url import LocationParseError as LocationParseError  # noqa: F401
 from comicapi._url import Url as Url
 from comicapi._url import parse_url as parse_url
 
-if TYPE_CHECKING:
-    from comicapi.genericmetadata import ImageMetadata
 try:
     import icu
 
@@ -129,12 +127,6 @@ def _custom_key(tup: Any) -> Any:
 
 
 T = TypeVar("T")
-
-
-def is_double_page(page: ImageMetadata) -> bool:
-    w = int(page.get("width", 0))
-    h = int(page.get("height", 0))
-    return page.get("double_page") or (w >= h and w > 0 and h > 0)
 
 
 def os_sorted(lst: Iterable[T]) -> Iterable[T]:

@@ -339,8 +339,7 @@ class ComicArchive:
         md.apply_default_page_list(self.get_page_name_list())
         if calc_page_sizes:
             for index, p in enumerate(md.pages):
-                idx = int(p["image_index"])
-
+                idx = p.display_index
                 if self.pil_available:
                     try:
                         from PIL import Image
@@ -348,13 +347,9 @@ class ComicArchive:
                         self.pil_available = True
                     except ImportError:
                         self.pil_available = False
-                    if (
-                        "size" not in p
-                        or "height" not in p
-                        or "width" not in p
-                        or ("double_page" not in p and detect_double_page)
-                    ):
+                    if p.byte_size is None or p.height is None or p.width is None or p.double_page is None:
                         data = self.get_page(idx)
+                        p.byte_size = len(data)
                         if data:
                             try:
                                 if isinstance(data, bytes):
@@ -363,19 +358,16 @@ class ComicArchive:
                                     im = Image.open(io.StringIO(data))
                                 w, h = im.size
 
-                                p["size"] = str(len(data))
-                                p["height"] = str(h)
-                                p["width"] = str(w)
+                                p.height = h
+                                p.width = w
                                 if detect_double_page:
-                                    p["double_page"] = utils.is_double_page(p)
+                                    p.double_page = p.is_double_page()
                             except Exception as e:
                                 logger.warning("Error decoding image [%s] %s :: image %s", e, self.path, index)
-                                p["size"] = str(len(data))
-
                 else:
-                    if "size" not in p:
+                    if p.byte_size is not None:
                         data = self.get_page(idx)
-                        p["size"] = str(len(data))
+                        p.byte_size = len(data)
 
     def metadata_from_filename(
         self,

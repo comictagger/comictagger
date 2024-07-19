@@ -102,9 +102,9 @@ class PageBrowserWindow(QtWidgets.QDialog):
 
     def set_page(self) -> None:
         if not self.metadata.is_empty:
-            archive_page_index = self.metadata.get_archive_page_index(self.current_page_num)
+            selected_page_index = self.metadata.get_archive_page_index(self.current_page_num)
         else:
-            archive_page_index = self.current_page_num
+            selected_page_index = self.current_page_num
 
-        self.pageWidget.set_page(archive_page_index)
-        self.setWindowTitle(f"Page Browser - Page {self.current_page_num + 1} (of {self.page_count}) ")
+        self.pageWidget.set_page(selected_page_index)
+        self.setWindowTitle(f"Page Browser - Page {self.current_page_num+1} (of {self.page_count})")
