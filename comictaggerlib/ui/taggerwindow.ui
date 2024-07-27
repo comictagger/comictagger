@@ -1465,6 +1465,7 @@ Source</string>
    <addaction name="actionWrite_Tags"/>
    <addaction name="actionSearchOnline"/>
    <addaction name="actionLiteralSearch"/>
+   <addaction name="actionAutoTag"/>
    <addaction name="actionAutoIdentify"/>
    <addaction name="actionAutoImprint"/>
    <addaction name="actionClearEntryForm"/>
