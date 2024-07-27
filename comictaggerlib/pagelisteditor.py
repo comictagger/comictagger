@@ -261,14 +261,12 @@ class PageListEditor(QtWidgets.QWidget):
         i = self.cbPageType.findData(pagetype)
         self.cbPageType.setCurrentIndex(i)
 
-        self.chkDoublePage.setChecked("double_page" in self.listWidget.item(row).data(QtCore.Qt.ItemDataRole.UserRole))
+        page = self.listWidget.item(row).data(QtCore.Qt.ItemDataRole.UserRole)
+        self.chkDoublePage.setChecked(page.get("double_page", False))
 
-        if "bookmark" in self.listWidget.item(row).data(QtCore.Qt.ItemDataRole.UserRole):
-            self.leBookmark.setText(self.listWidget.item(row).data(QtCore.Qt.ItemDataRole.UserRole)["bookmark"])
-        else:
-            self.leBookmark.setText("")
+        self.leBookmark.setText(page.get("bookmark", ""))
 
-        idx = int(self.listWidget.item(row).data(QtCore.Qt.ItemDataRole.UserRole)["image_index"])
+        idx = int(page["image_index"])
 
         if self.comic_archive is not None:
             self.pageWidget.set_archive(self.comic_archive, idx)
@@ -280,7 +278,7 @@ class PageListEditor(QtWidgets.QWidget):
         for i in range(self.listWidget.count()):
             item = self.listWidget.item(i)
             page_dict: ImageMetadata = item.data(QtCore.Qt.ItemDataRole.UserRole)
-            if "type" in page_dict and page_dict["type"] == PageType.FrontCover:
+            if page_dict.get("type", "") == PageType.FrontCover:
                 front_cover = int(page_dict["image_index"])
                 break
         return front_cover
@@ -288,10 +286,7 @@ class PageListEditor(QtWidgets.QWidget):
     def get_current_page_type(self) -> str:
         row = self.listWidget.currentRow()
         page_dict: ImageMetadata = self.listWidget.item(row).data(QtCore.Qt.ItemDataRole.UserRole)
-        if "type" in page_dict:
-            return page_dict["type"]
-
-        return ""
+        return page_dict.get("type", "")
 
     def set_current_page_type(self, t: str) -> None:
         rows = self.listWidget.selectionModel().selectedRows()
@@ -318,7 +313,7 @@ class PageListEditor(QtWidgets.QWidget):
             cbx = self.sender()
 
             if isinstance(cbx, QtWidgets.QCheckBox) and cbx.isChecked():
-                if "double_page" not in page_dict:
+                if not page_dict.get("double_page", False):
                     page_dict["double_page"] = True
                     self.modified.emit()
             elif "double_page" in page_dict:
@@ -335,9 +330,7 @@ class PageListEditor(QtWidgets.QWidget):
         row = self.listWidget.currentRow()
         page_dict: ImageMetadata = self.listWidget.item(row).data(QtCore.Qt.ItemDataRole.UserRole)
 
-        current_bookmark = ""
-        if "bookmark" in page_dict:
-            current_bookmark = page_dict["bookmark"]
+        current_bookmark = page_dict.get("bookmark", "")
 
         if self.leBookmark.text().strip():
             new_bookmark = str(self.leBookmark.text().strip())
@@ -379,14 +372,14 @@ class PageListEditor(QtWidgets.QWidget):
 
     def list_entry_text(self, page_dict: ImageMetadata) -> str:
         text = str(int(page_dict["image_index"]) + 1)
-        if "type" in page_dict:
-            if page_dict["type"] in self.pageTypeNames:
-                text += " (" + self.pageTypeNames[page_dict["type"]] + ")"
+        if page_type := page_dict.get("type", ""):
+            if page_type in self.pageTypeNames:
+                text += " (" + self.pageTypeNames[page_type] + ")"
             else:
-                text += " (Error: " + page_dict["type"] + ")"
-        if "double_page" in page_dict:
+                text += " (Error: " + page_type + ")"
+        if page_dict.get("double_page", False):
             text += " ②"
-        if "bookmark" in page_dict:
+        if page_dict.get("bookmark", ""):
             text += " 🔖"
         return text
 
