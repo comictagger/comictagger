@@ -88,6 +88,9 @@
          <property name="text">
           <string/>
          </property>
+         <property name="shortcut">
+          <string>Left</string>
+         </property>
         </widget>
        </item>
        <item>
@@ -113,6 +116,9 @@
         <widget class="QPushButton" name="btnNext">
          <property name="text">
           <string/>
+         </property>
+         <property name="shortcut">
+          <string>Right</string>
          </property>
          <property name="autoDefault">
           <bool>false</bool>
