@@ -331,7 +331,9 @@ class ComicArchive:
             self.page_count = len(self.get_page_name_list())
         return self.page_count
 
-    def apply_archive_info_to_metadata(self, md: GenericMetadata, calc_page_sizes: bool = False) -> None:
+    def apply_archive_info_to_metadata(
+        self, md: GenericMetadata, calc_page_sizes: bool = False, detect_double_page: bool = False
+    ) -> None:
         md.page_count = self.get_number_of_pages()
 
         if calc_page_sizes:
@@ -345,7 +347,12 @@ class ComicArchive:
                         self.pil_available = True
                     except ImportError:
                         self.pil_available = False
-                    if "size" not in p or "height" not in p or "width" not in p:
+                    if (
+                        "size" not in p
+                        or "height" not in p
+                        or "width" not in p
+                        or ("double_page" not in p and detect_double_page)
+                    ):
                         data = self.get_page(idx)
                         if data:
                             try:
@@ -358,6 +365,8 @@ class ComicArchive:
                                 p["size"] = str(len(data))
                                 p["height"] = str(h)
                                 p["width"] = str(w)
+                                if detect_double_page:
+                                    p["double_page"] = utils.is_double_page(p)
                             except Exception as e:
                                 logger.warning("Error decoding image [%s] %s :: image %s", e, self.path, index)
                                 p["size"] = str(len(data))
