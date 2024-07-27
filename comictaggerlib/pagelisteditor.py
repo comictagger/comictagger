@@ -21,7 +21,7 @@ import logging
 from PyQt5 import QtCore, QtWidgets, uic
 
 from comicapi.comicarchive import ComicArchive, tags
-from comicapi.genericmetadata import ImageMetadata, PageType
+from comicapi.genericmetadata import GenericMetadata, ImageMetadata, PageType
 from comictaggerlib.coverimagewidget import CoverImageWidget
 from comictaggerlib.ui import ui_path
 from comictaggerlib.ui.qtutils import enable_widget
@@ -113,6 +113,7 @@ class PageListEditor(QtWidgets.QWidget):
         self.btnUp.clicked.connect(self.move_current_up)
         self.btnDown.clicked.connect(self.move_current_down)
         self.btnIdentifyScannerPage.clicked.connect(self.identify_scanner_page)
+        self.btnIdentifyDoublePage.clicked.connect(self.identify_double_page)
         self.pre_move_row = -1
         self.first_front_page: int | None = None
 
@@ -163,6 +164,16 @@ class PageListEditor(QtWidgets.QWidget):
         item.setData(QtCore.Qt.ItemDataRole.UserRole, page_dict)
         item.setText(self.list_entry_text(page_dict))
         self.change_page()
+
+    def identify_double_page(self) -> None:
+        if self.comic_archive is None:
+            return
+        md = GenericMetadata(pages=self.get_page_list())
+        double_pages = [x.get("double_page", False) for x in md.pages]
+        self.comic_archive.apply_archive_info_to_metadata(md, True, True)
+        self.set_data(self.comic_archive, pages_list=md.pages)
+        if double_pages != [x.get("double_page", False) for x in md.pages]:
+            self.modified.emit()
 
     def select_page_type_item(self, idx: int) -> None:
         if self.cbPageType.isEnabled() and self.listWidget.count() > 0:
