@@ -226,7 +226,8 @@ class ComicArchive:
             del self.md[tag_id]
         if not tags[tag_id].enabled:
             return False
-        metadata.apply_default_page_list(self.get_page_name_list())
+
+        self.apply_archive_info_to_metadata(metadata, True, True)
         return tags[tag_id].write_tags(metadata, self.archiver)
 
     def has_tags(self, tag_id: str) -> bool:
@@ -335,11 +336,11 @@ class ComicArchive:
         self, md: GenericMetadata, calc_page_sizes: bool = False, detect_double_page: bool = False
     ) -> None:
         md.page_count = self.get_number_of_pages()
-
+        md.apply_default_page_list(self.get_page_name_list())
         if calc_page_sizes:
             for index, p in enumerate(md.pages):
                 idx = int(p["image_index"])
-                p["filename"] = self.get_page_name(idx)
+
                 if self.pil_available:
                     try:
                         from PIL import Image
