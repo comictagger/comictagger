@@ -279,7 +279,13 @@ class GenericMetadata:
         self.characters = assign_list(self.characters, new_md.characters)
         self.teams = assign_list(self.teams, new_md.teams)
         self.locations = assign_list(self.locations, new_md.locations)
-        [self.add_credit(c) for c in assign_list(self.credits, new_md.credits)]
+
+        # credits are added through add_credit so that some standard checks are observed
+        # which means that we needs self.credits to be empty
+        tmp_credits = self.credits
+        self.credits = []
+        for c in assign_list(tmp_credits, new_md.credits):
+            self.add_credit(c)
 
         self.price = assign(self.price, new_md.price)
         self.is_version_of = assign(self.is_version_of, new_md.is_version_of)
@@ -289,7 +295,8 @@ class GenericMetadata:
         self._cover_image = assign(self._cover_image, new_md._cover_image)
         self._alternate_images = assign_list(self._alternate_images, new_md._alternate_images)
 
-        self.pages = assign_list(self.pages, new_md.pages)
+        # pages doesn't get merged, if we did merge we would end up with duplicate pages
+        self.pages = assign(self.pages, new_md.pages)
         self.page_count = assign(self.page_count, new_md.page_count)
 
     def apply_default_page_list(self, page_list: Sequence[str]) -> None:
@@ -327,7 +334,7 @@ class GenericMetadata:
             return [0]
         coverlist = []
         for p in self.pages:
-            if "type" in p and p["type"] == PageType.FrontCover:
+            if p.get("type", "") == PageType.FrontCover:
                 coverlist.append(int(p["image_index"]))
 
         if len(coverlist) == 0:
