@@ -66,23 +66,29 @@ metadata = [
     ),
     (
         comicapi.genericmetadata.GenericMetadata(
+            series="series1",
+            tags={"test", "tags"},  # These get overwritten because lists do not get merged by default
             credits=[
                 comicapi.genericmetadata.Credit(person="test", role="writer", primary=False),
                 comicapi.genericmetadata.Credit(person="test", role="artist", primary=True),
             ],
         ),
         comicapi.genericmetadata.GenericMetadata(
+            title="title2",
+            tags={"testing"},
             credits=[
+                # This first item gets removed because there is no name
                 comicapi.genericmetadata.Credit(person="", role="writer", primary=False),
                 comicapi.genericmetadata.Credit(person="test2", role="inker", primary=False),
-            ]
+            ],
         ),
         comicapi.genericmetadata.GenericMetadata(
+            series="series1",
+            title="title2",
+            tags={"testing"},
             credits=[
-                comicapi.genericmetadata.Credit(person="test", role="writer", primary=False),
-                comicapi.genericmetadata.Credit(person="test", role="artist", primary=True),
                 comicapi.genericmetadata.Credit(person="test2", role="inker", primary=False),
-            ]
+            ],
         ),
     ),
 ]
@@ -131,9 +137,9 @@ metadata_add = [
             characters={"bob", "fred"},
             scan_info="nothing",
             credits=[
-                comicapi.genericmetadata.Credit(person="test", role="writer", primary=False),
-                comicapi.genericmetadata.Credit(person="test", role="artist", primary=True),
                 comicapi.genericmetadata.Credit(person="Bob", role="writer", primary=False),
+                comicapi.genericmetadata.Credit(person="test", role="artist", primary=True),
+                comicapi.genericmetadata.Credit(person="test", role="writer", primary=False),
             ],
         ),
     ),
