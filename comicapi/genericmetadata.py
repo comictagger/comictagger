@@ -33,6 +33,7 @@ from comicapi import merge, utils
 from comicapi._url import Url, parse_url
 from comicapi.utils import norm_fold
 
+# needed for runtime type guessing
 if TYPE_CHECKING:
     Union
 
