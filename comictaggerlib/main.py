@@ -89,9 +89,9 @@ def configure_locale() -> None:
             os.environ["LANG"] = f"{code}.utf-8"
 
     locale.setlocale(locale.LC_ALL, "")
-    sys.stdout.reconfigure(encoding=sys.getdefaultencoding())  # type: ignore[attr-defined]
-    sys.stderr.reconfigure(encoding=sys.getdefaultencoding())  # type: ignore[attr-defined]
-    sys.stdin.reconfigure(encoding=sys.getdefaultencoding())  # type: ignore[attr-defined]
+    sys.stdout.reconfigure(encoding=sys.getdefaultencoding())  # type: ignore[union-attr]
+    sys.stderr.reconfigure(encoding=sys.getdefaultencoding())  # type: ignore[union-attr]
+    sys.stdin.reconfigure(encoding=sys.getdefaultencoding())  # type: ignore[union-attr]
 
 
 def update_publishers(config: settngs.Config[ct_ns]) -> None:
