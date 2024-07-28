@@ -106,7 +106,6 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         issue_number: str,
         year: int | None,
         issue_count: int | None,
-        cover_index_list: list[int],
         comic_archive: ComicArchive | None,
         config: ct_ns,
         talker: ComicTalker,
@@ -119,7 +118,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
             uic.loadUi(uifile, self)
 
         self.imageWidget = CoverImageWidget(
-            self.imageContainer, CoverImageWidget.URLMode, config.Runtime_Options__config.user_cache_dir, talker
+            self.imageContainer, CoverImageWidget.URLMode, config.Runtime_Options__config.user_cache_dir
         )
         gridlayout = QtWidgets.QGridLayout(self.imageContainer)
         gridlayout.addWidget(self.imageWidget)
@@ -147,7 +146,6 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         self.series_id: str = ""
         self.comic_archive = comic_archive
         self.immediate_autoselect = autoselect
-        self.cover_index_list = cover_index_list
         self.series_list: dict[str, ComicSeries] = {}
         self.literal = literal
         self.ii: IssueIdentifier | None = None
@@ -168,7 +166,6 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
             self.imageSourceLogo,
             CoverImageWidget.URLMode,
             config.Runtime_Options__config.user_cache_dir,
-            talker,
             False,
         )
         self.imageSourceWidget.showControls = False

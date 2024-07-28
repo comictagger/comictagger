@@ -202,7 +202,6 @@ def generate_talker_info(talker: ComicTalker, config: settngs.Config[ct_ns], lay
         talker_info_layout.parentWidget(),
         CoverImageWidget.URLMode,
         config.values.Runtime_Options__config.user_cache_dir,
-        talker,
         False,
     )
     logo.showControls = False

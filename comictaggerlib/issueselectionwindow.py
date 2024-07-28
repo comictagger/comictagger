@@ -57,7 +57,6 @@ class IssueSelectionWindow(QtWidgets.QDialog):
             self.coverImageContainer,
             CoverImageWidget.AltCoverMode,
             config.Runtime_Options__config.user_cache_dir,
-            talker,
         )
         gridlayout = QtWidgets.QGridLayout(self.coverImageContainer)
         gridlayout.addWidget(self.coverWidget)
@@ -83,7 +82,6 @@ class IssueSelectionWindow(QtWidgets.QDialog):
         self.issue_id: str = ""
         self.config = config
         self.talker = talker
-        self.url_fetch_thread = None
         self.issue_list: dict[str, GenericMetadata] = {}
 
         # Display talker logo and set url
@@ -93,7 +91,6 @@ class IssueSelectionWindow(QtWidgets.QDialog):
             self.imageIssuesSourceLogo,
             CoverImageWidget.URLMode,
             config.Runtime_Options__config.user_cache_dir,
-            talker,
             False,
         )
         self.imageIssuesSourceWidget.showControls = False

@@ -119,7 +119,6 @@ class IssueIdentifier:
         self.progress_callback: Callable[[int, int], None] | None = None
         self.cover_url_callback: Callable[[bytes], None] | None = None
         self.search_result = self.result_no_matches
-        self.cover_page_index = 0
         self.cancel = False
 
         self.match_list: list[IssueResult] = []

@@ -81,7 +81,7 @@ class PageListEditor(QtWidgets.QWidget):
             "pages": self,
         }
 
-        self.pageWidget = CoverImageWidget(self.pageContainer, CoverImageWidget.ArchiveMode, None, None)
+        self.pageWidget = CoverImageWidget(self.pageContainer, CoverImageWidget.ArchiveMode, None)
         gridlayout = QtWidgets.QGridLayout(self.pageContainer)
         gridlayout.addWidget(self.pageWidget)
         gridlayout.setContentsMargins(0, 0, 0, 0)

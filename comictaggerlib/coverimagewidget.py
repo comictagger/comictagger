@@ -31,7 +31,6 @@ from comictaggerlib.imagepopup import ImagePopup
 from comictaggerlib.pageloader import PageLoader
 from comictaggerlib.ui import ui_path
 from comictaggerlib.ui.qtutils import get_qimage_from_data
-from comictalker.comictalker import ComicTalker
 
 logger = logging.getLogger(__name__)
 
@@ -67,7 +66,6 @@ class CoverImageWidget(QtWidgets.QWidget):
         parent: QtWidgets.QWidget,
         mode: int,
         cache_folder: pathlib.Path | None,
-        talker: ComicTalker | None,
         blur: bool = False,
         expand_on_click: bool = True,
     ) -> None:

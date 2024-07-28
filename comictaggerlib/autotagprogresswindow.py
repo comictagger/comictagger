@@ -36,14 +36,12 @@ class AutoTagProgressWindow(QtWidgets.QDialog):
 
         self.lblSourceName.setText(talker.attribution)
 
-        self.archiveCoverWidget = CoverImageWidget(
-            self.archiveCoverContainer, CoverImageWidget.DataMode, None, None, False
-        )
+        self.archiveCoverWidget = CoverImageWidget(self.archiveCoverContainer, CoverImageWidget.DataMode, None, False)
         gridlayout = QtWidgets.QGridLayout(self.archiveCoverContainer)
         gridlayout.addWidget(self.archiveCoverWidget)
         gridlayout.setContentsMargins(0, 0, 0, 0)
 
-        self.testCoverWidget = CoverImageWidget(self.testCoverContainer, CoverImageWidget.DataMode, None, None, False)
+        self.testCoverWidget = CoverImageWidget(self.testCoverContainer, CoverImageWidget.DataMode, None, False)
         gridlayout = QtWidgets.QGridLayout(self.testCoverContainer)
         gridlayout.addWidget(self.testCoverWidget)
         gridlayout.setContentsMargins(0, 0, 0, 0)

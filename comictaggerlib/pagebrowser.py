@@ -35,7 +35,7 @@ class PageBrowserWindow(QtWidgets.QDialog):
         with (ui_path / "pagebrowser.ui").open(encoding="utf-8") as uifile:
             uic.loadUi(uifile, self)
 
-        self.pageWidget = CoverImageWidget(self.pageContainer, CoverImageWidget.ArchiveMode, None, None)
+        self.pageWidget = CoverImageWidget(self.pageContainer, CoverImageWidget.ArchiveMode, None)
         gridlayout = QtWidgets.QGridLayout(self.pageContainer)
         gridlayout.addWidget(self.pageWidget)
         gridlayout.setContentsMargins(0, 0, 0, 0)

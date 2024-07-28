@@ -179,7 +179,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                     )
                     sys.exit()
 
-        self.archiveCoverWidget = CoverImageWidget(self.coverImageContainer, CoverImageWidget.ArchiveMode, None, None)
+        self.archiveCoverWidget = CoverImageWidget(self.coverImageContainer, CoverImageWidget.ArchiveMode, None)
         grid_layout = QtWidgets.QGridLayout(self.coverImageContainer)
         grid_layout.addWidget(self.archiveCoverWidget)
         grid_layout.setContentsMargins(0, 0, 0, 0)
@@ -1029,14 +1029,12 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
         issue_count = utils.xlate_int(self.leIssueCount.text())
 
-        cover_index_list = self.metadata.get_cover_page_index_list()
         selector = SeriesSelectionWindow(
             self,
             series_name,
             issue_number,
             year,
             issue_count,
-            cover_index_list,
             self.comic_archive,
             self.config[0],
             self.current_talker(),
@@ -2147,7 +2145,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
     def check_latest_version_online(self) -> None:
         version_checker = VersionChecker()
-        self.version_check_complete(version_checker.get_latest_version(self.config[0].internal__install_id))
+        self.version_check_complete(version_checker.get_latest_version())
 
     def version_check_complete(self, new_version: tuple[str, str]) -> None:
         if new_version[0] not in (self.version, self.config[0].Dialog_Flags__dont_notify_about_this_version):
