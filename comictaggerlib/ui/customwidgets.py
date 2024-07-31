@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from enum import auto
 from sys import platform
-import platform
 from typing import Any
 
 from PyQt5 import QtGui, QtWidgets
