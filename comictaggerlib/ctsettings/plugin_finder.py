@@ -75,7 +75,7 @@ class Plugins(NamedTuple):
     tags: list[Plugin]
     talkers: list[Plugin]
 
-    def all_plugins(self) -> Generator[Plugin, None, None]:
+    def all_plugins(self) -> Generator[Plugin]:
         """Return an iterator over all :class:`LoadedPlugin`s."""
         yield from self.archivers
         yield from self.tags
@@ -86,7 +86,7 @@ class Plugins(NamedTuple):
         return ", ".join(sorted({f"{plugin.package}: {plugin.version}" for plugin in self.all_plugins()}))
 
 
-def _find_local_plugins(plugin_path: pathlib.Path) -> Generator[Plugin, None, None]:
+def _find_local_plugins(plugin_path: pathlib.Path) -> Generator[Plugin]:
 
     cfg = configparser.ConfigParser(interpolation=None)
     cfg.read(plugin_path / "setup.cfg")
