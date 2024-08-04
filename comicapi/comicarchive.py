@@ -23,7 +23,6 @@ import os
 import pathlib
 import shutil
 import sys
-import traceback
 from collections.abc import Iterable
 from typing import TYPE_CHECKING
 
@@ -198,7 +197,11 @@ class ComicArchive:
         return self.archiver.name() == "ZIP"
 
     def seems_to_be_a_comic_archive(self) -> bool:
-        if not (isinstance(self.archiver, UnknownArchiver)) and self.get_number_of_pages() > 0:
+        if (
+            not (isinstance(self.archiver, UnknownArchiver))
+            and self.get_number_of_pages() > 0
+            and self.archiver.is_valid(self.path)
+        ):
             return True
 
         return False
@@ -252,11 +255,8 @@ class ComicArchive:
         if filename:
             try:
                 image_data = self.archiver.read_file(filename) or b""
-            except Exception as e:
-                tb = traceback.extract_tb(e.__traceback__)
-                logger.error(
-                    "%s:%s: Error reading in page %d. Substituting logo page.", tb[1].filename, tb[1].lineno, index
-                )
+            except Exception:
+                logger.exception("Error reading in page %d. Substituting logo page.", index)
                 image_data = ComicArchive.logo_data
 
         return image_data
@@ -337,37 +337,42 @@ class ComicArchive:
     ) -> None:
         md.page_count = self.get_number_of_pages()
         md.apply_default_page_list(self.get_page_name_list())
-        if calc_page_sizes:
-            for index, p in enumerate(md.pages):
-                idx = p.display_index
-                if self.pil_available:
-                    try:
-                        from PIL import Image
+        if not calc_page_sizes or not self.seems_to_be_a_comic_archive():
+            return
+        for p in md.pages:
 
-                        self.pil_available = True
-                    except ImportError:
-                        self.pil_available = False
-                    if p.byte_size is None or p.height is None or p.width is None or p.double_page is None:
-                        data = self.get_page(idx)
-                        p.byte_size = len(data)
-                        if data:
-                            try:
-                                if isinstance(data, bytes):
-                                    im = Image.open(io.BytesIO(data))
-                                else:
-                                    im = Image.open(io.StringIO(data))
-                                w, h = im.size
+            if not self.pil_available:
+                if p.byte_size is not None:
+                    data = self.get_page(p.archive_index)
+                    p.byte_size = len(data)
+                continue
+            try:
+                from PIL import Image
 
-                                p.height = h
-                                p.width = w
-                                if detect_double_page:
-                                    p.double_page = p.is_double_page()
-                            except Exception as e:
-                                logger.warning("Error decoding image [%s] %s :: image %s", e, self.path, index)
-                else:
-                    if p.byte_size is not None:
-                        data = self.get_page(idx)
-                        p.byte_size = len(data)
+                self.pil_available = True
+            except ImportError:
+                self.pil_available = False
+                if p.byte_size is not None:
+                    data = self.get_page(p.archive_index)
+                    p.byte_size = len(data)
+                continue
+
+            if p.byte_size is None or p.height is None or p.width is None or p.double_page is None:
+                try:
+                    data = self.get_page(p.archive_index)
+                    p.byte_size = len(data)
+                    if not data:
+                        continue
+
+                    im = Image.open(io.BytesIO(data))
+                    w, h = im.size
+
+                    p.height = h
+                    p.width = w
+                    if detect_double_page:
+                        p.double_page = p.is_double_page()
+                except Exception as e:
+                    logger.exception("Error decoding image [%s] %s :: image %s", e, self.path, p.archive_index)
 
     def metadata_from_filename(
         self,

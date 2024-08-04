@@ -8,6 +8,7 @@ import pytest
 from importlib_metadata import entry_points
 
 import comicapi.archivers.rar
+import comicapi.archivers.zip
 import comicapi.comicarchive
 import comicapi.genericmetadata
 from testing.filenames import datadir
@@ -101,12 +102,14 @@ def test_page_type_write(tmp_comic):
     md = tmp_comic.read_tags("cr")
 
 
-def test_invalid_zip(tmp_comic):
+def test_invalid_zip(tmp_comic: comicapi.comicarchive.ComicArchive):
     with open(tmp_comic.path, mode="b+r") as f:
+        # This only corrupts the first file. If it is never read then no exception will be caused
         f.write(b"PK\000\000")
 
-    result = tmp_comic.write_tags(comicapi.genericmetadata.md_test, "cr")
-    assert not result
+    result = tmp_comic.write_tags(comicapi.genericmetadata.md_test, "cr")  # This is not the first file
+    assert result
+    assert not tmp_comic.seems_to_be_a_comic_archive()  # Calls archiver.is_valid
 
 
 archivers = []

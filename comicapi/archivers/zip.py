@@ -46,7 +46,7 @@ class ZipArchiver(Archiver):
             try:
                 data = zf.read(archive_file)
             except (zipfile.BadZipfile, OSError) as e:
-                logger.error("Error reading zip archive [%s]: %s :: %s", e, self.path, archive_file)
+                logger.exception("Error reading zip archive [%s]: %s :: %s", e, self.path, archive_file)
                 raise
         return data
 
@@ -143,7 +143,16 @@ class ZipArchiver(Archiver):
 
     @classmethod
     def is_valid(cls, path: pathlib.Path) -> bool:
-        return zipfile.is_zipfile(path)
+        if not zipfile.is_zipfile(path):  # only checks central directory ot the end of the archive
+            return False
+        try:
+            # test all the files in the zip. adds about 0.1 to execution time per zip
+            with zipfile.ZipFile(path) as zf:
+                for zipinfo in zf.filelist:
+                    zf.open(zipinfo).close()
+            return True
+        except Exception:
+            return False
 
 
 def _patch_zipfile(zf):  # type: ignore
