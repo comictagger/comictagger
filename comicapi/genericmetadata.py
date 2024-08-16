@@ -94,6 +94,19 @@ class PageMetadata:
             return False
         return self.archive_index == other.archive_index
 
+    def _get_clean_metadata(self, *attributes: str) -> PageMetadata:
+        return PageMetadata(
+            filename=self.filename if "filename" in attributes else "",
+            type=self.type if "type" in attributes else "",
+            bookmark=self.bookmark if "bookmark" in attributes else "",
+            display_index=self.display_index if "display_index" in attributes else 0,
+            archive_index=self.archive_index if "archive_index" in attributes else 0,
+            double_page=self.double_page if "double_page" in attributes else None,
+            byte_size=self.byte_size if "byte_size" in attributes else None,
+            height=self.height if "height" in attributes else None,
+            width=self.width if "width" in attributes else None,
+        )
+
 
 Credit = merge.Credit
 
@@ -206,14 +219,23 @@ class GenericMetadata:
         tmp.__dict__.update(kwargs)
         return tmp
 
-    def get_clean_metadata(self, *attributes: str) -> GenericMetadata:
+    def _get_clean_metadata(self, *attributes: str) -> GenericMetadata:
         new_md = GenericMetadata()
+        list_handled = []
         for attr in sorted(attributes):
             if "." in attr:
                 lst, _, name = attr.partition(".")
+                if lst in list_handled:
+                    continue
                 old_value = getattr(self, lst)
                 new_value = getattr(new_md, lst)
                 if old_value:
+                    if hasattr(old_value[0], "_get_clean_metadata"):
+                        list_attributes = [x.removeprefix(lst + ".") for x in attributes if x.startswith(lst)]
+                        for x in old_value:
+                            new_value.append(x._get_clean_metadata(*list_attributes))
+                        list_handled.append(lst)
+                        continue
                     if not new_value:
                         for x in old_value:
                             new_value.append(x.__class__())

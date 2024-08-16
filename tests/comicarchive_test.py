@@ -89,7 +89,7 @@ def test_save_cbi_rar(tmp_path, md_saved):
 
     md = tmp_comic.read_tags("cbi")
     supported_attributes = comicapi.comicarchive.tags["cbi"].supported_attributes
-    assert md.get_clean_metadata(*supported_attributes) == md_saved.get_clean_metadata(*supported_attributes)
+    assert md._get_clean_metadata(*supported_attributes) == md_saved._get_clean_metadata(*supported_attributes)
 
 
 def test_page_type_write(tmp_comic):
