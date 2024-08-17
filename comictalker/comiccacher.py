@@ -295,4 +295,9 @@ class ComicCacher:
             set_slots += key + " = ?"
 
         sql_ins = f"INSERT OR REPLACE INTO {tablename} ({keys}) VALUES ({ins_slots})"
+        if not data.get("complete", True):
+            sql_ins += f" ON CONFLICT DO UPDATE SET {set_slots} WHERE complete != ?"
+            vals.extend(vals)
+            vals.append(True)  # If the cache is complete and this isn't complete we don't update it
+
         cur.execute(sql_ins, vals)
