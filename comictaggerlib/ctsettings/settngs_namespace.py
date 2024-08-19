@@ -3,6 +3,7 @@ from __future__ import annotations
 import typing
 
 import settngs
+import urllib3.util.url
 
 import comicapi.genericmetadata
 import comicapi.merge
@@ -19,6 +20,7 @@ class SettngsNS(settngs.TypedNS):
 
     Runtime_Options__config: comictaggerlib.ctsettings.types.ComicTaggerPaths
     Runtime_Options__verbose: int
+    Runtime_Options__enable_quick_tag: bool
     Runtime_Options__quiet: bool
     Runtime_Options__json: bool
     Runtime_Options__raw: bool
@@ -36,6 +38,13 @@ class SettngsNS(settngs.TypedNS):
     Runtime_Options__tags_write: list[str]
     Runtime_Options__skip_existing_tags: bool
     Runtime_Options__files: list[str]
+
+    Quick_Tag__url: urllib3.util.url.Url
+    Quick_Tag__max: int
+    Quick_Tag__simple: bool
+    Quick_Tag__aggressive_filtering: bool
+    Quick_Tag__hash: list[comictaggerlib.quick_tag.HashType]
+    Quick_Tag__skip_non_exact: bool
 
     internal__install_id: str
     internal__write_tags: list[str]
@@ -132,6 +141,7 @@ class Commands(typing.TypedDict):
 class Runtime_Options(typing.TypedDict):
     config: comictaggerlib.ctsettings.types.ComicTaggerPaths
     verbose: int
+    enable_quick_tag: bool
     quiet: bool
     json: bool
     raw: bool
@@ -149,6 +159,15 @@ class Runtime_Options(typing.TypedDict):
     tags_write: list[str]
     skip_existing_tags: bool
     files: list[str]
+
+
+class Quick_Tag(typing.TypedDict):
+    url: urllib3.util.url.Url
+    max: int
+    simple: bool
+    aggressive_filtering: bool
+    hash: list[comictaggerlib.quick_tag.HashType]
+    skip_non_exact: bool
 
 
 class internal(typing.TypedDict):
@@ -263,6 +282,7 @@ SettngsDict = typing.TypedDict(
     {
         "Commands": Commands,
         "Runtime Options": Runtime_Options,
+        "Quick Tag": Quick_Tag,
         "internal": internal,
         "Issue Identifier": Issue_Identifier,
         "Filename Parsing": Filename_Parsing,

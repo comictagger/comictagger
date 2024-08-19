@@ -104,6 +104,8 @@ def save_file(
         filename: A pathlib.Path object to save the json dictionary to
     """
     file_options = settngs.clean_config(config, file=True)
+    file_options["Quick Tag"]["url"] = str(file_options["Quick Tag"]["url"])
+
     try:
         if not filename.exists():
             filename.parent.mkdir(exist_ok=True, parents=True)

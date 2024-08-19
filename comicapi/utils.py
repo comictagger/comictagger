@@ -88,7 +88,7 @@ if sys.version_info < (3, 11):
                 cls._lower_members = {x.casefold(): x for x in cls}  # type: ignore[attr-defined]
             return cls._lower_members.get(value.casefold(), None)  # type: ignore[attr-defined]
 
-        def __str__(self):
+        def __str__(self) -> str:
             return self.value
 
 else:

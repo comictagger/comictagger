@@ -410,6 +410,132 @@ class ComicVineTalker(ComicTalker):
 
         return formatted_filtered_issues_result
 
+    def fetch_comics(self, *, issue_ids: list[str]) -> list[GenericMetadata]:
+        # before we search online, look in our cache, since we might already have this info
+        cvc = ComicCacher(self.cache_folder, self.version)
+        cached_results: list[GenericMetadata] = []
+        needed_issues: list[int] = []
+        for issue_id in issue_ids:
+            cached_issue = cvc.get_issue_info(issue_id, self.id)
+
+            if cached_issue and cached_issue[1]:
+                cached_results.append(
+                    self._map_comic_issue_to_metadata(
+                        json.loads(cached_issue[0].data),
+                        self._fetch_series([int(cached_issue[0].series_id)])[0][0],
+                    ),
+                )
+            else:
+                needed_issues.append(int(issue_id))  # CV uses integers for it's IDs
+
+        if not needed_issues:
+            return cached_results
+        issue_filter = ""
+        for iid in needed_issues:
+            issue_filter += str(iid) + "|"
+        flt = "id:" + issue_filter.rstrip("|")
+
+        issue_url = urljoin(self.api_url, "issues/")
+        params: dict[str, Any] = {
+            "api_key": self.api_key,
+            "format": "json",
+            "filter": flt,
+        }
+        cv_response: CVResult[list[CVIssue]] = self._get_cv_content(issue_url, params)
+
+        issue_results = cv_response["results"]
+        page = 1
+        offset = 0
+        current_result_count = cv_response["number_of_page_results"]
+        total_result_count = cv_response["number_of_total_results"]
+
+        # see if we need to keep asking for more pages...
+        while current_result_count < total_result_count:
+            page += 1
+            offset += cv_response["number_of_page_results"]
+
+            params["offset"] = offset
+            cv_response = self._get_cv_content(issue_url, params)
+
+            issue_results.extend(cv_response["results"])
+            current_result_count += cv_response["number_of_page_results"]
+
+        series_info = {s[0].id: s[0] for s in self._fetch_series([int(i["volume"]["id"]) for i in issue_results])}
+
+        for issue in issue_results:
+            cvc.add_issues_info(
+                self.id,
+                [
+                    Issue(
+                        id=str(issue["id"]),
+                        series_id=str(issue["volume"]["id"]),
+                        data=json.dumps(issue).encode("utf-8"),
+                    ),
+                ],
+                True,
+            )
+            cached_results.append(
+                self._map_comic_issue_to_metadata(issue, series_info[str(issue["volume"]["id"])]),
+            )
+
+        return cached_results
+
+    def _fetch_series(self, series_ids: list[int]) -> list[tuple[ComicSeries, bool]]:
+        # before we search online, look in our cache, since we might already have this info
+        cvc = ComicCacher(self.cache_folder, self.version)
+        cached_results: list[tuple[ComicSeries, bool]] = []
+        needed_series: list[int] = []
+        for series_id in series_ids:
+            cached_series = cvc.get_series_info(str(series_id), self.id)
+            if cached_series is not None:
+                cached_results.append((self._format_series(json.loads(cached_series[0].data)), cached_series[1]))
+            else:
+                needed_series.append(series_id)
+
+        if needed_series == []:
+            return cached_results
+
+        series_filter = ""
+        for vid in needed_series:
+            series_filter += str(vid) + "|"
+        flt = "id:" + series_filter.rstrip("|")  # CV uses volume to mean series
+
+        series_url = urljoin(self.api_url, "volumes/")  # CV uses volume to mean series
+        params: dict[str, Any] = {
+            "api_key": self.api_key,
+            "format": "json",
+            "filter": flt,
+        }
+        cv_response: CVResult[list[CVSeries]] = self._get_cv_content(series_url, params)
+
+        series_results = cv_response["results"]
+        page = 1
+        offset = 0
+        current_result_count = cv_response["number_of_page_results"]
+        total_result_count = cv_response["number_of_total_results"]
+
+        # see if we need to keep asking for more pages...
+        while current_result_count < total_result_count:
+            page += 1
+            offset += cv_response["number_of_page_results"]
+
+            params["offset"] = offset
+            cv_response = self._get_cv_content(series_url, params)
+
+            series_results.extend(cv_response["results"])
+            current_result_count += cv_response["number_of_page_results"]
+
+        if series_results:
+            for series in series_results:
+                cvc.add_series_info(
+                    self.id,
+                    Series(id=str(series["id"]), data=json.dumps(series).encode("utf-8")),
+                    True,
+                )
+                cached_results.append((self._format_series(series), True))
+
+        return cached_results
+
     def _get_cv_content(self, url: str, params: dict[str, Any]) -> CVResult[T]:
         """
         Get the content from the CV server.

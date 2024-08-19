@@ -27,7 +27,7 @@ import settngs
 
 from comicapi import utils
 from comicapi.comicarchive import tags
-from comictaggerlib import ctversion
+from comictaggerlib import ctversion, quick_tag
 from comictaggerlib.ctsettings.settngs_namespace import SettngsNS as ct_ns
 from comictaggerlib.ctsettings.types import ComicTaggerPaths, tag
 from comictaggerlib.resulttypes import Action
@@ -51,6 +51,12 @@ def initial_commandline_parser() -> argparse.ArgumentParser:
         default=0,
         help="Be noisy when doing what it does. Use a second time to enable debug logs.\nShort option cannot be combined with other options.",
     )
+    parser.add_argument(
+        "--enable-quick-tag",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help='Enable the expiremental "quick tagger"',
+    )
     return parser
 
 
@@ -68,6 +74,13 @@ def register_runtime(parser: settngs.Manager) -> None:
         action="count",
         default=0,
         help="Be noisy when doing what it does. Use a second time to enable debug logs.\nShort option cannot be combined with other options.",
+        file=False,
+    )
+    parser.add_setting(
+        "--enable-quick-tag",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help='Enable the expiremental "quick tagger"',
         file=False,
     )
     parser.add_setting("-q", "--quiet", action="store_true", help="Don't say much (for print mode).", file=False)
@@ -240,9 +253,11 @@ def register_commands(parser: settngs.Manager) -> None:
     )
 
 
-def register_commandline_settings(parser: settngs.Manager) -> None:
+def register_commandline_settings(parser: settngs.Manager, enable_quick_tag: bool) -> None:
     parser.add_group("Commands", register_commands, True)
     parser.add_persistent_group("Runtime Options", register_runtime)
+    if enable_quick_tag:
+        parser.add_group("Quick Tag", quick_tag.settings)
 
 
 def validate_commandline_settings(config: settngs.Config[ct_ns], parser: settngs.Manager) -> settngs.Config[ct_ns]:

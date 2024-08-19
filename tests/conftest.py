@@ -197,7 +197,7 @@ def config(tmp_path):
     from comictaggerlib.main import App
 
     app = App()
-    app.register_settings()
+    app.register_settings(False)
 
     defaults = app.parse_settings(comictaggerlib.ctsettings.ComicTaggerPaths(tmp_path / "config"), "")
     defaults[0].Runtime_Options__config.user_config_dir.mkdir(parents=True, exist_ok=True)
@@ -214,7 +214,7 @@ def plugin_config(tmp_path):
     ns = Namespace(config=comictaggerlib.ctsettings.ComicTaggerPaths(tmp_path / "config"))
     app = App()
     app.load_plugins(ns)
-    app.register_settings()
+    app.register_settings(False)
 
     defaults = app.parse_settings(ns.config, "")
     defaults[0].Runtime_Options__config.user_config_dir.mkdir(parents=True, exist_ok=True)

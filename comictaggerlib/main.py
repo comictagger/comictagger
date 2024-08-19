@@ -117,7 +117,7 @@ class App:
         conf = self.initialize()
         self.initialize_dirs(conf.config)
         self.load_plugins(conf)
-        self.register_settings()
+        self.register_settings(conf.enable_quick_tag)
         self.config = self.parse_settings(conf.config)
 
         self.main()
@@ -215,13 +215,13 @@ class App:
         setup_logging(conf.verbose, conf.config.user_log_dir)
         return conf
 
-    def register_settings(self) -> None:
+    def register_settings(self, enable_quick_tag: bool) -> None:
         self.manager = settngs.Manager(
             description="A utility for reading and writing metadata to comic archives.\n\n\n"
             + "If no options are given, %(prog)s will run in windowed mode.\nPlease keep the '-v' option separated '-so -v' not '-sov'",
             epilog="For more help visit the wiki at: https://github.com/comictagger/comictagger/wiki",
         )
-        ctsettings.register_commandline_settings(self.manager)
+        ctsettings.register_commandline_settings(self.manager, enable_quick_tag)
         ctsettings.register_file_settings(self.manager)
         ctsettings.register_plugin_settings(self.manager, getattr(self, "talkers", {}))
 

@@ -36,6 +36,7 @@ from comictaggerlib.filerenamer import FileRenamer, get_rename_dir
 from comictaggerlib.graphics import graphics_path
 from comictaggerlib.issueidentifier import IssueIdentifier
 from comictaggerlib.md import prepare_metadata
+from comictaggerlib.quick_tag import QuickTag
 from comictaggerlib.resulttypes import Action, IssueResult, MatchStatus, OnlineMatchResults, Result, Status
 from comictalker.comictalker import ComicTalker, TalkerError
 
@@ -397,6 +398,153 @@ class CLI:
                 res.status = status
         return res
 
+    def try_quick_tag(self, ca: ComicArchive, md: GenericMetadata) -> GenericMetadata | None:
+        if not self.config.Runtime_Options__enable_quick_tag:
+            self.output("skipping quick tag")
+            return None
+        self.output("starting quick tag")
+        try:
+            qt = QuickTag(
+                self.config.Quick_Tag__url,
+                str(utils.parse_url(self.current_talker().website).host),
+                self.current_talker(),
+                self.config,
+                self.output,
+            )
+            ct_md = qt.id_comic(
+                ca,
+                md,
+                self.config.Quick_Tag__simple,
+                set(self.config.Quick_Tag__hash),
+                self.config.Quick_Tag__skip_non_exact,
+                self.config.Runtime_Options__interactive,
+                self.config.Quick_Tag__aggressive_filtering,
+                self.config.Quick_Tag__max,
+            )
+            if ct_md is None:
+                ct_md = GenericMetadata()
+            return ct_md
+        except Exception:
+            logger.exception("Quick Tagging failed")
+        return None
+
+    def normal_tag(
+        self, ca: ComicArchive, tags_read: list[str], md: GenericMetadata, match_results: OnlineMatchResults
+    ) -> tuple[GenericMetadata, list[IssueResult], Result | None, OnlineMatchResults]:
+        # ct_md, results, matches, match_results
+        if md is None or md.is_empty:
+            logger.error("No metadata given to search online with!")
+            res = Result(
+                Action.save,
+                status=Status.match_failure,
+                original_path=ca.path,
+                match_status=MatchStatus.no_match,
+                tags_written=self.config.Runtime_Options__tags_write,
+                tags_read=tags_read,
+            )
+            match_results.no_matches.append(res)
+            return GenericMetadata(), [], res, match_results
+
+        ii = IssueIdentifier(ca, self.config, self.current_talker())
+
+        ii.set_output_function(functools.partial(self.output, already_logged=True))
+        if not self.config.Auto_Tag__use_year_when_identifying:
+            md.year = None
+        if self.config.Auto_Tag__ignore_leading_numbers_in_filename and md.series is not None:
+            md.series = re.sub(r"^([\d.]+)(.*)", r"\2", md.series)
+        result, matches = ii.identify(ca, md)
+
+        found_match = False
+        choices = False
+        low_confidence = False
+
+        if result == IssueIdentifier.result_no_matches:
+            pass
+        elif result == IssueIdentifier.result_found_match_but_bad_cover_score:
+            low_confidence = True
+            found_match = True
+        elif result == IssueIdentifier.result_found_match_but_not_first_page:
+            found_match = True
+        elif result == IssueIdentifier.result_multiple_matches_with_bad_image_scores:
+            low_confidence = True
+            choices = True
+        elif result == IssueIdentifier.result_one_good_match:
+            found_match = True
+        elif result == IssueIdentifier.result_multiple_good_matches:
+            choices = True
+
+        if choices:
+            if low_confidence:
+                logger.error("Online search: Multiple low confidence matches. Save aborted")
+                res = Result(
+                    Action.save,
+                    status=Status.match_failure,
+                    original_path=ca.path,
+                    online_results=matches,
+                    match_status=MatchStatus.low_confidence_match,
+                    tags_written=self.config.Runtime_Options__tags_write,
+                    tags_read=tags_read,
+                )
+                match_results.low_confidence_matches.append(res)
+                return GenericMetadata(), matches, res, match_results
+
+            logger.error("Online search: Multiple good matches. Save aborted")
+            res = Result(
+                Action.save,
+                status=Status.match_failure,
+                original_path=ca.path,
+                online_results=matches,
+                match_status=MatchStatus.multiple_match,
+                tags_written=self.config.Runtime_Options__tags_write,
+                tags_read=tags_read,
+            )
+            match_results.multiple_matches.append(res)
+            return GenericMetadata(), matches, res, match_results
+        if low_confidence and self.config.Runtime_Options__abort_on_low_confidence:
+            logger.error("Online search: Low confidence match. Save aborted")
+            res = Result(
+                Action.save,
+                status=Status.match_failure,
+                original_path=ca.path,
+                online_results=matches,
+                match_status=MatchStatus.low_confidence_match,
+                tags_written=self.config.Runtime_Options__tags_write,
+                tags_read=tags_read,
+            )
+            match_results.low_confidence_matches.append(res)
+            return GenericMetadata(), matches, res, match_results
+        if not found_match:
+            logger.error("Online search: No match found. Save aborted")
+            res = Result(
+                Action.save,
+                status=Status.match_failure,
+                original_path=ca.path,
+                online_results=matches,
+                match_status=MatchStatus.no_match,
+                tags_written=self.config.Runtime_Options__tags_write,
+                tags_read=tags_read,
+            )
+            match_results.no_matches.append(res)
+            return GenericMetadata(), matches, res, match_results
+
+        # we got here, so we have a single match
+
+        # now get the particular issue data
+        ct_md = self.fetch_metadata(matches[0].issue_id)
+        if ct_md.is_empty:
+            res = Result(
+                Action.save,
+                status=Status.fetch_data_failure,
+                original_path=ca.path,
+                online_results=matches,
+                match_status=MatchStatus.good_match,
+                tags_written=self.config.Runtime_Options__tags_write,
+                tags_read=tags_read,
+            )
+            match_results.fetch_data_failures.append(res)
+            return GenericMetadata(), matches, res, match_results
+        return ct_md, matches, None, match_results
+
     def save(self, ca: ComicArchive, match_results: OnlineMatchResults) -> tuple[Result, OnlineMatchResults]:
         if self.config.Runtime_Options__skip_existing_tags:
             for tag_id in self.config.Runtime_Options__tags_write:
@@ -455,117 +603,34 @@ class CLI:
                     return res, match_results
 
             else:
-                if md is None or md.is_empty:
-                    logger.error("No metadata given to search online with!")
-                    res = Result(
-                        Action.save,
-                        status=Status.match_failure,
-                        original_path=ca.path,
-                        match_status=MatchStatus.no_match,
-                        tags_written=self.config.Runtime_Options__tags_write,
-                        tags_read=tags_read,
-                    )
-                    match_results.no_matches.append(res)
-                    return res, match_results
-
-                ii = IssueIdentifier(ca, self.config, self.current_talker())
-
-                ii.set_output_function(functools.partial(self.output, already_logged=True))
-                if not self.config.Auto_Tag__use_year_when_identifying:
-                    md.year = None
-                if self.config.Auto_Tag__ignore_leading_numbers_in_filename and md.series is not None:
-                    md.series = re.sub(r"^([\d.]+)(.*)", r"\2", md.series)
-                result, matches = ii.identify(ca, md)
-
-                found_match = False
-                choices = False
-                low_confidence = False
-
-                if result == IssueIdentifier.result_no_matches:
-                    pass
-                elif result == IssueIdentifier.result_found_match_but_bad_cover_score:
-                    low_confidence = True
-                    found_match = True
-                elif result == IssueIdentifier.result_found_match_but_not_first_page:
-                    found_match = True
-                elif result == IssueIdentifier.result_multiple_matches_with_bad_image_scores:
-                    low_confidence = True
-                    choices = True
-                elif result == IssueIdentifier.result_one_good_match:
-                    found_match = True
-                elif result == IssueIdentifier.result_multiple_good_matches:
-                    choices = True
-
-                if choices:
-                    if low_confidence:
-                        logger.error("Online search: Multiple low confidence matches. Save aborted")
-                        res = Result(
-                            Action.save,
-                            status=Status.match_failure,
-                            original_path=ca.path,
-                            online_results=matches,
-                            match_status=MatchStatus.low_confidence_match,
-                            tags_written=self.config.Runtime_Options__tags_write,
-                            tags_read=tags_read,
-                        )
-                        match_results.low_confidence_matches.append(res)
+                qt_md = self.try_quick_tag(ca, md)
+                if qt_md is None or qt_md.is_empty:
+                    if qt_md is not None:
+                        self.output("Failed to find match via quick tag")
+                    ct_md, matches, res, match_results = self.normal_tag(ca, tags_read, md, match_results)  # type: ignore[assignment]
+                    if res is not None:
                         return res, match_results
-
-                    logger.error("Online search: Multiple good matches. Save aborted")
-                    res = Result(
-                        Action.save,
-                        status=Status.match_failure,
-                        original_path=ca.path,
-                        online_results=matches,
-                        match_status=MatchStatus.multiple_match,
-                        tags_written=self.config.Runtime_Options__tags_write,
-                        tags_read=tags_read,
-                    )
-                    match_results.multiple_matches.append(res)
-                    return res, match_results
-                if low_confidence and self.config.Runtime_Options__abort_on_low_confidence:
-                    logger.error("Online search: Low confidence match. Save aborted")
-                    res = Result(
-                        Action.save,
-                        status=Status.match_failure,
-                        original_path=ca.path,
-                        online_results=matches,
-                        match_status=MatchStatus.low_confidence_match,
-                        tags_written=self.config.Runtime_Options__tags_write,
-                        tags_read=tags_read,
-                    )
-                    match_results.low_confidence_matches.append(res)
-                    return res, match_results
-                if not found_match:
-                    logger.error("Online search: No match found. Save aborted")
-                    res = Result(
-                        Action.save,
-                        status=Status.match_failure,
-                        original_path=ca.path,
-                        online_results=matches,
-                        match_status=MatchStatus.no_match,
-                        tags_written=self.config.Runtime_Options__tags_write,
-                        tags_read=tags_read,
-                    )
-                    match_results.no_matches.append(res)
-                    return res, match_results
-
-                # we got here, so we have a single match
-
-                # now get the particular issue data
-                ct_md = self.fetch_metadata(matches[0].issue_id)
-                if ct_md.is_empty:
-                    res = Result(
-                        Action.save,
-                        status=Status.fetch_data_failure,
-                        original_path=ca.path,
-                        online_results=matches,
-                        match_status=MatchStatus.good_match,
-                        tags_written=self.config.Runtime_Options__tags_write,
-                        tags_read=tags_read,
-                    )
-                    match_results.fetch_data_failures.append(res)
-                    return res, match_results
+                else:
+                    self.output("Successfully matched via quick tag")
+                    ct_md = qt_md
+                    matches = [
+                        IssueResult(
+                            series=ct_md.series or "",
+                            distance=-1,
+                            issue_number=ct_md.issue or "",
+                            issue_count=ct_md.issue_count,
+                            url_image_hash=-1,
+                            issue_title=ct_md.title or "",
+                            issue_id=ct_md.issue_id or "",
+                            series_id=ct_md.issue_id or "",
+                            month=ct_md.month,
+                            year=ct_md.year,
+                            publisher=None,
+                            image_url=ct_md._cover_image or "",
+                            alt_image_urls=[],
+                            description=ct_md.description or "",
+                        )
+                    ]
 
         res = Result(
             Action.save,

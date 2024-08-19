@@ -73,24 +73,23 @@ class ImageHasher:
 
         return result
 
-    def average_hash2(self) -> None:
-        """
-        # Got this one from somewhere on the net.  Not a clue how the 'convolve2d' works!
+    def difference_hash(self) -> int:
+        try:
+            image = self.image.resize((self.width + 1, self.height), Image.Resampling.LANCZOS).convert("L")
+        except Exception:
+            logger.exception("difference_hash error")
+            return 0
 
-        from numpy import array
-        from scipy.signal import convolve2d
+        pixels = list(image.getdata())
+        diff = ""
+        for y in range(self.height):
+            for x in range(self.width):
+                idx = x + (self.width + 1 * y)
+                diff += str(int(pixels[idx] < pixels[idx + 1]))
 
-        im = self.image.resize((self.width, self.height), Image.ANTIALIAS).convert('L')
+        result = int(diff, 2)
 
-        in_data = array((im.getdata())).reshape(self.width, self.height)
-        filt = array([[0,1,0],[1,-4,1],[0,1,0]])
-        filt_data = convolve2d(in_data,filt,mode='same',boundary='symm').flatten()
-
-        result = reduce(lambda x, (y, z): x | (z << y),
-                         enumerate(map(lambda i: 0 if i < 0 else 1, filt_data)),
-                         0)
         return result
-        """
 
     def p_hash(self) -> int:
         """
