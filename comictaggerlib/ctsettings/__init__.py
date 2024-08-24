@@ -104,7 +104,8 @@ def save_file(
         filename: A pathlib.Path object to save the json dictionary to
     """
     file_options = settngs.clean_config(config, file=True)
-    file_options["Quick Tag"]["url"] = str(file_options["Quick Tag"]["url"])
+    if "Quick Tag" in file_options and "url" in file_options["Quick Tag"]:
+        file_options["Quick Tag"]["url"] = str(file_options["Quick Tag"]["url"])
 
     try:
         if not filename.exists():
