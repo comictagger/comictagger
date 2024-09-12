@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import logging
 import pathlib
 import sys
 import types
@@ -14,6 +15,8 @@ from appdirs import AppDirs
 from comicapi import utils
 from comicapi.comicarchive import tags
 from comicapi.genericmetadata import REMOVE, GenericMetadata
+
+logger = logging.getLogger(__name__)
 
 if sys.version_info < (3, 10):
 
@@ -198,44 +201,48 @@ def parse_metadata_from_string(mdstr: str) -> GenericMetadata:
 
     md = GenericMetadata()
 
-    if not mdstr:
-        return md
-    if mdstr[0] == "@":
-        p = pathlib.Path(mdstr[1:])
-        if not p.is_file():
-            raise argparse.ArgumentTypeError("Invalid filepath")
-        mdstr = p.read_text()
-    if mdstr[0] != "{":
-        mdstr = "{" + mdstr + "}"
+    try:
+        if not mdstr:
+            return md
+        if mdstr[0] == "@":
+            p = pathlib.Path(mdstr[1:])
+            if not p.is_file():
+                raise argparse.ArgumentTypeError("Invalid filepath")
+            mdstr = p.read_text()
+        if mdstr[0] != "{":
+            mdstr = "{" + mdstr + "}"
 
-    md_dict = yaml.safe_load(mdstr)
+        md_dict = yaml.safe_load(mdstr)
 
-    empty = True
-    # Map the dict to the metadata object
-    for key, value in md_dict.items():
-        if hasattr(md, key):
-            t = get_type(key)
-            if value is None:
-                value = REMOVE
-            elif isinstance(t, tuple):
-                if value == "":
-                    value = t[0]()
+        empty = True
+        # Map the dict to the metadata object
+        for key, value in md_dict.items():
+            if hasattr(md, key):
+                t = get_type(key)
+                if value is None:
+                    value = REMOVE
+                elif isinstance(t, tuple):
+                    if value == "":
+                        value = t[0]()
+                    else:
+                        if isinstance(value, str):
+                            value = [value]
+                        if not isinstance(value, Collection):
+                            raise argparse.ArgumentTypeError(f"Invalid syntax for tag '{key}'")
+                        values = list(value)
+                        for idx, v in enumerate(values):
+                            if not isinstance(v, t[1]):
+                                values[idx] = convert_value(t[1], v)
+                        value = t[0](values)
                 else:
-                    if isinstance(value, str):
-                        value = [value]
-                    if not isinstance(value, Collection):
-                        raise argparse.ArgumentTypeError(f"Invalid syntax for tag '{key}'")
-                    values = list(value)
-                    for idx, v in enumerate(values):
-                        if not isinstance(v, t[1]):
-                            values[idx] = convert_value(t[1], v)
-                    value = t[0](values)
-            else:
-                value = convert_value(t, value)
+                    value = convert_value(t, value)
 
-            empty = False
-            setattr(md, key, value)
-        else:
-            raise argparse.ArgumentTypeError(f"'{key}' is not a valid tag name")
-    md.is_empty = empty
+                empty = False
+                setattr(md, key, value)
+            else:
+                raise argparse.ArgumentTypeError(f"'{key}' is not a valid tag name")
+        md.is_empty = empty
+    except Exception as e:
+        logger.exception("Unable to read metadata from the commandline '%s'", mdstr)
+        raise Exception("Unable to read metadata from the commandline") from e
     return md

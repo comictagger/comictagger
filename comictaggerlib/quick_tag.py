@@ -10,7 +10,6 @@ from urllib.parse import urljoin
 
 import requests
 import settngs
-from PIL import Image
 
 from comicapi import comicarchive, utils
 from comicapi.genericmetadata import GenericMetadata
@@ -125,6 +124,7 @@ class QuickTag:
     ) -> GenericMetadata | None:
         if not ca.seems_to_be_a_comic_archive():
             raise Exception(f"{ca.path} is not an archive")
+        from PIL import Image
 
         cover_index = tags.get_cover_page_index_list()[0]
         cover_image = Image.open(BytesIO(ca.get_page(cover_index)))
