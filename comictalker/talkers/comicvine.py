@@ -43,6 +43,8 @@ except ImportError:
     import requests
 logger = logging.getLogger(__name__)
 
+TWITTER_TOO_MANY_REQUESTS = 420
+
 
 class CVTypeID:
     Volume = "4050"  # CV uses volume to mean series
@@ -157,8 +159,8 @@ class CVResult(TypedDict, Generic[T]):
 
 # https://comicvine.gamespot.com/forums/api-developers-2334/api-rate-limiting-1746419/
 # "Space out your requests so AT LEAST one second passes between each and you can make requests all day."
-custom_limiter = Limiter(RequestRate(10, 10))
-default_limiter = Limiter(RequestRate(1, 5))
+custom_limiter = Limiter(RequestRate(10, 10), RequestRate(200, 1 * 60 * 60))
+default_limiter = Limiter(RequestRate(1, 10), RequestRate(100, 1 * 60 * 60))
 
 
 class ComicVineTalker(ComicTalker):
@@ -171,7 +173,7 @@ class ComicVineTalker(ComicTalker):
         f"<a href='{website}'>{name}</a> has the largest collection of comic book data available through "
         f"its public facing API. "
         f"<p>NOTE: Using the default API key will serverly limit access times. A personal API "
-        f"key will allow for a <b>5 times increase</b> in online search speed. See the "
+        f"key will allow for a <b>10 times increase</b> in online search speed. See the "
         "<a href='https://github.com/comictagger/comictagger/wiki/UserGuide#comic-vine'>Wiki page</a> for "
         "more information.</p>"
     )
@@ -540,7 +542,10 @@ class ComicVineTalker(ComicTalker):
         """
         Get the content from the CV server.
         """
-        with self.limiter.ratelimit("cv", delay=True):
+        ratelimit_key = url
+        if self.api_key == self.default_api_key:
+            ratelimit_key = "cv"
+        with self.limiter.ratelimit(ratelimit_key, delay=True):
             cv_response: CVResult[T] = self._get_url_content(url, params)
 
             if cv_response["status_code"] != 1:
@@ -565,7 +570,7 @@ class ComicVineTalker(ComicTalker):
                     time.sleep(1)
                     logger.debug(str(resp.status_code))
 
-                if resp.status_code == requests.status_codes.codes.TOO_MANY_REQUESTS:
+                if resp.status_code in (requests.status_codes.codes.TOO_MANY_REQUESTS, TWITTER_TOO_MANY_REQUESTS):
                     logger.info(f"{self.name} rate limit encountered. Waiting for 10 seconds\n")
                     time.sleep(10)
                     limit_counter += 1
