@@ -416,7 +416,7 @@ class CLI:
                 md,
                 self.config.Quick_Tag__simple,
                 set(self.config.Quick_Tag__hash),
-                self.config.Quick_Tag__skip_non_exact,
+                self.config.Quick_Tag__exact_only,
                 self.config.Runtime_Options__interactive,
                 self.config.Quick_Tag__aggressive_filtering,
                 self.config.Quick_Tag__max,

@@ -472,7 +472,7 @@ class ComicVineTalker(ComicTalker):
                         data=json.dumps(issue).encode("utf-8"),
                     ),
                 ],
-                True,
+                False,  # The /issues/ endpoint never provides credits
             )
             cached_results.append(
                 self._map_comic_issue_to_metadata(issue, series_info[str(issue["volume"]["id"])]),

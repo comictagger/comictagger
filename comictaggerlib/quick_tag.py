@@ -43,7 +43,7 @@ class Hash(TypedDict):
 
 class Result(TypedDict):
     # Mapping of domains (eg comicvine.gamespot.com) to IDs
-    IDList: dict[str, list[str]]
+    IDs: dict[str, list[str]]
     Distance: int
     Hash: Hash
 
@@ -95,7 +95,7 @@ def settings(manager: settngs.Manager) -> None:
         help="Pick what hashes you want to use to search (default: %(default)s)",
     )
     manager.add_setting(
-        "--skip-non-exact",
+        "--exact-only",
         default=True,
         action=argparse.BooleanOptionalAction,
         help="Skip non-exact matches if we have exact matches",
@@ -118,7 +118,7 @@ class QuickTag:
         tags: GenericMetadata,
         simple: bool,
         hashes: set[HashType],
-        skip_non_exact: bool,
+        exact_only: bool,
         interactive: bool,
         aggressive_filtering: bool,
         max_hamming_distance: int,
@@ -144,7 +144,7 @@ class QuickTag:
         logger.info(f"Searching with {ahash=}, {dhash=}, {phash=}")
 
         self.output("Searching hashes")
-        results = self.SearchHashes(simple, max_hamming_distance, ahash, dhash, phash, skip_non_exact)
+        results = self.SearchHashes(simple, max_hamming_distance, ahash, dhash, phash, exact_only)
         logger.debug(f"{results=}")
 
         if simple:
@@ -161,7 +161,7 @@ class QuickTag:
         return self.talker.fetch_comic_data(issue_id=chosen_result.issue_id)
 
     def SearchHashes(
-        self, simple: bool, max_hamming_distance: int, ahash: str, dhash: str, phash: str, skip_non_exact: bool
+        self, simple: bool, max_hamming_distance: int, ahash: str, dhash: str, phash: str, exact_only: bool
     ) -> list[SimpleResult] | list[Result]:
 
         resp = requests.get(
@@ -172,7 +172,7 @@ class QuickTag:
                 "ahash": ahash,
                 "dhash": dhash,
                 "phash": phash,
-                "skipNonExact": str(skip_non_exact),
+                "exactOnly": str(exact_only),
             },
         )
         if resp.status_code != 200:
@@ -191,7 +191,7 @@ class QuickTag:
         results.sort(key=lambda r: r["Distance"])
         all_ids = set()
         for res in results:
-            all_ids.update(res["IDList"].get(self.domain, []))
+            all_ids.update(res.get("IDList", res.get("IDs", {})).get(self.domain, []))  # type: ignore[attr-defined]
 
         self.output(f"Retrieving basic {self.talker.name} data")
         # Try to do a bulk feth of basic issue data
@@ -220,7 +220,7 @@ class QuickTag:
         # Re-associate the md to the distance
         for res in results:
             for md in mds:
-                if md.issue_id in res["IDList"].get(self.domain, []):
+                if md.issue_id in res["IDs"].get(self.domain, []):
                     md_results.append((res["Distance"], res["Hash"], md))
         return md_results
 

@@ -44,7 +44,7 @@ class SettngsNS(settngs.TypedNS):
     Quick_Tag__simple: bool
     Quick_Tag__aggressive_filtering: bool
     Quick_Tag__hash: list[comictaggerlib.quick_tag.HashType]
-    Quick_Tag__skip_non_exact: bool
+    Quick_Tag__exact_only: bool
 
     internal__install_id: str
     internal__write_tags: list[str]
@@ -167,7 +167,7 @@ class Quick_Tag(typing.TypedDict):
     simple: bool
     aggressive_filtering: bool
     hash: list[comictaggerlib.quick_tag.HashType]
-    skip_non_exact: bool
+    exact_only: bool
 
 
 class internal(typing.TypedDict):

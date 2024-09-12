@@ -21,7 +21,7 @@ from urllib.parse import urlsplit
 logger = logging.getLogger(__name__)
 
 
-def fix_url(url: str) -> str:
+def fix_url(url: str | None) -> str:
     if not url:
         return ""
     tmp_url = urlsplit(url)
