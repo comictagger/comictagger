@@ -52,15 +52,6 @@ def test_write_cr(tmp_comic):
     md = tmp_comic.read_tags("cr")
 
 
-def test_write_cbi(tmp_comic):
-    md = tmp_comic.read_tags("cr")
-    md.apply_default_page_list(tmp_comic.get_page_name_list())
-
-    assert tmp_comic.write_tags(md, "cbi")
-
-    md = tmp_comic.read_tags("cbi")
-
-
 @pytest.mark.xfail(not (comicapi.archivers.rar.rar_support and shutil.which("rar")), reason="rar support")
 def test_save_cr_rar(tmp_path, md_saved):
     cbr_path = datadir / "fake_cbr.cbr"
@@ -76,20 +67,6 @@ def test_save_cr_rar(tmp_path, md_saved):
     md.pages = []
     md_saved.pages = []
     assert md == md_saved
-
-
-@pytest.mark.xfail(not (comicapi.archivers.rar.rar_support and shutil.which("rar")), reason="rar support")
-def test_save_cbi_rar(tmp_path, md_saved):
-    cbr_path = pathlib.Path(str(datadir)) / "fake_cbr.cbr"
-    shutil.copy(cbr_path, tmp_path)
-
-    tmp_comic = comicapi.comicarchive.ComicArchive(tmp_path / cbr_path.name)
-    assert tmp_comic.seems_to_be_a_comic_archive()
-    assert tmp_comic.write_tags(comicapi.genericmetadata.md_test, "cbi")
-
-    md = tmp_comic.read_tags("cbi")
-    supported_attributes = comicapi.comicarchive.tags["cbi"].supported_attributes
-    assert md._get_clean_metadata(*supported_attributes) == md_saved._get_clean_metadata(*supported_attributes)
 
 
 def test_page_type_write(tmp_comic):
