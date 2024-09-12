@@ -228,8 +228,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
             if tag_id not in tags:
                 config[0].internal__read_tags.remove(tag_id)
 
-        self.selected_write_tags: list[str] = config[0].internal__write_tags
-        self.selected_read_tags: list[str] = config[0].internal__read_tags
+        self.selected_write_tags: list[str] = config[0].internal__write_tags or ["cr"]
+        self.selected_read_tags: list[str] = config[0].internal__read_tags or ["cr"]
 
         self.setAcceptDrops(True)
         self.view_tag_actions, self.remove_tag_actions = self.tag_actions()

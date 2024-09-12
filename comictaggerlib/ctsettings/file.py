@@ -27,8 +27,8 @@ def general(parser: settngs.Manager) -> None:
 def internal(parser: settngs.Manager) -> None:
     # automatic settings
     parser.add_setting("install_id", default=uuid.uuid4().hex, cmdline=False)
-    parser.add_setting("write_tags", default=["cbi"], cmdline=False)
-    parser.add_setting("read_tags", default=["cbi"], cmdline=False)
+    parser.add_setting("write_tags", default=["cr"], cmdline=False)
+    parser.add_setting("read_tags", default=["cr"], cmdline=False)
     parser.add_setting("last_opened_folder", default="", cmdline=False)
     parser.add_setting("window_width", default=0, cmdline=False)
     parser.add_setting("window_height", default=0, cmdline=False)
@@ -356,7 +356,7 @@ def migrate_settings(config: settngs.Config[ct_ns]) -> settngs.Config[ct_ns]:
         elif isinstance(write_Tags, str):
             config[0].internal__write_tags = [write_Tags]
         else:
-            config[0].internal__write_tags = ["cbi"]
+            config[0].internal__write_tags = ["cr"]
 
     read_tags = config[0].internal__read_tags
     if not isinstance(read_tags, list):
@@ -365,7 +365,7 @@ def migrate_settings(config: settngs.Config[ct_ns]) -> settngs.Config[ct_ns]:
         elif isinstance(read_tags, str):
             config[0].internal__read_tags = [read_tags]
         else:
-            config[0].internal__read_tags = ["cbi"]
+            config[0].internal__read_tags = ["cr"]
 
     return config
 
