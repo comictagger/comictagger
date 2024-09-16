@@ -118,8 +118,7 @@ class ComicTaggerPaths(AppDirs):
     @property
     def user_cache_dir(self) -> pathlib.Path:
         if self.path:
-            path = self.path / "cache"
-            return path
+            return self.path / "cache"
         return pathlib.Path(super().user_cache_dir)
 
     @property
@@ -131,16 +130,14 @@ class ComicTaggerPaths(AppDirs):
     @property
     def user_log_dir(self) -> pathlib.Path:
         if self.path:
-            path = self.path / "log"
-            return path
+            return self.path / "log"
         return pathlib.Path(super().user_log_dir)
 
     @property
     def user_plugin_dir(self) -> pathlib.Path:
         if self.path:
-            path = self.path / "plugins"
-            return path
-        return pathlib.Path(super().user_config_dir)
+            return self.path / "plugins"
+        return pathlib.Path(super().user_config_dir) / "plugins"
 
     @property
     def site_data_dir(self) -> pathlib.Path:
