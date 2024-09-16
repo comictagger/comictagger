@@ -4,9 +4,7 @@
 
 from __future__ import annotations
 
-import configparser
 import importlib.util
-import itertools
 import logging
 import pathlib
 import platform
@@ -19,7 +17,6 @@ if sys.version_info < (3, 10):
     import importlib_metadata
 else:
     import importlib.metadata as importlib_metadata
-import tomli
 
 logger = logging.getLogger(__name__)
 
@@ -124,103 +121,32 @@ class Plugins(NamedTuple):
         return ", ".join(sorted({f"{plugin.plugin.package}: {plugin.plugin.version}" for plugin in self.all_plugins()}))
 
 
-def _find_ep_plugin(plugin_path: pathlib.Path) -> list[Plugin]:
+def _find_local_plugins(plugin_path: pathlib.Path) -> Generator[Plugin]:
     logger.debug("Checking for distributions in %s", plugin_path)
-    plugins = []
     for dist in importlib_metadata.distributions(path=[str(plugin_path)]):
         logger.debug("found distribution %s", dist.name)
         eps = dist.entry_points
         for group in PLUGIN_GROUPS:
             for ep in eps.select(group=group):
                 logger.debug("found EntryPoint group %s %s=%s", group, ep.name, ep.value)
-                plugins.append(Plugin(plugin_path.name, dist.version, ep, plugin_path))
-    return plugins
-
-
-def _find_cfg_plugin(setup_cfg_path: pathlib.Path) -> Generator[Plugin]:
-    cfg = configparser.ConfigParser(interpolation=None)
-    cfg.read(setup_cfg_path)
-
-    for group in PLUGIN_GROUPS:
-        for plugin_s in cfg.get("options.entry_points", group, fallback="").splitlines():
-            if not plugin_s:
-                continue
-
-            name, _, entry_str = plugin_s.partition("=")
-            name, entry_str = name.strip(), entry_str.strip()
-            ep = importlib_metadata.EntryPoint(name, entry_str, group)
-            yield Plugin(
-                setup_cfg_path.parent.name, cfg.get("metadata", "version", fallback="0.0.1"), ep, setup_cfg_path.parent
-            )
-
-
-def _find_pyproject_plugin(pyproject_path: pathlib.Path) -> Generator[Plugin]:
-    cfg = tomli.loads(pyproject_path.read_text())
-    for group in PLUGIN_GROUPS:
-        eps = cfg.get("project", {}).get("entry-points", {}).get(group, {})
-        for name, entry_str in eps.items():
-            logger.debug("Found pyproject.toml EntryPoint group %s %s=%s", group, name, entry_str)
-            ep = importlib_metadata.EntryPoint(name, entry_str, group)
-            yield Plugin(
-                pyproject_path.parent.name,
-                cfg.get("project", {}).get("version", "0.0.1"),
-                ep,
-                pyproject_path.parent,
-            )
-
-
-def _find_local_plugins(plugin_path: pathlib.Path) -> Generator[Plugin]:
-    gen = _find_ep_plugin(plugin_path)
-    if gen:
-        yield from gen
-        return
-
-    if (plugin_path / "setup.cfg").is_file():
-        logger.debug("reading setup.cfg")
-        yield from _find_cfg_plugin(plugin_path / "setup.cfg")
-        return
-
-    if (plugin_path / "pyproject.toml").is_file():
-        logger.debug("reading pyproject.toml")
-        plugins = list(_find_pyproject_plugin(plugin_path / "pyproject.toml"))
-        logger.debug("pyproject.toml plugins: %s", plugins)
-        yield from plugins
-        return
-
-
-def _check_required_plugins(plugins: list[Plugin], expected: frozenset[str]) -> None:
-    plugin_names = {normalize_pypi_name(plugin.package) for plugin in plugins}
-    expected_names = {normalize_pypi_name(name) for name in expected}
-    missing_plugins = expected_names - plugin_names
-
-    if missing_plugins:
-        raise Exception(
-            "required plugins were not installed!\n"
-            + f"- installed: {', '.join(sorted(plugin_names))}\n"
-            + f"- expected: {', '.join(sorted(expected_names))}\n"
-            + f"- missing: {', '.join(sorted(missing_plugins))}"
-        )
+                yield Plugin(plugin_path.name, dist.version, ep, plugin_path)
 
 
 def find_plugins(plugin_folder: pathlib.Path) -> Plugins:
     """Discovers all plugins (but does not load them)."""
     ret: list[LoadedPlugin] = []
 
-    dirs = {x.parent for x in plugin_folder.glob("*/setup.cfg")}
-    dirs.update({x.parent for x in plugin_folder.glob("*/pyproject.toml")})
-
     zips = [x for x in plugin_folder.glob("*.zip") if x.is_file()]
 
-    for plugin_path in itertools.chain(os_sorted(zips), os_sorted(dirs)):
+    for plugin_path in os_sorted(zips):
         logger.debug("looking for plugins in %s", plugin_path)
         try:
             sys.path.append(str(plugin_path))
             for plugin in _find_local_plugins(plugin_path):
                 logger.debug("Attempting to load %s from %s", plugin.entry_point.name, plugin.path)
                 ret.append(plugin.load())
-                # sys.path.remove(str(plugin_path))
         except Exception as err:
-            FailedToLoadPlugin(plugin_path.name, err)
+            logger.exception(FailedToLoadPlugin(plugin_path.name, err))
         finally:
             sys.path.remove(str(plugin_path))
             for mod in list(sys.modules.values()):
