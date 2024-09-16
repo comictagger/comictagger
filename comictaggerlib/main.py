@@ -44,7 +44,6 @@ if sys.version_info < (3, 10):
     import importlib_metadata
 else:
     import importlib.metadata as importlib_metadata
-
 logger = logging.getLogger("comictagger")
 
 
@@ -124,18 +123,12 @@ class App:
 
     def load_plugins(self, opts: argparse.Namespace) -> None:
         local_plugins = plugin_finder.find_plugins(opts.config.user_plugin_dir)
-        self._extend_plugin_paths(local_plugins)
 
-        comicapi.comicarchive.load_archive_plugins(local_plugins=[p.entry_point for p in local_plugins.archivers])
-        comicapi.comicarchive.load_tag_plugins(
-            version=version, local_plugins=[p.entry_point for p in local_plugins.tags]
-        )
+        comicapi.comicarchive.load_archive_plugins(local_plugins=[p.obj for p in local_plugins.archivers])
+        comicapi.comicarchive.load_tag_plugins(version=version, local_plugins=[p.obj for p in local_plugins.tags])
         self.talkers = comictalker.get_talkers(
-            version, opts.config.user_cache_dir, local_plugins=[p.entry_point for p in local_plugins.talkers]
+            version, opts.config.user_cache_dir, local_plugins=[p.obj for p in local_plugins.talkers]
         )
-
-    def _extend_plugin_paths(self, plugins: plugin_finder.Plugins) -> None:
-        sys.path.extend(str(p.path.absolute()) for p in plugins.all_plugins())
 
     def list_plugins(
         self,
