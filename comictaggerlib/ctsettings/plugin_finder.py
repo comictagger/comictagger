@@ -124,16 +124,17 @@ class Plugins(NamedTuple):
         return ", ".join(sorted({f"{plugin.plugin.package}: {plugin.plugin.version}" for plugin in self.all_plugins()}))
 
 
-def _find_ep_plugin(plugin_path: pathlib.Path) -> None | Generator[Plugin]:
+def _find_ep_plugin(plugin_path: pathlib.Path) -> list[Plugin]:
     logger.debug("Checking for distributions in %s", plugin_path)
+    plugins = []
     for dist in importlib_metadata.distributions(path=[str(plugin_path)]):
         logger.debug("found distribution %s", dist.name)
         eps = dist.entry_points
         for group in PLUGIN_GROUPS:
             for ep in eps.select(group=group):
                 logger.debug("found EntryPoint group %s %s=%s", group, ep.name, ep.value)
-                yield Plugin(plugin_path.name, dist.version, ep, plugin_path)
-    return None
+                plugins.append(Plugin(plugin_path.name, dist.version, ep, plugin_path))
+    return plugins
 
 
 def _find_cfg_plugin(setup_cfg_path: pathlib.Path) -> Generator[Plugin]:
@@ -155,34 +156,35 @@ def _find_cfg_plugin(setup_cfg_path: pathlib.Path) -> Generator[Plugin]:
 
 def _find_pyproject_plugin(pyproject_path: pathlib.Path) -> Generator[Plugin]:
     cfg = tomli.loads(pyproject_path.read_text())
-
     for group in PLUGIN_GROUPS:
-        cfg["project"]["entry-points"]
-        for plugins in cfg.get("project", {}).get("entry-points", {}).get(group, {}):
-            if not plugins:
-                continue
-            for name, entry_str in plugins.items():
-                ep = importlib_metadata.EntryPoint(name, entry_str, group)
-                yield Plugin(
-                    pyproject_path.parent.name,
-                    cfg.get("project", {}).get("version", "0.0.1"),
-                    ep,
-                    pyproject_path.parent,
-                )
+        eps = cfg.get("project", {}).get("entry-points", {}).get(group, {})
+        for name, entry_str in eps.items():
+            logger.debug("Found pyproject.toml EntryPoint group %s %s=%s", group, name, entry_str)
+            ep = importlib_metadata.EntryPoint(name, entry_str, group)
+            yield Plugin(
+                pyproject_path.parent.name,
+                cfg.get("project", {}).get("version", "0.0.1"),
+                ep,
+                pyproject_path.parent,
+            )
 
 
 def _find_local_plugins(plugin_path: pathlib.Path) -> Generator[Plugin]:
     gen = _find_ep_plugin(plugin_path)
-    if gen is not None:
+    if gen:
         yield from gen
         return
 
     if (plugin_path / "setup.cfg").is_file():
+        logger.debug("reading setup.cfg")
         yield from _find_cfg_plugin(plugin_path / "setup.cfg")
         return
 
-    if (plugin_path / "pyproject.cfg").is_file():
-        yield from _find_pyproject_plugin(plugin_path / "setup.cfg")
+    if (plugin_path / "pyproject.toml").is_file():
+        logger.debug("reading pyproject.toml")
+        plugins = list(_find_pyproject_plugin(plugin_path / "pyproject.toml"))
+        logger.debug("pyproject.toml plugins: %s", plugins)
+        yield from plugins
         return
 
 
