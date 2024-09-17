@@ -136,7 +136,7 @@ def find_plugins(plugin_folder: pathlib.Path) -> Plugins:
     """Discovers all plugins (but does not load them)."""
     ret: list[LoadedPlugin] = []
 
-    zips = [x for x in plugin_folder.glob("*.zip") if x.is_file()]
+    zips = [x for x in plugin_folder.iterdir() if x.is_file() and x.suffix in (".zip", ".whl")]
 
     for plugin_path in os_sorted(zips):
         logger.debug("looking for plugins in %s", plugin_path)
