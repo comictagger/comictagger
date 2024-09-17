@@ -73,6 +73,8 @@ class MetadataFormatter(string.Formatter):
         return cast(str, super().format_field(value, format_spec))
 
     def convert_field(self, value: Any, conversion: str | None) -> str:
+        if value is None:
+            return ""
         if isinstance(value, Iterable) and not isinstance(value, (str, tuple)):
             if conversion == "C":
                 if isinstance(value, Sized):
@@ -182,8 +184,11 @@ class MetadataFormatter(string.Formatter):
 
                 # given the field_name, find the object it references
                 #  and the argument it came from
-                obj, arg_used = self.get_field(field_name, args, kwargs)
-                used_args.add(arg_used)
+                try:
+                    obj, arg_used = self.get_field(field_name, args, kwargs)
+                    used_args.add(arg_used)
+                except Exception:
+                    obj = None
 
                 obj = self.none_replacement(obj, replacement, r)
                 # do any conversion on the resulting object
