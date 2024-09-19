@@ -4,18 +4,50 @@
 
 from __future__ import annotations
 
-import configparser
-import importlib.metadata
+import importlib.util
 import logging
 import pathlib
+import platform
 import re
-from collections.abc import Generator
-from typing import Any, NamedTuple
+import sys
+from collections.abc import Generator, Iterable
+from typing import Any, NamedTuple, TypeVar
+
+if sys.version_info < (3, 10):
+    import importlib_metadata
+else:
+    import importlib.metadata as importlib_metadata
 
 logger = logging.getLogger(__name__)
 
 NORMALIZE_PACKAGE_NAME_RE = re.compile(r"[-_.]+")
 PLUGIN_GROUPS = frozenset(("comictagger.talker", "comicapi.archiver", "comicapi.tags"))
+icu_available = importlib.util.find_spec("icu") is not None
+
+
+def _custom_key(tup: Any) -> Any:
+    import natsort
+
+    lst = []
+    for x in natsort.os_sort_keygen()(tup):
+        ret = x
+        if len(x) > 1 and isinstance(x[1], int) and isinstance(x[0], str) and x[0] == "":
+            ret = ("a", *x[1:])
+
+        lst.append(ret)
+    return tuple(lst)
+
+
+T = TypeVar("T")
+
+
+def os_sorted(lst: Iterable[T]) -> Iterable[T]:
+    import natsort
+
+    key = _custom_key
+    if icu_available or platform.system() == "Windows":
+        key = natsort.os_sort_keygen()
+    return sorted(lst, key=key)
 
 
 class FailedToLoadPlugin(Exception):
@@ -47,8 +79,11 @@ class Plugin(NamedTuple):
 
     package: str
     version: str
-    entry_point: importlib.metadata.EntryPoint
+    entry_point: importlib_metadata.EntryPoint
     path: pathlib.Path
+
+    def load(self) -> LoadedPlugin:
+        return LoadedPlugin(self, self.entry_point.load())
 
 
 class LoadedPlugin(NamedTuple):
@@ -71,11 +106,11 @@ class LoadedPlugin(NamedTuple):
 class Plugins(NamedTuple):
     """Classified plugins."""
 
-    archivers: list[Plugin]
-    tags: list[Plugin]
-    talkers: list[Plugin]
+    archivers: list[LoadedPlugin]
+    tags: list[LoadedPlugin]
+    talkers: list[LoadedPlugin]
 
-    def all_plugins(self) -> Generator[Plugin]:
+    def all_plugins(self) -> Generator[LoadedPlugin]:
         """Return an iterator over all :class:`LoadedPlugin`s."""
         yield from self.archivers
         yield from self.tags
@@ -83,65 +118,60 @@ class Plugins(NamedTuple):
 
     def versions_str(self) -> str:
         """Return a user-displayed list of plugin versions."""
-        return ", ".join(sorted({f"{plugin.package}: {plugin.version}" for plugin in self.all_plugins()}))
+        return ", ".join(sorted({f"{plugin.plugin.package}: {plugin.plugin.version}" for plugin in self.all_plugins()}))
 
 
 def _find_local_plugins(plugin_path: pathlib.Path) -> Generator[Plugin]:
-
-    cfg = configparser.ConfigParser(interpolation=None)
-    cfg.read(plugin_path / "setup.cfg")
-
-    for group in PLUGIN_GROUPS:
-        for plugin_s in cfg.get("options.entry_points", group, fallback="").splitlines():
-            if not plugin_s:
-                continue
-
-            name, _, entry_str = plugin_s.partition("=")
-            name, entry_str = name.strip(), entry_str.strip()
-            ep = importlib.metadata.EntryPoint(name, entry_str, group)
-            yield Plugin(plugin_path.name, cfg.get("metadata", "version", fallback="0.0.1"), ep, plugin_path)
-
-
-def _check_required_plugins(plugins: list[Plugin], expected: frozenset[str]) -> None:
-    plugin_names = {normalize_pypi_name(plugin.package) for plugin in plugins}
-    expected_names = {normalize_pypi_name(name) for name in expected}
-    missing_plugins = expected_names - plugin_names
-
-    if missing_plugins:
-        raise Exception(
-            "required plugins were not installed!\n"
-            + f"- installed: {', '.join(sorted(plugin_names))}\n"
-            + f"- expected: {', '.join(sorted(expected_names))}\n"
-            + f"- missing: {', '.join(sorted(missing_plugins))}"
-        )
+    logger.debug("Checking for distributions in %s", plugin_path)
+    for dist in importlib_metadata.distributions(path=[str(plugin_path)]):
+        logger.debug("found distribution %s", dist.name)
+        eps = dist.entry_points
+        for group in PLUGIN_GROUPS:
+            for ep in eps.select(group=group):
+                logger.debug("found EntryPoint group %s %s=%s", group, ep.name, ep.value)
+                yield Plugin(plugin_path.name, dist.version, ep, plugin_path)
 
 
 def find_plugins(plugin_folder: pathlib.Path) -> Plugins:
     """Discovers all plugins (but does not load them)."""
-    ret: list[Plugin] = []
-    for plugin_path in plugin_folder.glob("*/setup.cfg"):
-        try:
-            ret.extend(_find_local_plugins(plugin_path.parent))
-        except Exception as err:
-            FailedToLoadPlugin(plugin_path.parent.name, err)
+    ret: list[LoadedPlugin] = []
 
-    # for determinism, sort the list
-    ret.sort()
+    zips = [x for x in plugin_folder.iterdir() if x.is_file() and x.suffix in (".zip", ".whl")]
+
+    for plugin_path in os_sorted(zips):
+        logger.debug("looking for plugins in %s", plugin_path)
+        try:
+            sys.path.append(str(plugin_path))
+            for plugin in _find_local_plugins(plugin_path):
+                logger.debug("Attempting to load %s from %s", plugin.entry_point.name, plugin.path)
+                ret.append(plugin.load())
+        except Exception as err:
+            logger.exception(FailedToLoadPlugin(plugin_path.name, err))
+        finally:
+            sys.path.remove(str(plugin_path))
+            for mod in list(sys.modules.values()):
+                if (
+                    mod is not None
+                    and hasattr(mod, "__spec__")
+                    and mod.__spec__
+                    and str(plugin_path) in (mod.__spec__.origin or "")
+                ):
+                    sys.modules.pop(mod.__name__)
 
     return _classify_plugins(ret)
 
 
-def _classify_plugins(plugins: list[Plugin]) -> Plugins:
+def _classify_plugins(plugins: list[LoadedPlugin]) -> Plugins:
     archivers = []
     tags = []
     talkers = []
 
     for p in plugins:
-        if p.entry_point.group == "comictagger.talker":
+        if p.plugin.entry_point.group == "comictagger.talker":
             talkers.append(p)
-        elif p.entry_point.group == "comicapi.tags":
+        elif p.plugin.entry_point.group == "comicapi.tags":
             tags.append(p)
-        elif p.entry_point.group == "comicapi.archiver":
+        elif p.plugin.entry_point.group == "comicapi.archiver":
             archivers.append(p)
         else:
             logger.warning(NotImplementedError(f"what plugin type? {p}"))

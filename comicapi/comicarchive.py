@@ -24,7 +24,6 @@ import pathlib
 import shutil
 import sys
 from collections.abc import Iterable
-from typing import TYPE_CHECKING
 
 from comicapi import utils
 from comicapi.archivers import Archiver, UnknownArchiver, ZipArchiver
@@ -32,16 +31,13 @@ from comicapi.genericmetadata import GenericMetadata
 from comicapi.tags import Tag
 from comictaggerlib.ctversion import version
 
-if TYPE_CHECKING:
-    from importlib.metadata import EntryPoint
-
 logger = logging.getLogger(__name__)
 
 archivers: list[type[Archiver]] = []
 tags: dict[str, Tag] = {}
 
 
-def load_archive_plugins(local_plugins: Iterable[EntryPoint] = tuple()) -> None:
+def load_archive_plugins(local_plugins: Iterable[type[Archiver]] = tuple()) -> None:
     if archivers:
         return
     if sys.version_info < (3, 10):
@@ -52,7 +48,7 @@ def load_archive_plugins(local_plugins: Iterable[EntryPoint] = tuple()) -> None:
     archive_plugins: list[type[Archiver]] = []
     # A list is used first matching plugin wins
 
-    for ep in itertools.chain(local_plugins, entry_points(group="comicapi.archiver")):
+    for ep in itertools.chain(entry_points(group="comicapi.archiver")):
         try:
             spec = importlib.util.find_spec(ep.module)
         except ValueError:
@@ -70,11 +66,12 @@ def load_archive_plugins(local_plugins: Iterable[EntryPoint] = tuple()) -> None:
             else:
                 logger.exception("Failed to load archive plugin: %s", ep.name)
     archivers.clear()
+    archivers.extend(local_plugins)
     archivers.extend(archive_plugins)
     archivers.extend(builtin)
 
 
-def load_tag_plugins(version: str = f"ComicAPI/{version}", local_plugins: Iterable[EntryPoint] = tuple()) -> None:
+def load_tag_plugins(version: str = f"ComicAPI/{version}", local_plugins: Iterable[type[Tag]] = tuple()) -> None:
     if tags:
         return
     if sys.version_info < (3, 10):
@@ -84,7 +81,7 @@ def load_tag_plugins(version: str = f"ComicAPI/{version}", local_plugins: Iterab
     builtin: dict[str, Tag] = {}
     tag_plugins: dict[str, tuple[Tag, str]] = {}
     # A dict is used, last plugin wins
-    for ep in itertools.chain(entry_points(group="comicapi.tags"), local_plugins):
+    for ep in entry_points(group="comicapi.tags"):
         location = "Unknown"
         try:
             _spec = importlib.util.find_spec(ep.module)
@@ -109,6 +106,9 @@ def load_tag_plugins(version: str = f"ComicAPI/{version}", local_plugins: Iterab
                 tag_plugins[tag.id] = (tag(version), location)
         except Exception:
             logger.exception("Failed to load tag plugin: %s from %s", ep.name, location)
+    # A dict is used, last plugin wins
+    for tag in local_plugins:
+        tag_plugins[tag.id] = (tag(version), "Local")
 
     for tag_id in set(builtin.keys()).intersection(tag_plugins):
         location = tag_plugins[tag_id][1]
