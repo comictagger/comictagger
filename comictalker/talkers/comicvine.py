@@ -393,11 +393,12 @@ class ComicVineTalker(ComicTalker):
                         ),
                     )
                     issue_found = True
-            else:
+                    break
+            if not issues:
                 needed_volumes.add(int(series_id))  # we got no results from cache, we definitely need to check online
 
             # If we didn't find the issue and we don't have all the issues we don't know if the issue exists, we have to check
-            if not issue_found and cvseries.get("count_of_issues") == len(issues):
+            if (not issue_found) and cvseries.get("count_of_issues") != len(issues):
                 needed_volumes.add(int(series_id))
 
         logger.debug("Found %d issues cached need %d issues", len(cached_results), len(needed_volumes))
@@ -405,9 +406,9 @@ class ComicVineTalker(ComicTalker):
             return cached_results
 
         series_filter = ""
-        for vid in series_id_list:
+        for vid in needed_volumes:
             series_filter += str(vid) + "|"
-        flt = f"volume:{series_filter},issue_number:{issue_number}"  # CV uses volume to mean series
+        flt = f"volume:{series_filter[:-1]},issue_number:{issue_number}"  # CV uses volume to mean series
 
         int_year = utils.xlate_int(year)
         if int_year is not None:

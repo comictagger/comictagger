@@ -118,7 +118,7 @@ cv_volume_result: dict[str, Any] = {
     "results": {
         "aliases": None,
         "api_detail_url": "https://comicvine.gamespot.com/api/volume/4050-23437/",
-        "count_of_issues": 6,
+        "count_of_issues": 1,
         "date_added": "2008-10-16 05:25:47",
         "date_last_updated": "2012-01-18 17:21:57",
         "deck": None,
