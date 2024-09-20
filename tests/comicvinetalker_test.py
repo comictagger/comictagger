@@ -46,13 +46,24 @@ def test_fetch_issue_data_by_issue_id(comicvine_api):
     assert result == testing.comicvine.cv_md
 
 
-def test_fetch_issues_in_series_issue_num_and_year(comicvine_api):
+def test_fetch_issues_in_series_issue_num_and_year(comicvine_api, cv_requests_get):
     results = comicvine_api.fetch_issues_by_series_issue_num_and_year([23437], "1", None)
     cv_expected = testing.comicvine.comic_issue_result.copy()
 
-    for r, e in zip(results, [cv_expected]):
-        assert r.series == e.series
-        assert r == e
+    assert results[0].series == cv_expected.series
+    assert results[0] == cv_expected
+    assert cv_requests_get.call_count == 2
+
+    results = comicvine_api.fetch_issues_by_series_issue_num_and_year([23437], "1", None)
+
+    assert results[0].series == cv_expected.series
+    assert results[0] == cv_expected
+    assert cv_requests_get.call_count == 2  # verify caching works
+
+    results = comicvine_api.fetch_issues_by_series_issue_num_and_year([23437], "2", None)
+
+    assert not results
+    assert cv_requests_get.call_count == 2  # verify negative caching works
 
 
 cv_issue = [
