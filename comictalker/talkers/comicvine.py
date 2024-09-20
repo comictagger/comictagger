@@ -172,7 +172,7 @@ class ComicVineTalker(ComicTalker):
     about: str = (
         f"<a href='{website}'>{name}</a> has the largest collection of comic book data available through "
         f"its public facing API. "
-        f"<p>NOTE: Using the default API key will serverly limit access times. A personal API "
+        f"<p>NOTE: Using the default API key will severely limit access times. A personal API "
         f"key will allow for a <b>10 times increase</b> in online search speed. See the "
         "<a href='https://github.com/comictagger/comictagger/wiki/UserGuide#comic-vine'>Wiki page</a> for "
         "more information.</p>"
