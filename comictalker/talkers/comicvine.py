@@ -22,7 +22,7 @@ import json
 import logging
 import pathlib
 import time
-from typing import Any, Callable, Generic, TypeVar
+from typing import Any, Callable, Generic, TypeVar, cast
 from urllib.parse import urljoin
 
 import settngs
@@ -92,7 +92,7 @@ class CVPersonCredit(TypedDict):
     role: str
 
 
-class CVSeries(TypedDict):
+class CVSeries(TypedDict, total=False):
     api_detail_url: str
     site_detail_url: str
     aliases: str
@@ -369,6 +369,41 @@ class ComicVineTalker(ComicTalker):
     def fetch_issues_by_series_issue_num_and_year(
         self, series_id_list: list[str], issue_number: str, year: str | int | None
     ) -> list[GenericMetadata]:
+        logger.debug("Fetching comics by series ids: %s and number: %s", series_id_list, issue_number)
+        # before we search online, look in our cache, since we might already have this info
+        cvc = ComicCacher(self.cache_folder, self.version)
+        cached_results: list[GenericMetadata] = []
+        needed_volumes: set[int] = set()
+        for series_id in series_id_list:
+            series = cvc.get_series_info(series_id, self.id, expire_stale=False)
+            issues = []
+            # Explicitly mark count_of_issues at an impossible value
+            cvseries = CVSeries(id=int(series_id), count_of_issues=-1)
+            if series:
+                cvseries = cast(CVSeries, json.loads(series[0].data))
+                issues = cvc.get_series_issues_info(series_id, self.id, expire_stale=True)
+            issue_found = False
+            for issue, _ in issues:
+                cvissue = cast(CVIssue, json.loads(issue.data))
+                if cvissue.get("issue_number") == issue_number:
+                    cached_results.append(
+                        self._map_comic_issue_to_metadata(
+                            cvissue,
+                            self._fetch_series([int(cvissue["volume"]["id"])])[0][0],
+                        ),
+                    )
+                    issue_found = True
+            else:
+                needed_volumes.add(int(series_id))  # we got no results from cache, we definitely need to check online
+
+            # If we didn't find the issue and we don't have all the issues we don't know if the issue exists, we have to check
+            if not issue_found and cvseries.get("count_of_issues") == len(issues):
+                needed_volumes.add(int(series_id))
+
+        logger.debug("Found %d issues cached need %d issues", len(cached_results), len(needed_volumes))
+        if not needed_volumes:
+            return cached_results
+
         series_filter = ""
         for vid in series_id_list:
             series_filter += str(vid) + "|"
@@ -405,10 +440,20 @@ class ComicVineTalker(ComicTalker):
             filtered_issues_result.extend(cv_response["results"])
             current_result_count += cv_response["number_of_page_results"]
 
+        cvc.add_issues_info(
+            self.id,
+            [
+                Issue(str(x["id"]), str(x["volume"]["id"]), json.dumps(x).encode("utf-8"))
+                for x in filtered_issues_result
+            ],
+            False,
+        )
+
         formatted_filtered_issues_result = [
             self._map_comic_issue_to_metadata(x, self._fetch_series_data(x["volume"]["id"])[0])
             for x in filtered_issues_result
         ]
+        formatted_filtered_issues_result.extend(cached_results)
 
         return formatted_filtered_issues_result
 
