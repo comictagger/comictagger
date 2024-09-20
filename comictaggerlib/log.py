@@ -28,6 +28,7 @@ def setup_logging(verbose: int, log_dir: pathlib.Path) -> None:
     logging.getLogger("comicapi").setLevel(logging.DEBUG)
     logging.getLogger("comictaggerlib").setLevel(logging.DEBUG)
     logging.getLogger("comictalker").setLevel(logging.DEBUG)
+    logging.getLogger("pyrate_limiter").setLevel(logging.DEBUG)
 
     log_file = log_dir / "ComicTagger.log"
     log_dir.mkdir(parents=True, exist_ok=True)
