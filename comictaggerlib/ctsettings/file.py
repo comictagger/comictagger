@@ -79,7 +79,7 @@ def identifier(parser: settngs.Manager) -> None:
 def dialog(parser: settngs.Manager) -> None:
     parser.add_setting("show_disclaimer", default=True, cmdline=False)
     parser.add_setting("dont_notify_about_this_version", default="", cmdline=False)
-    parser.add_setting("ask_about_usage_stats", default=True, cmdline=False)
+    parser.add_setting("notify_plugin_changes", default=True, cmdline=False)
 
 
 def filename(parser: settngs.Manager) -> None:

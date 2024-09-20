@@ -123,7 +123,7 @@ class SettngsNS(settngs.TypedNS):
 
     Dialog_Flags__show_disclaimer: bool
     Dialog_Flags__dont_notify_about_this_version: str
-    Dialog_Flags__ask_about_usage_stats: bool
+    Dialog_Flags__notify_plugin_changes: bool
 
     Archive__rar: str
 
@@ -264,7 +264,7 @@ class General(typing.TypedDict):
 class Dialog_Flags(typing.TypedDict):
     show_disclaimer: bool
     dont_notify_about_this_version: str
-    ask_about_usage_stats: bool
+    notify_plugin_changes: bool
 
 
 class Archive(typing.TypedDict):
