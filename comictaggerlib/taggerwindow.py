@@ -339,9 +339,10 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 "Plugins Have moved!",
                 f"""
                 Due to techinical issues the Metron and GCD plugins are no longer bundled in ComicTagger!<br/><br/>
-                You will need to download the .zip or .whl from the GitHub release and and download it to {str(self.config[0].Runtime_Options__config.user_plugin_dir)!r}<br/>
+                You will need to download the .zip or .whl from the GitHub release page to:<br/><pre>{str(self.config[0].Runtime_Options__config.user_plugin_dir)}</pre><br/>
                 GCD: <a href="https://github.com/comictagger/gcd_talker/releases">https://github.com/comictagger/gcd_talker/releases</a><br/>
-                Metron: <a href="https://github.com/comictagger/metron_talker/releases">https://github.com/comictagger/metron_talker/releases</a>
+                Metron: <a href="https://github.com/comictagger/metron_talker/releases">https://github.com/comictagger/metron_talker/releases</a><br/><br/>
+                For more information on installing plugins see the wiki page:<br/><a href="https://github.com/comictagger/comictagger/wiki/Installing-plugins">https://github.com/comictagger/comictagger/wiki/Installing-plugins</a>
                 """,
             )
             self.config[0].Dialog_Flags__notify_plugin_changes = not checked
