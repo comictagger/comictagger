@@ -220,11 +220,11 @@ class TaggerWindow(QtWidgets.QMainWindow):
         if config[0].Runtime_Options__tags_read:
             config[0].internal__read_tags = config[0].Runtime_Options__tags_read
 
-        for tag_id in config[0].internal__write_tags:
+        for tag_id in config[0].internal__write_tags.copy():
             if tag_id not in tags:
                 config[0].internal__write_tags.remove(tag_id)
 
-        for tag_id in config[0].internal__read_tags:
+        for tag_id in config[0].internal__read_tags.copy():
             if tag_id not in tags:
                 config[0].internal__read_tags.remove(tag_id)
 
