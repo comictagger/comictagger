@@ -211,13 +211,13 @@ class SettingsWindow(QtWidgets.QDialog):
             f"Config Dir: <a href='file://{urllib.parse.quote(str(dirs.user_config_dir))}'>{dirs.user_config_dir}</a>"
         )
         self.lbl_cache_dir.setText(
-            f"Config Dir: <a href='file://{urllib.parse.quote(str(dirs.user_cache_dir))}'>{dirs.user_cache_dir}</a>"
+            f"Cache Dir: <a href='file://{urllib.parse.quote(str(dirs.user_cache_dir))}'>{dirs.user_cache_dir}</a>"
         )
         self.lbl_log_dir.setText(
-            f"Config Dir: <a href='file://{urllib.parse.quote(str(dirs.user_log_dir))}'>{dirs.user_log_dir}</a>"
+            f"Log Dir: <a href='file://{urllib.parse.quote(str(dirs.user_log_dir))}'>{dirs.user_log_dir}</a>"
         )
         self.lbl_plugin_dir.setText(
-            f"Config Dir: <a href='file://{urllib.parse.quote(str(dirs.user_plugin_dir))}'>{dirs.user_plugin_dir}</a>"
+            f"Plugin Dir: <a href='file://{urllib.parse.quote(str(dirs.user_plugin_dir))}'>{dirs.user_plugin_dir}</a>"
         )
 
         # Set General as start tab
