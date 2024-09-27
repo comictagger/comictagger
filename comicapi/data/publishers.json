@@ -126,5 +126,18 @@
         "radio comics": "Mighty Comics Group",
         "red circle Comics": "Dark Circle Comics",
         "red circle": "Dark Circle Comics"
+    },
+
+    "Image Comics": {
+        "Image": "",
+        "avalon studios": "Avalon Studios",
+        "desperado publishing": "Desperado Publishing",
+        "extreme studios": "Extreme Studios",
+        "gorilla comics": "Gorilla Comics",
+        "highbrow entertainment": "Highbrow Entertainment",
+        "shadowline": "Shadowline",
+        "skybound entertainment": "Skybound Entertainment",
+        "todd mcfarlane productions": "Todd McFarlane Productions",
+        "top cow productions": "Top Cow Productions"
     }
 }
