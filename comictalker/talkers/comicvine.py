@@ -628,12 +628,12 @@ class ComicVineTalker(ComicTalker):
                 )
                 if resp.status_code == 200:
                     return resp.json()
-                if resp.status_code == 500:
+                elif resp.status_code == 500:
                     logger.debug(f"Try #{tries}: ")
                     time.sleep(1)
                     logger.debug(str(resp.status_code))
 
-                if resp.status_code in (requests.status_codes.codes.TOO_MANY_REQUESTS, TWITTER_TOO_MANY_REQUESTS):
+                elif resp.status_code in (requests.status_codes.codes.TOO_MANY_REQUESTS, TWITTER_TOO_MANY_REQUESTS):
                     logger.info(f"{self.name} rate limit encountered. Waiting for 10 seconds\n")
                     self._log_total_requests()
                     time.sleep(10)
@@ -660,8 +660,8 @@ class ComicVineTalker(ComicTalker):
                 raise TalkerDataError(self.name, 2, "ComicVine did not provide json")
             except Exception as e:
                 raise TalkerNetworkError(self.name, 5, str(e))
-        else:
-            raise TalkerNetworkError(self.name, 5, "Unknown error occurred")
+
+        raise TalkerNetworkError(self.name, 5, "Unknown error occurred")
 
     def _format_search_results(self, search_results: list[CVSeries]) -> list[ComicSeries]:
         formatted_results = []
