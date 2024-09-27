@@ -24,7 +24,7 @@ import pathlib
 import time
 from collections import defaultdict
 from typing import Any, Callable, Generic, TypeVar, cast
-from urllib.parse import urljoin
+from urllib.parse import parse_qsl, urljoin
 
 import settngs
 from pyrate_limiter import Limiter, RequestRate
@@ -187,6 +187,7 @@ class ComicVineTalker(ComicTalker):
         self.default_api_key = self.api_key = "27431e6787042105bd3e47e169a624521f89f3a4"
         self.use_series_start_as_volume: bool = False
         self.total_requests_made: dict[str, int] = defaultdict(int)
+        self.custom_url_parameters: dict[str, str] = {}
 
     def _log_total_requests(self) -> None:
         logger.debug("Total requests made to cv: %s", dict(self.total_requests_made))
@@ -212,11 +213,18 @@ class ComicVineTalker(ComicTalker):
             display_name="API URL",
             help=f"Use the given Comic Vine URL. (default: {self.default_api_url})",
         )
+        parser.add_setting(
+            f"--{self.id}-custom-parameters",
+            display_name="Custom URL Parameters",
+            help="Custom url parameters to add to the url, must already be url encoded. (eg. refresh_cache=true)",
+        )
 
     def parse_settings(self, settings: dict[str, Any]) -> dict[str, Any]:
         settings = super().parse_settings(settings)
 
         self.use_series_start_as_volume = settings["cv_use_series_start_as_volume"]
+
+        self.custom_url_parameters = dict(parse_qsl(settings[f"{self.id}_custom_parameters"]))
 
         # Set a different limit if using the default API key
         if self.api_key == self.default_api_key:
@@ -619,12 +627,14 @@ class ComicVineTalker(ComicTalker):
     def _get_url_content(self, url: str, params: dict[str, Any]) -> Any:
         # if there is a 500 error, try a few more times before giving up
         limit_counter = 0
+        final_params = self.custom_url_parameters.copy()
+        final_params.update(params)
 
         for tries in range(1, 5):
             try:
                 self.total_requests_made[url.removeprefix(self.api_url)] += 1
                 resp = requests.get(
-                    url, params=params, headers={"user-agent": "comictagger/" + self.version}, timeout=10
+                    url, params=final_params, headers={"user-agent": "comictagger/" + self.version}, timeout=10
                 )
                 if resp.status_code == 200:
                     return resp.json()
