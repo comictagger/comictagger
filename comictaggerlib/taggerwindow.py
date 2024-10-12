@@ -25,6 +25,7 @@ import platform
 import re
 import sys
 import webbrowser
+from collections.abc import Sequence
 from typing import Any, Callable, cast
 
 import natsort
@@ -221,15 +222,15 @@ class TaggerWindow(QtWidgets.QMainWindow):
             config[0].internal__read_tags = config[0].Runtime_Options__tags_read
 
         for tag_id in config[0].internal__write_tags.copy():
-            if tag_id not in tags:
+            if tag_id not in self.enabled_tags():
                 config[0].internal__write_tags.remove(tag_id)
 
         for tag_id in config[0].internal__read_tags.copy():
-            if tag_id not in tags:
+            if tag_id not in self.enabled_tags():
                 config[0].internal__read_tags.remove(tag_id)
 
-        self.selected_write_tags: list[str] = config[0].internal__write_tags or ["cr"]
-        self.selected_read_tags: list[str] = config[0].internal__read_tags or ["cr"]
+        self.selected_write_tags: list[str] = config[0].internal__write_tags or [self.enabled_tags()[0]]
+        self.selected_read_tags: list[str] = config[0].internal__read_tags or [self.enabled_tags()[0]]
 
         self.setAcceptDrops(True)
         self.view_tag_actions, self.remove_tag_actions = self.tag_actions()
@@ -349,6 +350,9 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
         if self.config[0].General__check_for_new_version:
             self.check_latest_version_online()
+
+    def enabled_tags(self) -> Sequence[str]:
+        return [tag.id for tag in tags.values() if tag.enabled]
 
     def tag_actions(self) -> tuple[dict[str, QtWidgets.QAction], dict[str, QtWidgets.QAction]]:
         view_raw_tags: dict[str, QtWidgets.QAction] = {}
@@ -1331,7 +1335,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
     def adjust_tags_combo(self) -> None:
         """Select the enabled tags. Since tags are merged in an overlay fashion the last item in the list takes priority. We reverse the order for display to the user"""
-        unchecked = set(tags.keys()) - set(self.selected_read_tags)
+        unchecked = set(self.enabled_tags()) - set(self.selected_read_tags)
         for i, tag_id in enumerate(reversed(self.selected_read_tags)):
             if not tags[tag_id].enabled:
                 continue
@@ -1341,19 +1345,15 @@ class TaggerWindow(QtWidgets.QMainWindow):
             if item_idx != i:
                 self.cbSelectedReadTags.moveItem(item_idx, row=i)
         for tag_id in unchecked:
-            if not tags[tag_id].enabled:
-                continue
             self.cbSelectedReadTags.setItemChecked(self.cbSelectedReadTags.findData(tag_id), False)
 
         # select the current tag_id
-        unchecked = set(tags.keys()) - set(self.selected_write_tags)
+        unchecked = set(self.enabled_tags()) - set(self.selected_write_tags)
         for tag_id in self.selected_write_tags:
             if not tags[tag_id].enabled:
                 continue
             self.cbSelectedWriteTags.setItemChecked(self.cbSelectedWriteTags.findData(tag_id), True)
         for tag_id in unchecked:
-            if not tags[tag_id].enabled:
-                continue
             self.cbSelectedWriteTags.setItemChecked(self.cbSelectedWriteTags.findData(tag_id), False)
         self.update_tag_tweaks()
 
@@ -1536,7 +1536,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                                 # Abandon any further tag removals to prevent any greater damage to archive
                                 break
                     ca.reset_cache()
-                    ca.load_cache(set(tags))
+                    ca.load_cache(self.enabled_tags())
 
                 progdialog.hide()
                 QtCore.QCoreApplication.processEvents()
