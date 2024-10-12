@@ -1,7 +1,7 @@
 exclude: ^(scripts|comictaggerlib/graphics/resources.py)
 repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v5.0.0
     hooks:
     -   id: trailing-whitespace
     -   id: end-of-file-fixer
@@ -10,11 +10,11 @@ repos:
     -   id: name-tests-test
     -   id: requirements-txt-fixer
 -   repo: https://github.com/asottile/setup-cfg-fmt
-    rev: v2.5.0
+    rev: v2.7.0
     hooks:
     -   id: setup-cfg-fmt
 -   repo: https://github.com/asottile/pyupgrade
-    rev: v3.17.0
+    rev: v3.18.0
     hooks:
     -   id: pyupgrade
         args: [--py39-plus]
@@ -33,12 +33,12 @@ repos:
     hooks:
     -   id: black
 -   repo: https://github.com/PyCQA/flake8
-    rev: 7.1.0
+    rev: 7.1.1
     hooks:
     -   id: flake8
         additional_dependencies: [flake8-encodings, flake8-builtins, flake8-print, flake8-no-nested-comprehensions]
 -   repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.11.0
+    rev: v1.11.2
     hooks:
     -   id: mypy
         additional_dependencies: [types-setuptools, types-requests, settngs>=0.10.4]
