@@ -266,7 +266,7 @@ class ComicRack(Tag):
         else:
             pages_node = ET.SubElement(root, "Pages")
 
-        for page in md.pages:
+        for page in sorted(md.pages, key=lambda x: x.archive_index):
             page_node = ET.SubElement(pages_node, "Page")
             page_node.attrib = {"Image": str(page.display_index)}
             if page.bookmark:
