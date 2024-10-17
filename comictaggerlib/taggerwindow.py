@@ -1158,9 +1158,9 @@ class TaggerWindow(QtWidgets.QMainWindow):
             if self.comic_archive is not None:
                 self.load_archive(self.comic_archive)
         else:
-            self.cbSelectedReadTags.itemChanged.disconnect()
+            self.cbSelectedReadTags.dropdownClosed.disconnect()
             self.adjust_tags_combo()
-            self.cbSelectedReadTags.itemChanged.connect(self.select_read_tags)
+            self.cbSelectedReadTags.dropdownClosed.connect(self.select_read_tags)
 
     def select_write_tags(self) -> None:
         self.selected_write_tags = self.cbSelectedWriteTags.currentData()
