@@ -411,3 +411,5 @@ class PageListEditor(QtWidgets.QWidget):
 
         for md_field, widget in self.md_attributes.items():
             enable_widget(widget, md_field in enabled_widgets)
+
+        self.listWidget.setDragEnabled(not ("pages.image_index" not in enabled_widgets and "pages" in enabled_widgets))
