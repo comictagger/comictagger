@@ -964,6 +964,16 @@ class TaggerWindow(QtWidgets.QMainWindow):
             md.add_credit(name, role, bool(primary_flag))
 
         md.pages = self.page_list_editor.get_page_list()
+
+        # Preserve hidden md values
+        md.data_origin = self.metadata.data_origin
+        md.issue_id = self.metadata.issue_id
+        md.series_id = self.metadata.series_id
+
+        md.price = self.metadata.price
+        md.identifier = self.metadata.identifier
+        md.rights = self.metadata.rights
+
         self.metadata = md
 
     def use_filename(self) -> None:
