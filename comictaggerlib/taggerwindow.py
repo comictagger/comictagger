@@ -491,14 +491,14 @@ class TaggerWindow(QtWidgets.QMainWindow):
     def repackage_archive(self) -> None:
         ca_list = self.fileSelectionList.get_selected_archive_list()
         non_zip_count = 0
-        zip_list = []
+        to_zip = []
+        largest_page_size = 0
         for ca in ca_list:
+            largest_page_size = max(largest_page_size, len(ca.get_page_name_list()))
             if not ca.is_zip():
-                non_zip_count += 1
-            else:
-                zip_list.append(ca)
+                to_zip.append(ca)
 
-        if non_zip_count == 0:
+        if not to_zip:
             QtWidgets.QMessageBox.information(
                 self, self.tr("Export as Zip Archive"), self.tr("Only ZIP archives are selected!")
             )
@@ -511,11 +511,11 @@ class TaggerWindow(QtWidgets.QMainWindow):
         ):
             return
 
-        if non_zip_count != 0:
+        if to_zip:
             EW = ExportWindow(
                 self,
                 (
-                    f"You have selected {non_zip_count} archive(s) to export  to Zip format. "
+                    f"You have selected {len(to_zip)} archive(s) to export  to Zip format. "
                     """ New archives will be created in the same folder as the original.
 
    Please choose config below, and select OK.
@@ -527,11 +527,13 @@ class TaggerWindow(QtWidgets.QMainWindow):
             if not EW.exec():
                 return
 
-            prog_dialog = QtWidgets.QProgressDialog("", "Cancel", 0, non_zip_count, self)
-            prog_dialog.setWindowTitle("Exporting as ZIP")
-            prog_dialog.setWindowModality(QtCore.Qt.WindowModality.WindowModal)
-            prog_dialog.setMinimumDuration(300)
-            center_window_on_parent(prog_dialog)
+            prog_dialog = None
+            if len(to_zip) > 3 or largest_page_size > 24:
+                prog_dialog = QtWidgets.QProgressDialog("", "Cancel", 0, non_zip_count, self)
+                prog_dialog.setWindowTitle("Exporting as ZIP")
+                prog_dialog.setWindowModality(QtCore.Qt.WindowModality.WindowModal)
+                prog_dialog.setMinimumDuration(300)
+                center_window_on_parent(prog_dialog)
             QtCore.QCoreApplication.processEvents()
 
             new_archives_to_add = []
@@ -539,13 +541,16 @@ class TaggerWindow(QtWidgets.QMainWindow):
             skipped_list = []
             failed_list = []
             success_count = 0
+            logger.debug("Exporting %d comics to zip", len(to_zip))
 
-            for prog_idx, ca in enumerate(zip_list, 1):
+            for prog_idx, ca in enumerate(to_zip, 1):
+                logger.debug("Exporting comic %d: %s", prog_idx, ca.path)
                 QtCore.QCoreApplication.processEvents()
-                if prog_dialog.wasCanceled():
-                    break
-                prog_dialog.setValue(prog_idx)
-                prog_dialog.setLabelText(str(ca.path))
+                if prog_dialog is not None:
+                    if prog_dialog.wasCanceled():
+                        break
+                    prog_dialog.setValue(prog_idx)
+                    prog_dialog.setLabelText(str(ca.path))
                 QtCore.QCoreApplication.processEvents()
 
                 export_name = ca.path.with_suffix(".cbz")
@@ -559,6 +564,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                         export_name = utils.unique_file(export_name)
 
                 if export:
+                    logger.debug("Exporting %s to %s", ca.path, export_name)
                     if ca.export_as_zip(export_name):
                         success_count += 1
                         if EW.addToList:
@@ -573,9 +579,9 @@ class TaggerWindow(QtWidgets.QMainWindow):
                         if export_name.exists():
                             export_name.unlink(missing_ok=True)
 
-            prog_dialog.hide()
+            if prog_dialog is not None:
+                prog_dialog.hide()
             QtCore.QCoreApplication.processEvents()
-            self.fileSelectionList.add_path_list(new_archives_to_add)
             self.fileSelectionList.remove_archive_list(archives_to_remove)
 
             summary = f"Successfully created {success_count} Zip archive(s)."
@@ -597,6 +603,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             dlg.set_text(summary)
             dlg.setWindowTitle("Archive Export to Zip Summary")
             dlg.exec()
+            self.fileSelectionList.add_path_list(new_archives_to_add)
 
     def about_app(self) -> None:
         website = "https://github.com/comictagger/comictagger"

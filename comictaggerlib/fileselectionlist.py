@@ -173,15 +173,20 @@ class FileSelectionList(QtWidgets.QWidget):
             self.listCleared.emit()
 
     def add_path_list(self, pathlist: list[str]) -> None:
+        if not pathlist:
+            return
         filelist = utils.get_recursive_filelist(pathlist)
         # we now have a list of files to add
 
-        # Prog dialog on Linux flakes out for small range, so scale up
-        progdialog = QtWidgets.QProgressDialog("", "Cancel", 0, len(filelist), parent=self)
-        progdialog.setWindowTitle("Adding Files")
-        progdialog.setWindowModality(QtCore.Qt.WindowModality.WindowModal)
-        progdialog.setMinimumDuration(300)
-        center_window_on_parent(progdialog)
+        progdialog = None
+        if len(filelist) < 3:
+            # Prog dialog on Linux flakes out for small range, so scale up
+            progdialog = QtWidgets.QProgressDialog("", "Cancel", 0, len(filelist), parent=self)
+            progdialog.setWindowTitle("Adding Files")
+            progdialog.setWindowModality(QtCore.Qt.WindowModality.WindowModal)
+            progdialog.setMinimumDuration(300)
+            progdialog.show()
+            center_window_on_parent(progdialog)
 
         QtCore.QCoreApplication.processEvents()
         first_added = None
@@ -189,10 +194,11 @@ class FileSelectionList(QtWidgets.QWidget):
         self.twList.setSortingEnabled(False)
         for idx, f in enumerate(filelist):
             QtCore.QCoreApplication.processEvents()
-            if progdialog.wasCanceled():
-                break
-            progdialog.setValue(idx + 1)
-            progdialog.setLabelText(f)
+            if progdialog is not None:
+                if progdialog.wasCanceled():
+                    break
+                progdialog.setValue(idx + 1)
+                progdialog.setLabelText(f)
             QtCore.QCoreApplication.processEvents()
             row = self.add_path_item(f)
             if row is not None:
@@ -201,7 +207,8 @@ class FileSelectionList(QtWidgets.QWidget):
                 if first_added is None and row != -1:
                     first_added = row
 
-        progdialog.hide()
+        if progdialog is not None:
+            progdialog.hide()
         QtCore.QCoreApplication.processEvents()
 
         if first_added is not None:
