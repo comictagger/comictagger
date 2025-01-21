@@ -3,6 +3,7 @@
 [![PyPI](https://img.shields.io/pypi/v/comictagger)](https://pypi.org/project/comictagger/)
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/comictagger)](https://pypistats.org/packages/comictagger)
 [![Chocolatey package](https://img.shields.io/chocolatey/dt/comictagger?color=blue&label=chocolatey)](https://community.chocolatey.org/packages/comictagger)
+[![WinGet](https://img.shields.io/winget/v/ComicTagger.ComicTagger)](https://github.com/microsoft/winget-pkgs/tree/master/manifests/c/ComicTagger/ComicTagger)
 [![PyPI - License](https://img.shields.io/pypi/l/comictagger)](https://opensource.org/licenses/Apache-2.0)
 
 [![GitHub Discussions](https://img.shields.io/github/discussions/comictagger/comictagger)](https://github.com/comictagger/comictagger/discussions)
