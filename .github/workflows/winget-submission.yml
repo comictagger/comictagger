@@ -1,0 +1,27 @@
+name: Submit ComicTagger.ComicTagger package to Windows Package Manager Community Repository
+
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+jobs:
+  winget:
+    name: Publish winget package
+    runs-on: windows-latest
+    steps:
+      - name: Submit package to Windows Package Manager Community Repository
+        env:
+          GH_TOKEN: ${{ secrets.WINGET_TOKEN }}
+          PACKAGE_ID: "ComicTagger.ComicTagger"
+        run: |
+          # Fetching latest release from GitHub
+          $github = Invoke-RestMethod -uri "https://api.github.com/repos/comictagger/comictagger/releases"
+          $targetRelease = $github | Select-Object -First 1
+
+          $installerUrl = $targetRelease | Select-Object -ExpandProperty assets -First 1 | Where-Object -Property name -match 'ComicTagger-.*.zip' | Select-Object -ExpandProperty browser_download_url
+          $packageVersion = $targetRelease.tag_name
+
+          # Update package using wingetcreate
+          Invoke-WebRequest https://aka.ms/wingetcreate/latest -OutFile wingetcreate.exe
+          .\wingetcreate.exe update $env:PACKAGE_ID --version $packageVersion --urls "$installerUrl" --submit --token $env:GH_TOKEN
