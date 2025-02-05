@@ -63,6 +63,12 @@ A [Chocolatey package](https://community.chocolatey.org/packages/comictagger), m
 ```powershell
 choco install comictagger
 ```
+### WinGet installation (Windows only)
+
+A [WinGet package](https://github.com/microsoft/winget-pkgs/tree/master/manifests/c/ComicTagger/ComicTagger), maintained by @Sn1cket, is provided, you can install it with:
+```powershell
+winget install ComicTagger.ComicTagger
+```
 ### From source
 
  1. Ensure you have python 3.9 installed
