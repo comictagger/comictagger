@@ -133,7 +133,7 @@ if qt_available:
                     Image.open(io.BytesIO(image_data)).save(buffer, format="ppm")
                     success = img.loadFromData(buffer.getvalue())
             except Exception:
-                logger.exception("Failed to load the image")
+                logger.warning("Failed to load the image")
         # if still nothing, go with default image
         if not success:
             img.load(":/graphics/nocover.png")
