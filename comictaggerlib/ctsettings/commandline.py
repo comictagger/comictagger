@@ -251,6 +251,30 @@ def register_commands(parser: settngs.Manager) -> None:
         help="List the available plugins.\n\n",
         file=False,
     )
+    parser.add_setting(
+        "--list-remote-plugins",
+        dest="command",
+        action="store_const",
+        const=Action.list_remote_plugins,
+        default=Action.gui,
+        help="List the available remote plugins for install/update.\n\n",
+        file=False,
+    )
+    parser.add_setting(
+        "--update-remote-plugins",
+        dest="command",
+        action="store_const",
+        const=Action.update_remote_plugins,
+        default=Action.gui,
+        help="Update all installed remote plugins.\n\n",
+        file=False,
+    )
+    parser.add_setting(
+        "--install-remote-plugin",
+        default="",
+        help="Install (or update) a remote plugin via its ID, eg. 'metronxml'. Use --list-remote-plugins for list.\n\n",
+        file=False,
+    )
 
 
 def register_commandline_settings(parser: settngs.Manager, enable_quick_tag: bool) -> None:
@@ -290,7 +314,12 @@ def validate_commandline_settings(config: settngs.Config[ct_ns], parser: settngs
     if config[0].Runtime_Options__no_gui and not config[0].Runtime_Options__files:
         if config[0].Commands__command == Action.print and not config[0].Auto_Tag__metadata.is_empty:
             ...  # allow printing the metadata provided on the commandline
-        elif config[0].Commands__command not in (Action.save_config, Action.list_plugins):
+        elif config[0].Commands__command not in (
+            Action.save_config,
+            Action.list_plugins,
+            Action.list_remote_plugins,
+            Action.update_remote_plugins,
+        ):
             parser.exit(message="Command requires at least one filename!\n", status=1)
 
     if config[0].Commands__command == Action.delete and not config[0].Runtime_Options__tags_write:
@@ -298,6 +327,14 @@ def validate_commandline_settings(config: settngs.Config[ct_ns], parser: settngs
 
     if config[0].Commands__command == Action.save and not config[0].Runtime_Options__tags_write:
         parser.exit(message="Please specify the tags to save with --tags-write\n", status=1)
+
+    if config[0].Commands__install_remote_plugin:
+        config[0].Commands__command = Action.install_remote_plugin
+        if not config[0].Commands__install_remote_plugin:
+            parser.exit(
+                message="No plugin ID given. Please enter a valid plugin ID, e.g. 'metron'. Use --list-remote-plugins for list.",
+                status=1,
+            )
 
     if config[0].Commands__copy:
         config[0].Commands__command = Action.copy

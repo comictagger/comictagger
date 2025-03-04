@@ -28,6 +28,7 @@ import sys
 from collections.abc import Collection
 from typing import cast
 
+import plugin_update_manager
 import settngs
 
 import comicapi.comicarchive
@@ -130,6 +131,28 @@ class App:
         self.talkers = comictalker.get_talkers(
             version, opts.config.user_cache_dir, local_plugins=[p.obj for p in local_plugins.talkers]
         )
+
+    def list_remote_plugins(self) -> None:
+        pum = plugin_update_manager.PluginUpdateManager(self.config[0])
+        for r_plugin in pum.remote_plugin_list:
+            print(  # noqa: T201
+                json.dumps(
+                    {
+                        "id": r_plugin["id"],
+                        "name": r_plugin["name"],
+                        "desc": r_plugin["desc"],
+                        "type": r_plugin["type"],
+                    }
+                )
+            )
+
+    def update_remote_plugins(self) -> None:
+        pum = plugin_update_manager.PluginUpdateManager(self.config[0])
+        pum.update_all_plugins()
+
+    def install_remote_plugin(self, plugin_id: str) -> None:
+        pum = plugin_update_manager.PluginUpdateManager(self.config[0])
+        pum.install_by_id(plugin_id)
 
     def list_plugins(
         self,
@@ -269,6 +292,18 @@ class App:
 
         comicapi.utils.load_publishers()
         update_publishers(self.config)
+
+        if self.config[0].Commands__command == Action.list_remote_plugins:
+            self.list_remote_plugins()
+            return
+
+        if self.config[0].Commands__command == Action.update_remote_plugins:
+            self.update_remote_plugins()
+            return
+
+        if self.config[0].Commands__command == Action.install_remote_plugin:
+            self.install_remote_plugin(self.config[0].Commands__install_remote_plugin)
+            return
 
         if self.config[0].Commands__command == Action.list_plugins:
             self.list_plugins(

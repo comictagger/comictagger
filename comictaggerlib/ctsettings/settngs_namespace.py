@@ -17,6 +17,7 @@ class SettngsNS(settngs.TypedNS):
     Commands__version: bool
     Commands__command: comictaggerlib.resulttypes.Action
     Commands__copy: list[str]
+    Commands__install_remote_plugin: str
 
     Runtime_Options__config: comictaggerlib.ctsettings.types.ComicTaggerPaths
     Runtime_Options__verbose: int

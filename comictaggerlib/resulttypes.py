@@ -39,6 +39,9 @@ class Action(utils.StrEnum):
     export = auto()
     save_config = auto()
     list_plugins = auto()
+    list_remote_plugins = auto()
+    update_remote_plugins = auto()
+    install_remote_plugin = auto()
 
 
 class MatchStatus(utils.StrEnum):
