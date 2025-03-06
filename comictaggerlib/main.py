@@ -28,7 +28,7 @@ import sys
 from collections.abc import Collection
 from typing import cast
 
-import plugin_update_manager
+import comictaggerlib.plugin_update_manager
 import settngs
 
 import comicapi.comicarchive
@@ -133,7 +133,7 @@ class App:
         )
 
     def list_remote_plugins(self) -> None:
-        pum = plugin_update_manager.PluginUpdateManager(self.config[0])
+        pum = comictaggerlib.plugin_update_manager.PluginUpdateManager(self.config[0])
         for r_plugin in pum.remote_plugin_list:
             print(  # noqa: T201
                 json.dumps(
@@ -147,11 +147,11 @@ class App:
             )
 
     def update_remote_plugins(self) -> None:
-        pum = plugin_update_manager.PluginUpdateManager(self.config[0])
+        pum = comictaggerlib.plugin_update_manager.PluginUpdateManager(self.config[0])
         pum.update_all_plugins()
 
     def install_remote_plugin(self, plugin_id: str) -> None:
-        pum = plugin_update_manager.PluginUpdateManager(self.config[0])
+        pum = comictaggerlib.plugin_update_manager.PluginUpdateManager(self.config[0])
         pum.install_by_id(plugin_id)
 
     def list_plugins(
