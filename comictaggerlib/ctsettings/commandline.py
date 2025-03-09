@@ -261,6 +261,15 @@ def register_commands(parser: settngs.Manager) -> None:
         file=False,
     )
     parser.add_setting(
+        "--list-remote-plugin-updates",
+        dest="command",
+        action="store_const",
+        const=Action.list_remote_plugin_updates,
+        default=Action.gui,
+        help="List the available remote plugins available for update.\n\n",
+        file=False,
+    )
+    parser.add_setting(
         "--update-remote-plugins",
         dest="command",
         action="store_const",
@@ -318,6 +327,7 @@ def validate_commandline_settings(config: settngs.Config[ct_ns], parser: settngs
             Action.save_config,
             Action.list_plugins,
             Action.list_remote_plugins,
+            Action.list_remote_plugin_updates,
             Action.update_remote_plugins,
         ):
             parser.exit(message="Command requires at least one filename!\n", status=1)

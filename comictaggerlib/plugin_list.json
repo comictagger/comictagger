@@ -1,9 +1,0 @@
-[
-  {"id": "metron", "filename_root": "metron_talker", "name": "Metron", "desc": "A talker to use the comic information from Metron.cloud", "type": "talker", "update_url": "https://api.github.com/repos/comictagger/metron_talker/"},
-  {"id": "metronxml", "filename_root": "metroninfo_ct", "name": "Metron XML", "desc": "Adds support for the Metron XML tagging file", "type": "tag", "update_url": "https://api.github.com/repos/mizaki/metroninfo_ct/"},
-  {"id": "gcd", "filename_root": "gcd_talker", "name": "Grand Comics Database", "desc": "A talker to use the sqlite file of comic information from GCD", "type": "talker", "update_url": "https://api.github.com/repos/comictagger/gcd_talker/"},
-  {"id": "acbfxml", "filename_root": "acbfxml", "name": "ACBF XML", "desc": "Adds support for the Advanced Comic Book Format XML tagging file", "type": "tag", "update_url": "https://api.github.com/repos/mizaki/acbfxml/"},
-  {"id": "mangaupdates", "filename_root": "mangaupdates_talker", "name": "Manga Updates", "desc": "A talker to use the comic information from Manga Updates", "type": "talker", "update_url": "https://api.github.com/repos/mizaki/mangaupdates_talker/"},
-  {"id": "kitsu", "filename_root": "kitsu_talker", "name": "Kitsu", "desc": "A talker to use the comic information from Kitsu.io", "type": "talker", "update_url": "https://api.github.com/repos/mizaki/kitsu_talker/"},
-  {"id": "mangadex", "filename_root": "mangadex_talker", "name": "MangaDex", "desc": "A talker to use the comic information from MangaDex", "type": "talker", "update_url": "https://api.github.com/repos/mizaki/mangadex_talker/"}
-]
