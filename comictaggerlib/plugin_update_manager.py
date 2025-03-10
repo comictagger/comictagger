@@ -196,6 +196,7 @@ class PluginUpdateManager:
             logger.warning(
                 "No plugin ID given. Please enter a valid plugin ID, e.g. 'metron'. Use --list-remote-plugins for list."
             )
+            return
 
         plugin_id = plugin_id.strip()
         plugin_details: Plugin | None = None
@@ -207,33 +208,33 @@ class PluginUpdateManager:
 
         if plugin_details is None:
             logger.warning(f"No plugin with ID '{plugin_id}' found. Use --list-remote-plugins for list.")
+            return
+
+        latest_version: PluginReleases | None = self._download_plugin_manifest(plugin_details.manifest)
+
+        if latest_version is None:
+            logger.warning(f"Unable to find latest version for plugin from URL: {plugin_details.manifest}")
+            return
+
+        if latest_version.latest:
+            for download in latest_version.downloads:
+                if latest_version.latest == download.version:
+                    success, new_plugin_file = self._download_plugin(download.url)
+                    break
         else:
-            latest_version: PluginReleases | None = self._download_plugin_manifest(plugin_details.manifest)
+            logger.error("No 'latest' found in download manifest: %s", plugin_details.manifest)
+            logger.error(f"Failed to install plugin with ID '{plugin_id}', see log for details")
+            return
 
-            if latest_version is None:
-                logger.warning(f"Unable to find latest version for plugin from URL: {plugin_details.manifest}")
+        if success:
+            test_plugin = self._check_plugin(new_plugin_file)
+            if test_plugin:
+                print(  # noqa: T201
+                    f"Installed: {plugin_details.name} {latest_version.latest} to {self.plugin_dir}"
+                )
+                self._remove_old_plugins()
             else:
-                if latest_version.latest:
-                    for download in latest_version.downloads:
-                        if latest_version.latest == download.version:
-                            success, new_plugin_file = self._download_plugin(download.url)
-                            break
-                else:
-                    # No "latest" in manifest, presume first download is latest
-                    success, new_plugin_file = self._download_plugin(latest_version.downloads[0].url)
-
-                if success:
-                    test_plugin = self._check_plugin(new_plugin_file)
-                    if test_plugin:
-                        print(  # noqa: T201
-                            f"Installed: {plugin_details.name} {latest_version.latest} to {self.plugin_dir}"
-                        )
-                        self._remove_old_plugins()
-                    else:
-                        self._remove_plugin(new_plugin_file)
-
-        if not success:
-            print(f"Failed to install plugin with ID '{plugin_id}', see log for details")  # noqa: T201
+                self._remove_plugin(new_plugin_file)
 
     def _download_plugin_manifest(self, url: str) -> PluginReleases | None:
         # TODO Remove test manifest URL
