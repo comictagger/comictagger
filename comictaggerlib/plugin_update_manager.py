@@ -26,8 +26,9 @@ from typing import Any, cast
 
 import yaml
 from packaging.version import InvalidVersion, Version, parse
+from typing_extensions import TextIO
 
-import comictaggerlib
+import comictaggerlib.plugin_manifest
 from comictaggerlib.ctsettings import ct_ns, plugin_finder
 
 try:
@@ -50,6 +51,17 @@ class Plugin:
     def from_yaml(yaml_data: list[dict[str, str]]) -> list[Plugin]:
         return [Plugin(**entry) for entry in yaml_data]
 
+    @staticmethod
+    def load(data: str | TextIO) -> list[Plugin] | None:
+        try:
+            return [Plugin(**entry) for entry in yaml.safe_load(data)]
+        except yaml.YAMLError as e:
+            logger.error("Failed to parse YAML: %s", e)
+            return None
+        except Exception as e:
+            logger.error("Error with YAML data: %s", e)
+            return None
+
 
 @dataclass
 class Download:
@@ -65,7 +77,21 @@ class PluginReleases:
     @staticmethod
     def from_yaml(yaml_data: yaml.YAMLObject) -> PluginReleases:
         downloads: list[Download] = [Download(**entry) for entry in yaml_data.get("downloads", [])]
-        return PluginReleases(latest=yaml_data["latest"], downloads=downloads)
+        return PluginReleases(latest=yaml_data["latest"], downloads=downloads)@staticmethod
+
+    @staticmethod
+    def load(data: str | TextIO) -> PluginReleases | None:
+        try:
+            yaml_data = yaml.safe_load(data)
+            downloads: list[Download] = [Download(**entry) for entry in yaml_data.get("downloads", [])]
+            return PluginReleases(latest=yaml_data["latest"], downloads=downloads)
+        except yaml.YAMLError as e:
+            logger.error("Failed to parse YAML: %s", e)
+            return None
+        except Exception as e:
+            logger.error("Error with YAML data: %s", e)
+            return None
+
 
 
 class PluginUpdateManager:
@@ -135,11 +161,9 @@ class PluginUpdateManager:
 
     def _read_plugin_list(self) -> None:
         try:
-            # TODO Use alt to comictaggerlib.data_path?
-            plugin_list_file = cast(Path, comictaggerlib.data_path.joinpath("plugin_list.yaml"))
+            plugin_list_file = cast(Path, comictaggerlib.plugin_manifest.data_path.joinpath("plugin_list.yaml"))
             with open(plugin_list_file, encoding="utf-8") as f:
-                plugin_list = yaml.load(f, Loader=yaml.Loader)
-                self.remote_plugin_list = Plugin.from_yaml(plugin_list)
+                self.remote_plugin_list = Plugin.load(f)
         except Exception as e:
             logger.error("Failed to load plugin_list.yaml: %s", e)
 
@@ -241,17 +265,10 @@ class PluginUpdateManager:
         url = "https://gist.githubusercontent.com/mizaki/52b60ac53cd3344ff1e1bfd44fc50ebd/raw/f446fd7c149053965fe9e4035fe66e296bf3a02d/manifest.yaml"
         latest = self._manifest_request(url)
 
-        try:
-            latest_yaml = yaml.safe_load(latest)
-            releases: PluginReleases = PluginReleases.from_yaml(latest_yaml)
-        except yaml.YAMLError as e:
-            logger.error("Failed to parse YAML: %s", e)
-            return None
-        except Exception as e:
-            logger.error("Error with YAML data: %s", e)
-            return None
+        if latest is not None:
+            return PluginReleases.load(latest)
 
-        return releases
+        return None
 
     def _download_plugin(self, url: str, name: str = "") -> tuple[bool, Path]:
         response = requests.get(url)
@@ -299,35 +316,13 @@ class PluginUpdateManager:
             except Exception as e:
                 logger.exception(f"Failed to remove old plugin file: {filepath}. Error: {e}")
 
-    def _manifest_request(self, url: str) -> Any:
-        # if there is a 500 error, try a few more times before giving up
-        limit_counter = 0
+    def _manifest_request(self, url: str) -> str | None:
+        try:
+            resp = requests.get(url, headers={"user-agent": "comictagger"}, timeout=10)
+            if resp.status_code == 200:
+                return resp.text
+            logger.error("Failed to download manifest file: %s", url)
+        except requests.exceptions.RequestException as e:
+            logger.debug(f"Request error for {url}: {e}")
 
-        for tries in range(1, 5):
-            try:
-                resp = requests.get(url, headers={"user-agent": "comictagger"}, timeout=10)
-                if resp.status_code == 200:
-                    return resp.text
-                elif resp.status_code == 500:
-                    logger.debug(f"Try #{tries}: ")
-                    time.sleep(1)
-                    logger.debug(str(resp.status_code))
-
-                elif resp.status_code in (requests.status_codes.codes.TOO_MANY_REQUESTS):
-                    logger.info(f"{url} rate limit encountered. Waiting for 10 seconds\n")
-                    time.sleep(10)
-                    limit_counter += 1
-                    if limit_counter > 3:
-                        # Tried 3 times, inform user to check CV website.
-                        logger.error(f"{url} rate limit error. Exceeded 3 retires.")
-                else:
-                    break
-
-            except requests.exceptions.Timeout:
-                logger.debug(f"Connection to {url} timed out.")
-            except requests.exceptions.RequestException as e:
-                logger.debug(f"Request exception: {e}")
-            except Exception as e:
-                logger.debug(f"Request error: {e}")
-
-        raise Exception("Unknown error occurred")
+        return None
