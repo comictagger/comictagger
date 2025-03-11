@@ -48,10 +48,6 @@ class Plugin:
     manifest: str
 
     @staticmethod
-    def from_yaml(yaml_data: list[dict[str, str]]) -> list[Plugin]:
-        return [Plugin(**entry) for entry in yaml_data]
-
-    @staticmethod
     def load(data: str | TextIO) -> list[Plugin] | None:
         try:
             return [Plugin(**entry) for entry in yaml.safe_load(data)]
@@ -73,11 +69,6 @@ class Download:
 class PluginReleases:
     latest: str
     downloads: list[Download]
-
-    @staticmethod
-    def from_yaml(yaml_data: yaml.YAMLObject) -> PluginReleases:
-        downloads: list[Download] = [Download(**entry) for entry in yaml_data.get("downloads", [])]
-        return PluginReleases(latest=yaml_data["latest"], downloads=downloads)@staticmethod
 
     @staticmethod
     def load(data: str | TextIO) -> PluginReleases | None:
