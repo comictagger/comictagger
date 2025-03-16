@@ -45,15 +45,15 @@ class Plugin:
     manifest: str
 
     @staticmethod
-    def load(data: str | TextIO) -> list[Plugin] | None:
+    def load(data: str | TextIO) -> list[Plugin]:
         try:
             return [Plugin(**entry) for entry in yaml.safe_load(data)]
         except yaml.YAMLError as e:
             logger.error("Failed to parse YAML: %s", e)
-            return None
+            return []
         except Exception as e:
             logger.error("Error with YAML data: %s", e)
-            return None
+            return []
 
 
 @dataclass
