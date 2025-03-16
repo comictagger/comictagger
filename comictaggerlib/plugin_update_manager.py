@@ -18,15 +18,12 @@ from __future__ import annotations
 
 import logging
 import os
-import sys
-import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, cast
+from typing import TextIO, cast
 
 import yaml
 from packaging.version import InvalidVersion, Version, parse
-from typing_extensions import TextIO
 
 import comictaggerlib.plugin_manifest
 from comictaggerlib.ctsettings import ct_ns, plugin_finder
@@ -84,15 +81,36 @@ class PluginReleases:
             return None
 
 
-
 class PluginUpdateManager:
     def __init__(self, config: ct_ns):
         self.config = config
         self.plugin_dir: Path = Path(self.config.Runtime_Options__config.user_plugin_dir)
+        self.plugin_download_dir: Path = Path(self.config.Runtime_Options__config.user_plugin_dir.joinpath("downloads"))
+        self._check_create_dir(self.plugin_download_dir)
         self.plugin_files: dict[str, list[tuple[Version, Path]]] = {}
         self.remote_plugin_list: list[Plugin] = []
         self._read_plugin_list()
         self._find_local_plugins()
+
+    def _check_create_dir(self, dir_path: str | Path) -> bool:
+        if not os.path.exists(dir_path):
+            try:
+                os.mkdir(dir_path)
+                return True
+            except FileNotFoundError:
+                logger.error("Failed to create plugin download directory, parent directory of %s not found!", dir_path)
+            except Exception as e:
+                logger.error("Failed to create plugin download directory. Error: %s", e)
+
+        return False
+
+    def _clean_download_dir(self) -> None:
+        for file in os.listdir(self.plugin_download_dir):
+            if Path(file).is_file():
+                try:
+                    os.unlink(file)
+                except Exception as e:
+                    logger.warning("Failed to remove %s. Error: %s", file, e)
 
     def _parse_version(self, file: str) -> Version | None:
         try:
@@ -111,7 +129,8 @@ class PluginUpdateManager:
             if plugins:
                 for plugin in plugins:
                     version: Version | None = self._parse_version(plugin[0].version)
-                    # TODO What is the entry_name for archive plugins?
+                    # Expect manifest ID and entry_name to match
+                    # Archives have no ID but have entry_name so that is expected to be the manifest ID
                     if version is not None:
                         if plugins_dict.get(plugin.entry_name) is None:
                             plugins_dict[plugin.entry_name] = [(version, plugin[0].path)]
@@ -122,31 +141,40 @@ class PluginUpdateManager:
             key: sorted(value, key=lambda x: x[0], reverse=True) for key, value in plugins_dict.items()
         }
 
-    def _check_plugin(self, plugin_path: Path) -> bool:
-        # TODO Better to use plugin_finder.find_plugins(self.plugin_dir) and find if the plugin loaded or,
-        # use this duplicate code from plugin_finder.find_plugins?
-        local_plugins = plugin_finder._find_local_plugins(self.plugin_dir)
+    def _move_plugin(self, old_loc: str | Path, new_loc: str | Path = "") -> bool:
+        if not old_loc:
+            logger.debug("No file path given to move plugin.")
+            return False
 
-        for plugin in local_plugins:
-            if plugin.path == plugin_path:
-                try:
-                    sys.path.append(str(plugin_path))
-                    logger.debug("Attempting to load %s", plugin_path)
-                    plugin.load()
-                except Exception as err:
-                    logger.error("Failed to load plugin: %s. Error: %s", plugin_path, err)
-                    return False
-                finally:
-                    sys.path.remove(str(plugin_path))
-                    for mod in list(sys.modules.values()):
-                        if (
-                            mod is not None
-                            and hasattr(mod, "__spec__")
-                            and mod.__spec__
-                            and str(plugin_path) in (mod.__spec__.origin or "")
-                        ):
-                            sys.modules.pop(mod.__name__)
-                    return True
+        old_loc = Path(old_loc)
+        # Unless the new_loc is empty, it's expected the file name is included
+        new_loc = Path(new_loc) if new_loc else Path(self.plugin_dir.joinpath(old_loc.name))
+
+        try:
+            # Windows will error if file exists
+            os.unlink(new_loc)
+        except FileNotFoundError:
+            pass
+        except OSError:
+            logger.error("Failed to remove %s, expected file but got a directory", new_loc)
+            return False
+
+        try:
+            old_loc.rename(new_loc)
+            return True
+        except Exception as e:
+            logger.error("Failed to move %s to %s. Error: %s", old_loc, new_loc, e)
+
+        return False
+
+    def _check_plugin(self, plugin_path: Path) -> bool:
+        # Load newly downloaded plugins
+        local_download_plugins = plugin_finder.find_plugins(self.plugin_download_dir)
+
+        for plugin_type in local_download_plugins:
+            for plugin in plugin_type:
+                if plugin.plugin.path == plugin_path:
+                    return self._move_plugin(plugin_path)
 
         return False
 
@@ -181,11 +209,12 @@ class PluginUpdateManager:
                 if not test_plugin:
                     self._remove_plugin(new_plugin_file)
 
-            # Clean out old plugin files
-            self._remove_old_plugins()
+            self._clean_download_dir()
+            self._move_old_plugins()
 
     def _check_for_all_updates(self) -> list[tuple[Plugin, str]]:
         available_updates: list[tuple[Plugin, str]] = []
+        # TODO Check if the plugin has a 'manifest' entry (supersedes our remote list URL)
         for k, item in self.plugin_files.items():
             for r_plugin in self.remote_plugin_list:
                 if k == r_plugin.plugin_id:
@@ -217,6 +246,7 @@ class PluginUpdateManager:
         plugin_details: Plugin | None = None
         success: bool = False
 
+        # TODO Check installed plugins what may not be in the list but provide a manifest URL
         for item in self.remote_plugin_list:
             if item.plugin_id == plugin_id:
                 plugin_details = item
@@ -244,10 +274,8 @@ class PluginUpdateManager:
         if success:
             test_plugin = self._check_plugin(new_plugin_file)
             if test_plugin:
-                print(  # noqa: T201
-                    f"Installed: {plugin_details.name} {latest_version.latest} to {self.plugin_dir}"
-                )
-                self._remove_old_plugins()
+                print(f"Installed: {plugin_details.name} {latest_version.latest} to {self.plugin_dir}")  # noqa: T201
+                self._move_old_plugins()
             else:
                 self._remove_plugin(new_plugin_file)
 
@@ -275,7 +303,7 @@ class PluginUpdateManager:
                         logger.error("Ignoring download, unexpected or unknown file extension: %s", name)
                         return False, Path()
 
-            filepath = self.plugin_dir.joinpath(name)
+            filepath = self.plugin_download_dir.joinpath(name)
 
             try:
                 with open(filepath, mode="wb") as file:
@@ -286,7 +314,9 @@ class PluginUpdateManager:
 
         return False, Path()
 
-    def _remove_old_plugins(self) -> None:
+    def _move_old_plugins(self) -> None:
+        old_dir = self.plugin_dir.joinpath("old")
+        self._check_create_dir(old_dir)
         # Update local plugins first
         self._find_local_plugins()
 
@@ -295,7 +325,7 @@ class PluginUpdateManager:
                 for i, (version, filename) in enumerate(item):
                     # First filename should be latest version to keep
                     if i > 0:
-                        self._remove_plugin(self.plugin_dir.joinpath(filename))
+                        self._move_plugin(filename, old_dir.joinpath(filename.name))
 
     def _remove_plugin(self, file: Path) -> None:
         filepath = self.plugin_dir.joinpath(file)
