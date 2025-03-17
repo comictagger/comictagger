@@ -1,47 +1,47 @@
 - plugin_id: gcd
   name: Grand Comics Database
-  type: Talker
+  type: Talkers
   desc: A talker to use the sqlite file of comic information from GCD
-  manifest: https://api.github.com/repos/comictagger/gcd_talker/
+  manifest: https://api.github.com/repos/comictagger/gcd_talker/manifest.yaml
 
 - plugin_id: metron
   name: Metron
-  type: Talker
+  type: Talkers
   desc: A talker to use the comic information from Metron.cloud
-  manifest: https://api.github.com/repos/comictagger/metron_talker/
+  manifest: https://api.github.com/repos/comictagger/metron_talker/manifest.yaml
 
 - plugin_id: metroninfo
   name: MetronInfo XML
-  type: Tag
+  type: Tags
   desc: Adds support for the Metron XML tagging file
-  manifest: https://api.github.com/repos/mizaki/metroninfo_ct/
+  manifest: https://api.github.com/repos/mizaki/metroninfo_ct/manifest.yaml
 
 - plugin_id: cix
   name: ComicInfo XML
-  type: Tag
+  type: Tags
   desc: Adds support for the extensions to the ComicInfo.xml metadata schema by the Anansi Project
-  manifest: https://github.com/comictagger/comicinfoxml
+  manifest: https://github.com/comictagger/comicinfoxml/manifest.yaml
 
 - plugin_id: acbfxml
   name: ACBF XML
-  type: Tag
+  type: Tags
   desc: Adds support for the Advanced Comic Book Format XML tagging file
-  manifest: https://api.github.com/repos/mizaki/acbfxml/
+  manifest: https://api.github.com/repos/mizaki/acbfxml/manifest.yaml
 
 - plugin_id: mangaupdates
   name: Manga Updates
-  type: Talker
+  type: Talkers
   desc: A talker to use the comic information from Manga Updates
-  manifest: https://api.github.com/repos/mizaki/mangaupdates_talker/
+  manifest: https://api.github.com/repos/mizaki/mangaupdates_talker/manifest.yaml
 
 - plugin_id: kitsu
   name: Kitsu
-  type: Talker
+  type: Talkers
   desc: A talker to use the comic information from Kitsu.io
-  manifest: https://api.github.com/repos/mizaki/kitsu_talker/
+  manifest: https://api.github.com/repos/mizaki/kitsu_talker/manifest.yaml
 
 - plugin_id: mangadex
   name: MangaDex
-  type: Talker
+  type: Talkers
   desc: A talker to use the comic information from MangaDex
-  manifest: https://api.github.com/repos/mizaki/mangadex_talker/
+  manifest: https://api.github.com/repos/mizaki/mangadex_talker/manifest.yaml

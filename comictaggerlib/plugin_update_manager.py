@@ -125,7 +125,7 @@ class PluginUpdateManager:
         # Create a deduped dict with each sorted by Version number
         plugins_dict: dict[str, list[tuple[Version, Path]]] = {}
 
-        for plugins in local_plugins:
+        for k, plugins in local_plugins._asdict().items():
             if plugins:
                 for plugin in plugins:
                     version: Version | None = self._parse_version(plugin[0].version)
@@ -136,6 +136,33 @@ class PluginUpdateManager:
                             plugins_dict[plugin.entry_name] = [(version, plugin[0].path)]
                         else:
                             plugins_dict[plugin.entry_name].append((version, plugin[0].path))
+
+                    # Check and update manifest URL or add manually install plugin to remote plugin list
+                    if hasattr(plugin.obj, "manifest"):
+                        add_to_list = True
+
+                        for r_plugin in self.remote_plugin_list:
+                            # As archivers don't have an ID, use entry_name
+                            if k == "archivers":
+                                plugin.obj.id = plugin.entry_name
+
+                            if r_plugin.plugin_id == plugin.obj.id:
+                                add_to_list = False
+                                if plugin.obj.manifest and r_plugin.manifest != plugin.obj.manifest:
+                                    r_plugin.manifest = plugin.obj.manifest
+                                    break
+
+                        # Not in current remote plugin list, add it
+                        if add_to_list:
+                            self.remote_plugin_list.append(
+                                Plugin(
+                                    plugin_id=plugin.entry_name,
+                                    name=plugin.display_name,
+                                    type=k.capitalize(),
+                                    desc="Manually installed plugin",
+                                    manifest=plugin.obj.manifest,
+                                )
+                            )
 
         self.plugin_files = {
             key: sorted(value, key=lambda x: x[0], reverse=True) for key, value in plugins_dict.items()
@@ -214,7 +241,6 @@ class PluginUpdateManager:
 
     def _check_for_all_updates(self) -> list[tuple[Plugin, str]]:
         available_updates: list[tuple[Plugin, str]] = []
-        # TODO Check if the plugin has a 'manifest' entry (supersedes our remote list URL)
         for k, item in self.plugin_files.items():
             for r_plugin in self.remote_plugin_list:
                 if k == r_plugin.plugin_id:
@@ -246,7 +272,6 @@ class PluginUpdateManager:
         plugin_details: Plugin | None = None
         success: bool = False
 
-        # TODO Check installed plugins what may not be in the list but provide a manifest URL
         for item in self.remote_plugin_list:
             if item.plugin_id == plugin_id:
                 plugin_details = item
