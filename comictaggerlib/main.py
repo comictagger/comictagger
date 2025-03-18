@@ -297,7 +297,7 @@ class App:
 
         if self.config[0].Commands__command == Action.install_remote_plugin:
             pum = comictaggerlib.plugin_update_manager.PluginUpdateManager(self.config[0])
-            pum.install_by_id(self.config[0].Commands__install_remote_plugin)
+            pum.cli_install_by_id(self.config[0].Commands__install_remote_plugin)
             return
 
         if self.config[0].Commands__command == Action.list_plugins:

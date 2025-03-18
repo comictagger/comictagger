@@ -98,9 +98,9 @@ class PluginUpdateManager:
                 os.mkdir(dir_path)
                 return True
             except FileNotFoundError:
-                logger.error("Failed to create plugin download directory, parent directory of %s not found!", dir_path)
+                logger.error("Failed to create directory, parent directory of %s not found!", dir_path)
             except Exception as e:
-                logger.error("Failed to create plugin download directory. Error: %s", e)
+                logger.error("Failed to create directory. Error: %s", e)
 
         return False
 
@@ -112,11 +112,11 @@ class PluginUpdateManager:
                 except Exception as e:
                     logger.warning("Failed to remove %s. Error: %s", file, e)
 
-    def _parse_version(self, file: str) -> Version | None:
+    def _parse_version(self, version: str) -> Version | None:
         try:
-            return parse(file)
+            return parse(version)
         except InvalidVersion:
-            logger.error(f"Invalid version number for : {file}")
+            logger.error(f"Invalid version number for : {version}")
             return None
 
     def _find_local_plugins(self) -> None:
@@ -137,7 +137,7 @@ class PluginUpdateManager:
                         else:
                             plugins_dict[plugin.entry_name].append((version, plugin[0].path))
 
-                    # Check and update manifest URL or add manually install plugin to remote plugin list
+                    # Check and update manifest URL or add manually installed plugin to remote plugin list
                     if hasattr(plugin.obj, "manifest"):
                         add_to_list = True
 
@@ -149,6 +149,7 @@ class PluginUpdateManager:
                             if r_plugin.plugin_id == plugin.obj.id:
                                 add_to_list = False
                                 if plugin.obj.manifest and r_plugin.manifest != plugin.obj.manifest:
+                                    # Supersede remote list manifest with plugin class value
                                     r_plugin.manifest = plugin.obj.manifest
                                     break
 
@@ -157,7 +158,7 @@ class PluginUpdateManager:
                             self.remote_plugin_list.append(
                                 Plugin(
                                     plugin_id=plugin.entry_name,
-                                    name=plugin.display_name,
+                                    name=plugin.entry_name,
                                     type=k.capitalize(),
                                     desc="Manually installed plugin",
                                     manifest=plugin.obj.manifest,
@@ -226,14 +227,14 @@ class PluginUpdateManager:
         available_updates: list[tuple[Plugin, str]] = self._check_for_all_updates()
         if available_updates:
             for update, download_url in available_updates:
+                test_plugin = False
                 success, new_plugin_file = self._download_plugin(download_url)
-                test_plugin = self._check_plugin(new_plugin_file)
+                if success:
+                    test_plugin = self._check_plugin(new_plugin_file)
                 if success and test_plugin:
                     logger.info(f"Updated remote plugin {update.name}")
                 else:
                     logger.warning("Failed to download plugin or failed loading, see above for details")
-
-                if not test_plugin:
                     self._remove_plugin(new_plugin_file)
 
             self._clean_download_dir()
@@ -260,13 +261,19 @@ class PluginUpdateManager:
 
         return None
 
-    def install_by_id(self, plugin_id: str = "") -> None:
+    def cli_install_by_id(self, plugin_id: str) -> None:
+        if self.install_by_id(plugin_id):
+            print(f"Installed: {plugin_id}")  # noqa: T201
+        else:
+            print(f"Failed to install plugin ID %s, see log for details.", plugin_id)  # noqa: T201
+
+    def install_by_id(self, plugin_id: str = "") -> bool:
         """Install a plugin by its manifest ID"""
         if not plugin_id:
             logger.warning(
                 "No plugin ID given. Please enter a valid plugin ID, e.g. 'metron'. Use --list-remote-plugins for list."
             )
-            return
+            return False
 
         plugin_id = plugin_id.strip()
         plugin_details: Plugin | None = None
@@ -277,14 +284,14 @@ class PluginUpdateManager:
                 plugin_details = item
 
         if plugin_details is None:
-            logger.warning(f"No plugin with ID '{plugin_id}' found. Use --list-remote-plugins for list.")
-            return
+            logger.warning(f"No plugin with ID '{plugin_id}' found. Use --list-remote-plugins for available plugins.")
+            return False
 
         latest_version: PluginReleases | None = self._download_plugin_manifest(plugin_details.manifest)
 
         if latest_version is None:
-            logger.warning(f"Unable to find latest version for plugin from URL: {plugin_details.manifest}")
-            return
+            logger.error(f"Unable to find latest version for plugin from URL: {plugin_details.manifest}")
+            return False
 
         if latest_version.latest:
             for download in latest_version.downloads:
@@ -294,19 +301,20 @@ class PluginUpdateManager:
         else:
             logger.error("No 'latest' found in download manifest: %s", plugin_details.manifest)
             logger.error(f"Failed to install plugin with ID '{plugin_id}', see log for details")
-            return
+            return False
 
         if success:
             test_plugin = self._check_plugin(new_plugin_file)
             if test_plugin:
-                print(f"Installed: {plugin_details.name} {latest_version.latest} to {self.plugin_dir}")  # noqa: T201
                 self._move_old_plugins()
-            else:
-                self._remove_plugin(new_plugin_file)
+                logger.info(f"Installed: {plugin_details.name} {latest_version.latest} to {self.plugin_dir}")
+                return True
+
+            self._remove_plugin(new_plugin_file)
+
+        return False
 
     def _download_plugin_manifest(self, url: str) -> PluginReleases | None:
-        # TODO Remove test manifest URL
-        url = "https://gist.githubusercontent.com/mizaki/52b60ac53cd3344ff1e1bfd44fc50ebd/raw/f446fd7c149053965fe9e4035fe66e296bf3a02d/manifest.yaml"
         latest = self._manifest_request(url)
 
         if latest is not None:
