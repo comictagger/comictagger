@@ -14,7 +14,7 @@
   name: MetronInfo XML
   type: Tags
   desc: Adds support for the Metron XML tagging file
-  manifest: https://api.github.com/repos/mizaki/metroninfo_ct/manifest.yaml
+  manifest: https://github.com/mizaki/metroninfo_ct/raw/refs/heads/master/manifest.yaml
 
 - plugin_id: cix
   name: ComicInfo XML
@@ -26,22 +26,22 @@
   name: ACBF XML
   type: Tags
   desc: Adds support for the Advanced Comic Book Format XML tagging file
-  manifest: https://api.github.com/repos/mizaki/acbfxml/manifest.yaml
+  manifest: https://github.com/mizaki/acbfxml/raw/refs/heads/master/manifest.yaml
 
 - plugin_id: mangaupdates
   name: Manga Updates
   type: Talkers
   desc: A talker to use the comic information from Manga Updates
-  manifest: https://api.github.com/repos/mizaki/mangaupdates_talker/manifest.yaml
+  manifest: https://github.com/mizaki/mangaupdates_talker/raw/refs/heads/master/manifest.yaml
 
 - plugin_id: kitsu
   name: Kitsu
   type: Talkers
   desc: A talker to use the comic information from Kitsu.io
-  manifest: https://api.github.com/repos/mizaki/kitsu_talker/manifest.yaml
+  manifest: https://github.com/mizaki/kitsu_talker/raw/refs/heads/master/manifest.yaml
 
 - plugin_id: mangadex
   name: MangaDex
   type: Talkers
   desc: A talker to use the comic information from MangaDex
-  manifest: https://api.github.com/repos/mizaki/mangadex_talker/manifest.yaml
+  manifest: https://github.com/mizaki/mangadex_talker/raw/refs/heads/master/manifest.yaml
