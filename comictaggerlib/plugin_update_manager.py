@@ -92,6 +92,92 @@ class PluginUpdateManager:
         self._read_plugin_list()
         self._find_local_plugins()
 
+    def list_available_updates(self) -> None:
+        """CLI method to list available updates of installed plugins"""
+        available_updates: list[tuple[Plugin, str]] = self._check_for_all_updates()
+        if available_updates:
+            print("Available Update(s):")  # noqa: T201
+            [print(item[0].name) for item in available_updates]  # noqa: T201
+        else:
+            print("No updates available")  # noqa: T201
+
+    def update_all_plugins(self) -> None:
+        available_updates: list[tuple[Plugin, str]] = self._check_for_all_updates()
+        if available_updates:
+            for update, download_url in available_updates:
+                test_plugin = False
+                success, new_plugin_file = self._download_plugin(download_url)
+                if success:
+                    test_plugin = self._check_new_plugin(new_plugin_file)  # type: ignore[arg-type]
+                if success and test_plugin:
+                    logger.info(f"Updated remote plugin {update.name}")
+                else:
+                    logger.error("Failed to download plugin or failed loading, see above for details")
+
+            self._clean_download_dir()
+            self._move_old_plugins()
+
+    def cli_install_by_id(self, plugin_id: str) -> None:
+        """CLI method to install remote plugin by manifest ID"""
+        if self.install_by_id(plugin_id):
+            print("Installed: %s", plugin_id)  # noqa: T201
+        else:
+            print("Failed to install plugin ID %s, see log for details.", plugin_id)  # noqa: T201
+
+    def install_by_id(self, plugin_id: str = "") -> bool:
+        """Install a plugin by its manifest ID"""
+        if not plugin_id:
+            logger.warning(
+                "No plugin ID given. Please enter a valid plugin ID, e.g. 'metron'. Use --list-remote-plugins for available plugins."
+            )
+            return False
+
+        plugin_id = plugin_id.strip()
+        plugin_details: Plugin | None = None
+        success: bool = False
+
+        for item in self.remote_plugin_list:
+            if item.plugin_id == plugin_id:
+                plugin_details = item
+
+        if plugin_details is None:
+            logger.warning(f"No plugin with ID '{plugin_id}' found. Use --list-remote-plugins for available plugins.")
+            return False
+
+        latest_version: PluginReleases | None = self._download_plugin_manifest(plugin_details.manifest)
+
+        if latest_version is None:
+            logger.error(f"Unable to find latest version for plugin from URL: {plugin_details.manifest}")
+            return False
+
+        if latest_version.latest:
+            for download in latest_version.downloads:
+                if latest_version.latest == download.version:
+                    success, new_plugin_file = self._download_plugin(download.url)
+                    break
+        else:
+            logger.error("No 'latest' found in download manifest: %s", plugin_details.manifest)
+            logger.error(f"Failed to install plugin with ID '{plugin_id}', see log for details")
+            return False
+
+        if success:
+            test_plugin = self._check_new_plugin(new_plugin_file)  # type: ignore[arg-type]
+            if test_plugin:
+                self._move_old_plugins()
+                logger.info(f"Installed: {plugin_details.name} {latest_version.latest} to {self.plugin_dir}")
+                return True
+
+            self._clean_download_dir()
+
+        return False
+
+    def _parse_version(self, version: str) -> Version | None:
+        try:
+            return parse(version)
+        except InvalidVersion:
+            logger.error(f"Invalid version number for : {version}")
+            return None
+
     def _check_create_dir(self, dir_path: str | Path) -> bool:
         if not os.path.exists(dir_path):
             try:
@@ -108,16 +194,69 @@ class PluginUpdateManager:
         for file in os.listdir(self.plugin_download_dir):
             if Path(file).is_file():
                 try:
-                    os.unlink(file)
+                    os.remove(file)
                 except Exception as e:
                     logger.warning("Failed to remove %s. Error: %s", file, e)
 
-    def _parse_version(self, version: str) -> Version | None:
+    def _move_plugin(self, old_loc: str | Path, new_loc: str | Path) -> bool:
+        if not old_loc or not new_loc:
+            logger.debug("No file path given to move plugin.")
+            return False
+
+        old_loc = Path(old_loc)
+        new_loc = Path(new_loc)
+
         try:
-            return parse(version)
-        except InvalidVersion:
-            logger.error(f"Invalid version number for : {version}")
-            return None
+            # Windows will error if file exists
+            os.remove(new_loc)
+        except FileNotFoundError:
+            pass
+        except OSError:
+            logger.error("Failed to remove %s, expected file but got a directory", new_loc)
+            return False
+
+        try:
+            old_loc.rename(new_loc)  # rename will move file
+            return True
+        except Exception as e:
+            logger.error("Failed to move %s to %s. Error: %s", old_loc, new_loc, e)
+
+        return False
+
+    def _move_old_plugins(self) -> None:
+        old_dir = self.plugin_dir.joinpath("old")
+        if self._check_create_dir(old_dir):
+            # Update local plugins first
+            self._find_local_plugins()
+
+            for item in self.plugin_files.values():
+                if len(item) > 1:
+                    for i, (version, filename) in enumerate(item):
+                        # First filename should be latest version to keep
+                        if i > 0:
+                            self._move_plugin(filename, old_dir.joinpath(filename.name))
+
+    def _remove_plugin(self, file: Path) -> None:
+        filepath = file  # self.plugin_dir.joinpath(file)
+        # Don't want to be nuking dirs by mistake
+        if filepath.is_file():
+            try:
+                os.remove(filepath)
+                logger.info(f"Removed plugin file: {filepath}")
+            except Exception as e:
+                logger.error(f"Failed to remove plugin file: {filepath}. Error: {e}")
+
+    def _check_new_plugin(self, plugin_path: Path) -> bool:
+        # Load newly downloaded plugins
+        local_download_plugins = plugin_finder.find_plugins(self.plugin_download_dir)
+
+        for plugin_type in local_download_plugins:
+            for plugin in plugin_type:
+                if plugin.plugin.path == plugin_path:
+                    # Plugin loaded, move to plugin dir from download dir
+                    return self._move_plugin(plugin_path, self.plugin_dir.joinpath(plugin_path.name))
+
+        return False
 
     def _find_local_plugins(self) -> None:
         local_plugins = plugin_finder.find_plugins(self.plugin_dir)
@@ -169,43 +308,6 @@ class PluginUpdateManager:
             key: sorted(value, key=lambda x: x[0], reverse=True) for key, value in plugins_dict.items()
         }
 
-    def _move_plugin(self, old_loc: str | Path, new_loc: str | Path = "") -> bool:
-        if not old_loc:
-            logger.debug("No file path given to move plugin.")
-            return False
-
-        old_loc = Path(old_loc)
-        # Unless the new_loc is empty, it's expected the file name is included
-        new_loc = Path(new_loc) if new_loc else Path(self.plugin_dir.joinpath(old_loc.name))
-
-        try:
-            # Windows will error if file exists
-            os.unlink(new_loc)
-        except FileNotFoundError:
-            pass
-        except OSError:
-            logger.error("Failed to remove %s, expected file but got a directory", new_loc)
-            return False
-
-        try:
-            old_loc.rename(new_loc)
-            return True
-        except Exception as e:
-            logger.error("Failed to move %s to %s. Error: %s", old_loc, new_loc, e)
-
-        return False
-
-    def _check_plugin(self, plugin_path: Path) -> bool:
-        # Load newly downloaded plugins
-        local_download_plugins = plugin_finder.find_plugins(self.plugin_download_dir)
-
-        for plugin_type in local_download_plugins:
-            for plugin in plugin_type:
-                if plugin.plugin.path == plugin_path:
-                    return self._move_plugin(plugin_path)
-
-        return False
-
     def _read_plugin_list(self) -> None:
         try:
             plugin_list_file = cast(Path, comictaggerlib.plugin_manifest.data_path.joinpath("plugin_list.yaml"))
@@ -214,40 +316,14 @@ class PluginUpdateManager:
         except Exception as e:
             logger.error("Failed to load plugin_list.yaml: %s", e)
 
-    def list_available_updates(self) -> None:
-        """CLI method to list available updates of installed plugins"""
-        available_updates: list[tuple[Plugin, str]] = self._check_for_all_updates()
-        if available_updates:
-            print("Available Update(s):")  # noqa: T201
-            [print(item[0].name) for item in available_updates]  # noqa: T201
-        else:
-            print("No updates available")  # noqa: T201
-
-    def update_all_plugins(self) -> None:
-        available_updates: list[tuple[Plugin, str]] = self._check_for_all_updates()
-        if available_updates:
-            for update, download_url in available_updates:
-                test_plugin = False
-                success, new_plugin_file = self._download_plugin(download_url)
-                if success:
-                    test_plugin = self._check_plugin(new_plugin_file)
-                if success and test_plugin:
-                    logger.info(f"Updated remote plugin {update.name}")
-                else:
-                    logger.warning("Failed to download plugin or failed loading, see above for details")
-                    self._remove_plugin(new_plugin_file)
-
-            self._clean_download_dir()
-            self._move_old_plugins()
-
     def _check_for_all_updates(self) -> list[tuple[Plugin, str]]:
         available_updates: list[tuple[Plugin, str]] = []
         for k, item in self.plugin_files.items():
             for r_plugin in self.remote_plugin_list:
                 if k == r_plugin.plugin_id:
-                    result = self._check_for_update(r_plugin.manifest, item[0][0])  # Sorted, item[0] should be latest
-                    if result is not None:
-                        available_updates.append((r_plugin, result))
+                    url = self._check_for_update(r_plugin.manifest, item[0][0])  # Sorted, item[0] should be latest
+                    if url is not None:
+                        available_updates.append((r_plugin, url))
                     break
 
         return available_updates
@@ -261,59 +337,6 @@ class PluginUpdateManager:
 
         return None
 
-    def cli_install_by_id(self, plugin_id: str) -> None:
-        if self.install_by_id(plugin_id):
-            print(f"Installed: {plugin_id}")  # noqa: T201
-        else:
-            print(f"Failed to install plugin ID %s, see log for details.", plugin_id)  # noqa: T201
-
-    def install_by_id(self, plugin_id: str = "") -> bool:
-        """Install a plugin by its manifest ID"""
-        if not plugin_id:
-            logger.warning(
-                "No plugin ID given. Please enter a valid plugin ID, e.g. 'metron'. Use --list-remote-plugins for list."
-            )
-            return False
-
-        plugin_id = plugin_id.strip()
-        plugin_details: Plugin | None = None
-        success: bool = False
-
-        for item in self.remote_plugin_list:
-            if item.plugin_id == plugin_id:
-                plugin_details = item
-
-        if plugin_details is None:
-            logger.warning(f"No plugin with ID '{plugin_id}' found. Use --list-remote-plugins for available plugins.")
-            return False
-
-        latest_version: PluginReleases | None = self._download_plugin_manifest(plugin_details.manifest)
-
-        if latest_version is None:
-            logger.error(f"Unable to find latest version for plugin from URL: {plugin_details.manifest}")
-            return False
-
-        if latest_version.latest:
-            for download in latest_version.downloads:
-                if latest_version.latest == download.version:
-                    success, new_plugin_file = self._download_plugin(download.url)
-                    break
-        else:
-            logger.error("No 'latest' found in download manifest: %s", plugin_details.manifest)
-            logger.error(f"Failed to install plugin with ID '{plugin_id}', see log for details")
-            return False
-
-        if success:
-            test_plugin = self._check_plugin(new_plugin_file)
-            if test_plugin:
-                self._move_old_plugins()
-                logger.info(f"Installed: {plugin_details.name} {latest_version.latest} to {self.plugin_dir}")
-                return True
-
-            self._remove_plugin(new_plugin_file)
-
-        return False
-
     def _download_plugin_manifest(self, url: str) -> PluginReleases | None:
         latest = self._manifest_request(url)
 
@@ -322,7 +345,7 @@ class PluginUpdateManager:
 
         return None
 
-    def _download_plugin(self, url: str, name: str = "") -> tuple[bool, Path]:
+    def _download_plugin(self, url: str, name: str = "") -> tuple[bool, Path | None]:
         response = requests.get(url)
 
         if response.status_code == 200:
@@ -334,7 +357,7 @@ class PluginUpdateManager:
                 finally:
                     if not (name.endswith(".whl") or name.endswith(".zip")):
                         logger.error("Ignoring download, unexpected or unknown file extension: %s", name)
-                        return False, Path()
+                        return False, None
 
             filepath = self.plugin_download_dir.joinpath(name)
 
@@ -343,32 +366,9 @@ class PluginUpdateManager:
                     file.write(response.content)
                     return True, filepath
             except Exception as e:
-                logger.exception("Failed to save plugin download file: %s. Error: %s", filepath, e)
+                logger.error("Failed to save plugin download file: %s. Error: %s", filepath, e)
 
-        return False, Path()
-
-    def _move_old_plugins(self) -> None:
-        old_dir = self.plugin_dir.joinpath("old")
-        self._check_create_dir(old_dir)
-        # Update local plugins first
-        self._find_local_plugins()
-
-        for key, item in self.plugin_files.items():
-            if len(item) > 1:
-                for i, (version, filename) in enumerate(item):
-                    # First filename should be latest version to keep
-                    if i > 0:
-                        self._move_plugin(filename, old_dir.joinpath(filename.name))
-
-    def _remove_plugin(self, file: Path) -> None:
-        filepath = self.plugin_dir.joinpath(file)
-        # Don't want to be nuking dirs by mistake
-        if filepath.is_file():
-            try:
-                os.remove(filepath)
-                logger.info(f"Removed old plugin file: {filepath}")
-            except Exception as e:
-                logger.exception(f"Failed to remove old plugin file: {filepath}. Error: {e}")
+        return False, None
 
     def _manifest_request(self, url: str) -> str | None:
         try:
@@ -377,6 +377,6 @@ class PluginUpdateManager:
                 return resp.text
             logger.error("Failed to download manifest file: %s", url)
         except requests.exceptions.RequestException as e:
-            logger.debug(f"Request error for {url}: {e}")
+            logger.error(f"Request error for {url}: {e}")
 
         return None
