@@ -92,8 +92,9 @@ class PluginUpdateManager:
         self._read_plugin_list()
         self._find_local_plugins()
 
-    def list_available_updates(self) -> None:
+    def cli_list_available_updates(self) -> None:
         """CLI method to list available updates of installed plugins"""
+        print("Checking for updates...")  # noqa: T201
         available_updates: list[tuple[Plugin, str]] = self._check_for_all_updates()
         if available_updates:
             print("Available Update(s):")  # noqa: T201
@@ -101,8 +102,17 @@ class PluginUpdateManager:
         else:
             print("No updates available")  # noqa: T201
 
-    def update_all_plugins(self) -> None:
+    def cli_update_all_plugins(self) -> None:
+        print("Checking for updates...")  # noqa: T201
+        result: list[str] = self.update_all_plugins()
+        if result:
+            print("Updated:", ", ".join(result))  # noqa: T201
+        else:
+            print("No updates found.")  # noqa: T201
+
+    def update_all_plugins(self) -> list[str]:
         available_updates: list[tuple[Plugin, str]] = self._check_for_all_updates()
+        update_list: list[str] = []
         if available_updates:
             for update, download_url in available_updates:
                 test_plugin = False
@@ -110,6 +120,7 @@ class PluginUpdateManager:
                 if success:
                     test_plugin = self._check_new_plugin(new_plugin_file)  # type: ignore[arg-type]
                 if success and test_plugin:
+                    update_list.append(update.name)
                     logger.info(f"Updated remote plugin {update.name}")
                 else:
                     logger.error("Failed to download plugin or failed loading, see above for details")
@@ -117,12 +128,14 @@ class PluginUpdateManager:
             self._clean_download_dir()
             self._move_old_plugins()
 
+        return update_list
+
     def cli_install_by_id(self, plugin_id: str) -> None:
         """CLI method to install remote plugin by manifest ID"""
         if self.install_by_id(plugin_id):
-            print("Installed: %s", plugin_id)  # noqa: T201
+            print("Installed plugin:", plugin_id)  # noqa: T201
         else:
-            print("Failed to install plugin ID %s, see log for details.", plugin_id)  # noqa: T201
+            print(f"Failed to install plugin ID {plugin_id}, see log for details.")  # noqa: T201
 
     def install_by_id(self, plugin_id: str = "") -> bool:
         """Install a plugin by its manifest ID"""
@@ -185,14 +198,17 @@ class PluginUpdateManager:
                 return True
             except FileNotFoundError:
                 logger.error("Failed to create directory, parent directory of %s not found!", dir_path)
+                return False
             except Exception as e:
                 logger.error("Failed to create directory. Error: %s", e)
+                return False
 
-        return False
+        return True
 
     def _clean_download_dir(self) -> None:
-        for file in os.listdir(self.plugin_download_dir):
-            if Path(file).is_file():
+        for _file in os.listdir(self.plugin_download_dir):
+            file = self.plugin_download_dir.joinpath(_file)
+            if file.is_file():
                 try:
                     os.remove(file)
                 except Exception as e:
