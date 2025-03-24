@@ -82,15 +82,14 @@ class PluginReleases:
 
 
 class PluginUpdateManager:
-    def __init__(self, config: ct_ns):
+    def __init__(self, local_plugins: plugin_finder.Plugins, config: ct_ns):
         self.config = config
         self.plugin_dir: Path = Path(self.config.Runtime_Options__config.user_plugin_dir)
         self.plugin_download_dir: Path = Path(self.config.Runtime_Options__config.user_plugin_dir.joinpath("downloads"))
         self._check_create_dir(self.plugin_download_dir)
-        self.plugin_files: dict[str, list[tuple[Version, Path]]] = {}
         self.remote_plugin_list: list[Plugin] = []
         self._read_plugin_list()
-        self._find_local_plugins()
+        self.plugins_dict: dict[str, list[tuple[Version, Path]]] = self.create_plugins_dict(local_plugins)
 
     def cli_list_available_updates(self) -> None:
         """CLI method to list available updates of installed plugins"""
@@ -243,9 +242,9 @@ class PluginUpdateManager:
         old_dir = self.plugin_dir.joinpath("old")
         if self._check_create_dir(old_dir):
             # Update local plugins first
-            self._find_local_plugins()
+            self.create_plugins_dict(plugin_finder.find_plugins(self.plugin_dir))
 
-            for item in self.plugin_files.values():
+            for item in self.plugins_dict.values():
                 if len(item) > 1:
                     for i, (version, filename) in enumerate(item):
                         # First filename should be latest version to keep
@@ -274,9 +273,7 @@ class PluginUpdateManager:
 
         return False
 
-    def _find_local_plugins(self) -> None:
-        local_plugins = plugin_finder.find_plugins(self.plugin_dir)
-
+    def create_plugins_dict(self, local_plugins: plugin_finder.Plugins) -> dict[str, list[tuple[Version, Path]]]:
         # Create a deduped dict with each sorted by Version number
         plugins_dict: dict[str, list[tuple[Version, Path]]] = {}
 
@@ -320,9 +317,7 @@ class PluginUpdateManager:
                                 )
                             )
 
-        self.plugin_files = {
-            key: sorted(value, key=lambda x: x[0], reverse=True) for key, value in plugins_dict.items()
-        }
+        return {key: sorted(value, key=lambda x: x[0], reverse=True) for key, value in plugins_dict.items()}
 
     def _read_plugin_list(self) -> None:
         try:
@@ -334,7 +329,7 @@ class PluginUpdateManager:
 
     def _check_for_all_updates(self) -> list[tuple[Plugin, str]]:
         available_updates: list[tuple[Plugin, str]] = []
-        for k, item in self.plugin_files.items():
+        for k, item in self.plugins_dict.items():
             for r_plugin in self.remote_plugin_list:
                 if k == r_plugin.plugin_id:
                     url = self._check_for_update(r_plugin.manifest, item[0][0])  # Sorted, item[0] should be latest

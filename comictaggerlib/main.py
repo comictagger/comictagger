@@ -124,16 +124,16 @@ class App:
         self.main()
 
     def load_plugins(self, opts: argparse.Namespace) -> None:
-        local_plugins = plugin_finder.find_plugins(opts.config.user_plugin_dir)
+        self.local_plugins = plugin_finder.find_plugins(opts.config.user_plugin_dir)
 
-        comicapi.comicarchive.load_archive_plugins(local_plugins=[p.obj for p in local_plugins.archivers])
-        comicapi.comicarchive.load_tag_plugins(version=version, local_plugins=[p.obj for p in local_plugins.tags])
+        comicapi.comicarchive.load_archive_plugins(local_plugins=[p.obj for p in self.local_plugins.archivers])
+        comicapi.comicarchive.load_tag_plugins(version=version, local_plugins=[p.obj for p in self.local_plugins.tags])
         self.talkers = comictalker.get_talkers(
-            version, opts.config.user_cache_dir, local_plugins=[p.obj for p in local_plugins.talkers]
+            version, opts.config.user_cache_dir, local_plugins=[p.obj for p in self.local_plugins.talkers]
         )
 
     def list_remote_plugins(self) -> None:
-        pum = comictaggerlib.plugin_update_manager.PluginUpdateManager(self.config[0])
+        pum = comictaggerlib.plugin_update_manager.PluginUpdateManager(self.local_plugins, self.config[0])
         for r_plugin in pum.remote_plugin_list:
             print(  # noqa: T201
                 "Name: " + r_plugin.name + "\n"
@@ -286,17 +286,17 @@ class App:
             return
 
         if self.config[0].Commands__command == Action.list_remote_plugin_updates:
-            pum = comictaggerlib.plugin_update_manager.PluginUpdateManager(self.config[0])
+            pum = comictaggerlib.plugin_update_manager.PluginUpdateManager(self.local_plugins, self.config[0])
             pum.cli_list_available_updates()
             return
 
         if self.config[0].Commands__command == Action.update_remote_plugins:
-            pum = comictaggerlib.plugin_update_manager.PluginUpdateManager(self.config[0])
+            pum = comictaggerlib.plugin_update_manager.PluginUpdateManager(self.local_plugins, self.config[0])
             pum.cli_update_all_plugins()
             return
 
         if self.config[0].Commands__command == Action.install_remote_plugin:
-            pum = comictaggerlib.plugin_update_manager.PluginUpdateManager(self.config[0])
+            pum = comictaggerlib.plugin_update_manager.PluginUpdateManager(self.local_plugins, self.config[0])
             pum.cli_install_by_id(self.config[0].Commands__install_remote_plugin)
             return
 
