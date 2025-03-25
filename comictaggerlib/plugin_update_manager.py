@@ -17,7 +17,6 @@
 from __future__ import annotations
 
 import logging
-import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TextIO, cast
@@ -191,25 +190,26 @@ class PluginUpdateManager:
             return None
 
     def _check_create_dir(self, dir_path: str | Path) -> bool:
-        if not os.path.exists(dir_path):
-            try:
-                os.mkdir(dir_path)
-                return True
-            except FileNotFoundError:
-                logger.error("Failed to create directory, parent directory of %s not found!", dir_path)
-                return False
-            except Exception as e:
-                logger.error("Failed to create directory. Error: %s", e)
-                return False
+        dir_path = Path(dir_path)
+
+        try:
+            dir_path.mkdir(parents=True, exist_ok=True)
+            return True
+        except FileExistsError:
+            logger.error("Failed to create directory, file exists with directory name: %s", dir_path)
+            return False
+        except Exception as e:
+            logger.error("Failed to create directory. Error: %s", e)
+            return False
 
         return True
 
     def _clean_download_dir(self) -> None:
-        for _file in os.listdir(self.plugin_download_dir):
+        for _file in self.plugin_download_dir.iterdir():
             file = self.plugin_download_dir.joinpath(_file)
             if file.is_file():
                 try:
-                    os.remove(file)
+                    file.unlink(missing_ok=True)
                 except Exception as e:
                     logger.warning("Failed to remove %s. Error: %s", file, e)
 
@@ -222,12 +222,9 @@ class PluginUpdateManager:
         new_loc = Path(new_loc)
 
         try:
-            # Windows will error if file exists
-            os.remove(new_loc)
-        except FileNotFoundError:
-            pass
-        except OSError:
-            logger.error("Failed to remove %s, expected file but got a directory", new_loc)
+            new_loc.unlink(missing_ok=True)
+        except Exception as e:
+            logger.error("Failed to remove %s. Error: %s", new_loc, e)
             return False
 
         try:
@@ -256,7 +253,7 @@ class PluginUpdateManager:
         # Don't want to be nuking dirs by mistake
         if filepath.is_file():
             try:
-                os.remove(filepath)
+                filepath.unlink(missing_ok=True)
                 logger.info(f"Removed plugin file: {filepath}")
             except Exception as e:
                 logger.error(f"Failed to remove plugin file: {filepath}. Error: {e}")
