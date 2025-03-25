@@ -90,44 +90,6 @@ class PluginUpdateManager:
         self._read_plugin_list()
         self.plugins_dict: dict[str, list[tuple[Version, Path]]] = self.create_plugins_dict(local_plugins)
 
-    def cli_list_available_updates(self) -> None:
-        """CLI method to list available updates of installed plugins"""
-        print("Checking for updates...")  # noqa: T201
-        available_updates: list[tuple[Plugin, str]] = self._check_for_all_updates()
-        if available_updates:
-            print("Available Update(s):")  # noqa: T201
-            [print(item[0].name) for item in available_updates]  # noqa: T201
-        else:
-            print("No updates available")  # noqa: T201
-
-    def cli_update_all_plugins(self) -> None:
-        print("Checking for updates...")  # noqa: T201
-        result: list[str] = self.update_all_plugins()
-        if result:
-            print("Updated:", ", ".join(result))  # noqa: T201
-        else:
-            print("No updates found.")  # noqa: T201
-
-    def update_all_plugins(self) -> list[str]:
-        available_updates: list[tuple[Plugin, str]] = self._check_for_all_updates()
-        update_list: list[str] = []
-        if available_updates:
-            for update, download_url in available_updates:
-                test_plugin = False
-                success, new_plugin_file = self._download_plugin(download_url)
-                if success:
-                    test_plugin = self._check_new_plugin(new_plugin_file)  # type: ignore[arg-type]
-                if success and test_plugin:
-                    update_list.append(update.name)
-                    logger.info(f"Updated remote plugin {update.name}")
-                else:
-                    logger.error("Failed to download plugin or failed loading, see above for details")
-
-            self._clean_download_dir()
-            self._move_old_plugins()
-
-        return update_list
-
     def cli_install_by_id(self, plugin_id: str) -> None:
         """CLI method to install remote plugin by manifest ID"""
         if self.install_by_id(plugin_id):
@@ -323,27 +285,6 @@ class PluginUpdateManager:
                 self.remote_plugin_list = Plugin.load_yaml(f)
         except Exception as e:
             logger.error("Failed to load plugin_list.yaml: %s", e)
-
-    def _check_for_all_updates(self) -> list[tuple[Plugin, str]]:
-        available_updates: list[tuple[Plugin, str]] = []
-        for k, item in self.plugins_dict.items():
-            for r_plugin in self.remote_plugin_list:
-                if k == r_plugin.plugin_id:
-                    url = self._check_for_update(r_plugin.manifest, item[0][0])  # Sorted, item[0] should be latest
-                    if url is not None:
-                        available_updates.append((r_plugin, url))
-                    break
-
-        return available_updates
-
-    def _check_for_update(self, url: str, installed_version: Version) -> str | None:
-        latest = self._download_plugin_manifest(url)
-        if latest is not None:
-            for download in latest.downloads:
-                if self._parse_version(download.version) > installed_version:
-                    return download.url
-
-        return None
 
     def _download_plugin_manifest(self, url: str) -> PluginReleases | None:
         latest = self._manifest_request(url)
