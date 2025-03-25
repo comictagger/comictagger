@@ -44,7 +44,7 @@ class Plugin:
     manifest: str
 
     @staticmethod
-    def load(data: str | TextIO) -> list[Plugin]:
+    def load_yaml(data: str | TextIO) -> list[Plugin]:
         try:
             return [Plugin(**entry) for entry in yaml.safe_load(data)]
         except yaml.YAMLError as e:
@@ -67,7 +67,7 @@ class PluginReleases:
     downloads: list[Download]
 
     @staticmethod
-    def load(data: str | TextIO) -> PluginReleases | None:
+    def load_yaml(data: str | TextIO) -> PluginReleases | None:
         try:
             yaml_data = yaml.safe_load(data)
             downloads: list[Download] = [Download(**entry) for entry in yaml_data.get("downloads", [])]
@@ -320,7 +320,7 @@ class PluginUpdateManager:
         try:
             plugin_list_file = cast(Path, comictaggerlib.plugin_manifest.data_path.joinpath("plugin_list.yaml"))
             with open(plugin_list_file, encoding="utf-8") as f:
-                self.remote_plugin_list = Plugin.load(f)
+                self.remote_plugin_list = Plugin.load_yaml(f)
         except Exception as e:
             logger.error("Failed to load plugin_list.yaml: %s", e)
 
@@ -349,7 +349,7 @@ class PluginUpdateManager:
         latest = self._manifest_request(url)
 
         if latest is not None:
-            return PluginReleases.load(latest)
+            return PluginReleases.load_yaml(latest)
 
         return None
 
