@@ -248,34 +248,6 @@ class PluginUpdateManager:
                         else:
                             plugins_dict[plugin.entry_name].append((version, plugin[0].path))
 
-                    # Check and update manifest URL or add manually installed plugin to remote plugin list
-                    if hasattr(plugin.obj, "manifest"):
-                        add_to_list = True
-
-                        for r_plugin in self.remote_plugin_list:
-                            # As archivers don't have an ID, use entry_name
-                            if k == "archivers":
-                                plugin.obj.id = plugin.entry_name
-
-                            if r_plugin.plugin_id == plugin.obj.id:
-                                add_to_list = False
-                                if plugin.obj.manifest and r_plugin.manifest != plugin.obj.manifest:
-                                    # Supersede remote list manifest with plugin class value
-                                    r_plugin.manifest = plugin.obj.manifest
-                                    break
-
-                        # Not in current remote plugin list, add it
-                        if add_to_list:
-                            self.remote_plugin_list.append(
-                                Plugin(
-                                    plugin_id=plugin.entry_name,
-                                    name=plugin.entry_name,
-                                    type=k.capitalize(),
-                                    desc="Manually installed plugin",
-                                    manifest=plugin.obj.manifest,
-                                )
-                            )
-
         return {key: sorted(value, key=lambda x: x[0], reverse=True) for key, value in plugins_dict.items()}
 
     def _read_plugin_list(self) -> None:
