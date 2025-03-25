@@ -261,24 +261,6 @@ def register_commands(parser: settngs.Manager) -> None:
         file=False,
     )
     parser.add_setting(
-        "--list-remote-plugin-updates",
-        dest="command",
-        action="store_const",
-        const=Action.list_remote_plugin_updates,
-        default=Action.gui,
-        help="List the available remote plugins available for update.\n\n",
-        file=False,
-    )
-    parser.add_setting(
-        "--update-remote-plugins",
-        dest="command",
-        action="store_const",
-        const=Action.update_remote_plugins,
-        default=Action.gui,
-        help="Update all installed remote plugins.\n\n",
-        file=False,
-    )
-    parser.add_setting(
         "--install-remote-plugin",
         default="",
         help="Install (or update) a remote plugin via its ID, eg. 'metronxml'. Use --list-remote-plugins for list.\n\n",

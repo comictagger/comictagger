@@ -40,8 +40,6 @@ class Action(utils.StrEnum):
     save_config = auto()
     list_plugins = auto()
     list_remote_plugins = auto()
-    list_remote_plugin_updates = auto()
-    update_remote_plugins = auto()
     install_remote_plugin = auto()
 
 

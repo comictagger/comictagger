@@ -285,16 +285,6 @@ class App:
             self.list_remote_plugins()
             return
 
-        if self.config[0].Commands__command == Action.list_remote_plugin_updates:
-            pum = comictaggerlib.plugin_update_manager.PluginUpdateManager(self.local_plugins, self.config[0])
-            pum.cli_list_available_updates()
-            return
-
-        if self.config[0].Commands__command == Action.update_remote_plugins:
-            pum = comictaggerlib.plugin_update_manager.PluginUpdateManager(self.local_plugins, self.config[0])
-            pum.cli_update_all_plugins()
-            return
-
         if self.config[0].Commands__command == Action.install_remote_plugin:
             pum = comictaggerlib.plugin_update_manager.PluginUpdateManager(self.local_plugins, self.config[0])
             pum.cli_install_by_id(self.config[0].Commands__install_remote_plugin)
