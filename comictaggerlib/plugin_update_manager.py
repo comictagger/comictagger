@@ -83,6 +83,7 @@ class PluginReleases:
 class PluginUpdateManager:
     def __init__(self, local_plugins: plugin_finder.Plugins, config: ct_ns):
         self.config = config
+        self.local_plugins = local_plugins
         self.plugin_dir: Path = Path(self.config.Runtime_Options__config.user_plugin_dir)
         self.plugin_download_dir: Path = Path(self.config.Runtime_Options__config.user_plugin_dir.joinpath("downloads"))
         self._check_create_dir(self.plugin_download_dir)
@@ -112,6 +113,7 @@ class PluginUpdateManager:
         for item in self.remote_plugin_list:
             if item.plugin_id == plugin_id:
                 plugin_details = item
+                break
 
         if plugin_details is None:
             logger.warning(f"No plugin with ID '{plugin_id}' found. Use --list-remote-plugins for available plugins.")
@@ -130,13 +132,13 @@ class PluginUpdateManager:
                     break
         else:
             logger.error("No 'latest' found in download manifest: %s", plugin_details.manifest)
-            logger.error(f"Failed to install plugin with ID '{plugin_id}', see log for details")
             return False
 
         if success:
             test_plugin = self._check_new_plugin(new_plugin_file)  # type: ignore[arg-type]
             if test_plugin:
                 self._move_old_plugins()
+                self._clean_download_dir()
                 logger.info(f"Installed: {plugin_details.name} {latest_version.latest} to {self.plugin_dir}")
                 return True
 
@@ -164,8 +166,6 @@ class PluginUpdateManager:
             logger.error("Failed to create directory. Error: %s", e)
             return False
 
-        return True
-
     def _clean_download_dir(self) -> None:
         for _file in self.plugin_download_dir.iterdir():
             file = self.plugin_download_dir.joinpath(_file)
@@ -183,6 +183,7 @@ class PluginUpdateManager:
         old_loc = Path(old_loc)
         new_loc = Path(new_loc)
 
+        # *nix will replace files while Windows will not. Attempt to remove the file first for consistency of behaviour
         try:
             new_loc.unlink(missing_ok=True)
         except Exception as e:
@@ -209,16 +210,6 @@ class PluginUpdateManager:
                         # First filename should be latest version to keep
                         if i > 0:
                             self._move_plugin(filename, old_dir.joinpath(filename.name))
-
-    def _remove_plugin(self, file: Path) -> None:
-        filepath = file  # self.plugin_dir.joinpath(file)
-        # Don't want to be nuking dirs by mistake
-        if filepath.is_file():
-            try:
-                filepath.unlink(missing_ok=True)
-                logger.info(f"Removed plugin file: {filepath}")
-            except Exception as e:
-                logger.error(f"Failed to remove plugin file: {filepath}. Error: {e}")
 
     def _check_new_plugin(self, plugin_path: Path) -> bool:
         # Load newly downloaded plugins
@@ -266,19 +257,21 @@ class PluginUpdateManager:
 
         return None
 
-    def _download_plugin(self, url: str, name: str = "") -> tuple[bool, Path | None]:
+    def _download_plugin(self, url: str) -> tuple[bool, Path | None]:
         response = requests.get(url)
 
         if response.status_code == 200:
-            if not name:
-                try:
-                    name = response.headers["content-disposition"].split("=")[1]
-                except Exception:
-                    name = url.rsplit("/", 1)[1]
-                finally:
-                    if not (name.endswith(".whl") or name.endswith(".zip")):
-                        logger.error("Ignoring download, unexpected or unknown file extension: %s", name)
-                        return False, None
+            name: str = ""
+
+            # Get the file name from the request or URL
+            try:
+                name = response.headers["content-disposition"].split("=")[1]
+            except Exception:
+                name = url.rsplit("/", 1)[1]
+            finally:
+                if not (name.endswith(".whl") or name.endswith(".zip")):
+                    logger.error("Ignoring download, unexpected or unknown file extension: %s", name)
+                    return False, None
 
             filepath = self.plugin_download_dir.joinpath(name)
 

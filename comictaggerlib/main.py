@@ -112,6 +112,7 @@ class App:
         self.initial_arg_parser = ctsettings.initial_commandline_parser()
         self.config_load_success = False
         self.talkers: dict[str, ComicTalker]
+        self.local_plugins: plugin_finder.Plugins
 
     def run(self) -> None:
         configure_locale()

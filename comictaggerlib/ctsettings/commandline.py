@@ -309,8 +309,6 @@ def validate_commandline_settings(config: settngs.Config[ct_ns], parser: settngs
             Action.save_config,
             Action.list_plugins,
             Action.list_remote_plugins,
-            Action.list_remote_plugin_updates,
-            Action.update_remote_plugins,
         ):
             parser.exit(message="Command requires at least one filename!\n", status=1)
 
