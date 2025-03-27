@@ -83,7 +83,6 @@ class PluginReleases:
 class PluginUpdateManager:
     def __init__(self, local_plugins: plugin_finder.Plugins, config: ct_ns):
         self.config = config
-        self.local_plugins = local_plugins
         self.plugin_dir: Path = Path(self.config.Runtime_Options__config.user_plugin_dir)
         self.plugin_download_dir: Path = Path(self.config.Runtime_Options__config.user_plugin_dir.joinpath("downloads"))
         self._check_create_dir(self.plugin_download_dir)
