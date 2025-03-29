@@ -179,6 +179,10 @@ def _classify_plugins(plugins: list[LoadedPlugin]) -> Plugins:
         else:
             logger.warning(NotImplementedError(f"what plugin type? {p}"))
 
+    talkers.sort(key=lambda x: x.plugin.version)
+    tags.sort(key=lambda x: x.plugin.version)
+    archivers.sort(key=lambda x: x.plugin.version)
+
     return Plugins(
         tags=tags,
         archivers=archivers,
