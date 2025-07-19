@@ -2,34 +2,34 @@ from __future__ import annotations
 
 import pathlib
 from collections.abc import Collection
-from typing import Protocol, runtime_checkable
+from typing import ClassVar, Protocol, runtime_checkable
 
 
 @runtime_checkable
 class Archiver(Protocol):
     """Archiver Protocol"""
 
-    """The path to the archive"""
     path: pathlib.Path
+    """The path to the archive"""
 
+    exe: ClassVar[str] = ""
     """
     The name of the executable used for this archiver. This should be the base name of the executable.
     For example if 'rar.exe' is needed this should be "rar".
     If an executable is not used this should be the empty string.
     """
-    exe: str = ""
 
+    enabled: ClassVar[bool] = True
     """
     Whether or not this archiver is enabled.
     If external imports are required and are not available this should be false. See rar.py and sevenzip.py.
     """
-    enabled: bool = True
 
+    hashable: bool = True
     """
     If self.path is a single file that can be hashed.
     For example directories cannot be hashed.
     """
-    hashable: bool = True
 
     supported_extensions: Collection[str] = set()
 
@@ -39,21 +39,21 @@ class Archiver(Protocol):
     def get_comment(self) -> str:
         """
         Returns the comment from the current archive as a string.
-        Should always return a string. If comments are not supported in the archive the empty string should be returned.
+        If comments are not supported in the archive the empty string should be returned.
         """
-        return ""
+        raise NotImplementedError
 
-    def set_comment(self, comment: str) -> bool:
+    def set_comment(self, comment: str) -> None:
         """
-        Returns True if the comment was successfully set on the current archive.
-        Should always return a boolean. If comments are not supported in the archive False should be returned.
+        Should raise an exception if a comment cannot be set
         """
-        return False
+        raise NotImplementedError
 
     def supports_comment(self) -> bool:
         """
         Returns True if the current archive supports comments.
-        Should always return a boolean. If comments are not supported in the archive False should be returned.
+        Should always return a boolean.
+        MUST NOT cause an exception.
         """
         return False
 
@@ -65,63 +65,59 @@ class Archiver(Protocol):
         """
         raise NotImplementedError
 
-    def remove_file(self, archive_file: str) -> bool:
+    def remove_file(self, archive_file: str) -> None:
         """
         Removes the named file from the current archive.
-        archive_file should always come from the output of get_filename_list.
-        Should always return a boolean. Failures should return False.
+        archive_file will always come from the output of get_filename_list.
 
         Rebuilding the archive without the named file is a standard way to remove a file.
         """
-        return False
+        raise NotImplementedError
 
-    def write_file(self, archive_file: str, data: bytes) -> bool:
+    def write_file(self, archive_file: str, data: bytes) -> None:
         """
         Writes the named file to the current archive.
-        Should always return a boolean. Failures should return False.
         """
-        return False
+        raise NotImplementedError
 
     def get_filename_list(self) -> list[str]:
         """
         Returns a list of filenames in the current archive.
-        Should always return a list of string. Failures should return an empty list.
+        Should always return a list of string.
         """
-        return []
+        raise NotImplementedError
 
     def supports_files(self) -> bool:
         """
         Returns True if the current archive supports arbitrary non-picture files.
         Should always return a boolean.
-        If arbitrary non-picture files are not supported in the archive False should be returned.
+        MUST NOT cause an exception.
         """
-        return False
+        raise NotImplementedError
 
-    def copy_from_archive(self, other_archive: Archiver) -> bool:
+    def copy_from_archive(self, other_archive: Archiver) -> None:
         """
         Copies the contents of another achive to the current archive.
-        Should always return a boolean. Failures should return False.
         """
-        return False
+        raise NotImplementedError
 
     def is_writable(self) -> bool:
         """
         Retuns True if the current archive is writeable
-        Should always return a boolean. Failures should return False.
         """
-        return False
+        raise NotImplementedError
 
     def extension(self) -> str:
         """
         Returns the extension that this archiver should use eg ".cbz".
-        Should always return a string. Failures should return the empty string.
+        MUST NOT cause an exception.
         """
         return ""
 
     def name(self) -> str:
         """
         Returns the name of this archiver for display purposes eg "CBZ".
-        Should always return a string. Failures should return the empty string.
+        MUST NOT cause an exception.
         """
         return ""
 
@@ -130,6 +126,7 @@ class Archiver(Protocol):
         """
         Returns True if the given path can be opened by this archiver.
         Should always return a boolean. Failures should return False.
+        MUST NOT cause an exception.
         """
         return False
 
@@ -138,8 +135,10 @@ class Archiver(Protocol):
         """
         Opens the given archive.
         Should always return a an Archver.
-        Should never cause an exception no file operations should take place in this method,
         is_valid will always be called before open.
+        Should validate that file can be opened.
+        NOTE: is_7zfile from py7zr does not validate that py7zr can open the file
+        MUST not keep file open.
         """
         archiver = cls()
         archiver.path = path
