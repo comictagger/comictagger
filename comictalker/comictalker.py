@@ -168,6 +168,20 @@ class ComicTalker:
         """
         raise NotImplementedError
 
+    def download_file(self, settings: dict[str, Any], cache_path: pathlib.Path) -> tuple[str, bool]:
+        """
+        This function should return (msg, True) if the given download is successful,
+        where msg is a message to display to the user.
+
+        This function should return (msg, False) if the given download fails,
+        where msg is a message to display to the user.
+
+        Any files will be saved to the users' set cache directory.
+
+        If a username and password widget are present, the details will in available in 'settings'.
+        """
+        raise NotImplementedError
+
     def search_for_series(
         self,
         series_name: str,

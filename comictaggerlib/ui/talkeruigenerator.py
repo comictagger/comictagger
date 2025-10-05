@@ -195,6 +195,40 @@ def generate_path_textbox(option: settngs.Setting, layout: QtWidgets.QGridLayout
     return widget
 
 
+def generate_download_textbox(
+    talker: ComicTalker,
+    widgets: TalkerTab,
+    option: settngs.Setting,
+    cache_path: Path,
+    layout: QtWidgets.QGridLayout,
+    definitions: settngs.Definitions,
+) -> QtWidgets.QLabel:
+    # *args enforces keyword arguments and allows position arguments to be ignored
+    def call_download(
+        *args: Any, tab: TalkerTab, talker: ComicTalker, cache_path: Path, definitions: settngs.Definitions
+    ) -> None:
+        check_text, check_bool = talker.download_file(
+            get_config_from_tab(tab, definitions[group_for_plugin(talker)]), cache_path
+        )
+        if check_bool:
+            return qtutils.information(tab.tab, "Download Success", check_text)
+
+        qtutils.warning(tab.tab, "Download Failed", check_text)
+
+    row = layout.rowCount()
+    widget = QtWidgets.QLabel(option.display_name)
+    widget.setToolTip(option.help)
+    layout.addWidget(widget, row, 0)
+
+    browse_button = QtWidgets.QPushButton("Download")
+    browse_button.clicked.connect(
+        partial(call_download, tab=widgets, talker=talker, cache_path=cache_path, definitions=definitions)
+    )
+    layout.addWidget(browse_button, row, 1)
+
+    return widget
+
+
 def generate_talker_info(talker: ComicTalker, config: settngs.Config[ct_ns], layout: QtWidgets.QGridLayout) -> None:
     row = layout.rowCount()
 
@@ -427,6 +461,15 @@ def generate_source_option_tabs(
                 # It ends with a password we hide it by default
                 elif option.setting_name.casefold().endswith("password"):
                     current_widget = generate_password_textbox(option, layout_grid)
+                elif option.setting_name.casefold().endswith("download"):
+                    current_widget = generate_download_textbox(
+                        talker,
+                        tab,
+                        option,
+                        config.values.Runtime_Options__config.user_cache_dir,
+                        layout_grid,
+                        config.definitions,
+                    )
                 else:
                     # Default to a text box
                     current_widget = generate_textbox(option, layout_grid)
