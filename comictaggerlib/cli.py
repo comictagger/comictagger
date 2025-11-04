@@ -147,8 +147,10 @@ class CLI:
         if not self.config.Runtime_Options__dryrun:
             for tag_id in self.config.Runtime_Options__tags_write:
                 # write out the new data
-                if not ca.write_tags(md, tag_id):
-                    logger.error("The tag save seemed to fail for: %s!", tags[tag_id].name())
+                try:
+                    ca.write_tags(md, tag_id)
+                except Exception:
+                    # Error is already displayed in the log
                     return False
 
             self.output("Save complete.")
@@ -354,19 +356,21 @@ class CLI:
     def delete_tags(self, ca: ComicArchive, tag_id: str) -> Status:
         tag_name = tags[tag_id].name()
 
-        if ca.has_tags(tag_id):
-            if not self.config.Runtime_Options__dryrun:
-                if ca.remove_tags(tag_id):
-                    self.output(f"{ca.path}: Removed {tag_name} tags.")
-                    return Status.success
-                else:
-                    self.output(f"{ca.path}: Tag removal seemed to fail!")
-                    return Status.write_failure
-            else:
-                self.output(f"{ca.path}: dry-run. {tag_name} tags not removed")
-                return Status.success
-        self.output(f"{ca.path}: This archive doesn't have {tag_name} tags to remove.")
-        return Status.success
+        if not ca.has_tags(tag_id):
+            self.output(f"{ca.path}: This archive doesn't have {tag_name} tags to remove.")
+            return Status.success
+        if self.config.Runtime_Options__dryrun:
+            self.output(f"{ca.path}: dry-run. {tag_name} tags would be removed")
+            return Status.success
+
+        try:
+            ca.remove_tags(tag_id)
+            self.output(f"{ca.path}: Removed {tag_name} tags.")
+            return Status.success
+        except Exception:
+            self.output(f"{ca.path}: Tag removal seemed to fail!")
+
+        return Status.write_failure
 
     def delete(self, ca: ComicArchive) -> Result:
         res = Result(Action.delete, Status.success, ca.path)
@@ -388,18 +392,21 @@ class CLI:
             self.output(f"{ca.path}: Destination and source are same: {dst_tag_name}. Nothing to do.")
             return Status.existing_tags
 
-        if not self.config.Runtime_Options__dryrun:
-            if self.config.Metadata_Options__apply_transform_on_bulk_operation and dst_tag_id == "cbi":
-                md = CBLTransformer(md, self.config).apply()
-
-            if ca.write_tags(md, dst_tag_id):
-                self.output(f"{ca.path}: Copied {source_names} tags to {dst_tag_name}.")
-            else:
-                self.output(f"{ca.path}: Tag copy seemed to fail!")
-                return Status.write_failure
-        else:
+        if self.config.Runtime_Options__dryrun:
             self.output(f"{ca.path}: dry-run.  {source_names} tags not copied")
-        return Status.success
+            return Status.success
+
+        if self.config.Metadata_Options__apply_transform_on_bulk_operation and dst_tag_id == "cbi":
+            md = CBLTransformer(md, self.config).apply()
+
+        try:
+            ca.write_tags(md, dst_tag_id)
+            self.output(f"{ca.path}: Copied {source_names} tags to {dst_tag_name}.")
+            return Status.success
+        except Exception:
+            self.output(f"{ca.path}: Tag copy seemed to fail!")
+
+        return Status.write_failure
 
     def copy(self, ca: ComicArchive) -> Result:
         res = Result(Action.copy, Status.success, ca.path)
@@ -644,24 +651,24 @@ class CLI:
 
         delete_success = False
         export_success = False
-        if not self.config.Runtime_Options__dryrun:
-            if ca.export_as_zip(new_file):
-                export_success = True
-                if self.config.Runtime_Options__delete_original:
-                    try:
-                        filename_path.unlink(missing_ok=True)
-                        delete_success = True
-                    except OSError:
-                        logger.exception("%sError deleting original archive after export", msg_hdr)
-            else:
-                # last export failed, so remove the zip, if it exists
-                new_file.unlink(missing_ok=True)
-        else:
+        if self.config.Runtime_Options__dryrun:
             msg = msg_hdr + f"Dry-run:  Would try to create {os.path.split(new_file)[1]}"
             if self.config.Runtime_Options__delete_original:
                 msg += " and delete original."
             self.output(msg)
             return Result(Action.export, Status.success, ca.path, new_file)
+
+        try:
+            ca.export_as(new_file)
+            export_success = True
+            if self.config.Runtime_Options__delete_original:
+                try:
+                    filename_path.unlink(missing_ok=False)
+                    delete_success = True
+                except OSError:
+                    logger.exception("%sError deleting original archive after export", msg_hdr)
+        except Exception:
+            new_file.unlink(missing_ok=True)
 
         msg = msg_hdr
         if export_success:

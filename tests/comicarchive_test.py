@@ -4,6 +4,7 @@ import os
 import pathlib
 import platform
 import shutil
+from contextlib import nullcontext as does_not_raise
 
 import pytest
 from importlib_metadata import entry_points
@@ -44,11 +45,13 @@ def test_read_tags(cbz, md_saved):
     assert md == md_saved
 
 
-def test_write_cr(tmp_comic):
+def test_write_cr(tmp_comic_path):
+    tmp_comic = comicapi.comicarchive.ComicArchive(tmp_comic_path)
     md = tmp_comic.read_tags("cr")
     md.apply_default_page_list(tmp_comic.get_page_name_list())
 
-    assert tmp_comic.write_tags(md, "cr")
+    with does_not_raise():
+        tmp_comic.write_tags(md, "cr")
 
     md = tmp_comic.read_tags("cr")
 
@@ -60,7 +63,8 @@ def test_save_cr_rar(tmp_path, md_saved, md):
 
     tmp_comic = comicapi.comicarchive.ComicArchive(tmp_path / cbr_path.name)
     assert tmp_comic.seems_to_be_a_comic_archive()
-    assert tmp_comic.write_tags(md, "cr")
+    with does_not_raise():
+        tmp_comic.write_tags(md, "cr")
 
     new_md = tmp_comic.read_tags("cr")
 
@@ -70,24 +74,27 @@ def test_save_cr_rar(tmp_path, md_saved, md):
     assert new_md == md_saved
 
 
-def test_page_type_write(tmp_comic):
+def test_page_type_write(tmp_comic_path):
+    tmp_comic = comicapi.comicarchive.ComicArchive(tmp_comic_path)
     md = tmp_comic.read_tags("cr")
     t = md.pages[0]
     t.type = ""
 
-    assert tmp_comic.write_tags(md, "cr")
+    with does_not_raise():
+        tmp_comic.write_tags(md, "cr")
 
     md = tmp_comic.read_tags("cr")
 
 
-def test_invalid_zip(tmp_comic: comicapi.comicarchive.ComicArchive, md):
-    with open(tmp_comic.path, mode="b+r") as f:
+def test_invalid_zip(tmp_comic_path, md):
+    with open(tmp_comic_path, mode="b+r") as f:
         # Corrupting the first file only breaks the first file. If it is never read then no exception will be raised
         f.seek(-10, os.SEEK_END)  # seek to a probably bad place in th Central Directory and write some bytes
         f.write(b"PK\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000")
 
-    result = tmp_comic.write_tags(md, "cr")  # This is not the first file
-    assert result
+    tmp_comic = comicapi.comicarchive.ComicArchive(tmp_comic_path)
+    with pytest.raises(OSError, match="^Error listing files in zip archive"):
+        tmp_comic.write_tags(md, "cr")  # This is not the first file
     assert not tmp_comic.seems_to_be_a_comic_archive()  # Calls archiver.is_valid
 
 
@@ -110,7 +117,8 @@ def test_copy_from_archive(archiver, tmp_path, cbz, md_saved):
 
     archive = archiver.open(comic_path)
 
-    assert archive.copy_from_archive(cbz.archiver)
+    with does_not_raise():
+        archive.copy_from_archive(cbz.archiver)
 
     comic_archive = comicapi.comicarchive.ComicArchive(comic_path)
 
@@ -121,7 +129,8 @@ def test_copy_from_archive(archiver, tmp_path, cbz, md_saved):
     assert md == md_saved
 
 
-def test_rename(tmp_comic, tmp_path):
+def test_rename(tmp_comic_path, tmp_path):
+    tmp_comic = comicapi.comicarchive.ComicArchive(tmp_comic_path)
     old_path = tmp_comic.path
     tmp_comic.rename(tmp_path / "test.cbz")
     assert not old_path.exists()
@@ -129,8 +138,9 @@ def test_rename(tmp_comic, tmp_path):
     assert tmp_comic.path != old_path
 
 
-def test_rename_ro_dest(tmp_comic, tmp_path):
-    old_path = tmp_comic.path
+def test_rename_ro_dest(tmp_comic_path, tmp_path):
+    tmp_comic = comicapi.comicarchive.ComicArchive(tmp_comic_path)
+
     dest = tmp_path / "tmp"
     dest.mkdir(mode=0o000)
     with pytest.raises(OSError):
@@ -138,6 +148,6 @@ def test_rename_ro_dest(tmp_comic, tmp_path):
             raise OSError("Windows sucks")
         tmp_comic.rename(dest / "test.cbz")
     dest.chmod(mode=0o777)
-    assert old_path.exists()
+    assert tmp_comic_path.exists()
     assert tmp_comic.path.exists()
-    assert tmp_comic.path == old_path
+    assert tmp_comic.path == tmp_comic_path

@@ -665,7 +665,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
             if export:
                 logger.debug("Exporting %s to %s", ca.path, export_name)
-                if ca.export_as_zip(export_name):
+                try:
+                    ca.export_as_zip(export_name)
                     success_count += 1
                     if export_config.add_to_list:
                         new_archives_to_add.append(str(export_name))
@@ -673,9 +674,10 @@ class TaggerWindow(QtWidgets.QMainWindow):
                         archives_to_remove.append(ca)
                         ca.path.unlink(missing_ok=True)
 
-                else:
+                except Exception as e:
                     # last export failed, so remove the zip, if it exists
                     failed_list.append(ca.path)
+                    failed_list.append(OSError(f"Failed to export {ca.path} to {export_name}: {e}"))
                     if export_name.exists():
                         export_name.unlink(missing_ok=True)
 
@@ -689,9 +691,9 @@ class TaggerWindow(QtWidgets.QMainWindow):
             for f in skipped_list:
                 summary += f"\t{f}\n"
         if failed_list:
-            summary += f"\n\nThe following {len(failed_list)} archive(s) failed to export due to read/write errors:\n"
-            for f in failed_list:
-                summary += f"\t{f}\n"
+            summary += f"\n\nThe following {len(failed_list)} archive(s) failed to export:\n"
+            for ex in failed_list:
+                summary += f"\t{ex}\n"
 
         logger.info(summary)
         dlg = LogWindow(self)
@@ -1783,10 +1785,11 @@ class TaggerWindow(QtWidgets.QMainWindow):
             progdialog.setLabelText(str(ca.path))
             for tag_id in tag_ids:
                 if ca.has_tags(tag_id) and ca.is_writable():
-                    if ca.remove_tags(tag_id):
+                    try:
+                        ca.remove_tags(tag_id)
                         success_count += 1
-                    else:
-                        failed_list.append(ca.path)
+                    except Exception as e:
+                        failed_list.append(OSError(f"Failed to remove {tags[tag_id].name()} from {ca.path}: {e}"))
                         # Abandon any further tag removals to prevent any greater damage to archive
                         break
             ca.reset_cache()
@@ -1801,8 +1804,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
         summary = f"Successfully removed {success_count} tags in archive(s)."
         if failed_list:
             summary += f"\n\nThe remove operation failed in the following {len(failed_list)} archive(s):\n"
-            for f in failed_list:
-                summary += f"\t{f}\n"
+            for ex in failed_list:
+                summary += f"\t{ex}\n"
 
         dlg = LogWindow(self)
         dlg.set_text(summary)
@@ -1846,11 +1849,11 @@ class TaggerWindow(QtWidgets.QMainWindow):
         ):
             return
 
+        src_tags = ", ".join([tags[tag_id].name() for tag_id in src_tag_ids])
+        dst_tags = ", ".join([tags[tag_id].name() for tag_id in dest_tag_ids])
         details = (
             f"Are you sure you wish to copy the combined (with overlay order) tags of "
-            f"{', '.join([tags[tag_id].name() for tag_id in src_tag_ids])} "
-            f"to {', '.join([tags[tag_id].name() for tag_id in dest_tag_ids])} tags in "
-            f"{src_count} archive(s)?"
+            f"{src_tags} to {dst_tags} tags in {src_count} archive(s)?",
         )
 
         OptionalMessageDialog.question(
@@ -1869,6 +1872,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
         prog_dialog.setMinimumDuration(1000)
         center_window_on_parent(prog_dialog)
         QtCore.QCoreApplication.processEvents()
+        src_tags = ", ".join([tags[tag_id].name() for tag_id in src_tag_ids])
+        dst_tags = ", ".join([tags[tag_id].name() for tag_id in dest_tag_ids])
 
         failed_list = []
         success_count = 0
@@ -1878,7 +1883,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             ca_saved = False
             md, _, error = self.read_selected_tags(src_tag_ids, ca)
             if error is not None:
-                failed_list.append(ca.path)
+                failed_list.append(error)
                 continue
             if md.is_empty:
                 continue
@@ -1895,12 +1900,13 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 if tag_id == "cbi" and self.config[0].Metadata_Options__apply_transform_on_bulk_operation:
                     md = CBLTransformer(md, self.config[0]).apply()
 
-                if ca.write_tags(md, tag_id):
+                try:
+                    ca.write_tags(md, tag_id)
                     if not ca_saved:
                         success_count += 1
                         ca_saved = True
-                else:
-                    failed_list.append(ca.path)
+                except Exception as e:
+                    failed_list.append(OSError(f"Failed to copy {src_tags} to {dst_tags} tags for {ca.path}: {e}"))
 
             ca.reset_cache()
             ca.load_cache({*self.config[0].Runtime_Options__tags_read, *self.config[0].Runtime_Options__tags_write})
@@ -1914,8 +1920,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
         summary = f"Successfully copied tags in {success_count} archive(s)."
         if failed_list:
             summary += f"\n\nThe copy operation failed in the following {len(failed_list)} archive(s):\n"
-            for f in failed_list:
-                summary += f"\t{f}\n"
+            for ex in failed_list:
+                summary += f"\t{ex}\n"
 
         dlg = LogWindow(self)
         dlg.set_text(summary)

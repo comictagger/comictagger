@@ -40,33 +40,35 @@ class ZipArchiver(Archiver):
                 comment = zf.comment.decode("utf-8", errors="replace")
         return comment
 
-    def set_comment(self, comment: str) -> bool:
-        with ZipFile(self.path, mode="a") as zf:
-            zf.comment = bytes(comment, "utf-8")
-        return True
+    def set_comment(self, comment: str) -> None:
+        try:
+            with ZipFile(self.path, mode="a") as zf:
+                zf.comment = bytes(comment, "utf-8")
+        except Exception as e:
+            logger.error("Error writing zip comment [%s]: %s", e, self.path)
+            raise OSError(f"Error writing zip comment [{e}]: {self.path}") from e
 
     def read_file(self, archive_file: str) -> bytes:
         with ZipFile(self.path, mode="r") as zf:
             try:
                 data = zf.read(archive_file)
             except (zipfile.BadZipfile, OSError) as e:
-                logger.exception("Error reading zip archive [%s]: %s :: %s", e, self.path, archive_file)
-                raise
+                logger.exception("Error reading file in zip archive [%s]: %s :: %s", e, self.path, archive_file)
+                raise OSError(f"Error reading file in zip archive [{e}]: {self.path} :: {archive_file}") from e
         return data
 
-    def remove_file(self, archive_file: str) -> bool:
+    def remove_file(self, archive_file: str) -> None:
         files = self.get_filename_list()
         self._filename_list = []
         try:
             with ZipFile(self.path, mode="a", allowZip64=True, compression=zipfile.ZIP_DEFLATED) as zf:
                 if archive_file in files:
                     zf.repack([zf.remove(archive_file)])
-            return True
         except (zipfile.BadZipfile, OSError) as e:
-            logger.error("Error writing zip archive [%s]: %s :: %s", e, self.path, archive_file)
-            return False
+            logger.error("Error removing file in zip archive [%s]: %s :: %s", e, self.path, archive_file)
+            raise OSError(f"Error removing file in zip archive [{e}]: {self.path} :: {archive_file}") from e
 
-    def write_file(self, archive_file: str, data: bytes) -> bool:
+    def write_file(self, archive_file: str, data: bytes) -> None:
         files = self.get_filename_list()
         self._filename_list = []
 
@@ -76,10 +78,9 @@ class ZipArchiver(Archiver):
                 if archive_file in files:
                     zf.repack([zf.remove(archive_file)])
                 zf.writestr(archive_file, data)
-            return True
         except (zipfile.BadZipfile, OSError) as e:
             logger.error("Error writing zip archive [%s]: %s :: %s", e, self.path, archive_file)
-            return False
+            raise OSError(f"Error writing zip archive [{e}]: {self.path} :: {archive_file}") from e
 
     def get_filename_list(self) -> list[str]:
         if self._filename_list:
@@ -90,7 +91,7 @@ class ZipArchiver(Archiver):
                 return self._filename_list
         except (zipfile.BadZipfile, OSError) as e:
             logger.error("Error listing files in zip archive [%s]: %s", e, self.path)
-            return []
+            raise OSError(f"Error listing files in zip archive [{e}]: {self.path}") from e
 
     def supports_files(self) -> bool:
         return True
@@ -125,7 +126,7 @@ class ZipArchiver(Archiver):
             return False
         return True
 
-    def copy_from_archive(self, other_archive: Archiver) -> bool:
+    def copy_from_archive(self, other_archive: Archiver) -> None:
         """Replace the current zip with one copied from another archive"""
         self._filename_list = []
         try:
@@ -136,15 +137,12 @@ class ZipArchiver(Archiver):
                         zout.writestr(filename, data)
 
             # preserve the old comment
-            comment = other_archive.get_comment()
-            if comment is not None:
-                if not self.set_comment(comment):
-                    return False
+            self.set_comment(other_archive.get_comment())
         except Exception as e:
             logger.error("Error while copying to zip archive [%s]: from %s to %s", e, other_archive.path, self.path)
-            return False
-        else:
-            return True
+            raise OSError(
+                f"Error while copying to zip archive [{e}]: from {str(other_archive)!r} to {str(self.path)!r}"
+            ) from e
 
     def is_writable(self) -> bool:
         return True

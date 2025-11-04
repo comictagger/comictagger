@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 import datetime
 import io
+import pathlib
 import shutil
 import unittest.mock
 from argparse import Namespace
@@ -34,17 +35,20 @@ except ImportError:
 
 @pytest.fixture
 def cbz():
-    yield comicapi.comicarchive.ComicArchive(filenames.cbz_path)
+    yield comicapi.comicarchive.ComicArchive(
+        str(filenames.cbz_path)
+    )  # When testing these always refer to a file on a filesystem
 
 
 @pytest.fixture
-def tmp_comic(tmp_path):
-    shutil.copy(filenames.cbz_path, tmp_path)
-    yield comicapi.comicarchive.ComicArchive(tmp_path / filenames.cbz_path.name)
+def tmp_comic_path(tmp_path: pathlib.Path):
+    shutil.copy(str(filenames.cbz_path), str(tmp_path))  # When testing these always refer to a file on a filesystem
+    yield (tmp_path / filenames.cbz_path.name)
 
 
 @pytest.fixture
-def cbz_double_cover(tmp_path, tmp_comic):
+def cbz_double_cover(tmp_path, tmp_comic_path):
+    tmp_comic = comicapi.comicarchive.ComicArchive(tmp_comic_path)
     cover = Image.open(io.BytesIO(tmp_comic.get_page(0)))
 
     other_page = Image.open(io.BytesIO(tmp_comic.get_page(tmp_comic.get_number_of_pages() - 1)))
@@ -54,7 +58,6 @@ def cbz_double_cover(tmp_path, tmp_comic):
     double_cover.paste(cover, (cover.width, 0))
 
     tmp_comic.archiver.write_file("double_cover.jpg", double_cover.tobytes("jpeg", "RGB"))
-    yield tmp_comic
 
 
 @pytest.fixture

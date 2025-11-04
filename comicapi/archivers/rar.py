@@ -50,47 +50,47 @@ class RarArchiver(Archiver):
         rarc = self.get_rar_obj()
         return (rarc.comment if rarc else "") or ""
 
-    def set_comment(self, comment: str) -> bool:
+    def set_comment(self, comment: str) -> None:
         self._reset()
-        if rar_support and self.exe:
-            try:
-                # write comment to temp file
-                with tempfile.TemporaryDirectory() as tmp_dir:
-                    tmp_file = pathlib.Path(tmp_dir) / "rar_comment.txt"
-                    tmp_file.write_text(comment, encoding="utf-8")
+        if not (rar_support and self.exe):
+            return
 
-                    working_dir = os.path.dirname(os.path.abspath(self.path))
+        try:
+            # write comment to temp file
+            with tempfile.TemporaryDirectory() as tmp_dir:
+                tmp_file = pathlib.Path(tmp_dir) / "rar_comment.txt"
+                tmp_file.write_text(comment, encoding="utf-8")
 
-                    # use external program to write comment to Rar archive
-                    proc_args = [
-                        self.exe,
-                        "c",
-                        f"-w{working_dir}",
-                        "-c-",
-                        f"-z{tmp_file}",
-                        str(self.path),
-                    ]
-                    result = subprocess.run(
-                        proc_args,
-                        startupinfo=STARTUPINFO,
-                        stdin=subprocess.DEVNULL,
-                        capture_output=True,
-                        encoding="utf-8",
-                        cwd=tmp_dir,
-                    )
-                if result.returncode != 0:
-                    logger.error(
-                        "Error writing comment to rar archive [exitcode: %d]: %s :: %s",
-                        result.returncode,
-                        self.path,
-                        result.stderr,
-                    )
-                    return False
-            except OSError as e:
-                logger.exception("Error writing comment to rar archive [%s]: %s", e, self.path)
-                return False
-            return True
-        return False
+                working_dir = os.path.dirname(os.path.abspath(self.path))
+
+                # use external program to write comment to Rar archive
+                proc_args = [
+                    self.exe,
+                    "c",
+                    f"-w{working_dir}",
+                    "-c-",
+                    f"-z{tmp_file}",
+                    str(self.path),
+                ]
+                result = subprocess.run(
+                    proc_args,
+                    startupinfo=STARTUPINFO,
+                    stdin=subprocess.DEVNULL,
+                    capture_output=True,
+                    encoding="utf-8",
+                    cwd=tmp_dir,
+                )
+        except Exception as e:
+            logger.exception("Error writing comment to rar archive [%s]: %s", e, self.path)
+            raise OSError(f"Error writing comment to rar archive [{e}]: {self.path}")
+        if result.returncode != 0:
+            logger.error(
+                "Error writing comment to rar archive [exitcode: %d]: %s :: %s",
+                result.returncode,
+                self.path,
+                result.stderr,
+            )
+            raise OSError(f"Error writing comment to rar archive [exitcode: {result.returncode}]: {self.path}")
 
     def supports_comment(self) -> bool:
         return True
@@ -101,9 +101,11 @@ class RarArchiver(Archiver):
             return b""
 
         tries = 0
+        error = None
+        entries = []
         while tries < 7:
+            tries += 1
             try:
-                tries = tries + 1
                 data: bytes = rarc.open(archive_file).read()
                 entries = [(rarc.getinfo(archive_file), data)]
 
@@ -116,10 +118,24 @@ class RarArchiver(Archiver):
                         archive_file,
                         tries,
                     )
+                    error = OSError(
+                        '"Error reading rar archive [file is not expected size: {:d} vs {:d}]  {} :: {} :: tries #{:d}"'.format(
+                            entries[0][0].file_size,
+                            len(entries[0][1]),
+                            self.path,
+                            archive_file,
+                            tries,
+                        )
+                    )
                     continue
 
             except OSError as e:
-                logger.error("Error reading rar archive [%s]: %s :: %s :: tries #%d", e, self.path, archive_file, tries)
+                logger.error(
+                    "Error reading file from rar archive [%s]: %s :: %s :: tries #%d", e, self.path, archive_file, tries
+                )
+                error = OSError(
+                    f"Error reading file from rar archive [{e}]: {self.path} :: {archive_file} :: tries#{tries}"
+                )
             except Exception as e:
                 logger.error(
                     "Unexpected exception reading rar archive [%s]: %s :: %s :: tries #%d",
@@ -128,22 +144,30 @@ class RarArchiver(Archiver):
                     archive_file,
                     tries,
                 )
-                break
+                raise RuntimeError(
+                    f"Unexpected exception reading file from rar archive [{e}]: {self.path} :: {archive_file} :: tries#{tries}"
+                )
 
-            else:
-                # Success. Entries is a list of of tuples:  ( rarinfo, filedata)
+            if error is None:
+                # Success, return early. Entries is a list of of tuples:  ( rarinfo, filedata)
                 if len(entries) == 1:
                     return entries[0][1]
+                raise OSError(
+                    f"Error reading file from rar archive [File not found]: {self.path} :: {archive_file} :: tries#{tries}"
+                )
 
-                raise OSError
+        if error is None:
+            # Somehow we have success but exited the loop
+            raise RuntimeError("Something failed")
+        raise error
 
-        raise OSError
-
-    def remove_file(self, archive_file: str) -> bool:
+    def remove_file(self, archive_file: str) -> None:
         self._reset()
-        if self.exe:
-            working_dir = os.path.dirname(os.path.abspath(self.path))
-            # use external program to remove file from Rar archive
+        if not self.exe:
+            return
+        working_dir = os.path.dirname(os.path.abspath(self.path))
+        # use external program to remove file from Rar archive
+        try:
             result = subprocess.run(
                 [self.exe, "d", f"-w{working_dir}", "-c-", self.path, archive_file],
                 startupinfo=STARTUPINFO,
@@ -152,26 +176,35 @@ class RarArchiver(Archiver):
                 encoding="utf-8",
                 cwd=self.path.absolute().parent,
             )
+        except Exception as e:
+            raise OSError(f"Error removing file from rar archive [{e}]: {self.path}:: {archive_file}")
 
-            if result.returncode != 0:
-                logger.error(
-                    "Error removing file from rar archive [exitcode: %d]: %s :: %s",
+        if result.returncode != 0:
+            logger.error(
+                "Error removing file from rar archive [exitcode: %d]: %s :: %s",
+                result.returncode,
+                self.path,
+                archive_file,
+            )
+            raise RuntimeError(
+                "Error removing file from rar archive [exitcode: {:d}]: {} :: {}".format(
                     result.returncode,
                     self.path,
                     archive_file,
                 )
-                return False
-            return True
-        return False
+            )
 
-    def write_file(self, archive_file: str, data: bytes) -> bool:
+    def write_file(self, archive_file: str, data: bytes) -> None:
         self._reset()
-        if self.exe:
-            archive_path = pathlib.PurePosixPath(archive_file)
-            archive_name = archive_path.name
-            archive_parent = str(archive_path.parent).lstrip("./")
-            working_dir = os.path.dirname(os.path.abspath(self.path))
+        if not self.exe:
+            return
 
+        archive_path = pathlib.PurePosixPath(archive_file)
+        archive_name = archive_path.name
+        archive_parent = str(archive_path.parent).lstrip("./")
+        working_dir = os.path.dirname(os.path.abspath(self.path))
+
+        try:
             # use external program to write file to Rar archive
             result = subprocess.run(
                 [
@@ -189,45 +222,53 @@ class RarArchiver(Archiver):
                 capture_output=True,
                 cwd=self.path.absolute().parent,
             )
-
-            if result.returncode != 0:
-                logger.error(
-                    "Error writing rar archive [exitcode: %d]: %s :: %s :: %s",
-                    result.returncode,
-                    self.path,
-                    archive_file,
-                    result.stderr,
-                )
-                return False
-            return True
-        return False
+        except Exception as e:
+            raise OSError(f"Error writing file to rar archive [{e}]: {self.path}:: {archive_file}")
+        if result.returncode != 0:
+            logger.error(
+                "Error writing rar archive [exitcode: %d]: %s :: %s :: %s",
+                result.returncode,
+                self.path,
+                archive_file,
+                result.stderr,
+            )
+            raise OSError(
+                f"Error writing file to rar archive [exitcode: {result.returncode}]: {self.path}:: {archive_file}"
+            )
 
     def get_filename_list(self) -> list[str]:
         if self._filename_list:
             return self._filename_list
         rarc = self.get_rar_obj()
         tries = 0
-        if rar_support and rarc:
-            while tries < 7:
-                try:
-                    tries = tries + 1
-                    namelist = []
-                    for item in rarc.infolist():
-                        if item.file_size != 0:
-                            namelist.append(item.filename)
+        if not (rar_support and rarc):
+            return []
 
-                except OSError as e:
-                    logger.error("Error listing files in rar archive [%s]: %s :: attempt #%d", e, self.path, tries)
+        error = None
+        while tries < 7:
+            tries += 1
+            try:
+                namelist = []
+                for item in rarc.infolist():
+                    if item.file_size != 0:
+                        namelist.append(item.filename)
 
-                else:
-                    self._filename_list = namelist
-                    return namelist
-        return []
+            except OSError as e:
+                logger.error("Error listing files in rar archive [%s]: %s :: attempt #%d", e, self.path, tries)
+                error = OSError(f"Error listing files in rar archive [{e}]: {self.path} :: tries#{tries}")
+            else:
+                self._filename_list = namelist
+                return self._filename_list
+
+        if error is None:
+            # Somehow we have success but exited the loop
+            raise RuntimeError("Something failed")
+        raise error
 
     def supports_files(self) -> bool:
         return True
 
-    def copy_from_archive(self, other_archive: Archiver) -> bool:
+    def copy_from_archive(self, other_archive: Archiver) -> None:
         """Replace the current archive with one copied from another archive"""
         self._reset()
         try:
@@ -252,22 +293,22 @@ class RarArchiver(Archiver):
                     capture_output=True,
                     encoding="utf-8",
                 )
-                if result.returncode != 0:
-                    logger.error(
-                        "Error while copying to rar archive [exitcode: %d]: %s: %s",
-                        result.returncode,
-                        self.path,
-                        result.stderr,
-                    )
-                    return False
 
                 self.path.unlink(missing_ok=True)
                 shutil.move(rar_path, self.path)
         except Exception as e:
             logger.exception("Error while copying to rar archive [%s]: from %s to %s", e, other_archive.path, self.path)
-            return False
-        else:
-            return True
+            raise OSError(f"Error listing files in rar archive [{e}]: from {other_archive.path} to {self.path}") from e
+        if result.returncode != 0:
+            logger.error(
+                "Error while copying to rar archive [exitcode: %d]: %s: %s",
+                result.returncode,
+                self.path,
+                result.stderr,
+            )
+            raise OSError(
+                f"Error while copying to rar archive [exitcode: {result.returncode}]: {self.path}: {result.stderr}"
+            )
 
     @classmethod
     @functools.cache

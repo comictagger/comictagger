@@ -25,47 +25,50 @@ class FolderArchiver(Archiver):
         except OSError:
             return ""
 
-    def set_comment(self, comment: str) -> bool:
+    def set_comment(self, comment: str) -> None:
         self._filename_list = []
-        if comment:
-            return self.write_file(self.comment_file_name, comment.encode("utf-8"))
-        (self.path / self.comment_file_name).unlink(missing_ok=True)
-        return True
+        try:
+            if comment:
+                file_path = self.path / self.comment_file_name
+                file_path.parent.mkdir(exist_ok=True, parents=True)
+                file_path.write_text(comment, encoding="utf-8")
+            else:
+                (self.path / self.comment_file_name).unlink(missing_ok=True)
+        except OSError as e:
+            logger.error(
+                "Error writing comment for folder archive [%s]: %s :: %s", e, self.path, self.comment_file_name
+            )
+            raise OSError(
+                f"Error writing comment for folder archive [{e}]: {self.path} :: {self.comment_file_name}"
+            ) from e
 
     def supports_comment(self) -> bool:
         return True
 
     def read_file(self, archive_file: str) -> bytes:
         try:
-            data = (self.path / archive_file).read_bytes()
+            return (self.path / archive_file).read_bytes()
         except OSError as e:
             logger.error("Error reading folder archive [%s]: %s :: %s", e, self.path, archive_file)
-            raise
+            raise OSError(f"Error reading folder archive [{e}]: {self.path} :: {archive_file}") from e
 
-        return data
-
-    def remove_file(self, archive_file: str) -> bool:
+    def remove_file(self, archive_file: str) -> None:
         self._filename_list = []
         try:
             (self.path / archive_file).unlink(missing_ok=True)
         except OSError as e:
             logger.error("Error removing file for folder archive [%s]: %s :: %s", e, self.path, archive_file)
-            return False
-        else:
-            return True
+            raise OSError(f"Error removing file for folder archive [{e}]: {self.path} :: {archive_file}") from e
 
-    def write_file(self, archive_file: str, data: bytes) -> bool:
+    def write_file(self, archive_file: str, data: bytes) -> None:
         self._filename_list = []
         try:
             file_path = self.path / archive_file
             file_path.parent.mkdir(exist_ok=True, parents=True)
-            with open(self.path / archive_file, mode="wb") as f:
-                f.write(data)
+            file_path.write_bytes(data)
         except OSError as e:
             logger.error("Error writing folder archive [%s]: %s :: %s", e, self.path, archive_file)
-            return False
-        else:
-            return True
+            raise OSError(f"Error writing folder archive [{e}]: {self.path} :: {archive_file}") from e
 
     def get_filename_list(self) -> list[str]:
         if self._filename_list:
@@ -79,12 +82,12 @@ class FolderArchiver(Archiver):
             return filenames
         except OSError as e:
             logger.error("Error listing files in folder archive [%s]: %s", e, self.path)
-            return []
+            raise OSError(f"Error listing files in folder archive [{e}]: {self.path}") from e
 
     def supports_files(self) -> bool:
         return True
 
-    def copy_from_archive(self, other_archive: Archiver) -> bool:
+    def copy_from_archive(self, other_archive: Archiver) -> None:
         """Replace the current zip with one copied from another archive"""
         self._filename_list = []
         try:
@@ -94,15 +97,14 @@ class FolderArchiver(Archiver):
                     self.write_file(filename, data)
 
             # preserve the old comment
-            comment = other_archive.get_comment()
-            if comment is not None:
-                if not self.set_comment(comment):
-                    return False
-        except Exception:
-            logger.exception("Error while copying archive from %s to %s", other_archive.path, self.path)
-            return False
-        else:
-            return True
+            self.set_comment(other_archive.get_comment())
+        except Exception as e:
+            logger.exception(
+                "Error while copying to folder archive [%s]: from %s to %s", e, other_archive.path, self.path
+            )
+            raise OSError(
+                f"Error while copying to folder archive [{e}]: from {str(other_archive)!r} to {str(self.path)!r}"
+            ) from e
 
     def is_writable(self) -> bool:
         return True

@@ -94,11 +94,12 @@ class ComicRack(Tag):
                 and self.file in archive.get_filename_list()
                 and self._validate_bytes(archive.read_file(self.file))
             )
-        except Exception:
-            return False
+        except Exception as e:
+            raise RuntimeError(f"Failed to Read {self.id} tags from {archive.path}({archive.name()})") from e
 
-    def remove_tags(self, archive: Archiver) -> bool:
-        return self.has_tags(archive) and archive.remove_file(self.file)
+    def remove_tags(self, archive: Archiver) -> None:
+        if self.has_tags(archive):
+            archive.remove_file(self.file)
 
     def read_tags(self, archive: Archiver) -> GenericMetadata:
         if self.has_tags(archive):
@@ -106,8 +107,8 @@ class ComicRack(Tag):
                 metadata = archive.read_file(self.file) or b""
                 if self._validate_bytes(metadata):
                     return self._metadata_from_bytes(metadata)
-            except Exception:
-                ...
+            except Exception as e:
+                raise RuntimeError(f"Failed to Read {self.id} tags from {archive.path}({archive.name()})") from e
         return GenericMetadata()
 
     def read_raw_tags(self, archive: Archiver) -> str:
@@ -116,22 +117,20 @@ class ComicRack(Tag):
                 b = archive.read_file(self.file)
                 # ET.fromstring is used as xml can declare the encoding
                 return ET.tostring(ET.fromstring(b), encoding="unicode", xml_declaration=True)
-        except Exception:
-            ...
+        except Exception as e:
+            raise RuntimeError(f"Failed to Read {self.id} tags from {archive.path}({archive.name()})") from e
         return ""
 
-    def write_tags(self, metadata: GenericMetadata, archive: Archiver) -> bool:
+    def write_tags(self, metadata: GenericMetadata, archive: Archiver) -> None:
         if self.supports_tags(archive):
             xml = b""
             try:  # read_file can cause an exception
                 if self.has_tags(archive):
                     xml = archive.read_file(self.file)
                 return archive.write_file(self.file, self._bytes_from_metadata(metadata, xml))
-            except Exception:
-                ...
-        else:
-            logger.warning("Archive %s(%s) does not support '%s' metadata", archive.path, archive.name(), self.name())
-        return False
+            except Exception as e:
+                raise RuntimeError(f"Failed to write {self.id} tags to {archive.path}({archive.name()})") from e
+        logger.warning("Archive %s(%s) does not support '%s' metadata", archive.path, archive.name(), self.name())
 
     def name(self) -> str:
         return "Comic Rack"

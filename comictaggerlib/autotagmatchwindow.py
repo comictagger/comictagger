@@ -280,13 +280,13 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
         QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
         md = prepare_metadata(md, ct_md, self.config)
         for tag_id in self.config.Runtime_Options__tags_write:
-            success = ca.write_tags(md, tag_id)
-            QtWidgets.QApplication.restoreOverrideCursor()
-            if not success:
+            try:
+                ca.write_tags(md, tag_id)
+            except Exception as e:
                 OptionalMessageDialog.warning(
                     self,
                     "Write Error",
-                    f"Saving {tags[tag_id].name()} the tags to the archive seemed to fail!",
+                    f"Saving {tags[tag_id].name()} the tags to the archive seemed to fail! {e}",
                 )
                 break
         self.matched_comics.append(ca)

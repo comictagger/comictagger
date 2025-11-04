@@ -12,10 +12,11 @@ from comictalker.comictalker import ComicTalker
 
 def test_save(
     plugin_config: tuple[settngs.Config[ctsettings.ct_ns], dict[str, ComicTalker]],
-    tmp_comic,
+    tmp_comic_path,
     md_saved,
     mock_now,
 ) -> None:
+    tmp_comic = comicapi.comicarchive.ComicArchive(tmp_comic_path)
     # Overwrite the series so it has definitely changed
     tmp_comic.write_tags(md_saved.replace(series="nothing"), "cr")
 
@@ -23,9 +24,6 @@ def test_save(
 
     # Check that it changed
     assert md != md_saved
-
-    # Clear the cached tags
-    tmp_comic.reset_cache()
 
     # Setup the app
     config = plugin_config[0]
@@ -37,7 +35,7 @@ def test_save(
     # Check online, should be intercepted by comicvine_api
     config[0].Auto_Tag__online = True
     # Use the temporary comic we created
-    config[0].Runtime_Options__files = [tmp_comic.path]
+    config[0].Runtime_Options__files = [tmp_comic_path]
     # Read and save ComicRack tags
     config[0].Runtime_Options__tags_read = ["cr"]
     config[0].Runtime_Options__tags_write = ["cr"]
@@ -45,6 +43,9 @@ def test_save(
     config[0].Auto_Tag__metadata = comicapi.genericmetadata.GenericMetadata(series=md_saved.series)
     # Run ComicTagger
     CLI(config[0], talkers).run()
+
+    # tmp_comic is invalid it can't handle outside changes so we need a new one
+    tmp_comic = comicapi.comicarchive.ComicArchive(tmp_comic_path)
 
     # Read the CBZ
     md = tmp_comic.read_tags("cr")
@@ -68,17 +69,15 @@ def test_save(
 
 def test_delete(
     plugin_config: tuple[settngs.Config[ctsettings.ct_ns], dict[str, ComicTalker]],
-    tmp_comic,
+    tmp_comic_path,
     md_saved,
     mock_now,
 ) -> None:
+    tmp_comic = comicapi.comicarchive.ComicArchive(tmp_comic_path)
     md = tmp_comic.read_tags("cr")
 
     # Check that the metadata starts correct
     assert md == md_saved
-
-    # Clear the cached metadata
-    tmp_comic.reset_cache()
 
     # Setup the app
     config = plugin_config[0]
@@ -88,11 +87,14 @@ def test_delete(
     config[0].Commands__command = comictaggerlib.resulttypes.Action.delete
 
     # Use the temporary comic we created
-    config[0].Runtime_Options__files = [tmp_comic.path]
+    config[0].Runtime_Options__files = [tmp_comic_path]
     # Delete ComicRack tags
     config[0].Runtime_Options__tags_write = ["cr"]
     # Run ComicTagger
     CLI(config[0], talkers).run()
+
+    # tmp_comic is invalid it can't handle outside changes so we need a new one
+    tmp_comic = comicapi.comicarchive.ComicArchive(tmp_comic_path)
 
     # Read the CBZ
     md = tmp_comic.read_tags("cr")
@@ -106,10 +108,11 @@ def test_delete(
 
 def test_rename(
     plugin_config: tuple[settngs.Config[ctsettings.ct_ns], dict[str, ComicTalker]],
-    tmp_comic,
+    tmp_comic_path,
     md_saved,
     mock_now,
 ) -> None:
+    tmp_comic = comicapi.comicarchive.ComicArchive(tmp_comic_path)
     md = tmp_comic.read_tags("cr")
 
     # Check that the metadata starts correct
@@ -126,7 +129,7 @@ def test_rename(
     config[0].Commands__command = comictaggerlib.resulttypes.Action.rename
 
     # Use the temporary comic we created
-    config[0].Runtime_Options__files = [tmp_comic.path]
+    config[0].Runtime_Options__files = [tmp_comic_path]
 
     # Set the template
     config[0].File_Rename__template = "{series}"
@@ -135,8 +138,11 @@ def test_rename(
     # Run ComicTagger
     CLI(config[0], talkers).run()
 
+    # tmp_comic is invalid it can't handle outside changes so we need a new one
+    tmp_comic = comicapi.comicarchive.ComicArchive(tmp_comic_path)
+
     # Update the comic path
-    tmp_comic.path = tmp_comic.path.parent / (md.series + ".cbz")
+    tmp_comic.path = tmp_comic.path.parent / ((md.series or "comic") + ".cbz")
 
     # Read the CBZ
     md = tmp_comic.read_tags("cr")

@@ -5,6 +5,7 @@ from importlib_metadata import entry_points
 
 import comicapi.genericmetadata
 import testing.comicdata
+from comicapi.archivers.zip import ZipArchiver
 from comictaggerlib.md import prepare_metadata
 
 tags = []
@@ -20,12 +21,13 @@ if not tags:
 
 
 @pytest.mark.parametrize("tag_type", tags)
-def test_metadata(mock_version, tmp_comic, md_saved, tag_type, md):
+def test_metadata(mock_version, tmp_comic_path, md_saved, tag_type, md):
+    archiver = ZipArchiver.open(tmp_comic_path)
     tag = tag_type(mock_version[0])
     supported_attributes = tag.supported_attributes
-    tag.write_tags(md, tmp_comic.archiver)
-    written_metadata = tag.read_tags(tmp_comic.archiver)
-    new_md = md_saved._get_clean_metadata(*supported_attributes)
+    tag.write_tags(md, archiver)
+    written_metadata = tag.read_tags(archiver)
+    md = md_saved._get_clean_metadata(*supported_attributes)
 
     # Hack back in the pages variable because CoMet supports identifying the cover by the filename
     if tag.id == "comet":

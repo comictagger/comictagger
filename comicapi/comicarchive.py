@@ -117,6 +117,8 @@ def load_tag_plugins(version: str = f"ComicAPI/{version}", local_plugins: Iterab
 
 
 class ComicArchive:
+    """Exceptions from tags/archive should already be logged. Caller must handle display to user and recovery"""
+
     logo_data = b""
     pil_available: bool | None = None
 
@@ -203,15 +205,18 @@ class ComicArchive:
         return True
 
     def is_zip(self) -> bool:
-        return self.archiver.name() == "ZIP"
+        return self.archiver.extension() == ".cbz"
 
     def seems_to_be_a_comic_archive(self) -> bool:
-        if (
-            not (isinstance(self.archiver, UnknownArchiver))
-            and self.get_number_of_pages() > 0
-            and self.archiver.is_valid(self.path)
-        ):
-            return True
+        try:
+            if (
+                not (isinstance(self.archiver, UnknownArchiver))
+                and self.get_number_of_pages() > 0
+                and self.archiver.is_valid(self.path)
+            ):
+                return True
+        except Exception:
+            ...
 
         return False
 
@@ -233,15 +238,15 @@ class ComicArchive:
             return ""
         return tags[tag_id].read_raw_tags(self.archiver)
 
-    def write_tags(self, metadata: GenericMetadata, tag_id: str) -> bool:
+    def write_tags(self, metadata: GenericMetadata, tag_id: str) -> None:
         if tag_id in self.md:
             del self.md[tag_id]
         if not tags[tag_id].enabled:
             logger.warning("%s tags not enabled", tags[tag_id].name())
-            return False
+            return
 
         self.apply_archive_info_to_metadata(metadata, True, True, hash_archive=self.hash_archive)
-        return tags[tag_id].write_tags(metadata, self.archiver)
+        tags[tag_id].write_tags(metadata, self.archiver)
 
     def has_tags(self, tag_id: str) -> bool:
         if tag_id in self.md:
@@ -250,12 +255,12 @@ class ComicArchive:
             return False
         return tags[tag_id].has_tags(self.archiver)
 
-    def remove_tags(self, tag_id: str) -> bool:
+    def remove_tags(self, tag_id: str) -> None:
         if tag_id in self.md:
             del self.md[tag_id]
         if not tags[tag_id].enabled:
-            return False
-        return tags[tag_id].remove_tags(self.archiver)
+            return
+        tags[tag_id].remove_tags(self.archiver)
 
     def get_page(self, index: int) -> bytes:
         image_data = b""
@@ -459,10 +464,17 @@ class ComicArchive:
         metadata.is_empty = False
         return metadata
 
-    def export_as_zip(self, zip_filename: pathlib.Path) -> bool:
-        if self.archiver.name() == "ZIP":
-            # nothing to do, we're already a zip
-            return True
+    def export_as(self, new_filename: pathlib.Path, extension: str = ".zip") -> None:
+        """
+        Unconditionally creates a new file. Does not check the current archive.
 
-        zip_archiver = ZipArchiver.open(zip_filename)
-        return zip_archiver.copy_from_archive(self.archiver)
+        If extension cannot be find reverts to .zip
+        """
+        zip_archiver = UnknownArchiver.open(new_filename)
+        for archiver in archivers:
+            if extension in archiver.supported_extensions:
+                zip_archiver = archiver.open(new_filename)
+        if isinstance(zip_archiver, UnknownArchiver):
+            zip_archiver = ZipArchiver.open(new_filename)
+
+        zip_archiver.copy_from_archive(self.archiver)

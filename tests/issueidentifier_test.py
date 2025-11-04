@@ -5,6 +5,7 @@ import io
 import pytest
 from PIL import Image
 
+import comicapi.comicarchive
 import comicapi.genericmetadata
 import comicapi.utils
 import comictaggerlib.imagehasher
@@ -14,7 +15,8 @@ import testing.comicdata
 import testing.comicvine
 
 
-def test_crop(cbz_double_cover, config, tmp_path, comicvine_api):
+def test_crop(cbz_double_cover, config, tmp_path, comicvine_api, tmp_comic_path):
+    tmp_comic = comicapi.comicarchive.ComicArchive(tmp_comic_path)
     config, definitions = config
     iio = comictaggerlib.issueidentifier.IssueIdentifierOptions(
         series_match_search_thresh=config.Issue_Identifier__series_match_search_thresh,
@@ -28,10 +30,10 @@ def test_crop(cbz_double_cover, config, tmp_path, comicvine_api):
     )
     ii = comictaggerlib.issueidentifier.IssueIdentifier(iio, None)
 
-    im = Image.open(io.BytesIO(cbz_double_cover.archiver.read_file("double_cover.jpg")))
+    im = Image.open(io.BytesIO(tmp_comic.archiver.read_file("double_cover.jpg")))
 
     cropped = ii._crop_double_page(im)
-    original = cbz_double_cover.get_page(0)
+    original = tmp_comic.get_page(0)
 
     original_hash = comictaggerlib.imagehasher.ImageHasher(data=original).average_hash()
     cropped_hash = comictaggerlib.imagehasher.ImageHasher(image=cropped).average_hash()
