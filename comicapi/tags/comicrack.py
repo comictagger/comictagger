@@ -44,6 +44,7 @@ class ComicRack(Tag):
             "title",
             "volume",
             "genres",
+            "tags",
             "description",
             "notes",
             "alternate_series",
@@ -224,6 +225,7 @@ class ComicRack(Tag):
         assign("Title", md.title)
         assign("Volume", md.volume)
         assign("Genre", md.genres)
+        assign("Tags", md.tags)
         assign("Summary", md.description)
         assign("Notes", md.notes)
 
@@ -311,6 +313,7 @@ class ComicRack(Tag):
         md.title = utils.xlate(get("Title"))
         md.volume = utils.xlate_int(get("Volume"))
         md.genres = set(utils.split(get("Genre"), ","))
+        md.tags = set(utils.split(get("Tags"), ","))
         md.description = utils.xlate(get("Summary"))
         md.notes = utils.xlate(get("Notes"))
 
