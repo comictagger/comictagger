@@ -118,7 +118,6 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
     def __init__(
         self,
-        file_list: list[pathlib.Path],
         config: settngs.Config[ct_ns],
         talkers: dict[str, ComicTalker],
         socket_server: QtNetwork.QLocalServer,
@@ -351,7 +350,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             self.selected_write_tags = [self.enabled_tags()[0]]
             self.selected_read_tags = [self.enabled_tags()[0]]
 
-    def _post_show(self, file_list: list[str]) -> None:
+    def _post_show(self, file_list: list[pathlib.Path]) -> None:
         try:
             self.update_tag_tweaks()
         except Exception:
@@ -1324,7 +1323,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         qmsg = OptionalMessageDialog.msg(
             parent=self,
             title="Save Tags",
-            msg=f"Are you sure you wish to save {', '.join([tag.name for tag in self.config[0].Runtime_Options__tags_write])} tags to this archive?",
+            msg=f"Are you sure you wish to save {', '.join([tag.name for tag in self.selected_write_tags])} tags to this archive?",
             icon=OptionalMessageDialog.Icon.Question,
         )
         qmsg.accepted.connect(self.write_tags)
@@ -1775,7 +1774,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             "Remove Tags",
             f"Are you sure you wish to remove {', '.join([f'{tag.name} tags from {count} files' for tag, count in file_md_count.items()])} removing a total of {md_count} tag(s)?",
             check_text=None,
-        ).accepted.connect(functools.partial(self.remove_tags, tag_ids, md_count))
+        ).accepted.connect(functools.partial(self.remove_tags, tags, md_count))
 
     def remove_tags(self, tags: list[Tag], md_count: int) -> None:
         progdialog = QtWidgets.QProgressDialog("", "Cancel", 0, md_count, self)
@@ -1838,7 +1837,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             # Remove the read tag from the write tag
             dest_tags.remove(src_tags[0])
 
-        if not dest_tag_ids:
+        if not dest_tags:
             OptionalMessageDialog.information(
                 self, "Copy Tags", "Can't copy tag tag onto itself.  Read tag and modify tag must be different."
             )
@@ -2309,7 +2308,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 obj = json.loads(byte_array)
                 if not isinstance(obj, list):
                     continue
-                self.fileSelectionList.add_path_list(obj)
+                self.fileSelectionList.add_path_list([pathlib.Path(x) for x in obj])
             finally:
                 local_socket.disconnectFromServer()
 

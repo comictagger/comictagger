@@ -146,7 +146,7 @@ def setupSocket(app: QtCore.QObject, config: settngs.Config[ct_ns]) -> QtNetwork
         logger.info("Another application with key [%s] is already running", config[0].internal__install_id)
         # send file list to other instance
         if config[0].Runtime_Options__files:
-            socket.write(json.dumps(config[0].Runtime_Options__files).encode("utf-8"))
+            socket.write(json.dumps([str(x.absolute()) for x in config[0].Runtime_Options__files]).encode("utf-8"))
             if not socket.waitForBytesWritten(3000):
                 logger.error(socket.errorString())
         socket.disconnectFromServer()
