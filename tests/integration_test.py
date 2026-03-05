@@ -10,13 +10,29 @@ from comicapi.tags.comicrack import ComicRack
 from comictaggerlib import ctsettings
 from comictaggerlib.cli import CLI
 from comictalker.comictalker import ComicTalker
+import pytest
+
+from importlib_metadata import entry_points
+
+tags = []
+
+for x in entry_points(group="comicapi.tags"):
+    tag = x.load()
+    supported = tag.enabled
+    exe_found = True
+    tags.append(pytest.param(tag, marks=pytest.mark.xfail(not supported, reason="tags not enabled")))
+
+if not tags:
+    raise Exception("No tags found")
 
 
+@pytest.mark.parametrize("tag", tags)
 def test_save(
     plugin_config: tuple[settngs.Config[ctsettings.ct_ns], dict[str, ComicTalker]],
     tmp_comic_path,
     md_saved,
     mock_now,
+    tag,
 ) -> None:
     tmp_comic = comicapi.comicarchive.ComicArchive(tmp_comic_path)
     # Overwrite the series so it has definitely changed
@@ -39,8 +55,8 @@ def test_save(
     # Use the temporary comic we created
     config[0].Runtime_Options__files = [tmp_comic_path]
     # Read and save ComicRack tags
-    config[0].Runtime_Options__tags_read = [ComicRack]
-    config[0].Runtime_Options__tags_write = [ComicRack]
+    config[0].Runtime_Options__tags_read = [tag]
+    config[0].Runtime_Options__tags_write = [tag]
     # Search using the correct series since we just put the wrong series name in the CBZ
     config[0].Auto_Tag__metadata = comicapi.genericmetadata.GenericMetadata(series=md_saved.series)
     # Run ComicTagger
@@ -50,7 +66,7 @@ def test_save(
     tmp_comic = comicapi.comicarchive.ComicArchive(tmp_comic_path)
 
     # Read the CBZ
-    md = tmp_comic.read_tags(ComicRack)
+    md = tmp_comic.read_tags(tag)
 
     # This is inserted here because otherwise several other tests
     # unrelated to comicvine need to be re-worked
@@ -69,14 +85,16 @@ def test_save(
     assert md == md_saved
 
 
+@pytest.mark.parametrize("tag", tags)
 def test_delete(
     plugin_config: tuple[settngs.Config[ctsettings.ct_ns], dict[str, ComicTalker]],
     tmp_comic_path,
     md_saved,
     mock_now,
+    tag,
 ) -> None:
     tmp_comic = comicapi.comicarchive.ComicArchive(tmp_comic_path)
-    md = tmp_comic.read_tags(ComicRack)
+    md = tmp_comic.read_tags(tag)
 
     # Check that the metadata starts correct
     assert md == md_saved
@@ -91,7 +109,7 @@ def test_delete(
     # Use the temporary comic we created
     config[0].Runtime_Options__files = [tmp_comic_path]
     # Delete ComicRack tags
-    config[0].Runtime_Options__tags_write = [ComicRack]
+    config[0].Runtime_Options__tags_write = [tag]
     # Run ComicTagger
     assert CLI(config[0], talkers).run() == 0
 
@@ -99,7 +117,7 @@ def test_delete(
     tmp_comic = comicapi.comicarchive.ComicArchive(tmp_comic_path)
 
     # Read the CBZ
-    md = tmp_comic.read_tags(ComicRack)
+    md = tmp_comic.read_tags(tag)
 
     # The default page list is set on load if the comic has the requested tags
     empty_md = comicapi.genericmetadata.GenericMetadata()
@@ -108,14 +126,16 @@ def test_delete(
     assert md == empty_md
 
 
+@pytest.mark.parametrize("tag", tags)
 def test_rename(
     plugin_config: tuple[settngs.Config[ctsettings.ct_ns], dict[str, ComicTalker]],
     tmp_comic_path,
     md_saved,
     mock_now,
+    tag,
 ) -> None:
     tmp_comic = comicapi.comicarchive.ComicArchive(tmp_comic_path)
-    md = tmp_comic.read_tags(ComicRack)
+    md = tmp_comic.read_tags(tag)
 
     # Check that the metadata starts correct
     assert md == md_saved
@@ -130,7 +150,7 @@ def test_rename(
     # Use the temporary comic we created
     config[0].Runtime_Options__files = [tmp_comic_path]
     # Read ComicRack tags
-    config[0].Runtime_Options__tags_read = [ComicRack]
+    config[0].Runtime_Options__tags_read = [tag]
 
     # Set the template
     config[0].File_Rename__template = "{series}"
@@ -143,7 +163,7 @@ def test_rename(
     tmp_comic = comicapi.comicarchive.ComicArchive(tmp_comic.path.parent / ((md.series or "comic") + ".cbz"))
 
     # Read the CBZ
-    md = tmp_comic.read_tags(ComicRack)
+    md = tmp_comic.read_tags(tag)
 
     # Validate that we got the correct metadata back
     assert md == md_saved
