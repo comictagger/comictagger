@@ -1432,10 +1432,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             row_role = self.twCredits.item(r, role_col)
             if row_primary is None or row_role is None:
                 continue
-            if (
-                row_primary.text() != ""
-                and str(row_role.text()).casefold() == role.casefold()
-            ):
+            if row_primary.text() != "" and str(row_role.text()).casefold() == role.casefold():
                 row_primary.setText("")
 
         # Now set our new primary
