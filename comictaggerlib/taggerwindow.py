@@ -1404,23 +1404,42 @@ class TaggerWindow(QtWidgets.QMainWindow):
         editor.show()
 
     def update_credit_primary_flag(self, row: int, primary: bool) -> None:
+        primary_col = self.md_attributes["credits.primary"]
+        role_col = self.md_attributes["credits.role"]
+
+        primary_item = self.twCredits.item(row, primary_col)
+        # When credits are loaded from metadata that doesn't populate every
+        # column (or a row in the table is partially constructed during a
+        # duplicate-credit save round-trip — #836), `item(row, col)` returns
+        # `None`. The previous unconditional `.setText` / `.text` panicked
+        # the dialog with `AttributeError`.
+        if primary_item is None:
+            return
+
         # if we're clearing a flag do it and quit
         if not primary:
-            self.twCredits.item(row, self.md_attributes["credits.primary"]).setText("")
+            primary_item.setText("")
             return
 
         # otherwise, we need to check for, and clear, other primaries with same role
-        role = str(self.twCredits.item(row, self.md_attributes["credits.role"]).text())
+        role_item = self.twCredits.item(row, role_col)
+        if role_item is None:
+            return
+        role = str(role_item.text())
         r = 0
         for r in range(self.twCredits.rowCount()):
+            row_primary = self.twCredits.item(r, primary_col)
+            row_role = self.twCredits.item(r, role_col)
+            if row_primary is None or row_role is None:
+                continue
             if (
-                self.twCredits.item(r, self.md_attributes["credits.primary"]).text() != ""
-                and str(self.twCredits.item(r, self.md_attributes["credits.role"]).text()).casefold() == role.casefold()
+                row_primary.text() != ""
+                and str(row_role.text()).casefold() == role.casefold()
             ):
-                self.twCredits.item(r, self.md_attributes["credits.primary"]).setText("")
+                row_primary.setText("")
 
         # Now set our new primary
-        self.twCredits.item(row, self.md_attributes["credits.primary"]).setText("Yes")
+        primary_item.setText("Yes")
 
     def _update_credit(self, credit: Credit, row: int) -> None:
         assert isinstance(row, int)
