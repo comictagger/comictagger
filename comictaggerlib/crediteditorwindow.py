@@ -25,9 +25,10 @@ from PyQt6 import QtCore, QtGui, QtWidgets, uic
 from comicapi import utils
 from comicapi.genericmetadata import Credit
 from comicapi.tags import Tag
-from comictaggerlib.optionalmsgdialog import OptionalMessageDialog
-from comictaggerlib.ui import ui_path
-from comictaggerlib.ui.qtutils import enable_widget
+
+from .optionalmsgdialog import OptionalMessageDialog
+from .ui import ui_path
+from .ui.qtutils import enable_widget
 
 logger = logging.getLogger(__name__)
 

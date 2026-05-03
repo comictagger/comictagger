@@ -11,7 +11,7 @@ import testing.comicdata
 
 def test_apply_default_page_list(tmp_path, md):
     new_md = comicapi.genericmetadata.GenericMetadata()
-    new_md.overlay(comicapi.genericmetadata.md_test)
+    new_md.overlay(md)
     new_md.pages = []
     new_md.apply_default_page_list(["testing"])
 

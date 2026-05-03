@@ -23,8 +23,9 @@ from typing import NamedTuple
 from PyQt6 import QtCore, QtGui, QtWidgets, uic
 
 from comicapi.genericmetadata import GenericMetadata
-from comictaggerlib.ctsettings import ct_ns, settngs_namespace
-from comictaggerlib.ui import ui_path
+
+from .ctsettings import ct_ns, settngs_namespace
+from .ui import ui_path
 
 logger = logging.getLogger(__name__)
 

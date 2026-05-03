@@ -23,9 +23,10 @@ from PyQt6 import QtCore, QtGui, QtWidgets, uic
 from comicapi.comicarchive import ComicArchive
 from comicapi.genericmetadata import GenericMetadata, PageMetadata, PageType
 from comicapi.tags import Tag
-from comictaggerlib.coverimagewidget import CoverImageWidget
-from comictaggerlib.ui import ui_path
-from comictaggerlib.ui.qtutils import enable_widget
+
+from .coverimagewidget import CoverImageWidget
+from .ui import ui_path
+from .ui.qtutils import enable_widget
 
 logger = logging.getLogger(__name__)
 

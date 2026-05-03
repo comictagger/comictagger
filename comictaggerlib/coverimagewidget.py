@@ -26,11 +26,12 @@ import pathlib
 from PyQt6 import QtCore, QtGui, QtWidgets, uic
 
 from comicapi.comicarchive import ComicArchive
-from comictaggerlib.imagefetcher import ImageFetcher
-from comictaggerlib.imagepopup import ImagePopup
-from comictaggerlib.pageloader import PageLoader
-from comictaggerlib.ui import ui_path
-from comictaggerlib.ui.qtutils import get_qimage_from_data
+
+from .imagefetcher import ImageFetcher
+from .imagepopup import ImagePopup
+from .pageloader import PageLoader
+from .ui import ui_path
+from .ui.qtutils import get_qimage_from_data
 
 logger = logging.getLogger(__name__)
 
@@ -251,6 +252,7 @@ class CoverImageWidget(QtWidgets.QWidget):
         self.set_display_pixmap()
 
     def load_page(self) -> None:
+        # TODO: When there are two of these they load the same image twice. Investigate caching between them
         if self.comic_archive is None:
             return
         if self.page_loader is not None:

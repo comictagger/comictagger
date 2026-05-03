@@ -59,3 +59,6 @@ class FolderComic(ComicFile):
         if path.is_dir():
             return
         raise WrongType
+
+
+assert isinstance(FolderComic(pathlib.Path("")), ComicFile)

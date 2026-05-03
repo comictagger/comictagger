@@ -33,7 +33,7 @@ from urllib.parse import unquote
 
 from text2digits import text2digits
 
-from comicapi import filenamelexer, issuestring
+from . import filenamelexer, issuestring
 
 logger = logging.getLogger(__name__)
 

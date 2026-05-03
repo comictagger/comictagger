@@ -8,12 +8,13 @@ from typing import Any
 from comicapi.comicarchive import ComicArchive
 from comicapi.genericmetadata import GenericMetadata
 from comicapi.tags import Tag
-from comictaggerlib.ctsettings import ct_ns
-from comictaggerlib.issueidentifier import IssueIdentifier, IssueIdentifierOptions
-from comictaggerlib.issueidentifier import Result as IIResult
-from comictaggerlib.md import prepare_metadata
-from comictaggerlib.resulttypes import Action, MatchStatus, OnlineMatchResults, Result, Status
 from comictalker.comictalker import ComicTalker, RLCallBack, TalkerError
+
+from .ctsettings import ct_ns
+from .issueidentifier import IssueIdentifier, IssueIdentifierOptions
+from .issueidentifier import Result as IIResult
+from .md import prepare_metadata
+from .resulttypes import Action, MatchStatus, OnlineMatchResults, Result, Status
 
 logger = logging.getLogger(__name__)
 

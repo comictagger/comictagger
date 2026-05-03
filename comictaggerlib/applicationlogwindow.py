@@ -5,7 +5,7 @@ import pathlib
 
 from PyQt6 import QtCore, QtGui, QtWidgets, uic
 
-from comictaggerlib.ui import ui_path
+from .ui import ui_path
 
 logger = logging.getLogger(__name__)
 

@@ -30,9 +30,9 @@ from typing import TYPE_CHECKING, Any, Union, overload
 
 from typing_extensions import NamedTuple
 
-from comicapi import merge, utils
-from comicapi._url import Url, parse_url
-from comicapi.utils import norm_fold
+from . import merge, utils
+from ._url import Url, parse_url
+from .utils import norm_fold
 
 # needed for runtime type guessing
 if TYPE_CHECKING:

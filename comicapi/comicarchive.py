@@ -27,11 +27,12 @@ import shutil
 from collections.abc import Collection, Iterable
 from typing import ClassVar, cast
 
-from comicapi import utils
-from comicapi.comic import ComicFile, UnknownArchiver, WrongType, ZipComic
-from comicapi.genericmetadata import FileHash, GenericMetadata
-from comicapi.tags import Tag, TagLocation
 from comictaggerlib.ctversion import version
+
+from . import utils
+from .comic import ComicFile, UnknownArchiver, WrongType, ZipComic
+from .genericmetadata import FileHash, GenericMetadata
+from .tags import Tag, TagLocation
 
 logger = logging.getLogger(__name__)
 
@@ -273,7 +274,7 @@ class ComicArchive:
             return False
 
         try:
-            self.Archiver.check_path(self.path)
+            # self.Archiver.check_path(self.path) # This check isn't needed as check_path is ran during __init__
             return self.get_number_of_pages() > 0
         except Exception:
             ...
@@ -284,7 +285,10 @@ class ComicArchive:
         return self.Archiver.extension
 
     def read_tags(self, tag: Tag) -> GenericMetadata:
-        self._supported_tag(tag)
+        try:
+            self._supported_tag(tag)
+        except Exception as e:
+            return GenericMetadata()
         if tag.id in self.md:
             return self.md[tag.id]
         md = GenericMetadata()
@@ -372,7 +376,11 @@ class ComicArchive:
             return a.write_tags(version, metadata)
 
     def has_tags(self, tag: Tag) -> bool:
-        self._supported_tag(tag)
+        if tag.location not in self.Archiver.tag_locations:
+            return False
+        if tag.location == TagLocation.CUSTOM:
+            if tag._comic_file != self.Archiver:
+                return False
 
         if tag.location == TagLocation.COMMENT:
             a = self._open_archive()

@@ -29,48 +29,49 @@ import textwrap
 import traceback
 import webbrowser
 from collections.abc import Callable, Sequence
-from typing import Any, cast
+from typing import Any
 
 import natsort
 import settngs
+from ctsettings import ctversion
 from PyQt6 import QtCore, QtGui, QtNetwork, QtWidgets, uic
 
 import comicapi.merge
 import comictaggerlib.ui
 from comicapi import utils
-from comicapi.comic import ComicFile, ZipComic
+from comicapi.comic import ZipComic
 from comicapi.comicarchive import ComicArchive, loaded_tags
 from comicapi.filenameparser import FileNameParser
 from comicapi.genericmetadata import Credit, FileHash, GenericMetadata
 from comicapi.issuestring import IssueString
 from comicapi.tags import Tag
-from comictaggerlib import ctsettings, ctversion
-from comictaggerlib.applicationlogwindow import ApplicationLogWindow, QTextEditLogger
-from comictaggerlib.autotagmatchwindow import AutoTagMatchWindow
-from comictaggerlib.autotagprogresswindow import AutoTagProgressWindow, AutoTagThread
-from comictaggerlib.autotagstartwindow import AutoTagSettings, AutoTagStartWindow
-from comictaggerlib.cbltransformer import CBLTransformer
-from comictaggerlib.coverimagewidget import CoverImageWidget
-from comictaggerlib.crediteditorwindow import CreditEditorWindow
-from comictaggerlib.ctsettings import ct_ns
-from comictaggerlib.exportwindow import ExportConfig, ExportConflictOpts, ExportWindow
-from comictaggerlib.fileselectionlist import FileSelectionList
-from comictaggerlib.graphics import graphics_path
-from comictaggerlib.gtinvalidator import is_valid_gtin
-from comictaggerlib.logwindow import LogWindow
-from comictaggerlib.md import prepare_metadata, read_selected_tags
-from comictaggerlib.optionalmsgdialog import OptionalMessageDialog
-from comictaggerlib.pagebrowser import PageBrowserWindow
-from comictaggerlib.pagelisteditor import PageListEditor
-from comictaggerlib.renamewindow import RenameWindow
-from comictaggerlib.resulttypes import OnlineMatchResults
-from comictaggerlib.seriesselectionwindow import SeriesSelectionWindow
-from comictaggerlib.settingswindow import SettingsWindow
-from comictaggerlib.ui import qtutils, ui_path
-from comictaggerlib.ui.pyqttoast import Toast, ToastPreset
-from comictaggerlib.ui.qtutils import center_window_on_parent, enable_widget
-from comictaggerlib.versionchecker import VersionChecker
 from comictalker.comictalker import ComicTalker, RLCallBack, TalkerError
+
+from .applicationlogwindow import ApplicationLogWindow, QTextEditLogger
+from .autotagmatchwindow import AutoTagMatchWindow
+from .autotagprogresswindow import AutoTagProgressWindow, AutoTagThread
+from .autotagstartwindow import AutoTagSettings, AutoTagStartWindow
+from .cbltransformer import CBLTransformer
+from .coverimagewidget import CoverImageWidget
+from .crediteditorwindow import CreditEditorWindow
+from .ctsettings import ct_ns
+from .exportwindow import ExportConfig, ExportConflictOpts, ExportWindow
+from .fileselectionlist import FileSelectionList
+from .graphics import graphics_path
+from .gtinvalidator import is_valid_gtin
+from .logwindow import LogWindow
+from .md import prepare_metadata, read_selected_tags
+from .optionalmsgdialog import OptionalMessageDialog
+from .pagebrowser import PageBrowserWindow
+from .pagelisteditor import PageListEditor
+from .renamewindow import RenameWindow
+from .resulttypes import OnlineMatchResults
+from .seriesselectionwindow import SeriesSelectionWindow
+from .settingswindow import SettingsWindow
+from .ui import qtutils, ui_path
+from .ui.pyqttoast import Toast, ToastPreset
+from .ui.qtutils import center_window_on_parent, enable_widget
+from .versionchecker import VersionChecker
 
 logger = logging.getLogger(__name__)
 
@@ -662,7 +663,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             export_name = ca.path.with_suffix(".cbz")
             export = True
 
-            if export_config.conflict == ExportConflictOpts.DONT_CREATE:
+            if export_config.conflict == ExportConflictOpts.DONT_CREATE and export_name.exists():
                 export = False
                 skipped_list.append(ca.path)
             elif export_config.conflict == ExportConflictOpts.CREATE_UNIQUE:
@@ -671,7 +672,23 @@ class TaggerWindow(QtWidgets.QMainWindow):
             if export:
                 logger.debug("Exporting %s to %s", ca.path, export_name)
                 try:
-                    ca.export_as(cast(type[ComicFile], ZipComic), export_name)
+                    ca.export_as(ZipComic, export_name)
+                    export_comic = ZipComic(export_name)
+                    a = ca.Archiver(ca.path)
+
+                    def read_files():
+                        for d in a.read_files(a.get_filename_list()):
+                            QtCore.QCoreApplication.processEvents()
+                            yield d
+
+                    export_comic.write_files(files=read_files(), filenames=a.get_filename_list())
+
+                    if (
+                        comicapi.tags.TagLocation.COMMENT in export_comic.tag_locations
+                        and comicapi.tags.TagLocation.COMMENT in a.tag_locations
+                    ):
+                        export_comic.write_comment(a.read_comment())
+
                     success_count += 1
                     if export_config.add_to_list:
                         new_archives_to_add.append(export_name)
@@ -891,7 +908,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
         # clear the dirty flag, since there is nothing in there now to lose
         self.clear_dirty_flag()
-        self.update_ui_for_archive(parse_filename=False)
+        # self.update_ui_for_archive(parse_filename=False)  # TODO: make sure this doesn't get called twice
 
     def clear_children(self, widget: QtCore.QObject) -> None:
         if isinstance(widget, (QtWidgets.QLineEdit, QtWidgets.QTextEdit)):

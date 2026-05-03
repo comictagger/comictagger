@@ -10,7 +10,7 @@ import subprocess
 import tempfile
 from collections.abc import Collection, Iterable
 
-from comicapi.comic import BadComic, WrongType
+from comicapi.comic import BadComic, ComicFile, WrongType
 from comicapi.tags import TagLocation
 
 try:
@@ -233,7 +233,7 @@ class RarComic:
     def is_writable(self) -> bool:
         return bool(self._writeable and bool(self.exe and (os.path.exists(self.exe) or shutil.which(self.exe))))
 
-    def validate_archive(self) -> None:
+    def validate_comic(self) -> None:
         rarc = self._get_rar_obj()
         try:
             rarc.testrar()
@@ -302,3 +302,6 @@ class RarComic:
             raise WrongType
         except rarfile.Error as e:
             raise BadComic(f"Unable to get rar object [{e}]: {self.path}")
+
+
+assert isinstance(RarComic(pathlib.Path("")), ComicFile)

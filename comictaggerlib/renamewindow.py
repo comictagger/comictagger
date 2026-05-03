@@ -26,14 +26,15 @@ from comicapi import utils
 from comicapi.comicarchive import ComicArchive
 from comicapi.genericmetadata import GenericMetadata
 from comicapi.tags import Tag
-from comictaggerlib.ctsettings import ct_ns
-from comictaggerlib.filerenamer import FileRenamer, get_rename_dir
-from comictaggerlib.md import read_selected_tags
-from comictaggerlib.optionalmsgdialog import OptionalMessageDialog
-from comictaggerlib.settingswindow import SettingsWindow
-from comictaggerlib.ui import ui_path
-from comictaggerlib.ui.qtutils import center_window_on_parent
 from comictalker.comictalker import ComicTalker
+
+from .ctsettings import ct_ns
+from .filerenamer import FileRenamer, get_rename_dir
+from .md import read_selected_tags
+from .optionalmsgdialog import OptionalMessageDialog
+from .settingswindow import SettingsWindow
+from .ui import ui_path
+from .ui.qtutils import center_window_on_parent
 
 logger = logging.getLogger(__name__)
 

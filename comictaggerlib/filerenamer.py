@@ -32,7 +32,8 @@ from pathvalidate import Platform, normalize_platform, sanitize_filename
 from comicapi.comicarchive import ComicArchive
 from comicapi.genericmetadata import GenericMetadata
 from comicapi.issuestring import IssueString
-from comictaggerlib.defaults import DEFAULT_REPLACEMENTS, Replacement, Replacements
+
+from .defaults import DEFAULT_REPLACEMENTS, Replacement, Replacements
 
 logger = logging.getLogger(__name__)
 

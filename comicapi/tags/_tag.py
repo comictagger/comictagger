@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import Protocol, runtime_checkable
 
-from comicapi.genericmetadata import GenericMetadata
-from comicapi.utils import StrEnum
+from ..genericmetadata import GenericMetadata
+from ..utils import StrEnum
 
 
 class TagLocation(StrEnum):
@@ -12,11 +12,13 @@ class TagLocation(StrEnum):
 
     FILE: Tags are stored in a distinct file in a comic. Must set filename_match and filename so that tags can be located.
     COMMENT: Tags are stored in the comment section of an comic.
+
     CUSTOM: Tags are stored in a file specific format. eg single file acbf format https://acbf.fandom.com/wiki/ACBF_Specifications#Embedding_ACBF_files_and_compatibility_with_popular_comic_book_formats or PDF Metadata https://en.wikipedia.org/wiki/PDF#Metadata
     """
 
     FILE = "file"
     COMMENT = "comment"
+    EXTERNAL = "external"
     CUSTOM = "custom"
 
 
@@ -38,7 +40,7 @@ class Tag(Protocol):
     """
 
     location: TagLocation
-    filename_match: str
+    filename_match: str = ""
     """
     filename to obtain tags from.
     Either an exact name to match:
@@ -48,13 +50,20 @@ class Tag(Protocol):
 
     the first matching file will be used
 
-    Only needed if storage_location is TagLocation.FILE
+    Only needed if storage_location is TagLocation.FILE or TagLocation.EXTERNAL
+    TagLocation.EXTERNAL tags must have the same name as the archive.
+    E.G. `Anda's Game.cbz` with an filename_match of `ComicInfo.xml` will only match `Anda's Game.ComicInfo.xml`
+    If filename match is `xml` it will only match will only match `Anda's Game.xml`
+    If filename match is `*.xml` it will match any filename that starts with `Anda's Game` and ends with `.xml`
+    Renaming will break TagLocation.EXTERNAL files.
     """
-    filename: str
+    filename: str = ""
     """
     The filename to save tags to.
 
-    Only needed if storage_location is TagLocation.FILE
+    Only needed if storage_location is TagLocation.FILE or TagLocation.EXTERNAL
+    TagLocation.EXTERNAL tags will have the same name as the archive.
+    E.G. `Anda's Game.cbz` with an filename of `ComicInfo.xml` will become `Anda's Game.ComicInfo.xml`
     """
 
     supported_attributes: set[str] = {

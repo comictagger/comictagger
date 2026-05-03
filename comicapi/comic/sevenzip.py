@@ -140,7 +140,7 @@ class SevenZipComic(ComicFile):
     def is_writable(self) -> bool:
         return True
 
-    def validate_archive(self) -> None:
+    def validate_comic(self) -> None:
         with py7zr.SevenZipFile(self.path, mode="r") as zf:
             filename = zf.testzip()
             if filename:
@@ -150,3 +150,6 @@ class SevenZipComic(ComicFile):
     def check_path(path: pathlib.Path) -> None:
         if not py7zr.is_7zfile(path):
             raise WrongType
+
+
+assert isinstance(SevenZipComic(pathlib.Path("")), ComicFile)

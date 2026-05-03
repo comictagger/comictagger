@@ -91,15 +91,49 @@ def test_page_type_write(tmp_comic_path):
 def test_invalid_zip(tmp_comic_path, md):
     with open(tmp_comic_path, mode="b+r") as f:
         # Corrupting the first file only breaks the first file. If it is never read then no exception will be raised
-        f.seek(-10, os.SEEK_END)  # seek to a probably bad place in th Central Directory and write some bytes
+        f.seek(-30, os.SEEK_END)  # seek to a probably bad place in th Central Directory and write some bytes
         f.write(b"PK\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000")
 
     tmp_comic = comicapi.comicarchive.ComicArchive(tmp_comic_path)
-    with pytest.raises(comicapi.comic.comicfile.BadComic, match="^Error listing files in zip archive"):
+    # assert tmp_comic.Archiver is comicapi.comicarchive.UnknownArchiver
+    with pytest.raises(Exception, match="tags Not Supported for Comic"):
         tmp_comic.write_tags(
             comictaggerlib.ctversion.version, md, comicapi.tags.comicrack.ComicRack()
         )  # This is not the first file
     assert not tmp_comic.seems_to_be_a_comic_archive()  # Calls archiver.is_valid
+    with pytest.raises(comicapi.comic.BadComic, match="^Unable to open zip file"):
+        comicapi.comic.ZipComic(tmp_comic_path).validate_comic()
+
+
+def test_invalid_zip_partial_corruption(tmp_comic_path, md):
+    with open(tmp_comic_path, mode="b+r") as f:
+        f.seek(-10, os.SEEK_END)  # seek to a probably bad place in th Central Directory and write some bytes
+        f.write(b"PK\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000")
+
+    tmp_comic = comicapi.comicarchive.ComicArchive(tmp_comic_path)
+    # assert tmp_comic.Archiver is comicapi.comicarchive.UnknownArchiver
+    with pytest.raises(comicapi.comic.BadComic, match="^Error listing files in zip archive"):
+        tmp_comic.write_tags(
+            comictaggerlib.ctversion.version, md, comicapi.tags.comicrack.ComicRack()
+        )  # This is not the first file
+    assert not tmp_comic.seems_to_be_a_comic_archive()  # Calls archiver.is_valid
+    with pytest.raises(comicapi.comic.BadComic, match="^Unable to open zip file"):
+        comicapi.comic.ZipComic(tmp_comic_path).validate_comic()
+
+
+def test_invalid_zip_file_header_corruption(tmp_comic_path, md):
+    with open(tmp_comic_path, mode="b+r") as f:
+        f.write(b"PK\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000")
+
+    tmp_comic = comicapi.comicarchive.ComicArchive(tmp_comic_path)
+    # assert tmp_comic.Archiver is comicapi.comicarchive.UnknownArchiver
+    with pytest.raises(comicapi.comic.BadComic, match="^Error writing zip archive"):
+        tmp_comic.write_tags(
+            comictaggerlib.ctversion.version, md, comicapi.tags.comicrack.ComicRack()
+        )  # This is not the first file
+    assert tmp_comic.seems_to_be_a_comic_archive()  # Calls archiver.is_valid. Does not verify individual files
+    with pytest.raises(comicapi.comic.BadComic, match="^Error testing files in zip archive"):
+        comicapi.comic.ZipComic(tmp_comic_path).validate_comic()
 
 
 archivers = []

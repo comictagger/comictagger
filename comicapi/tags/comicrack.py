@@ -21,7 +21,7 @@ from typing import Any
 
 from comicapi import utils
 from comicapi.genericmetadata import FileHash, GenericMetadata, PageMetadata
-from comicapi.tags.tag import Tag, TagLocation
+from comicapi.tags import Tag, TagLocation
 
 logger = logging.getLogger(__name__)
 

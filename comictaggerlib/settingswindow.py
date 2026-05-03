@@ -33,15 +33,16 @@ import comictaggerlib.ui.talkeruigenerator
 from comicapi import merge, utils
 from comicapi.comic import ComicFile
 from comicapi.genericmetadata import GenericMetadata, md_test
-from comictaggerlib import ctsettings
-from comictaggerlib.ctsettings import ct_ns
-from comictaggerlib.ctsettings.plugin import group_for_plugin
-from comictaggerlib.filerenamer import FileRenamer, Replacement, Replacements
-from comictaggerlib.imagefetcher import ImageFetcher
-from comictaggerlib.optionalmsgdialog import OptionalMessageDialog
-from comictaggerlib.ui import ui_path
 from comictalker.comiccacher import ComicCacher
 from comictalker.comictalker import ComicTalker
+
+from . import ctsettings
+from .ctsettings import ct_ns
+from .ctsettings.plugin import group_for_plugin
+from .filerenamer import FileRenamer, Replacement, Replacements
+from .imagefetcher import ImageFetcher
+from .optionalmsgdialog import OptionalMessageDialog
+from .ui import ui_path
 
 logger = logging.getLogger(__name__)
 

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from .comicfile import BadComic, ComicFile, WrongType
+from ._comicfile import BadComic, ComicFile, WrongType
 from .folder import FolderComic
 from .zip import ZipComic
 

@@ -13,10 +13,11 @@ from typing import TYPE_CHECKING
 
 import settngs
 
-from comictaggerlib.ctsettings import ct_ns
-from comictaggerlib.ctversion import version
-from comictaggerlib.graphics import graphics_path
 from comictalker.comictalker import ComicTalker
+
+from .ctsettings import ct_ns
+from .ctversion import version
+from .graphics import graphics_path
 
 logger = logging.getLogger("comictagger")
 try:
@@ -24,7 +25,7 @@ try:
     from PyQt6 import QtCore, QtGui, QtNetwork, QtWidgets
 
     if TYPE_CHECKING:
-        from comictaggerlib.taggerwindow import TaggerWindow
+        from .taggerwindow import TaggerWindow
     tagger_window: TaggerWindow | None = None
 
     def show_exception_box(log_msg: str, details: str) -> None:
@@ -213,7 +214,7 @@ def open_tagger_window(
         QtWidgets.QApplication.processEvents()
 
     try:
-        from comictaggerlib.taggerwindow import TaggerWindow
+        from .taggerwindow import TaggerWindow
 
         def activateModalWidget() -> None:
             assert QtGui and QtCore and QtWidgets

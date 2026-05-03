@@ -23,7 +23,7 @@ try:
 except ImportError:
     import requests
 
-from comictaggerlib import ctversion
+from . import ctversion
 
 logger = logging.getLogger(__name__)
 

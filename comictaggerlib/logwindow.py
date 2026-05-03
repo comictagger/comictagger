@@ -21,8 +21,8 @@ import traceback
 
 from PyQt6 import QtCore, QtGui, QtWidgets, uic
 
-from comictaggerlib.optionalmsgdialog import OptionalMessageDialog
-from comictaggerlib.ui import ui_path
+from .optionalmsgdialog import OptionalMessageDialog
+from .ui import ui_path
 
 logger = logging.getLogger(__name__)
 

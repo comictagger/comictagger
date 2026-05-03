@@ -26,12 +26,13 @@ from typing import cast
 from PyQt6 import QtCore, QtGui, QtWidgets, uic
 
 from comicapi.comicarchive import ComicArchive
-from comictaggerlib.ctsettings import ct_ns
-from comictaggerlib.graphics import graphics_path
-from comictaggerlib.optionalmsgdialog import OptionalMessageDialog
-from comictaggerlib.settingswindow import linuxRarHelp, macRarHelp, windowsRarHelp
-from comictaggerlib.ui import ui_path
-from comictaggerlib.ui.qtutils import center_window_on_parent
+
+from .ctsettings import ct_ns
+from .graphics import graphics_path
+from .optionalmsgdialog import OptionalMessageDialog
+from .settingswindow import linuxRarHelp, macRarHelp, windowsRarHelp
+from .ui import ui_path
+from .ui.qtutils import center_window_on_parent
 
 logger = logging.getLogger(__name__)
 

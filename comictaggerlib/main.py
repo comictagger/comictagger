@@ -35,12 +35,13 @@ import comicapi.comicarchive
 import comicapi.filenamelexer
 import comicapi.utils
 import comictalker
-from comictaggerlib import cli, ctsettings, pillow_plugins
-from comictaggerlib.ctsettings import ct_ns, plugin_finder
-from comictaggerlib.ctversion import version
-from comictaggerlib.log import setup_logging
-from comictaggerlib.resulttypes import Action
 from comictalker.comictalker import ComicTalker
+
+from . import cli, ctsettings, pillow_plugins
+from .ctsettings import ct_ns, plugin_finder
+from .ctversion import version
+from .log import setup_logging
+from .resulttypes import Action
 
 logger = logging.getLogger("comictagger")
 

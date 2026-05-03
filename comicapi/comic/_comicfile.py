@@ -4,8 +4,8 @@ import pathlib
 from collections.abc import Collection, Iterable
 from typing import ClassVar, Protocol, runtime_checkable
 
-from comicapi.genericmetadata import GenericMetadata
-from comicapi.tags import TagLocation
+from ..genericmetadata import GenericMetadata
+from ..tags import TagLocation
 
 
 class WrongType(Exception): ...
@@ -61,12 +61,6 @@ class ComicFile(Protocol):
     Should be considered a ReadOnly attribute.
     """
 
-    supported_attributes: ClassVar[frozenset[str]] = frozenset()
-    """
-    Only needed when tag_storage includes TagLocation.CUSTOM
-    For display to user in GUI. Has no effect on data processed or given
-    """
-
     path: pathlib.Path
     """The path to the archive"""
 
@@ -79,7 +73,7 @@ class ComicFile(Protocol):
         Raise `comicapi.comic.WrongType` if the comic is not the correct type.
 
         NOTE: is_7zfile from py7zr does not validate that py7zr can open the file
-        MUST not keep an open file.
+        MUST NOT keep an open file.
         """
 
         self.path = path
@@ -149,6 +143,9 @@ class ComicFile(Protocol):
         """
         Specifically this is used in an attempt to optimize exporting to a different Archive type.
 
+        `filenames`: a list of all filenames to be written, specifically this allows more efficient operations with some archive libraries
+        `files`: an iterable of (filename, filecontent)
+
         `files` must always be completely read. If in doubt make a list.
         ```
         files = list(files)
@@ -178,7 +175,7 @@ class ComicFile(Protocol):
     def check_path(path: pathlib.Path) -> None:
         """
         Check if the given path is valid for this ComicFile.
-        This method should do basic identification checks, validity and corruption checks can be done in `open`.
+        This method should do quick identification checks such as checking for a "Magic Number", validity and corruption checks can be done in `open`.
 
         Raise `comicapi.comic.BadComic` if the comic is corrupt but the correct comic type.
 
@@ -186,36 +183,87 @@ class ComicFile(Protocol):
         """
         raise NotImplementedError
 
-    def validate_comic(self) -> None:
-        """Full validation of comic. Not required to be implemented"""
-        raise NotImplementedError
+    # def validate_comic(self) -> None:
+    #     """Full validation of comic. Not required to be implemented"""
+    #     raise NotImplementedError
 
     # ---
 
-    def display_tags(self) -> str:
-        """Only needed when when tag_storage includes TagLocation.CUSTOM. See `comicapi.tags.Tag.display_tags`"""
-        raise NotImplementedError
 
-    def load_tags(self) -> GenericMetadata:
-        """Only needed when when tag_storage includes TagLocation.CUSTOM. See `comicapi.tags.Tag.read_tags`"""
-        raise NotImplementedError
+class CustomComicFile(ComicFile, Protocol):
 
-    def write_tags(self, version: str, metadata: GenericMetadata) -> None:
-        """Only needed when when tag_storage includes TagLocation.CUSTOM. See `comicapi.tags.Tag.write_tags`"""
-        raise NotImplementedError
+    id: ClassVar[str]
+    location: TagLocation = TagLocation.CUSTOM
 
-    def has_tags(self) -> bool:
-        """Only needed when when tag_storage includes TagLocation.CUSTOM"""
-        raise NotImplementedError
-
-    def remove_tags(self) -> None:
-        """Only needed when when tag_storage includes TagLocation.CUSTOM"""
-        raise NotImplementedError
+    supported_attributes: ClassVar[frozenset[str]] = frozenset()
+    """
+    For display to user in GUI. Has no effect on data processed or given
+    See `comicapi.tags.Tag.supported_attributes`
+    """
 
     def supports_credit_role(self, role: str) -> bool:
         """
-        Only needed when tag_storage includes TagLocation.CUSTOM
-
         For display to user in GUI. Has no effect on data processed or given
         """
-        raise NotImplementedError
+        return False
+        # raise NotImplementedError
+
+    def validate_tags(self) -> bool:
+        return False
+        # raise NotImplementedError
+
+    def load_tags(self) -> GenericMetadata:
+        return GenericMetadata()
+        # raise NotImplementedError
+
+    def display_tags(self) -> str:
+        return ""
+        # raise NotImplementedError
+
+    def write_tags(self, version: str, metadata: GenericMetadata) -> None:
+        return None
+        # raise NotImplementedError
+
+    def has_tags(self) -> bool:
+        return False
+        # raise NotImplementedError
+
+    def remove_tags(self) -> None:
+        return None
+        # raise NotImplementedError
+
+
+class ClassName:
+    id: str
+    name: str
+    enabled: bool
+
+    location = TagLocation.CUSTOM
+
+    supported_attributes: frozenset[str]
+    _comic_file: CustomComicFile
+
+    def __init__(self, comic_file: CustomComicFile) -> None:
+        self._comic_file = comic_file
+        self.enabled = comic_file.enabled
+        self.id = f"custom_{comic_file.__class__.__name__.lower()}"
+        self.name = comic_file.name + " Tag"
+        self.supported_attributes = comic_file.supported_attributes
+
+    def supports_credit_role(self, role: str) -> bool:
+        return self._comic_file.supports_credit_role(role)
+
+    def validate_tags(self, tags: bytes) -> bool:
+        return self._comic_file.validate_tags()
+
+    def load_tags(self, tags: bytes) -> GenericMetadata:
+        return self._comic_file.load_tags()
+
+    def display_tags(self, tags: bytes) -> str:
+        return self._comic_file.display_tags()
+
+    def create_tags(self, version: str, metadata: GenericMetadata) -> bytes:
+        return b""
+
+
+__all__ = []

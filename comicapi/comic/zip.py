@@ -7,13 +7,13 @@ from collections.abc import Collection, Iterable
 import chardet
 from zipremove import ZIP_DEFLATED, BadZipfile, ZipFile, is_zipfile
 
-from comicapi.comic.comicfile import BadComic, WrongType
+from comicapi.comic import BadComic, ComicFile, WrongType
 from comicapi.tags import TagLocation
 
 logger = logging.getLogger(__name__)
 
 
-class ZipComic:
+class ZipComic(ComicFile):
     """ZIP implementation"""
 
     name = "ZIP"
@@ -44,7 +44,7 @@ class ZipComic:
             raise BadComic(f"Error listing files in zip archive [{e}]: {self.path}") from e
 
     def read_comment(self) -> str:
-        comment = ""
+        comment: str = ""
         with ZipFile(self.path, "r") as zf:
             encoding = chardet.detect(zf.comment, True)
             if encoding["confidence"] > 60:
@@ -131,13 +131,20 @@ class ZipComic:
     def is_writable(self) -> bool:
         return True
 
-    def validate_archive(self) -> None:
-        with ZipFile(self.path, mode="r") as zf:
-            filename = zf.testzip()
-            if filename:
-                raise BadComic(f"Error testing files in zip archive: {self.path} :: {filename}")
+    def validate_comic(self) -> None:
+        try:
+            with ZipFile(self.path, mode="r") as zf:
+                filename = zf.testzip()
+                if filename:
+                    raise BadComic(f"Error testing files in zip archive: {self.path} :: {filename}")
+        except BadZipfile as e:
+            raise BadComic("Unable to open zip file") from e
 
     @staticmethod
     def check_path(path: pathlib.Path) -> None:
         if not is_zipfile(path):  # only checks central directory at the end of the archive
             raise WrongType
+
+
+zc = ZipComic(pathlib.Path(""))
+assert isinstance(zc, ComicFile)

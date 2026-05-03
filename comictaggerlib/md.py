@@ -6,10 +6,11 @@ from comicapi import merge, utils
 from comicapi.comicarchive import ComicArchive
 from comicapi.genericmetadata import GenericMetadata
 from comicapi.tags import Tag
-from comictaggerlib import ctversion
-from comictaggerlib.cbltransformer import CBLTransformer
-from comictaggerlib.ctsettings.settngs_namespace import SettngsNS
 from comictalker.talker_utils import cleanup_html
+
+from . import ctversion
+from .cbltransformer import CBLTransformer
+from .ctsettings.settngs_namespace import SettngsNS
 
 
 def prepare_metadata(md: GenericMetadata, new_md: GenericMetadata, config: SettngsNS) -> GenericMetadata:

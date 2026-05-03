@@ -1,5 +1,5 @@
 from __future__ import annotations
 
-from comictaggerlib.main import main
+from .main import main
 
 main()

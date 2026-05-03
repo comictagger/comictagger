@@ -32,11 +32,11 @@ def test_metadata(mock_version, tmp_comic_path, md_saved, tag: Tag, md):
 
     comic.write_tags(mock_version[0], md, tag)
     written_metadata = comic.read_tags(tag)
-    md = md_saved._get_clean_metadata(*tag.supported_attributes)
+    clean_md = md_saved._get_clean_metadata(*tag.supported_attributes)
 
     written_metadata = written_metadata._get_clean_metadata(*tag.supported_attributes)
 
-    assert written_metadata == new_md
+    assert written_metadata == clean_md
 
 
 @pytest.mark.parametrize("metadata, expected", testing.comicdata.metadata_prepared)

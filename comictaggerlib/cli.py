@@ -27,22 +27,22 @@ from collections.abc import Collection
 from functools import partial
 from typing import Any, TextIO, cast
 
-import comictaggerlib
 import comictaggerlib.ctversion
 from comicapi import merge, utils
 from comicapi.comic import ComicFile, ZipComic
 from comicapi.comicarchive import ComicArchive, loaded_tags
 from comicapi.genericmetadata import GenericMetadata
 from comicapi.tags import Tag
-from comictaggerlib.cbltransformer import CBLTransformer
-from comictaggerlib.ctsettings import ct_ns
-from comictaggerlib.filerenamer import FileRenamer, get_rename_dir
-from comictaggerlib.graphics import graphics_path
-from comictaggerlib.md import prepare_metadata
-from comictaggerlib.quick_tag import QuickTag
-from comictaggerlib.resulttypes import Action, MatchStatus, OnlineMatchResults, Result, Status
-from comictaggerlib.tag import identify_comic
 from comictalker.comictalker import ComicTalker, TalkerError
+
+from .cbltransformer import CBLTransformer
+from .ctsettings import ct_ns
+from .filerenamer import FileRenamer, get_rename_dir
+from .graphics import graphics_path
+from .md import prepare_metadata
+from .quick_tag import QuickTag
+from .resulttypes import Action, MatchStatus, OnlineMatchResults, Result, Status
+from .tag import identify_comic
 
 logger = logging.getLogger(__name__)
 

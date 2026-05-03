@@ -35,7 +35,7 @@ try:
 except ImportError:
     import requests
 
-from comictaggerlib import ctversion
+from . import ctversion
 
 if TYPE_CHECKING:
     from PyQt6 import QtCore, QtNetwork

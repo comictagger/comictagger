@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import pytest
 import settngs
+from importlib_metadata import entry_points
 
 import comicapi.comicarchive
 import comicapi.genericmetadata
@@ -10,9 +12,6 @@ from comicapi.tags.comicrack import ComicRack
 from comictaggerlib import ctsettings
 from comictaggerlib.cli import CLI
 from comictalker.comictalker import ComicTalker
-import pytest
-
-from importlib_metadata import entry_points
 
 tags = []
 
@@ -27,6 +26,7 @@ if not tags:
 
 
 @pytest.mark.parametrize("tag", tags)
+@pytest.mark.slow
 def test_save(
     plugin_config: tuple[settngs.Config[ctsettings.ct_ns], dict[str, ComicTalker]],
     tmp_comic_path,
@@ -86,6 +86,7 @@ def test_save(
 
 
 @pytest.mark.parametrize("tag", tags)
+@pytest.mark.slow
 def test_delete(
     plugin_config: tuple[settngs.Config[ctsettings.ct_ns], dict[str, ComicTalker]],
     tmp_comic_path,
@@ -127,6 +128,7 @@ def test_delete(
 
 
 @pytest.mark.parametrize("tag", tags)
+@pytest.mark.slow
 def test_rename(
     plugin_config: tuple[settngs.Config[ctsettings.ct_ns], dict[str, ComicTalker]],
     tmp_comic_path,

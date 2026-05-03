@@ -8,7 +8,7 @@ import urllib3.util.url
 
 import comicapi.genericmetadata
 import comicapi.merge
-import comicapi.tags.tag
+import comicapi.tags._tag
 import comicapi.utils
 import comictaggerlib.ctsettings.types
 import comictaggerlib.defaults
@@ -19,7 +19,7 @@ import comictaggerlib.resulttypes
 class SettngsNS(settngs.TypedNS):
     Commands__version: bool
     Commands__command: comictaggerlib.resulttypes.Action
-    Commands__copy: list[comicapi.tags.tag.Tag]
+    Commands__copy: list[comicapi.tags._tag.Tag]
 
     Runtime_Options__config: comictaggerlib.ctsettings.types.ComicTaggerPaths
     Runtime_Options__verbose: int
@@ -37,8 +37,8 @@ class SettngsNS(settngs.TypedNS):
     Runtime_Options__no_gui: bool
     Runtime_Options__abort_on_conflict: bool
     Runtime_Options__delete_original: bool
-    Runtime_Options__tags_read: list[comicapi.tags.tag.Tag]
-    Runtime_Options__tags_write: list[comicapi.tags.tag.Tag]
+    Runtime_Options__tags_read: list[comicapi.tags._tag.Tag]
+    Runtime_Options__tags_write: list[comicapi.tags._tag.Tag]
     Runtime_Options__skip_existing_tags: bool
     Runtime_Options__files: list[pathlib.Path]
 
@@ -50,8 +50,8 @@ class SettngsNS(settngs.TypedNS):
 
     internal__install_id: str
     internal__embedded_hash_type: str
-    internal__write_tags: list[comicapi.tags.tag.Tag]
-    internal__read_tags: list[comicapi.tags.tag.Tag]
+    internal__write_tags: list[comicapi.tags._tag.Tag]
+    internal__read_tags: list[comicapi.tags._tag.Tag]
     internal__last_opened_folder: str
     internal__window_width: int
     internal__window_height: int
@@ -137,7 +137,7 @@ class SettngsNS(settngs.TypedNS):
 class Commands(typing.TypedDict):
     version: bool
     command: comictaggerlib.resulttypes.Action
-    copy: list[comicapi.tags.tag.Tag]
+    copy: list[comicapi.tags._tag.Tag]
 
 
 class Runtime_Options(typing.TypedDict):
@@ -157,8 +157,8 @@ class Runtime_Options(typing.TypedDict):
     no_gui: bool
     abort_on_conflict: bool
     delete_original: bool
-    tags_read: list[comicapi.tags.tag.Tag]
-    tags_write: list[comicapi.tags.tag.Tag]
+    tags_read: list[comicapi.tags._tag.Tag]
+    tags_write: list[comicapi.tags._tag.Tag]
     skip_existing_tags: bool
     files: list[pathlib.Path]
 
@@ -174,8 +174,8 @@ class Quick_Tag(typing.TypedDict):
 class internal(typing.TypedDict):
     install_id: str
     embedded_hash_type: str
-    write_tags: list[comicapi.tags.tag.Tag]
-    read_tags: list[comicapi.tags.tag.Tag]
+    write_tags: list[comicapi.tags._tag.Tag]
+    read_tags: list[comicapi.tags._tag.Tag]
     last_opened_folder: str
     window_width: int
     window_height: int

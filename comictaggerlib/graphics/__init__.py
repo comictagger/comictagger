@@ -5,3 +5,7 @@ import importlib.resources
 import comictaggerlib.graphics.resources  # noqa: F401
 
 graphics_path = importlib.resources.files(__package__)
+try:
+    from . import resources
+except Exception:
+    ...
