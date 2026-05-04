@@ -7,6 +7,7 @@ from typing import Any
 
 from comicapi.comicarchive import ComicArchive
 from comicapi.genericmetadata import GenericMetadata
+from comicapi.tags import Tag
 from comictaggerlib.ctsettings import ct_ns
 from comictaggerlib.issueidentifier import IssueIdentifier, IssueIdentifierOptions
 from comictaggerlib.issueidentifier import Result as IIResult
@@ -20,7 +21,7 @@ logger = logging.getLogger(__name__)
 def identify_comic(
     ca: ComicArchive,
     md: GenericMetadata,
-    tags_read: list[str],
+    tags_read: list[Tag],
     match_results: OnlineMatchResults,
     config: ct_ns,
     talker: ComicTalker,
@@ -36,7 +37,7 @@ def identify_comic(
             status=Status.match_failure,
             original_path=ca.path,
             match_status=MatchStatus.no_match,
-            tags_read=tags_read,
+            tags_read=[tag.id for tag in tags_read],
         )
         match_results.no_matches.append(res)
         return res, match_results
@@ -69,7 +70,7 @@ def identify_comic(
         status=Status.match_failure,
         original_path=ca.path,
         online_results=matches,
-        tags_read=tags_read,
+        tags_read=[tag.id for tag in tags_read],
     )
     if result == IIResult.multiple_bad_cover_scores:
         res.match_status = MatchStatus.low_confidence_match

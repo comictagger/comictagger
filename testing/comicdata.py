@@ -236,7 +236,7 @@ credits = [
             ]
         ),
         "writeR",
-        comicapi.genericmetadata.Credit(person="Dara Naraghi", role="writer"),  # TODO: normalize casing
+        comicapi.genericmetadata.Credit(person="Dara Naraghi", role="writer"),
     ),
 ]
 

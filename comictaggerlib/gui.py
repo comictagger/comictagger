@@ -4,6 +4,7 @@ import functools
 import json
 import logging
 import os
+import pathlib
 import platform
 import sys
 import traceback
@@ -132,7 +133,7 @@ if TYPE_CHECKING:
 
 def pre_gui_file_request(config: ct_ns, url: QtCore.QUrl) -> None:
     if url.toLocalFile() not in sys.argv:
-        config.Runtime_Options__files.append(url.toLocalFile())
+        config.Runtime_Options__files.append(pathlib.Path(url.toLocalFile()))
 
 
 def setupSocket(app: QtCore.QObject, config: settngs.Config[ct_ns]) -> QtNetwork.QLocalServer:
@@ -179,7 +180,6 @@ def open_tagger_window(
         show_exception_box(error[0], " ")
         if error[1]:
             raise SystemExit(1)
-
     # needed to catch initial open file events (macOS)
     app.openFileRequest.connect(functools.partial(pre_gui_file_request, config[0]))
 

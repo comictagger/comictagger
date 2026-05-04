@@ -20,6 +20,7 @@ import argparse
 import hashlib
 import logging
 import os
+import pathlib
 import platform
 import shlex
 import subprocess
@@ -27,7 +28,7 @@ import subprocess
 import settngs
 
 from comicapi import comicarchive, utils
-from comicapi.comicarchive import tags
+from comicapi.comicarchive import loaded_tags
 from comictaggerlib import ctversion, quick_tag
 from comictaggerlib.ctsettings.settngs_namespace import SettngsNS as ct_ns
 from comictaggerlib.ctsettings.types import ComicTaggerPaths, tag
@@ -158,7 +159,7 @@ def register_runtime(parser: settngs.Manager) -> None:
     parser.add_setting(
         "-t",
         "--tags-read",
-        metavar=f"{{{','.join(tags).upper()}}}",
+        metavar=f"{{{','.join(loaded_tags).upper()}}}",
         default=[],
         type=tag,
         help="""Specify the tags to read.\nUse commas for multiple tags.\nSee --list-plugins for the available tags.\nThe tags used will be 'overlaid' in order:\ne.g. '-t cbl,cr' with no CBL tags, CR will be used if they exist and CR will overwrite any shared CBL tags.\n\n""",
@@ -166,7 +167,7 @@ def register_runtime(parser: settngs.Manager) -> None:
     )
     parser.add_setting(
         "--tags-write",
-        metavar=f"{{{','.join(tags).upper()}}}",
+        metavar=f"{{{','.join(loaded_tags).upper()}}}",
         default=[],
         type=tag,
         help="""Specify the tags to write.\nUse commas for multiple tags.\nRead tags will be used if unspecified\nSee --list-plugins for the available tags.\n\n""",
@@ -179,7 +180,7 @@ def register_runtime(parser: settngs.Manager) -> None:
         help="""Skip archives that already have tags specified with -t,\notherwise merges new tags with existing tags (relevant for -s or -c).\ndefault: %(default)s""",
         file=False,
     )
-    parser.add_setting("files", nargs="*", default=[], file=False)
+    parser.add_setting("files", nargs="*", default=[], type=pathlib.Path, file=False)
 
 
 def register_commands(parser: settngs.Manager) -> None:
@@ -209,7 +210,7 @@ def register_commands(parser: settngs.Manager) -> None:
         "--copy",
         type=tag,
         default=[],
-        metavar=f"{{{','.join(tags).upper()}}}",
+        metavar=f"{{{','.join(loaded_tags).upper()}}}",
         help="Copy the specified source tags to\ndestination tags specified via --tags-write\n(potentially lossy operation).\n\n",
         file=False,
     )
@@ -274,14 +275,14 @@ def validate_commandline_settings(config: settngs.Config[ct_ns], parser: settngs
             + "Distributed under Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)\n",
         )
 
-    enabled_tags = {tag for tag in comicarchive.tags if comicarchive.tags[tag].enabled}
+    enabled_tags = {tag for tag in comicarchive.loaded_tags if comicarchive.loaded_tags[tag].enabled}
     if (
         (not config[0].Metadata_Options__cr)
-        and "cr" in comicarchive.tags
-        and comicarchive.tags["cr"].enabled
+        and "cr" in comicarchive.loaded_tags
+        and comicarchive.loaded_tags["cr"].enabled
         and len(enabled_tags) > 1
     ):
-        comicarchive.tags["cr"].enabled = False
+        type(comicarchive.loaded_tags["cr"]).enabled = False
 
     config[0].Runtime_Options__no_gui = any(
         (config[0].Commands__command != Action.gui, config[0].Runtime_Options__no_gui, config[0].Commands__copy)
@@ -294,7 +295,7 @@ def validate_commandline_settings(config: settngs.Config[ct_ns], parser: settngs
         globs = config[0].Runtime_Options__files
         config[0].Runtime_Options__files = []
         for item in globs:
-            config[0].Runtime_Options__files.extend(glob.glob(item))
+            config[0].Runtime_Options__files.extend(pathlib.Path(x) for x in glob.glob(str(item)))
 
     if config[0].Runtime_Options__json and config[0].Runtime_Options__interactive:
         config[0].Runtime_Options__json = False
@@ -302,7 +303,7 @@ def validate_commandline_settings(config: settngs.Config[ct_ns], parser: settngs
     if config[0].Runtime_Options__tags_read and not config[0].Runtime_Options__tags_write:
         config[0].Runtime_Options__tags_write = config[0].Runtime_Options__tags_read
 
-    disabled_tags = {tag for tag in comicarchive.tags if not comicarchive.tags[tag].enabled}
+    disabled_tags = {tag for tag in comicarchive.loaded_tags if not comicarchive.loaded_tags[tag].enabled}
     to_be_removed = (
         set(config[0].Runtime_Options__tags_read)
         .union(config[0].Runtime_Options__tags_write)
@@ -319,7 +320,7 @@ def validate_commandline_settings(config: settngs.Config[ct_ns], parser: settngs
 
     if (
         config[0].Runtime_Options__no_gui
-        and not [tag.id for tag in tags.values() if tag.enabled]
+        and not [tag.id for tag in loaded_tags.values() if tag.enabled]
         and config[0].Commands__command != Action.list_plugins
     ):
         parser.exit(status=1, message="There are no tags enabled see --list-plugins\n")

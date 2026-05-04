@@ -4,7 +4,9 @@ import settngs
 
 import comicapi.comicarchive
 import comicapi.genericmetadata
+import comictaggerlib.ctversion
 import comictaggerlib.resulttypes
+from comicapi.tags.comicrack import ComicRack
 from comictaggerlib import ctsettings
 from comictaggerlib.cli import CLI
 from comictalker.comictalker import ComicTalker
@@ -18,9 +20,9 @@ def test_save(
 ) -> None:
     tmp_comic = comicapi.comicarchive.ComicArchive(tmp_comic_path)
     # Overwrite the series so it has definitely changed
-    tmp_comic.write_tags(md_saved.replace(series="nothing"), "cr")
+    tmp_comic.write_tags(comictaggerlib.ctversion.version, md_saved.replace(series="nothing"), ComicRack())
 
-    md = tmp_comic.read_tags("cr")
+    md = tmp_comic.read_tags(ComicRack())
 
     # Check that it changed
     assert md != md_saved
@@ -37,18 +39,18 @@ def test_save(
     # Use the temporary comic we created
     config[0].Runtime_Options__files = [tmp_comic_path]
     # Read and save ComicRack tags
-    config[0].Runtime_Options__tags_read = ["cr"]
-    config[0].Runtime_Options__tags_write = ["cr"]
+    config[0].Runtime_Options__tags_read = [ComicRack]
+    config[0].Runtime_Options__tags_write = [ComicRack]
     # Search using the correct series since we just put the wrong series name in the CBZ
     config[0].Auto_Tag__metadata = comicapi.genericmetadata.GenericMetadata(series=md_saved.series)
     # Run ComicTagger
-    CLI(config[0], talkers).run()
+    assert CLI(config[0], talkers).run() == 0
 
     # tmp_comic is invalid it can't handle outside changes so we need a new one
     tmp_comic = comicapi.comicarchive.ComicArchive(tmp_comic_path)
 
     # Read the CBZ
-    md = tmp_comic.read_tags("cr")
+    md = tmp_comic.read_tags(ComicRack)
 
     # This is inserted here because otherwise several other tests
     # unrelated to comicvine need to be re-worked
@@ -74,7 +76,7 @@ def test_delete(
     mock_now,
 ) -> None:
     tmp_comic = comicapi.comicarchive.ComicArchive(tmp_comic_path)
-    md = tmp_comic.read_tags("cr")
+    md = tmp_comic.read_tags(ComicRack)
 
     # Check that the metadata starts correct
     assert md == md_saved
@@ -89,15 +91,15 @@ def test_delete(
     # Use the temporary comic we created
     config[0].Runtime_Options__files = [tmp_comic_path]
     # Delete ComicRack tags
-    config[0].Runtime_Options__tags_write = ["cr"]
+    config[0].Runtime_Options__tags_write = [ComicRack]
     # Run ComicTagger
-    CLI(config[0], talkers).run()
+    assert CLI(config[0], talkers).run() == 0
 
     # tmp_comic is invalid it can't handle outside changes so we need a new one
     tmp_comic = comicapi.comicarchive.ComicArchive(tmp_comic_path)
 
     # Read the CBZ
-    md = tmp_comic.read_tags("cr")
+    md = tmp_comic.read_tags(ComicRack)
 
     # The default page list is set on load if the comic has the requested tags
     empty_md = comicapi.genericmetadata.GenericMetadata()
@@ -113,39 +115,35 @@ def test_rename(
     mock_now,
 ) -> None:
     tmp_comic = comicapi.comicarchive.ComicArchive(tmp_comic_path)
-    md = tmp_comic.read_tags("cr")
+    md = tmp_comic.read_tags(ComicRack)
 
     # Check that the metadata starts correct
     assert md == md_saved
-
-    # Clear the cached metadata
-    tmp_comic.reset_cache()
 
     # Setup the app
     config = plugin_config[0]
     talkers = plugin_config[1]
 
-    # Delete
+    # rename
     config[0].Commands__command = comictaggerlib.resulttypes.Action.rename
 
     # Use the temporary comic we created
     config[0].Runtime_Options__files = [tmp_comic_path]
+    # Read ComicRack tags
+    config[0].Runtime_Options__tags_read = [ComicRack]
 
     # Set the template
     config[0].File_Rename__template = "{series}"
     # Use the current directory
     config[0].File_Rename__dir = ""
     # Run ComicTagger
-    CLI(config[0], talkers).run()
+    assert CLI(config[0], talkers).run() == 0
 
     # tmp_comic is invalid it can't handle outside changes so we need a new one
-    tmp_comic = comicapi.comicarchive.ComicArchive(tmp_comic_path)
-
-    # Update the comic path
-    tmp_comic.path = tmp_comic.path.parent / ((md.series or "comic") + ".cbz")
+    tmp_comic = comicapi.comicarchive.ComicArchive(tmp_comic.path.parent / ((md.series or "comic") + ".cbz"))
 
     # Read the CBZ
-    md = tmp_comic.read_tags("cr")
+    md = tmp_comic.read_tags(ComicRack)
 
     # Validate that we got the correct metadata back
     assert md == md_saved

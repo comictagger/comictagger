@@ -36,7 +36,7 @@ except ImportError:
 @pytest.fixture
 def cbz():
     yield comicapi.comicarchive.ComicArchive(
-        str(filenames.cbz_path)
+        pathlib.Path(str(filenames.cbz_path))
     )  # When testing these always refer to a file on a filesystem
 
 
@@ -178,7 +178,7 @@ def mock_now(monkeypatch):
     monkeypatch.setattr(comictaggerlib.md, "datetime", mydatetime)
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def mock_version(monkeypatch):
     version = "1.3.2a5"
     version_tuple = (1, 3, 2)

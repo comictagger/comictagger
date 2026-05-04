@@ -20,8 +20,9 @@ import logging
 
 from PyQt6 import QtCore, QtGui, QtWidgets, uic
 
-from comicapi.comicarchive import ComicArchive, tags
+from comicapi.comicarchive import ComicArchive
 from comicapi.genericmetadata import GenericMetadata, PageMetadata, PageType
+from comicapi.tags import Tag
 from comictaggerlib.coverimagewidget import CoverImageWidget
 from comictaggerlib.ui import ui_path
 from comictaggerlib.ui.qtutils import enable_widget
@@ -119,7 +120,7 @@ class PageListEditor(QtWidgets.QWidget):
 
         self.comic_archive: ComicArchive | None = None
         self.pages_list: list[PageMetadata] = []
-        self.tag_ids: list[str] = []
+        self.tags: list[Tag] = []
 
     def set_blur(self, blur: bool) -> None:
         self.pageWidget.blur = self.blur = blur
@@ -351,7 +352,7 @@ class PageListEditor(QtWidgets.QWidget):
         self.comic_archive = comic_archive
         self.pages_list = pages_list
         if pages_list:
-            self.select_write_tags(self.tag_ids)
+            self.select_read_tags(self.tags)
         else:
             self.cbPageType.setEnabled(False)
             self.chkDoublePage.setEnabled(False)
@@ -396,18 +397,18 @@ class PageListEditor(QtWidgets.QWidget):
             self.first_front_page = self.get_first_front_cover()
             self.firstFrontCoverChanged.emit(self.first_front_page)
 
-    def select_write_tags(self, tag_ids: list[str]) -> None:
+    def select_read_tags(self, tags: list[Tag]) -> None:
         # depending on the current tags, certain fields are disabled
-        if not tag_ids:
+        if not tags:
             return
 
         enabled_widgets = set()
-        for tag_id in tag_ids:
-            if not tags[tag_id].enabled:
+        for tag in tags:
+            if not tag.enabled:
                 continue
-            enabled_widgets.update(tags[tag_id].supported_attributes)
+            enabled_widgets.update(tag.supported_attributes)
 
-        self.tag_ids = tag_ids
+        self.tags = tags
 
         for md_field, widget in self.md_attributes.items():
             enable_widget(widget, md_field in enabled_widgets)

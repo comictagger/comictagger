@@ -2,14 +2,16 @@ from __future__ import annotations
 
 import argparse
 import uuid
+from typing import cast
 
 import settngs
 
 from comicapi import merge, utils
-from comicapi.comicarchive import tags
+from comicapi.comicarchive import loaded_tags
 from comicapi.genericmetadata import GenericMetadata
+from comicapi.tags import ComicRack, Tag
 from comictaggerlib.ctsettings.settngs_namespace import SettngsNS as ct_ns
-from comictaggerlib.ctsettings.types import parse_metadata_from_string
+from comictaggerlib.ctsettings.types import parse_metadata_from_string, tag
 from comictaggerlib.defaults import DEFAULT_REPLACEMENTS, Replacement, Replacements
 
 
@@ -27,10 +29,15 @@ def general(parser: settngs.Manager) -> None:
 
 def internal(parser: settngs.Manager) -> None:
     # automatic settings
+    # `type=` gets applied to these by ctsettings.validate_types when loaded from a file
     parser.add_setting("install_id", default=uuid.uuid4().hex, cmdline=False)
     parser.add_setting("embedded_hash_type", default="shake_256", cmdline=False)
-    parser.add_setting("write_tags", default=["cix" if "cix" in tags else "cr"], cmdline=False)
-    parser.add_setting("read_tags", default=["cix" if "cix" in tags else "cr"], cmdline=False)
+    parser.add_setting(
+        "write_tags", default=[loaded_tags.get("cix", loaded_tags.get("cr", ComicRack))], type=tag, cmdline=False
+    )
+    parser.add_setting(
+        "read_tags", default=[loaded_tags.get("cix", loaded_tags.get("cr", ComicRack))], type=tag, cmdline=False
+    )
     parser.add_setting("last_opened_folder", default="", cmdline=False)
     parser.add_setting("window_width", default=0, cmdline=False)
     parser.add_setting("window_height", default=0, cmdline=False)
@@ -349,25 +356,6 @@ def parse_filter(config: settngs.Config[ct_ns]) -> settngs.Config[ct_ns]:
 
 
 def migrate_settings(config: settngs.Config[ct_ns]) -> settngs.Config[ct_ns]:
-    original_types = ("cbi", "cr", "comet")
-    write_Tags = config[0].internal__write_tags
-    if not isinstance(write_Tags, list):
-        if isinstance(write_Tags, int) and write_Tags in (0, 1, 2):
-            config[0].internal__write_tags = [original_types[write_Tags]]
-        elif isinstance(write_Tags, str):
-            config[0].internal__write_tags = [write_Tags]
-        else:
-            config[0].internal__write_tags = ["cr"]
-
-    read_tags = config[0].internal__read_tags
-    if not isinstance(read_tags, list):
-        if isinstance(read_tags, int) and read_tags in (0, 1, 2):
-            config[0].internal__read_tags = [original_types[read_tags]]
-        elif isinstance(read_tags, str):
-            config[0].internal__read_tags = [read_tags]
-        else:
-            config[0].internal__read_tags = ["cr"]
-
     return config
 
 
@@ -383,6 +371,18 @@ def validate_file_settings(config: settngs.Config[ct_ns]) -> settngs.Config[ct_n
         [Replacement(x[0], x[1], x[2]) for x in config[0].File_Rename__replacements[0]],
         [Replacement(x[0], x[1], x[2]) for x in config[0].File_Rename__replacements[1]],
     )
+    # TODO: this shouldn't be needed with current version of settngs
+    for tag_id in cast(list[Tag | str], config.values.internal__read_tags):
+        if not isinstance(tag_id, Tag):
+            raise Exception(
+                f"Invalid tag settings detected: expected a list of Tag got {config.values.internal__read_tags=}"
+            )
+    for tag_id in cast(list[Tag | str], config.values.internal__write_tags):
+        if not isinstance(tag_id, Tag):
+            raise Exception(
+                f"Invalid tag settings detected: expected a list of Tag got {config.values.internal__write_tags=}"
+            )
+
     return config
 
 

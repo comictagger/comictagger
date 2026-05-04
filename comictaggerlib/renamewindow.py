@@ -23,8 +23,9 @@ from PyQt6 import QtCore, QtGui, QtWidgets, uic
 from PyQt6.QtGui import QColorConstants
 
 from comicapi import utils
-from comicapi.comicarchive import ComicArchive, tags
+from comicapi.comicarchive import ComicArchive
 from comicapi.genericmetadata import GenericMetadata
+from comicapi.tags import Tag
 from comictaggerlib.ctsettings import ct_ns
 from comictaggerlib.filerenamer import FileRenamer, get_rename_dir
 from comictaggerlib.md import read_selected_tags
@@ -42,7 +43,7 @@ class RenameWindow(QtWidgets.QDialog):
         self,
         parent: QtWidgets.QWidget,
         comic_archive_list: list[ComicArchive],
-        read_tag_ids: list[str],
+        read_tags: list[Tag],
         config: settngs.Config[ct_ns],
         talkers: dict[str, ComicTalker],
     ) -> None:
@@ -51,7 +52,7 @@ class RenameWindow(QtWidgets.QDialog):
         with (ui_path / "renamewindow.ui").open(encoding="utf-8") as uifile:
             uic.loadUi(uifile, self)
 
-        self.label.setText(f"Preview (based on {', '.join(tags[tag].name() for tag in read_tag_ids)} tags):")
+        self.label.setText(f"Preview (based on {', '.join(tag.name for tag in read_tags)} tags):")
 
         self.setWindowFlags(
             QtCore.Qt.WindowType(
@@ -64,7 +65,7 @@ class RenameWindow(QtWidgets.QDialog):
         self.config = config
         self.talkers = talkers
         self.comic_archive_list = comic_archive_list
-        self.read_tag_ids = read_tag_ids
+        self.read_tags = read_tags
         self.rename_list: list[str] = []
 
         self.btnSettings.clicked.connect(self.modify_settings)

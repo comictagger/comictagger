@@ -24,27 +24,28 @@ import logging
 import os
 import pathlib
 import shutil
-from collections.abc import Iterable
+from collections.abc import Collection, Iterable
+from typing import ClassVar, cast
 
 from comicapi import utils
-from comicapi.archivers import Archiver, UnknownArchiver, ZipArchiver
+from comicapi.comic import ComicFile, UnknownArchiver, WrongType, ZipComic
 from comicapi.genericmetadata import FileHash, GenericMetadata
-from comicapi.tags import Tag
+from comicapi.tags import Tag, TagLocation
 from comictaggerlib.ctversion import version
 
 logger = logging.getLogger(__name__)
 
-archivers: list[type[Archiver]] = []
-tags: dict[str, Tag] = {}
+archivers: list[type[ComicFile]] = []
+loaded_tags: dict[str, Tag] = {}
 
 
-def load_archive_plugins(local_plugins: Iterable[type[Archiver]] = tuple()) -> None:
+def load_archive_plugins(local_plugins: Iterable[type[ComicFile]] = tuple()) -> None:
     if archivers:
         return
     from importlib.metadata import entry_points
 
-    builtin: list[type[Archiver]] = []
-    archive_plugins: list[type[Archiver]] = []
+    builtin: list[type[ComicFile]] = []
+    archive_plugins: list[type[ComicFile]] = []
     # A list is used first matching plugin wins
 
     for ep in itertools.chain(entry_points(group="comicapi.archiver")):
@@ -53,8 +54,10 @@ def load_archive_plugins(local_plugins: Iterable[type[Archiver]] = tuple()) -> N
         except ValueError:
             spec = None
         try:
-            archiver: type[Archiver] = ep.load()
-
+            archiver: type[ComicFile] = ep.load()
+            if not archiver.enabled:
+                logger.info("Archiver %r (%s) is disabled. Refusing to load archiver plugin", archiver.name, ep.name)
+                continue
             if ep.module.startswith("comicapi"):
                 builtin.append(archiver)
             else:
@@ -70,13 +73,38 @@ def load_archive_plugins(local_plugins: Iterable[type[Archiver]] = tuple()) -> N
     archivers.extend(builtin)
 
 
-def load_tag_plugins(version: str = f"ComicAPI/{version}", local_plugins: Iterable[type[Tag]] = tuple()) -> None:
-    if tags:
+__custom_tags: dict[str, Tag] = {}
+
+
+def custom_tag(comic_file: type[ComicFile]) -> Tag:
+    tag_id = f"custom_{comic_file.__name__.lower()}"
+    if tag_id in __custom_tags:
+        return __custom_tags[tag_id]
+
+    class ClassName:
+        id: ClassVar[str] = tag_id
+        name: ClassVar[str] = comic_file.name
+        enabled: ClassVar[bool] = comic_file.enabled
+
+        location: ClassVar[TagLocation] = TagLocation.CUSTOM
+
+        supported_attributes: ClassVar[frozenset[str]] = comic_file.supported_attributes
+        _comic_file: ClassVar[type[ComicFile]] = comic_file
+
+    ClassName.__name__ = comic_file.__name__ + "Tag"
+    if isinstance(ClassName, Tag):
+        return __custom_tags.setdefault(tag_id, ClassName)
+    raise SystemError("Unable to create custom tags")
+
+
+def load_tag_plugins(version: str = f"ComicAPI/{version}", local_plugins: Iterable[Tag] = tuple()) -> None:
+    if loaded_tags:
         return
     from importlib.metadata import entry_points
 
     builtin: dict[str, Tag] = {}
     tag_plugins: dict[str, tuple[Tag, str]] = {}
+    custom_tag_plugins: dict[str, Tag] = {}
     # A dict is used, last plugin wins
     for ep in entry_points(group="comicapi.tags"):
         location = "Unknown"
@@ -88,10 +116,12 @@ def load_tag_plugins(version: str = f"ComicAPI/{version}", local_plugins: Iterab
             location = "Unknown"
 
         try:
-            tag: type[Tag] = ep.load()
-
+            tag: Tag = ep.load()
+            if not tag.enabled:
+                logger.info("Tag %r (%s) is disabled. Refusing to load tag plugin", tag.name, ep.name)
+                continue
             if ep.module.startswith("comicapi"):
-                builtin[tag.id] = tag(version)
+                builtin[tag.id] = tag
             else:
                 if tag.id in tag_plugins:
                     logger.warning(
@@ -100,66 +130,86 @@ def load_tag_plugins(version: str = f"ComicAPI/{version}", local_plugins: Iterab
                         location,
                         tag.id,
                     )
-                tag_plugins[tag.id] = (tag(version), location)
+                tag_plugins[tag.id] = (tag, location)
         except Exception:
             logger.exception("Failed to load tag plugin: %s from %s", ep.name, location)
     # A dict is used, last plugin wins
     for tag in local_plugins:
-        tag_plugins[tag.id] = (tag(version), "Local")
+        if not tag.enabled:
+            logger.info("Local Tag %r (%s) is disabled. Refusing to load tag plugin", tag.name, tag.id)
+            continue
+        tag_plugins[tag.id] = (tag, "Local")
+
+    for archive in archivers:
+        if TagLocation.CUSTOM in archive.tag_locations:
+            tag = custom_tag(archive)
+            custom_tag_plugins[tag.id] = tag
 
     for tag_id in set(builtin.keys()).intersection(tag_plugins):
         location = tag_plugins[tag_id][1]
         logger.warning("Builtin plugin for %s tags are being overridden by a plugin from %s", tag_id, location)
 
-    tags.clear()
-    tags.update(builtin)
-    tags.update({s[0]: s[1][0] for s in tag_plugins.items()})
+    loaded_tags.clear()
+    loaded_tags.update(builtin)
+    loaded_tags.update({s[0]: s[1][0] for s in tag_plugins.items()})
+    loaded_tags.update(custom_tag_plugins)
 
 
 class ComicArchive:
-    """Exceptions from tags/archive should already be logged. Caller must handle display to user and recovery"""
 
     logo_data = b""
-    pil_available: bool | None = None
 
     def __init__(
         self,
-        path: pathlib.Path | str | Archiver,
-        default_image_path: pathlib.Path | str | None = None,
+        path: pathlib.Path | ComicFile,
+        default_image_path: pathlib.Path | None = None,
         hash_archive: str = "",
     ) -> None:
         self.md: dict[str, GenericMetadata] = {}
         self.page_count: int | None = None
         self.page_list: list[str] = []
         self.hash_archive = hash_archive
+        self.Archiver: type[ComicFile] = UnknownArchiver
+        self.archiver: ComicFile | None = None
 
         self.reset_cache()
         self.default_image_path = default_image_path
 
-        if isinstance(path, Archiver):
-            self.path = path.path
-            self.archiver: Archiver = path
-        else:
+        if isinstance(path, pathlib.Path):
             self.path = pathlib.Path(path).absolute()
-            self.archiver = UnknownArchiver.open(self.path)
 
             load_archive_plugins()
             load_tag_plugins()
-            archiver_missing = True
-            for archiver in archivers:
-                if self.path.suffix in archiver.supported_extensions and archiver.is_valid(self.path):
-                    self.archiver = archiver.open(self.path)
-                    archiver_missing = False
-                    break
 
-            if archiver_missing:
+            tried_archivers = []
+            for archiver in archivers:
+                if self.path.suffix not in archiver.supported_extensions:
+                    continue
+                tried_archivers.append(archiver)
+                try:
+                    archiver.check_path(self.path)
+                    self.Archiver = archiver
+                    break
+                except WrongType:
+                    continue
+
+            if self.Archiver == UnknownArchiver:
                 for archiver in archivers:
-                    if archiver.enabled and archiver.is_valid(self.path):
-                        self.archiver = archiver.open(self.path)
+                    if archiver in tried_archivers:
+                        continue
+                    try:
+                        archiver.check_path(self.path)
+                        self.Archiver = archiver
                         break
+                    except WrongType:
+                        continue
+        else:
+            self.path = path.path
+            self.archiver = path
+            self.Archiver = type(path)
 
         if not ComicArchive.logo_data and self.default_image_path:
-            with open(self.default_image_path, mode="rb") as fd:
+            with self.default_image_path.open(mode="rb") as fd:
                 ComicArchive.logo_data = fd.read()
 
     def reset_cache(self) -> None:
@@ -169,98 +219,204 @@ class ComicArchive:
         self.page_list.clear()
         self.md.clear()
 
-    def load_cache(self, tag_ids: Iterable[str]) -> None:
-        for tag_id in tag_ids:
-            if tag_id not in tags:
-                continue
-            tag = tags[tag_id]
-            if not tag.enabled:
-                continue
-            md = tag.read_tags(self.archiver)
-            if not md.is_empty:
-                self.md[tag_id] = md
+    def _open_archive(self) -> ComicFile:
+        if self.Archiver is UnknownArchiver:
+            raise Exception("Archive not opened")
+        if self.archiver is None:
+            self.archiver = self.Archiver(self.path)
+        return self.archiver
 
-    def get_supported_tags(self) -> list[str]:
-        return [tag_id for tag_id, tag in tags.items() if tag.enabled and tag.supports_tags(self.archiver)]
+    def get_supported_tags(self, tags: Collection[Tag] = loaded_tags.values()) -> list[Tag]:
+        allowed_locations = self.Archiver.tag_locations - {TagLocation.CUSTOM}
+        allowed_tags = [tag for tag in tags if tag.location in allowed_locations]
+        if TagLocation.CUSTOM in self.Archiver.tag_locations:
+            allowed_tags.append(custom_tag(self.Archiver))
+        return allowed_tags
 
-    def rename(self, path: pathlib.Path | str) -> None:
-        new_path = pathlib.Path(path).absolute()
+    def _supported_tag(self, tag: Tag) -> None:
+        if tag.location not in self.Archiver.tag_locations:
+            raise Exception(f"{tag.name} tags Not Supported for Comic {self.Archiver.name}")
+        if tag.location == TagLocation.CUSTOM:
+            if tag._comic_file != self.Archiver:
+                raise Exception(
+                    f"{tag.name} tags are only supported on {tag._comic_file.name} not {self.Archiver.name}"
+                )
+
+    def rename(self, path: pathlib.Path) -> None:
+        if self.archiver is not None:
+            # self.archiver.close()
+            self.archiver = None
+
+        new_path = path.absolute()
         if new_path == self.path:
             return
         os.makedirs(new_path.parent, 0o777, True)
         shutil.move(self.path, new_path)
         self.path = new_path
-        self.archiver.path = pathlib.Path(path)
 
     def is_writable(self, check_archive_status: bool = True) -> bool:
-        if isinstance(self.archiver, UnknownArchiver):
-            return False
-
-        if check_archive_status and not self.archiver.is_writable():
-            return False
-
         if not (os.access(self.path, os.W_OK) and os.access(self.path.parent, os.W_OK)):
             return False
+
+        if check_archive_status:
+            self.archiver = self._open_archive()
+            if not self.archiver.is_writable():
+                return False
 
         return True
 
     def is_zip(self) -> bool:
-        return self.archiver.extension() == ".cbz"
+        return self.Archiver.extension == ".cbz"
 
     def seems_to_be_a_comic_archive(self) -> bool:
+        if self.Archiver is UnknownArchiver:
+            return False
+
         try:
-            if (
-                not (isinstance(self.archiver, UnknownArchiver))
-                and self.get_number_of_pages() > 0
-                and self.archiver.is_valid(self.path)
-            ):
-                return True
+            self.Archiver.check_path(self.path)
+            return self.get_number_of_pages() > 0
         except Exception:
             ...
 
         return False
 
     def extension(self) -> str:
-        return self.archiver.extension()
+        return self.Archiver.extension
 
-    def read_tags(self, tag_id: str) -> GenericMetadata:
-        if tag_id in self.md:
-            return self.md[tag_id]
+    def read_tags(self, tag: Tag) -> GenericMetadata:
+        self._supported_tag(tag)
+        if tag.id in self.md:
+            return self.md[tag.id]
         md = GenericMetadata()
-        tag = tags[tag_id]
-        if tag.enabled and tag.has_tags(self.archiver):
-            md = tag.read_tags(self.archiver)
-            md.apply_default_page_list(self.get_page_name_list())
+
+        if tag.location == TagLocation.COMMENT:
+            a = self._open_archive()
+            comment = a.read_comment()
+            if not tag.validate_tags(comment.encode(encoding="utf-8")):
+                return md
+            md = tag.load_tags(comment.encode(encoding="utf-8"))
+        if tag.location == TagLocation.FILE:
+            filename = self._find_file(tag)
+            if filename == "":
+                return md
+
+            a = self._open_archive()
+            file_content = a.read_file(filename)
+            if not tag.validate_tags(file_content):
+                return md
+            md = tag.load_tags(file_content)
+        if tag.location == TagLocation.CUSTOM:
+            a = self._open_archive()
+            if not a.has_tags():
+                return md
+            md = a.load_tags()
+        md.apply_default_page_list(self.get_page_name_list())
         return md
 
-    def read_raw_tags(self, tag_id: str) -> str:
-        if not tags[tag_id].enabled:
+    def _find_file(self, tag: Tag) -> str:
+        a = self._open_archive()
+        filenames = a.get_filename_list()
+        if not filenames:
             return ""
-        return tags[tag_id].read_raw_tags(self.archiver)
+        if tag.filename_match[0] == "*":
+            for name in filenames:
+                if name.endswith(tag.filename_match[1:]):
+                    return name
+            return ""
+        for name in filenames:
+            if name == tag.filename_match:
+                return name
+        return ""
 
-    def write_tags(self, metadata: GenericMetadata, tag_id: str) -> None:
-        if tag_id in self.md:
-            del self.md[tag_id]
-        if not tags[tag_id].enabled:
-            logger.warning("%s tags not enabled", tags[tag_id].name())
-            return
+    def read_raw_tags(self, tag: Tag) -> str:
+        self._supported_tag(tag)
+        if tag.location == TagLocation.COMMENT:
+            a = self._open_archive()
+            content = a.read_comment()
+            return tag.display_tags(content.encode(encoding="utf-8"))
+        if tag.location == TagLocation.FILE:
+            filename = self._find_file(tag)
+            if filename == "":
+                return ""
+
+            a = self._open_archive()
+            file_content = a.read_file(filename)
+            return tag.display_tags(file_content)
+        if tag.location == TagLocation.CUSTOM:
+            a = self._open_archive()
+            return a.display_tags()
+        return ""
+
+    def write_tags(self, version: str, metadata: GenericMetadata, tag: Tag) -> None:
+        self._supported_tag(tag)
+        if tag.id in self.md:
+            del self.md[tag.id]
 
         self.apply_archive_info_to_metadata(metadata, True, True, hash_archive=self.hash_archive)
-        tags[tag_id].write_tags(metadata, self.archiver)
+        if tag.location == TagLocation.COMMENT:
+            a = self._open_archive()
+            content = a.read_comment()
+            return a.write_comment(tag.create_tags(version, metadata, content.encode(encoding="utf-8")).decode("utf-8"))
+        if tag.location == TagLocation.FILE:
+            filename = self._find_file(tag)
+            file_content = b""
+            a = self._open_archive()
+            if filename:
+                file_content = a.read_file(filename)
+            else:
+                filename = tag.filename
 
-    def has_tags(self, tag_id: str) -> bool:
-        if tag_id in self.md:
-            return True
-        if not tags[tag_id].enabled:
-            return False
-        return tags[tag_id].has_tags(self.archiver)
+            return a.write_file(filename, tag.create_tags(version, metadata, file_content))
+        if tag.location == TagLocation.CUSTOM:
+            a = self._open_archive()
+            return a.write_tags(version, metadata)
 
-    def remove_tags(self, tag_id: str) -> None:
-        if tag_id in self.md:
-            del self.md[tag_id]
-        if not tags[tag_id].enabled:
-            return
-        tags[tag_id].remove_tags(self.archiver)
+    def has_tags(self, tag: Tag) -> bool:
+        self._supported_tag(tag)
+
+        if tag.location == TagLocation.COMMENT:
+            a = self._open_archive()
+            comment = a.read_comment()
+            return tag.validate_tags(comment.encode(encoding="utf-8"))
+        if tag.location == TagLocation.FILE:
+            filename = self._find_file(tag)
+            if filename == "":
+                return False
+
+            a = self._open_archive()
+            file_content = a.read_file(filename)
+            return tag.validate_tags(file_content)
+        if tag.location == TagLocation.CUSTOM:
+            a = self._open_archive()
+            return a.has_tags()
+        return False
+
+    def remove_tags(self, tag: Tag) -> None:
+        self._supported_tag(tag)
+        if tag.id in self.md:
+            del self.md[tag.id]
+        if tag.location == TagLocation.COMMENT:
+            a = self._open_archive()
+            return a.write_comment("")
+        if tag.location == TagLocation.FILE:
+            filename = self._find_file(tag)
+            if filename == "":
+                return
+
+            a = self._open_archive()
+            return a.remove_files([filename])
+        if tag.location == TagLocation.CUSTOM:
+            a = self._open_archive()
+            return a.remove_tags()
+
+    def load_cache(self, loaded_tags: Iterable[Tag]) -> None:
+        for tag in loaded_tags:
+            try:
+                md = self.read_tags(tag)
+                if not md.is_empty:
+                    self.md[tag.id] = md
+            except Exception:
+                ...
 
     def get_page(self, index: int) -> bytes:
         image_data = b""
@@ -269,7 +425,8 @@ class ComicArchive:
 
         if filename:
             try:
-                image_data = self.archiver.read_file(filename) or b""
+                a = self._open_archive()
+                image_data = a.read_file(filename)
             except Exception:
                 logger.exception("Error reading in page %d. Substituting logo page.", index)
                 image_data = ComicArchive.logo_data
@@ -277,9 +434,6 @@ class ComicArchive:
         return image_data
 
     def get_page_name(self, index: int) -> str:
-        if index is None:
-            return ""
-
         page_list = self.get_page_name_list()
 
         num_pages = len(page_list)
@@ -338,8 +492,9 @@ class ComicArchive:
 
     def get_page_name_list(self) -> list[str]:
         if not self.page_list:
-            self.__import_pil__()  # Import pillow for list of supported extensions
-            self.page_list = utils.get_page_name_list(self.archiver.get_filename_list())
+            utils.initialize_pil()
+            a = self._open_archive()
+            self.page_list = utils.get_page_name_list(a.get_filename_list())
 
         return self.page_list
 
@@ -347,22 +502,6 @@ class ComicArchive:
         if self.page_count is None:
             self.page_count = len(self.get_page_name_list())
         return self.page_count
-
-    def __import_pil__(self) -> bool:
-        if self.pil_available is not None:
-            return self.pil_available
-
-        try:
-            from PIL import Image
-
-            Image.init()
-            utils.KNOWN_IMAGE_EXTENSIONS.update([ext for ext, typ in Image.EXTENSION.items() if typ in Image.OPEN])
-            self.pil_available = True
-        except Exception:
-            self.pil_available = False
-            logger.exception("Failed to load Pillow")
-            return False
-        return True
 
     def apply_archive_info_to_metadata(
         self,
@@ -379,9 +518,11 @@ class ComicArchive:
             return
 
         if hash_archive in hashlib.algorithms_available and not md.original_hash:
+            if self.path.is_dir():
+                return
             hasher = getattr(hashlib, hash_archive, hash_archive)
             try:
-                with self.archiver.path.open("b+r") as archive:
+                with self.path.open("b+r") as archive:
                     digest = utils.file_digest(archive, hasher)
                 if len(inspect.signature(digest.hexdigest).parameters) > 0:
                     length = digest.name.rpartition("_")[2]
@@ -391,7 +532,7 @@ class ComicArchive:
                 else:
                     md.original_hash = FileHash(digest.name, digest.hexdigest())
             except Exception:
-                logger.exception("Failed to calculate original hash for '%s'", self.archiver.path)
+                logger.exception("Failed to calculate original hash for '%s'", self.path)
         if not calc_page_sizes:
             return
         for p in md.pages:
@@ -399,7 +540,7 @@ class ComicArchive:
                 try:
                     data = self.get_page(p.archive_index)
                     p.byte_size = len(data)
-                    if not data or not self.__import_pil__():
+                    if not data or not utils.initialize_pil():
                         continue
 
                     from PIL import Image
@@ -464,17 +605,15 @@ class ComicArchive:
         metadata.is_empty = False
         return metadata
 
-    def export_as(self, new_filename: pathlib.Path, extension: str = ".zip") -> None:
+    def export_as(self, export_type: type[ComicFile], new_filename: pathlib.Path) -> None:
         """
-        Unconditionally creates a new file. Does not check the current archive.
-
-        If extension cannot be find reverts to .zip
+        Copies all content from the current archive to
         """
-        zip_archiver = UnknownArchiver.open(new_filename)
-        for archiver in archivers:
-            if extension in archiver.supported_extensions:
-                zip_archiver = archiver.open(new_filename)
-        if isinstance(zip_archiver, UnknownArchiver):
-            zip_archiver = ZipArchiver.open(new_filename)
+        if export_type == UnknownArchiver:
+            export_type = cast(type[ComicFile], ZipComic)
+        export_comic = export_type(new_filename)
+        a = self._open_archive()
+        export_comic.write_files(files=a.read_files(a.get_filename_list()), filenames=a.get_filename_list())
 
-        zip_archiver.copy_from_archive(self.archiver)
+        if TagLocation.COMMENT in export_comic.tag_locations and TagLocation.COMMENT in a.tag_locations:
+            export_comic.write_comment(a.read_comment())

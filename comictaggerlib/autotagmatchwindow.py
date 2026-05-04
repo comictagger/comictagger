@@ -21,7 +21,8 @@ import os
 
 from PyQt6 import QtCore, QtGui, QtWidgets, uic
 
-from comicapi.comicarchive import ComicArchive, tags
+from comicapi.comicarchive import ComicArchive
+from comictaggerlib import ctversion
 from comictaggerlib.coverimagewidget import CoverImageWidget
 from comictaggerlib.ctsettings import ct_ns
 from comictaggerlib.md import prepare_metadata, read_selected_tags
@@ -279,14 +280,14 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
 
         QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
         md = prepare_metadata(md, ct_md, self.config)
-        for tag_id in self.config.Runtime_Options__tags_write:
+        for tag in self.config.Runtime_Options__tags_read:
             try:
-                ca.write_tags(md, tag_id)
+                ca.write_tags(ctversion.version, md, tag)
             except Exception as e:
                 OptionalMessageDialog.warning(
                     self,
                     "Write Error",
-                    f"Saving {tags[tag_id].name()} the tags to the archive seemed to fail! {e}",
+                    f"Saving {tag.name} the tags to the archive seemed to fail! {e}",
                 )
                 break
         self.matched_comics.append(ca)

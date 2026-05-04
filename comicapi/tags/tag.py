@@ -1,21 +1,61 @@
 from __future__ import annotations
 
-from typing import ClassVar
+from typing import Protocol, runtime_checkable
 
-from comicapi.archivers import Archiver
 from comicapi.genericmetadata import GenericMetadata
+from comicapi.utils import StrEnum
 
 
-class Tag:
-    id: ClassVar[str] = ""
+class TagLocation(StrEnum):
     """
-    ID form this tag format.
-    Currently known used IDs are cr, cix, comet, cbi, metroninfo and acbf.
-    You can use an existing ID to override it's behaiour. It is not recommended to do so.
+    TagLocation is where the tags are stored in a file.
+
+    FILE: Tags are stored in a distinct file in a comic. Must set filename_match and filename so that tags can be located.
+    COMMENT: Tags are stored in the comment section of an comic.
+    CUSTOM: Tags are stored in a file specific format. eg single file acbf format https://acbf.fandom.com/wiki/ACBF_Specifications#Embedding_ACBF_files_and_compatibility_with_popular_comic_book_formats or PDF Metadata https://en.wikipedia.org/wiki/PDF#Metadata
     """
 
-    enabled: bool = False
-    """When set to False it will be excluded from selection in ComicTagger"""
+    FILE = "file"
+    COMMENT = "comment"
+    CUSTOM = "custom"
+
+
+@runtime_checkable
+class Tag(Protocol):
+    """
+    Tag class used for loading and saving metadata.
+
+    It is not required that a tag inherit this class but it must implement the data and methods listed here.
+    See https://github.com/comictagger/comicinfoxml
+    """
+
+    id: str
+    name: str
+    enabled: bool
+    """
+    When false ComicApi will refuse to load the tag.
+    If external imports are required and are not available this should be false. See rar.py and sevenzip.py.
+    """
+
+    location: TagLocation
+    filename_match: str
+    """
+    filename to obtain tags from.
+    Either an exact name to match:
+    `ComicInfo.xml`
+    or an extension:
+    `*.xml`
+
+    the first matching file will be used
+
+    Only needed if storage_location is TagLocation.FILE
+    """
+    filename: str
+    """
+    The filename to save tags to.
+
+    Only needed if storage_location is TagLocation.FILE
+    """
 
     supported_attributes: set[str] = {
         "data_origin",
@@ -77,68 +117,27 @@ class Tag:
         "identifier",
         "last_mark",
     }
-    """Set of GenericMetadata attributes this tag format can handle"""
-    version: str
-    """Current version of ComicTagger"""
+    """For enabling/disabling in GUI. Has no effect on data processed"""
 
-    def __init__(self, version: str) -> None:
-        self.version: str = version
-
-    def supports_credit_role(self, role: str) -> bool:
-        """
-        Return True if this tag format can handle this credit role.
-        Should always return a bool.
-        MUST NOT cause an exception.
-        """
-        self.supported_attributes
-        return False
-
-    def supports_tags(self, archive: Archiver) -> bool:
-        """
-        Checks the given archive for the ability to save these tags.
-        Should always return a bool.
-        Typically consists of a call to either `archive.supports_comment` or `archive.supports_file`
-        """
+    @staticmethod
+    def supports_credit_role(role: str) -> bool:
         raise NotImplementedError
 
-    def has_tags(self, archive: Archiver) -> bool:
-        """
-        Checks the given archive for tags.
-        Should always return a bool.
-        """
+    @staticmethod
+    def validate_tags(tags: bytes) -> bool:
         raise NotImplementedError
 
-    def remove_tags(self, archive: Archiver) -> None:
-        """
-        Removes the tags from the given archive.
-        Should always return a bool. Failures should return False.
-        """
+    @staticmethod
+    def load_tags(tags: bytes) -> GenericMetadata:
         raise NotImplementedError
 
-    def read_tags(self, archive: Archiver) -> GenericMetadata:
-        """
-        Returns a GenericMetadata representing the tags saved in the given archive.
-        """
+    @staticmethod
+    def display_tags(tags: bytes) -> str:
         raise NotImplementedError
 
-    def read_raw_tags(self, archive: Archiver) -> str:
-        """
-        Returns the raw tags as a string.
-        If the tags are a binary format a roughly similar text format should be used.
-        """
+    @staticmethod
+    def create_tags(version: str, metadata: GenericMetadata, existing_tags: bytes) -> bytes:
         raise NotImplementedError
 
-    def write_tags(self, metadata: GenericMetadata, archive: Archiver) -> None:
-        """
-        Saves the given metadata to the given archive.
-        Should always return a bool
-        """
-        raise NotImplementedError
 
-    def name(self) -> str:
-        """
-        Returns the name of these tags for display purposes eg "Comic Rack".
-        Should always return a string.
-        MUST NOT cause an exception.
-        """
-        return ""
+__all__ = []

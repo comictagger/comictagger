@@ -13,6 +13,7 @@ import comictaggerlib.issueidentifier
 import comictaggerlib.resulttypes
 import testing.comicdata
 import testing.comicvine
+from comicapi.tags.comicrack import ComicRack
 
 
 def test_crop(cbz_double_cover, config, tmp_path, comicvine_api, tmp_comic_path):
@@ -30,7 +31,7 @@ def test_crop(cbz_double_cover, config, tmp_path, comicvine_api, tmp_comic_path)
     )
     ii = comictaggerlib.issueidentifier.IssueIdentifier(iio, None)
 
-    im = Image.open(io.BytesIO(tmp_comic.archiver.read_file("double_cover.jpg")))
+    im = Image.open(io.BytesIO(tmp_comic.Archiver(tmp_comic.path).read_file("double_cover.jpg")))
 
     cropped = ii._crop_double_page(im)
     original = tmp_comic.get_page(0)
@@ -100,7 +101,7 @@ def test_search(cbz, config, comicvine_api):
         talker=comicvine_api,
     )
     ii = comictaggerlib.issueidentifier.IssueIdentifier(iio, None)
-    result, issues = ii.identify(cbz, cbz.read_tags("cr"))
+    result, issues = ii.identify(cbz, cbz.read_tags(ComicRack))
     cv_expected = comictaggerlib.resulttypes.IssueResult(
         score=comictaggerlib.resulttypes.Score(
             score=0,

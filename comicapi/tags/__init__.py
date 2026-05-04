@@ -1,5 +1,6 @@
 from __future__ import annotations
 
-from comicapi.tags.tag import Tag
+from .comicrack import ComicRack
+from .tag import Tag, TagLocation
 
-__all__ = ["Tag"]
+__all__ = ["Tag", "TagLocation", "ComicRack"]

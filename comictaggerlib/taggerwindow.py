@@ -22,13 +22,14 @@ import json
 import logging
 import operator
 import os
+import pathlib
 import platform
 import sys
 import textwrap
 import traceback
 import webbrowser
 from collections.abc import Callable, Sequence
-from typing import Any
+from typing import Any, cast
 
 import natsort
 import settngs
@@ -37,10 +38,12 @@ from PyQt6 import QtCore, QtGui, QtNetwork, QtWidgets, uic
 import comicapi.merge
 import comictaggerlib.ui
 from comicapi import utils
-from comicapi.comicarchive import ComicArchive, tags
+from comicapi.comic import ComicFile, ZipComic
+from comicapi.comicarchive import ComicArchive, loaded_tags
 from comicapi.filenameparser import FileNameParser
 from comicapi.genericmetadata import Credit, FileHash, GenericMetadata
 from comicapi.issuestring import IssueString
+from comicapi.tags import Tag
 from comictaggerlib import ctsettings, ctversion
 from comictaggerlib.applicationlogwindow import ApplicationLogWindow, QTextEditLogger
 from comictaggerlib.autotagmatchwindow import AutoTagMatchWindow
@@ -115,6 +118,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
     def __init__(
         self,
+        file_list: list[pathlib.Path],
         config: settngs.Config[ct_ns],
         talkers: dict[str, ComicTalker],
         socket_server: QtNetwork.QLocalServer,
@@ -251,13 +255,13 @@ class TaggerWindow(QtWidgets.QMainWindow):
         config[0].Runtime_Options__tags_read = config[0].Runtime_Options__tags_read or list(self.enabled_tags())
 
         # Remove any tags we don't know about
-        for tag_id in config[0].Runtime_Options__tags_write.copy():
-            if tag_id not in self.enabled_tags():
-                config[0].Runtime_Options__tags_write.remove(tag_id)
+        for tag in config[0].Runtime_Options__tags_write.copy():
+            if tag not in self.enabled_tags():
+                config[0].Runtime_Options__tags_write.remove(tag)
 
-        for tag_id in config[0].Runtime_Options__tags_read.copy():
-            if tag_id not in self.enabled_tags():
-                config[0].Runtime_Options__tags_read.remove(tag_id)
+        for tag in config[0].Runtime_Options__tags_read.copy():
+            if tag not in self.enabled_tags():
+                config[0].Runtime_Options__tags_read.remove(tag)
 
         if not self.config[0].Runtime_Options__preferred_hash:
             self.config[0].Runtime_Options__preferred_hash = self.config[0].internal__embedded_hash_type
@@ -441,23 +445,25 @@ class TaggerWindow(QtWidgets.QMainWindow):
             )
         self.export_window = ExportWindow(self)
         self.export_window.export.connect(self._repackage_archive)
+        assert self.config[0].Runtime_Options__tags_read
+        assert self.config[0].Runtime_Options__tags_write
 
-    def enabled_tags(self) -> Sequence[str]:
-        return [tag.id for tag in tags.values() if tag.enabled]
+    def enabled_tags(self) -> Sequence[Tag]:
+        return [tag for tag in loaded_tags.values() if tag.enabled]
 
     def tag_actions(self) -> tuple[dict[str, QtGui.QAction], dict[str, QtGui.QAction]]:
         view_raw_tags: dict[str, QtGui.QAction] = {}
         remove_raw_tags: dict[str, QtGui.QAction] = {}
-        for tag in tags.values():
-            view_raw_tags[tag.id] = self.menuViewRawTags.addAction(f"View Raw {tag.name()} Tags")
+        for tag in loaded_tags.values():
+            view_raw_tags[tag.id] = self.menuViewRawTags.addAction(f"View Raw {tag.name} Tags")
             view_raw_tags[tag.id].setEnabled(tag.enabled)
-            view_raw_tags[tag.id].setStatusTip(f"View raw {tag.name()} tag block from file")
-            view_raw_tags[tag.id].triggered.connect(functools.partial(self.view_raw_tags, tag.id))
+            view_raw_tags[tag.id].setStatusTip(f"View raw {tag.name} tag block from file")
+            view_raw_tags[tag.id].triggered.connect(functools.partial(self.view_raw_tags, tag))
 
-            remove_raw_tags[tag.id] = self.menuRemove.addAction(f"Remove Raw {tag.name()} Tags")
+            remove_raw_tags[tag.id] = self.menuRemove.addAction(f"Remove Raw {tag.name} Tags")
             remove_raw_tags[tag.id].setEnabled(tag.enabled)
-            remove_raw_tags[tag.id].setStatusTip(f"Remove {tag.name()} tags from comic archive")
-            remove_raw_tags[tag.id].triggered.connect(functools.partial(self.prompt_remove_tags, [tag.id]))
+            remove_raw_tags[tag.id].setStatusTip(f"Remove {tag.name} tags from comic archive")
+            remove_raw_tags[tag.id].triggered.connect(functools.partial(self.prompt_remove_tags, [tag]))
 
         return view_raw_tags, remove_raw_tags
 
@@ -469,7 +475,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
     def open_file_event(self, url: QtCore.QUrl) -> None:
         logger.info(url.toLocalFile())
-        self.fileSelectionList.add_path_list([url.toLocalFile()])
+        self.fileSelectionList.add_path_list([pathlib.Path(url.toLocalFile())])
 
     def sigint_handler(self, *args: Any) -> None:
         # defer the actual close in the app loop thread
@@ -525,10 +531,10 @@ class TaggerWindow(QtWidgets.QMainWindow):
     def toggle_enable_embedding_hashes(self) -> None:
         self.config[0].Runtime_Options__enable_embedding_hashes = self.actionEnableEmbeddingHashes.isChecked()
         enabled_widgets = set()
-        for tag_id in self.config[0].Runtime_Options__tags_write:
-            if not tags[tag_id].enabled:
+        for tag in self.config[0].Runtime_Options__tags_write:
+            if not tag.enabled:
                 continue
-            enabled_widgets.update(tags[tag_id].supported_attributes)
+            enabled_widgets.update(tag.supported_attributes)
         enable_widget(
             self.md_attributes["original_hash"],
             self.config[0].Runtime_Options__enable_embedding_hashes and "original_hash" in enabled_widgets,
@@ -553,7 +559,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.actionRename.triggered.connect(self.rename_archive)
         self.actionRepackage.triggered.connect(self.repackage_archive)
         self.actionSettings.triggered.connect(self.show_settings)
-        self.actionWrite_Tags.triggered.connect(self.prompt_write_tags)
+        self.actionWriteTags.triggered.connect(self.prompt_write_tags)
         # Tag Menu
         self.actionApplyCBLTransform.triggered.connect(self.apply_cbl_transform)
         self.actionAutoIdentify.triggered.connect(self.auto_identify_search)
@@ -621,7 +627,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
     def _repackage_archive(self, export_config: ExportConfig) -> None:
         largest_page_size = 0
         ca_list = self.fileSelectionList.get_selected_archive_list()
-        to_zip = []
+        to_zip: list[ComicArchive] = []
         for ca in ca_list:
             if not ca.is_zip():
                 to_zip.append(ca)
@@ -637,10 +643,10 @@ class TaggerWindow(QtWidgets.QMainWindow):
             center_window_on_parent(prog_dialog)
         QtCore.QCoreApplication.processEvents()
 
-        new_archives_to_add = []
-        archives_to_remove = []
+        new_archives_to_add: list[pathlib.Path] = []
+        archives_to_remove: list[ComicArchive] = []
         skipped_list = []
-        failed_list = []
+        failed_list: list[Exception] = []
         success_count = 0
         logger.debug("Exporting %d comics to zip", len(to_zip))
 
@@ -666,17 +672,16 @@ class TaggerWindow(QtWidgets.QMainWindow):
             if export:
                 logger.debug("Exporting %s to %s", ca.path, export_name)
                 try:
-                    ca.export_as_zip(export_name)
+                    ca.export_as(cast(type[ComicFile], ZipComic), export_name)
                     success_count += 1
                     if export_config.add_to_list:
-                        new_archives_to_add.append(str(export_name))
+                        new_archives_to_add.append(export_name)
                     if export_config.delete_original:
                         archives_to_remove.append(ca)
                         ca.path.unlink(missing_ok=True)
 
                 except Exception as e:
                     # last export failed, so remove the zip, if it exists
-                    failed_list.append(ca.path)
                     failed_list.append(OSError(f"Failed to export {ca.path} to {export_name}: {e}"))
                     if export_name.exists():
                         export_name.unlink(missing_ok=True)
@@ -740,12 +745,12 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
     def dropEvent(self, event: QtGui.QDropEvent) -> None:
         control_pressed = event.modifiers() & QtCore.Qt.KeyboardModifier.ControlModifier
-
+        dropped_files = [pathlib.Path(x) for x in self.droppedFiles]
         if control_pressed:
-            for folder_archive in self.droppedFiles:
+            for folder_archive in dropped_files:
                 self.fileSelectionList.twList.selectRow(self.fileSelectionList.add_path_item(folder_archive)[0])
         else:
-            self.fileSelectionList.add_path_list(self.droppedFiles)
+            self.fileSelectionList.add_path_list(dropped_files)
         event.accept()
 
     def update_ui_for_archive(self, parse_filename: bool = True) -> None:
@@ -789,19 +794,23 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.menuRemove.setEnabled(enabled)
         self.menuViewRawTags.setEnabled(enabled)
         if self.comic_archive is not None:
-            for tag_id in tags:
-                self.view_tag_actions[tag_id].setEnabled(tags[tag_id].enabled and self.comic_archive.has_tags(tag_id))
-                self.remove_tag_actions[tag_id].setEnabled(tags[tag_id].enabled and self.comic_archive.has_tags(tag_id))
+            for tag in loaded_tags.values():
+                self.view_tag_actions[tag.id].setEnabled(
+                    loaded_tags[tag.id].enabled and self.comic_archive.has_tags(tag)
+                )
+                self.remove_tag_actions[tag.id].setEnabled(
+                    loaded_tags[tag.id].enabled and self.comic_archive.has_tags(tag)
+                )
 
             if writeable:
-                self.actionWrite_Tags
-                self.actionWrite_Tags.triggered.disconnect()
-                self.actionWrite_Tags.triggered.connect(self.prompt_write_tags)
-                self.actionWrite_Tags.setToolTip("")
-                self.actionWrite_Tags.setStatusTip("")
+                self.actionWriteTags
+                self.actionWriteTags.triggered.disconnect()
+                self.actionWriteTags.triggered.connect(self.prompt_write_tags)
+                self.actionWriteTags.setToolTip("")
+                self.actionWriteTags.setStatusTip("")
             else:
-                self.actionWrite_Tags.triggered.disconnect()
-                self.actionWrite_Tags.triggered.connect(
+                self.actionWriteTags.triggered.disconnect()
+                self.actionWriteTags.triggered.connect(
                     functools.partial(
                         self._toast,
                         "Unable to write Tags",
@@ -809,8 +818,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
                         5000,
                     )
                 )
-                self.actionWrite_Tags.setToolTip("Archive is not writeable")
-                self.actionWrite_Tags.setStatusTip("Archive is not writeable")
+                self.actionWriteTags.setToolTip("Archive is not writeable")
+                self.actionWriteTags.setStatusTip("Archive is not writeable")
 
     def update_info_box(self) -> None:
         ca = self.comic_archive
@@ -828,7 +837,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
         self.lblFilename.setText(filename)
 
-        self.lblArchiveType.setText(ca.archiver.name() + " archive")
+        self.lblArchiveType.setText(ca.Archiver.name + " archive")
 
         page_count = f" ({ca.get_number_of_pages()} pages)"
         self.lblPageCount.setText(page_count)
@@ -837,7 +846,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         tag_info = ""
         for md in supported_md:
             if ca.has_tags(md):
-                tag_info += "• " + tags[md].name() + "\n"
+                tag_info += f"• {md.name}\n"
 
         self.lblTagList.setText(tag_info)
 
@@ -1160,11 +1169,11 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
     def _load_single_file(self, file: str) -> None:
         if file:
-            self.fileSelectionList.twList.selectRow(self.fileSelectionList.add_path_item(file)[0])
+            self.fileSelectionList.twList.selectRow(self.fileSelectionList.add_path_item(pathlib.Path(file))[0])
 
     def _load_files(self, files: list[str]) -> None:
         if files:
-            self.fileSelectionList.add_path_list(files)
+            self.fileSelectionList.add_path_list(pathlib.Path(f) for f in files)
 
     def file_dialog(self, folder_mode: bool = False) -> QtWidgets.QFileDialog:
         dialog = QtWidgets.QFileDialog(self)
@@ -1315,7 +1324,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         qmsg = OptionalMessageDialog.msg(
             parent=self,
             title="Save Tags",
-            msg=f"Are you sure you wish to save {', '.join([tags[tag_id].name() for tag_id in self.config[0].Runtime_Options__tags_write])} tags to this archive?",
+            msg=f"Are you sure you wish to save {', '.join([tag.name for tag in self.config[0].Runtime_Options__tags_write])} tags to this archive?",
             icon=OptionalMessageDialog.Icon.Question,
         )
         qmsg.accepted.connect(self.write_tags)
@@ -1328,15 +1337,17 @@ class TaggerWindow(QtWidgets.QMainWindow):
         QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
         self.form_to_metadata()
         assert self.comic_archive
-        failed_tag: str = ""
+        failed_tag: Exception | None = None
         # Save each tag
-        for tag_id in self.config[0].Runtime_Options__tags_write:
-            success = self.comic_archive.write_tags(self.metadata, tag_id)
-            if not success:
-                failed_tag = tags[tag_id].name()
+        for tag in self.config[0].Runtime_Options__tags_write:
+            try:
+                self.comic_archive.write_tags(ctversion.version, self.metadata, tag)
+
+            except Exception as e:
+                failed_tag = e
                 break
 
-        self.comic_archive.load_cache(set(tags))
+        self.comic_archive.load_cache(set(self.config[0].Runtime_Options__tags_write))
         QtWidgets.QApplication.restoreOverrideCursor()
 
         if failed_tag:
@@ -1365,14 +1376,14 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.fileSelectionList.update_current_row()
         self.update_ui_for_archive()
 
-    def select_read_tags(self, tag_ids: list[str]) -> None:
+    def select_read_tags(self, tags: list[Tag]) -> None:
         """Should only be called from the combobox signal"""
         if self.dirty_flag_verification(
             "Change Read Tags",
             "If you change read tag(s) now, data in the form will be lost.  Are you sure?",
         ):
             # Tags are reversed for display to the user
-            self.config[0].Runtime_Options__tags_read = list(reversed(tag_ids))
+            self.config[0].Runtime_Options__tags_read = list(reversed(tags))
             self.update_menus()
             if self.comic_archive is not None:
                 self.load_archive(self.comic_archive)
@@ -1390,16 +1401,17 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.config[0].Sources__source = self.cbx_sources.itemData(s)
 
     def update_credit_colors(self) -> None:
-        selected_tags = [tags[tag_id] for tag_id in self.config[0].Runtime_Options__tags_write]
         enabled = set()
-        for tag in selected_tags:
+        for tag in self.config[0].Runtime_Options__tags_write:
             enabled.update(tag.supported_attributes)
 
         credit_attributes = [x for x in self.md_attributes.items() if "credits." in x[0]]
 
         for r in range(self.twCredits.rowCount()):
-            w = self.twCredits.item(r, 1)
-            supports_role = any(tag.supports_credit_role(str(w.text())) for tag in selected_tags)
+            creditRole = str(self.twCredits.item(r, 1).text())
+            supports_role = any(
+                tag.supports_credit_role(creditRole) for tag in self.config[0].Runtime_Options__tags_write
+            )
             for credit in credit_attributes:
                 widget_enabled = credit[0] in enabled
                 widget = self.twCredits.item(r, credit[1])
@@ -1410,17 +1422,17 @@ class TaggerWindow(QtWidgets.QMainWindow):
     def update_tag_tweaks(self) -> None:
         # depending on the current data tag, certain fields are disabled
         enabled_widgets = set()
-        for tag_id in self.config[0].Runtime_Options__tags_write:
-            if not tags[tag_id].enabled:
+        for tag in self.config[0].Runtime_Options__tags_write:
+            if not tag.enabled:
                 continue
-            enabled_widgets.update(tags[tag_id].supported_attributes)
+            enabled_widgets.update(tag.supported_attributes)
 
         for md_field, widget in self.md_attributes.items():
             if widget is not None and not isinstance(widget, (int)):
                 enable_widget(widget, md_field in enabled_widgets)
 
         self.update_credit_colors()
-        self.page_list_editor.select_write_tags(self.config[0].Runtime_Options__tags_write)
+        self.page_list_editor.select_read_tags(self.config[0].Runtime_Options__tags_write)
         self.toggle_enable_embedding_hashes()
 
     def add_credit(self) -> None:
@@ -1590,25 +1602,25 @@ class TaggerWindow(QtWidgets.QMainWindow):
     def adjust_tags_combo(self) -> None:
         """Select the enabled tags. Since tags are merged in an overlay fashion the last item in the list takes priority. We reverse the order for display to the user"""
         unchecked = set(self.enabled_tags()) - set(self.config[0].Runtime_Options__tags_read)
-        for i, tag_id in enumerate(reversed(self.config[0].Runtime_Options__tags_read)):
-            if not tags[tag_id].enabled:
+        for i, tag in enumerate(reversed(self.config[0].Runtime_Options__tags_read)):
+            if not tag.enabled:
                 continue
-            item_idx = self.cbSelectedReadTags.findData(tag_id)
-            self.cbSelectedReadTags.setItemChecked(item_idx, True)
+            itemx = self.cbSelectedReadTags.findData(tag)
+            self.cbSelectedReadTags.setItemChecked(itemx, True)
             # Order matters, move items to list order
-            if item_idx != i:
-                self.cbSelectedReadTags.moveItem(item_idx, row=i)
-        for tag_id in unchecked:
-            self.cbSelectedReadTags.setItemChecked(self.cbSelectedReadTags.findData(tag_id), False)
+            if itemx != i:
+                self.cbSelectedReadTags.moveItem(itemx, row=i)
+        for tag in unchecked:
+            self.cbSelectedReadTags.setItemChecked(self.cbSelectedReadTags.findData(tag), False)
 
-        # select the current tag_id
+        # select the current tag
         unchecked = set(self.enabled_tags()) - set(self.config[0].Runtime_Options__tags_write)
-        for tag_id in self.config[0].Runtime_Options__tags_write:
-            if not tags[tag_id].enabled:
+        for tag in self.config[0].Runtime_Options__tags_write:
+            if not tag.enabled:
                 continue
-            self.cbSelectedWriteTags.setItemChecked(self.cbSelectedWriteTags.findData(tag_id), True)
-        for tag_id in unchecked:
-            self.cbSelectedWriteTags.setItemChecked(self.cbSelectedWriteTags.findData(tag_id), False)
+            self.cbSelectedWriteTags.setItemChecked(self.cbSelectedWriteTags.findData(tag), True)
+        for tag in unchecked:
+            self.cbSelectedWriteTags.setItemChecked(self.cbSelectedWriteTags.findData(tag), False)
         self.update_tag_tweaks()
 
     def populate_tag_names(self) -> None:
@@ -1616,15 +1628,15 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.cbSelectedWriteTags.clear()
         self.cbSelectedReadTags.clear()
         # Add the entries to the tag comboboxes
-        for tag in tags.values():
+        for tag in loaded_tags.values():
             if not tag.enabled:
                 continue
             if self.config[0].Metadata_Options__use_short_tag_names:
-                self.cbSelectedWriteTags.addItem(tag.id.upper(), tag.id)
-                self.cbSelectedReadTags.addItem(tag.id.upper(), tag.id)
+                self.cbSelectedWriteTags.addItem(tag.id.upper(), tag)
+                self.cbSelectedReadTags.addItem(tag.id.upper(), tag)
             else:
-                self.cbSelectedWriteTags.addItem(tag.name(), tag.id)
-                self.cbSelectedReadTags.addItem(tag.name(), tag.id)
+                self.cbSelectedWriteTags.addItem(tag.name, tag)
+                self.cbSelectedReadTags.addItem(tag.name, tag)
 
     def populate_combo_boxes(self) -> None:
         self.populate_tag_names()
@@ -1732,24 +1744,24 @@ class TaggerWindow(QtWidgets.QMainWindow):
     def remove_auto(self) -> None:
         self.prompt_remove_tags(self.config[0].Runtime_Options__tags_write)
 
-    def prompt_remove_tags(self, tag_ids: list[str]) -> None:
-        # remove the indicated tag_ids from the archive
+    def prompt_remove_tags(self, tags: list[Tag]) -> None:
+        # remove the indicated tags from the archive
         ca_list = self.fileSelectionList.get_selected_archive_list()
         md_count = 0
         file_md_count = {}
-        for tag_id in tag_ids:
-            file_md_count[tag_id] = 0
+        for tag in tags:
+            file_md_count[tag] = 0
         for ca in ca_list:
-            for tag_id in tag_ids:
-                if ca.has_tags(tag_id):
+            for tag in tags:
+                if ca.has_tags(tag):
                     md_count += 1
-                    file_md_count[tag_id] += 1
+                    file_md_count[tag] += 1
 
         if md_count == 0:
             OptionalMessageDialog.information(
                 self,
                 "Remove Tags",
-                f"No archives with {', '.join([tags[tag_id].name() for tag_id in tag_ids])} tags selected!",
+                f"No archives with {', '.join([tag.name for tag in tags])} tags selected!",
             )
             return
 
@@ -1761,11 +1773,11 @@ class TaggerWindow(QtWidgets.QMainWindow):
         OptionalMessageDialog.question(
             self,
             "Remove Tags",
-            f"Are you sure you wish to remove {', '.join([f'{tags[tag_id].name()} tags from {count} files' for tag_id, count in file_md_count.items()])} removing a total of {md_count} tag(s)?",
+            f"Are you sure you wish to remove {', '.join([f'{tag.name} tags from {count} files' for tag, count in file_md_count.items()])} removing a total of {md_count} tag(s)?",
             check_text=None,
         ).accepted.connect(functools.partial(self.remove_tags, tag_ids, md_count))
 
-    def remove_tags(self, tag_ids: list[str], md_count: int) -> None:
+    def remove_tags(self, tags: list[Tag], md_count: int) -> None:
         progdialog = QtWidgets.QProgressDialog("", "Cancel", 0, md_count, self)
         progdialog.setWindowTitle("Removing Tags")
         progdialog.setWindowModality(QtCore.Qt.WindowModality.WindowModal)
@@ -1783,13 +1795,13 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 break
             progdialog.setValue(prog_idx)
             progdialog.setLabelText(str(ca.path))
-            for tag_id in tag_ids:
-                if ca.has_tags(tag_id) and ca.is_writable():
+            for tag in tags:
+                if ca.has_tags(tag) and ca.is_writable():
                     try:
-                        ca.remove_tags(tag_id)
+                        ca.remove_tags(tag)
                         success_count += 1
                     except Exception as e:
-                        failed_list.append(OSError(f"Failed to remove {tags[tag_id].name()} from {ca.path}: {e}"))
+                        failed_list.append(OSError(f"Failed to remove {tag.name} from {ca.path}: {e}"))
                         # Abandon any further tag removals to prevent any greater damage to archive
                         break
             ca.reset_cache()
@@ -1817,12 +1829,14 @@ class TaggerWindow(QtWidgets.QMainWindow):
         ca_list = self.fileSelectionList.get_selected_archive_list()
         src_count = 0
 
-        src_tag_ids: list[str] = self.config[0].Runtime_Options__tags_read
-        dest_tag_ids: list[str] = self.config[0].Runtime_Options__tags_write
+        src_tags: list[Tag] = self.config[0].Runtime_Options__tags_read
+        src_tag_names: list[str] = [tag.name for tag in src_tags]
+        dest_tags: list[Tag] = self.config[0].Runtime_Options__tags_write
+        dest_tag_names: list[str] = [tag.name for tag in dest_tags]
 
-        if len(src_tag_ids) == 1 and src_tag_ids[0] in dest_tag_ids:
+        if len(src_tags) == 1 and src_tags[0] in dest_tags:
             # Remove the read tag from the write tag
-            dest_tag_ids.remove(src_tag_ids[0])
+            dest_tags.remove(src_tags[0])
 
         if not dest_tag_ids:
             OptionalMessageDialog.information(
@@ -1831,8 +1845,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
             return
 
         for ca in ca_list:
-            for tag_id in src_tag_ids:
-                if ca.has_tags(tag_id):
+            for tag in src_tags:
+                if ca.has_tags(tag):
                     src_count += 1
                     continue
 
@@ -1840,7 +1854,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             OptionalMessageDialog.information(
                 self,
                 "Copy Tags",
-                f"No archives with {', '.join([tags[tag_id].name() for tag_id in src_tag_ids])} tags selected!",
+                f"No archives with {', '.join(src_tag_names)} tags selected!",
             )
             return
 
@@ -1849,11 +1863,9 @@ class TaggerWindow(QtWidgets.QMainWindow):
         ):
             return
 
-        src_tags = ", ".join([tags[tag_id].name() for tag_id in src_tag_ids])
-        dst_tags = ", ".join([tags[tag_id].name() for tag_id in dest_tag_ids])
         details = (
             f"Are you sure you wish to copy the combined (with overlay order) tags of "
-            f"{src_tags} to {dst_tags} tags in {src_count} archive(s)?",
+            f"{', '.join(src_tag_names)} to {', '.join(dest_tag_names)} tags in {src_count} archive(s)?"
         )
 
         OptionalMessageDialog.question(
@@ -1862,9 +1874,9 @@ class TaggerWindow(QtWidgets.QMainWindow):
             details,
             icon=OptionalMessageDialog.Icon.Question,
             check_text=None,
-        ).accepted.connect(functools.partial(self.copy_tags, src_tag_ids, dest_tag_ids, src_count))
+        ).accepted.connect(functools.partial(self.copy_tags, src_tags, dest_tags, src_count))
 
-    def copy_tags(self, src_tag_ids: list[str], dest_tag_ids: list[str], src_count: int) -> None:
+    def copy_tags(self, src_tags: list[Tag], dest_tags: list[Tag], src_count: int) -> None:
         ca_list = self.fileSelectionList.get_selected_archive_list()
         prog_dialog = QtWidgets.QProgressDialog("", "Cancel", 0, src_count, self)
         prog_dialog.setWindowTitle("Copying Tags")
@@ -1872,24 +1884,24 @@ class TaggerWindow(QtWidgets.QMainWindow):
         prog_dialog.setMinimumDuration(1000)
         center_window_on_parent(prog_dialog)
         QtCore.QCoreApplication.processEvents()
-        src_tags = ", ".join([tags[tag_id].name() for tag_id in src_tag_ids])
-        dst_tags = ", ".join([tags[tag_id].name() for tag_id in dest_tag_ids])
+        src_tag_names = ", ".join([tag.name for tag in src_tags])
+        dst_tag_names = ", ".join([tag.name for tag in dest_tags])
 
-        failed_list = []
+        failed_list: list[Exception] = []
         success_count = 0
         for prog_idx, ca in enumerate(ca_list, 1):
             if prog_idx % 10 == 0:
                 QtCore.QCoreApplication.processEvents()
             ca_saved = False
-            md, _, error = self.read_selected_tags(src_tag_ids, ca)
+            md, _, error = self.read_selected_tags(src_tags, ca)
             if error is not None:
                 failed_list.append(error)
                 continue
             if md.is_empty:
                 continue
 
-            for tag_id in dest_tag_ids:
-                if ca.has_tags(tag_id):
+            for tag in dest_tags:
+                if ca.has_tags(tag):
                     if prog_dialog.wasCanceled():
                         break
 
@@ -1897,16 +1909,20 @@ class TaggerWindow(QtWidgets.QMainWindow):
                     prog_dialog.setLabelText(str(ca.path))
                     center_window_on_parent(prog_dialog)
 
-                if tag_id == "cbi" and self.config[0].Metadata_Options__apply_transform_on_bulk_operation:
+                if tag == "cbi" and self.config[0].Metadata_Options__apply_transform_on_bulk_operation:
                     md = CBLTransformer(md, self.config[0]).apply()
 
                 try:
-                    ca.write_tags(md, tag_id)
+                    ca.write_tags(ctversion.version, md, tag)
                     if not ca_saved:
                         success_count += 1
                         ca_saved = True
                 except Exception as e:
-                    failed_list.append(OSError(f"Failed to copy {src_tags} to {dst_tags} tags for {ca.path}: {e}"))
+                    failed_list.append(
+                        OSError(
+                            f"Failed to copy {', '.join(src_tag_names)} to {', '.join(dst_tag_names)} tags for {ca.path}: {e}"
+                        )
+                    )
 
             ca.reset_cache()
             ca.load_cache({*self.config[0].Runtime_Options__tags_read, *self.config[0].Runtime_Options__tags_write})
@@ -1936,7 +1952,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
     def auto_tag(self) -> None:
         ca_list = self.fileSelectionList.get_selected_archive_list()
-        tag_names = ", ".join([tags[tag_id].name() for tag_id in self.config[0].Runtime_Options__tags_write])
+        tags = self.config[0].Runtime_Options__tags_write
+        tag_names = ", ".join([tag.name for tag in tags])
 
         if not ca_list:
             OptionalMessageDialog.information(self, "Auto-Tag", "No archives selected!")
@@ -1977,7 +1994,12 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
         center_window_on_parent(self.atprogdialog)
         temp_config = auto_tag.new_settings(self.config[0])
-        self.autotagthread = AutoTagThread(auto_tag.search_string, ca_list, temp_config, self.current_talker())
+        self.autotagthread = AutoTagThread(
+            auto_tag.search_string,
+            ca_list,
+            temp_config,
+            self.current_talker(),
+        )
 
         self.autotagthread.autoTagComplete.connect(functools.partial(self.auto_tag_finished, config=temp_config))
         self.autotagthread.autoTagLogMsg.connect(self.auto_tag_log)
@@ -1995,7 +2017,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
     def auto_tag_finished(
         self, match_results: OnlineMatchResults, archives_to_remove: list[ComicArchive], *, config: ct_ns
     ) -> None:
-        tag_names = ", ".join([tags[tag_id].name() for tag_id in self.config[0].Runtime_Options__tags_write])
+        tag_names = ", ".join([tag.name for tag in config.Runtime_Options__tags_write])
         if self.atprogdialog:
             self.atprogdialog.accept()
 
@@ -2121,12 +2143,11 @@ class TaggerWindow(QtWidgets.QMainWindow):
     def page_browser_closed(self) -> None:
         self.page_browser = None
 
-    def view_raw_tags(self, tag_id: str) -> None:
-        tag = tags[tag_id]
-        if self.comic_archive is not None and self.comic_archive.has_tags(tag.id):
+    def view_raw_tags(self, tag: Tag) -> None:
+        if self.comic_archive is not None and self.comic_archive.has_tags(tag):
             dlg = LogWindow(self)
-            dlg.set_text(self.comic_archive.read_raw_tags(tag.id))
-            dlg.setWindowTitle(f"Raw {tag.name()} Tag View")
+            dlg.set_text(self.comic_archive.read_raw_tags(tag))
+            dlg.setWindowTitle(f"Raw {tag.name} Tag View")
             dlg.open()
 
     def show_wiki(self) -> None:
@@ -2217,10 +2238,10 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.update_ui_for_archive()
 
     def read_selected_tags(
-        self, tag_ids: list[str], ca: ComicArchive
-    ) -> tuple[GenericMetadata, list[str], Exception | None]:
+        self, tags: list[Tag], ca: ComicArchive
+    ) -> tuple[GenericMetadata, list[Tag], Exception | None]:
         return read_selected_tags(
-            tag_ids, ca, self.config[0].Metadata_Options__tag_merge, self.config[0].Metadata_Options__tag_merge_lists
+            tags, ca, self.config[0].Metadata_Options__tag_merge, self.config[0].Metadata_Options__tag_merge_lists
         )
 
     def file_list_cleared(self) -> None:

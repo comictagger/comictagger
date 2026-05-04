@@ -105,6 +105,7 @@ class IssueSelectionWindow(SelectionWindow):
         if self.prog_dialog:
             self.prog_dialog.deleteLater()
         self.prog_dialog = QtWidgets.QProgressDialog("Retrieving issues", "Cancel", 0, 100, self)
+        assert self.prog_dialog  # Silence mypy
         self.prog_dialog.setWindowTitle("Retrieving issues")
         self.prog_dialog.setWindowModality(QtCore.Qt.WindowModality.WindowModal)
         self.prog_dialog.setMinimumDuration(1000)

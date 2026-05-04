@@ -9,14 +9,16 @@ from contextlib import nullcontext as does_not_raise
 import pytest
 from importlib_metadata import entry_points
 
-import comicapi.archivers.rar
-import comicapi.archivers.zip
+import comicapi.comic.rar
 import comicapi.comicarchive
 import comicapi.genericmetadata
+import comicapi.tags
+import comicapi.tags.comicrack
+import comictaggerlib.ctversion
 from testing.filenames import datadir
 
 
-@pytest.mark.xfail(not comicapi.archivers.rar.rar_support, reason="rar support")
+@pytest.mark.xfail(not comicapi.comic.rar.rar_support, reason="rar support")
 def test_getPageNameList():
     c = comicapi.comicarchive.ComicArchive(pathlib.Path(str(datadir)) / "fake_cbr.cbr")
     assert c.seems_to_be_a_comic_archive()
@@ -35,28 +37,28 @@ def test_getPageNameList():
 
 
 def test_page_type_read(cbz):
-    md = cbz.read_tags("cr")
+    md = cbz.read_tags(comicapi.tags.comicrack.ComicRack())
 
     assert md.pages[0].type == comicapi.genericmetadata.PageType.FrontCover
 
 
 def test_read_tags(cbz, md_saved):
-    md = cbz.read_tags("cr")
+    md = cbz.read_tags(comicapi.tags.comicrack.ComicRack())
     assert md == md_saved
 
 
 def test_write_cr(tmp_comic_path):
     tmp_comic = comicapi.comicarchive.ComicArchive(tmp_comic_path)
-    md = tmp_comic.read_tags("cr")
+    md = tmp_comic.read_tags(comicapi.tags.comicrack.ComicRack())
     md.apply_default_page_list(tmp_comic.get_page_name_list())
 
     with does_not_raise():
-        tmp_comic.write_tags(md, "cr")
+        tmp_comic.write_tags(comictaggerlib.ctversion.version, md, comicapi.tags.comicrack.ComicRack())
 
-    md = tmp_comic.read_tags("cr")
+    md = tmp_comic.read_tags(comicapi.tags.comicrack.ComicRack())
 
 
-@pytest.mark.xfail(not (comicapi.archivers.rar.rar_support and shutil.which("rar")), reason="rar support")
+@pytest.mark.xfail(not (comicapi.comic.rar.rar_support and shutil.which("rar")), reason="rar support")
 def test_save_cr_rar(tmp_path, md_saved, md):
     cbr_path = datadir / "fake_cbr.cbr"
     shutil.copy(cbr_path, tmp_path)
@@ -64,9 +66,9 @@ def test_save_cr_rar(tmp_path, md_saved, md):
     tmp_comic = comicapi.comicarchive.ComicArchive(tmp_path / cbr_path.name)
     assert tmp_comic.seems_to_be_a_comic_archive()
     with does_not_raise():
-        tmp_comic.write_tags(md, "cr")
+        tmp_comic.write_tags(comictaggerlib.ctversion.version, md, comicapi.tags.comicrack.ComicRack())
 
-    new_md = tmp_comic.read_tags("cr")
+    new_md = tmp_comic.read_tags(comicapi.tags.comicrack.ComicRack())
 
     # This is a fake CBR we don't need to care about the pages for this test
     new_md.pages = []
@@ -76,14 +78,14 @@ def test_save_cr_rar(tmp_path, md_saved, md):
 
 def test_page_type_write(tmp_comic_path):
     tmp_comic = comicapi.comicarchive.ComicArchive(tmp_comic_path)
-    md = tmp_comic.read_tags("cr")
+    md = tmp_comic.read_tags(comicapi.tags.comicrack.ComicRack())
     t = md.pages[0]
     t.type = ""
 
     with does_not_raise():
-        tmp_comic.write_tags(md, "cr")
+        tmp_comic.write_tags(comictaggerlib.ctversion.version, md, comicapi.tags.comicrack.ComicRack())
 
-    md = tmp_comic.read_tags("cr")
+    md = tmp_comic.read_tags(comicapi.tags.comicrack.ComicRack())
 
 
 def test_invalid_zip(tmp_comic_path, md):
@@ -93,15 +95,17 @@ def test_invalid_zip(tmp_comic_path, md):
         f.write(b"PK\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000")
 
     tmp_comic = comicapi.comicarchive.ComicArchive(tmp_comic_path)
-    with pytest.raises(OSError, match="^Error listing files in zip archive"):
-        tmp_comic.write_tags(md, "cr")  # This is not the first file
+    with pytest.raises(comicapi.comic.comicfile.BadComic, match="^Error listing files in zip archive"):
+        tmp_comic.write_tags(
+            comictaggerlib.ctversion.version, md, comicapi.tags.comicrack.ComicRack()
+        )  # This is not the first file
     assert not tmp_comic.seems_to_be_a_comic_archive()  # Calls archiver.is_valid
 
 
 archivers = []
 
 for x in entry_points(group="comicapi.archiver"):
-    archiver = x.load()
+    archiver: comicapi.comic.ComicFile = x.load()
     supported = archiver.enabled
     exe_found = True
     if archiver.exe != "":
@@ -111,21 +115,34 @@ for x in entry_points(group="comicapi.archiver"):
     )
 
 
+def export(existing: comicapi.comic.ComicFile, new: comicapi.comic.ComicFile) -> None:
+    """
+    Copies all content from the current archive to
+    """
+    new.write_files(files=existing.read_files(existing.get_filename_list()), filenames=existing.get_filename_list())
+
+    if (
+        comicapi.tags.TagLocation.COMMENT in new.tag_locations
+        and comicapi.tags.TagLocation.COMMENT in existing.tag_locations
+    ):
+        new.write_comment(existing.read_comment())
+
+
 @pytest.mark.parametrize("archiver", archivers)
 def test_copy_from_archive(archiver, tmp_path, cbz, md_saved):
-    comic_path = tmp_path / cbz.path.with_suffix("").name
+    comic_path = tmp_path / cbz.path.with_suffix(f".new{archiver.extension}").name
 
-    archive = archiver.open(comic_path)
+    archive = archiver(comic_path)
 
     with does_not_raise():
-        archive.copy_from_archive(cbz.archiver)
+        export(existing=cbz.Archiver(cbz.path), new=archive)
 
     comic_archive = comicapi.comicarchive.ComicArchive(comic_path)
 
     assert comic_archive.seems_to_be_a_comic_archive()
-    assert set(cbz.archiver.get_filename_list()) == set(comic_archive.archiver.get_filename_list())
+    assert set(cbz.Archiver(cbz.path).get_filename_list()) == set(comic_archive.archiver.get_filename_list())
 
-    md = comic_archive.read_tags("cr")
+    md = comic_archive.read_tags(comicapi.tags.comicrack.ComicRack)
     assert md == md_saved
 
 

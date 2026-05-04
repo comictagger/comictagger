@@ -37,6 +37,8 @@ from comicapi._url import LocationParseError as LocationParseError  # noqa: F401
 from comicapi._url import Url as Url
 from comicapi._url import parse_url as parse_url
 
+pil_available: bool | None = None
+
 try:
     import icu
 
@@ -195,6 +197,25 @@ def os_sorted(lst: Iterable[T]) -> list[T]:
 
 
 KNOWN_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".webp", ".avif"}
+
+
+def initialize_pil() -> bool:
+    """Imports and initializes PIL to update KNOWN_IMAGE_EXTENSIONS return True if successful"""
+    global pil_available
+    if pil_available is not None:
+        return pil_available
+
+    try:
+        from PIL import Image
+
+        Image.init()
+        KNOWN_IMAGE_EXTENSIONS.update([ext for ext, typ in Image.EXTENSION.items() if typ in Image.OPEN])
+        pil_available = True
+    except Exception:
+        pil_available = False
+        logger.exception("Failed to load Pillow")
+        return False
+    return True
 
 
 def parse_filename(
@@ -367,15 +388,15 @@ def get_page_name_list(files: list[str]) -> list[str]:
     return page_list
 
 
-def get_recursive_filelist(pathlist: list[str]) -> list[str]:
+def get_recursive_filelist(pathlist: Iterable[pathlib.Path]) -> list[pathlib.Path]:
     """Get a recursive list of of all files under all path items in the list"""
 
-    filelist: list[str] = []
+    filelist: list[pathlib.Path] = []
     for p in pathlist:
-        if os.path.isdir(p):
+        if p.is_dir():
             for root, _, files in os.walk(p):
                 for f in files:
-                    filelist.append(os.path.join(root, f))
+                    filelist.append(pathlib.Path(root, f))
         elif os.path.exists(p):
             filelist.append(p)
 

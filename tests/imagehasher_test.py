@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 from comicapi.comicarchive import ComicArchive
+from comicapi.tags.comicrack import ComicRack
 from comictaggerlib.imagehasher import ImageHasher
 
 
 def test_ahash(cbz: ComicArchive):
-    md = cbz.read_tags("cr")
+    md = cbz.read_tags(ComicRack())
     covers = md.get_cover_page_index_list()
     assert covers
     cover = cbz.get_page(covers[0])
@@ -16,7 +17,7 @@ def test_ahash(cbz: ComicArchive):
 
 
 def test_dhash(cbz: ComicArchive):
-    md = cbz.read_tags("cr")
+    md = cbz.read_tags(ComicRack())
     covers = md.get_cover_page_index_list()
     assert covers
     cover = cbz.get_page(covers[0])
@@ -27,7 +28,7 @@ def test_dhash(cbz: ComicArchive):
 
 
 def test_phash(cbz: ComicArchive):
-    md = cbz.read_tags("cr")
+    md = cbz.read_tags(ComicRack())
     covers = md.get_cover_page_index_list()
     assert covers
     cover = cbz.get_page(covers[0])

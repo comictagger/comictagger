@@ -20,12 +20,11 @@ import logging
 import os
 import pathlib
 import platform
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from typing import cast
 
 from PyQt6 import QtCore, QtGui, QtWidgets, uic
 
-from comicapi import utils
 from comicapi.comicarchive import ComicArchive
 from comictaggerlib.ctsettings import ct_ns
 from comictaggerlib.graphics import graphics_path
@@ -189,10 +188,10 @@ class FileSelectionList(QtWidgets.QWidget):
         else:
             self.listCleared.emit()
 
-    def add_path_list(self, pathlist: list[str]) -> None:
-        if not pathlist:
+    def add_path_list(self, pathlist: Iterable[pathlib.Path]) -> None:
+        filelist = list(pathlist)
+        if not filelist:
             return
-        filelist = utils.get_recursive_filelist(pathlist)
         # we now have a list of files to add
 
         progdialog = None
@@ -215,11 +214,11 @@ class FileSelectionList(QtWidgets.QWidget):
                 if progdialog.wasCanceled():
                     break
                 progdialog.setValue(idx + 1)
-                progdialog.setLabelText(f)
+                progdialog.setLabelText(str(f))
 
             row, ca = self.add_path_item(f)
             if row is not None and ca:
-                if ca.archiver.name() == "RAR" and not ca.archiver.is_writable():
+                if ca.Archiver.name == "RAR" and not ca.Archiver(ca.path).is_writable():
                     rar_added_ro = True
                 if first_added is None and row != -1:
                     first_added = row
@@ -231,7 +230,8 @@ class FileSelectionList(QtWidgets.QWidget):
         if first_added is not None:
             self.twList.selectRow(first_added)
         else:
-            if len(pathlist) == 1 and os.path.isfile(pathlist[0]):
+            # TODO: This no longer works for files passed on the CLI...
+            if len(filelist) == 1 and os.path.isfile(filelist[0]):
                 OptionalMessageDialog.information(
                     self, "File Open", "Selected file doesn't seem to be a comic archive."
                 )
@@ -275,28 +275,26 @@ class FileSelectionList(QtWidgets.QWidget):
         )
         self.rar_ro_shown = True
 
-    def get_current_list_row(self, path: str) -> tuple[int, ComicArchive]:
-        pl = pathlib.Path(path)
-        if pl not in self.loaded_paths:
+    def get_current_list_row(self, path: pathlib.Path) -> tuple[int, ComicArchive]:
+        if path not in self.loaded_paths:
             return -1, None  # type: ignore[return-value]
 
         for r in range(self.twList.rowCount()):
             ca = cast(ComicArchive, self.get_archive_by_row(r))
-            if ca.path == pl:
+            if ca.path == path:
                 return r, ca
 
         return -1, None  # type: ignore[return-value]
 
-    def add_path_item(self, path: str) -> tuple[int, ComicArchive]:
-        path = str(path)
-        path = os.path.abspath(path)
-
+    def add_path_item(self, path: pathlib.Path) -> tuple[int, ComicArchive]:
         current_row, ca = self.get_current_list_row(path)
         if current_row >= 0:
             return current_row, ca
 
         ca = ComicArchive(
-            path, str(graphics_path / "nocover.png"), hash_archive=self.config.Runtime_Options__preferred_hash
+            path,
+            cast(pathlib.Path, graphics_path / "nocover.png"),
+            hash_archive=self.config.Runtime_Options__preferred_hash,
         )
 
         if ca.seems_to_be_a_comic_archive():
@@ -325,13 +323,13 @@ class FileSelectionList(QtWidgets.QWidget):
             folder_item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
             self.twList.setItem(row, FileSelectionList.folderColNum, folder_item)
 
-            item_text = ca.archiver.name()
+            item_text = ca.archiver.name
             type_item.setText(item_text)
             type_item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
             type_item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
             self.twList.setItem(row, FileSelectionList.typeColNum, type_item)
 
-            md_item.setText(", ".join(x for x in ca.get_supported_tags() if ca.has_tags(x)))
+            md_item.setText(", ".join(x.name for x in ca.get_supported_tags() if ca.has_tags(x)))
             md_item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
             md_item.setTextAlignment(QtCore.Qt.AlignmentFlag.AlignHCenter)
             self.twList.setItem(row, FileSelectionList.MDFlagColNum, md_item)
@@ -376,11 +374,11 @@ class FileSelectionList(QtWidgets.QWidget):
             folder_item.setText(item_text)
             folder_item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
 
-            item_text = ca.archiver.name()
+            item_text = ca.Archiver.name
             type_item.setText(item_text)
             type_item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
 
-            md_item.setText(", ".join(x for x in ca.get_supported_tags() if ca.has_tags(x)))
+            md_item.setText(", ".join(x.name for x in ca.get_supported_tags() if ca.has_tags(x)))
 
             if not ca.is_writable():
                 readonly_item.setCheckState(QtCore.Qt.CheckState.Checked)

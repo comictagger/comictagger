@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import pathlib
 import typing
 
 import settngs
@@ -7,16 +8,18 @@ import urllib3.util.url
 
 import comicapi.genericmetadata
 import comicapi.merge
+import comicapi.tags.tag
 import comicapi.utils
 import comictaggerlib.ctsettings.types
 import comictaggerlib.defaults
+import comictaggerlib.quick_tag
 import comictaggerlib.resulttypes
 
 
 class SettngsNS(settngs.TypedNS):
     Commands__version: bool
     Commands__command: comictaggerlib.resulttypes.Action
-    Commands__copy: list[str]
+    Commands__copy: list[comicapi.tags.tag.Tag]
 
     Runtime_Options__config: comictaggerlib.ctsettings.types.ComicTaggerPaths
     Runtime_Options__verbose: int
@@ -34,10 +37,10 @@ class SettngsNS(settngs.TypedNS):
     Runtime_Options__no_gui: bool
     Runtime_Options__abort_on_conflict: bool
     Runtime_Options__delete_original: bool
-    Runtime_Options__tags_read: list[str]
-    Runtime_Options__tags_write: list[str]
+    Runtime_Options__tags_read: list[comicapi.tags.tag.Tag]
+    Runtime_Options__tags_write: list[comicapi.tags.tag.Tag]
     Runtime_Options__skip_existing_tags: bool
-    Runtime_Options__files: list[str]
+    Runtime_Options__files: list[pathlib.Path]
 
     Quick_Tag__url: urllib3.util.url.Url
     Quick_Tag__max: int
@@ -47,8 +50,8 @@ class SettngsNS(settngs.TypedNS):
 
     internal__install_id: str
     internal__embedded_hash_type: str
-    internal__write_tags: list[str]
-    internal__read_tags: list[str]
+    internal__write_tags: list[comicapi.tags.tag.Tag]
+    internal__read_tags: list[comicapi.tags.tag.Tag]
     internal__last_opened_folder: str
     internal__window_width: int
     internal__window_height: int
@@ -125,8 +128,6 @@ class SettngsNS(settngs.TypedNS):
     Dialog_Flags__dont_notify_about_this_version: str
     Dialog_Flags__notify_plugin_changes: bool
 
-    Archive__rar: str
-
     Source_comicvine__comicvine_key: str | None
     Source_comicvine__comicvine_url: str | None
     Source_comicvine__cv_use_series_start_as_volume: bool
@@ -136,7 +137,7 @@ class SettngsNS(settngs.TypedNS):
 class Commands(typing.TypedDict):
     version: bool
     command: comictaggerlib.resulttypes.Action
-    copy: list[str]
+    copy: list[comicapi.tags.tag.Tag]
 
 
 class Runtime_Options(typing.TypedDict):
@@ -156,10 +157,10 @@ class Runtime_Options(typing.TypedDict):
     no_gui: bool
     abort_on_conflict: bool
     delete_original: bool
-    tags_read: list[str]
-    tags_write: list[str]
+    tags_read: list[comicapi.tags.tag.Tag]
+    tags_write: list[comicapi.tags.tag.Tag]
     skip_existing_tags: bool
-    files: list[str]
+    files: list[pathlib.Path]
 
 
 class Quick_Tag(typing.TypedDict):
@@ -173,8 +174,8 @@ class Quick_Tag(typing.TypedDict):
 class internal(typing.TypedDict):
     install_id: str
     embedded_hash_type: str
-    write_tags: list[str]
-    read_tags: list[str]
+    write_tags: list[comicapi.tags.tag.Tag]
+    read_tags: list[comicapi.tags.tag.Tag]
     last_opened_folder: str
     window_width: int
     window_height: int
@@ -268,8 +269,7 @@ class Dialog_Flags(typing.TypedDict):
     notify_plugin_changes: bool
 
 
-class Archive(typing.TypedDict):
-    rar: str
+class Archive(typing.TypedDict): ...
 
 
 class Source_comicvine(typing.TypedDict):
