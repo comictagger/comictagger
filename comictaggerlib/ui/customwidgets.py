@@ -85,7 +85,8 @@ class ModifyStyleItemDelegate(QtWidgets.QStyledItemDelegate):
 
 # Multiselect combobox from: https://gis.stackexchange.com/a/351152 (with custom changes)
 class CheckableComboBox(QtWidgets.QComboBox):
-    itemChecked = pyqtSignal(str, bool)
+    itemChecked = pyqtSignal(object, bool)
+    # This would be (Tag, bool) but pyqt enforces types so we use object to allow duck-typing
 
     def __init__(self, *args: Any, **kwargs: Any):
         super().__init__(*args, **kwargs)

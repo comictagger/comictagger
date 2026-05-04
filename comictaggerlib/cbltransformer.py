@@ -19,7 +19,8 @@ from __future__ import annotations
 import logging
 
 from comicapi.genericmetadata import Credit, GenericMetadata
-from comictaggerlib.ctsettings import ct_ns
+
+from .ctsettings import ct_ns
 
 logger = logging.getLogger(__name__)
 

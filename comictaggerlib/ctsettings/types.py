@@ -12,8 +12,9 @@ import yaml
 from appdirs import AppDirs
 
 from comicapi import utils
-from comicapi.comicarchive import tags
+from comicapi.comicarchive import loaded_tags
 from comicapi.genericmetadata import REMOVE, GenericMetadata
+from comicapi.tags import Tag
 
 logger = logging.getLogger(__name__)
 
@@ -73,15 +74,16 @@ class ComicTaggerPaths(AppDirs):
         return f"logs: {self.user_log_dir}, config: {self.user_config_dir}, cache: {self.user_cache_dir}"
 
 
-def tag(types: str) -> list[str]:
-    enabled_tags = [tag for tag in tags if tags[tag].enabled]
-    result = []
+def tag(types: str) -> list[Tag]:
+    enabled_tags = [tag for tag in loaded_tags.values() if tag.enabled]
+    result: list[Tag] = []
     types = types.casefold()
+    ids = [tag.id for tag in enabled_tags]
     for typ in utils.split(types, ","):
-        if typ not in enabled_tags:
-            choices = ", ".join(enabled_tags)
+        if typ not in ids:
+            choices = ", ".join(ids)
             raise argparse.ArgumentTypeError(f"invalid choice: {typ} (choose from {choices.upper()})")
-        result.append(tags[typ].id)
+        result.append(loaded_tags[typ])
     return result
 
 

@@ -5,7 +5,7 @@ import pathlib
 import platform
 import sys
 
-from comictaggerlib.ctversion import version
+from .ctversion import version
 
 logger = logging.getLogger("comictagger")
 

@@ -23,17 +23,19 @@ import re
 from PyQt6 import QtCore, QtGui, QtWidgets, uic
 
 from comicapi import utils
-from comicapi.comicarchive import ComicArchive, tags
+from comicapi.comicarchive import ComicArchive
 from comicapi.genericmetadata import GenericMetadata
-from comictaggerlib.coverimagewidget import CoverImageWidget
-from comictaggerlib.ctsettings.settngs_namespace import SettngsNS
-from comictaggerlib.issueidentifier import IssueIdentifierCancelled
-from comictaggerlib.md import read_selected_tags
-from comictaggerlib.optionalmsgdialog import OptionalMessageDialog
-from comictaggerlib.resulttypes import Action, OnlineMatchResults, Result, Status
-from comictaggerlib.tag import identify_comic
-from comictaggerlib.ui import ui_path
 from comictalker.comictalker import ComicTalker, RLCallBack
+
+from . import ctversion
+from .coverimagewidget import CoverImageWidget
+from .ctsettings.settngs_namespace import SettngsNS
+from .issueidentifier import IssueIdentifierCancelled
+from .md import read_selected_tags
+from .optionalmsgdialog import OptionalMessageDialog
+from .resulttypes import Action, OnlineMatchResults, Result, Status
+from .tag import identify_comic
+from .ui import ui_path
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +47,11 @@ class AutoTagThread(QtCore.QThread):  # TODO: re-check thread semantics. Specifi
     ratelimit = QtCore.pyqtSignal(float, float)
 
     def __init__(
-        self, series_override: str, ca_list: list[ComicArchive], config: SettngsNS, talker: ComicTalker
+        self,
+        series_override: str,
+        ca_list: list[ComicArchive],
+        config: SettngsNS,
+        talker: ComicTalker,
     ) -> None:
         QtCore.QThread.__init__(self)
         self.series_override = series_override
@@ -78,7 +84,9 @@ class AutoTagThread(QtCore.QThread):  # TODO: re-check thread semantics. Specifi
                     cover_idx = ca.read_tags(self.config.Runtime_Options__tags_read[0]).get_cover_page_index_list()[0]
                 except Exception as e:
                     cover_idx = 0
-                    logger.error("Failed to load metadata for %s: %s", ca.path, e)
+                    logger.debug(
+                        "Failed to load metadata for %s: %s", ca.path, e
+                    )  # This is only used for progress callback
                 image_data = ca.get_page(cover_idx)
                 self.progress_callback(prog_idx, len(self.ca_list), ca.path, image_data, b"")
                 if self.canceled:
@@ -112,7 +120,12 @@ class AutoTagThread(QtCore.QThread):  # TODO: re-check thread semantics. Specifi
         )
 
         # read in tags, and parse file name if not there
-        md, tags_used, error = read_selected_tags(self.config.Runtime_Options__tags_read, ca)
+        md, tags_used, error = read_selected_tags(
+            self.config.Runtime_Options__tags_read,
+            ca,
+            self.config.Metadata_Options__tag_merge,
+            self.config.Metadata_Options__tag_merge_lists,
+        )
         if error is not None:
             OptionalMessageDialog.critical(
                 None,
@@ -197,18 +210,21 @@ class AutoTagThread(QtCore.QThread):  # TODO: re-check thread semantics. Specifi
         if res.status == Status.success:
             assert res.md
 
-            def write_Tags(ca: ComicArchive, md: GenericMetadata) -> bool:
-                for tag_id in self.config.Runtime_Options__tags_write:
+            def write_tags(ca: ComicArchive, md: GenericMetadata) -> bool:
+                for tag in self.config.Runtime_Options__tags_write:
+                    res.tags_written.append(tag.id)
                     # write out the new data
-                    if not ca.write_tags(md, tag_id):
-                        self.log_output(f"{tags[tag_id].name()} save failed! Aborting any additional tag saves.\n")
+                    try:
+                        ca.write_tags(ctversion.version, md, tag)  # TODO: Put proper version in
+                    except Exception as e:
+                        self.log_output(f"{tag.name} save failed! {e}\nAborting any additional tag saves.\n")
+
                         return False
                 return True
 
             # Save tags
-            if write_Tags(ca, res.md):
+            if write_tags(ca, res.md):
                 match_results.good_matches.append(res)
-                res.tags_written = self.config.Runtime_Options__tags_write
                 self.log_output("Save complete!\n")
             else:
                 res.status = Status.write_failure

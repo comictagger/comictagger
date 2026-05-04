@@ -4,6 +4,7 @@ import functools
 import json
 import logging
 import os
+import pathlib
 import platform
 import sys
 import traceback
@@ -12,10 +13,11 @@ from typing import TYPE_CHECKING
 
 import settngs
 
-from comictaggerlib.ctsettings import ct_ns
-from comictaggerlib.ctversion import version
-from comictaggerlib.graphics import graphics_path
 from comictalker.comictalker import ComicTalker
+
+from .ctsettings import ct_ns
+from .ctversion import version
+from .graphics import graphics_path
 
 logger = logging.getLogger("comictagger")
 try:
@@ -23,7 +25,7 @@ try:
     from PyQt6 import QtCore, QtGui, QtNetwork, QtWidgets
 
     if TYPE_CHECKING:
-        from comictaggerlib.taggerwindow import TaggerWindow
+        from .taggerwindow import TaggerWindow
     tagger_window: TaggerWindow | None = None
 
     def show_exception_box(log_msg: str, details: str) -> None:
@@ -132,7 +134,7 @@ if TYPE_CHECKING:
 
 def pre_gui_file_request(config: ct_ns, url: QtCore.QUrl) -> None:
     if url.toLocalFile() not in sys.argv:
-        config.Runtime_Options__files.append(url.toLocalFile())
+        config.Runtime_Options__files.append(pathlib.Path(url.toLocalFile()))
 
 
 def setupSocket(app: QtCore.QObject, config: settngs.Config[ct_ns]) -> QtNetwork.QLocalServer:
@@ -145,7 +147,7 @@ def setupSocket(app: QtCore.QObject, config: settngs.Config[ct_ns]) -> QtNetwork
         logger.info("Another application with key [%s] is already running", config[0].internal__install_id)
         # send file list to other instance
         if config[0].Runtime_Options__files:
-            socket.write(json.dumps(config[0].Runtime_Options__files).encode("utf-8"))
+            socket.write(json.dumps([str(x.absolute()) for x in config[0].Runtime_Options__files]).encode("utf-8"))
             if not socket.waitForBytesWritten(3000):
                 logger.error(socket.errorString())
         socket.disconnectFromServer()
@@ -179,7 +181,6 @@ def open_tagger_window(
         show_exception_box(error[0], " ")
         if error[1]:
             raise SystemExit(1)
-
     # needed to catch initial open file events (macOS)
     app.openFileRequest.connect(functools.partial(pre_gui_file_request, config[0]))
 
@@ -213,7 +214,7 @@ def open_tagger_window(
         QtWidgets.QApplication.processEvents()
 
     try:
-        from comictaggerlib.taggerwindow import TaggerWindow
+        from .taggerwindow import TaggerWindow
 
         def activateModalWidget() -> None:
             assert QtGui and QtCore and QtWidgets

@@ -23,12 +23,13 @@ from PyQt6 import QtCore, QtGui, QtWidgets
 
 from comicapi.genericmetadata import GenericMetadata
 from comicapi.issuestring import IssueString
-from comictaggerlib.coverimagewidget import CoverImageWidget
-from comictaggerlib.ctsettings import ct_ns
-from comictaggerlib.seriesselectionwindow import SelectionWindow
-from comictaggerlib.ui import ui_path
-from comictaggerlib.ui.qtutils import center_window_on_parent
 from comictalker.comictalker import ComicTalker, RLCallBack, TalkerError
+
+from .coverimagewidget import CoverImageWidget
+from .ctsettings import ct_ns
+from .seriesselectionwindow import SelectionWindow
+from .ui import ui_path
+from .ui.qtutils import center_window_on_parent
 
 if TYPE_CHECKING:
     from PyQt6.QtWebEngineWidgets import QWebEngineView
@@ -105,6 +106,7 @@ class IssueSelectionWindow(SelectionWindow):
         if self.prog_dialog:
             self.prog_dialog.deleteLater()
         self.prog_dialog = QtWidgets.QProgressDialog("Retrieving issues", "Cancel", 0, 100, self)
+        assert self.prog_dialog  # Silence mypy
         self.prog_dialog.setWindowTitle("Retrieving issues")
         self.prog_dialog.setWindowModality(QtCore.Qt.WindowModality.WindowModal)
         self.prog_dialog.setMinimumDuration(1000)

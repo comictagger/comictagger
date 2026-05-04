@@ -23,11 +23,12 @@ import natsort
 from PyQt6 import QtCore, QtGui, QtWidgets, uic
 
 from comicapi import utils
-from comicapi.comicarchive import tags
 from comicapi.genericmetadata import Credit
-from comictaggerlib.optionalmsgdialog import OptionalMessageDialog
-from comictaggerlib.ui import ui_path
-from comictaggerlib.ui.qtutils import enable_widget
+from comicapi.tags import Tag
+
+from .optionalmsgdialog import OptionalMessageDialog
+from .ui import ui_path
+from .ui.qtutils import enable_widget
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +37,7 @@ class CreditEditorWindow(QtWidgets.QDialog):
     creditChanged = QtCore.pyqtSignal(Credit, int)
 
     def __init__(
-        self, parent: QtWidgets.QWidget, tags: list[str], row: int, credit: Credit, title: str = "New Credit"
+        self, parent: QtWidgets.QWidget, write_tags: list[Tag], row: int, credit: Credit, title: str = "New Credit"
     ) -> None:
         super().__init__(parent)
 
@@ -52,7 +53,7 @@ class CreditEditorWindow(QtWidgets.QDialog):
 
         self.credit = credit
         self.row = row
-        self.tags = tags
+        self.write_tags = write_tags
 
         self.setWindowTitle(title)
         self.setModal(True)
@@ -116,10 +117,8 @@ class CreditEditorWindow(QtWidgets.QDialog):
     def update_tag_tweaks(self) -> None:
         # depending on the current data tag, certain fields are disabled
         enabled_widgets = set()
-        for tag_id in self.tags:
-            if not tags[tag_id].enabled:
-                continue
-            enabled_widgets.update(tags[tag_id].supported_attributes)
+        for tag in self.write_tags:
+            enabled_widgets.update(tag.supported_attributes)
 
         for md_field, widget in self.md_attributes.items():
             if widget is not None and not isinstance(widget, (int)):

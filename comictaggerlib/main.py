@@ -35,12 +35,13 @@ import comicapi.comicarchive
 import comicapi.filenamelexer
 import comicapi.utils
 import comictalker
-from comictaggerlib import cli, ctsettings, pillow_plugins
-from comictaggerlib.ctsettings import ct_ns, plugin_finder
-from comictaggerlib.ctversion import version
-from comictaggerlib.log import setup_logging
-from comictaggerlib.resulttypes import Action
 from comictalker.comictalker import ComicTalker
+
+from . import cli, ctsettings, pillow_plugins
+from .ctsettings import ct_ns, plugin_finder
+from .ctversion import version
+from .log import setup_logging
+from .resulttypes import Action
 
 logger = logging.getLogger("comictagger")
 
@@ -149,7 +150,7 @@ class App:
     def list_plugins(
         self,
         talkers: Collection[comictalker.ComicTalker],
-        archivers: Collection[type[comicapi.comicarchive.Archiver]],
+        archivers: Collection[type[comicapi.comicarchive.ComicFile]],
         tags: Collection[comicapi.comicarchive.Tag],
     ) -> None:
         if self.config[0].Runtime_Options__json:
@@ -167,14 +168,14 @@ class App:
 
             for archiver in archivers:
                 try:
-                    a = archiver()
+                    a = archiver
                     print(  # noqa: T201
                         json.dumps(
                             {
                                 "type": "archiver",
                                 "enabled": a.enabled,
-                                "name": a.name(),
-                                "extension": a.extension(),
+                                "name": a.name,
+                                "extension": a.extension,
                                 "exe": a.exe,
                             }
                         )
@@ -198,7 +199,7 @@ class App:
                         {
                             "type": "tag",
                             "enabled": tag.enabled,
-                            "name": tag.name(),
+                            "name": tag.name,
                             "id": tag.id,
                         }
                     )
@@ -210,12 +211,12 @@ class App:
 
             print("\nComic Archive: (Enabled, Name: extension, exe)")  # noqa: T201
             for archiver in archivers:
-                a = archiver()
-                print(f"{a.enabled!s:<5}, {a.name():<10}: {a.extension():<5}, {a.exe}")  # noqa: T201
+                a = archiver
+                print(f"{a.enabled!s:<5}, {a.name:<10}: {a.extension:<5}, {a.exe}")  # noqa: T201
 
             print("\nTags: (Enabled, ID: Name)")  # noqa: T201
             for tag in tags:
-                print(f"{tag.enabled!s:<5}, {tag.id:<10}: {tag.name()}")  # noqa: T201
+                print(f"{tag.enabled!s:<5}, {tag.id:<10}: {tag.name}")  # noqa: T201
 
     def initialize(self) -> argparse.Namespace:
         conf, _ = self.initial_arg_parser.parse_known_intermixed_args()
@@ -289,7 +290,7 @@ class App:
             self.list_plugins(
                 list(self.talkers.values()),
                 comicapi.comicarchive.archivers,
-                comicapi.comicarchive.tags.values(),
+                comicapi.comicarchive.loaded_tags.values(),
             )
             return
 

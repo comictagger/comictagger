@@ -29,17 +29,18 @@ from PyQt6.QtCore import Qt, QUrl, pyqtSignal
 from comicapi import utils
 from comicapi.comicarchive import ComicArchive
 from comicapi.genericmetadata import ComicSeries, GenericMetadata
-from comictaggerlib.coverimagewidget import CoverImageWidget
-from comictaggerlib.ctsettings import ct_ns
-from comictaggerlib.ctsettings.settngs_namespace import SettngsNS
-from comictaggerlib.issueidentifier import IssueIdentifier, IssueIdentifierOptions
-from comictaggerlib.issueidentifier import Result as IIResult
-from comictaggerlib.matchselectionwindow import MatchSelectionWindow
-from comictaggerlib.optionalmsgdialog import OptionalMessageDialog
-from comictaggerlib.progresswindow import IDProgressWindow
-from comictaggerlib.resulttypes import IssueResult
-from comictaggerlib.ui import qtutils, ui_path
 from comictalker.comictalker import ComicTalker, RLCallBack, TalkerError
+
+from .coverimagewidget import CoverImageWidget
+from .ctsettings import ct_ns
+from .ctsettings.settngs_namespace import SettngsNS
+from .issueidentifier import IssueIdentifier, IssueIdentifierOptions
+from .issueidentifier import Result as IIResult
+from .matchselectionwindow import MatchSelectionWindow
+from .optionalmsgdialog import OptionalMessageDialog
+from .progresswindow import IDProgressWindow
+from .resulttypes import IssueResult
+from .ui import qtutils, ui_path
 
 logger = logging.getLogger(__name__)
 

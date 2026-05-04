@@ -38,6 +38,10 @@ from comictaggerlib.imagehasher import ImageHasher
 from comictaggerlib.resulttypes import IssueResult, Score
 from comictalker.comictalker import ComicTalker, RLCallBack, TalkerError
 
+from .imagefetcher import ImageFetcher, ImageFetcherException
+from .imagehasher import ImageHasher
+from .resulttypes import IssueResult
+
 logger = logging.getLogger(__name__)
 
 try:

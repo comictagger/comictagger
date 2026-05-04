@@ -8,6 +8,7 @@ from typing import Any
 
 import settngs
 
+from comicapi.tags import Tag
 from comictaggerlib.ctsettings.commandline import (
     initial_commandline_parser,
     register_commandline_settings,
@@ -23,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 talkers: dict[str, ComicTalker] = {}
 
-__all__ = [
+__all__ = (
     "initial_commandline_parser",
     "register_commandline_settings",
     "register_file_settings",
@@ -34,13 +35,15 @@ __all__ = [
     "ComicTaggerPaths",
     "ct_ns",
     "group_for_plugin",
-]
+)
 
 
 class SettingsEncoder(json.JSONEncoder):
     def default(self, obj: Any) -> Any:
         if isinstance(obj, pathlib.Path):
             return str(obj)
+        if isinstance(obj, Tag):
+            return str(obj.id)
 
         # Let the base class default method raise the TypeError
         return json.JSONEncoder.default(self, obj)
@@ -57,11 +60,19 @@ def validate_types(config: settngs.Config[settngs.Values]) -> settngs.Config[set
                 # use it to convert the loaded string into the expected value
                 if (
                     isinstance(value, str)
+                    or (isinstance(value, list) and value and isinstance(value[0], str))
                     or isinstance(default, Enum)
                     or (isinstance(setting.type, type) and issubclass(setting.type, Enum))
                 ):
-                    if isinstance(setting.type, type) and issubclass(setting.type, Enum) and isinstance(value, list):
-                        config.values[setting.group][setting.dest] = [setting.type(x) for x in value]
+                    if isinstance(value, list):
+                        new_value = []
+                        for x in value:
+                            new_x = setting.type(x)
+                            if isinstance(new_x, list) and not isinstance(new_x, str) and len(new_x) <= 1:
+                                new_value.extend(new_x)
+                                continue
+                            new_value.append(x)
+                        config.values[setting.group][setting.dest] = new_value
                     else:
                         config.values[setting.group][setting.dest] = setting.type(value)
     return config

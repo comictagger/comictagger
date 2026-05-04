@@ -4,7 +4,7 @@ from collections.abc import Callable, Collection
 from enum import auto
 from typing import Any
 
-from comicapi.utils import DefaultDict, StrEnum, norm_fold
+from .utils import DefaultDict, StrEnum, norm_fold
 
 
 class Mode(StrEnum):

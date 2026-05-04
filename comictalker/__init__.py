@@ -10,10 +10,10 @@ from comictalker.comictalker import ComicTalker, TalkerError
 
 logger = logging.getLogger(__name__)
 
-__all__ = [
+__all__ = (
     "ComicTalker",
     "TalkerError",
-]
+)
 
 
 def get_talkers(

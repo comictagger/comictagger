@@ -30,9 +30,9 @@ from typing import TYPE_CHECKING, Any, Union, overload
 
 from typing_extensions import NamedTuple
 
-from comicapi import merge, utils
-from comicapi._url import Url, parse_url
-from comicapi.utils import norm_fold
+from . import merge, utils
+from ._url import Url, parse_url
+from .utils import norm_fold
 
 # needed for runtime type guessing
 if TYPE_CHECKING:
@@ -61,7 +61,7 @@ class Credit:
         return f"{role}{self.person}{lang}"
 
 
-class PageType(merge.StrEnum):
+class PageType(utils.StrEnum):
     """
     These page info classes are exactly the same as the CIX scheme, since
     it's unique
@@ -94,6 +94,7 @@ class PageMetadata:
     width: int | None = None
 
     def set_type(self, value: str) -> None:
+        """Normalizes given type to a `PageType` if it is an unknown type it is the same as `type = value`"""
         values = {x.casefold(): x for x in PageType}
         self.type = values.get(value.casefold(), value)
 
@@ -113,6 +114,7 @@ class PageMetadata:
         return self.archive_index == other.archive_index
 
     def _get_clean_metadata(self, *attributes: str) -> PageMetadata:
+        """helper for tests"""
         return PageMetadata(
             filename=self.filename if "filename" in attributes else "",
             type=self.type if "type" in attributes else "",
@@ -274,6 +276,7 @@ class GenericMetadata:
         return tmp
 
     def _get_clean_metadata(self, *attributes: str) -> GenericMetadata:
+        """helper for tests"""
         new_md = GenericMetadata()
         list_handled = []
         for attr in sorted(attributes):

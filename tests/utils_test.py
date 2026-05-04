@@ -71,8 +71,8 @@ def test_recursive_list_with_file(tmp_path) -> None:
     glob_in_name = tmp_path / "[e-b]"
     glob_in_name.mkdir()
 
-    expected_result = {str(foo_png), str(temp_cbr), str(temp_file), str(temp_txt), str(temp_txt2)}
-    result = set(comicapi.utils.get_recursive_filelist([str(temp_txt2), tmp_path, str(glob_in_name)]))
+    expected_result = {foo_png, temp_cbr, temp_file, temp_txt, temp_txt2}
+    result = set(comicapi.utils.get_recursive_filelist([temp_txt2, tmp_path, glob_in_name]))
 
     assert result == expected_result
 

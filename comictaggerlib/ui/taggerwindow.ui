@@ -1436,7 +1436,7 @@ Source</string>
     <addaction name="actionLoad"/>
     <addaction name="actionLoadFolder"/>
     <addaction name="actionOpenFolderAsComic"/>
-    <addaction name="actionWrite_Tags"/>
+    <addaction name="actionWriteTags"/>
     <addaction name="actionAutoTag"/>
     <addaction name="actionCopyTags"/>
     <addaction name="menuRemove"/>
@@ -1509,7 +1509,7 @@ Source</string>
    <addaction name="separator"/>
    <addaction name="actionLoad"/>
    <addaction name="actionLoadFolder"/>
-   <addaction name="actionWrite_Tags"/>
+   <addaction name="actionWriteTags"/>
    <addaction name="actionSearchOnline"/>
    <addaction name="actionLiteralSearch"/>
    <addaction name="actionAutoTag"/>
@@ -1844,7 +1844,7 @@ Source</string>
     <string>F1</string>
    </property>
   </action>
-  <action name="actionWrite_Tags">
+  <action name="actionWriteTags">
    <property name="icon">
     <iconset resource="../graphics/graphics.qrc">
      <normaloff>:/graphics/save.png</normaloff>:/graphics/save.png</iconset>

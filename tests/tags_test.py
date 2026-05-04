@@ -5,6 +5,8 @@ from importlib_metadata import entry_points
 
 import comicapi.genericmetadata
 import testing.comicdata
+from comicapi.comicarchive import ComicArchive
+from comicapi.tags import Tag
 from comictaggerlib.md import prepare_metadata
 
 tags = []
@@ -19,32 +21,22 @@ if not tags:
     raise Exception("No tags found")
 
 
-@pytest.mark.parametrize("tag_type", tags)
-def test_metadata(mock_version, tmp_comic, md_saved, tag_type, md):
-    tag = tag_type(mock_version[0])
-    supported_attributes = tag.supported_attributes
-    tag.write_tags(md, tmp_comic.archiver)
-    written_metadata = tag.read_tags(tmp_comic.archiver)
-    new_md = md_saved._get_clean_metadata(*supported_attributes)
+@pytest.mark.parametrize("tag", tags)
+def test_metadata(mock_version, tmp_comic_path, md_saved, tag: Tag, md):
+    comic = ComicArchive(tmp_comic_path)
+    comic.remove_tags(tag)
 
-    # Hack back in the pages variable because CoMet supports identifying the cover by the filename
-    if tag.id == "comet":
-        new_md.pages = [
-            comicapi.genericmetadata.PageMetadata(
-                archive_index=0,
-                bookmark="",
-                display_index=0,
-                filename="!cover.jpg",
-                type=comicapi.genericmetadata.PageType.FrontCover,
-            )
-        ]
-        written_metadata = written_metadata._get_clean_metadata(*supported_attributes).replace(
-            pages=written_metadata.pages
-        )
-    else:
-        written_metadata = written_metadata._get_clean_metadata(*supported_attributes)
+    no_tags = comic.read_tags(tag)
 
-    assert written_metadata == new_md
+    assert no_tags == comicapi.genericmetadata.GenericMetadata()
+
+    comic.write_tags(mock_version[0], md, tag)
+    written_metadata = comic.read_tags(tag)
+    clean_md = md_saved._get_clean_metadata(*tag.supported_attributes)
+
+    written_metadata = written_metadata._get_clean_metadata(*tag.supported_attributes)
+
+    assert written_metadata == clean_md
 
 
 @pytest.mark.parametrize("metadata, expected", testing.comicdata.metadata_prepared)

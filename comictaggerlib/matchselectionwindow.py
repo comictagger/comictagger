@@ -22,11 +22,12 @@ import os
 from PyQt6 import QtCore, QtGui, QtWidgets, uic
 
 from comicapi.comicarchive import ComicArchive
-from comictaggerlib.coverimagewidget import CoverImageWidget
-from comictaggerlib.ctsettings import ct_ns
-from comictaggerlib.resulttypes import IssueResult
-from comictaggerlib.ui import ui_path
 from comictalker.comictalker import ComicTalker
+
+from .coverimagewidget import CoverImageWidget
+from .ctsettings import ct_ns
+from .resulttypes import IssueResult
+from .ui import ui_path
 
 logger = logging.getLogger(__name__)
 

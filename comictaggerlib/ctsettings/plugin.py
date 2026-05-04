@@ -9,17 +9,17 @@ import settngs
 import comicapi.comicarchive
 import comicapi.utils
 import comictaggerlib.ctsettings
-from comicapi.comicarchive import Archiver
+from comicapi.comicarchive import ComicFile
 from comictaggerlib.ctsettings.settngs_namespace import SettngsNS as ct_ns
 from comictalker.comictalker import ComicTalker
 
 logger = logging.getLogger("comictagger")
 
 
-def group_for_plugin(plugin: Archiver | ComicTalker | type[Archiver]) -> str:
+def group_for_plugin(plugin: ComicFile | ComicTalker | type[ComicFile]) -> str:
     if isinstance(plugin, ComicTalker):
         return f"Source {plugin.id}"
-    if isinstance(plugin, Archiver) or plugin == Archiver:
+    if hasattr(plugin, "exe") or hasattr(plugin, "tag_locations"):
         return "Archive"
     raise NotImplementedError(f"Invalid plugin received: {plugin=}")
 
@@ -64,7 +64,7 @@ def register_talker_settings(manager: settngs.Manager, talkers: dict[str, ComicT
 def validate_archive_settings(config: settngs.Config[ct_ns]) -> settngs.Config[ct_ns]:
     cfg = settngs.normalize_config(config, file=True, cmdline=True, default=False)
     for archiver in comicapi.comicarchive.archivers:
-        group = group_for_plugin(archiver())
+        group = group_for_plugin(archiver)
         exe_name = settngs.sanitize_name(archiver.exe)
         if not exe_name:
             continue

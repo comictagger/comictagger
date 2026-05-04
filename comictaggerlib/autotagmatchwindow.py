@@ -21,14 +21,16 @@ import os
 
 from PyQt6 import QtCore, QtGui, QtWidgets, uic
 
-from comicapi.comicarchive import ComicArchive, tags
-from comictaggerlib.coverimagewidget import CoverImageWidget
-from comictaggerlib.ctsettings import ct_ns
-from comictaggerlib.md import prepare_metadata, read_selected_tags
-from comictaggerlib.optionalmsgdialog import OptionalMessageDialog
-from comictaggerlib.resulttypes import IssueResult, Result
-from comictaggerlib.ui import ui_path
+from comicapi.comicarchive import ComicArchive
 from comictalker.comictalker import ComicTalker, TalkerError
+
+from . import ctversion
+from .coverimagewidget import CoverImageWidget
+from .ctsettings import ct_ns
+from .md import prepare_metadata, read_selected_tags
+from .optionalmsgdialog import OptionalMessageDialog
+from .resulttypes import IssueResult, Result
+from .ui import ui_path
 
 logger = logging.getLogger(__name__)
 
@@ -279,14 +281,14 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
 
         QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
         md = prepare_metadata(md, ct_md, self.config)
-        for tag_id in self.config.Runtime_Options__tags_write:
-            success = ca.write_tags(md, tag_id)
-            QtWidgets.QApplication.restoreOverrideCursor()
-            if not success:
+        for tag in self.config.Runtime_Options__tags_read:
+            try:
+                ca.write_tags(ctversion.version, md, tag)
+            except Exception as e:
                 OptionalMessageDialog.warning(
                     self,
                     "Write Error",
-                    f"Saving {tags[tag_id].name()} the tags to the archive seemed to fail!",
+                    f"Saving {tag.name} the tags to the archive seemed to fail! {e}",
                 )
                 break
         self.matched_comics.append(ca)

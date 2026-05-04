@@ -21,7 +21,7 @@ import platform
 
 from PyQt6 import QtCore, QtGui, QtWidgets, sip, uic
 
-from comictaggerlib.ui import ui_path
+from .ui import ui_path
 
 logger = logging.getLogger(__name__)
 

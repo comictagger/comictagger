@@ -20,143 +20,116 @@ import xml.etree.ElementTree as ET
 from typing import Any
 
 from comicapi import utils
-from comicapi.archivers import Archiver
 from comicapi.genericmetadata import FileHash, GenericMetadata, PageMetadata
-from comicapi.tags import Tag
+from comicapi.tags import Tag, TagLocation
 
 logger = logging.getLogger(__name__)
 
 
 class ComicRack(Tag):
-    enabled = True
-
     id = "cr"
+    name = "Comic Rack"
+    enabled = True
+    location = TagLocation.FILE
+    filename_match = "ComicInfo.xml"
 
-    def __init__(self, version: str) -> None:
-        super().__init__(version)
+    filename = "ComicInfo.xml"
+    supported_attributes = {
+        "original_hash",
+        "series",
+        "issue",
+        "issue_count",
+        "title",
+        "volume",
+        "genres",
+        "description",
+        "notes",
+        "alternate_series",
+        "alternate_number",
+        "alternate_count",
+        "story_arcs",
+        "series_groups",
+        "publisher",
+        "imprint",
+        "day",
+        "month",
+        "year",
+        "language",
+        "web_links",
+        "format",
+        "manga",
+        "black_and_white",
+        "maturity_rating",
+        "critical_rating",
+        "scan_info",
+        "pages",
+        "pages.bookmark",
+        "pages.double_page",
+        "pages.height",
+        "pages.image_index",
+        "pages.size",
+        "pages.type",
+        "pages.width",
+        "page_count",
+        "characters",
+        "teams",
+        "locations",
+        "credits",
+        "credits.person",
+        "credits.role",
+    }
 
-        self.file = "ComicInfo.xml"
-        self.supported_attributes = {
-            "original_hash",
-            "series",
-            "issue",
-            "issue_count",
-            "title",
-            "volume",
-            "genres",
-            "description",
-            "notes",
-            "alternate_series",
-            "alternate_number",
-            "alternate_count",
-            "story_arcs",
-            "series_groups",
-            "publisher",
-            "imprint",
-            "day",
-            "month",
-            "year",
-            "language",
-            "web_links",
-            "format",
-            "manga",
-            "black_and_white",
-            "maturity_rating",
-            "critical_rating",
-            "scan_info",
-            "pages",
-            "pages.bookmark",
-            "pages.double_page",
-            "pages.height",
-            "pages.image_index",
-            "pages.size",
-            "pages.type",
-            "pages.width",
-            "page_count",
-            "characters",
-            "teams",
-            "locations",
-            "credits",
-            "credits.person",
-            "credits.role",
-        }
+    _parseable_credits = frozenset(
+        (
+            *GenericMetadata.writer_synonyms,
+            *GenericMetadata.penciller_synonyms,
+            *GenericMetadata.inker_synonyms,
+            *GenericMetadata.colorist_synonyms,
+            *GenericMetadata.letterer_synonyms,
+            *GenericMetadata.cover_synonyms,
+            *GenericMetadata.editor_synonyms,
+        )
+    )
 
-    def supports_credit_role(self, role: str) -> bool:
-        return role.casefold() in self._get_parseable_credits()
+    @staticmethod
+    def supports_credit_role(role: str) -> bool:
+        return role.casefold() in ComicRack._parseable_credits
 
-    def supports_tags(self, archive: Archiver) -> bool:
-        return archive.supports_files()
+    @staticmethod
+    def validate_tags(tags: bytes) -> bool:
+        """verify that the string actually contains CIX data in XML format"""
 
-    def has_tags(self, archive: Archiver) -> bool:
-        try:  # read_file can cause an exception
-            return (
-                self.supports_tags(archive)
-                and self.file in archive.get_filename_list()
-                and self._validate_bytes(archive.read_file(self.file))
-            )
-        except Exception:
+        try:
+            root = ET.fromstring(tags)
+            if root.tag != "ComicInfo":
+                return False
+        except ET.ParseError:
             return False
 
-    def remove_tags(self, archive: Archiver) -> bool:
-        return self.has_tags(archive) and archive.remove_file(self.file)
+        return True
 
-    def read_tags(self, archive: Archiver) -> GenericMetadata:
-        if self.has_tags(archive):
-            try:  # read_file can cause an exception
-                metadata = archive.read_file(self.file) or b""
-                if self._validate_bytes(metadata):
-                    return self._metadata_from_bytes(metadata)
-            except Exception:
-                ...
-        return GenericMetadata()
+    @staticmethod
+    def load_tags(tags: bytes) -> GenericMetadata:
+        root = ET.fromstring(tags)
+        if root.tag != "ComicInfo":
+            raise NotImplementedError
+        return ComicRack._convert_xml_to_metadata(root)
 
-    def read_raw_tags(self, archive: Archiver) -> str:
-        try:  # read_file can cause an exception
-            if self.has_tags(archive):
-                b = archive.read_file(self.file)
-                # ET.fromstring is used as xml can declare the encoding
-                return ET.tostring(ET.fromstring(b), encoding="unicode", xml_declaration=True)
-        except Exception:
-            ...
-        return ""
+    @staticmethod
+    def display_tags(tags: bytes) -> str:
+        root = ET.fromstring(tags)
+        if root.tag != "ComicInfo":
+            raise NotImplementedError
+        ET.indent(root)
+        return ET.tostring(root, encoding="unicode", xml_declaration=True)
 
-    def write_tags(self, metadata: GenericMetadata, archive: Archiver) -> bool:
-        if self.supports_tags(archive):
-            xml = b""
-            try:  # read_file can cause an exception
-                if self.has_tags(archive):
-                    xml = archive.read_file(self.file)
-                return archive.write_file(self.file, self._bytes_from_metadata(metadata, xml))
-            except Exception:
-                ...
-        else:
-            logger.warning("Archive %s(%s) does not support '%s' metadata", archive.path, archive.name(), self.name())
-        return False
+    @staticmethod
+    def create_tags(version: str, metadata: GenericMetadata, existing_tags: bytes) -> bytes:
+        root = ComicRack._convert_metadata_to_xml(metadata, existing_tags)
+        return ET.tostring(root, xml_declaration=True)
 
-    def name(self) -> str:
-        return "Comic Rack"
-
-    @classmethod
-    def _get_parseable_credits(cls) -> list[str]:
-        parsable_credits: list[str] = []
-        parsable_credits.extend(GenericMetadata.writer_synonyms)
-        parsable_credits.extend(GenericMetadata.penciller_synonyms)
-        parsable_credits.extend(GenericMetadata.inker_synonyms)
-        parsable_credits.extend(GenericMetadata.colorist_synonyms)
-        parsable_credits.extend(GenericMetadata.letterer_synonyms)
-        parsable_credits.extend(GenericMetadata.cover_synonyms)
-        parsable_credits.extend(GenericMetadata.editor_synonyms)
-        return parsable_credits
-
-    def _metadata_from_bytes(self, string: bytes) -> GenericMetadata:
-        root = ET.fromstring(string)
-        return self._convert_xml_to_metadata(root)
-
-    def _bytes_from_metadata(self, metadata: GenericMetadata, xml: bytes = b"") -> bytes:
-        root = self._convert_metadata_to_xml(metadata, xml)
-        return ET.tostring(root, encoding="utf-8", xml_declaration=True)
-
-    def _convert_metadata_to_xml(self, metadata: GenericMetadata, xml: bytes = b"") -> ET.Element:
+    @staticmethod
+    def _convert_metadata_to_xml(metadata: GenericMetadata, xml: bytes = b"") -> ET.Element:
         # shorthand for the metadata
         md = metadata
 
@@ -167,7 +140,6 @@ class ComicRack(Tag):
             root = ET.Element("ComicInfo")
             root.attrib["xmlns:xsi"] = "http://www.w3.org/2001/XMLSchema-instance"
             root.attrib["xmlns:xsd"] = "http://www.w3.org/2001/XMLSchema"
-        # helper func
 
         def assign(cr_entry: str, md_entry: Any) -> None:
             if md_entry:
@@ -293,7 +265,8 @@ class ComicRack(Tag):
 
         return root
 
-    def _convert_xml_to_metadata(self, root: ET.Element) -> GenericMetadata:
+    @staticmethod
+    def _convert_xml_to_metadata(root: ET.Element) -> GenericMetadata:
         if root.tag != "ComicInfo":
             raise Exception("Not a ComicInfo file")
 
@@ -404,13 +377,5 @@ class ComicRack(Tag):
 
         return md
 
-    def _validate_bytes(self, string: bytes) -> bool:
-        """verify that the string actually contains CIX data in XML format"""
-        try:
-            root = ET.fromstring(string)
-            if root.tag != "ComicInfo":
-                return False
-        except ET.ParseError:
-            return False
 
-        return True
+assert isinstance(ComicRack, Tag)

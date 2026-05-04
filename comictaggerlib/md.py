@@ -5,10 +5,12 @@ from datetime import datetime
 from comicapi import merge, utils
 from comicapi.comicarchive import ComicArchive
 from comicapi.genericmetadata import GenericMetadata
-from comictaggerlib import ctversion
-from comictaggerlib.cbltransformer import CBLTransformer
-from comictaggerlib.ctsettings.settngs_namespace import SettngsNS
+from comicapi.tags import Tag
 from comictalker.talker_utils import cleanup_html
+
+from . import ctversion
+from .cbltransformer import CBLTransformer
+from .ctsettings.settngs_namespace import SettngsNS
 
 
 def prepare_metadata(md: GenericMetadata, new_md: GenericMetadata, config: SettngsNS) -> GenericMetadata:
@@ -41,21 +43,21 @@ def prepare_metadata(md: GenericMetadata, new_md: GenericMetadata, config: Settn
 
 
 def read_selected_tags(
-    tag_ids: list[str], ca: ComicArchive, mode: merge.Mode = merge.Mode.OVERLAY, merge_lists: bool = False
-) -> tuple[GenericMetadata, list[str], Exception | None]:
+    tags: list[Tag], ca: ComicArchive, mode: merge.Mode = merge.Mode.OVERLAY, merge_lists: bool = False
+) -> tuple[GenericMetadata, list[Tag], Exception | None]:
     md = GenericMetadata()
     error = None
-    tags_used = []
+    tags_used: list[Tag] = []
     try:
-        for tag_id in tag_ids:
-            metadata = ca.read_tags(tag_id)
+        for tag in tags:
+            metadata = ca.read_tags(tag)
             if not metadata.is_empty:
                 md.overlay(
                     metadata,
                     mode=mode,
                     merge_lists=merge_lists,
                 )
-                tags_used.append(tag_id)
+                tags_used.append(tag)
     except Exception as e:
         error = e
 

@@ -31,17 +31,18 @@ from PyQt6 import QtCore, QtGui, QtWidgets, uic
 
 import comictaggerlib.ui.talkeruigenerator
 from comicapi import merge, utils
-from comicapi.archivers.archiver import Archiver
+from comicapi.comic import ComicFile
 from comicapi.genericmetadata import GenericMetadata, md_test
-from comictaggerlib import ctsettings
-from comictaggerlib.ctsettings import ct_ns
-from comictaggerlib.ctsettings.plugin import group_for_plugin
-from comictaggerlib.filerenamer import FileRenamer, Replacement, Replacements
-from comictaggerlib.imagefetcher import ImageFetcher
-from comictaggerlib.optionalmsgdialog import OptionalMessageDialog
-from comictaggerlib.ui import ui_path
 from comictalker.comiccacher import ComicCacher
 from comictalker.comictalker import ComicTalker
+
+from . import ctsettings
+from .ctsettings import ct_ns
+from .ctsettings.plugin import group_for_plugin
+from .filerenamer import FileRenamer, Replacement, Replacements
+from .imagefetcher import ImageFetcher
+from .optionalmsgdialog import OptionalMessageDialog
+from .ui import ui_path
 
 logger = logging.getLogger(__name__)
 
@@ -471,7 +472,7 @@ class SettingsWindow(QtWidgets.QDialog):
     def settings_to_form(self) -> None:
         self.disconnect_signals()
         # Copy values from settings to form
-        archive_group = group_for_plugin(Archiver)
+        archive_group = group_for_plugin(ComicFile)
         if archive_group in self.config[1] and "rar" in self.config[1][archive_group].v:
             self.leRarExePath.setText(getattr(self.config[0], self.config[1][archive_group].v["rar"].internal_name))
         else:
@@ -603,10 +604,10 @@ class SettingsWindow(QtWidgets.QDialog):
             return
 
         # Copy values from form to settings and save
-        archive_group = group_for_plugin(Archiver)
+        archive_group = group_for_plugin(ComicFile)
         if archive_group in self.config[1] and "rar" in self.config[1][archive_group].v:
             setattr(self.config[0], self.config[1][archive_group].v["rar"].internal_name, str(self.leRarExePath.text()))
-
+            assert hasattr(self.config[0], "Archive__rar")
             # make sure rar program is now in the path for the rar class
             if self.config[0].Archive__rar:
                 utils.add_to_path(os.path.dirname(str(self.leRarExePath.text())))
@@ -681,7 +682,6 @@ class SettingsWindow(QtWidgets.QDialog):
         self.update_talkers_config()
 
         ctsettings.save_file(self.config, self.config[0].Runtime_Options__config.user_config_dir / "settings.json")
-        self.parent().config = self.config
         QtWidgets.QDialog.accept(self)
 
     def update_talkers_config(self) -> None:
