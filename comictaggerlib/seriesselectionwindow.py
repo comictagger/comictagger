@@ -31,13 +31,13 @@ from comicapi.comicarchive import ComicArchive
 from comicapi.genericmetadata import ComicSeries, GenericMetadata
 from comictalker.comictalker import ComicTalker, RLCallBack, TalkerError
 
-from .optionalmsgdialog import OptionalMessageDialog
 from .coverimagewidget import CoverImageWidget
 from .ctsettings import ct_ns
 from .ctsettings.settngs_namespace import SettngsNS
 from .issueidentifier import IssueIdentifier, IssueIdentifierOptions
 from .issueidentifier import Result as IIResult
 from .matchselectionwindow import MatchSelectionWindow
+from .optionalmsgdialog import OptionalMessageDialog
 from .progresswindow import IDProgressWindow
 from .resulttypes import IssueResult
 from .ui import qtutils, ui_path

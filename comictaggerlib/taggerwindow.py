@@ -33,7 +33,7 @@ from typing import Any
 
 import natsort
 import settngs
-from ctsettings import ctversion
+from ctversion import ctversion
 from PyQt6 import QtCore, QtGui, QtNetwork, QtWidgets, uic
 
 import comicapi.merge
@@ -47,6 +47,7 @@ from comicapi.issuestring import IssueString
 from comicapi.tags import Tag
 from comictalker.comictalker import ComicTalker, RLCallBack, TalkerError
 
+from . import ctsettings
 from .applicationlogwindow import ApplicationLogWindow, QTextEditLogger
 from .autotagmatchwindow import AutoTagMatchWindow
 from .autotagprogresswindow import AutoTagProgressWindow, AutoTagThread
@@ -54,7 +55,6 @@ from .autotagstartwindow import AutoTagSettings, AutoTagStartWindow
 from .cbltransformer import CBLTransformer
 from .coverimagewidget import CoverImageWidget
 from .crediteditorwindow import CreditEditorWindow
-from .ctsettings import ct_ns
 from .exportwindow import ExportConfig, ExportConflictOpts, ExportWindow
 from .fileselectionlist import FileSelectionList
 from .graphics import graphics_path
@@ -119,7 +119,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
     def __init__(
         self,
-        config: settngs.Config[ct_ns],
+        config: settngs.Config[ctsettings.ct_ns],
         talkers: dict[str, ComicTalker],
         socket_server: QtNetwork.QLocalServer,
         parent: QtWidgets.QWidget | None = None,
@@ -2031,7 +2031,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.atprogdialog.open()
 
     def auto_tag_finished(
-        self, match_results: OnlineMatchResults, archives_to_remove: list[ComicArchive], *, config: ct_ns
+        self, match_results: OnlineMatchResults, archives_to_remove: list[ComicArchive], *, config: ctsettings.ct_ns
     ) -> None:
         tag_names = ", ".join([tag.name for tag in config.Runtime_Options__tags_write])
         if self.atprogdialog:
@@ -2084,7 +2084,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         ).accepted.connect(functools.partial(self.open_auto_tag_match_window, match_results, config=config))
         # TODO: Validate that open_auto_tag_match_window still works
 
-    def open_auto_tag_match_window(self, match_results: OnlineMatchResults, *, config: ct_ns) -> None:
+    def open_auto_tag_match_window(self, match_results: OnlineMatchResults, *, config: ctsettings.ct_ns) -> None:
         match_results.multiple_matches.extend(match_results.low_confidence_matches)
         auto_tagged_archives = {a.path: a for a in self.fileSelectionList.get_selected_archive_list()}
         matchdlg = AutoTagMatchWindow(
