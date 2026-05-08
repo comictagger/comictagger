@@ -418,6 +418,7 @@ class ComicArchive:
         split_words: bool = False,
         allow_issue_start_with_letter: bool = False,
         protofolius_issue_number_scheme: bool = False,
+        publishers: Iterable[str] = tuple(),
     ) -> GenericMetadata:
         metadata = GenericMetadata()
 
@@ -430,6 +431,7 @@ class ComicArchive:
             split_words=split_words,
             allow_issue_start_with_letter=allow_issue_start_with_letter,
             protofolius_issue_number_scheme=protofolius_issue_number_scheme,
+            publishers=publishers,
         )
         metadata.alternate_number = utils.xlate(filename_info.get("alternate", None))
         metadata.issue = utils.xlate(filename_info.get("issue", None))

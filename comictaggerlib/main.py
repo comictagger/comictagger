@@ -97,11 +97,11 @@ def configure_locale() -> None:
     sys.stdin.reconfigure(encoding=sys.getdefaultencoding())  # type: ignore[union-attr]
 
 
-def update_publishers(config: settngs.Config[ct_ns]) -> None:
+def update_publishers(publishers: comicapi.utils.PublisherManager, config: settngs.Config[ct_ns]) -> None:
     json_file = config[0].Runtime_Options__config.user_config_dir / "publishers.json"
     if json_file.exists():
         try:
-            comicapi.utils.update_publishers(json.loads(json_file.read_text("utf-8")))
+            publishers.update_publishers(json.loads(json_file.read_text("utf-8")))
         except Exception as e:
             logger.exception("Failed to load publishers from %s: %s", json_file, e)
 
@@ -275,16 +275,11 @@ class App:
         for pkg in sorted(importlib_metadata.distributions(), key=lambda x: x.name):
             logger.debug("%s\t%s", pkg.metadata["Name"], pkg.metadata["Version"])
 
-        comicapi.utils.load_publishers()
-        update_publishers(self.config)
+        publishers = comicapi.utils.PublisherManager()
+        if self.config.values.Auto_Tag__load_default_imprints:
+            comicapi.utils.load_default_publishers(publishers)
+        update_publishers(publishers, self.config)
 
-        def add_publisher_to_lexer(publisher: str) -> None:
-            publisher = publisher.casefold()
-            if " " not in publisher and publisher not in comicapi.filenamelexer.key:
-                comicapi.filenamelexer.key[publisher] = comicapi.filenamelexer.ItemType.Publisher
-
-        for publisher in comicapi.utils.publishers:
-            add_publisher_to_lexer(publisher)
         if self.config[0].Commands__command == Action.list_plugins:
             self.list_plugins(
                 list(self.talkers.values()),
@@ -321,7 +316,7 @@ class App:
 
                 if not gui.qt_available:
                     raise gui.import_error
-                return gui.open_tagger_window(self.talkers, self.config, error)
+                return gui.open_tagger_window(self.talkers, publishers, self.config, error)
             except ImportError:
                 self.config[0].Runtime_Options__no_gui = True
                 logger.warning("PyQt6 is not available. ComicTagger is limited to command-line mode.")
@@ -338,7 +333,7 @@ class App:
             raise SystemExit(1)
 
         try:
-            raise SystemExit(cli.CLI(self.config[0], self.talkers).run())
+            raise SystemExit(cli.CLI(self.config[0], self.talkers, publishers).run())
         except Exception:
             logger.exception("CLI mode failed")
 

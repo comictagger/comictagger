@@ -58,17 +58,10 @@ def cbz_double_cover(tmp_path, tmp_comic):
 
 
 @pytest.fixture
-def load_publishers(monkeypatch) -> None:
-    monkeypatch.setattr("comicapi.utils.publishers", {})
-    utils.load_publishers()
-
-    def add_publisher_to_lexer(publisher: str) -> None:
-        publisher = publisher.casefold()
-        if " " not in publisher and publisher not in comicapi.filenamelexer.key:
-            comicapi.filenamelexer.key[publisher] = comicapi.filenamelexer.ItemType.Publisher
-
-    for publisher, imprints in utils.publishers.items():
-        add_publisher_to_lexer(publisher)
+def load_publishers() -> utils.PublisherManager:
+    publishers = utils.PublisherManager()
+    utils.load_default_publishers(publishers)
+    return publishers
 
 
 @pytest.fixture(autouse=True)
@@ -199,19 +192,17 @@ def md_saved():
 
 # manually seeds publishers
 @pytest.fixture
-def seed_publishers(monkeypatch):
-    publisher_seed = {}
-    for publisher, imprint in seed_imprints.items():
-        publisher_seed[publisher] = imprint
-    monkeypatch.setattr(utils, "publishers", publisher_seed)
+def seed_publishers() -> utils.PublisherManager:
+    publishers = utils.PublisherManager()
+    publishers.publishers = copy.deepcopy(seed_imprints)
+    return publishers
 
 
 @pytest.fixture
-def seed_all_publishers(monkeypatch):
-    publisher_seed = {}
-    for publisher, imprint in all_seed_imprints.items():
-        publisher_seed[publisher] = imprint
-    monkeypatch.setattr(utils, "publishers", publisher_seed)
+def seed_all_publishers() -> utils.PublisherManager:
+    publishers = utils.PublisherManager()
+    publishers.publishers = copy.deepcopy(all_seed_imprints)
+    return publishers
 
 
 @pytest.fixture

@@ -48,6 +48,6 @@ def test_metadata(mock_version, tmp_comic, md_saved, tag_type, md):
 
 
 @pytest.mark.parametrize("metadata, expected", testing.comicdata.metadata_prepared)
-def test_prepare_metadata(mock_version, mock_now, config, metadata, expected):
-    new_md = prepare_metadata(metadata[0], metadata[1], config[0])
+def test_prepare_metadata(mock_version, mock_now, config, load_publishers, metadata, expected):
+    new_md = prepare_metadata(metadata[0], metadata[1], load_publishers, config[0])
     assert new_md == expected

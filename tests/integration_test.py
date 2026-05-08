@@ -15,6 +15,7 @@ def test_save(
     tmp_comic,
     md_saved,
     mock_now,
+    load_publishers,
 ) -> None:
     # Overwrite the series so it has definitely changed
     tmp_comic.write_tags(md_saved.replace(series="nothing"), "cr")
@@ -44,7 +45,7 @@ def test_save(
     # Search using the correct series since we just put the wrong series name in the CBZ
     config[0].Auto_Tag__metadata = comicapi.genericmetadata.GenericMetadata(series=md_saved.series)
     # Run ComicTagger
-    CLI(config[0], talkers).run()
+    CLI(config[0], talkers, load_publishers).run()
 
     # Read the CBZ
     md = tmp_comic.read_tags("cr")
@@ -71,6 +72,7 @@ def test_delete(
     tmp_comic,
     md_saved,
     mock_now,
+    load_publishers,
 ) -> None:
     md = tmp_comic.read_tags("cr")
 
@@ -92,7 +94,7 @@ def test_delete(
     # Delete ComicRack tags
     config[0].Runtime_Options__tags_write = ["cr"]
     # Run ComicTagger
-    CLI(config[0], talkers).run()
+    CLI(config[0], talkers, load_publishers).run()
 
     # Read the CBZ
     md = tmp_comic.read_tags("cr")
@@ -109,6 +111,7 @@ def test_rename(
     tmp_comic,
     md_saved,
     mock_now,
+    load_publishers,
 ) -> None:
     md = tmp_comic.read_tags("cr")
 
@@ -133,7 +136,7 @@ def test_rename(
     # Use the current directory
     config[0].File_Rename__dir = ""
     # Run ComicTagger
-    CLI(config[0], talkers).run()
+    CLI(config[0], talkers, load_publishers).run()
 
     # Update the comic path
     tmp_comic.path = tmp_comic.path.parent / (md.series + ".cbz")

@@ -45,13 +45,19 @@ class AutoTagThread(QtCore.QThread):  # TODO: re-check thread semantics. Specifi
     ratelimit = QtCore.pyqtSignal(float, float)
 
     def __init__(
-        self, series_override: str, ca_list: list[ComicArchive], config: SettngsNS, talker: ComicTalker
+        self,
+        series_override: str,
+        ca_list: list[ComicArchive],
+        config: SettngsNS,
+        talker: ComicTalker,
+        publishers: utils.PublisherManager,
     ) -> None:
         QtCore.QThread.__init__(self)
         self.series_override = series_override
         self.ca_list = ca_list
         self.config = config
         self.talker = talker
+        self.publishers = publishers
         self.canceled = False
 
     def log_output(self, text: str) -> None:
@@ -138,6 +144,7 @@ class AutoTagThread(QtCore.QThread):  # TODO: re-check thread semantics. Specifi
                 self.config.Filename_Parsing__split_words,
                 self.config.Filename_Parsing__allow_issue_start_with_letter,
                 self.config.Filename_Parsing__protofolius_issue_number_scheme,
+                self.publishers.publishers,
             )
             if self.config.Auto_Tag__ignore_leading_numbers_in_filename and md.series is not None:
                 # remove all leading numbers
@@ -178,6 +185,7 @@ class AutoTagThread(QtCore.QThread):  # TODO: re-check thread semantics. Specifi
                 match_results,
                 self.config,
                 self.talker,
+                self.publishers,
                 self.log_output,
                 on_rate_limit=ratelimit_callback,
                 on_progress=on_progress,

@@ -7,6 +7,7 @@ from typing import Any
 
 from comicapi.comicarchive import ComicArchive
 from comicapi.genericmetadata import GenericMetadata
+from comicapi.utils import PublisherManager
 from comictaggerlib.ctsettings import ct_ns
 from comictaggerlib.issueidentifier import IssueIdentifier, IssueIdentifierOptions
 from comictaggerlib.issueidentifier import Result as IIResult
@@ -24,6 +25,7 @@ def identify_comic(
     match_results: OnlineMatchResults,
     config: ct_ns,
     talker: ComicTalker,
+    publishers: PublisherManager,
     output: Callable[[str], Any],
     on_rate_limit: RLCallBack | None,
     on_progress: Callable[[int, int, bytes], Any] | None = None,
@@ -108,7 +110,7 @@ def identify_comic(
         logger.exception("Error retrieving issue details. Save aborted. %s", e)
         ct_md = GenericMetadata()
 
-    ct_md = prepare_metadata(md, ct_md, config)
+    ct_md = prepare_metadata(md, ct_md, publishers, config)
 
     if ct_md.is_empty:
         res.status = Status.fetch_data_failure
