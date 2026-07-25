@@ -372,15 +372,21 @@ class TaggerWindow(QtWidgets.QMainWindow):
         QtCore.QCoreApplication.processEvents()
         self.resizeEvent(None)
 
-        if self.config[0].Dialog_Flags__show_disclaimer:
+        connection_type = QtCore.Qt.ConnectionType.SingleShotConnection
+
+        def show_welcome() -> None:
+            if not self.config[0].Dialog_Flags__show_disclaimer:
+                show_plugin_notice()
+                return
 
             def set_checked(checked: bool) -> None:
                 self.config[0].Dialog_Flags__show_disclaimer = not checked
 
-            OptionalMessageDialog.msg(
+            dialog = OptionalMessageDialog.msg(
                 self,
                 "Welcome!",
-                textwrap.dedent("""
+                textwrap.dedent(
+                    """
                 Thanks for trying ComicTagger!
 
                 Be aware that this is beta-level software, and consider it experimental.
@@ -403,10 +409,18 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
                 [here]: https://github.com/comictagger/comictagger/wiki/Comic-and-Manga-Information-Sources
                 [Wiki page]: https://github.com/comictagger/comictagger/wiki/UserGuide#comic-vine
-                    """),
-            ).check_status.connect(set_checked)
+                    """
+                ),
+            )
+            dialog.check_status.connect(set_checked)
+            dialog.finished.connect(
+                lambda _result: QtCore.QTimer.singleShot(0, show_plugin_notice), type=connection_type
+            )
 
-        if self.config[0].Dialog_Flags__notify_plugin_changes:
+        def show_plugin_notice() -> None:
+            if not self.config[0].Dialog_Flags__notify_plugin_changes:
+                check_for_new_version()
+                return
 
             def set_checked(checked: bool) -> None:
                 self.config[0].Dialog_Flags__notify_plugin_changes = not checked
@@ -414,7 +428,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
             self.dlg = OptionalMessageDialog.msg(
                 self,
                 "Plugins Have moved!",
-                textwrap.dedent(f"""
+                textwrap.dedent(
+                    f"""
                 Due to techinical issues the Metron is not supported anymore and the GCD plugin is no longer bundled in ComicTagger!
 
                 You will need to download the .zip or .whl from the GitHub release page to:
@@ -426,19 +441,28 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 For more information on installing plugins see the wiki page:
 
                 https://github.com/comictagger/comictagger/wiki/Installing-plugins
-                """),
-            ).check_status.connect(set_checked)
-
-        try:
-            if self.config[0].General__check_for_new_version:
-                self.check_latest_version_online()
-        except Exception:
-            exc_type, exc_value, exc_traceback = sys.exc_info()
-            trace_back = "".join(traceback.format_tb(exc_traceback))
-            logger.exception("Failed to check for new version")
-            OptionalMessageDialog.critical(
-                self, "Failed to check for new version", "Failed to check for new version", trace_back
+                """
+                ),
             )
+            self.dlg.check_status.connect(set_checked)
+            self.dlg.finished.connect(
+                lambda _result: QtCore.QTimer.singleShot(0, check_for_new_version), type=connection_type
+            )
+
+        def check_for_new_version() -> None:
+            try:
+                if self.config[0].General__check_for_new_version:
+                    self.check_latest_version_online()
+            except Exception:
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                trace_back = "".join(traceback.format_tb(exc_traceback))
+                logger.exception("Failed to check for new version")
+                OptionalMessageDialog.critical(
+                    self, "Failed to check for new version", "Failed to check for new version", trace_back
+                )
+
+        show_welcome()
+
         self.export_window = ExportWindow(self)
         self.export_window.export.connect(self._repackage_archive)
 
