@@ -385,8 +385,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             dialog = OptionalMessageDialog.msg(
                 self,
                 "Welcome!",
-                textwrap.dedent(
-                    """
+                textwrap.dedent("""
                 Thanks for trying ComicTagger!
 
                 Be aware that this is beta-level software, and consider it experimental.
@@ -409,8 +408,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
                 [here]: https://github.com/comictagger/comictagger/wiki/Comic-and-Manga-Information-Sources
                 [Wiki page]: https://github.com/comictagger/comictagger/wiki/UserGuide#comic-vine
-                    """
-                ),
+                    """),
             )
             dialog.check_status.connect(set_checked)
             dialog.finished.connect(
@@ -428,8 +426,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             self.dlg = OptionalMessageDialog.msg(
                 self,
                 "Plugins Have moved!",
-                textwrap.dedent(
-                    f"""
+                textwrap.dedent(f"""
                 Due to techinical issues the Metron is not supported anymore and the GCD plugin is no longer bundled in ComicTagger!
 
                 You will need to download the .zip or .whl from the GitHub release page to:
@@ -441,8 +438,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 For more information on installing plugins see the wiki page:
 
                 https://github.com/comictagger/comictagger/wiki/Installing-plugins
-                """
-                ),
+                """),
             )
             self.dlg.check_status.connect(set_checked)
             self.dlg.finished.connect(
