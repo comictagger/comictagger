@@ -174,6 +174,8 @@ class ComicCacher:
 
     def add_series_info(self, source: str, series: Series, complete: bool) -> None:
         with self.connect() as con, contextlib.closing(con.cursor()) as cur:
+            if series.expiration < datetime.datetime.now() + datetime.timedelta(minutes=20):
+                series = series._replace(expiration=datetime.datetime.now() + datetime.timedelta(minutes=20))
 
             data = {
                 "id": series.id,
@@ -188,6 +190,9 @@ class ComicCacher:
         with self.connect() as con, contextlib.closing(con.cursor()) as cur:
 
             for series in series_list:
+                if series.expiration < datetime.datetime.now() + datetime.timedelta(minutes=20):
+                    series = series._replace(expiration=datetime.datetime.now() + datetime.timedelta(minutes=20))
+
                 data = {
                     "id": series.id,
                     "source": source,
@@ -201,6 +206,9 @@ class ComicCacher:
         with self.connect() as con, contextlib.closing(con.cursor()) as cur:
 
             for issue in issues:
+                if issue.expiration < datetime.datetime.now() + datetime.timedelta(minutes=20):
+                    issue = issue._replace(expiration=datetime.datetime.now() + datetime.timedelta(minutes=20))
+
                 data = {
                     "id": issue.id,
                     "series_id": issue.series_id,
