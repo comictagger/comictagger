@@ -309,7 +309,7 @@ class ComicVineTalker(ComicTalker):
         }
 
         cv_response: CVResult[list[CVSeries]] = self._get_cv_content(
-            urljoin(self.api_url, "search"),
+            urljoin(self.api_url, "search/"),
             params,
             on_rate_limit=on_rate_limit,
         )
@@ -358,7 +358,7 @@ class ComicVineTalker(ComicTalker):
 
             params["page"] = page
             cv_response = self._get_cv_content(
-                urljoin(self.api_url, "search"),
+                urljoin(self.api_url, "search/"),
                 params,
                 on_rate_limit=on_rate_limit,
             )
@@ -914,7 +914,7 @@ class ComicVineTalker(ComicTalker):
         if cached_series is not None and cached_series.complete:
             return (self._format_series(json.loads(cached_series[0].data)), cached_series[1])
 
-        series_url = urljoin(self.api_url, f"volume/{CVTypeID.Volume}-{series_id}")  # CV uses volume to mean series
+        series_url = urljoin(self.api_url, f"volume/{CVTypeID.Volume}-{series_id}/")  # CV uses volume to mean series
 
         params = {
             "api_key": self.api_key,
@@ -987,7 +987,7 @@ class ComicVineTalker(ComicTalker):
                 )[0],
             )
 
-        issue_url = urljoin(self.api_url, f"issue/{CVTypeID.Issue}-{issue_id}")
+        issue_url = urljoin(self.api_url, f"issue/{CVTypeID.Issue}-{issue_id}/")
         params = {"api_key": self.api_key, "format": "json"}
         cv_response: CVResult[CVIssue] = self._get_cv_content(
             issue_url,
