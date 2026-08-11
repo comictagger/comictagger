@@ -175,11 +175,13 @@ class ImageFetcher:
         self.cache_folder.mkdir(parents=True, exist_ok=True)
 
         # create tables
-        with contextlib.closing(sqlite3.connect(self.db_file)) as con, contextlib.closing(con.cursor()) as cur:
+        con = sqlite3.connect(self.db_file)
+        with contextlib.closing(con), con, contextlib.closing(con.cursor()) as cur:
             cur.execute("CREATE TABLE Images(url TEXT,filename TEXT,timestamp TEXT,PRIMARY KEY (url))")
 
     def add_image_to_cache(self, url: str, image_data: bytes) -> None:
-        with contextlib.closing(sqlite3.connect(self.db_file)) as con, contextlib.closing(con.cursor()) as cur:
+        con = sqlite3.connect(self.db_file)
+        with contextlib.closing(con), con, contextlib.closing(con.cursor()) as cur:
             timestamp = datetime.datetime.now()
 
             tmp_fd, filename = tempfile.mkstemp(dir=self.cache_folder, prefix="img")
@@ -189,7 +191,8 @@ class ImageFetcher:
             cur.execute("INSERT or REPLACE INTO Images VALUES(?, ?, ?)", (url, filename, timestamp))
 
     def get_image_from_cache(self, url: str) -> bytes:
-        with contextlib.closing(sqlite3.connect(self.db_file)) as con, contextlib.closing(con.cursor()) as cur:
+        con = sqlite3.connect(self.db_file)
+        with contextlib.closing(con), con, contextlib.closing(con.cursor()) as cur:
             cur.execute("SELECT filename FROM Images WHERE url=?", [url])
             row = cur.fetchone()
 
