@@ -579,11 +579,26 @@ class ComicVineTalker(ComicTalker):
             if datetime.datetime.fromisoformat(issue["date_last_updated"]) > today - datetime.timedelta(days=2):
                 return today + datetime.timedelta(days=1)
             if datetime.datetime.fromisoformat(issue["date_last_updated"]) > today - datetime.timedelta(days=30):
-                return today + datetime.timedelta(days=7)
+                return self.cacher().a_week()
         return self.cacher().a_year()
 
     def _get_series_expiration(self, series: CVSeries) -> datetime.datetime:
+        # TODO: this is relatively brittle as we don't have a way to determine how long a series should be cached for if we don't have any issues to compare to.
+        # Also if we only have an early issue this guess as to how long to cache will be inaccurate see https://comicvine.gamespot.com/detective-comics/4050-91098/
+        # CV provides no way to determine, in a single API call, if a series has gotten a new issue recently. The response include title and id for the latest issue but,
+        # Another API call would have to be made to check to see when it was issued
         today = datetime.datetime.today()
+        cached_results = self.cacher().get_series_issues_info(str(series["id"]), self.id, expire_stale=False)
+
+        # This can also be misleading because "date_last_updated" will not necessarily be a new issue
+        # It may be someone back-filling issue information on existing issues or adding old issues
+        cached_issues = sorted(
+            [json.loads(x.data.data) for x in cached_results],
+            key=lambda i: i.get("date_last_updated", "") or "",
+            reverse=True,
+        )
+        if cached_issues:
+            return self._get_issue_expiration(cached_issues[0])
         if series.get("start_year") == str(today.year):
             return self.cacher().a_week()
         return self.cacher().a_year()
@@ -612,18 +627,6 @@ class ComicVineTalker(ComicTalker):
         for cached_issue in cached_issues:
             issue: CVIssue = json.loads(cached_issue.data.data)
             cvissue_results.append(issue)
-
-            # series: CVSeries = issue["volume"]
-            # cached_series = cvc.get_series_info(cached_issue.data.series_id, self.id, expire_stale=False)
-            # if cached_series is not None and cached_series.complete:
-            #     series = json.loads(cached_series.data.data)
-            #
-            # cached_results.append(
-            #     self._map_comic_issue_to_metadata(
-            #         issue,
-            #         self._format_series(series),
-            #     ),
-            # )
 
         logger.debug("Found %d issues cached need %d issues", len(final_results), len(needed_issues))
         if not needed_issues:
@@ -679,7 +682,6 @@ class ComicVineTalker(ComicTalker):
                     ),
                     False,
                 )
-        # volume_ids = {i["volume"]["id"] for i in (cvissue_results + issue_results)}
 
         for issue in cvissue_results + issue_results:
             series = issue["volume"]
@@ -908,6 +910,9 @@ class ComicVineTalker(ComicTalker):
         )
         if len(cached_results) == series.count_of_issues:
             return [(self._map_comic_issue_to_metadata(json.loads(x[0].data), series), x[1]) for x in cached_results]
+
+        # There is no direct way to know what issue we need so we get all of them...
+        # We could try to be more intelligent as most likely it will be an issue at the end
 
         params = {  # CV uses volume to mean series
             "api_key": self.api_key,
