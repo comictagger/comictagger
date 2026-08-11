@@ -74,10 +74,10 @@ class ComicCacher:
         self.create_cache_db()
 
     def a_week(self) -> datetime.datetime:
-        return datetime.datetime.today() - datetime.timedelta(days=7)
+        return datetime.datetime.today() + datetime.timedelta(days=7)
 
     def a_year(self) -> datetime.datetime:
-        return datetime.datetime.today() - datetime.timedelta(days=365)
+        return datetime.datetime.today() + datetime.timedelta(days=365)
 
     def clear_cache(self) -> None:
         try:
@@ -144,7 +144,7 @@ class ComicCacher:
     def expire_stale_records(self, cur: sqlite3.Cursor, table: str) -> None:
         if "'" in table:
             raise ValueError("Single quotes not allowed in table names")
-        cur.execute(f"DELETE FROM '{table}' WHERE timestamp  < ?", [str(datetime.datetime.today())])
+        cur.execute(f"DELETE FROM '{table}' WHERE expiration  < datetime('now')")
 
     def add_search_results(self, source: str, search_term: str, series_list: list[Series], complete: bool) -> None:
         with self.connect() as con, contextlib.closing(con.cursor()) as cur:
@@ -177,6 +177,7 @@ class ComicCacher:
                 "source": source,
                 "data": series.data,
                 "complete": complete,
+                "expiration": series.expiration,
             }
             self.upsert(cur, "series", data)
 
@@ -189,6 +190,7 @@ class ComicCacher:
                     "source": source,
                     "data": series.data,
                     "complete": complete,
+                    "expiration": series.expiration,
                 }
                 self.upsert(cur, "series", data)
 
@@ -202,6 +204,7 @@ class ComicCacher:
                     "data": issue.data,
                     "source": source,
                     "complete": complete,
+                    "expiration": issue.expiration,
                 }
                 self.upsert(cur, "issues", data)
 
@@ -223,7 +226,7 @@ class ComicCacher:
             rows = cur.fetchall()
 
             for record in rows:
-                result = Series(id=record["id"], data=record["data"], expiration=record['timestamp'])
+                result = Series(id=record["id"], data=record["data"], expiration=record["expiration"])
 
                 results.append(CacheResult(result, record["complete"]))
 
@@ -243,7 +246,7 @@ class ComicCacher:
             if row is None:
                 return None
 
-            result = Series(id=row["id"], data=row["data"], expiration=row['timestamp'])
+            result = Series(id=row["id"], data=row["data"], expiration=row["expiration"])
 
             return CacheResult(result, row["complete"])
 
@@ -263,7 +266,10 @@ class ComicCacher:
 
             # now process the results
             for row in rows:
-                record = CacheResult(Issue(id=row["id"], series_id=row["series_id"], data=row["data"], expiration=row['timestamp']), row["complete"])
+                record = CacheResult(
+                    Issue(id=row["id"], series_id=row["series_id"], data=row["data"], expiration=row["expiration"]),
+                    row["complete"],
+                )
 
                 results.append(record)
 
@@ -281,7 +287,10 @@ class ComicCacher:
             record = None
 
             if row:
-                record = CacheResult(Issue(id=row["id"], series_id=row["series_id"], data=row["data"], expiration=row['timestamp']), row["complete"])
+                record = CacheResult(
+                    Issue(id=row["id"], series_id=row["series_id"], data=row["data"], expiration=row["expiration"]),
+                    row["complete"],
+                )
 
             return record
 

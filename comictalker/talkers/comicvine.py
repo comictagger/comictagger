@@ -387,7 +387,10 @@ class ComicVineTalker(ComicTalker):
         cvc.add_search_results(
             self.id,
             series_name,
-            [Series(id=str(x["id"]), data=json.dumps(x).encode("utf-8"), expiration=cvc.a_week()) for x in search_results],
+            [
+                Series(id=str(x["id"]), data=json.dumps(x).encode("utf-8"), expiration=cvc.a_week())
+                for x in search_results
+            ],
             False,
         )
 
@@ -500,7 +503,6 @@ class ComicVineTalker(ComicTalker):
         params: dict[str, str | int] = {  # CV uses volume to mean series
             "api_key": self.api_key,
             "format": "json",
-            "field_list": "id,volume,issue_number,name,image,cover_date,site_detail_url,description,aliases,associated_images",
             "filter": flt,
         }
 
@@ -535,7 +537,12 @@ class ComicVineTalker(ComicTalker):
         cvc.add_all_issues_info(
             self.id,
             [
-                Issue(str(x["id"]), str(x["volume"]["id"]), json.dumps(x).encode("utf-8"), expiration=self._get_issue_expiration(x))
+                Issue(
+                    str(x["id"]),
+                    str(x["volume"]["id"]),
+                    json.dumps(x).encode("utf-8"),
+                    expiration=self._get_issue_expiration(x),
+                )
                 for x in filtered_issues_result
             ],
             False,
@@ -557,10 +564,28 @@ class ComicVineTalker(ComicTalker):
 
     def _get_issue_expiration(self, issue: CVIssue) -> datetime.datetime:
         today = datetime.datetime.today()
-        if datetime.datetime.fromisoformat(issue['date_last_updated']) > today - datetime.timedelta(days=2):
-            return today + datetime.timedelta(days=1)
-        if datetime.datetime.fromisoformat(issue['date_last_updated']) > today - datetime.timedelta(days=7):
-            return today + datetime.timedelta(days=7)
+        store_date = None
+        try:
+            store_date = datetime.datetime.fromisoformat(issue["store_date"])
+        except (ValueError, TypeError):
+            ...
+        if store_date:
+            if store_date > today - datetime.timedelta(days=2):
+                return today + datetime.timedelta(days=1)
+            if store_date > today - datetime.timedelta(days=30):
+                return today + datetime.timedelta(days=7)
+
+        if "date_last_updated" in issue:
+            if datetime.datetime.fromisoformat(issue["date_last_updated"]) > today - datetime.timedelta(days=2):
+                return today + datetime.timedelta(days=1)
+            if datetime.datetime.fromisoformat(issue["date_last_updated"]) > today - datetime.timedelta(days=30):
+                return today + datetime.timedelta(days=7)
+        return self.cacher().a_year()
+
+    def _get_series_expiration(self, series: CVSeries) -> datetime.datetime:
+        today = datetime.datetime.today()
+        if series.get("start_year") == str(today.year):
+            return self.cacher().a_week()
         return self.cacher().a_year()
 
     def _get_id_list(self, needed_issues: list[str]) -> tuple[str, set[str]]:
@@ -650,13 +675,13 @@ class ComicVineTalker(ComicTalker):
                     Series(
                         id=str(issue["volume"]["id"]),
                         data=json.dumps(issue["volume"]).encode("utf-8"),
-                        expiration=datetime.datetime.today(),
+                        expiration=datetime.datetime.today(),  # TODO: fix this
                     ),
                     False,
                 )
-        volume_ids = {i['volume']['id'] for i in (cvissue_results + issue_results)}
+        # volume_ids = {i["volume"]["id"] for i in (cvissue_results + issue_results)}
 
-        for issue in (cvissue_results + issue_results):
+        for issue in cvissue_results + issue_results:
             series = issue["volume"]
             cached_series = cvc.get_series_info(str(series["id"]), self.id, expire_stale=False)
             if cached_series is not None and cached_series.complete:
@@ -666,11 +691,6 @@ class ComicVineTalker(ComicTalker):
             )
         return final_results
 
-    def _get_series_expiration(self, series: CVSeries) -> datetime.datetime:
-        today = datetime.datetime.today()
-        if series.get('start_year') == str(today.year):
-            return self.cacher().a_week()
-        return self.cacher().a_year()
     def _fetch_series(
         self,
         series_ids: list[int],
@@ -715,10 +735,13 @@ class ComicVineTalker(ComicTalker):
 
             needed_series = needed_series.difference(retrieved_series, used_series)
             for series in series_results:
-                series
                 cvc.add_series_info(
                     self.id,
-                    Series(id=str(series["id"]), data=json.dumps(series).encode("utf-8")),
+                    Series(
+                        id=str(series["id"]),
+                        data=json.dumps(series).encode("utf-8"),
+                        expiration=self._get_series_expiration(series),
+                    ),
                     True,
                 )
 
@@ -934,7 +957,12 @@ class ComicVineTalker(ComicTalker):
         cvc.add_all_issues_info(
             self.id,
             [
-                Issue(id=str(x["id"]), series_id=series_id, data=json.dumps(x).encode("utf-8"))
+                Issue(
+                    id=str(x["id"]),
+                    series_id=series_id,
+                    data=json.dumps(x).encode("utf-8"),
+                    expiration=self._get_issue_expiration(x),
+                )
                 for x in series_issues_result
             ],
             False,
@@ -971,7 +999,13 @@ class ComicVineTalker(ComicTalker):
 
         if series_results:
             cvc.add_series_info(
-                self.id, Series(id=str(series_results["id"]), data=json.dumps(series_results).encode("utf-8")), True
+                self.id,
+                Series(
+                    id=str(series_results["id"]),
+                    data=json.dumps(series_results).encode("utf-8"),
+                    expiration=self._get_series_expiration(series_results),
+                ),
+                True,
             )
 
         return self._format_series(series_results), True
@@ -1045,6 +1079,7 @@ class ComicVineTalker(ComicTalker):
                     id=str(issue_results["id"]),
                     series_id=str(issue_results["volume"]["id"]),
                     data=json.dumps(issue_results).encode("utf-8"),
+                    expiration=self._get_issue_expiration(issue_results),
                 )
             ],
             True,
