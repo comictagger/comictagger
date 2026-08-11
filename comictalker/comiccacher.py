@@ -146,7 +146,9 @@ class ComicCacher:
             raise ValueError("Single quotes not allowed in table names")
         cur.execute(f"DELETE FROM '{table}' WHERE expiration  < datetime('now')")
 
-    def add_search_results(self, source: str, search_term: str, series_list: list[Series], complete: bool) -> None:
+    def add_search_results(
+        self, source: str, search_term: str, series_list: list[Series], complete: bool, *, refresh_cache: bool = False
+    ) -> None:
         with self.connect() as con, contextlib.closing(con.cursor()) as cur:
 
             # remove all previous entries with this search term
@@ -161,13 +163,14 @@ class ComicCacher:
                     "INSERT INTO SeriesSearchCache (source, search_term, id) VALUES(?, ?, ?)",
                     (source, search_term.casefold(), series.id),
                 )
+
                 data = {
                     "id": series.id,
                     "source": source,
                     "data": series.data,
                     "complete": complete,
                 }
-                self.upsert(cur, "series", data)
+                self.upsert(cur, "series", data, refresh_cache=refresh_cache)
 
     def add_series_info(self, source: str, series: Series, complete: bool) -> None:
         with self.connect() as con, contextlib.closing(con.cursor()) as cur:
@@ -294,7 +297,7 @@ class ComicCacher:
 
             return record
 
-    def upsert(self, cur: sqlite3.Cursor, tablename: str, data: dict[str, Any]) -> None:
+    def upsert(self, cur: sqlite3.Cursor, tablename: str, data: dict[str, Any], *, refresh_cache: bool = False) -> None:
         """This does an insert if the given PK doesn't exist, and an
         update it if does
         """
@@ -321,7 +324,7 @@ class ComicCacher:
             set_slots += key + " = ?"
 
         sql_ins = f"INSERT OR REPLACE INTO {tablename} ({keys}) VALUES ({ins_slots})"
-        if not data.get("complete", True):
+        if not refresh_cache or not data.get("complete", True):
             # If the data to upsert is not complete only overwrite cached data that is also not complete
             sql_ins += f" ON CONFLICT DO UPDATE SET {set_slots} WHERE complete != TRUE"
             vals.extend(vals.copy())
