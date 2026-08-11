@@ -151,8 +151,8 @@ class MatchSelectionWindow(QtWidgets.QDialog):
             return
 
         match = self.current_match()
-        assert match.md._cover_image
-        assert match.md._alternate_images
+        assert match.md._cover_image is not None
+        assert match.md._alternate_images is not None
         assert match.md.issue_id
         self.altCoverWidget.set_issue_details(
             match.md.issue_id,
