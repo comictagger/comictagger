@@ -355,7 +355,7 @@ def validate_commandline_settings(config: settngs.Config[ct_ns], parser: settngs
     if not utils.which("rar"):
         if platform.system() == "Windows":
             letters = ["C"]
-            letters.extend({f"{d}" for d in "ABDEFGHIJKLMNOPQRSTUVWXYZ" if os.path.exists(f"{d}:\\")})
+            letters.extend({f"{d}" for d in "CD" if os.path.exists(f"{d}:\\")})
             for letter in letters:
                 # look in some likely places for Windows machines
                 utils.add_to_path(rf"{letter}:\Program Files\WinRAR")
