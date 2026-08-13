@@ -134,7 +134,7 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
         for row, match in enumerate(self.current_match_set[0].online_results):
             self.twList.insertRow(row)
 
-            item_text = match.series.publisher
+            item_text = match.series.name
             item = QtWidgets.QTableWidgetItem(item_text)
             item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
             item.setData(QtCore.Qt.ItemDataRole.UserRole, (match,))
@@ -163,7 +163,7 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
             item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
             self.twList.setItem(row, 2, item)
 
-            item_text = match.md.issue or ""
+            item_text = match.md.title or ""
             item = QtWidgets.QTableWidgetItem(item_text)
             item.setData(QtCore.Qt.ItemDataRole.ToolTipRole, item_text)
             item.setFlags(QtCore.Qt.ItemFlag.ItemIsSelectable | QtCore.Qt.ItemFlag.ItemIsEnabled)
