@@ -55,11 +55,12 @@ class OutputEncoder(json.JSONEncoder):
 
 
 class CLI:
-    def __init__(self, config: ct_ns, talkers: dict[str, ComicTalker]) -> None:
+    def __init__(self, config: ct_ns, talkers: dict[str, ComicTalker], publishers: utils.PublisherManager) -> None:
         self.config = config
         self.talkers = talkers
         self.batch_mode = False
         self.output_file = sys.stdout
+        self.publishers = publishers
         if config.Runtime_Options__json:
             self.output_file = sys.stderr
 
@@ -193,7 +194,7 @@ class CLI:
                 assert match.md.issue_id
                 ct_md = self.fetch_metadata(match.md.issue_id)
 
-                match_set.md = prepare_metadata(md, ct_md, self.config)
+                match_set.md = prepare_metadata(md, ct_md, self.publishers, self.config)
 
                 self.write_tags(ca, match_set.md)
 
@@ -261,6 +262,7 @@ class CLI:
                 self.config.Filename_Parsing__split_words,
                 self.config.Filename_Parsing__allow_issue_start_with_letter,
                 self.config.Filename_Parsing__protofolius_issue_number_scheme,
+                publishers=self.publishers.publishers,
             )
 
         file_md = GenericMetadata()
@@ -489,7 +491,7 @@ class CLI:
                 return res, match_results
 
             res.match_status = MatchStatus.good_match
-            res.md = prepare_metadata(md, ct_md, self.config)
+            res.md = prepare_metadata(md, ct_md, self.publishers, self.config)
             return res, match_results
 
         query_md = md.copy()
@@ -498,7 +500,7 @@ class CLI:
             if qt_success and not qt_md.is_empty:
                 self.output("Successfully matched via quick tag")
                 res.match_status = MatchStatus.good_match
-                res.md = prepare_metadata(md, qt_md, self.config)
+                res.md = prepare_metadata(md, qt_md, self.publishers, self.config)
                 return res, match_results
         if query_md.issue is None or query_md.issue == "":
             if self.config.Auto_Tag__assume_issue_one:
@@ -510,6 +512,7 @@ class CLI:
             match_results,
             self.config,
             self.current_talker(),
+            self.publishers,
             partial(self.output, already_logged=True),
             on_rate_limit=None,
         )
@@ -538,7 +541,7 @@ class CLI:
             Action.save,
             status=Status.success,
             original_path=ca.path,
-            md=prepare_metadata(md, ct_md, self.config),
+            md=prepare_metadata(md, ct_md, self.publishers, self.config),
             tags_read=tags_read,
         )
         if self.config.Auto_Tag__online:

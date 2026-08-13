@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING
 
 import settngs
 
+from comicapi.utils import PublisherManager
 from comictaggerlib.ctsettings import ct_ns
 from comictaggerlib.ctversion import version
 from comictaggerlib.graphics import graphics_path
@@ -168,7 +169,10 @@ def setupSocket(app: QtCore.QObject, config: settngs.Config[ct_ns]) -> QtNetwork
 
 
 def open_tagger_window(
-    talkers: dict[str, ComicTalker], config: settngs.Config[ct_ns], error: tuple[str, bool] | None
+    talkers: dict[str, ComicTalker],
+    publishers: PublisherManager,
+    config: settngs.Config[ct_ns],
+    error: tuple[str, bool] | None,
 ) -> None:
     # Critical execeptions don't need to be caught UncaughtHook will display them to the user
     os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
@@ -259,7 +263,7 @@ def open_tagger_window(
         QtWidgets.QApplication.instance().installEventFilter(flt)
         socketServer = setupSocket(app, config)
         global tagger_window
-        tagger_window = TaggerWindow(config, talkers, socketServer)
+        tagger_window = TaggerWindow(config, talkers, publishers, socketServer)
         app.openFileRequest.connect(tagger_window.open_file_event)
         tagger_window.show()
         tagger_window._post_show(config[0].Runtime_Options__files)

@@ -206,6 +206,7 @@ def parse_filename(
     split_words: bool = False,
     allow_issue_start_with_letter: bool = False,
     protofolius_issue_number_scheme: bool = False,
+    publishers: Iterable[str] = tuple(),
 ) -> filenameparser.FilenameInfo:
     fni = filenameparser.FilenameInfo(
         alternate="",
@@ -233,7 +234,7 @@ def parse_filename(
         filename = " ".join(wordninja.split(filename)) + ext
 
     if parser == Parser.COMPLICATED:
-        lex = filenamelexer.Lex(filename, allow_issue_start_with_letter)
+        lex = filenamelexer.Lex(filename, allow_issue_start_with_letter, publishers)
         p = filenameparser.Parse(
             lex.items,
             remove_c2c=remove_c2c,
@@ -621,25 +622,6 @@ def get_country_from_iso(iso: str | None) -> str | None:
     return _countries[iso]
 
 
-def get_publisher(publisher: str) -> tuple[str, str]:
-    imprint = ""
-
-    for pub in publishers.values():
-        imprint, publisher, ok = pub[publisher]
-        if ok:
-            break
-
-    return imprint, publisher
-
-
-def update_publishers(new_publishers: Mapping[str, Mapping[str, str]]) -> None:
-    for publisher in new_publishers:
-        if publisher in publishers:
-            publishers[publisher].update(new_publishers[publisher])
-        else:
-            publishers[publisher] = ImprintDict(publisher, new_publishers[publisher])
-
-
 class ImprintDict(dict[str, str]):
     """
     ImprintDict takes a publisher and a dict or mapping of lowercased
@@ -668,18 +650,35 @@ class ImprintDict(dict[str, str]):
         return ImprintDict(self.publisher, super().copy())
 
 
-publishers: dict[str, ImprintDict] = {}
+class PublisherManager:
+    publishers: dict[str, ImprintDict] = {}
+
+    def update_publishers(self, new_publishers: Mapping[str, Mapping[str, str]]) -> None:
+        for publisher in new_publishers:
+            if publisher in self.publishers:
+                self.publishers[publisher].update(new_publishers[publisher])
+            else:
+                self.publishers[publisher] = ImprintDict(publisher, new_publishers[publisher])
+
+    def get_publisher(self, publisher: str) -> tuple[str, str]:
+        imprint = ""
+
+        for pub in self.publishers.values():
+            imprint, publisher, ok = pub[publisher]
+            if ok:
+                break
+
+        return imprint, publisher
 
 
-def load_publishers() -> None:
+def load_default_publishers(publishers: PublisherManager) -> None:
     try:
-        update_publishers(json.loads((comicapi.data.data_path / "publishers.json").read_text("utf-8")))
+        publishers.update_publishers(json.loads((comicapi.data.data_path / "publishers.json").read_text("utf-8")))
     except Exception:
         logger.exception("Failed to load publishers.json; The are no publishers or imprints loaded")
 
 
 __all__ = (
-    "load_publishers",
     "file_digest",
     "Parser",
     "ImprintDict",
@@ -709,7 +708,5 @@ __all__ = (
     "get_language_from_iso",
     "get_language_iso",
     "get_country_from_iso",
-    "get_publisher",
-    "update_publishers",
-    "load_publishers",
+    "load_default_publishers",
 )

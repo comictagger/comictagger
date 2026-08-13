@@ -11,7 +11,7 @@ from testing.filenames import newfnames, oldfnames
 @pytest.mark.parametrize("filename, reason, expected", newfnames)
 def test_complicated_file_name_parser(filename, reason, expected, load_publishers):
     protofolius_issue_number_scheme = bool(expected["issue"] and expected["issue"][0].isalpha())
-    lex = comicapi.filenamelexer.Lex(filename, protofolius_issue_number_scheme)
+    lex = comicapi.filenamelexer.Lex(filename, protofolius_issue_number_scheme, load_publishers.publishers)
     p = comicapi.filenameparser.Parse(
         lex.items,
         first_is_alt=True,

@@ -147,7 +147,10 @@ Spider-Geddon #1 - New Players; Check In
 
 class SettingsWindow(QtWidgets.QDialog):
     def __init__(
-        self, parent: QtWidgets.QWidget, config: settngs.Config[ct_ns], talkers: dict[str, ComicTalker]
+        self,
+        parent: QtWidgets.QWidget,
+        config: settngs.Config[ct_ns],
+        talkers: dict[str, ComicTalker],
     ) -> None:
         super().__init__(parent)
 

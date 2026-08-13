@@ -117,6 +117,7 @@ class SettngsNS(settngs.TypedNS):
     Auto_Tag__publisher_filter: list[str]
     Auto_Tag__use_publisher_filter: bool
     Auto_Tag__auto_imprint: bool
+    Auto_Tag__load_default_imprints: bool
 
     General__check_for_new_version: bool
     General__blur: bool
@@ -256,6 +257,7 @@ class Auto_Tag(typing.TypedDict):
     publisher_filter: list[str]
     use_publisher_filter: bool
     auto_imprint: bool
+    load_default_imprints: bool
 
 
 class General(typing.TypedDict):

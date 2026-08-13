@@ -22,6 +22,7 @@ import os
 from PyQt6 import QtCore, QtGui, QtWidgets, uic
 
 from comicapi.comicarchive import ComicArchive, tags
+from comicapi.utils import PublisherManager
 from comictaggerlib.coverimagewidget import CoverImageWidget
 from comictaggerlib.ctsettings import ct_ns
 from comictaggerlib.md import prepare_metadata, read_selected_tags
@@ -42,6 +43,7 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
         match_set_list: list[tuple[Result, ComicArchive]],
         config: ct_ns,
         talker: ComicTalker,
+        publishers: PublisherManager,
     ) -> None:
         super().__init__(parent)
 
@@ -49,6 +51,7 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
             uic.loadUi(uifile, self)
 
         self.config: ct_ns = config
+        self.publishers = publishers
         self.matched_comics: list[ComicArchive] = []
 
         self.current_match_set: tuple[Result, ComicArchive] = match_set_list[0]
@@ -261,6 +264,10 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
                 self.config.Filename_Parsing__remove_c2c,
                 self.config.Filename_Parsing__remove_fcbd,
                 self.config.Filename_Parsing__remove_publisher,
+                self.config.Filename_Parsing__split_words,
+                self.config.Filename_Parsing__allow_issue_start_with_letter,
+                self.config.Filename_Parsing__protofolius_issue_number_scheme,
+                publishers=self.publishers.publishers,
             )
 
         # now get the particular issue data
@@ -278,7 +285,7 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
             return
 
         QtWidgets.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.CursorShape.WaitCursor))
-        md = prepare_metadata(md, ct_md, self.config)
+        md = prepare_metadata(md, ct_md, self.publishers, self.config)
         for tag_id in self.config.Runtime_Options__tags_write:
             success = ca.write_tags(md, tag_id)
             QtWidgets.QApplication.restoreOverrideCursor()
