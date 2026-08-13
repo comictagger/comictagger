@@ -18,6 +18,7 @@ ComicVine information source
 from __future__ import annotations
 
 import argparse
+import datetime
 import json
 import logging
 import pathlib
@@ -94,6 +95,13 @@ class CVPersonCredit(TypedDict):
     role: str
 
 
+class PartialCVIssue(TypedDict):
+    api_detail_url: str  # "https://comicvine.gamespot.com/api/issue/4000-335661/",
+    id: int  # 335661,
+    name: str  # "The Kingdom, Part 1",
+    issue_number: str  # "107"
+
+
 class CVSeries(TypedDict, total=False):
     api_detail_url: str
     site_detail_url: str
@@ -109,6 +117,8 @@ class CVSeries(TypedDict, total=False):
     characters: list[CVCredit]
     locations: list[CVCredit]
     people: list[CVPersonCredit]
+    date_last_updated: str  # "2012-11-11 00:54:18"
+    last_issue: PartialCVIssue
 
 
 class CVIssue(TypedDict, total=False):
@@ -120,7 +130,7 @@ class CVIssue(TypedDict, total=False):
     concept_credits: list[CVCredit]
     cover_date: str
     date_added: str
-    date_last_updated: str
+    date_last_updated: Required[str]
     deck: None
     description: str
     first_appearance_characters: None
@@ -187,7 +197,7 @@ class ComicVineTalker(ComicTalker):
         self.default_api_url = self.api_url = f"{self.website}/api/"
         self.default_api_key = self.api_key = "27431e6787042105bd3e47e169a624521f89f3a4"
         self.use_series_start_as_volume: bool = False
-        self.total_requests_made: dict[str, int] = utils.DefaultDict(default=lambda x: 0)
+        self.total_requests_made: dict[str, int] = utils.DefaultDict(default=lambda _: 0)
         self.custom_url_parameters: dict[str, str] = {}
 
     def _log_total_requests(self) -> None:
@@ -377,7 +387,10 @@ class ComicVineTalker(ComicTalker):
         cvc.add_search_results(
             self.id,
             series_name,
-            [Series(id=str(x["id"]), data=json.dumps(x).encode("utf-8")) for x in search_results],
+            [
+                Series(id=str(x["id"]), data=json.dumps(x).encode("utf-8"), expiration=cvc.a_week())
+                for x in search_results
+            ],
             False,
         )
 
@@ -388,6 +401,7 @@ class ComicVineTalker(ComicTalker):
         issue_id: str | None = None,
         series_id: str | None = None,
         issue_number: str = "",
+        *,
         on_rate_limit: RLCallBack | None = None,
     ) -> GenericMetadata:
         comic_data = GenericMetadata()
@@ -408,6 +422,7 @@ class ComicVineTalker(ComicTalker):
     def fetch_series(
         self,
         series_id: str,
+        *,
         on_rate_limit: RLCallBack | None = None,
     ) -> ComicSeries:
         return self._fetch_series_data(
@@ -418,6 +433,7 @@ class ComicVineTalker(ComicTalker):
     def fetch_issues_in_series(
         self,
         series_id: str,
+        *,
         on_rate_limit: RLCallBack | None = None,
     ) -> list[GenericMetadata]:
         return [
@@ -433,6 +449,7 @@ class ComicVineTalker(ComicTalker):
         series_id_list: list[str],
         issue_number: str,
         year: str | int | None,
+        *,
         on_rate_limit: RLCallBack | None = None,
     ) -> list[GenericMetadata]:
         logger.debug("Fetching comics by series ids: %s and number: %s", series_id_list, issue_number)
@@ -486,7 +503,6 @@ class ComicVineTalker(ComicTalker):
         params: dict[str, str | int] = {  # CV uses volume to mean series
             "api_key": self.api_key,
             "format": "json",
-            "field_list": "id,volume,issue_number,name,image,cover_date,site_detail_url,description,aliases,associated_images",
             "filter": flt,
         }
 
@@ -518,10 +534,15 @@ class ComicVineTalker(ComicTalker):
             filtered_issues_result.extend(cv_response["results"])
             current_result_count += cv_response["number_of_page_results"]
 
-        cvc.add_issues_info(
+        cvc.add_all_issues_info(
             self.id,
             [
-                Issue(str(x["id"]), str(x["volume"]["id"]), json.dumps(x).encode("utf-8"))
+                Issue(
+                    str(x["id"]),
+                    str(x["volume"]["id"]),
+                    json.dumps(x).encode("utf-8"),
+                    expiration=self._get_issue_expiration(x),
+                )
                 for x in filtered_issues_result
             ],
             False,
@@ -541,6 +562,47 @@ class ComicVineTalker(ComicTalker):
 
         return formatted_filtered_issues_result
 
+    def _get_issue_expiration(self, issue: CVIssue) -> datetime.datetime:
+        today = datetime.datetime.today()
+        store_date = None
+        try:
+            store_date = datetime.datetime.fromisoformat(issue["store_date"])
+        except (ValueError, TypeError):
+            ...
+        if store_date:
+            if store_date > today - datetime.timedelta(days=2):
+                return today + datetime.timedelta(days=1)
+            if store_date > today - datetime.timedelta(days=30):
+                return today + datetime.timedelta(days=7)
+
+        if "date_last_updated" in issue:
+            if datetime.datetime.fromisoformat(issue["date_last_updated"]) > today - datetime.timedelta(days=2):
+                return today + datetime.timedelta(days=1)
+            if datetime.datetime.fromisoformat(issue["date_last_updated"]) > today - datetime.timedelta(days=30):
+                return self.cacher().a_week()
+        return self.cacher().a_year()
+
+    def _get_series_expiration(self, series: CVSeries) -> datetime.datetime:
+        # TODO: this is relatively brittle as we don't have a way to determine how long a series should be cached for if we don't have any issues to compare to.
+        # Also if we only have an early issue this guess as to how long to cache will be inaccurate see https://comicvine.gamespot.com/detective-comics/4050-91098/
+        # CV provides no way to determine, in a single API call, if a series has gotten a new issue recently. The response include title and id for the latest issue but,
+        # Another API call would have to be made to check to see when it was issued
+        today = datetime.datetime.today()
+        cached_results = self.cacher().get_series_issues_info(str(series["id"]), self.id, expire_stale=False)
+
+        # This can also be misleading because "date_last_updated" will not necessarily be a new issue
+        # It may be someone back-filling issue information on existing issues or adding old issues
+        cached_issues = sorted(
+            [json.loads(x.data.data) for x in cached_results],
+            key=lambda i: i.get("date_last_updated", "") or "",
+            reverse=True,
+        )
+        if cached_issues:
+            return self._get_issue_expiration(cached_issues[0])
+        if series.get("start_year") == str(today.year):
+            return self.cacher().a_week()
+        return self.cacher().a_year()
+
     def _get_id_list(self, needed_issues: list[str]) -> tuple[str, set[str]]:
         used_issues = set(needed_issues[: min(len(needed_issues), 100)])
         flt = "id:" + "|".join(used_issues)
@@ -554,27 +616,21 @@ class ComicVineTalker(ComicTalker):
     ) -> list[GenericMetadata]:
         # before we search online, look in our cache, since we might already have this info
         cvc = self.cacher()
-        cached_results: list[GenericMetadata] = []
+        final_results: list[GenericMetadata] = []
         needed_issues: set[str] = set(issue_ids)
         cached_issues = [x for x in (cvc.get_issue_info(issue_id, self.id) for issue_id in issue_ids) if x is not None]
         needed_issues -= {i.data.id for i in cached_issues}
 
+        # We are retrieving by ID. There is no inherent order here
+        cvissue_results: list[CVIssue] = []
+
         for cached_issue in cached_issues:
             issue: CVIssue = json.loads(cached_issue.data.data)
-            series: CVSeries = issue["volume"]
-            cached_series = cvc.get_series_info(cached_issue.data.series_id, self.id, expire_stale=False)
-            if cached_series is not None and cached_series.complete:
-                series = json.loads(cached_series.data.data)
-            cached_results.append(
-                self._map_comic_issue_to_metadata(
-                    issue,
-                    self._format_series(series),
-                ),
-            )
+            cvissue_results.append(issue)
 
-        logger.debug("Found %d issues cached need %d issues", len(cached_results), len(needed_issues))
+        logger.debug("Found %d issues cached need %d issues", len(final_results), len(needed_issues))
         if not needed_issues:
-            return cached_results
+            return final_results
 
         issue_url = urljoin(self.api_url, "issues/")
         params: dict[str, Any] = {
@@ -600,36 +656,42 @@ class ComicVineTalker(ComicTalker):
 
             needed_issues = needed_issues.difference(retrieved_issues, used_issues)
 
-            cache_issue: list[Issue] = []
+            issues_to_cache: list[Issue] = []
+            issue = {}  # type: ignore[typeddict-item]
             for issue in issue_results:
-                cache_issue.append(
+                issues_to_cache.append(
                     Issue(
                         id=str(issue["id"]),
                         series_id=str(issue["volume"]["id"]),
                         data=json.dumps(issue).encode("utf-8"),
+                        expiration=self._get_issue_expiration(issue),
                     )
                 )
-            cvc.add_issues_info(
+            cvc.add_all_issues_info(
                 self.id,
-                cache_issue,
+                issues_to_cache,
                 False,  # The /issues/ endpoint never provides credits
             )
-            cvc.add_series_info(
-                self.id,
-                Series(id=str(issue["volume"]["id"]), data=json.dumps(issue["volume"]).encode("utf-8")),
-                False,
-            )
+            if issue:
+                cvc.add_series_info(
+                    self.id,
+                    Series(
+                        id=str(issue["volume"]["id"]),
+                        data=json.dumps(issue["volume"]).encode("utf-8"),
+                        expiration=datetime.datetime.today(),  # TODO: fix this
+                    ),
+                    False,
+                )
 
-        for issue in issue_results:
+        for issue in cvissue_results + issue_results:
             series = issue["volume"]
             cached_series = cvc.get_series_info(str(series["id"]), self.id, expire_stale=False)
             if cached_series is not None and cached_series.complete:
                 series = json.loads(cached_series.data.data)
-            cached_results.append(
+            final_results.append(
                 self._map_comic_issue_to_metadata(issue, self._format_series(series)),
             )
-
-        return cached_results
+        return final_results
 
     def _fetch_series(
         self,
@@ -677,7 +739,11 @@ class ComicVineTalker(ComicTalker):
             for series in series_results:
                 cvc.add_series_info(
                     self.id,
-                    Series(id=str(series["id"]), data=json.dumps(series).encode("utf-8")),
+                    Series(
+                        id=str(series["id"]),
+                        data=json.dumps(series).encode("utf-8"),
+                        expiration=self._get_series_expiration(series),
+                    ),
                     True,
                 )
 
@@ -845,6 +911,9 @@ class ComicVineTalker(ComicTalker):
         if len(cached_results) == series.count_of_issues:
             return [(self._map_comic_issue_to_metadata(json.loads(x[0].data), series), x[1]) for x in cached_results]
 
+        # There is no direct way to know what issue we need so we get all of them...
+        # We could try to be more intelligent as most likely it will be an issue at the end
+
         params = {  # CV uses volume to mean series
             "api_key": self.api_key,
             "filter": f"volume:{series_id}",
@@ -890,10 +959,15 @@ class ComicVineTalker(ComicTalker):
             for x in series_issues_result
         ]
 
-        cvc.add_issues_info(
+        cvc.add_all_issues_info(
             self.id,
             [
-                Issue(id=str(x["id"]), series_id=series_id, data=json.dumps(x).encode("utf-8"))
+                Issue(
+                    id=str(x["id"]),
+                    series_id=series_id,
+                    data=json.dumps(x).encode("utf-8"),
+                    expiration=self._get_issue_expiration(x),
+                )
                 for x in series_issues_result
             ],
             False,
@@ -930,7 +1004,13 @@ class ComicVineTalker(ComicTalker):
 
         if series_results:
             cvc.add_series_info(
-                self.id, Series(id=str(series_results["id"]), data=json.dumps(series_results).encode("utf-8")), True
+                self.id,
+                Series(
+                    id=str(series_results["id"]),
+                    data=json.dumps(series_results).encode("utf-8"),
+                    expiration=self._get_series_expiration(series_results),
+                ),
+                True,
             )
 
         return self._format_series(series_results), True
@@ -997,13 +1077,14 @@ class ComicVineTalker(ComicTalker):
 
         issue_results = cv_response["results"]
 
-        cvc.add_issues_info(
+        cvc.add_all_issues_info(
             self.id,
             [
                 Issue(
                     id=str(issue_results["id"]),
                     series_id=str(issue_results["volume"]["id"]),
                     data=json.dumps(issue_results).encode("utf-8"),
+                    expiration=self._get_issue_expiration(issue_results),
                 )
             ],
             True,

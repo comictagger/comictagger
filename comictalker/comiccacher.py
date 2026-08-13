@@ -33,12 +33,14 @@ logger = logging.getLogger(__name__)
 class Series(NamedTuple):
     id: str
     data: bytes
+    expiration: datetime.datetime
 
 
 class Issue(NamedTuple):
     id: str
     series_id: str
     data: bytes
+    expiration: datetime.datetime
 
 
 T = TypeVar("T", Issue, Series)
@@ -72,10 +74,10 @@ class ComicCacher:
         self.create_cache_db()
 
     def a_week(self) -> datetime.datetime:
-        return datetime.datetime.today() - datetime.timedelta(days=7)
+        return datetime.datetime.today() + datetime.timedelta(days=7)
 
     def a_year(self) -> datetime.datetime:
-        return datetime.datetime.today() - datetime.timedelta(days=365)
+        return datetime.datetime.today() + datetime.timedelta(days=365)
 
     def clear_cache(self) -> None:
         try:
@@ -115,7 +117,7 @@ class ComicCacher:
         # create tables
         with self.connect() as con, contextlib.closing(con.cursor()) as cur:
             cur.execute("""CREATE TABLE IF NOT EXISTS SeriesSearchCache(
-                timestamp DATE DEFAULT (datetime('now','localtime')),
+                expiration DATE DEFAULT (datetime('now', '+7 days','localtime')),
                 id          TEXT NOT NULL,
                 source      TEXT NOT NULL,
                 search_term TEXT,
@@ -123,7 +125,7 @@ class ComicCacher:
             cur.execute("CREATE TABLE IF NOT EXISTS Source(id TEXT NOT NULL, name TEXT NOT NULL, PRIMARY KEY (id))")
 
             cur.execute("""CREATE TABLE IF NOT EXISTS Series(
-                timestamp DATE DEFAULT (datetime('now','localtime')),
+                expiration DATE DEFAULT (datetime('now', '+365 days', 'localtime')),
                 id       TEXT NOT NULL,
                 source   TEXT NOT NULL,
                 data     BLOB,
@@ -131,7 +133,7 @@ class ComicCacher:
                 PRIMARY KEY (id, source))""")
 
             cur.execute("""CREATE TABLE IF NOT EXISTS Issues(
-                timestamp DATE DEFAULT (datetime('now','localtime')),
+                expiration DATE DEFAULT (datetime('now', '+365 days', 'localtime')),
                 id        TEXT NOT NULL,
                 source    TEXT NOT NULL,
                 series_id TEXT,
@@ -139,12 +141,14 @@ class ComicCacher:
                 complete  BOOL,
                 PRIMARY KEY (id, source))""")
 
-    def expire_stale_records(self, cur: sqlite3.Cursor, table: str, expiration: datetime.datetime) -> None:
+    def expire_stale_records(self, cur: sqlite3.Cursor, table: str) -> None:
         if "'" in table:
             raise ValueError("Single quotes not allowed in table names")
-        cur.execute(f"DELETE FROM '{table}' WHERE timestamp  < ?", [str(expiration)])
+        cur.execute(f"DELETE FROM '{table}' WHERE expiration  < datetime('now')")
 
-    def add_search_results(self, source: str, search_term: str, series_list: list[Series], complete: bool) -> None:
+    def add_search_results(
+        self, source: str, search_term: str, series_list: list[Series], complete: bool, *, refresh_cache: bool = False
+    ) -> None:
         with self.connect() as con, contextlib.closing(con.cursor()) as cur:
 
             # remove all previous entries with this search term
@@ -159,35 +163,59 @@ class ComicCacher:
                     "INSERT INTO SeriesSearchCache (source, search_term, id) VALUES(?, ?, ?)",
                     (source, search_term.casefold(), series.id),
                 )
+
                 data = {
                     "id": series.id,
                     "source": source,
                     "data": series.data,
                     "complete": complete,
                 }
-                self.upsert(cur, "series", data)
+                self.upsert(cur, "series", data, refresh_cache=refresh_cache)
 
     def add_series_info(self, source: str, series: Series, complete: bool) -> None:
         with self.connect() as con, contextlib.closing(con.cursor()) as cur:
+            if series.expiration < datetime.datetime.now() + datetime.timedelta(minutes=20):
+                series = series._replace(expiration=datetime.datetime.now() + datetime.timedelta(minutes=20))
 
             data = {
                 "id": series.id,
                 "source": source,
                 "data": series.data,
                 "complete": complete,
+                "expiration": series.expiration,
             }
             self.upsert(cur, "series", data)
 
-    def add_issues_info(self, source: str, issues: list[Issue], complete: bool) -> None:
+    def add_all_series_info(self, source: str, series_list: list[Series], complete: bool) -> None:
+        with self.connect() as con, contextlib.closing(con.cursor()) as cur:
+
+            for series in series_list:
+                if series.expiration < datetime.datetime.now() + datetime.timedelta(minutes=20):
+                    series = series._replace(expiration=datetime.datetime.now() + datetime.timedelta(minutes=20))
+
+                data = {
+                    "id": series.id,
+                    "source": source,
+                    "data": series.data,
+                    "complete": complete,
+                    "expiration": series.expiration,
+                }
+                self.upsert(cur, "series", data)
+
+    def add_all_issues_info(self, source: str, issues: list[Issue], complete: bool) -> None:
         with self.connect() as con, contextlib.closing(con.cursor()) as cur:
 
             for issue in issues:
+                if issue.expiration < datetime.datetime.now() + datetime.timedelta(minutes=20):
+                    issue = issue._replace(expiration=datetime.datetime.now() + datetime.timedelta(minutes=20))
+
                 data = {
                     "id": issue.id,
                     "series_id": issue.series_id,
                     "data": issue.data,
                     "source": source,
                     "complete": complete,
+                    "expiration": issue.expiration,
                 }
                 self.upsert(cur, "issues", data)
 
@@ -196,8 +224,8 @@ class ComicCacher:
         with self.connect() as con, contextlib.closing(con.cursor()) as cur:
 
             if expire_stale:
-                self.expire_stale_records(cur, "SeriesSearchCache", self.a_week())
-                self.expire_stale_records(cur, "Series", self.a_year())
+                self.expire_stale_records(cur, "SeriesSearchCache")
+                self.expire_stale_records(cur, "Series")
 
             cur.execute(
                 """SELECT * FROM SeriesSearchCache INNER JOIN Series on
@@ -209,7 +237,7 @@ class ComicCacher:
             rows = cur.fetchall()
 
             for record in rows:
-                result = Series(id=record["id"], data=record["data"])
+                result = Series(id=record["id"], data=record["data"], expiration=record["expiration"])
 
                 results.append(CacheResult(result, record["complete"]))
 
@@ -219,7 +247,7 @@ class ComicCacher:
         with self.connect() as con, contextlib.closing(con.cursor()) as cur:
 
             if expire_stale:
-                self.expire_stale_records(cur, "Series", self.a_year())
+                self.expire_stale_records(cur, "Series")
 
             # fetch
             cur.execute("SELECT * FROM Series WHERE id=? AND source=?", [series_id, source])
@@ -229,7 +257,7 @@ class ComicCacher:
             if row is None:
                 return None
 
-            result = Series(id=row["id"], data=row["data"])
+            result = Series(id=row["id"], data=row["data"], expiration=row["expiration"])
 
             return CacheResult(result, row["complete"])
 
@@ -239,7 +267,7 @@ class ComicCacher:
         with self.connect() as con, contextlib.closing(con.cursor()) as cur:
 
             if expire_stale:
-                self.expire_stale_records(cur, "Issues", self.a_year())
+                self.expire_stale_records(cur, "Issues")
 
             # fetch
             results: list[CacheResult[Issue]] = []
@@ -249,7 +277,10 @@ class ComicCacher:
 
             # now process the results
             for row in rows:
-                record = CacheResult(Issue(id=row["id"], series_id=row["series_id"], data=row["data"]), row["complete"])
+                record = CacheResult(
+                    Issue(id=row["id"], series_id=row["series_id"], data=row["data"], expiration=row["expiration"]),
+                    row["complete"],
+                )
 
                 results.append(record)
 
@@ -259,7 +290,7 @@ class ComicCacher:
         with self.connect() as con, contextlib.closing(con.cursor()) as cur:
 
             if expire_stale:
-                self.expire_stale_records(cur, "Issues", self.a_year())
+                self.expire_stale_records(cur, "Issues")
 
             cur.execute("SELECT * FROM Issues WHERE id=? AND source=?", [issue_id, source])
             row = cur.fetchone()
@@ -267,11 +298,14 @@ class ComicCacher:
             record = None
 
             if row:
-                record = CacheResult(Issue(id=row["id"], series_id=row["series_id"], data=row["data"]), row["complete"])
+                record = CacheResult(
+                    Issue(id=row["id"], series_id=row["series_id"], data=row["data"], expiration=row["expiration"]),
+                    row["complete"],
+                )
 
             return record
 
-    def upsert(self, cur: sqlite3.Cursor, tablename: str, data: dict[str, Any]) -> None:
+    def upsert(self, cur: sqlite3.Cursor, tablename: str, data: dict[str, Any], *, refresh_cache: bool = False) -> None:
         """This does an insert if the given PK doesn't exist, and an
         update it if does
         """
@@ -298,10 +332,10 @@ class ComicCacher:
             set_slots += key + " = ?"
 
         sql_ins = f"INSERT OR REPLACE INTO {tablename} ({keys}) VALUES ({ins_slots})"
-        if not data.get("complete", True):
-            sql_ins += f" ON CONFLICT DO UPDATE SET {set_slots} WHERE complete != ?"
+        if not refresh_cache or not data.get("complete", True):
+            # If the data to upsert is not complete only overwrite cached data that is also not complete
+            sql_ins += f" ON CONFLICT DO UPDATE SET {set_slots} WHERE complete != TRUE"
             vals.extend(vals.copy())
-            vals.append(True)  # If the cache is complete and this isn't complete we don't update it
 
         cur.execute(sql_ins, vals)
 
