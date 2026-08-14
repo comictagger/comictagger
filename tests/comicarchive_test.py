@@ -6,6 +6,7 @@ import shutil
 import pytest
 from importlib_metadata import entry_points
 
+import comicapi.archivers.rar
 import comicapi.comicarchive
 import comicapi.genericmetadata
 from testing.filenames import datadir
