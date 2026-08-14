@@ -178,6 +178,10 @@ class IssueSelectionWindow(QtWidgets.QDialog):
     def cell_double_clicked(self, r: int, c: int) -> None:
         self.accept()
 
+    def set_description(self, widget: QtWidgets.QWidget, text: str) -> None:
+        if isinstance(widget, QtWidgets.QTextEdit):
+            widget.setText(text.replace("</figure>", "</div>").replace("<figure", "<div"))
+
     def current_item_changed(self, curr: QtCore.QModelIndex | None, prev: QtCore.QModelIndex | None) -> None:
         if curr is None:
             return
@@ -192,8 +196,8 @@ class IssueSelectionWindow(QtWidgets.QDialog):
                 self.issue_number = record.issue_number
                 self.coverWidget.set_issue_details(self.issue_id, [record.image_url, *record.alt_image_urls])
                 if record.description is None:
-                    self.teDescription.setText("")
+                    self.set_description(self.teDescription, "")
                 else:
-                    self.teDescription.setText(record.description)
+                    self.set_description(self.teDescription, record.description)
 
                 break

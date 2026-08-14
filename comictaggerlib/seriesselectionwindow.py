@@ -514,6 +514,10 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
     def cell_double_clicked(self, r: int, c: int) -> None:
         self.show_issues()
 
+    def set_description(self, widget: QtWidgets.QWidget, text: str) -> None:
+        if isinstance(widget, QtWidgets.QTextEdit):
+            widget.setText(text.replace("</figure>", "</div>").replace("<figure", "<div"))
+
     def current_item_changed(self, curr: QtCore.QModelIndex | None, prev: QtCore.QModelIndex | None) -> None:
         if curr is None:
             return
@@ -526,8 +530,8 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         for record in self.ct_search_results:
             if record.id == self.series_id:
                 if record.description is None:
-                    self.teDetails.setText("")
+                    self.set_description(self.teDetails, "")
                 else:
-                    self.teDetails.setText(record.description)
+                    self.set_description(self.teDetails, record.description)
                 self.imageWidget.set_url(record.image_url)
                 break
