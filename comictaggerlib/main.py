@@ -18,14 +18,13 @@ from __future__ import annotations
 import argparse
 import json
 import logging.handlers
-import platform
 import signal
 import sys
 
 import settngs
 
+import comicapi
 import comictalker.comictalkerapi as ct_api
-from comicapi import utils
 from comictaggerlib import cli, ctoptions
 from comictaggerlib.ctversion import version
 from comictaggerlib.log import setup_logging
@@ -53,7 +52,7 @@ def update_publishers(options: settngs.Namespace) -> None:
     json_file = options.runtime_config.user_config_dir / "publishers.json"
     if json_file.exists():
         try:
-            utils.update_publishers(json.loads(json_file.read_text("utf-8")))
+            comicapi.utils.update_publishers(json.loads(json_file.read_text("utf-8")))
         except Exception:
             logger.exception("Failed to load publishers from %s", json_file)
             # show_exception_box(str(e))
@@ -118,18 +117,11 @@ class App:
 
         signal.signal(signal.SIGINT, signal.SIG_DFL)
 
-        logger.info(
-            "ComicTagger Version: %s running on: %s PyInstaller: %s",
-            version,
-            platform.system(),
-            "Yes" if getattr(sys, "frozen", None) else "No",
-        )
-
         logger.debug("Installed Packages")
         for pkg in sorted(importlib_metadata.distributions(), key=lambda x: x.name):
             logger.debug("%s\t%s", pkg.metadata["Name"], pkg.metadata["Version"])
 
-        utils.load_publishers()
+        comicapi.utils.load_publishers()
         update_publishers(self.options[0])
 
         if not qt_available and not self.options[0].runtime_no_gui:
