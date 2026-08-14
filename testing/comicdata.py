@@ -1,29 +1,29 @@
 from __future__ import annotations
 
 import comicapi.genericmetadata
-import comictaggerlib.resulttypes
+import comictalker.resulttypes
 from comicapi import utils
 
 search_results = [
-    comictaggerlib.resulttypes.CVVolumeResults(
+    comictalker.resulttypes.ComicVolume(
         count_of_issues=1,
         description="this is a description",
         id=1,
-        image={"super_url": "https://test.org/image/1"},
+        image_url="https://test.org/image/1",
         name="test",
-        publisher=comictaggerlib.resulttypes.CVPublisher(name="test"),
-        start_year="",  # This is currently submitted as a string and returned as an int
-        aliases=None,
+        publisher="test",
+        start_year=0,
+        aliases=[],
     ),
-    comictaggerlib.resulttypes.CVVolumeResults(
+    comictalker.resulttypes.ComicVolume(
         count_of_issues=1,
         description="this is a description",
-        id=1,
-        image={"super_url": "https://test.org/image/2"},
+        id=2,
+        image_url="https://test.org/image/2",
         name="test 2",
-        publisher=comictaggerlib.resulttypes.CVPublisher(name="test"),
-        start_year="",  # This is currently submitted as a string and returned as an int
-        aliases=None,
+        publisher="test",
+        start_year=0,
+        aliases=[],
     ),
 ]
 

@@ -25,13 +25,14 @@ import sys
 import traceback
 import types
 
+import comictalker.comictalkerapi as ct_api
 from comicapi import utils
 from comictaggerlib import cli
-from comictaggerlib.comicvinetalker import ComicVineTalker
 from comictaggerlib.ctversion import version
 from comictaggerlib.graphics import graphics_path
 from comictaggerlib.options import parse_cmd_line
 from comictaggerlib.settings import ComicTaggerSettings
+from comictalker.talkerbase import TalkerError
 
 if sys.version_info < (3, 10):
     import importlib_metadata
@@ -41,6 +42,7 @@ else:
 logger = logging.getLogger("comictagger")
 logging.getLogger("comicapi").setLevel(logging.DEBUG)
 logging.getLogger("comictaggerlib").setLevel(logging.DEBUG)
+logging.getLogger("comictalker").setLevel(logging.DEBUG)
 logger.setLevel(logging.DEBUG)
 
 try:
@@ -53,7 +55,7 @@ try:
         """
         if QtWidgets.QApplication.instance() is not None:
             errorbox = QtWidgets.QMessageBox()
-            errorbox.setText(f"Oops. An unexpected error occurred:\n{log_msg}")
+            errorbox.setText(log_msg)
             errorbox.exec()
             QtWidgets.QApplication.exit(1)
         else:
@@ -82,11 +84,12 @@ try:
                 sys.__excepthook__(exc_type, exc_value, exc_traceback)
             else:
                 exc_info = (exc_type, exc_value, exc_traceback)
-                log_msg = "\n".join(["".join(traceback.format_tb(exc_traceback)), f"{exc_type.__name__}: {exc_value}"])
+                trace_back = "".join(traceback.format_tb(exc_traceback))
+                log_msg = f"{exc_type.__name__}: {exc_value}\n\n{trace_back}"
                 logger.critical("Uncaught exception: %s: %s", exc_type.__name__, exc_value, exc_info=exc_info)
 
                 # trigger message box show
-                self._exception_caught.emit(log_msg)
+                self._exception_caught.emit(f"Oops. An unexpected error occurred:\n{log_msg}")
 
     qt_exception_hook = UncaughtHook()
     from comictaggerlib.taggerwindow import TaggerWindow
@@ -167,9 +170,6 @@ See https://github.com/comictagger/comictagger/releases/1.5.5 for more informati
         print("Key set")  # noqa: T201
         return
 
-    ComicVineTalker.api_key = settings.cv_api_key
-    ComicVineTalker.api_base_url = settings.cv_url
-
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
     logger.info(
@@ -183,16 +183,34 @@ See https://github.com/comictagger/comictagger/releases/1.5.5 for more informati
     for pkg in sorted(importlib_metadata.distributions(), key=lambda x: x.name):
         logger.debug("%s\t%s", pkg.metadata["Name"], pkg.metadata["Version"])
 
-    utils.load_publishers()
-    update_publishers()
-
     if not qt_available and not opts.no_gui:
         opts.no_gui = True
         logger.warning("PyQt5 is not available. ComicTagger is limited to command-line mode.")
 
+    talker_exception = None
+    try:
+        talker_api = ct_api.get_comic_talker("comicvine")(  # type: ignore[call-arg]
+            version=version,
+            cache_folder=ComicTaggerSettings.get_settings_folder(),
+            series_match_thresh=settings.id_series_match_search_thresh,
+            remove_html_tables=settings.remove_html_tables,
+            use_series_start_as_volume=settings.use_series_start_as_volume,
+            wait_on_ratelimit=settings.wait_and_retry_on_rate_limit,
+            api_url=settings.cv_url,
+            api_key=settings.cv_api_key,
+        )
+    except TalkerError as e:
+        logger.exception("Unable to load talker")
+        talker_exception = e
+        if opts.no_gui:
+            raise SystemExit(1)
+
+    utils.load_publishers()
+    update_publishers()
+
     if opts.no_gui:
         try:
-            cli.cli_mode(opts, settings)
+            cli.cli_mode(opts, settings, talker_api)
         except Exception:
             logger.exception("CLI mode failed")
     else:
@@ -202,6 +220,11 @@ See https://github.com/comictagger/comictagger/releases/1.5.5 for more informati
             args.extend(["-platform", "windows:darkmode=2"])
         args.extend(sys.argv)
         app = Application(args)
+        if talker_exception is not None:
+            trace_back = "".join(traceback.format_tb(talker_exception.__traceback__))
+            log_msg = f"{type(talker_exception).__name__}: {talker_exception}\n\n{trace_back}"
+            show_exception_box(f"Unable to load talker: {log_msg}")
+            raise SystemExit(1)
 
         # needed to catch initial open file events (macOS)
         app.openFileRequest.connect(lambda x: opts.files.append(x.toLocalFile()))
@@ -232,7 +255,7 @@ See https://github.com/comictagger/comictagger/releases/1.5.5 for more informati
             QtWidgets.QApplication.processEvents()
 
         try:
-            tagger_window = TaggerWindow(opts.files, settings, opts=opts)
+            tagger_window = TaggerWindow(opts.files, settings, talker_api, opts=opts)
             tagger_window.setWindowIcon(QtGui.QIcon(str(graphics_path / "app.png")))
             tagger_window.show()
 

@@ -3,7 +3,8 @@ from __future__ import annotations
 from typing import Any
 
 import comicapi.genericmetadata
-import comictaggerlib.comicvinetalker
+from comicapi import utils
+from comictalker.talker_utils import cleanup_html
 
 
 def filter_field_list(cv_result, kwargs):
@@ -21,7 +22,7 @@ cv_issue_result: dict[str, Any] = {
     "number_of_total_results": 1,
     "status_code": 1,
     "results": {
-        "aliases": None,
+        "aliases": [],
         "api_detail_url": "https://comicvine.gamespot.com/api/issue/4000-140529/",
         "associated_images": [],
         "character_credits": [],
@@ -116,7 +117,7 @@ cv_volume_result: dict[str, Any] = {
     "number_of_total_results": 1,
     "status_code": 1,
     "results": {
-        "aliases": None,
+        "aliases": [],
         "api_detail_url": "https://comicvine.gamespot.com/api/volume/4050-23437/",
         "count_of_issues": 6,
         "date_added": "2008-10-16 05:25:47",
@@ -156,7 +157,24 @@ cv_not_found = {
     "status_code": 101,
     "results": [],
 }
-date = comictaggerlib.comicvinetalker.ComicVineTalker().parse_date_str(cv_issue_result["results"]["cover_date"])
+comic_issue_result: dict[str, Any] = {
+    "aliases": cv_issue_result["results"]["aliases"],
+    "cover_date": cv_issue_result["results"]["cover_date"],
+    "description": cv_issue_result["results"]["description"],
+    "id": cv_issue_result["results"]["id"],
+    "image_url": cv_issue_result["results"]["image"]["super_url"],
+    "image_thumb_url": cv_issue_result["results"]["image"]["thumb_url"],
+    "issue_number": cv_issue_result["results"]["issue_number"],
+    "name": cv_issue_result["results"]["name"],
+    "site_detail_url": cv_issue_result["results"]["site_detail_url"],
+    "volume": {
+        "api_detail_url": cv_issue_result["results"]["volume"]["api_detail_url"],
+        "id": cv_issue_result["results"]["volume"]["id"],
+        "name": cv_issue_result["results"]["volume"]["name"],
+        "site_detail_url": cv_issue_result["results"]["volume"]["site_detail_url"],
+    },
+}
+date = utils.parse_date_str(cv_issue_result["results"]["cover_date"])
 
 cv_md = comicapi.genericmetadata.GenericMetadata(
     is_empty=False,
@@ -173,9 +191,7 @@ cv_md = comicapi.genericmetadata.GenericMetadata(
     volume=None,
     genre=None,
     language=None,
-    comments=comictaggerlib.comicvinetalker.ComicVineTalker().cleanup_html(
-        cv_issue_result["results"]["description"], False
-    ),
+    comments=cleanup_html(cv_issue_result["results"]["description"], False),
     volume_count=None,
     critical_rating=None,
     country=None,
@@ -193,9 +209,9 @@ cv_md = comicapi.genericmetadata.GenericMetadata(
     story_arc=None,
     series_group=None,
     scan_info=None,
-    characters="",
-    teams="",
-    locations="",
+    characters=None,
+    teams=None,
+    locations=None,
     credits=[
         comicapi.genericmetadata.CreditMetadata(person=x["name"], role=x["role"].title(), primary=False)
         for x in cv_issue_result["results"]["person_credits"]
@@ -207,7 +223,7 @@ cv_md = comicapi.genericmetadata.GenericMetadata(
     rights=None,
     identifier=None,
     last_mark=None,
-    cover_image=None,
+    cover_image=cv_issue_result["results"]["image"]["super_url"],
 )
 
 

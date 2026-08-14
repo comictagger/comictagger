@@ -13,9 +13,9 @@ from PIL import Image
 
 import comicapi.comicarchive
 import comicapi.genericmetadata
-import comictaggerlib.comiccacher
-import comictaggerlib.comicvinetalker
 import comictaggerlib.settings
+import comictalker.comiccacher
+import comictalker.talkers.comicvine
 from comicapi import utils
 from testing import comicvine, filenames
 from testing.comicdata import all_seed_imprints, seed_imprints
@@ -53,7 +53,9 @@ def no_requests(monkeypatch) -> None:
 
 
 @pytest.fixture
-def comicvine_api(monkeypatch, cbz, comic_cache) -> unittest.mock.Mock:
+def comicvine_api(
+    monkeypatch, cbz, comic_cache, mock_version, settings
+) -> comictalker.talkers.comicvine.ComicVineTalker:
     # Any arguments may be passed and mock_get() will always return our
     # mocked object, which only has the .json() method or None for invalid urls.
 
@@ -109,7 +111,18 @@ def comicvine_api(monkeypatch, cbz, comic_cache) -> unittest.mock.Mock:
 
     # apply the monkeypatch for requests.get to mock_get
     monkeypatch.setattr(requests, "get", m_get)
-    return m_get
+
+    cv = comictalker.talkers.comicvine.ComicVineTalker(
+        version=mock_version[0],
+        cache_folder=settings.get_settings_folder(),
+        api_url="",
+        api_key="",
+        series_match_thresh=90,
+        remove_html_tables=False,
+        use_series_start_as_volume=False,
+        wait_on_ratelimit=False,
+    )
+    return cv
 
 
 @pytest.fixture
@@ -121,6 +134,7 @@ def mock_version(monkeypatch):
     monkeypatch.setattr(comictaggerlib.ctversion, "__version__", version)
     monkeypatch.setattr(comictaggerlib.ctversion, "version_tuple", version_tuple)
     monkeypatch.setattr(comictaggerlib.ctversion, "__version_tuple__", version_tuple)
+    yield version, version_tuple
 
 
 @pytest.fixture
@@ -151,5 +165,5 @@ def settings(tmp_path):
 
 
 @pytest.fixture
-def comic_cache(settings) -> Generator[comictaggerlib.comiccacher.ComicCacher, Any, None]:
-    yield comictaggerlib.comiccacher.ComicCacher()
+def comic_cache(settings, mock_version) -> Generator[comictalker.comiccacher.ComicCacher, Any, None]:
+    yield comictalker.comiccacher.ComicCacher(settings.get_settings_folder(), mock_version[0])
