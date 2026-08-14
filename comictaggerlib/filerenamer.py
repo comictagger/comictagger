@@ -209,15 +209,13 @@ class FileRenamer:
 
         md = self.metadata
 
-        # padding for issue
-        md.issue = IssueString(md.issue).as_string(pad=self.issue_zero_padding)
-
         template = self.template
 
         new_name = ""
 
         fmt = MetadataFormatter(self.smart_cleanup, platform=self.platform, replacements=self.replacements)
         md_dict = vars(md)
+        md_dict["issue"] = IssueString(md.issue).as_string(pad=self.issue_zero_padding)
         for role in ["writer", "penciller", "inker", "colorist", "letterer", "cover artist", "editor"]:
             md_dict[role] = md.get_primary_credit(role)
 
@@ -238,8 +236,6 @@ class FileRenamer:
         new_name += ext
         new_basename += ext
 
-        # remove padding
-        md.issue = IssueString(md.issue).as_string()
         if self.move:
             return new_name.strip()
         return new_basename.strip()
