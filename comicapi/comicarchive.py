@@ -49,17 +49,8 @@ try:
 except ImportError:
     rar_support = False
 
-try:
-    from PIL import Image
-
-    pil_available = True
-except ImportError:
-    pil_available = False
-
 
 logger = logging.getLogger(__name__)
-if not pil_available:
-    logger.error("PIL unavalable")
 if not rar_support:
     logger.error("unrar-cffi unavailable")
 
@@ -672,6 +663,7 @@ class FolderArchiver(UnknownArchiver):
 
 class ComicArchive:
     logo_data = b""
+    pil_available = True
 
     class ArchiveType:
         SevenZip, Zip, Rar, Folder, Pdf, Unknown = list(range(6))
@@ -1178,7 +1170,13 @@ class ComicArchive:
         if calc_page_sizes:
             for index, p in enumerate(md.pages):
                 idx = int(p["Image"])
-                if pil_available:
+                if self.pil_available:
+                    try:
+                        from PIL import Image
+
+                        self.pil_available = True
+                    except ImportError:
+                        self.pil_available = False
                     if "ImageSize" not in p or "ImageHeight" not in p or "ImageWidth" not in p:
                         data = self.get_page(idx)
                         if data:
