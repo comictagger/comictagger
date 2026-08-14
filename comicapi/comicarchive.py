@@ -31,11 +31,6 @@ from comicapi.comicbookinfo import ComicBookInfo
 from comicapi.comicinfoxml import ComicInfoXml
 from comicapi.genericmetadata import GenericMetadata, PageType
 
-if sys.version_info < (3, 10):
-    from importlib_metadata import entry_points
-else:
-    from importlib.metadata import entry_points
-
 logger = logging.getLogger(__name__)
 
 archivers: list[type[Archiver]] = []
@@ -43,6 +38,10 @@ archivers: list[type[Archiver]] = []
 
 def load_archive_plugins() -> None:
     if not archivers:
+        if sys.version_info < (3, 10):
+            from importlib_metadata import entry_points
+        else:
+            from importlib.metadata import entry_points
         builtin: list[type[Archiver]] = []
         for arch in entry_points(group="comicapi.archiver"):
             try:
