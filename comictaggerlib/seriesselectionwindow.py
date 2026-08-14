@@ -21,7 +21,7 @@ from collections import deque
 
 import natsort
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
-from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtCore import QUrl, pyqtSignal
 
 from comicapi import utils
 from comicapi.comicarchive import ComicArchive
@@ -33,7 +33,7 @@ from comictaggerlib.issueselectionwindow import IssueSelectionWindow
 from comictaggerlib.matchselectionwindow import MatchSelectionWindow
 from comictaggerlib.progresswindow import IDProgressWindow
 from comictaggerlib.ui import ui_path
-from comictaggerlib.ui.qtutils import reduce_widget_font_size
+from comictaggerlib.ui.qtutils import new_web_view, reduce_widget_font_size
 from comictalker.comictalker import ComicTalker, TalkerError
 
 logger = logging.getLogger(__name__)
@@ -127,6 +127,16 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         gridlayout = QtWidgets.QGridLayout(self.imageContainer)
         gridlayout.addWidget(self.imageWidget)
         gridlayout.setContentsMargins(0, 0, 0, 0)
+
+        self.teDetails: QtWidgets.QWidget
+        webengine = new_web_view(self)
+        if webengine:
+            self.teDetails.hide()
+            self.teDetails.deleteLater()
+            # I don't know how to replace teDetails, this is the result of teDetails.height() once rendered
+            webengine.resize(webengine.width(), 141)
+            self.splitter.addWidget(webengine)
+            self.teDetails = webengine
 
         reduce_widget_font_size(self.teDetails, 1)
         reduce_widget_font_size(self.twList)
@@ -530,6 +540,9 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
     def set_description(self, widget: QtWidgets.QWidget, text: str) -> None:
         if isinstance(widget, QtWidgets.QTextEdit):
             widget.setText(text.replace("</figure>", "</div>").replace("<figure", "<div"))
+        else:
+            html = text
+            widget.setHtml(html, QUrl(self.talker.website))
 
     def current_item_changed(self, curr: QtCore.QModelIndex | None, prev: QtCore.QModelIndex | None) -> None:
         if curr is None:

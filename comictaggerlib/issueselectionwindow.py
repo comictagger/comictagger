@@ -24,7 +24,7 @@ from comicapi.issuestring import IssueString
 from comictaggerlib.coverimagewidget import CoverImageWidget
 from comictaggerlib.ctsettings import ct_ns
 from comictaggerlib.ui import ui_path
-from comictaggerlib.ui.qtutils import reduce_widget_font_size
+from comictaggerlib.ui.qtutils import new_web_view, reduce_widget_font_size
 from comictalker.comictalker import ComicTalker, TalkerError
 
 logger = logging.getLogger(__name__)
@@ -61,6 +61,19 @@ class IssueSelectionWindow(QtWidgets.QDialog):
         gridlayout = QtWidgets.QGridLayout(self.coverImageContainer)
         gridlayout.addWidget(self.coverWidget)
         gridlayout.setContentsMargins(0, 0, 0, 0)
+
+        self.teDescription: QtWidgets.QWidget
+        webengine = new_web_view(self)
+        if webengine:
+            self.teDescription.hide()
+            self.teDescription.deleteLater()
+            # I don't know how to replace teDescription, this is the result of teDescription.height() once rendered
+            webengine.resize(webengine.width(), 141)
+            self.splitter.addWidget(webengine)
+            self.teDescription = webengine
+            logger.info("successfully loaded QWebEngineView")
+        else:
+            logger.info("failed to open QWebEngineView")
 
         reduce_widget_font_size(self.twList)
         reduce_widget_font_size(self.teDescription, 1)
@@ -186,6 +199,9 @@ class IssueSelectionWindow(QtWidgets.QDialog):
     def set_description(self, widget: QtWidgets.QWidget, text: str) -> None:
         if isinstance(widget, QtWidgets.QTextEdit):
             widget.setText(text.replace("</figure>", "</div>").replace("<figure", "<div"))
+        else:
+            html = text
+            widget.setHtml(html, QtCore.QUrl(self.talker.website))
 
     def current_item_changed(self, curr: QtCore.QModelIndex | None, prev: QtCore.QModelIndex | None) -> None:
         if curr is None:
