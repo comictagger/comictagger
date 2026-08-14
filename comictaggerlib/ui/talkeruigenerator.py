@@ -7,6 +7,8 @@ from typing import Any, NamedTuple
 import settngs
 from PyQt5 import QtCore, QtWidgets
 
+from comictaggerlib.ctsettings import ct_ns
+from comictaggerlib.graphics import graphics_path
 from comictalker.comictalker import ComicTalker
 
 logger = logging.getLogger(__name__)
@@ -20,7 +22,7 @@ class TalkerTab(NamedTuple):
 def generate_api_widgets(
     talker_id: str,
     sources: dict[str, QtWidgets.QWidget],
-    config: settngs.Config[settngs.Namespace],
+    config: settngs.Config[ct_ns],
     layout: QtWidgets.QGridLayout,
     talkers: dict[str, ComicTalker],
 ) -> None:
@@ -117,7 +119,7 @@ def generate_textbox(option: settngs.Setting, layout: QtWidgets.QGridLayout) -> 
     return widget
 
 
-def settings_to_talker_form(sources: dict[str, QtWidgets.QWidget], config: settngs.Config[settngs.Namespace]) -> None:
+def settings_to_talker_form(sources: dict[str, QtWidgets.QWidget], config: settngs.Config[ct_ns]) -> None:
     # Set the active talker via id in sources combo box
     sources["cbx_select_talker"].setCurrentIndex(sources["cbx_select_talker"].findData(config[0].talker_source))
 
@@ -136,7 +138,7 @@ def settings_to_talker_form(sources: dict[str, QtWidgets.QWidget], config: settn
                 logger.debug("Failed to set value of %s", name)
 
 
-def form_settings_to_config(sources: dict[str, QtWidgets.QWidget], config: settngs.Config[settngs.Namespace]) -> None:
+def form_settings_to_config(sources: dict[str, QtWidgets.QWidget], config: settngs.Config[ct_ns]) -> None:
     # Source combo box value
     config[0].talker_source = sources["cbx_select_talker"].currentData()
 
@@ -155,7 +157,7 @@ def form_settings_to_config(sources: dict[str, QtWidgets.QWidget], config: settn
 
 def generate_source_option_tabs(
     comic_talker_tab: QtWidgets.QWidget,
-    config: settngs.Config[settngs.Namespace],
+    config: settngs.Config[ct_ns],
     talkers: dict[str, ComicTalker],
 ) -> dict[str, QtWidgets.QWidget]:
     """

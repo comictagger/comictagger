@@ -9,6 +9,7 @@ import types
 
 import settngs
 
+from comictaggerlib.ctsettings import ct_ns
 from comictaggerlib.graphics import graphics_path
 from comictalker.comictalker import ComicTalker
 
@@ -83,7 +84,7 @@ except ImportError:
 
 
 def open_tagger_window(
-    talkers: dict[str, ComicTalker], config: settngs.Config[settngs.Namespace], error: tuple[str, bool] | None
+    talkers: dict[str, ComicTalker], config: settngs.Config[ct_ns], error: tuple[str, bool] | None
 ) -> None:
     os.environ["QtWidgets.QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
     args = []

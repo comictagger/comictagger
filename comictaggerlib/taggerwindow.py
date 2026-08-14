@@ -48,6 +48,7 @@ from comictaggerlib.autotagstartwindow import AutoTagStartWindow
 from comictaggerlib.cbltransformer import CBLTransformer
 from comictaggerlib.coverimagewidget import CoverImageWidget
 from comictaggerlib.crediteditorwindow import CreditEditorWindow
+from comictaggerlib.ctsettings import ct_ns
 from comictaggerlib.exportwindow import ExportConflictOpts, ExportWindow
 from comictaggerlib.fileselectionlist import FileInfo, FileSelectionList
 from comictaggerlib.graphics import graphics_path
@@ -79,7 +80,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
     def __init__(
         self,
         file_list: list[str],
-        config: settngs.Config[settngs.Namespace],
+        config: settngs.Config[ct_ns],
         talkers: dict[str, ComicTalker],
         parent: QtWidgets.QWidget | None = None,
     ) -> None:

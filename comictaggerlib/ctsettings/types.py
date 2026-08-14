@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import argparse
 import pathlib
-from collections.abc import Sequence
-from typing import Any, Callable
 
 from appdirs import AppDirs
 
@@ -59,6 +57,13 @@ class ComicTaggerPaths(AppDirs):
         return pathlib.Path(super().site_config_dir)
 
 
+def metadata_type_single(types: str) -> int:
+    result = metadata_type(types)
+    if len(result) > 1:
+        raise argparse.ArgumentTypeError(f"invalid choice: {result} (only one metadata style allowed)")
+    return result[0]
+
+
 def metadata_type(types: str) -> list[int]:
     result = []
     types = types.casefold()
@@ -69,71 +74,6 @@ def metadata_type(types: str) -> list[int]:
             raise argparse.ArgumentTypeError(f"invalid choice: {typ} (choose from {choices.upper()})")
         result.append(MetaDataStyle.short_name.index(typ))
     return result
-
-
-def _copy_items(items: Sequence[Any] | None) -> Sequence[Any]:
-    if items is None:
-        return []
-    # The copy module is used only in the 'append' and 'append_const'
-    # actions, and it is needed only when the default value isn't a list.
-    # Delay its import for speeding up the common case.
-    if type(items) is list:
-        return items[:]
-    import copy
-
-    return copy.copy(items)
-
-
-class AppendAction(argparse.Action):
-    def __init__(
-        self,
-        option_strings: list[str],
-        dest: str,
-        nargs: str | None = None,
-        const: Any = None,
-        default: Any = None,
-        type: Callable[[str], Any] | None = None,  # noqa: A002
-        choices: list[Any] | None = None,
-        required: bool = False,
-        help: str | None = None,  # noqa: A002
-        metavar: str | None = None,
-    ):
-        self.called = False
-        if nargs == 0:
-            raise ValueError(
-                "nargs for append actions must be != 0; if arg "
-                "strings are not supplying the value to append, "
-                "the append const action may be more appropriate"
-            )
-        if const is not None and nargs != argparse.OPTIONAL:
-            raise ValueError("nargs must be %r to supply const" % argparse.OPTIONAL)
-        super().__init__(
-            option_strings=option_strings,
-            dest=dest,
-            nargs=nargs,
-            const=const,
-            default=default,
-            type=type,
-            choices=choices,
-            required=required,
-            help=help,
-            metavar=metavar,
-        )
-
-    def __call__(
-        self,
-        parser: argparse.ArgumentParser,
-        namespace: argparse.Namespace,
-        values: str | Sequence[Any] | None,
-        option_string: str | None = None,
-    ) -> None:
-        if values:
-            if not self.called:
-                setattr(namespace, self.dest, [])
-            items = getattr(namespace, self.dest, None)
-            items = _copy_items(items)
-            items.append(values)  # type: ignore
-            setattr(namespace, self.dest, items)
 
 
 def parse_metadata_from_string(mdstr: str) -> GenericMetadata:

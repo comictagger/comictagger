@@ -20,7 +20,7 @@ import logging
 import os
 import pathlib
 import platform
-from typing import Any
+from typing import Any, cast
 
 import settngs
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
@@ -29,6 +29,7 @@ import comictaggerlib.ui.talkeruigenerator
 from comicapi import utils
 from comicapi.genericmetadata import md_test
 from comictaggerlib import ctsettings
+from comictaggerlib.ctsettings import ct_ns
 from comictaggerlib.ctversion import version
 from comictaggerlib.filerenamer import FileRenamer, Replacement, Replacements
 from comictaggerlib.imagefetcher import ImageFetcher
@@ -133,7 +134,7 @@ Spider-Geddon #1 - New Players; Check In
 
 class SettingsWindow(QtWidgets.QDialog):
     def __init__(
-        self, parent: QtWidgets.QWidget, config: settngs.Config[settngs.Namespace], talkers: dict[str, ComicTalker]
+        self, parent: QtWidgets.QWidget, config: settngs.Config[ct_ns], talkers: dict[str, ComicTalker]
     ) -> None:
         super().__init__(parent)
 
@@ -413,7 +414,7 @@ class SettingsWindow(QtWidgets.QDialog):
             setattr(self.config[0], self.config[1]["archiver"].v["rar"].internal_name, str(self.leRarExePath.text()))
 
             # make sure rar program is now in the path for the rar class
-            if self.config[0].archiver_rar:
+            if self.config[0].archiver_rar:  # type: ignore[attr-defined]
                 utils.add_to_path(os.path.dirname(str(self.leRarExePath.text())))
 
         if not str(self.leIssueNumPadding.text()).isdigit():
@@ -480,7 +481,7 @@ class SettingsWindow(QtWidgets.QDialog):
         QtWidgets.QMessageBox.information(self, self.name, "Cache has been cleared.")
 
     def reset_settings(self) -> None:
-        self.config = settngs.get_namespace(settngs.defaults(self.config[1]))
+        self.config = cast(settngs.Config[ct_ns], settngs.get_namespace(settngs.defaults(self.config[1])))
         self.settings_to_form()
         QtWidgets.QMessageBox.information(self, self.name, self.name + " have been returned to default values.")
 

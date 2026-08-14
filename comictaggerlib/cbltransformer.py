@@ -17,15 +17,14 @@ from __future__ import annotations
 
 import logging
 
-import settngs
-
 from comicapi.genericmetadata import CreditMetadata, GenericMetadata
+from comictaggerlib.ctsettings import ct_ns
 
 logger = logging.getLogger(__name__)
 
 
 class CBLTransformer:
-    def __init__(self, metadata: GenericMetadata, config: settngs.Namespace) -> None:
+    def __init__(self, metadata: GenericMetadata, config: ct_ns) -> None:
         self.metadata = metadata
         self.config = config
 

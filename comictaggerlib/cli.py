@@ -21,13 +21,12 @@ import os
 import sys
 from datetime import datetime
 
-import settngs
-
 from comicapi import utils
 from comicapi.comicarchive import ComicArchive, MetaDataStyle
 from comicapi.genericmetadata import GenericMetadata
 from comictaggerlib import ctversion
 from comictaggerlib.cbltransformer import CBLTransformer
+from comictaggerlib.ctsettings import ct_ns
 from comictaggerlib.filerenamer import FileRenamer, get_rename_dir
 from comictaggerlib.graphics import graphics_path
 from comictaggerlib.issueidentifier import IssueIdentifier
@@ -38,15 +37,15 @@ logger = logging.getLogger(__name__)
 
 
 class CLI:
-    def __init__(self, config: settngs.Namespace, talkers: dict[str, ComicTalker]):
+    def __init__(self, config: ct_ns, talkers: dict[str, ComicTalker]) -> None:
         self.config = config
         self.talkers = talkers
         self.batch_mode = False
 
     def current_talker(self) -> ComicTalker:
-        if self.config[0].talker_source in self.talkers:
-            return self.talkers[self.config[0].talker_source]
-        logger.error("Could not find the '%s' talker", self.config[0].talker_source)
+        if self.config.talker_source in self.talkers:
+            return self.talkers[self.config.talker_source]
+        logger.error("Could not find the '%s' talker", self.config.talker_source)
         raise SystemExit(2)
 
     def actual_issue_data_fetch(self, issue_id: str) -> GenericMetadata:
@@ -169,14 +168,14 @@ class CLI:
                 self.display_match_set_for_choice(label, match_set)
 
     def run(self) -> None:
-        if len(self.config.runtime_file_list) < 1:
+        if len(self.config.runtime_files) < 1:
             logger.error("You must specify at least one filename.  Use the -h option for more info")
             return
 
         match_results = OnlineMatchResults()
-        self.batch_mode = len(self.config.runtime_file_list) > 1
+        self.batch_mode = len(self.config.runtime_files) > 1
 
-        for f in self.config.runtime_file_list:
+        for f in self.config.runtime_files:
             self.process_file_cli(f, match_results)
             sys.stdout.flush()
 
@@ -327,7 +326,7 @@ class CLI:
                         md = GenericMetadata()
                         logger.error("Failed to load metadata for %s: %s", ca.path, e)
 
-                    if self.config.apply_transform_on_bulk_operation_ndetadata_style == MetaDataStyle.CBI:
+                    if self.config.cbl_apply_transform_on_bulk_operation == MetaDataStyle.CBI:
                         md = CBLTransformer(md, self.config).apply()
 
                     if not ca.write_metadata(md, metadata_style):
@@ -351,7 +350,7 @@ class CLI:
 
         md = self.create_local_metadata(ca)
         if md.issue is None or md.issue == "":
-            if self.config.runtime_assume_issue_one:
+            if self.config.autotag_assume_1_if_no_issue_num:
                 md.issue = "1"
 
         # now, search online
@@ -469,18 +468,18 @@ class CLI:
             return
 
         new_ext = ""  # default
-        if self.config.filename_rename_set_extension_based_on_archive:
+        if self.config.rename_set_extension_based_on_archive:
             new_ext = ca.extension()
 
         renamer = FileRenamer(
             md,
-            platform="universal" if self.config.filename_rename_strict else "auto",
+            platform="universal" if self.config.rename_strict else "auto",
             replacements=self.config.rename_replacements,
         )
-        renamer.set_template(self.config.filename_rename_template)
-        renamer.set_issue_zero_padding(self.config.filename_rename_issue_number_padding)
-        renamer.set_smart_cleanup(self.config.filename_rename_use_smart_string_cleanup)
-        renamer.move = self.config.filename_rename_move_to_dir
+        renamer.set_template(self.config.rename_template)
+        renamer.set_issue_zero_padding(self.config.rename_issue_number_padding)
+        renamer.set_smart_cleanup(self.config.rename_use_smart_string_cleanup)
+        renamer.move = self.config.rename_move_to_dir
 
         try:
             new_name = renamer.determine_name(ext=new_ext)
@@ -492,17 +491,14 @@ class CLI:
                 "Please consult the template help in the settings "
                 "and the documentation on the format at "
                 "https://docs.python.org/3/library/string.html#format-string-syntax",
-                self.config.filename_rename_template,
+                self.config.rename_template,
             )
             return
         except Exception:
-            logger.exception(
-                "Formatter failure: %s metadata: %s", self.config.filename_rename_template, renamer.metadata
-            )
+            logger.exception("Formatter failure: %s metadata: %s", self.config.rename_template, renamer.metadata)
+            return
 
-        folder = get_rename_dir(
-            ca, self.config.filename_rename_dir if self.config.filename_rename_move_to_dir else None
-        )
+        folder = get_rename_dir(ca, self.config.rename_dir if self.config.rename_move_to_dir else None)
 
         full_path = folder / new_name
 
