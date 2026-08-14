@@ -18,6 +18,7 @@ from __future__ import annotations
 import datetime
 import logging
 import os
+import pathlib
 import shutil
 import sqlite3 as lite
 import tempfile
@@ -25,7 +26,6 @@ import tempfile
 import requests
 
 from comictaggerlib import ctversion
-from comictaggerlib.settings import ComicTaggerSettings
 
 try:
     from PyQt5 import QtCore, QtNetwork
@@ -49,11 +49,10 @@ class ImageFetcher:
 
     image_fetch_complete = fetch_complete
 
-    def __init__(self) -> None:
+    def __init__(self, cache_folder: pathlib.Path) -> None:
 
-        self.settings_folder = ComicTaggerSettings.get_settings_folder()
-        self.db_file = os.path.join(self.settings_folder, "image_url_cache.db")
-        self.cache_folder = os.path.join(self.settings_folder, "image_cache")
+        self.db_file = cache_folder / "image_url_cache.db"
+        self.cache_folder = cache_folder / "image_cache"
 
         self.user_data = None
         self.fetched_url = ""

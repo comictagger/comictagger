@@ -34,13 +34,13 @@ class AutoTagProgressWindow(QtWidgets.QDialog):
         uic.loadUi(ui_path / "autotagprogresswindow.ui", self)
 
         self.archiveCoverWidget = CoverImageWidget(
-            self.archiveCoverContainer, talker_api, CoverImageWidget.DataMode, False
+            self.archiveCoverContainer, CoverImageWidget.DataMode, None, None, False
         )
         gridlayout = QtWidgets.QGridLayout(self.archiveCoverContainer)
         gridlayout.addWidget(self.archiveCoverWidget)
         gridlayout.setContentsMargins(0, 0, 0, 0)
 
-        self.testCoverWidget = CoverImageWidget(self.testCoverContainer, talker_api, CoverImageWidget.DataMode, False)
+        self.testCoverWidget = CoverImageWidget(self.testCoverContainer, CoverImageWidget.DataMode, None, None, False)
         gridlayout = QtWidgets.QGridLayout(self.testCoverContainer)
         gridlayout.addWidget(self.testCoverWidget)
         gridlayout.setContentsMargins(0, 0, 0, 0)

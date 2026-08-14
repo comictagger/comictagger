@@ -17,16 +17,16 @@ from __future__ import annotations
 
 import logging
 
+import settngs
 from PyQt5 import QtCore, QtWidgets, uic
 
-from comictaggerlib.settings import ComicTaggerSettings
 from comictaggerlib.ui import ui_path
 
 logger = logging.getLogger(__name__)
 
 
 class AutoTagStartWindow(QtWidgets.QDialog):
-    def __init__(self, parent: QtWidgets.QWidget, settings: ComicTaggerSettings, msg: str) -> None:
+    def __init__(self, parent: QtWidgets.QWidget, options: settngs.Namespace, msg: str) -> None:
         super().__init__(parent)
 
         uic.loadUi(ui_path / "autotagstartwindow.ui", self)
@@ -36,19 +36,20 @@ class AutoTagStartWindow(QtWidgets.QDialog):
             QtCore.Qt.WindowType(self.windowFlags() & ~QtCore.Qt.WindowType.WindowContextHelpButtonHint)
         )
 
-        self.settings = settings
+        self.options = options
 
         self.cbxSpecifySearchString.setChecked(False)
         self.cbxSplitWords.setChecked(False)
-        self.sbNameMatchSearchThresh.setValue(self.settings.id_series_match_identify_thresh)
+        self.sbNameMatchSearchThresh.setValue(self.options.identifier_series_match_identify_thresh)
         self.leSearchString.setEnabled(False)
 
-        self.cbxSaveOnLowConfidence.setChecked(self.settings.save_on_low_confidence)
-        self.cbxDontUseYear.setChecked(self.settings.dont_use_year_when_identifying)
-        self.cbxAssumeIssueOne.setChecked(self.settings.assume_1_if_no_issue_num)
-        self.cbxIgnoreLeadingDigitsInFilename.setChecked(self.settings.ignore_leading_numbers_in_filename)
-        self.cbxRemoveAfterSuccess.setChecked(self.settings.remove_archive_after_successful_match)
-        self.cbxAutoImprint.setChecked(self.settings.auto_imprint)
+        self.cbxSaveOnLowConfidence.setChecked(self.options.autotag_save_on_low_confidence)
+        self.cbxDontUseYear.setChecked(self.options.autotag_dont_use_year_when_identifying)
+        self.cbxAssumeIssueOne.setChecked(self.options.autotag_assume_1_if_no_issue_num)
+        self.cbxIgnoreLeadingDigitsInFilename.setChecked(self.options.autotag_ignore_leading_numbers_in_filename)
+        self.cbxRemoveAfterSuccess.setChecked(self.options.autotag_remove_archive_after_successful_match)
+        self.cbxWaitForRateLimit.setChecked(self.options.autotag_wait_and_retry_on_rate_limit)
+        self.cbxAutoImprint.setChecked(self.options.comicvine_auto_imprint)
 
         nlmt_tip = """<html>The <b>Name Match Ratio Threshold: Auto-Identify</b> is for eliminating automatic
                 search matches that are too long compared to your series name search. The lower
@@ -72,8 +73,9 @@ class AutoTagStartWindow(QtWidgets.QDialog):
         self.assume_issue_one = False
         self.ignore_leading_digits_in_filename = False
         self.remove_after_success = False
+        self.wait_and_retry_on_rate_limit = False
         self.search_string = ""
-        self.name_length_match_tolerance = self.settings.id_series_match_search_thresh
+        self.name_length_match_tolerance = self.options.comicvine_series_match_search_thresh
         self.split_words = self.cbxSplitWords.isChecked()
 
     def search_string_toggle(self) -> None:
@@ -89,14 +91,16 @@ class AutoTagStartWindow(QtWidgets.QDialog):
         self.ignore_leading_digits_in_filename = self.cbxIgnoreLeadingDigitsInFilename.isChecked()
         self.remove_after_success = self.cbxRemoveAfterSuccess.isChecked()
         self.name_length_match_tolerance = self.sbNameMatchSearchThresh.value()
+        self.wait_and_retry_on_rate_limit = self.cbxWaitForRateLimit.isChecked()
         self.split_words = self.cbxSplitWords.isChecked()
 
         # persist some settings
-        self.settings.save_on_low_confidence = self.auto_save_on_low
-        self.settings.dont_use_year_when_identifying = self.dont_use_year
-        self.settings.assume_1_if_no_issue_num = self.assume_issue_one
-        self.settings.ignore_leading_numbers_in_filename = self.ignore_leading_digits_in_filename
-        self.settings.remove_archive_after_successful_match = self.remove_after_success
+        self.options.autotag_save_on_low_confidence = self.auto_save_on_low
+        self.options.autotag_dont_use_year_when_identifying = self.dont_use_year
+        self.options.autotag_assume_1_if_no_issue_num = self.assume_issue_one
+        self.options.autotag_ignore_leading_numbers_in_filename = self.ignore_leading_digits_in_filename
+        self.options.autotag_remove_archive_after_successful_match = self.remove_after_success
+        self.options.autotag_wait_and_retry_on_rate_limit = self.wait_and_retry_on_rate_limit
 
         if self.cbxSpecifySearchString.isChecked():
             self.search_string = self.leSearchString.text()

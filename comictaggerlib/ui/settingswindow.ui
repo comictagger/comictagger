@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>702</width>
-    <height>488</height>
+    <height>513</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -616,7 +616,21 @@
          <string>Rename</string>
         </attribute>
         <layout class="QGridLayout" name="gridLayout_5">
-         <item row="0" column="0">
+         <item row="3" column="2">
+          <widget class="QPushButton" name="btnAddValueReplacement">
+           <property name="text">
+            <string>Add Replacement</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QPushButton" name="btnRemoveLiteralReplacement">
+           <property name="text">
+            <string>Remove Replacement</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0" colspan="4">
           <layout class="QFormLayout" name="formLayout_3">
            <property name="fieldGrowthPolicy">
             <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
@@ -717,8 +731,7 @@
            <item row="8" column="0">
             <widget class="QCheckBox" name="cbxRenameStrict">
              <property name="toolTip">
-              <string>If checked will ensure reserved characters and filenames are removed for all Operating Systems.
-By default only removes restricted characters and filenames for the current Operating System.</string>
+              <string>If checked will ensure reserved characters and filenames are removed for all Operating Systems.&lt;br/&gt;By default only removes restricted characters and filenames for the current Operating System.</string>
              </property>
              <property name="text">
               <string>Strict renaming</string>
@@ -729,6 +742,118 @@ By default only removes restricted characters and filenames for the current Oper
             <widget class="QLabel" name="lblDir"/>
            </item>
           </layout>
+         </item>
+         <item row="3" column="0">
+          <widget class="QPushButton" name="btnAddLiteralReplacement">
+           <property name="text">
+            <string>Add Replacement</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="3">
+          <widget class="QPushButton" name="btnRemoveValueReplacement">
+           <property name="text">
+            <string>Remove Replacement</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="2" colspan="2">
+          <widget class="QTableWidget" name="twValueReplacements">
+           <property name="font">
+            <font>
+             <family>Monaco</family>
+            </font>
+           </property>
+           <property name="selectionMode">
+            <enum>QAbstractItemView::SingleSelection</enum>
+           </property>
+           <attribute name="horizontalHeaderStretchLastSection">
+            <bool>true</bool>
+           </attribute>
+           <column>
+            <property name="text">
+             <string>Find</string>
+            </property>
+            <property name="textAlignment">
+             <set>AlignCenter</set>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>Replacement</string>
+            </property>
+            <property name="textAlignment">
+             <set>AlignCenter</set>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>Strict Only</string>
+            </property>
+            <property name="textAlignment">
+             <set>AlignCenter</set>
+            </property>
+           </column>
+          </widget>
+         </item>
+         <item row="2" column="0" colspan="2">
+          <widget class="QTableWidget" name="twLiteralReplacements">
+           <property name="font">
+            <font>
+             <family>Monaco</family>
+            </font>
+           </property>
+           <property name="contextMenuPolicy">
+            <enum>Qt::ActionsContextMenu</enum>
+           </property>
+           <property name="selectionMode">
+            <enum>QAbstractItemView::SingleSelection</enum>
+           </property>
+           <property name="columnCount">
+            <number>3</number>
+           </property>
+           <attribute name="horizontalHeaderStretchLastSection">
+            <bool>true</bool>
+           </attribute>
+           <column>
+            <property name="text">
+             <string>Find</string>
+            </property>
+            <property name="textAlignment">
+             <set>AlignCenter</set>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>Replacement</string>
+            </property>
+            <property name="textAlignment">
+             <set>AlignCenter</set>
+            </property>
+           </column>
+           <column>
+            <property name="text">
+             <string>Strict Only</string>
+            </property>
+            <property name="textAlignment">
+             <set>AlignCenter</set>
+            </property>
+           </column>
+          </widget>
+         </item>
+         <item row="1" column="2" colspan="2">
+          <widget class="QLabel" name="lblValueReplacements">
+           <property name="text">
+            <string>Value Text Replacements</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0" colspan="2">
+          <widget class="QLabel" name="lblLiteralReplacements">
+           <property name="text">
+            <string>Literal Text Replacements</string>
+           </property>
+          </widget>
          </item>
         </layout>
        </widget>
