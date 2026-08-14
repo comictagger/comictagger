@@ -28,7 +28,6 @@ import zipfile
 from typing import cast
 
 import natsort
-import wordninja
 
 from comicapi import filenamelexer, filenameparser, utils
 from comicapi.comet import CoMet
@@ -1212,6 +1211,8 @@ class ComicArchive:
 
         filename = self.path.name
         if split_words:
+            import wordninja
+
             filename = " ".join(wordninja.split(self.path.stem)) + self.path.suffix
 
         if complicated_parser:
