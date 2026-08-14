@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import pytest
 
-import comicapi.comicarchive
-import comicapi.issuestring
 import comictaggerlib.issueidentifier
 import testing.comicdata
 import testing.comicvine
@@ -34,14 +32,8 @@ def test_get_issue_cover_match_score(cbz, options, comicvine_api):
     settings, definitions = options
     ii = comictaggerlib.issueidentifier.IssueIdentifier(cbz, settings, comicvine_api)
     score = ii.get_issue_cover_match_score(
-        int(
-            comicapi.issuestring.IssueString(
-                cbz.read_metadata(comicapi.comicarchive.MetaDataStyle.CIX).issue
-            ).as_float()
-        ),
         "https://comicvine.gamespot.com/a/uploads/scale_large/0/574/585444-109004_20080707014047_large.jpg",
-        "https://comicvine.gamespot.com/a/uploads/scale_avatar/0/574/585444-109004_20080707014047_large.jpg",
-        "https://comicvine.gamespot.com/cory-doctorows-futuristic-tales-of-the-here-and-no/4000-140529/",
+        ["https://comicvine.gamespot.com/cory-doctorows-futuristic-tales-of-the-here-and-no/4000-140529/"],
         [ii.calculate_hash(cbz.get_page(0))],
     )
     expected = {
@@ -69,7 +61,6 @@ def test_search(cbz, options, comicvine_api):
         "year": testing.comicvine.date[2],
         "publisher": testing.comicvine.cv_volume_result["results"]["publisher"]["name"],
         "image_url": testing.comicvine.cv_issue_result["results"]["image"]["super_url"],
-        "thumb_url": testing.comicvine.cv_issue_result["results"]["image"]["thumb_url"],
         "description": testing.comicvine.cv_issue_result["results"]["description"],
     }
     for r, e in zip(results, [cv_expected]):
