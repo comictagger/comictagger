@@ -28,7 +28,7 @@ import sys
 import webbrowser
 from collections.abc import Iterable
 from datetime import datetime
-from typing import Any, Callable, cast
+from typing import Any, Callable
 from urllib.parse import urlparse
 
 import natsort
@@ -1043,7 +1043,6 @@ You have {4-self.settings.settings_warning} warnings left.
         self.query_online(autoselect=False, literal=True)
 
     def query_online(self, autoselect: bool = False, literal: bool = False) -> None:
-
         issue_number = str(self.leIssueNum.text()).strip()
 
         if autoselect and issue_number == "":
@@ -1070,7 +1069,7 @@ You have {4-self.settings.settings_warning} warnings left.
             year,
             issue_count,
             cover_index_list,
-            cast(ComicArchive, self.comic_archive),
+            self.comic_archive,
             self.settings,
             autoselect,
             literal,
