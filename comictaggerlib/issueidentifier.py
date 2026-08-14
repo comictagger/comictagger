@@ -418,16 +418,13 @@ class IssueIdentifier:
         # now sort the list by name length
         series_second_round_list.sort(key=lambda x: len(x["name"]), reverse=False)
 
-        # build a list of series IDs
-        series_id_list = []
-        for series in series_second_round_list:
-            series_id_list.append(series["id"])
+        series_by_id = {series["id"]: series for series in series_second_round_list}
 
         issue_list = None
         try:
-            if len(series_id_list) > 0:
+            if len(series_by_id) > 0:
                 issue_list = self.talker_api.fetch_issues_by_series_issue_num_and_year(
-                    series_id_list, keys["issue_number"], keys["year"]
+                    list(series_by_id.keys()), keys["issue_number"], keys["year"]
                 )
         except TalkerError as e:
             self.log_msg(f"Issue with while searching for series details. Aborting...\n{e}")
@@ -438,11 +435,10 @@ class IssueIdentifier:
 
         shortlist = []
         # now re-associate the issues and series
+        # is this really needed?
         for issue in issue_list:
-            for series in series_second_round_list:
-                if series["id"] == issue["series"]["id"]:
-                    shortlist.append((series, issue))
-                    break
+            if issue["series"]["id"] in series_by_id:
+                shortlist.append((series_by_id[issue["series"]["id"]], issue))
 
         if keys["year"] is None:
             self.log_msg(f"Found {len(shortlist)} series that have an issue #{keys['issue_number']}")
