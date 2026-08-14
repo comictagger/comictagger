@@ -68,6 +68,14 @@ metadata = [
         comicapi.genericmetadata.md_test.replace(series=None, issue="2", title="never"),
     ),
     (
+        comicapi.genericmetadata.GenericMetadata(series="", issue="", title="never"),
+        comicapi.genericmetadata.md_test.replace(series=None, issue=None, title="never"),
+    ),
+    (
+        comicapi.genericmetadata.GenericMetadata(series="", issue=None, title="never"),
+        comicapi.genericmetadata.md_test.replace(series=None, issue="1", title="never"),
+    ),
+    (
         comicapi.genericmetadata.GenericMetadata(),
         comicapi.genericmetadata.md_test.copy(),
     ),

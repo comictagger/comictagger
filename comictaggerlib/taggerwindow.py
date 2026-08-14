@@ -897,8 +897,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
         # copy the data from the form into the metadata
         md = GenericMetadata()
         md.is_empty = False
-        md.alternate_number = IssueString(self.leAltIssueNum.text()).as_string()
-        md.issue = IssueString(self.leIssueNum.text()).as_string()
+        md.alternate_number = utils.xlate(IssueString(self.leAltIssueNum.text()).as_string())
+        md.issue = utils.xlate(IssueString(self.leIssueNum.text()).as_string())
         md.issue_count = utils.xlate_int(self.leIssueCount.text())
         md.volume = utils.xlate_int(self.leVolumeNum.text())
         md.volume_count = utils.xlate_int(self.leVolumeCount.text())
@@ -907,30 +907,30 @@ class TaggerWindow(QtWidgets.QMainWindow):
         md.day = utils.xlate_int(self.lePubDay.text())
         md.alternate_count = utils.xlate_int(self.leAltIssueCount.text())
 
-        md.series = self.leSeries.text()
-        md.title = self.leTitle.text()
-        md.publisher = self.lePublisher.text()
-        md.genre = self.leGenre.text()
-        md.imprint = self.leImprint.text()
-        md.comments = self.teComments.toPlainText()
-        md.notes = self.teNotes.toPlainText()
+        md.series = utils.xlate(self.leSeries.text())
+        md.title = utils.xlate(self.leTitle.text())
+        md.publisher = utils.xlate(self.lePublisher.text())
+        md.genre = utils.xlate(self.leGenre.text())
+        md.imprint = utils.xlate(self.leImprint.text())
+        md.comments = utils.xlate(self.teComments.toPlainText())
+        md.notes = utils.xlate(self.teNotes.toPlainText())
         md.maturity_rating = self.cbMaturityRating.currentText()
 
         md.critical_rating = utils.xlate_float(self.dsbCriticalRating.cleanText())
         if md.critical_rating == 0.0:
             md.critical_rating = None
 
-        md.story_arc = self.leStoryArc.text()
-        md.scan_info = self.leScanInfo.text()
-        md.series_group = self.leSeriesGroup.text()
-        md.alternate_series = self.leAltSeries.text()
-        md.web_link = self.leWebLink.text()
-        md.characters = self.teCharacters.toPlainText()
-        md.teams = self.teTeams.toPlainText()
-        md.locations = self.teLocations.toPlainText()
+        md.story_arc = utils.xlate(self.leStoryArc.text())
+        md.scan_info = utils.xlate(self.leScanInfo.text())
+        md.series_group = utils.xlate(self.leSeriesGroup.text())
+        md.alternate_series = utils.xlate(self.leAltSeries.text())
+        md.web_link = utils.xlate(self.leWebLink.text())
+        md.characters = utils.xlate(self.teCharacters.toPlainText())
+        md.teams = utils.xlate(self.teTeams.toPlainText())
+        md.locations = utils.xlate(self.teLocations.toPlainText())
 
-        md.format = self.cbFormat.currentText()
-        md.country = self.cbCountry.currentText()
+        md.format = utils.xlate(self.cbFormat.currentText())
+        md.country = utils.xlate(self.cbCountry.currentText())
 
         md.language = utils.xlate(self.cbLanguage.itemData(self.cbLanguage.currentIndex()))
 

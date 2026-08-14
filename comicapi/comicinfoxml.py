@@ -22,7 +22,6 @@ from xml.etree.ElementTree import ElementTree
 
 from comicapi import utils
 from comicapi.genericmetadata import GenericMetadata, ImageMetadata
-from comicapi.issuestring import IssueString
 
 logger = logging.getLogger(__name__)
 
@@ -189,11 +188,11 @@ class ComicInfoXml:
 
         md.series = utils.xlate(get("Series"))
         md.title = utils.xlate(get("Title"))
-        md.issue = IssueString(utils.xlate(get("Number"))).as_string()
+        md.issue = utils.xlate(get("Number"))
         md.issue_count = utils.xlate_int(get("Count"))
         md.volume = utils.xlate_int(get("Volume"))
         md.alternate_series = utils.xlate(get("AlternateSeries"))
-        md.alternate_number = IssueString(utils.xlate(get("AlternateNumber"))).as_string()
+        md.alternate_number = utils.xlate(get("AlternateNumber"))
         md.alternate_count = utils.xlate_int(get("AlternateCount"))
         md.comments = utils.xlate(get("Summary"))
         md.notes = utils.xlate(get("Notes"))
