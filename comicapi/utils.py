@@ -25,9 +25,6 @@ from collections.abc import Mapping
 from shutil import which  # noqa: F401
 from typing import Any
 
-import pycountry
-import rapidfuzz.fuzz
-
 import comicapi.data
 
 logger = logging.getLogger(__name__)
@@ -162,6 +159,8 @@ def sanitize_title(text: str, basic: bool = False) -> str:
 
 
 def titles_match(search_title: str, record_title: str, threshold: int = 90) -> bool:
+    import rapidfuzz.fuzz
+
     sanitized_search = sanitize_title(search_title)
     sanitized_record = sanitize_title(record_title)
     ratio: int = rapidfuzz.fuzz.ratio(sanitized_search, sanitized_record)
@@ -185,26 +184,41 @@ def unique_file(file_name: pathlib.Path) -> pathlib.Path:
         counter += 1
 
 
-languages: dict[str | None, str | None] = defaultdict(lambda: None)
+_languages: dict[str | None, str | None] = defaultdict(lambda: None)
 
-countries: dict[str | None, str | None] = defaultdict(lambda: None)
+_countries: dict[str | None, str | None] = defaultdict(lambda: None)
 
-for c in pycountry.countries:
-    if "alpha_2" in c._fields:
-        countries[c.alpha_2] = c.name
 
-for lng in pycountry.languages:
-    if "alpha_2" in lng._fields:
-        languages[lng.alpha_2] = lng.name
+def countries() -> dict[str | None, str | None]:
+    if not _countries:
+        import pycountry
+
+        for c in pycountry.countries:
+            if "alpha_2" in c._fields:
+                _countries[c.alpha_2] = c.name
+    return _countries
+
+
+def languages() -> dict[str | None, str | None]:
+    if not _languages:
+        import pycountry
+
+        for lng in pycountry.languages:
+            if "alpha_2" in lng._fields:
+                _languages[lng.alpha_2] = lng.name
+    return _languages
 
 
 def get_language_from_iso(iso: str | None) -> str | None:
-    return languages[iso]
+    return languages()[iso]
 
 
 def get_language_iso(string: str | None) -> str | None:
     if string is None:
         return None
+    import pycountry
+
+    # Return current string if all else fails
     lang = string.casefold()
 
     try:
