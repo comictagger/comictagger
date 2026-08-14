@@ -1071,7 +1071,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                     if self.config[0].cbl_apply_transform_on_import:
                         new_metadata = CBLTransformer(new_metadata, self.config[0]).apply()
 
-                    if self.config[0].talker_clear_form_before_populating:
+                    if self.config[0].identifier_clear_form_before_populating:
                         self.clear_form()
 
                     notes = (
@@ -1354,7 +1354,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 QtWidgets.QMessageBox.warning(self, self.tr("Web Link"), self.tr("Web Link is invalid."))
 
     def show_settings(self) -> None:
-        settingswin = SettingsWindow(self, self.config, self.current_talker())
+        settingswin = SettingsWindow(self, self.config, self.talkers)
         settingswin.setModal(True)
         settingswin.exec()
         settingswin.result()
@@ -1785,7 +1785,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                     )
                     md.overlay(ct_md.replace(notes=utils.combine_notes(md.notes, notes, "Tagged with ComicTagger")))
 
-                if self.config[0].talker_auto_imprint:
+                if self.config[0].identifier_auto_imprint:
                     md.fix_publisher()
 
                 if not ca.write_metadata(md, self.save_data_style):
@@ -2047,7 +2047,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         if self.dirty_flag_verification(
             "File Rename", "If you rename files now, unsaved data in the form will be lost.  Are you sure?"
         ):
-            dlg = RenameWindow(self, ca_list, self.load_data_style, self.config, self.current_talker())
+            dlg = RenameWindow(self, ca_list, self.load_data_style, self.config, self.talkers)
             dlg.setModal(True)
             if dlg.exec() and self.comic_archive is not None:
                 self.fileSelectionList.update_selected_rows()

@@ -25,6 +25,7 @@ from typing import Any
 import settngs
 from PyQt5 import QtCore, QtGui, QtWidgets, uic
 
+import comictaggerlib.ui.talkeruigenerator
 from comicapi import utils
 from comicapi.genericmetadata import md_test
 from comictaggerlib.ctversion import version
@@ -131,7 +132,7 @@ Spider-Geddon #1 - New Players; Check In
 
 class SettingsWindow(QtWidgets.QDialog):
     def __init__(
-        self, parent: QtWidgets.QWidget, config: settngs.Config[settngs.Namespace], talker: ComicTalker
+        self, parent: QtWidgets.QWidget, config: settngs.Config[settngs.Namespace], talkers: dict[str, ComicTalker]
     ) -> None:
         super().__init__(parent)
 
@@ -142,7 +143,7 @@ class SettingsWindow(QtWidgets.QDialog):
         )
 
         self.config = config
-        self.talker = talker
+        self.talkers = talkers
         self.name = "Settings"
 
         if platform.system() == "Windows":
@@ -185,16 +186,21 @@ class SettingsWindow(QtWidgets.QDialog):
         self.leRenameTemplate.setToolTip(f"<pre>{html.escape(template_tooltip)}</pre>")
         self.rename_error: Exception | None = None
 
+        self.sources: dict = comictaggerlib.ui.talkeruigenerator.generate_source_option_tabs(
+            self.tComicTalkers, self.config, self.talkers
+        )
         self.connect_signals()
         self.settings_to_form()
         self.rename_test()
         self.dir_test()
 
+        # Set General as start tab
+        self.tabWidget.setCurrentIndex(0)
+
     def connect_signals(self) -> None:
         self.btnBrowseRar.clicked.connect(self.select_rar)
         self.btnClearCache.clicked.connect(self.clear_cache)
         self.btnResetSettings.clicked.connect(self.reset_settings)
-        self.btnTestKey.clicked.connect(self.test_api_key)
         self.btnTemplateHelp.clicked.connect(self.show_template_help)
         self.cbxMoveFiles.clicked.connect(self.dir_test)
         self.leDirectory.textEdited.connect(self.dir_test)
@@ -223,7 +229,6 @@ class SettingsWindow(QtWidgets.QDialog):
         self.btnRemoveValueReplacement.clicked.disconnect()
         self.btnResetSettings.clicked.disconnect()
         self.btnTemplateHelp.clicked.disconnect()
-        self.btnTestKey.clicked.disconnect()
         self.cbxChangeExtension.clicked.disconnect()
         self.cbxComplicatedParser.clicked.disconnect()
         self.cbxMoveFiles.clicked.disconnect()
@@ -301,7 +306,7 @@ class SettingsWindow(QtWidgets.QDialog):
         else:
             self.leRarExePath.setEnabled(False)
         self.sbNameMatchIdentifyThresh.setValue(self.config[0].identifier_series_match_identify_thresh)
-        self.sbNameMatchSearchThresh.setValue(self.config[0].talker_series_match_search_thresh)
+        self.sbNameMatchSearchThresh.setValue(self.config[0].identifier_series_match_search_thresh)
         self.tePublisherFilter.setPlainText("\n".join(self.config[0].identifier_publisher_filter))
 
         self.cbxCheckForNewVersion.setChecked(self.config[0].general_check_for_new_version)
@@ -312,16 +317,10 @@ class SettingsWindow(QtWidgets.QDialog):
         self.cbxRemovePublisher.setChecked(self.config[0].filename_remove_publisher)
         self.switch_parser()
 
-        self.cbxUseSeriesStartAsVolume.setChecked(self.config[0].talker_comicvine_cv_use_series_start_as_volume)
-        self.cbxClearFormBeforePopulating.setChecked(self.config[0].talker_clear_form_before_populating)
-        self.cbxRemoveHtmlTables.setChecked(self.config[0].talker_comicvine_cv_remove_html_tables)
-
-        self.cbxUseFilter.setChecked(self.config[0].talker_always_use_publisher_filter)
-        self.cbxSortByYear.setChecked(self.config[0].talker_sort_series_by_year)
-        self.cbxExactMatches.setChecked(self.config[0].talker_exact_series_matches_first)
-
-        self.leKey.setText(self.config[0].talker_comicvine_comicvine_key)
-        self.leURL.setText(self.config[0].talker_comicvine_comicvine_url)
+        self.cbxClearFormBeforePopulating.setChecked(self.config[0].identifier_clear_form_before_populating)
+        self.cbxUseFilter.setChecked(self.config[0].identifier_always_use_publisher_filter)
+        self.cbxSortByYear.setChecked(self.config[0].identifier_sort_series_by_year)
+        self.cbxExactMatches.setChecked(self.config[0].identifier_exact_series_matches_first)
 
         self.cbxAssumeLoneCreditIsPrimary.setChecked(self.config[0].cbl_assume_lone_credit_is_primary)
         self.cbxCopyCharactersToTags.setChecked(self.config[0].cbl_copy_characters_to_tags)
@@ -349,6 +348,10 @@ class SettingsWindow(QtWidgets.QDialog):
                 table.removeRow(i)
             for row, replacement in enumerate(replacments):
                 self.insertRow(table, row, replacement)
+
+        # Set talker values
+        comictaggerlib.ui.talkeruigenerator.settings_to_talker_form(self.sources, self.config)
+
         self.connect_signals()
 
     def get_replacements(self) -> Replacements:
@@ -418,7 +421,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.config[0].general_check_for_new_version = self.cbxCheckForNewVersion.isChecked()
 
         self.config[0].identifier_series_match_identify_thresh = self.sbNameMatchIdentifyThresh.value()
-        self.config[0].talker_series_match_search_thresh = self.sbNameMatchSearchThresh.value()
+        self.config[0].identifier_series_match_search_thresh = self.sbNameMatchSearchThresh.value()
         self.config[0].identifier_publisher_filter = [
             x.strip() for x in str(self.tePublisherFilter.toPlainText()).splitlines() if x.strip()
         ]
@@ -428,16 +431,10 @@ class SettingsWindow(QtWidgets.QDialog):
         self.config[0].filename_remove_fcbd = self.cbxRemoveFCBD.isChecked()
         self.config[0].filename_remove_publisher = self.cbxRemovePublisher.isChecked()
 
-        self.config[0].talker_comicvine_cv_use_series_start_as_volume = self.cbxUseSeriesStartAsVolume.isChecked()
-        self.config[0].talker_clear_form_before_populating = self.cbxClearFormBeforePopulating.isChecked()
-        self.config[0].talker_comicvine_cv_remove_html_tables = self.cbxRemoveHtmlTables.isChecked()
-
-        self.config[0].talker_always_use_publisher_filter = self.cbxUseFilter.isChecked()
-        self.config[0].talker_sort_series_by_year = self.cbxSortByYear.isChecked()
-        self.config[0].talker_exact_series_matches_first = self.cbxExactMatches.isChecked()
-
-        self.config[0].talker_comicvine_comicvine_key = self.leKey.text().strip()
-        self.config[0].talker_comicvine_comicvine_url = self.leURL.text().strip()
+        self.config[0].identifier_clear_form_before_populating = self.cbxClearFormBeforePopulating.isChecked()
+        self.config[0].identifier_always_use_publisher_filter = self.cbxUseFilter.isChecked()
+        self.config[0].identifier_sort_series_by_year = self.cbxSortByYear.isChecked()
+        self.config[0].identifier_exact_series_matches_first = self.cbxExactMatches.isChecked()
 
         self.config[0].cbl_assume_lone_credit_is_primary = self.cbxAssumeLoneCreditIsPrimary.isChecked()
         self.config[0].cbl_copy_characters_to_tags = self.cbxCopyCharactersToTags.isChecked()
@@ -459,6 +456,9 @@ class SettingsWindow(QtWidgets.QDialog):
         self.config[0].rename_strict = self.cbxRenameStrict.isChecked()
         self.config[0].rename_replacements = self.get_replacements()
 
+        # Read settings from talker tabs
+        comictaggerlib.ui.talkeruigenerator.form_settings_to_config(self.sources, self.config)
+
         self.update_talkers_config()
 
         settngs.save_file(self.config, self.config[0].runtime_config.user_config_dir / "settings.json")
@@ -467,8 +467,8 @@ class SettingsWindow(QtWidgets.QDialog):
 
     def update_talkers_config(self) -> None:
         cfg = settngs.normalize_config(self.config, True, True)
-        if f"talker_{self.talker.id}" in cfg[0]:
-            self.talker.parse_settings(cfg[0][f"talker_{self.talker.id}"])
+        for talker, talker_obj in self.talkers.items():
+            talker_obj.parse_settings(cfg[0][f"talker_{talker}"])
 
     def select_rar(self) -> None:
         self.select_file(self.leRarExePath, "RAR")
@@ -477,12 +477,6 @@ class SettingsWindow(QtWidgets.QDialog):
         ImageFetcher(self.config[0].runtime_config.user_cache_dir).clear_cache()
         ComicCacher(self.config[0].runtime_config.user_cache_dir, version).clear_cache()
         QtWidgets.QMessageBox.information(self, self.name, "Cache has been cleared.")
-
-    def test_api_key(self) -> None:
-        if self.talker.check_api_key(self.leKey.text().strip(), self.leURL.text().strip()):
-            QtWidgets.QMessageBox.information(self, "API Key Test", "Key is valid!")
-        else:
-            QtWidgets.QMessageBox.warning(self, "API Key Test", "Key is NOT valid.")
 
     def reset_settings(self) -> None:
         self.config = settngs.get_namespace(settngs.defaults(self.config[1]))
