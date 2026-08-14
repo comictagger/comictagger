@@ -77,10 +77,7 @@ class OptionalMessageDialog(QtWidgets.QDialog):
         else:
             btnbox_style = QtWidgets.QDialogButtonBox.StandardButton.Ok
 
-        self.theButtonBox = QtWidgets.QDialogButtonBox(
-            btnbox_style,
-            parent=self,
-        )
+        self.theButtonBox = QtWidgets.QDialogButtonBox(btnbox_style, parent=self)
         self.theButtonBox.accepted.connect(self.accept)
         self.theButtonBox.rejected.connect(self.reject)
 
