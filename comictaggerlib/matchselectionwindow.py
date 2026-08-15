@@ -46,7 +46,7 @@ class MatchSelectionWindow(QtWidgets.QDialog):
             uic.loadUi(uifile, self)
 
         self.altCoverWidget = CoverImageWidget(
-            self.altCoverContainer, CoverImageWidget.AltCoverMode, config.runtime_config.user_cache_dir, talker
+            self.altCoverContainer, CoverImageWidget.AltCoverMode, config.Runtime_Options_config.user_cache_dir, talker
         )
         gridlayout = QtWidgets.QGridLayout(self.altCoverContainer)
         gridlayout.addWidget(self.altCoverWidget)
