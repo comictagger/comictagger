@@ -196,6 +196,8 @@ class SettingsWindow(QtWidgets.QDialog):
         self.settings_to_form()
         self.rename_test()
         self.dir_test()
+        self.leFilenameParserTest.setText(self.lblRenameTest.text())
+        self.filename_parser_test()
 
         # Set General as start tab
         self.tabWidget.setCurrentIndex(0)
@@ -223,6 +225,15 @@ class SettingsWindow(QtWidgets.QDialog):
         self.twLiteralReplacements.cellChanged.connect(self.rename_test)
         self.twValueReplacements.cellChanged.connect(self.rename_test)
 
+        self.leFilenameParserTest.textEdited.connect(self.filename_parser_test)
+        self.cbxRemoveC2C.clicked.connect(self.filename_parser_test)
+        self.cbxRemoveFCBD.clicked.connect(self.filename_parser_test)
+        self.cbxRemovePublisher.clicked.connect(self.filename_parser_test)
+        self.cbxProtofoliusIssueNumberScheme.clicked.connect(self.filename_parser_test)
+        self.cbxProtofoliusIssueNumberScheme.clicked.connect(self.protofolius_clicked)
+        self.cbxAllowIssueStartWithLetter.clicked.connect(self.filename_parser_test)
+        self.cbxSplitWords.clicked.connect(self.filename_parser_test)
+
     def disconnect_signals(self) -> None:
         self.btnAddLiteralReplacement.clicked.disconnect()
         self.btnAddValueReplacement.clicked.disconnect()
@@ -242,6 +253,13 @@ class SettingsWindow(QtWidgets.QDialog):
         self.leRenameTemplate.textEdited.disconnect()
         self.twLiteralReplacements.cellChanged.disconnect()
         self.twValueReplacements.cellChanged.disconnect()
+        self.leFilenameParserTest.textEdited.disconnect()
+        self.cbxRemoveC2C.clicked.disconnect()
+        self.cbxRemoveFCBD.clicked.disconnect()
+        self.cbxRemovePublisher.clicked.disconnect()
+        self.cbxProtofoliusIssueNumberScheme.clicked.disconnect()
+        self.cbxAllowIssueStartWithLetter.clicked.disconnect()
+        self.cbxSplitWords.clicked.disconnect()
 
     def protofolius_clicked(self, *args: Any, **kwargs: Any) -> None:
         if self.cbxProtofoliusIssueNumberScheme.isChecked():
@@ -249,6 +267,43 @@ class SettingsWindow(QtWidgets.QDialog):
             self.cbxAllowIssueStartWithLetter.setChecked(True)
         else:
             self.cbxAllowIssueStartWithLetter.setEnabled(True)
+        self.filename_parser_test()
+
+    def filename_parser_test(self, *args: Any, **kwargs: Any) -> None:
+        self._filename_parser_test(self.leFilenameParserTest.text())
+
+    def _filename_parser_test(self, filename: str) -> None:
+        filename_info = utils.parse_filename(
+            filename=filename,
+            complicated_parser=self.cbxComplicatedParser.isChecked(),
+            remove_c2c=self.cbxRemoveC2C.isChecked(),
+            remove_fcbd=self.cbxRemoveFCBD.isChecked(),
+            remove_publisher=self.cbxRemovePublisher.isChecked(),
+            split_words=self.cbxSplitWords.isChecked(),
+            allow_issue_start_with_letter=self.cbxAllowIssueStartWithLetter.isChecked(),
+            protofolius_issue_number_scheme=self.cbxProtofoliusIssueNumberScheme.isChecked(),
+        )
+        report = ""
+        for item in (
+            "series",
+            "issue",
+            "issue_count",
+            "title",
+            "volume",
+            "volume_count",
+            "year",
+            "alternate",
+            "publisher",
+            "format",
+            "archive",
+            "remainder",
+            "annual",
+            "c2c",
+            "fcbd",
+        ):
+            report += f"{item.title().replace('_', ' ')}: {dict(filename_info)[item]}\n"
+        self.lblFilenameParserTest.setText(report)
+
     def addLiteralReplacement(self) -> None:
         self.insertRow(self.twLiteralReplacements, self.twLiteralReplacements.rowCount(), Replacement("", "", False))
 
