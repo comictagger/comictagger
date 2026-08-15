@@ -28,6 +28,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets, uic
 import comictaggerlib.ui.talkeruigenerator
 from comicapi import utils
 from comicapi.genericmetadata import md_test
+from comictaggerlib import ctsettings
 from comictaggerlib.ctversion import version
 from comictaggerlib.filerenamer import FileRenamer, Replacement, Replacements
 from comictaggerlib.imagefetcher import ImageFetcher
@@ -466,9 +467,9 @@ class SettingsWindow(QtWidgets.QDialog):
         QtWidgets.QDialog.accept(self)
 
     def update_talkers_config(self) -> None:
-        cfg = settngs.normalize_config(self.config, True, True)
-        for talker, talker_obj in self.talkers.items():
-            talker_obj.parse_settings(cfg[0][f"talker_{talker}"])
+        ctsettings.talkers = self.talkers
+        self.config = ctsettings.plugin.validate_talker_settings(self.config)
+        del ctsettings.talkers
 
     def select_rar(self) -> None:
         self.select_file(self.leRarExePath, "RAR")
