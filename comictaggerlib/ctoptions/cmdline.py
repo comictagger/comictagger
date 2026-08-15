@@ -83,7 +83,7 @@ def register_options(parser: settngs.Manager) -> None:
     parser.add_setting(
         "--id",
         dest="issue_id",
-        type=int,
+        type=str,
         help="""Use the issue ID when searching online.\nOverrides all other metadata.\n\n""",
         file=False,
     )

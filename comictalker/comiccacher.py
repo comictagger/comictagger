@@ -98,7 +98,7 @@ class ComicCacher:
 
             cur.execute(
                 "CREATE TABLE Issues("
-                + "id INT NOT NULL,"
+                + "id TEXT NOT NULL,"
                 + "series_id INT,"
                 + "name TEXT,"
                 + "issue_number TEXT,"
@@ -327,7 +327,7 @@ class ComicCacher:
 
         return results
 
-    def get_issue_info(self, issue_id: int, source_name: str) -> ComicIssue | None:
+    def get_issue_info(self, issue_id: str, source_name: str) -> ComicIssue | None:
         con = lite.connect(self.db_file)
         with con:
             cur = con.cursor()

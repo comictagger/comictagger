@@ -191,7 +191,7 @@ class ComicTalker:
         raise NotImplementedError
 
     def fetch_comic_data(
-        self, issue_id: int | None = None, series_id: int | None = None, issue_number: str = ""
+        self, issue_id: str | None = None, series_id: int | None = None, issue_number: str = ""
     ) -> GenericMetadata:
         """
         This function should return an instance of GenericMetadata for a single issue.

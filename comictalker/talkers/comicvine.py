@@ -350,7 +350,7 @@ class ComicVineTalker(ComicTalker):
                     aliases=record["aliases"].split("\n") if record["aliases"] else [],
                     cover_date=record.get("cover_date", ""),
                     description=record.get("description", ""),
-                    id=record["id"],
+                    id=str(record["id"]),
                     image_url=image_url,
                     image_thumb_url=image_thumb_url,
                     issue_number=record["issue_number"],
@@ -464,7 +464,7 @@ class ComicVineTalker(ComicTalker):
 
     # Get issue or series information
     def fetch_comic_data(
-        self, issue_id: int | None = None, series_id: int | None = None, issue_number: str = ""
+        self, issue_id: str | None = None, series_id: int | None = None, issue_number: str = ""
     ) -> GenericMetadata:
         comic_data = GenericMetadata()
         if issue_id:
@@ -610,10 +610,10 @@ class ComicVineTalker(ComicTalker):
             return self.fetch_issue_data_by_issue_id(f_record["id"])
         return GenericMetadata()
 
-    def fetch_issue_data_by_issue_id(self, issue_id: int) -> GenericMetadata:
+    def fetch_issue_data_by_issue_id(self, issue_id: str) -> GenericMetadata:
         # before we search online, look in our cache, since we might already have this info
         cvc = ComicCacher(self.cache_folder, self.version)
-        cached_issues_result = cvc.get_issue_info(issue_id, self.source_name)
+        cached_issues_result = cvc.get_issue_info(int(issue_id), self.source_name)
 
         if cached_issues_result and cached_issues_result["complete"]:
             return talker_utils.map_comic_issue_to_metadata(

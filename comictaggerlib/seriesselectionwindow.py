@@ -141,7 +141,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         self.options = options
         self.series_name = series_name
         self.issue_number = issue_number
-        self.issue_id: int | None = None
+        self.issue_id: str = ""
         self.year = year
         self.issue_count = issue_count
         self.series_id = 0

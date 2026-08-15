@@ -1063,7 +1063,7 @@ Have fun!
 
             try:
                 new_metadata = self.talker_api.fetch_comic_data(
-                    issue_id=selector.issue_id or 0, series_id=selector.series_id, issue_number=selector.issue_number
+                    issue_id=selector.issue_id, series_id=selector.series_id, issue_number=selector.issue_number
                 )
             except TalkerError as e:
                 QtWidgets.QApplication.restoreOverrideCursor()

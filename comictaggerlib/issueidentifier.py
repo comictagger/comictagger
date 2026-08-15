@@ -235,7 +235,7 @@ class IssueIdentifier:
 
     def get_issue_cover_match_score(
         self,
-        issue_id: int,
+        issue_id: str,
         primary_img_url: str,
         primary_thumb_url: str,
         alt_urls: list[str],

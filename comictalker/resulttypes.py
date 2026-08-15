@@ -23,7 +23,7 @@ class ComicIssue(TypedDict, total=False):
     aliases: list[str]
     cover_date: str
     description: str
-    id: int
+    id: str
     image_url: str
     image_thumb_url: str
     issue_number: Required[str]
