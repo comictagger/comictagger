@@ -16,12 +16,10 @@
 # limitations under the License.
 from __future__ import annotations
 
-import json
 import logging
 import os
 import sys
 from datetime import datetime
-from pprint import pprint
 
 import settngs
 
@@ -244,12 +242,16 @@ class CLI:
 
         print()
 
+        raw: str | bytes = ""
         if not self.config.runtime_type or MetaDataStyle.CIX in self.config.runtime_type:
             if ca.has_metadata(MetaDataStyle.CIX):
                 print("--------- ComicRack tags ---------")
                 try:
                     if self.config.runtime_raw:
-                        print(ca.read_raw_cix())
+                        raw = ca.read_raw_cix()
+                        if isinstance(raw, bytes):
+                            raw = raw.decode("utf-8")
+                        print(raw)
                     else:
                         print(ca.read_cix())
                 except Exception as e:
@@ -260,7 +262,10 @@ class CLI:
                 print("------- ComicBookLover tags -------")
                 try:
                     if self.config.runtime_raw:
-                        pprint(json.loads(ca.read_raw_cbi()))
+                        raw = ca.read_raw_cbi()
+                        if isinstance(raw, bytes):
+                            raw = raw.decode("utf-8")
+                        print(raw)
                     else:
                         print(ca.read_cbi())
                 except Exception as e:
@@ -271,7 +276,10 @@ class CLI:
                 print("----------- CoMet tags -----------")
                 try:
                     if self.config.runtime_raw:
-                        print(ca.read_raw_comet())
+                        raw = ca.read_raw_comet()
+                        if isinstance(raw, bytes):
+                            raw = raw.decode("utf-8")
+                        print(raw)
                     else:
                         print(ca.read_comet())
                 except Exception as e:
