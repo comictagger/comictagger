@@ -25,6 +25,21 @@ cbz_path = datadir.joinpath("Cory Doctorow's Futuristic Tales of the Here and No
 
 names: list[tuple[str, str, dict[str, str | bool], tuple[bool, bool]]] = [
     (
+        "Drystan & Esyllt #3",
+        "&",
+        {
+            "issue": "3",
+            "series": "Drystan & Esyllt",
+            "title": "",
+            "volume": "",
+            "year": "",
+            "remainder": "",
+            "issue_count": "",
+            "alternate": "",
+        },
+        (False, False),
+    ),
+    (
         "Michel Vaillant #5 Nr. 13 aan de start",
         "Shortened word followed by a number eg No. 13, Mr. 13",
         {
