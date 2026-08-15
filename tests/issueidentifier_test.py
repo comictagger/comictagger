@@ -10,9 +10,9 @@ import testing.comicdata
 import testing.comicvine
 
 
-def test_crop(cbz_double_cover, options, tmp_path, comicvine_api):
-    settings, definitions = options
-    ii = comictaggerlib.issueidentifier.IssueIdentifier(cbz_double_cover, settings, comicvine_api)
+def test_crop(cbz_double_cover, config, tmp_path, comicvine_api):
+    config, definitions = config
+    ii = comictaggerlib.issueidentifier.IssueIdentifier(cbz_double_cover, config, comicvine_api)
     cropped = ii.crop_cover(cbz_double_cover.archiver.read_file("double_cover.jpg"))
     original_cover = cbz_double_cover.get_page(0)
 
@@ -23,17 +23,17 @@ def test_crop(cbz_double_cover, options, tmp_path, comicvine_api):
 
 
 @pytest.mark.parametrize("additional_md, expected", testing.comicdata.metadata_keys)
-def test_get_search_keys(cbz, options, additional_md, expected, comicvine_api):
-    settings, definitions = options
-    ii = comictaggerlib.issueidentifier.IssueIdentifier(cbz, settings, comicvine_api)
+def test_get_search_keys(cbz, config, additional_md, expected, comicvine_api):
+    config, definitions = config
+    ii = comictaggerlib.issueidentifier.IssueIdentifier(cbz, config, comicvine_api)
     ii.set_additional_metadata(additional_md)
 
     assert expected == ii.get_search_keys()
 
 
-def test_get_issue_cover_match_score(cbz, options, comicvine_api):
-    settings, definitions = options
-    ii = comictaggerlib.issueidentifier.IssueIdentifier(cbz, settings, comicvine_api)
+def test_get_issue_cover_match_score(cbz, config, comicvine_api):
+    config, definitions = config
+    ii = comictaggerlib.issueidentifier.IssueIdentifier(cbz, config, comicvine_api)
     score = ii.get_issue_cover_match_score(
         "https://comicvine.gamespot.com/a/uploads/scale_large/0/574/585444-109004_20080707014047_large.jpg",
         ["https://comicvine.gamespot.com/cory-doctorows-futuristic-tales-of-the-here-and-no/4000-140529/"],
@@ -47,9 +47,9 @@ def test_get_issue_cover_match_score(cbz, options, comicvine_api):
     assert expected == score
 
 
-def test_search(cbz, options, comicvine_api):
-    settings, definitions = options
-    ii = comictaggerlib.issueidentifier.IssueIdentifier(cbz, settings, comicvine_api)
+def test_search(cbz, config, comicvine_api):
+    config, definitions = config
+    ii = comictaggerlib.issueidentifier.IssueIdentifier(cbz, config, comicvine_api)
     results = ii.search()
     cv_expected = {
         "series": f"{testing.comicvine.cv_volume_result['results']['name']} ({testing.comicvine.cv_volume_result['results']['start_year']})",
@@ -71,9 +71,9 @@ def test_search(cbz, options, comicvine_api):
         assert r == e
 
 
-def test_crop_border(cbz, options, comicvine_api):
-    settings, definitions = options
-    ii = comictaggerlib.issueidentifier.IssueIdentifier(cbz, settings, comicvine_api)
+def test_crop_border(cbz, config, comicvine_api):
+    config, definitions = config
+    ii = comictaggerlib.issueidentifier.IssueIdentifier(cbz, config, comicvine_api)
 
     # This creates a white square centered on a black background
     bg = Image.new("RGBA", (100, 100), (0, 0, 0, 255))

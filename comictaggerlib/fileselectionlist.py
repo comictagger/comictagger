@@ -57,13 +57,13 @@ class FileSelectionList(QtWidgets.QWidget):
     dataColNum = fileColNum
 
     def __init__(
-        self, parent: QtWidgets.QWidget, options: settngs.Namespace, dirty_flag_verification: Callable[[str, str], bool]
+        self, parent: QtWidgets.QWidget, config: settngs.Namespace, dirty_flag_verification: Callable[[str, str], bool]
     ) -> None:
         super().__init__(parent)
 
         uic.loadUi(ui_path / "fileselectionlist.ui", self)
 
-        self.options = options
+        self.config = config
 
         reduce_widget_font_size(self.twList)
 

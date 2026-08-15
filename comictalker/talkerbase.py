@@ -37,7 +37,7 @@ class SourceDetails:
         self.logo = logo
 
 
-class SourceStaticOptions:
+class SourceStaticSettings:
     def __init__(
         self,
         website: str = "",
@@ -143,7 +143,7 @@ class ComicTalker:
     def __init__(self, version: str, cache_folder: pathlib.Path) -> None:
         # Identity name for the information source etc.
         self.source_details = SourceDetails()
-        self.static_options = SourceStaticOptions()
+        self.static_config = SourceStaticSettings()
         self.cache_folder = cache_folder
         self.version = version
         self.api_key: str = ""
