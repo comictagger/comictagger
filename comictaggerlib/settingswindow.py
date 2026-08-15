@@ -243,6 +243,12 @@ class SettingsWindow(QtWidgets.QDialog):
         self.twLiteralReplacements.cellChanged.disconnect()
         self.twValueReplacements.cellChanged.disconnect()
 
+    def protofolius_clicked(self, *args: Any, **kwargs: Any) -> None:
+        if self.cbxProtofoliusIssueNumberScheme.isChecked():
+            self.cbxAllowIssueStartWithLetter.setEnabled(False)
+            self.cbxAllowIssueStartWithLetter.setChecked(True)
+        else:
+            self.cbxAllowIssueStartWithLetter.setEnabled(True)
     def addLiteralReplacement(self) -> None:
         self.insertRow(self.twLiteralReplacements, self.twLiteralReplacements.rowCount(), Replacement("", "", False))
 
@@ -300,6 +306,7 @@ class SettingsWindow(QtWidgets.QDialog):
         self.cbxRemoveC2C.setEnabled(complicated)
         self.cbxRemoveFCBD.setEnabled(complicated)
         self.cbxRemovePublisher.setEnabled(complicated)
+        self.filename_parser_test()
 
     def settings_to_form(self) -> None:
         self.disconnect_signals()
@@ -318,6 +325,9 @@ class SettingsWindow(QtWidgets.QDialog):
         self.cbxRemoveC2C.setChecked(self.config[0].Filename_Parsing_remove_c2c)
         self.cbxRemoveFCBD.setChecked(self.config[0].Filename_Parsing_remove_fcbd)
         self.cbxRemovePublisher.setChecked(self.config[0].Filename_Parsing_remove_publisher)
+        self.cbxProtofoliusIssueNumberScheme.setChecked(self.config[0].Filename_Parsing_protofolius_issue_number_scheme)
+        self.cbxAllowIssueStartWithLetter.setChecked(self.config[0].Filename_Parsing_allow_issue_start_with_letter)
+
         self.switch_parser()
 
         self.cbxClearFormBeforePopulating.setChecked(self.config[0].Issue_Identifier_clear_form_before_populating)
@@ -433,6 +443,10 @@ class SettingsWindow(QtWidgets.QDialog):
         self.config[0].Filename_Parsing_remove_c2c = self.cbxRemoveC2C.isChecked()
         self.config[0].Filename_Parsing_remove_fcbd = self.cbxRemoveFCBD.isChecked()
         self.config[0].Filename_Parsing_remove_publisher = self.cbxRemovePublisher.isChecked()
+        self.config[0].Filename_Parsing_allow_issue_start_with_letter = self.cbxAllowIssueStartWithLetter.isChecked()
+        self.config.values.Filename_Parsing_protofolius_issue_number_scheme = (
+            self.cbxProtofoliusIssueNumberScheme.isChecked()
+        )
 
         self.config[0].Issue_Identifier_clear_form_before_populating = self.cbxClearFormBeforePopulating.isChecked()
         self.config[0].Issue_Identifier_always_use_publisher_filter = self.cbxUseFilter.isChecked()

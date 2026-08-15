@@ -23,11 +23,27 @@ import pytest
 datadir = importlib.resources.files(__package__).joinpath("data")
 cbz_path = datadir.joinpath("Cory Doctorow's Futuristic Tales of the Here and Now #001 - Anda's Game (2007).cbz")
 
-names = [
+names: list[tuple[str, str, dict[str, str | bool], tuple[bool, bool]]] = [
+    (
+        "Michel Vaillant #5 Nr. 13 aan de start",
+        "Shortened word followed by a number eg No. 13, Mr. 13",
+        {
+            "issue": "5",
+            "series": "Michel Vaillant",
+            "title": "Nr. 13 aan de start",
+            "volume": "",
+            "year": "",
+            "remainder": "",
+            "issue_count": "",
+            "alternate": "",
+        },
+        (False, True),
+    ),
     (
         "Karl May #001 Old Shatterhand.cbr",
         "Month in series",
         {
+            "archive": "cbr",
             "issue": "1",
             "series": "Karl May",
             "title": "Old Shatterhand",
@@ -41,9 +57,148 @@ names = [
         (False, True),
     ),
     (
-        "batman #3 title (DC).cbz",
-        "honorific and publisher in series",
+        "Michel Vaillant #8 De 8ste man",
+        "Non english ordinal",
         {
+            "issue": "8",
+            "series": "Michel Vaillant",
+            "title": "De 8ste man",
+            "volume": "",
+            "year": "",
+            "remainder": "",
+            "issue_count": "",
+            "alternate": "",
+        },
+        (False, True),
+    ),
+    (
+        "Michel Vaillant #13 Mach 1 voor Steve Warson",
+        "number in title",
+        {
+            "issue": "13",
+            "series": "Michel Vaillant",
+            "title": "Mach 1 voor Steve Warson",
+            "volume": "",
+            "year": "",
+            "remainder": "",
+            "issue_count": "",
+            "alternate": "",
+        },
+        (False, True),
+    ),
+    (
+        "Michel Vaillant #19 5 Meisjes in de race",
+        "number starting title",
+        {
+            "issue": "19",
+            "series": "Michel Vaillant",
+            "title": "5 Meisjes in de race",
+            "volume": "",
+            "year": "",
+            "remainder": "",
+            "issue_count": "",
+            "alternate": "",
+        },
+        (False, True),
+    ),
+    (
+        "Michel Vaillant #34 Steve Warson gaat K.O.",
+        "acronym",
+        {
+            "issue": "34",
+            "series": "Michel Vaillant",
+            "title": "Steve Warson gaat K.O.",
+            "volume": "",
+            "year": "",
+            "remainder": "",
+            "issue_count": "",
+            "alternate": "",
+        },
+        (False, True),
+    ),
+    (
+        "Michel Vaillant #40 F.1 in oproer",
+        "acronym with numbers",
+        {
+            "issue": "40",
+            "series": "Michel Vaillant",
+            "title": "F.1 in oproer",
+            "volume": "",
+            "year": "",
+            "remainder": "",
+            "issue_count": "",
+            "alternate": "",
+        },
+        (False, True),
+    ),
+    (
+        "Michel Vaillant #42 300 kmu door Parijs",
+        "number starting title",
+        {
+            "issue": "42",
+            "series": "Michel Vaillant",
+            "title": "300 kmu door Parijs",
+            "volume": "",
+            "year": "",
+            "remainder": "",
+            "issue_count": "",
+            "alternate": "",
+        },
+        (False, True),
+    ),
+    (
+        "Michel Vaillant #52 F 3000",
+        "title ends with number",
+        {
+            "issue": "52",
+            "series": "Michel Vaillant",
+            "title": "F 3000",
+            "volume": "",
+            "year": "",
+            "remainder": "",
+            "issue_count": "",
+            "alternate": "",
+        },
+        (False, True),
+    ),
+    (
+        "Michel Vaillant #66 100.000.000 $ voor Steve Warson",
+        "number separator is . and dollarsign after number",
+        {
+            "issue": "66",
+            "series": "Michel Vaillant",
+            "title": "100.000.000 $ voor Steve Warson",
+            "volume": "",
+            "year": "",
+            "remainder": "",
+            "issue_count": "",
+            "alternate": "",
+        },
+        (False, True),
+    ),
+    (
+        "batman #B01 title (DC).cbz",
+        "protofolius_issue_number_scheme",
+        {
+            "archive": "cbz",
+            "issue": "B1",
+            "series": "batman",
+            "title": "title",
+            "publisher": "DC",
+            "volume": "",
+            "year": "",
+            "remainder": "",
+            "issue_count": "",
+            "alternate": "",
+            "format": "biography/best of",
+        },
+        (False, True),
+    ),
+    (
+        "batman #3 title (DC).cbz",
+        "publisher in parenthesis",
+        {
+            "archive": "cbz",
             "issue": "3",
             "series": "batman",
             "title": "title",
@@ -58,8 +213,9 @@ names = [
     ),
     (
         "batman #3 title DC.cbz",
-        "honorific and publisher in series",
+        "publisher in title",
         {
+            "archive": "cbz",
             "issue": "3",
             "series": "batman",
             "title": "title DC",
@@ -76,6 +232,7 @@ names = [
         "ms. Marvel #3.cbz",
         "honorific and publisher in series",
         {
+            "archive": "cbz",
             "issue": "3",
             "series": "ms. Marvel",
             "title": "",
@@ -92,6 +249,7 @@ names = [
         f"action comics #{datetime.datetime.now().year}.cbz",
         "issue number is current year (digits == 4)",
         {
+            "archive": "cbz",
             "issue": f"{datetime.datetime.now().year}",
             "series": "action comics",
             "title": "",
@@ -108,6 +266,7 @@ names = [
         "action comics 1024.cbz",
         "issue number is current year (digits == 4)",
         {
+            "archive": "cbz",
             "issue": "1024",
             "series": "action comics",
             "title": "",
@@ -124,6 +283,7 @@ names = [
         "Action Comics 1001 (2018).cbz",
         "issue number is current year (digits == 4)",
         {
+            "archive": "cbz",
             "issue": "1001",
             "series": "Action Comics",
             "title": "",
@@ -140,6 +300,7 @@ names = [
         "january jones #2.cbz",
         "month in series",
         {
+            "archive": "cbz",
             "issue": "2",
             "series": "january jones",
             "title": "",
@@ -155,6 +316,7 @@ names = [
         "#52.cbz",
         "issue number only",
         {
+            "archive": "cbz",
             "issue": "52",
             "series": "52",
             "title": "",
@@ -170,6 +332,7 @@ names = [
         "52 Monster_Island_v1_#2__repaired__c2c.cbz",
         "leading alternate",
         {
+            "archive": "cbz",
             "issue": "2",
             "series": "Monster Island",
             "title": "",
@@ -186,6 +349,7 @@ names = [
         "Monster_Island_v1_#2__repaired__c2c.cbz",
         "Example from userguide",
         {
+            "archive": "cbz",
             "issue": "2",
             "series": "Monster Island",
             "title": "",
@@ -201,6 +365,7 @@ names = [
         "Monster Island v1 #3 (1957) -- The Revenge Of King Klong (noads).cbz",
         "Example from userguide",
         {
+            "archive": "cbz",
             "issue": "3",
             "series": "Monster Island",
             "title": "",
@@ -215,6 +380,7 @@ names = [
         "Foobar-Man Annual #121 - The Wrath of Foobar-Man, Part 1 of 2.cbz",
         "Example from userguide",
         {
+            "archive": "cbz",
             "issue": "121",
             "series": "Foobar-Man Annual",
             "title": "The Wrath of Foobar-Man, Part 1 of 2",
@@ -230,6 +396,7 @@ names = [
         "Plastic Man v1 #002 (1942).cbz",
         "Example from userguide",
         {
+            "archive": "cbz",
             "issue": "2",
             "series": "Plastic Man",
             "title": "",
@@ -244,6 +411,7 @@ names = [
         "Blue Beetle #02.cbr",
         "Example from userguide",
         {
+            "archive": "cbr",
             "issue": "2",
             "series": "Blue Beetle",
             "title": "",
@@ -258,6 +426,7 @@ names = [
         "Monster Island vol. 2 #2.cbz",
         "Example from userguide",
         {
+            "archive": "cbz",
             "issue": "2",
             "series": "Monster Island",
             "title": "",
@@ -272,6 +441,7 @@ names = [
         "Crazy Weird Comics #2 (of 2) (1969).rar",
         "Example from userguide",
         {
+            "archive": "rar",
             "issue": "2",
             "series": "Crazy Weird Comics",
             "title": "",
@@ -286,6 +456,7 @@ names = [
         "Super Strange Yarns (1957) #92 (1969).cbz",
         "Example from userguide",
         {
+            "archive": "cbz",
             "issue": "92",
             "series": "Super Strange Yarns",
             "title": "",
@@ -300,6 +471,7 @@ names = [
         "Action Spy Tales v1965 #3.cbr",
         "Example from userguide",
         {
+            "archive": "cbr",
             "issue": "3",
             "series": "Action Spy Tales",
             "title": "",
@@ -314,6 +486,7 @@ names = [
         " X-Men-V1-#067.cbr",
         "hyphen separated with hyphen in series",  # only parses correctly because v1 designates the volume
         {
+            "archive": "cbr",
             "issue": "67",
             "series": "X-Men",
             "title": "",
@@ -328,6 +501,7 @@ names = [
         "Amazing Spider-Man #078.BEY (2022) (Digital) (Zone-Empire).cbr",
         "number issue with extra",
         {
+            "archive": "cbr",
             "issue": "78.BEY",
             "series": "Amazing Spider-Man",
             "title": "",
@@ -342,6 +516,7 @@ names = [
         "Angel Wings #02 - Black Widow (2015) (Scanlation) (phillywilly).cbr",
         "title after #issue",
         {
+            "archive": "cbr",
             "issue": "2",
             "series": "Angel Wings",
             "title": "Black Widow",
@@ -356,6 +531,7 @@ names = [
         "Aquaman - Green Arrow - Deep Target #01 (of 07) (2021) (digital) (Son of Ultron-Empire).cbr",
         "issue count",
         {
+            "archive": "cbr",
             "issue": "1",
             "series": "Aquaman - Green Arrow - Deep Target",
             "title": "",
@@ -370,6 +546,7 @@ names = [
         "Aquaman 80th Anniversary 100-Page Super Spectacular (2021) #001 (2021) (Digital) (BlackManta-Empire).cbz",
         "numbers in series",
         {
+            "archive": "cbz",
             "issue": "1",
             "series": "Aquaman 80th Anniversary 100-Page Super Spectacular",
             "title": "",
@@ -384,6 +561,7 @@ names = [
         "Avatar - The Last Airbender - The Legend of Korra (FCBD 2021) (Digital) (mv-DCP).cbr",
         "FCBD date",
         {
+            "archive": "cbr",
             "issue": "",
             "series": "Avatar - The Last Airbender - The Legend of Korra",
             "title": "",
@@ -399,6 +577,7 @@ names = [
         "Avengers By Brian Michael Bendis volume 03 (2013) (Digital) (F2) (Kileko-Empire).cbz",
         "volume without issue",
         {
+            "archive": "cbz",
             "issue": "3",
             "series": "Avengers By Brian Michael Bendis",
             "title": "",
@@ -413,6 +592,7 @@ names = [
         "Avengers By Brian Michael Bendis v03 (2013) (Digital) (F2) (Kileko-Empire).cbz",
         "volume without issue",
         {
+            "archive": "cbz",
             "issue": "3",
             "series": "Avengers By Brian Michael Bendis",
             "title": "",
@@ -427,6 +607,7 @@ names = [
         "Batman '89 (2021) (Webrip) (The Last Kryptonian-DCP).cbr",
         "year in title without issue",
         {
+            "archive": "cbr",
             "issue": "",
             "series": "Batman '89",
             "title": "",
@@ -441,6 +622,7 @@ names = [
         "Batman_-_Superman_#020_(2021)_(digital)_(NeverAngel-Empire).cbr",
         "underscores",
         {
+            "archive": "cbr",
             "issue": "20",
             "series": "Batman - Superman",
             "title": "",
@@ -455,6 +637,7 @@ names = [
         "Black Widow #009 (2021) (Digital) (Zone-Empire).cbr",
         "standard",
         {
+            "archive": "cbr",
             "issue": "9",
             "series": "Black Widow",
             "title": "",
@@ -469,6 +652,7 @@ names = [
         "Blade Runner 2029 #006 (2021) (3 covers) (digital) (Son of Ultron-Empire).cbr",
         "year before issue",
         {
+            "archive": "cbr",
             "issue": "6",
             "series": "Blade Runner 2029",
             "title": "",
@@ -483,6 +667,7 @@ names = [
         "Blade Runner Free Comic Book Day 2021 (2021) (digital-Empire).cbr",
         "FCBD year and (year)",
         {
+            "archive": "cbr",
             "issue": "",
             "series": "Blade Runner Free Comic Book Day 2021",
             "title": "",
@@ -498,6 +683,7 @@ names = [
         "Bloodshot Book 03 (2020) (digital) (Son of Ultron-Empire).cbr",
         "book",
         {
+            "archive": "cbr",
             "issue": "3",
             "series": "Bloodshot",
             "title": "Book 03",
@@ -512,6 +698,7 @@ names = [
         "book of eli #1 (2020) (digital) (Son of Ultron-Empire).cbr",
         "book",
         {
+            "archive": "cbr",
             "issue": "1",
             "series": "book of eli",
             "title": "",
@@ -526,6 +713,7 @@ names = [
         "Cyberpunk 2077 - You Have My Word #02 (2021) (digital) (Son of Ultron-Empire).cbr",
         "title",
         {
+            "archive": "cbr",
             "issue": "2",
             "series": "Cyberpunk 2077",
             "title": "You Have My Word",
@@ -540,6 +728,7 @@ names = [
         "Elephantmen 2259 #008 - Simple Truth 03 (of 06) (2021) (digital) (Son of Ultron-Empire).cbr",
         "volume count",
         {
+            "archive": "cbr",
             "issue": "8",
             "series": "Elephantmen 2259",
             "title": "Simple Truth",
@@ -555,6 +744,7 @@ names = [
         "Free Comic Book Day - Avengers.Hulk (2021) (2048px) (db).cbz",
         "'.' in name",
         {
+            "archive": "cbz",
             "issue": "",
             "series": "Free Comic Book Day - Avengers Hulk",
             "title": "",
@@ -564,12 +754,13 @@ names = [
             "issue_count": "",
             "fcbd": True,
         },
-        (True,),
+        (True, False),
     ),
     (
         "Goblin (2021) (digital) (Son of Ultron-Empire).cbr",
         "no-issue",
         {
+            "archive": "cbr",
             "issue": "",
             "series": "Goblin",
             "title": "",
@@ -578,12 +769,13 @@ names = [
             "remainder": "(digital) (Son of Ultron-Empire)",
             "issue_count": "",
         },
-        (False,),
+        (False, False),
     ),
     (
         "Marvel Previews #002 (January 2022) (Digital-Empire).cbr",
         "(month year)",
         {
+            "archive": "cbr",
             "issue": "2",
             "series": "Marvel Previews",
             "title": "",
@@ -599,6 +791,7 @@ names = [
         "Marvel Two In One V1 #090  c2c (Comixbear-DCP).cbr",
         "volume then issue",
         {
+            "archive": "cbr",
             "issue": "90",
             "series": "Marvel Two In One",
             "title": "",
@@ -615,6 +808,7 @@ names = [
         "Star Wars - War of the Bounty Hunters - IG-88 (2021) (Digital) (Kileko-Empire).cbz",
         "number ends series, no-issue",
         {
+            "archive": "cbz",
             "issue": "",
             "series": "Star Wars - War of the Bounty Hunters - IG-88",
             "title": "",
@@ -623,12 +817,13 @@ names = [
             "remainder": "(Digital) (Kileko-Empire)",
             "issue_count": "",
         },
-        (True,),
+        (True, False),
     ),
     (
         "Star Wars - War of the Bounty Hunters - IG-88 #1 (2021) (Digital) (Kileko-Empire).cbz",
         "number ends series",
         {
+            "archive": "cbz",
             "issue": "1",
             "series": "Star Wars - War of the Bounty Hunters - IG-88",
             "title": "",
@@ -643,6 +838,7 @@ names = [
         "The Defenders v1 #058 (1978) (digital).cbz",
         "",
         {
+            "archive": "cbz",
             "issue": "58",
             "series": "The Defenders",
             "title": "",
@@ -657,6 +853,7 @@ names = [
         "The Defenders v1 Annual #01 (1976) (Digital) (Minutemen-Slayer).cbr",
         " v in series",
         {
+            "archive": "cbr",
             "issue": "1",
             "series": "The Defenders Annual",
             "title": "",
@@ -672,6 +869,7 @@ names = [
         "The Magic Order 2 #06 (2022) (Digital) (Zone-Empire)[__913302__].cbz",
         "ending id",
         {
+            "archive": "cbz",
             "issue": "6",
             "series": "The Magic Order 2",
             "title": "",
@@ -686,6 +884,7 @@ names = [
         "Wonder Woman #001 Wonder Woman Day Special Edition (2021) (digital-Empire).cbr",
         "issue separates title",
         {
+            "archive": "cbr",
             "issue": "1",
             "series": "Wonder Woman",
             "title": "Wonder Woman Day Special Edition",
@@ -700,6 +899,7 @@ names = [
         "Wonder Woman #49 DC Sep-Oct 1951 digital [downsized, lightened, 4 missing story pages restored] (Shadowcat-Empire).cbz",
         "date-range, no paren, braces",
         {
+            "archive": "cbz",
             "issue": "49",
             "series": "Wonder Woman",
             "title": "digital",  # Don't have a way to get rid of this
@@ -715,6 +915,7 @@ names = [
         "X-Men, 2021-08-04 (#02) (digital) (Glorith-HD).cbz",
         "full-date, issue in parenthesis",
         {
+            "archive": "cbz",
             "issue": "2",
             "series": "X-Men",
             "title": "",
@@ -729,6 +930,7 @@ names = [
         "Cory Doctorow's Futuristic Tales of the Here and Now: Anda's Game #001 (2007).cbz",
         "title",
         {
+            "archive": "cbz",
             "issue": "1",
             "series": "Cory Doctorow's Futuristic Tales of the Here and Now",
             "title": "Anda's Game",
@@ -741,15 +943,63 @@ names = [
     ),
 ]
 
-fnames = []
+oldfnames = []
+newfnames = []
 for p in names:
-    pp = list(p)
-    pp[3] = p[3][0]
-    fnames.append(tuple(pp))
-    if "#" in p[0]:
-        pp[0] = p[0].replace("#", "")
-        pp[3] = p[3][1]
-        fnames.append(tuple(pp))
+    filename, reason, info, xfail = p
+    filenameinfo = dict(
+        alternate="",
+        annual=False,
+        archive="",
+        c2c=False,
+        fcbd=False,
+        issue="",
+        issue_count="",
+        publisher="",
+        remainder="",
+        series="",
+        title="",
+        volume="",
+        volume_count="",
+        year="",
+        format="",
+    )
+    filenameinfo.update(info)
+    nxfail = xfail[0]
+    newfnames.append(pytest.param(filename, reason, filenameinfo.copy(), nxfail))
+    oldfnames.append(
+        pytest.param(
+            filename,
+            reason,
+            filenameinfo.copy(),
+            nxfail,
+            marks=pytest.mark.xfail(condition=nxfail, reason="old parser"),
+        )
+    )
+    if "#" in filename:
+        filename = filename.replace("#", "")
+        nxfail = xfail[1]
+        if reason in ("protofolius_issue_number_scheme", "number starting title"):
+            newfnames.append(
+                pytest.param(
+                    filename,
+                    reason,
+                    filenameinfo.copy(),
+                    nxfail,
+                    marks=pytest.mark.xfail(condition=nxfail, reason=reason),
+                )
+            )
+        else:
+            newfnames.append(pytest.param(filename, reason, filenameinfo.copy(), nxfail))
+        oldfnames.append(
+            pytest.param(
+                filename,
+                reason,
+                filenameinfo.copy(),
+                nxfail,
+                marks=pytest.mark.xfail(condition=nxfail, reason="old parser"),
+            )
+        )
 
 rnames = [
     (

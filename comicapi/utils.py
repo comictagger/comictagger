@@ -26,6 +26,7 @@ from shutil import which  # noqa: F401
 from typing import Any
 
 import comicapi.data
+from comicapi import filenamelexer, filenameparser
 
 try:
     import icu
@@ -58,6 +59,73 @@ def os_sorted(lst: Iterable) -> Iterable:
     if icu_available or platform.system() == "Windows":
         key = natsort.os_sort_keygen()
     return sorted(lst, key=key)
+
+
+def parse_filename(
+    filename: str,
+    complicated_parser: bool = False,
+    remove_c2c: bool = False,
+    remove_fcbd: bool = False,
+    remove_publisher: bool = False,
+    split_words: bool = False,
+    allow_issue_start_with_letter: bool = False,
+    protofolius_issue_number_scheme: bool = False,
+) -> filenameparser.FilenameInfo:
+    if not filename:
+        return filenameparser.FilenameInfo(
+            alternate="",
+            annual=False,
+            archive="",
+            c2c=False,
+            fcbd=False,
+            issue="",
+            issue_count="",
+            publisher="",
+            remainder="",
+            series="",
+            title="",
+            volume="",
+            volume_count="",
+            year="",
+            format="",
+        )
+    if split_words:
+        import wordninja
+
+        filename, ext = os.path.splitext(filename)
+        filename = " ".join(wordninja.split(filename)) + ext
+
+    if complicated_parser:
+        lex = filenamelexer.Lex(filename, allow_issue_start_with_letter)
+        p = filenameparser.Parse(
+            lex.items,
+            remove_c2c=remove_c2c,
+            remove_fcbd=remove_fcbd,
+            remove_publisher=remove_publisher,
+            protofolius_issue_number_scheme=protofolius_issue_number_scheme,
+        )
+        return p.filename_info
+    else:
+        fnp = filenameparser.FileNameParser()
+        fnp.parse_filename(filename)
+        fni = filenameparser.FilenameInfo(
+            alternate="",
+            annual=False,
+            archive="",
+            c2c=False,
+            fcbd=False,
+            issue=fnp.issue,
+            issue_count=fnp.issue_count,
+            publisher="",
+            remainder=fnp.remainder,
+            series=fnp.series,
+            title="",
+            volume=fnp.volume,
+            volume_count="",
+            year=fnp.year,
+            format="",
+        )
+        return fni
 
 
 def combine_notes(existing_notes: str | None, new_notes: str | None, split: str) -> str:

@@ -318,6 +318,23 @@
               </property>
              </widget>
             </item>
+            <item>
+             <widget class="QCheckBox" name="cbxProtofoliusIssueNumberScheme">
+              <property name="text">
+               <string>Use protofolius's issue number scheme</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QCheckBox" name="cbxAllowIssueStartWithLetter">
+              <property name="text">
+               <string>Allow issue numbers to start with a letter</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
            </layout>
           </widget>
          </item>
