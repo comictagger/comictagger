@@ -253,7 +253,6 @@ class GenericMetadata:
         return coverlist
 
     def add_credit(self, person: str, role: str, primary: bool = False) -> None:
-
         credit = CreditMetadata(person=person, role=role, primary=primary)
 
         # look to see if it's not already there...

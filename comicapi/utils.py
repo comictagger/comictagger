@@ -64,7 +64,6 @@ def get_recursive_filelist(pathlist: list[str]) -> list[str]:
 
     filelist: list[str] = []
     for p in pathlist:
-
         if os.path.isdir(p):
             filelist.extend(x for x in glob.glob(f"{p}{os.sep}/**", recursive=True) if not os.path.isdir(x))
         elif str(p) not in filelist:

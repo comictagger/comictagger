@@ -26,7 +26,6 @@ logger = logging.getLogger(__name__)
 
 
 class CoMet:
-
     writer_synonyms = ["writer", "plotter", "scripter"]
     penciller_synonyms = ["artist", "penciller", "penciler", "breakdowns"]
     inker_synonyms = ["inker", "artist", "finishes"]
@@ -44,7 +43,6 @@ class CoMet:
         return str(ET.tostring(tree.getroot(), encoding="utf-8", xml_declaration=True).decode("utf-8"))
 
     def convert_metadata_to_xml(self, metadata: GenericMetadata) -> ET.ElementTree:
-
         # shorthand for the metadata
         md = metadata
 
@@ -97,7 +95,6 @@ class CoMet:
 
         # loop thru credits, and build a list for each role that CoMet supports
         for credit in metadata.credits:
-
             if credit["role"].casefold() in set(self.writer_synonyms):
                 ET.SubElement(root, "writer").text = str(credit["person"])
 

@@ -65,7 +65,6 @@ class FileNameParser:
         return string
 
     def get_issue_count(self, filename: str, issue_end: int) -> str:
-
         count = ""
         filename = filename[issue_end:]
 
@@ -235,7 +234,6 @@ class FileNameParser:
         return series, volume.strip()
 
     def get_year(self, filename: str, issue_end: int) -> str:
-
         filename = filename[issue_end:]
 
         year = ""
@@ -273,7 +271,6 @@ class FileNameParser:
         return remainder.strip()
 
     def parse_filename(self, filename: str) -> None:
-
         # remove the path
         filename = os.path.basename(filename)
 
@@ -1025,7 +1022,6 @@ def parse_info_specifier(p: Parser) -> Callable[[Parser], Callable | None] | Non
     if p.peek().typ == filenamelexer.ItemType.Number or (
         p.peek().typ == filenamelexer.ItemType.Text and t2d.convert(p.peek().val).isnumeric()
     ):
-
         number = p.get()
         if item.val.casefold() in ["volume", "vol", "vol.", "v"]:
             p.filename_info["volume"] = t2do.convert(number.val)
