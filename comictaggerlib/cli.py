@@ -182,6 +182,9 @@ class CLI:
 
         self.post_process_matches(match_results)
 
+        if self.config.runtime_online:
+            print(f"\nFiles tagged with metadata provided by {self.current_talker().name} {self.current_talker().website}")
+
     def create_local_metadata(self, ca: ComicArchive) -> GenericMetadata:
         md = GenericMetadata()
         md.set_default_page_list(ca.get_number_of_pages())
