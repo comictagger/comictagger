@@ -320,8 +320,8 @@ class SettingsWindow(QtWidgets.QDialog):
         self.cbxSortByYear.setChecked(self.config[0].talker_sort_series_by_year)
         self.cbxExactMatches.setChecked(self.config[0].talker_exact_series_matches_first)
 
-        self.leKey.setText(self.config[0].talker_comicvine_cv_api_key)
-        self.leURL.setText(self.config[0].talker_comicvine_cv_url)
+        self.leKey.setText(self.config[0].talker_comicvine_comicvine_key)
+        self.leURL.setText(self.config[0].talker_comicvine_comicvine_url)
 
         self.cbxAssumeLoneCreditIsPrimary.setChecked(self.config[0].cbl_assume_lone_credit_is_primary)
         self.cbxCopyCharactersToTags.setChecked(self.config[0].cbl_copy_characters_to_tags)
@@ -436,13 +436,8 @@ class SettingsWindow(QtWidgets.QDialog):
         self.config[0].talker_sort_series_by_year = self.cbxSortByYear.isChecked()
         self.config[0].talker_exact_series_matches_first = self.cbxExactMatches.isChecked()
 
-        if self.leKey.text().strip():
-            self.config[0].talker_comicvine_cv_api_key = self.leKey.text().strip()
-            self.talker.api_key = self.config[0].talker_comicvine_cv_api_key
-
-        if self.leURL.text().strip():
-            self.config[0].talker_comicvine_cv_url = self.leURL.text().strip()
-            self.talker.api_url = self.config[0].talker_comicvine_cv_url
+        self.config[0].talker_comicvine_comicvine_key = self.leKey.text().strip()
+        self.config[0].talker_comicvine_comicvine_url = self.leURL.text().strip()
 
         self.config[0].cbl_assume_lone_credit_is_primary = self.cbxAssumeLoneCreditIsPrimary.isChecked()
         self.config[0].cbl_copy_characters_to_tags = self.cbxCopyCharactersToTags.isChecked()
