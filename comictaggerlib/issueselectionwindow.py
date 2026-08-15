@@ -44,7 +44,7 @@ class IssueSelectionWindow(QtWidgets.QDialog):
         parent: QtWidgets.QWidget,
         options: settngs.Namespace,
         talker_api: ComicTalker,
-        series_id: int,
+        series_id: str,
         issue_number: str,
     ) -> None:
         super().__init__(parent)

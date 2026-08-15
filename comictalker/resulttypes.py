@@ -12,7 +12,7 @@ class ComicSeries(TypedDict, total=False):
     aliases: list[str]
     count_of_issues: int
     description: str
-    id: Required[int]
+    id: Required[str]
     image_url: str
     name: Required[str]
     publisher: str

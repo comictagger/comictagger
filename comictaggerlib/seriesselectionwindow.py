@@ -144,7 +144,7 @@ class SeriesSelectionWindow(QtWidgets.QDialog):
         self.issue_id: str = ""
         self.year = year
         self.issue_count = issue_count
-        self.series_id = 0
+        self.series_id: str = ""
         self.comic_archive = comic_archive
         self.immediate_autoselect = autoselect
         self.cover_index_list = cover_index_list
