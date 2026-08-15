@@ -29,11 +29,9 @@ logger = logging.getLogger(__name__)
 
 def item_move_events(widget: QtWidgets.QWidget) -> QtCore.pyqtBoundSignal:
     class Filter(QtCore.QObject):
-
         mysignal = QtCore.pyqtSignal(str)
 
         def eventFilter(self, obj: QtCore.QObject, event: QtCore.QEvent) -> bool:
-
             if obj == widget:
                 if event.type() == QtCore.QEvent.Type.ChildRemoved:
                     self.mysignal.emit("finish")

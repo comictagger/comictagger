@@ -47,7 +47,6 @@ if qt_available:
         window.move(hpos, vpos)
 
     def center_window_on_parent(window: QtWidgets.QWidget) -> None:
-
         top_level = window
         while top_level.parent() is not None:
             parent = top_level.parent()

@@ -89,7 +89,6 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
         self.update_data()
 
     def update_data(self) -> None:
-
         self.current_match_set = self.match_set_list[self.current_match_set_idx]
 
         if self.current_match_set_idx + 1 == len(self.match_set_list):
@@ -172,7 +171,6 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
         self.accept()
 
     def current_item_changed(self, curr: QtCore.QModelIndex, prev: QtCore.QModelIndex) -> None:
-
         if curr is None:
             return None
         if prev is not None and prev.row() == curr.row():
@@ -194,7 +192,6 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
         return match
 
     def accept(self) -> None:
-
         self.save_match()
         self.current_match_set_idx += 1
 
@@ -228,7 +225,6 @@ class AutoTagMatchWindow(QtWidgets.QDialog):
         QtWidgets.QDialog.reject(self)
 
     def save_match(self) -> None:
-
         match = self.current_match()
         ca = self.current_match_set.ca
 

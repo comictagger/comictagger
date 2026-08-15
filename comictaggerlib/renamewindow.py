@@ -169,7 +169,6 @@ class RenameWindow(QtWidgets.QDialog):
             self.do_preview()
 
     def accept(self) -> None:
-
         prog_dialog = QtWidgets.QProgressDialog("", "Cancel", 0, len(self.rename_list), self)
         prog_dialog.setWindowTitle("Renaming Archives")
         prog_dialog.setWindowModality(QtCore.Qt.WindowModality.WindowModal)
@@ -179,7 +178,6 @@ class RenameWindow(QtWidgets.QDialog):
 
         try:
             for idx, comic in enumerate(zip(self.comic_archive_list, self.rename_list)):
-
                 QtCore.QCoreApplication.processEvents()
                 if prog_dialog.wasCanceled():
                     break
