@@ -82,6 +82,12 @@ class Hashes:
     hashes: tuple[Result, ...]
     id: ID
 
+    modifier_scoring = {
+        3: 64 / 64,
+        2: 60 / 64,
+        1: 58 / 64,
+    }
+
     def __init__(
         self,
         *,
@@ -89,8 +95,12 @@ class Hashes:
         domain: str | None,
         id: ID | None = None,  # noqa: A002
     ) -> None:
+        de_dupe_hashes = {
+            (x["Hash"]["Hash"], x["Hash"]["Kind"], x["ID"]["Domain"], x["ID"]["ID"]): x for x in hashes
+        }.values()
+
         self.hashes = tuple(
-            sorted(hashes, key=lambda x: list(HashType.__members__.values()).index(HashType(x["Hash"]["Kind"])))
+            sorted(de_dupe_hashes, key=lambda x: list(HashType.__members__.values()).index(HashType(x["Hash"]["Kind"])))
         )
         self.count = len(self.hashes)
         if id is None:
@@ -124,14 +134,11 @@ class Hashes:
     @cached_property
     def score(self) -> int:
         # Get the distances as a value between 0 and 1. Lowest value is 55/64 ~ 0.85
-        hashes: list[float] = [(64 - x["Distance"]) / 64 for x in self.hashes]
-        hashes.extend((64 - 9) // 64 for x in range(len(HashType) - len(hashes)))
+        hashes: list[float] = [(64 - x["Distance"]) / 64 for x in self.hashes][: len(self.modifier_scoring)]
+        # Set missing values to the lowest possible match so we are comparing an equal number of values
+        hashes.extend((64 - 9) // 64 for _ in range(len(self.modifier_scoring) - len(hashes)))
 
-        mod = {
-            3: 64 / 64,
-            2: 60 / 64,
-            1: 58 / 64,
-        }[len(self.hashes)]
+        mod = self.modifier_scoring[len(self.hashes)]
         # Add an extra mod value to bring the score up if there are more hashes
         hashes.append(mod)
         return int(statistics.mean(int(x * 100) for x in hashes))
