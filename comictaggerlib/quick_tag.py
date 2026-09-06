@@ -181,7 +181,6 @@ class Hashes:
 class NameMatches(NamedTuple):
     confident_match: tuple[tuple[Hashes, GenericMetadata], ...]
     probable_match: tuple[tuple[Hashes, GenericMetadata], ...]
-    other_match: tuple[tuple[Hashes, GenericMetadata], ...]
 
 
 class IDCache:
@@ -513,7 +512,6 @@ class QuickTag:
     def match_names(self, tags: GenericMetadata, results: list[tuple[Hashes, GenericMetadata]]) -> NameMatches:
         confident_match: list[tuple[Hashes, GenericMetadata]] = []
         probable_match: list[tuple[Hashes, GenericMetadata]] = []
-        other_match: list[tuple[Hashes, GenericMetadata]] = []
         for result, md in results:
             assert md.issue_id
             assert md.series
@@ -524,9 +522,34 @@ class QuickTag:
                 confident_match.append((result, md))
             elif (titles_match or issues_match) and result.distance < 6:
                 probable_match.append((result, md))
-            else:
-                other_match.append((result, md))
-        return NameMatches(tuple(confident_match), tuple(probable_match), tuple(other_match))
+        return NameMatches(tuple(confident_match), tuple(probable_match))
+
+    def check_matches(
+        self,
+        results: list[Hashes],
+        tags: GenericMetadata,
+    ) -> Hashes | None:
+        # This matching is only useful with a series name or an issue number
+        if not (tags.series or tags.issue):
+            return None
+        limited = limit((r for r in results if r.id not in KNOWN_BAD_IDS.get(self.domain, set())), self.limit)
+
+        ids = {r.id: r for r in itertools.chain.from_iterable(limited)}
+
+        mds = [(ids[ID(self.domain, md.issue_id)], md) for md in self.get_mds(ids)]  # type: ignore[arg-type]
+
+        matches = self.match_names(tags, mds)
+
+        if len(matches.confident_match) == 1:
+            result, md = matches.confident_match[0]
+            self.output(f"Found confident {result.distances} match with series name {md.series!r}")
+            return result
+
+        elif len(matches.probable_match) == 1:
+            result, md = matches.probable_match[0]
+            self.output(f"Found probable {result.distances} match with series name {md.series!r}")
+            return result
+        return None
 
     def display_results(
         self,
@@ -551,28 +574,17 @@ class QuickTag:
             return results[0].id
 
         limited = limit((r for r in results if r.id not in KNOWN_BAD_IDS.get(self.domain, set())), self.limit)
+        ids = {r.id for r in itertools.chain.from_iterable(limited)}
 
-        ids = {r.id: r for r in itertools.chain.from_iterable(limited)}
-
-        mds = [(ids[ID(self.domain, md.issue_id)], md) for md in self.get_mds(ids)]  # type: ignore[arg-type]
-
-        matches = self.match_names(tags, mds)
-
-        if len(matches.confident_match) == 1:
-            result, md = matches.confident_match[0]
-            self.output(f"Found confident {result.distances} match with series name {md.series!r}")
-            return result.id
-
-        elif len(matches.probable_match) == 1:
-            result, md = matches.probable_match[0]
-            self.output(f"Found probable {result.distances} match with series name {md.series!r}")
-            return result.id
-
-        elif len(matches.other_match) == 1 and matches.other_match[0][0].distance < 4:
-            result, md = matches.other_match[0]
-            self.output(f"Found a {result.distances} match with series name {md.series!r}")
-            return result.id
-
+        matched_result = None
+        # if we think we only have 1 result we try to optimize and only use a single request
+        # otherwise we benefit from matching the filename against more matches
+        if len(results) == 1:
+            matched_result = self.check_matches(results, tags)
+        if matched_result is None:
+            matched_result = self.check_matches(display_results, tags)
+            if matched_result is not None:
+                return matched_result.id
         if not interactive:
             return None
 
