@@ -381,6 +381,11 @@ class IssueIdentifier:
         assert Image
         try:
             cover_image: Image.Image = Image.open(io.BytesIO(image_data))
+            # Image.open() is lazy and does not decode pixel data, so a
+            # truncated/corrupt image passes it without error and later blows up
+            # in _crop_border's im.convert(). Force the decode here so the error
+            # is caught (and this cover simply skipped) instead of crashing.
+            cover_image.load()
             images: list[tuple[str, Image.Image]] = [(name, cover_image)]
         except Exception as e:
             logger.error("Failed to read image: %s", e)

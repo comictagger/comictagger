@@ -40,6 +40,33 @@ def test_crop(cbz_double_cover, config, tmp_path, comicvine_api):
     assert original_hash == cropped_hash
 
 
+def test_process_cover_truncated_image(cbz, config, comicvine_api):
+    # A corrupt/truncated page image must not crash identification -- the bad
+    # cover is simply skipped. Regression test: Image.open() is lazy and does
+    # not decode pixels, so the decode error only surfaces later (in
+    # _crop_border's convert()) unless _process_cover forces the load itself.
+    config, definitions = config
+    iio = comictaggerlib.issueidentifier.IssueIdentifierOptions(
+        series_match_search_thresh=config.Issue_Identifier__series_match_search_thresh,
+        series_match_identify_thresh=config.Issue_Identifier__series_match_identify_thresh,
+        use_publisher_filter=config.Auto_Tag__use_publisher_filter,
+        publisher_filter=config.Auto_Tag__publisher_filter,
+        quiet=config.Runtime_Options__quiet,
+        cache_dir=config.Runtime_Options__config.user_cache_dir,
+        border_crop_percent=config.Issue_Identifier__border_crop_percent,
+        talker=comicvine_api,
+        tpb_detection=config.Issue_Identifier__tpb_detection,
+    )
+    ii = comictaggerlib.issueidentifier.IssueIdentifier(iio, None)
+
+    # Truncate a real page so its pixel data can't be decoded.
+    truncated = cbz.get_page(0)
+    truncated = truncated[: len(truncated) // 3]
+
+    # Must not raise, and must return no usable cover images.
+    assert ii._process_cover("0", truncated) == []
+
+
 @pytest.mark.parametrize("additional_md, expected", testing.comicdata.metadata_keys)
 def test_get_search_keys(cbz, config, additional_md, expected, comicvine_api):
     config, definitions = config
