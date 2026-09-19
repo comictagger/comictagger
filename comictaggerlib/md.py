@@ -11,7 +11,9 @@ from comictaggerlib.ctsettings.settngs_namespace import SettngsNS
 from comictalker.talker_utils import cleanup_html
 
 
-def prepare_metadata(md: GenericMetadata, new_md: GenericMetadata, config: SettngsNS) -> GenericMetadata:
+def prepare_metadata(
+    md: GenericMetadata, new_md: GenericMetadata, publishers: utils.PublisherManager, config: SettngsNS
+) -> GenericMetadata:
     if config.Metadata_Options__apply_transform_on_import:
         new_md = CBLTransformer(new_md, config).apply()
 
@@ -31,7 +33,7 @@ def prepare_metadata(md: GenericMetadata, new_md: GenericMetadata, config: Settn
     notes = f"Tagged with ComicTagger {ctversion.version}{origin} on {datetime.now():%Y-%m-%d %H:%M:%S}.{issue_id}"
 
     if config.Auto_Tag__auto_imprint:
-        final_md.fix_publisher()
+        final_md.fix_publisher(publishers)
 
     return final_md.replace(
         is_empty=False,

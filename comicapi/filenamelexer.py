@@ -5,7 +5,7 @@ from __future__ import annotations
 import calendar
 import os
 import unicodedata
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from enum import Enum, auto
 from itertools import chain
 from typing import Any, Protocol
@@ -94,7 +94,9 @@ class LexerFunc(Protocol):
 
 
 class Lexer:
-    def __init__(self, string: str, allow_issue_start_with_letter: bool = False) -> None:
+    def __init__(
+        self, string: str, allow_issue_start_with_letter: bool = False, custom_publishers: Iterable[str] = tuple()
+    ) -> None:
         self.input: str = string  # The string being scanned
         # The next lexing function to enter
         self.state: LexerFunc | None = None
@@ -106,6 +108,11 @@ class Lexer:
         self.sbrace_depth: int = 0  # Nesting depth of [ ]
         self.items: list[Item] = []
         self.allow_issue_start_with_letter = allow_issue_start_with_letter
+        self.keys = key.copy()
+        for publisher in custom_publishers:
+            publisher = publisher.casefold()
+            if " " not in publisher and publisher not in self.keys:
+                self.keys[publisher] = ItemType.Publisher
 
     # Next returns the next rune in the input.
     def get(self) -> str:
@@ -312,9 +319,9 @@ def lex_text(lex: Lexer) -> LexerFunc:
         if is_alpha_numeric(r) or r in "'":
             if r.isnumeric():  # E.g. v1
                 word = lex.input[lex.start : lex.pos]
-                if key.get(word.casefold(), None) == ItemType.InfoSpecifier:
+                if lex.keys.get(word.casefold(), None) == ItemType.InfoSpecifier:
                     lex.backup()
-                    lex.emit(key[word.casefold()])
+                    lex.emit(lex.keys[word.casefold()])
                     return lex_filename
                 elif cal(word):
                     lex.backup()
@@ -324,10 +331,10 @@ def lex_text(lex: Lexer) -> LexerFunc:
             lex.backup()
             word = lex.input[lex.start : lex.pos + 1]
 
-            if word.casefold() in key:
-                if key[word.casefold()] in (ItemType.Honorific, ItemType.InfoSpecifier):
+            if word.casefold() in lex.keys:
+                if lex.keys[word.casefold()] in (ItemType.Honorific, ItemType.InfoSpecifier):
                     lex.accept(".")
-                lex.emit(key[word.casefold()])
+                lex.emit(lex.keys[word.casefold()])
             elif cal(word):
                 lex.emit(ItemType.Calendar)
             else:
@@ -418,7 +425,9 @@ def is_symbol(character: str) -> bool:
     return unicodedata.category(character)[0] in "PS" and character != "."
 
 
-def Lex(filename: str, allow_issue_start_with_letter: bool = False) -> Lexer:
-    lex = Lexer(os.path.basename(filename), allow_issue_start_with_letter)
+def Lex(
+    filename: str, allow_issue_start_with_letter: bool = False, custom_publishers: Iterable[str] = tuple()
+) -> Lexer:
+    lex = Lexer(os.path.basename(filename), allow_issue_start_with_letter, custom_publishers)
     lex.run()
     return lex

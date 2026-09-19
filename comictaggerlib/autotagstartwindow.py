@@ -147,6 +147,7 @@ class AutoTagStartWindow(QtWidgets.QDialog):
                     publisher_filter=self.config.Auto_Tag__publisher_filter,
                     use_publisher_filter=self.config.Auto_Tag__use_publisher_filter,
                     auto_imprint=self.cbxAutoImprint.isChecked(),
+                    load_default_imprints=self.config.Auto_Tag__load_default_imprints,
                 ),
                 remove_after_success=self.cbxRemoveAfterSuccess.isChecked(),
                 series_match_identify_thresh=self.sbNameMatchSearchThresh.value(),

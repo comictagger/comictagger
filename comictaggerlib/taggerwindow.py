@@ -117,6 +117,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self,
         config: settngs.Config[ct_ns],
         talkers: dict[str, ComicTalker],
+        publishers: utils.PublisherManager,
         socket_server: QtNetwork.QLocalServer,
         parent: QtWidgets.QWidget | None = None,
     ) -> None:
@@ -185,6 +186,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
         comictaggerlib.ui.qtutils.active_palette = self.leSeries.palette()
         self.config = config
         self.talkers = talkers
+        self.publishers = publishers
         self.log_window = self.setup_logger()
 
         self.archiveCoverWidget = CoverImageWidget(self.coverImageContainer, CoverImageWidget.ArchiveMode, None)
@@ -1135,6 +1137,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
                 split_words,
                 self.config[0].Filename_Parsing__allow_issue_start_with_letter,
                 self.config[0].Filename_Parsing__protofolius_issue_number_scheme,
+                self.publishers.publishers,
             )
             self.metadata.overlay(new_metadata, mode=comicapi.merge.Mode.OVERLAY, merge_lists=False)
             self.metadata_to_form()
@@ -1256,7 +1259,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             OptionalMessageDialog.critical(self, "Search", f"Could not find an issue {new_metadata} for that series")
             return
 
-        self.metadata = prepare_metadata(self.metadata, new_metadata, self.config[0])
+        self.metadata = prepare_metadata(self.metadata, new_metadata, self.publishers, self.config[0])
         # Now push the new combined data into the edit controls
         self.metadata_to_form()
 
@@ -1971,7 +1974,9 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
         center_window_on_parent(self.atprogdialog)
         temp_config = auto_tag.new_settings(self.config[0])
-        self.autotagthread = AutoTagThread(auto_tag.search_string, ca_list, temp_config, self.current_talker())
+        self.autotagthread = AutoTagThread(
+            auto_tag.search_string, ca_list, temp_config, self.current_talker(), self.publishers
+        )
 
         self.autotagthread.autoTagComplete.connect(functools.partial(self.auto_tag_finished, config=temp_config))
         self.autotagthread.autoTagLogMsg.connect(self.auto_tag_log)
@@ -2048,6 +2053,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             [(m, auto_tagged_archives[m.original_path]) for m in match_results.multiple_matches],
             config,
             self.current_talker(),
+            self.publishers,
         )
 
         matchdlg.open()
@@ -2174,7 +2180,7 @@ class TaggerWindow(QtWidgets.QMainWindow):
             "File Rename", "If you rename files now, unsaved data in the form will be lost.  Are you sure?"
         ):
             self.rename_window = RenameWindow(
-                self, ca_list, self.config[0].Runtime_Options__tags_read, self.config, self.talkers
+                self, ca_list, self.config[0].Runtime_Options__tags_read, self.config, self.talkers, self.publishers
             )
             self.rename_window.finished.connect(self._reload_page)
             self.rename_window.finished.connect(self._rename_finished)
@@ -2323,5 +2329,5 @@ class TaggerWindow(QtWidgets.QMainWindow):
 
     def auto_imprint(self) -> None:
         self.form_to_metadata()
-        self.metadata.fix_publisher()
+        self.metadata.fix_publisher(self.publishers)
         self.metadata_to_form()

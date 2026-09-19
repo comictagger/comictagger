@@ -45,6 +45,7 @@ class RenameWindow(QtWidgets.QDialog):
         read_tag_ids: list[str],
         config: settngs.Config[ct_ns],
         talkers: dict[str, ComicTalker],
+        publishers: utils.PublisherManager,
     ) -> None:
         super().__init__(parent)
 
@@ -63,6 +64,7 @@ class RenameWindow(QtWidgets.QDialog):
 
         self.config = config
         self.talkers = talkers
+        self.publishers = publishers
         self.comic_archive_list = comic_archive_list
         self.read_tag_ids = read_tag_ids
         self.rename_list: list[str] = []
@@ -111,6 +113,10 @@ class RenameWindow(QtWidgets.QDialog):
                     self.config[0].Filename_Parsing__remove_c2c,
                     self.config[0].Filename_Parsing__remove_fcbd,
                     self.config[0].Filename_Parsing__remove_publisher,
+                    self.config[0].Filename_Parsing__split_words,
+                    self.config[0].Filename_Parsing__allow_issue_start_with_letter,
+                    self.config[0].Filename_Parsing__protofolius_issue_number_scheme,
+                    self.publishers.publishers,
                 )
         self.renamer.set_metadata(md, ca.path.name)
         self.renamer.move = self.config[0].File_Rename__move

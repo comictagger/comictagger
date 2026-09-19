@@ -334,6 +334,12 @@ def autotag(parser: settngs.Manager) -> None:
         action=argparse.BooleanOptionalAction,
         help="Enables the auto imprint functionality.\ne.g. if the publisher is set to 'vertigo' it\nwill be updated to 'DC Comics' and the imprint\nproperty will be set to 'Vertigo'.\ndefault: %(default)s\n\n",
     )
+    parser.add_setting(
+        "--load-default-imprints",
+        default=True,
+        action=argparse.BooleanOptionalAction,
+        help="Enables loading the embedded default publishers and imprints.\ndefault: %(default)s\n\n",
+    )
 
 
 def parse_filter(config: settngs.Config[ct_ns]) -> settngs.Config[ct_ns]:

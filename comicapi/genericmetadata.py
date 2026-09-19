@@ -32,7 +32,6 @@ from typing_extensions import NamedTuple
 
 from comicapi import merge, utils
 from comicapi._url import Url, parse_url
-from comicapi.utils import norm_fold
 
 # needed for runtime type guessing
 if TYPE_CHECKING:
@@ -469,13 +468,13 @@ class GenericMetadata:
         if credit.person == "":
             return
 
-        person = norm_fold(credit.person)
-        role = norm_fold(credit.role)
+        person = utils.norm_fold(credit.person)
+        role = utils.norm_fold(credit.role)
 
         # look to see if it's not already there...
         found = False
         for c in self.credits:
-            if norm_fold(c.person) == person and norm_fold(c.role) == role:
+            if utils.norm_fold(c.person) == person and utils.norm_fold(c.role) == role:
                 # no need to add it. just adjust the "primary" flag as needed
                 c.primary = c.primary or primary
                 found = True
@@ -571,13 +570,13 @@ class GenericMetadata:
 
         return outstr
 
-    def fix_publisher(self) -> None:
+    def fix_publisher(self, publishers: utils.PublisherManager) -> None:
         if self.publisher is None:
             return
         if self.imprint is None:
             self.imprint = ""
 
-        imprint, publisher = utils.get_publisher(self.publisher)
+        imprint, publisher = publishers.get_publisher(self.publisher)
 
         self.publisher = publisher
 
