@@ -31,6 +31,7 @@ StyleQuestion = 1
 
 class OptionalMessageDialog(QtWidgets.QDialog):
     check_status = QtCore.pyqtSignal(bool)
+    _dialog_queue: list[QtWidgets.QWidget] = []
 
     class Icon(Enum):
         Information = QtWidgets.QStyle.StandardPixmap.SP_MessageBoxInformation
@@ -247,6 +248,15 @@ class OptionalMessageDialog(QtWidgets.QDialog):
             .pixmap(QtCore.QSize(iconSize, iconSize), self.devicePixelRatio())
         )
 
+    @classmethod
+    def show_dialog(cls) -> None:
+        if cls._dialog_queue:
+            dialog = cls._dialog_queue.pop(0)
+            dialog.finished.connect(cls.show_dialog)
+            dialog.show()
+            return
+        QtCore.QTimer.singleShot(1000, cls.show_dialog)
+
     @staticmethod
     def msg(
         parent: QtWidgets.QWidget,
@@ -256,13 +266,15 @@ class OptionalMessageDialog(QtWidgets.QDialog):
         checked: bool = False,
         check_text: str | None = "",
         icon: Icon | None = None,
+        show: bool = True,
     ) -> OptionalMessageDialog:
         d = OptionalMessageDialog(parent, StyleMessage, title, msg, checked=checked, check_text=check_text, icon=icon)
         d.setWindowModality(QtCore.Qt.WindowModality.WindowModal)
         WT = QtCore.Qt.WindowType
         d.setWindowFlags(WT.Window)
 
-        d.show()
+        if show:
+            OptionalMessageDialog._dialog_queue.append(d)
         return d
 
     @staticmethod
@@ -274,13 +286,15 @@ class OptionalMessageDialog(QtWidgets.QDialog):
         checked: bool = False,
         check_text: str | None = "",
         icon: Icon | None = Icon.Question,
+        show: bool = True,
     ) -> OptionalMessageDialog:
         d = OptionalMessageDialog(parent, StyleQuestion, title, msg, checked=checked, check_text=check_text, icon=icon)
         d.setWindowModality(QtCore.Qt.WindowModality.WindowModal)
         WT = QtCore.Qt.WindowType
         d.setWindowFlags(WT.Window)
 
-        d.show()
+        if show:
+            OptionalMessageDialog._dialog_queue.append(d)
         return d
 
     @staticmethod
@@ -291,18 +305,26 @@ class OptionalMessageDialog(QtWidgets.QDialog):
         *,
         checked: bool = False,
         icon: Icon | None = None,
+        show: bool = True,
     ) -> OptionalMessageDialog:
         d = OptionalMessageDialog(parent, StyleMessage, title, msg, checked=checked, check_text=None, icon=icon)
         d.setWindowModality(QtCore.Qt.WindowModality.WindowModal)
         WT = QtCore.Qt.WindowType
         d.setWindowFlags(WT.Window)
 
-        d.show()
+        if show:
+            OptionalMessageDialog._dialog_queue.append(d)
         return d
 
     @staticmethod
     def critical(
-        parent: QtWidgets.QWidget | None, title: str, text: str, details: str | None = None, modal: bool = True
+        parent: QtWidgets.QWidget | None,
+        title: str,
+        text: str,
+        details: str | None = None,
+        modal: bool = True,
+        *,
+        show: bool = True,
     ) -> OptionalMessageDialog:
         d = OptionalMessageDialog(
             parent,
@@ -320,21 +342,22 @@ class OptionalMessageDialog(QtWidgets.QDialog):
         else:
             d.setWindowFlags(WT.Window)
 
-        d.show()
+        if show:
+            OptionalMessageDialog._dialog_queue.append(d)
         return d
 
     @staticmethod
     def warning(
-        parent: QtWidgets.QWidget | None, title: str, text: str, details: str | None = None, modal: bool = True
+        parent: QtWidgets.QWidget | None,
+        title: str,
+        text: str,
+        details: str | None = None,
+        modal: bool = True,
+        *,
+        show: bool = True,
     ) -> OptionalMessageDialog:
         d = OptionalMessageDialog(
-            parent,
-            StyleMessage,
-            title,
-            text,
-            details=details,
-            icon=OptionalMessageDialog.Icon.Warning,
-            check_text=None,
+            parent, StyleMessage, title, text, details=details, icon=OptionalMessageDialog.Icon.Warning, check_text=None
         )
         WT = QtCore.Qt.WindowType
         if modal:
@@ -343,12 +366,19 @@ class OptionalMessageDialog(QtWidgets.QDialog):
         else:
             d.setWindowFlags(WT.Window)
 
-        d.show()
+        if show:
+            OptionalMessageDialog._dialog_queue.append(d)
         return d
 
     @staticmethod
     def information(
-        parent: QtWidgets.QWidget | None, title: str, text: str, details: str | None = None, modal: bool = False
+        parent: QtWidgets.QWidget | None,
+        title: str,
+        text: str,
+        details: str | None = None,
+        modal: bool = False,
+        *,
+        show: bool = True,
     ) -> OptionalMessageDialog:
         d = OptionalMessageDialog(
             parent,
@@ -366,5 +396,6 @@ class OptionalMessageDialog(QtWidgets.QDialog):
         else:
             d.setWindowFlags(WT.Window)
 
-        d.show()
+        if show:
+            OptionalMessageDialog._dialog_queue.append(d)
         return d

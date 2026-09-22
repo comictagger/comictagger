@@ -442,6 +442,8 @@ class TaggerWindow(QtWidgets.QMainWindow):
         self.export_window = ExportWindow(self)
         self.export_window.export.connect(self._repackage_archive)
 
+        QtCore.QTimer.singleShot(300, OptionalMessageDialog.show_dialog)
+
     def enabled_tags(self) -> Sequence[str]:
         return [tag.id for tag in tags.values() if tag.enabled]
 
