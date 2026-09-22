@@ -114,6 +114,7 @@ class SettngsNS(settngs.TypedNS):
     Auto_Tag__issue_id: str | None
     Auto_Tag__metadata: comicapi.genericmetadata.GenericMetadata
     Auto_Tag__clear_tags: bool
+    Auto_Tag__keep_cli_tags: bool
     Auto_Tag__publisher_filter: list[str]
     Auto_Tag__use_publisher_filter: bool
     Auto_Tag__auto_imprint: bool
@@ -253,6 +254,7 @@ class Auto_Tag(typing.TypedDict):
     issue_id: str | None
     metadata: comicapi.genericmetadata.GenericMetadata
     clear_tags: bool
+    keep_cli_tags: bool
     publisher_filter: list[str]
     use_publisher_filter: bool
     auto_imprint: bool

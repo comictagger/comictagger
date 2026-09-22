@@ -18,6 +18,8 @@ def prepare_metadata(md: GenericMetadata, new_md: GenericMetadata, config: Settn
     final_md = md.copy()
     if config.Auto_Tag__clear_tags:
         final_md = GenericMetadata()
+        if config.Auto_Tag__keep_cli_tags:
+            final_md = config.Auto_Tag__metadata.copy()
 
     final_md.overlay(new_md, config.Metadata_Options__metadata_merge, config.Metadata_Options__metadata_merge_lists)
 

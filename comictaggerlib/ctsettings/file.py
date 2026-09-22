@@ -315,6 +315,12 @@ def autotag(parser: settngs.Manager) -> None:
         help="Clears all existing tags during import, default is to merge tags.\nMay be used in conjunction with -o, -f and -m.\ndefault: %(default)s\n\n",
     )
     parser.add_setting(
+        "--keep-cli-tags",
+        default=False,
+        action=argparse.BooleanOptionalAction,
+        help="When using --clear-tags uses metadata from '-m' instead of removing all metadata.\nOnly activates with --clear-tags.\ndefault: %(default)s\n\n",
+    )
+    parser.add_setting(
         "--publisher-filter",
         default=["Panini Comics", "Abril", "Planeta DeAgostini", "Editorial Televisa", "Dino Comics"],
         action="extend",
