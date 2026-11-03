@@ -19,6 +19,14 @@ def test_apply_default_page_list(tmp_path, md):
     assert new_md.pages[0].archive_index == 0
 
 
+def test_apply_default_page_list_empty():
+    new_md = comicapi.genericmetadata.GenericMetadata()
+    new_md.apply_default_page_list([])
+
+    assert new_md.pages == []
+    assert new_md.page_count == 0
+
+
 @pytest.mark.parametrize("md, new, expected", testing.comicdata.metadata)
 def test_metadata_overlay(md, new, expected):
     md.overlay(new, comicapi.merge.Mode.OVERLAY)
