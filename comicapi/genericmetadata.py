@@ -422,7 +422,7 @@ class GenericMetadata:
         if self.page_count != len(page_list):
             logger.warning("Wrong count of pages: expected %d got %d", len(self.pages), len(page_list))
         # Set the cover to the first image acording to hte display index if we don't know what the cover is
-        if not cover_set:
+        if not cover_set and self.pages:
             first_page = self.get_archive_page_index(0)
             self.pages[first_page].type = PageType.FrontCover
 
