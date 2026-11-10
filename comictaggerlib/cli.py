@@ -181,7 +181,12 @@ class CLI:
             )
         if self.config.Runtime_Options__interactive:
             while True:
-                i = input("Choose a match #, or 's' to skip: ")
+                try:
+                    i = input("Choose a match #, or 's' to skip: ")
+                except EOFError:
+                    # stdin is closed or exhausted (e.g. piped input ends);
+                    # treat it as skipping instead of crashing
+                    i = "s"
                 if (i.isdigit() and int(i) in range(1, len(match_set.online_results) + 1)) or i == "s":
                     break
             if i != "s":
