@@ -128,7 +128,7 @@ def parse_metadata_from_string(mdstr: str) -> GenericMetadata:
             p = pathlib.Path(mdstr[1:])
             if not p.is_file():
                 raise argparse.ArgumentTypeError("Invalid filepath")
-            mdstr = p.read_text()
+            mdstr = p.read_text(encoding="utf-8-sig")
         if mdstr[0] != "{":
             mdstr = "{" + mdstr + "}"
 
